@@ -120,6 +120,7 @@ public class ProjectProperties {
     static final StringMap searchTail = new StringMap.ComposedMaps(
             new StringMap.FromFileProps(".fortress.properties"),
             new StringMap.FromFileProps(home+"/.fortress.properties"),
+            new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties.local"),
             new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
     );
 
@@ -127,9 +128,7 @@ public class ProjectProperties {
             new StringMap.FromReflection(ProjectProperties.class),
             new StringMap.FromSysProps(), 
             new StringMap.FromEnv(),
-            new StringMap.FromFileProps(".fortress.properties"),
-            new StringMap.FromFileProps(home+"/.fortress.properties"),
-            new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
+            searchTail
     );
 
     static final public String get(String s) {
@@ -170,6 +169,7 @@ public class ProjectProperties {
      * System.getenv("FORTRESS_CACHE")
      * ./.fortress.properties .getProperty("fortress.cache")
      * ~/.fortress.properties .getProperty("fortress.cache")
+     * ${FORTRESS_HOME}/fortress.properties.local .getProperty("fortress.cache") .
      * ${FORTRESS_HOME}/fortress.properties .getProperty("fortress.cache") .
      */
 
@@ -192,7 +192,7 @@ public class ProjectProperties {
      * The path name includes a trailing slash!
      */
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_HOME}/ProjectFortress/");
-    public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
+    // public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
 
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}.interpreter_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}.analyzed_cache");
