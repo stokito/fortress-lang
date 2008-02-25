@@ -234,7 +234,7 @@ public class AtomicFTypeArray extends FObject {
                 return false;
             case ABORTED:
                 restore(writeRec,i);
-                // Fall through
+                return true;
             case COMMITTED:
                 return true;
             default:
