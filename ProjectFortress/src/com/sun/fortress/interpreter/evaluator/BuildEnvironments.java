@@ -46,6 +46,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
+import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
 import com.sun.fortress.interpreter.evaluator.values.HasFinishInitializing;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
@@ -703,9 +704,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         } else {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
-                bug(x,"Generic singleton objects not yet implemented");
-                GenericConstructor gen = new GenericConstructor(e, x, name);
-                guardedPutValue(containing, obfuscatedConstructorName(fname), gen, x);
+                // bug(x,"Generic singleton objects not yet implemented");
+                makeGenericSingleton(x, e, name, fname, ft);
 
             } else {
                 // It is a singleton; do not expose the constructor, do
@@ -731,6 +731,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         scanForFunctionalMethodNames(ft, x.getDecls());
 
+    }
+
+    private void makeGenericSingleton(ObjectAbsDeclOrDecl x, BetterEnv e, Id name,
+            String fname, FTraitOrObjectOrGeneric ft) {
+        GenericConstructor gen = new GenericConstructor(e, x, name);
+        guardedPutValue(containing, obfuscatedConstructorName(fname), gen, x);
+        guardedPutValue(containing, fname, new GenericSingleton(x,ft, gen), x);
     }
 
     public void scanForFunctionalMethodNames(
@@ -775,9 +782,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         } else {
             // If there are no parameters, it is a singleton.
             // Not clear we can evaluate it yet.
-            FTypeObject fto = (FTypeObject) containing.getType(fname);
+            if (!staticParams.isEmpty()) {
+                // Do nothing.
+            } else {
+                FTypeObject fto = (FTypeObject) containing.getType(fname);
 
-            finishObjectTrait(x, fto);
+                finishObjectTrait(x, fto);
+            }
 
         }
 
@@ -808,12 +819,15 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         } else {
             // If there are no parameters, it is a singleton.
-            // TODO -  Blindly assuming a non-generic singleton.
-
+            
+            if (!staticParams.isEmpty()) {
+                // do nothing for generic singleton or its constructor
+            } else {
             Constructor cl = (Constructor) containing
                     .getValue(obfuscatedSingletonConstructorName(fname, x));
-          //  cl.setParams(Collections.<Parameter> emptyList());
-            cl.finishInitializing();
+            //  cl.setParams(Collections.<Parameter> emptyList());
+                cl.finishInitializing();
+            }
          }
         scanForFunctionalMethodNames(ft, x.getDecls());
     }
@@ -1523,9 +1537,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         } else {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
-                bug(x,"Generic singleton objects not yet implemented");
-                GenericConstructor gen = new GenericConstructor(e, x, name);
-                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), gen, x);
+                makeGenericSingleton(x, e, name, fname, ft);
 
             } else {
                 // Simply need to create a named value so that imports will work.
@@ -1557,11 +1569,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 finishObjectTrait(x, fto);
             }
         } else {
-            // If there are no parameters, it is a singleton.
-            // Not clear we can evaluate it yet.
-            FTypeObject fto = (FTypeObject) containing.getType(fname);
+            if (!staticParams.isEmpty()) {
+                // Do nothing.
+            } else {
+                FTypeObject fto = (FTypeObject) containing.getType(fname);
 
-            finishObjectTrait(x, fto);
+                finishObjectTrait(x, fto);
+            }
 
         }
 

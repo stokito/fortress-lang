@@ -57,6 +57,7 @@ import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
+import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
 import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
 import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
@@ -1815,6 +1816,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return ((GenericConstructor) g).typeApply(args, e, x);
         } else if (g instanceof OverloadedFunction) {
             return((OverloadedFunction) g).typeApply(args, e, x);
+        } else if (g instanceof GenericSingleton) {
+            return ((GenericSingleton) g).typeApply(args, e, x);
         } else {
             return error(x, e, errorMsg("Unexpected _RewriteFnRef value, ",g));
         }
