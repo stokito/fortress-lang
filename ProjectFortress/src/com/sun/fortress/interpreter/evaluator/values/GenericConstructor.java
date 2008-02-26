@@ -138,6 +138,12 @@ implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
   public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
     List<StaticParam> params = odefOrDecl.getStaticParams();
 
+    ArrayList<FType> argValues = argsToTypes(args, e, x, params);
+    return make(argValues, x);
+}
+
+public static ArrayList<FType> argsToTypes(List<StaticArg> args, BetterEnv e, HasAt x,
+        List<StaticParam> params) {
     // Evaluate each of the args in e, inject into clenv.
     if (args.size() != params.size() ) {
         error(x, e,
@@ -147,7 +153,7 @@ implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
     }
     EvalType et = new EvalType(e);
     ArrayList<FType> argValues = et.forStaticArgList(args);
-    return make(argValues, x);
+    return argValues;
 }
 
 @Override
