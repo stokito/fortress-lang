@@ -38,10 +38,10 @@ public class JavaC {
 	 */
 	static final String nl = "\n";
 	
-	public static int compile(String dir, String filename) {
+	public static int compile(String sourceDir, String destinationDir, String filename) {
 		System.err.println("compiling a temporary parser...");
-		String classpath = dir+":"+getFortressThirdPartyDependencyJars()+":"+getFortressBuildDir();
-		String[] args = {"-cp", classpath , "-d", dir, dir+filename};
+		String classpath = sourceDir+":"+getFortressThirdPartyDependencyJars()+":"+getFortressBuildDir();
+		String[] args = {"-cp", classpath , "-d", destinationDir, filename};
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		int compilationResult = com.sun.tools.javac.Main.compile(args, pw);

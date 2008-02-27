@@ -15,24 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.index;
+package com.sun.fortress.syntax_abstractions.phases;
 
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes._TerminalDef;
+import java.util.Collection;
+import java.util.LinkedList;
 
-import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.PrefixedSymbol;
 
-public class GrammarTerminalIndex extends ProductionIndex<_TerminalDef> {
+public class VariableCollector extends NodeDepthFirstVisitor<Collection<PrefixedSymbol>> {
 
-	public GrammarTerminalIndex(Option<_TerminalDef> ast) {
-		super(ast);
-	}
-
-	public SyntaxDef getSyntaxDef() {
-		if (this.ast().isNone()) {
-			throw new RuntimeException("Ast not found.");
+	@Override
+	public Collection<PrefixedSymbol> defaultCase(com.sun.fortress.nodes.Node that) {
+		return new LinkedList<PrefixedSymbol>();
+	}	
+	
+	@Override
+	public Collection<PrefixedSymbol> forPrefixedSymbol(PrefixedSymbol that) {
+		Collection<PrefixedSymbol> c = super.forPrefixedSymbol(that);
+		if (that.getId().isSome()) {
+			c.add(that);
 		}
-		return Option.unwrap(this.ast()).getSyntaxDef();
+		return c;
 	}
 
 }

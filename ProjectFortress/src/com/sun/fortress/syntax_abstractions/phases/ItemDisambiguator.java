@@ -128,7 +128,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 				EscapeRewriter escapeRewriter = new EscapeRewriter();
 				Api erResult = (Api) sdResult.accept(escapeRewriter);
 				
-				// Rewrite escaped characters
+				// Rewrite terminals to be declared using terminal definitions
 				TerminalRewriter terminalRewriter = new TerminalRewriter();
 				Api trResult = (Api) erResult.accept(terminalRewriter);
 				results.add(trResult);
@@ -255,6 +255,9 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			Option<Id> id_result, SyntaxSymbol symbol_result) {
 		String varName = symbol_result.accept(new PrefixHandler());
 		if (id_result.isNone()) {
+			if (!IdentifierUtil.validId(varName)) {
+				return symbol_result;
+			}
 			return handle(prefix, symbol_result, varName);
 		}
 		else {
@@ -264,13 +267,15 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	
 	private Node handle(PrefixedSymbol prefix, SyntaxSymbol that, String varName) {
 		Id var = NodeFactory.makeId(varName);
-		return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var),that);
+		return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var), that);
 	}
 	
 	private class PrefixHandler extends NodeDepthFirstVisitor<String> {
-				
+
+		
 		@Override
 		public String defaultCase(Node that) {
+			System.err.println(that.getClass());
 			return "";
 		}
 
@@ -279,6 +284,11 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			return that.getItem(); // handle(that, that.getItem());
 		}
 
+		@Override
+		public String forTokenSymbol(TokenSymbol that) {
+			return that.getToken(); // handle(that, that.getItem());
+		}
+		
 		@Override
 		public String forNonterminalSymbol(NonterminalSymbol that) {
 			return _currentItem; // handle(that, _currentItem);

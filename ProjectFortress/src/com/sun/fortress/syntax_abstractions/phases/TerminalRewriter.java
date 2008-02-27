@@ -47,7 +47,7 @@ import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 /*
- * Rewrite occurences of Keyword symbols and token symbols to 
+ * Rewrite occurrences of Keyword symbols and token symbols to 
  * nonterminal references to terminal definitions 
  */
 public class TerminalRewriter extends NodeUpdateVisitor {
@@ -55,13 +55,15 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 	private static final String FORTRESSAST = "FortressAst";
 	private static final String STRINGLITERALEXPR = "StringLiteralExpr";
 	private Collection<_TerminalDef> _terminalDefs;
-	private APIName _apiName;
+	private List<Id> _apiName;
 	private String _var;
 
 	@Override
 	public Node forGrammarDef(GrammarDef that) {
 		this._terminalDefs = new LinkedList<_TerminalDef>();
-		this._apiName = Option.unwrap(that.getName().getApi());
+		this._apiName = new LinkedList<Id>(); 
+		this._apiName.addAll(Option.unwrap(that.getName().getApi()).getIds());
+		this._apiName.add(that.getName().getName());
 		return super.forGrammarDef(that);
 	}
 	
@@ -98,24 +100,27 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 	 */
 	private Node handleTerminal(SyntaxSymbol that, String token) {
 		// Create a new name for the terminal definition
-		String var = FreshName.getFreshName("T"+this._var.toUpperCase());
-		List<Id> ids = new LinkedList<Id>();
-		ids.addAll(this._apiName.getIds());
-		APIName apiName = NodeFactory.makeAPIName(ids);
+		String var = "";
+		if (null != this._var) {
+			var = FreshName.getFreshName("T"+this._var.toUpperCase());
+		}
+		else {
+			var = FreshName.getFreshName("T");
+		}
+		APIName apiName = NodeFactory.makeAPIName(this._apiName);
 		Id id = NodeFactory.makeId(var);
 		QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName,id);
 
-		// Create a the return type - A StringLiteralExpr
-		Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName(STRINGLITERALEXPR)));
+		// Create a the return type - A String
+		Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", "String")));
 		
 		// Create the syntax symbol inside the terminal definition
 		List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
 		syntaxSymbols.add(new PrefixedSymbol(Option.some(NodeFactory.makeId(token)), that));
-		syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeQualifiedIdName("idrest"))));
+		syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeQualifiedIdName("FortressSyntax", "Identifier", "idrest"))));
 		
 		// Create the transformation expression
-		Option<Expr> arg = Option.<Expr>wrap(NodeFactory.makeStringLiteralExpr(token));
-		Expr transformationExpression = SyntaxAbstractionUtil.makeObjectInstantiation(that.getSpan(), FORTRESSAST, STRINGLITERALEXPR, arg);
+		Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);
 
 		// Add the terminal definition to the collection of new terminal definitions
 		SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, transformationExpression);

@@ -23,7 +23,7 @@ api SyntaxGrammarImports
 
   grammar Helloworld extends { A, B, Literal }
       LiteralExpr |Expr=
-         Hello a:Beautiful world do StringLiteralExpr(Hello.val a.val "world") end
+         Hello a:Beautiful world do StringLiteralExpr(Hello.val " " a.val " world") end
       end
   end
  
@@ -32,8 +32,8 @@ api SyntaxGrammarImports
          when do StringLiteralExpr("in 84") end
       end
 
-      Beautiful :Expr:=
-         beautiful do StringLiteralExpr(" beautiful ") end
+      Beautiful :StringLiteralExpr:=
+         beautiful do StringLiteralExpr(beautiful) end
       end
   end
 

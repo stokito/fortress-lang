@@ -57,6 +57,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 public abstract class RatsUtil {
 
+	public static final String COMSUNFORTRESSPARSER = "com"+File.separatorChar+"sun"+File.separatorChar+"fortress"+File.separatorChar+"parser"+File.separatorChar;
+
 	public static Module getRatsModule(ModuleEnum module) {
 		return RatsUtil.getRatsModule(RatsUtil.getFortressSrcDir()+RatsUtil.getModulePath(ModuleInfo.getModuleName(module).name)+".rats");
 	}
@@ -215,27 +217,24 @@ public abstract class RatsUtil {
 		m.productions = new LinkedList<Production>();
 
 		List<ModuleName> parameters = new LinkedList<ModuleName>();
-		List<ModuleDependency> dependencies = new LinkedList<ModuleDependency>();
-		
-		for (com.sun.fortress.syntax_abstractions.intermediate.Module imported: module.getImports()) {
-			parameters.add(new ModuleName(imported.getName()));
-			dependencies.add(new ModuleImport(new ModuleName(imported.getName())));
-		}
-		
-		// If we modify a core Fortress module then we need a lot of boiler plate 
-		if (module.getModify() != null) {
-			parameters.addAll(module.getModify().getParameters());
-			dependencies.addAll(module.getModify().getDependencies());
-			
-			String modifyName = module.getModify().getName();
-			ModuleList args = new ModuleList(new LinkedList<ModuleName>());
-			ModuleName moduleName = new ModuleName(modifyName+ModuleInfo.MODULE_NAME_EXTENSION);
-			dependencies.add(new ModuleModification(moduleName, args, null));
-			parameters.add(moduleName);
-		}
-		
+		parameters.addAll(module.getParameters());
 		m.parameters = new ModuleList(parameters);
+		
+		List<ModuleDependency> dependencies = new LinkedList<ModuleDependency>();
+		dependencies.addAll(module.getDependencies());
 		m.dependencies = dependencies;
+		
+//		// If we modify a core Fortress module then we need a lot of boiler plate 
+//		if (module.getModify() != null) {
+//			parameters.addAll(module.getModify().getParameters());
+//			dependencies.addAll(module.getModify().getDependencies());
+//			
+//			String modifyName = module.getModify().getName().toString();
+//			ModuleList args = new ModuleList(new LinkedList<ModuleName>());
+//			ModuleName moduleName = new ModuleName(modifyName+ModuleInfo.MODULE_NAME_EXTENSION);
+//			dependencies.add(new ModuleModification(moduleName, args, null));
+//			parameters.add(moduleName);
+//		}
 
 		m.documentation = getComment();
 		m.header = createHeader();
@@ -266,6 +265,7 @@ public abstract class RatsUtil {
 		return new Comment(Comment.Kind.SINGLE_LINE, lines);
 	}
 
+	//TODO remove along with rats.FortressModule and KeywordModule
 	public static String getModulePath() {
 		return ModuleInfo.MODULE_NAME_PREFIX.replaceAll("\\.", ""+File.separatorChar);
 	}
@@ -279,7 +279,7 @@ public abstract class RatsUtil {
 	}
 
 	public static String getParserPath() {
-		return RatsUtil.getFortressSrcDir()+"com"+File.separatorChar+"sun"+File.separatorChar+"fortress"+File.separatorChar+"parser"+File.separatorChar;
+		return RatsUtil.getFortressSrcDir() + COMSUNFORTRESSPARSER;
 	}
 
 	public static String getTempDir() {

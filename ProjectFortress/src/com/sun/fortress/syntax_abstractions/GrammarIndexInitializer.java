@@ -41,7 +41,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class GrammarIndexInitializer {
 
-	public class Result extends StaticPhaseResult {
+	public static class Result extends StaticPhaseResult {
 		private Collection<GrammarEnv> envs;
 
 		public Result(Collection<GrammarEnv> envs,
@@ -57,7 +57,7 @@ public class GrammarIndexInitializer {
 		Collection<StaticError> ses = new LinkedList<StaticError>();
 		initGrammarExtends(envs, ses);
 		initNonterminalExtends(envs, ses);
-		return (new GrammarIndexInitializer()).new Result(envs, ses);
+		return new Result(envs, ses);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class GrammarIndexInitializer {
 						GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
 						Collection<ProductionIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name, g);
 						if (s.isEmpty()) {
-							ses.add(StaticError.make("Unknown extended nonterminal: "+name, n.getAst()));
+							ses.add(StaticError.make("Unknown extended nonterminal: "+name+" in grammar: "+g.getName(), n.getAst()));
 						}
 						((ProductionExtendIndex) n).addExtendedNonterminals(s);
 					}

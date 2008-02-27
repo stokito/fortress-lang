@@ -23,10 +23,11 @@ import java.util.List;
 
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import edu.rice.cs.plt.tuple.Option;
 
-public class ProductionExtendIndex extends ProductionIndex<NonterminalExtensionDef> {
+public class ProductionExtendIndex extends GrammarNonterminalIndex<NonterminalExtensionDef> {
 
 	private Collection<ProductionIndex<? extends GrammarMemberDecl>> extend;
 	

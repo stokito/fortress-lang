@@ -26,6 +26,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 
@@ -34,12 +35,16 @@ import edu.rice.cs.plt.tuple.Option;
 public class SyntaxAbstractionUtil {
 
 	public static final String FORTRESSAST = "FortressAst";
+	public static final String FORTRESSBUILTIN = "FortressBuiltin";
 	public static final String STRINGLITERALEXPR = "StringLiteralExpr";
 	public static final String STRINGLITERAL = "StringLiteral";
 	public static final String FORTRESSLIBRARY = "FortressLibrary";
+	public static final String MAYBE = "Maybe";
 	public static final String JUST = "Just";
 	public static final String NOTHING = "Nothing";
 	public static final String STRING = "String";
+	public static final String LIST = "List";
+	public static final String ARRAYLIST = "ArrayList";
 
 	/**
 	 * Returns a qualified id name where the grammar name is added to the api.
@@ -90,6 +95,13 @@ public class SyntaxAbstractionUtil {
 			exprs.add(Option.unwrap(arg));
 		}
 		return NodeFactory.makeTightJuxt(span, exprs);
+	}
+	
+	public static TraitType unwrap(Option<TraitType> t) {
+		if (t.isNone()) {
+			throw new RuntimeException("Grammar member declaration does not have a type, malformed AST");
+		}
+		return Option.unwrap(t);
 	}
 
 }

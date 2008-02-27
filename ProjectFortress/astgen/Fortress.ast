@@ -585,7 +585,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * non-terminal syntax symbol
          */
-        NonterminalSymbol(QualifiedName nonterminal);
+        NonterminalSymbol(QualifiedIdName nonterminal);
         /**
          * keyword syntax symbol
          */

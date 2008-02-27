@@ -104,7 +104,7 @@ public class InterpreterWrapper {
     static FortressTaskRunnerGroup group;
 
     public Result evalComponent(Span span, String productionName, String component, Map<String, Object> boundVariables) {
-        Collection<StaticError> errors = new LinkedList<StaticError>();
+    	Collection<StaticError> errors = new LinkedList<StaticError>();
         Option<CompilationUnit> cu = Option.none();
         try {
             cu = readAST(productionName, component);

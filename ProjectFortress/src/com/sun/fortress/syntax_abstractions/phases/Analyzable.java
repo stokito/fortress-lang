@@ -19,6 +19,7 @@ package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
 
+import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;

@@ -18,37 +18,30 @@
 package com.sun.fortress.syntax_abstractions.util;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
+
+import xtc.parser.Action;
+import xtc.util.Utilities;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -61,25 +54,20 @@ import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StringLiteralExpr;
-import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.phases.ProductionTranslator.NonterminalNameToDeclaredReturnType;
+import com.sun.fortress.syntax_abstractions.phases.NonterminalTypeDictionary;
 
-import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
-
-import xtc.parser.Action;
-import xtc.parser.Production;
-import xtc.util.Utilities;
 
 public class ActionCreater {
 
@@ -101,117 +89,100 @@ public class ActionCreater {
 	}
 
 	private static final Id ANY = new Id("Any");
-	private static final Id STRING = new Id("String");
 
 	public static Result create(String productionName, 
-								Expr e,
-								String returnType,
-								Collection<PrefixedSymbol> boundVariables,
-								NonterminalNameToDeclaredReturnType nonterminalNameToDeclaredReturnType) {
+			Expr e,
+			TraitType type,
+			Collection<PrefixedSymbol> boundVariables) {
 		ActionCreater ac = new ActionCreater();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 
-		Component component = ac.makeComponent(e, boundVariables, nonterminalNameToDeclaredReturnType);
+		Component component = ac.makeComponent(e, boundVariables);
 		String serializedComponent = "";
-		try {
-			serializedComponent = ac.writeJavaAST(component);
-//			System.err.println(serializedComponent);
-		} catch (IOException e1) {
-			errors.add(StaticError.make(e1.getMessage(), e.getSpan().toString()));
-		}
+		serializedComponent = ac.writeJavaAST(component);
+
+		String returnType = new FortressTypeToJavaType().analyze(type);
+
 		List<Integer> indents = new LinkedList<Integer>();		
 		List<String> code = createVariabelBinding(indents, boundVariables);
 		code.addAll(createRatsAction(serializedComponent, indents));
-		indents.add(3);
-		code.add("System.err.println(\"Parsing... production: "+productionName+"\");");
-		indents.add(3);
-		code.add("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+productionName+"\", code, "+BOUND_VARIABLES+").value());");
-//		System.err.println(code);
-		Action a = new Action(code, indents);
+		addCodeLine("System.err.println(\"Parsing... production: "+productionName+"\");", code, indents);
+		addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+productionName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
 
+		// System.err.println(code);
+		Action a = new Action(code, indents);
 		return ac.new Result(a, errors);
 	}
 
+	private static void addCodeLine(String s, List<String> code,
+			List<Integer> indents) {
+		indents.add(3);
+		code.add(s);		
+	}
+
 	enum Kinds {OPTIONAL, REPETITION}
-	
+
 	/**
-	 * We siliently assume, that Terminal definitions does not 
+	 * 
 	 * @param ps
 	 * @param nonterminalNameToDeclaredReturnType
 	 * @return
 	 */
-	private Option<Type> getType(PrefixedSymbol ps,
-				NonterminalNameToDeclaredReturnType nonterminalNameToDeclaredReturnType) {
-
-		Pair<String, Option<Kinds>> result = ps.getSymbol().accept(new NodeDepthFirstVisitor<Pair<String, Option<Kinds>>>() {
+	private Option<Type> getType(PrefixedSymbol ps) {
+		return ps.getSymbol().accept(new NodeDepthFirstVisitor<Option<Type>>() {
+			@Override
+			public Option<Type> defaultCase(Node that) {
+				throw new RuntimeException("Unexpected case: "+that.getClass());
+			}		
 
 			@Override
-			public Pair<String, Option<Kinds>> defaultCase(Node that) {
-				return new Pair<String, Option<Kinds>>("", Option.<Kinds>none());
-			}		
+			public Option<Type> forOptionalSymbol(OptionalSymbol that) {
+				return handle(that.getSymbol(), SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.MAYBE);
+			}
+
+			@Override
+			public Option<Type> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
+				return handle(that.getSymbol(), SyntaxAbstractionUtil.ARRAYLIST, SyntaxAbstractionUtil.LIST);
+			}
+
+			@Override
+			public Option<Type> forRepeatSymbol(RepeatSymbol that) {
+				return handle(that.getSymbol(), SyntaxAbstractionUtil.ARRAYLIST, SyntaxAbstractionUtil.LIST);
+			}
+
+			@Override 
+			public Option<Type> forNonterminalSymbol(NonterminalSymbol that) {
+				return NonterminalTypeDictionary.getType(that.getNonterminal().getName().getText());
+			}
 			
 			@Override
-			public Pair<String, Option<Kinds>> forOptionalSymbolOnly(
-					OptionalSymbol that,
-					Pair<String, Option<Kinds>> symbol_result) {
-				return handle(symbol_result, Kinds.OPTIONAL);
+			public Option<Type> forKeywordSymbol(KeywordSymbol that) {
+				QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+				return Option.<Type>some(new IdType(string));
 			}
-
+			
 			@Override
-			public Pair<String, Option<Kinds>> forRepeatOneOrMoreSymbolOnly(
-					RepeatOneOrMoreSymbol that,
-					Pair<String, Option<Kinds>> symbol_result) {
-				return handle(symbol_result, Kinds.REPETITION);
+			public Option<Type> forTokenSymbol(TokenSymbol that) {
+				QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+				return Option.<Type>some(new IdType(string));
 			}
 
-			@Override
-			public Pair<String, Option<Kinds>> forRepeatSymbolOnly(
-					RepeatSymbol that, Pair<String, Option<Kinds>> symbol_result) {
-				return handle(symbol_result, Kinds.REPETITION);
-			}
-					
-			@Override 
-			public Pair<String, Option<Kinds>> forNonterminalSymbol(NonterminalSymbol that) {
-				return new Pair<String, Option<Kinds>>(that.getNonterminal().getName().toString(), Option.<Kinds>none());
-			}
-
-			private Pair<String, Option<Kinds>> handle(
-					Pair<String, Option<Kinds>> p, Kinds kind) {
-				if (p.second().isNone()) {
-					return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
+			private Option<Type> handle(SyntaxSymbol symbol, String api, String id) {
+				Option<Type> t = symbol.accept(this);
+				if (t.isNone()) {
+					return t;
 				}
-				return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
+				Type type = Option.unwrap(t);
+				QualifiedIdName list = NodeFactory.makeQualifiedIdName(api, id);
+				List<StaticArg> args = new LinkedList<StaticArg>();
+				args.add(new TypeArg(type));
+				return Option.<Type>some(new InstantiatedType(list, args));
 			}
 		});
-		
-		String var = result.first();
-	
-		Option<Type> type = nonterminalNameToDeclaredReturnType.getType(result.first());
-
-		if (type.isNone()) {
-			return Option.none();
-		}
-		
-		List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-		staticArgs.add(new TypeArg(Option.unwrap(type)));
-		
-		if (result.second().isNone()) {
-			return type;
-		}
-		
-		if (Option.unwrap(result.second()).equals(Kinds.OPTIONAL)) {
-			QualifiedIdName name = NodeFactory.makeQualifiedIdName("FortressLibrary", "Maybe");
-			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
-		}
-		else if (Option.unwrap(result.second()).equals(Kinds.REPETITION)) {
-			QualifiedIdName name = NodeFactory.makeQualifiedIdName("ArrayList", "List");
-			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
-		}
-		return Option.none();
 	}
-	
+
 	private static List<String> createVariabelBinding(List<Integer> indents,
-													  Collection<PrefixedSymbol> boundVariables) {
+			Collection<PrefixedSymbol> boundVariables) {
 		List<String> code = new LinkedList<String>();
 		indents.add(3);
 		code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
@@ -242,7 +213,7 @@ public class ActionCreater {
 		return code;
 	}
 
-	private Component makeComponent(Expr expression, Collection<PrefixedSymbol> boundVariables, NonterminalNameToDeclaredReturnType nonterminalNameToDeclaredReturnType) {
+	private Component makeComponent(Expr expression, Collection<PrefixedSymbol> boundVariables) {
 		APIName name = makeAPIName("TransformationComponent");
 		Span span = new Span();
 		List<Import> imports = new LinkedList<Import>();
@@ -256,15 +227,14 @@ public class ActionCreater {
 
 		// Decls:
 		List<Decl> decls = new LinkedList<Decl>();
-    	for (PrefixedSymbol ps: boundVariables) {
-    		String var = Option.unwrap(ps.getId()).getText();
+		for (PrefixedSymbol ps: boundVariables) {
+			String var = Option.unwrap(ps.getId()).getText();
 			List<LValueBind> valueBindings = new LinkedList<LValueBind>();
-			Option<Type> type = getType(ps, nonterminalNameToDeclaredReturnType);
+			Option<Type> type = getType(ps);
 			valueBindings.add(new LValueBind(new Id(var), type, false));
 			decls.add(new VarDecl(valueBindings, NodeFactory.makeIntLiteralExpr(7)));
-    	}
+		}
 		// entry point
-		List<Param> params = new LinkedList<Param>();
 		decls.add(makeFunction(InterpreterWrapper.FUNCTIONNAME, ANY, expression));
 		return new Component(span, name, imports, exports, decls);
 	}
@@ -285,22 +255,24 @@ public class ActionCreater {
 		return new FnDef(fnName, params, Option.some(returnType), expression);
 	}
 
-	/**
-	 * @return
-	 */
 	private APIName makeAPIName(String name) {
 		List<Id> ids = new LinkedList<Id>();
 		ids.add(new Id(name));
 		return new APIName(ids);
 	}
 
-	private String writeJavaAST(Component component) throws IOException {
-		StringWriter sw = new StringWriter();
-		BufferedWriter bw = new BufferedWriter(sw);
-		ASTIO.writeJavaAst(component, bw);
-		bw.flush();
-		bw.close();
-		return sw.getBuffer().toString();
+	public String writeJavaAST(Component component) {
+		try {
+			StringWriter sw = new StringWriter();
+			BufferedWriter bw = new BufferedWriter(sw);
+			ASTIO.writeJavaAst(component, bw);
+			bw.flush();
+			bw.close();
+//			System.err.println(sw.getBuffer().toString());
+			return sw.getBuffer().toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Unexpected error: "+e.getMessage());
+		}
 	}
-
 }

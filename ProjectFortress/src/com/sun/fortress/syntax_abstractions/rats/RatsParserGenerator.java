@@ -25,8 +25,14 @@ package com.sun.fortress.syntax_abstractions.rats;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,7 +51,9 @@ import com.sun.fortress.syntax_abstractions.rules.RuleTranslator;
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleName;
+import xtc.parser.ParserBase;
 import xtc.parser.Production;
+import xtc.tree.Attribute;
 import xtc.tree.Comment;
 
 public class RatsParserGenerator {
@@ -83,52 +91,61 @@ public class RatsParserGenerator {
 		public Class<?> parserClass() { return parserClass; }
 	}
 
-	
-	public static Result generateParser(Collection<Module> modules, 
-										Set<String> keywords, 
-										Collection<Module> keywordModules,
-										Map<String, String> modulesReplacingFortressModules) {
+
+	public static Result generateParser(Collection<Module> modules) {
 		List<ParserGeneratorError> errors = new LinkedList<ParserGeneratorError>();
-		String temporaryParserName = FreshName.getFreshName("FortressTemporaryParser");
-		String tempDir = RatsUtil.getTempDir();
 		Class<?> parser = null;
 
-		RatsUtil.copyFortressGrammar();
-		
-		for (Module m: modules) {
-			RatsUtil.writeRatsModule(m, tempDir);
-		}	
+		String baseDir = RatsUtil.getTempDir();
+		String destinationDir = baseDir + RatsUtil.COMSUNFORTRESSPARSER;
+		String fortressName = "Fortress";
+		String freshFortressName = FreshName.getFreshName(fortressName);
+	
+		copyGrammar(modules, fortressName, freshFortressName, baseDir);
 
-		FortressModule fortressModule = new FortressModule(temporaryParserName);
-		fortressModule.addModuleNames(tempDir,
-									  modules, 
-									  keywordModules,
-									  modulesReplacingFortressModules);
-		KeywordModule keywordModule = new KeywordModule();
-		keywordModule.addKeywords(keywords, tempDir);
-
-		String fortressRats = tempDir + temporaryParserName+".rats";
-		String fortressJava = temporaryParserName+".java";
-
-		String[] args = {"-no-exit", "-in", tempDir, "-out", tempDir, fortressRats};
+		String fortressRats = destinationDir + "Fortress" +".rats";
+		String[] args = {"-no-exit", "-in", baseDir, "-out", destinationDir, fortressRats};
 		xtc.parser.Rats.main(args);
 
-		int parserResult = JavaC.compile(tempDir, fortressJava);
-
+		String fortressJava = RatsUtil.COMSUNFORTRESSPARSER + freshFortressName +".java";
+		int parserResult = JavaC.compile(baseDir, baseDir, baseDir + fortressJava);
 		if (parserResult != 0) {
 			throw new RuntimeException("A compiler error occured while compiling a temporary parser");
 		}
-		
-		ParserLoader parserLoader = new ParserLoader(tempDir);
-		
+
+		ParserLoader parserLoader = new ParserLoader(baseDir);
 		try {
-			parser = parserLoader.findClass("com.sun.fortress.parser."+temporaryParserName);
+			parser = parserLoader.findClass("com.sun.fortress.parser."+freshFortressName);
 		} catch (ClassNotFoundException e) {
 			errors.add(new RatsParserGenerator().new ParserGeneratorError(e.getMessage()));
 			e.printStackTrace();
 		}
 		
 		return new RatsParserGenerator().new Result(parser, errors);
+	}
+
+	public static void copyGrammar(Collection<Module> modules, 
+							String fortressName, String freshFortressName,
+							String baseDir) {
+
+		RatsUtil.copyFortressGrammar();
+
+		for (Module m: modules) {
+			/* Rename the name of the generated java file */
+			if (m.name.name.equals("com.sun.fortress.parser."+fortressName)) {
+				List<Attribute> attrs = new LinkedList<Attribute>();
+				for (Attribute attribute: m.attributes) {
+					if (attribute.getName().equals("parser")) {
+						attrs.add(new Attribute("parser", "com.sun.fortress.parser."+freshFortressName));
+					}
+					else {
+						attrs.add(attribute);
+					}
+				}
+				m.attributes = attrs;
+			}
+			RatsUtil.writeRatsModule(m, baseDir);
+		}
 	}
 	
 	public static class ParserLoader extends ClassLoader {
@@ -142,7 +159,6 @@ public class RatsParserGenerator {
 
 		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException {
-			//System.err.println("Looking for: "+name+" in basedir: "+basedir);
 			byte[] b = loadClassData(name);
 			if (b != null)
 				return defineClass(null, b, 0, b.length);
@@ -154,7 +170,7 @@ public class RatsParserGenerator {
 			try {
 				classname = classname.replaceAll("\\.", ""+File.separatorChar);
 				//System.err.println(classname);
-				File classfile = new File(basedir + File.separatorChar + classname+".class");
+				File classfile = new File(basedir + classname+".class");
 				if (classfile.exists()) {
 					res = new byte[(int) classfile.length()];
 					new FileInputStream(classfile).read(res);

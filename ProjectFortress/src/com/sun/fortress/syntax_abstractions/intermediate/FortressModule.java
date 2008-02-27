@@ -19,12 +19,9 @@ package com.sun.fortress.syntax_abstractions.intermediate;
 
 import java.util.Collection;
 
-import xtc.parser.ModuleDependency;
-import xtc.parser.ModuleName;
-
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -36,7 +33,7 @@ public class FortressModule extends Module {
 
 	public FortressModule() {}
 	
-	public FortressModule(String name, Collection<ProductionIndex<? extends GrammarMemberDecl>> productions) {
+	public FortressModule(QualifiedIdName name, Collection<ProductionIndex<? extends GrammarMemberDecl>> productions) {
 		super(name, productions);
 		initialize();
 	}
@@ -45,14 +42,17 @@ public class FortressModule extends Module {
 		Option<xtc.parser.Module> om = RatsUtil.parseRatsModule(RatsUtil.getFortressSrcDir()+RatsUtil.getModulePath()+name+".rats");
 		if (om.isSome()) {
 			xtc.parser.Module m = Option.unwrap(om);
-			for (ModuleName name: m.parameters.names) {
-				this.parameters.add(name);
-			}
-			
-			for (ModuleDependency dep: m.dependencies) {
-				this.dependencies.add(dep);
-			}
 		}
 	}
 
+	public String toString() {
+		String indentation = "  ";
+		String s = super.toString();
+		return s+= indentation+"* Fortress core";
+	}
+
+	public void addNonterminal(
+			ProductionIndex<? extends GrammarMemberDecl> member) {
+		this.declaredProductions.add(member);
+	}
 }

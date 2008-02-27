@@ -22,6 +22,7 @@ import java.util.Collection;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.QualifiedIdName;
 
 /*
  * This module corresponds to a user defined grammar. 
@@ -30,9 +31,14 @@ public class UserModule extends Module {
 
 	public UserModule() {}
 	
-	public UserModule(String name,
+	public UserModule(QualifiedIdName name,
 				      Collection<ProductionIndex<? extends GrammarMemberDecl>> productions) {
 		super(name, productions);
 	}
 
+	public String toString() {
+		String indentation = "  ";
+		String s = super.toString();
+		return s+= indentation+"* User module";
+	}
 }

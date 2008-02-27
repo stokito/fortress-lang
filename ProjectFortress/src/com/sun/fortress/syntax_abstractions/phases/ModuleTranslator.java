@@ -20,15 +20,21 @@ package com.sun.fortress.syntax_abstractions.phases;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import xtc.parser.ModuleDependency;
+import xtc.parser.ModuleImport;
+import xtc.parser.ModuleName;
+
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
 import com.sun.fortress.compiler.index.ProductionExtendIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
@@ -45,6 +51,7 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.intermediate.ContractedNonterminal;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
@@ -65,16 +72,13 @@ public class ModuleTranslator {
 	/**
 	 * Result of the module translation
 	 */
-	public class Result extends StaticPhaseResult {
+	public static class Result extends StaticPhaseResult {
 		Collection<Module> modules;
-		private Map<String, String> modulesReplacingFortressModules;
 
 		public Result(Collection<Module> modules, 
-				Map<String, String> modulesReplacingFortressModules,
 				Collection<StaticError> errors) {
 			super(errors);
 			this.modules = modules;
-			this.modulesReplacingFortressModules = modulesReplacingFortressModules;
 		}
 
 		public Result(Collection<Module> modules,
@@ -84,161 +88,98 @@ public class ModuleTranslator {
 		}
 
 		public Collection<Module> modules() { return modules; }
-		public Map<String, String> modulesReplacingFortressModules() { return this.modulesReplacingFortressModules; }
 	}
 
 	private static Collection<StaticError> _errors;
-	private static Map<String, String> modulesReplacingFortressModules;
 
 	private static void error(String mess, HasAt loc) {
 		_errors.add(StaticError.make(mess, loc));
 	}
 
 	public static Result translate(Collection<GrammarEnv> environments) {
-		Map<GrammarIndex, Module> grammarToModules = new HashMap<GrammarIndex, Module>(); 
-		_errors = new LinkedList<StaticError>();
-
+		_errors = new LinkedList<StaticError>(); 
+		ModuleEnvironment menv = new ModuleEnvironment();
 		for (GrammarEnv env: environments) {
 			for (GrammarIndex g: env.getGrammars()) {
-				Module m = newModule(g, grammarToModules);
-
-				initializeNewModule(m, new LinkedList<Module>());
-
-				m.setExtended(initializeExtend(grammarToModules, g));
-
 				if (env.isToplevel(g)) {
-					m.isTopLevel(true);
-				}					
-
-				if (!grammarToModules.containsKey(g)) {
-					grammarToModules.put(g, m);
-				}
-			}
-		}
-
-		resolveModification(grammarToModules);
-		return new ModuleTranslator().new Result(grammarToModules.values(), modulesReplacingFortressModules, _errors);
-	}
-
-	private static Option<GrammarIndex> findGrammarIndex(Collection<GrammarIndex> gs, QualifiedIdName n) {
-		for (GrammarIndex g: gs) {
-			if (n.equals(g.getName())) {
-				return Option.some(g);
-			}
-		}
-		return Option.none();
-	}
-
-	private static void resolveModification(Map<GrammarIndex, Module> grammarToModules) {
-		modulesReplacingFortressModules = new HashMap<String, String>();
-		
-		Set<APIName> modifiedNames = new HashSet<APIName>();
-		Set<Module> modifiedModules = new HashSet<Module>();
-
-		for (Module m: grammarToModules.values()) {
-			if (m.isTopLevel()) {
-				// Intentional raw type javac 1.5 bug on Solaris 
-				for (ProductionIndex/*<? extends NonterminalDecl>*/ n: m.getDeclaredNonterminals()) {				
-					if (n instanceof ProductionExtendIndex) {
-						ProductionExtendIndex nei = (ProductionExtendIndex) n;
-
-						for (ProductionIndex<? extends GrammarMemberDecl> e: nei.getExtends()) {
-							if (e.getName().getApi().isSome()) {
-								APIName apiName = Option.unwrap(e.getName().getApi());
-								if (modifiedNames.contains(apiName )) {
-									error("Multiple modifications of productions in the same grammar "+e.getName(), apiName);	
-								}
-								modifiedNames.add(apiName);
-								QualifiedIdName grammarName = getGrammarName(apiName);
-								Option<GrammarIndex> g = findGrammarIndex(grammarToModules.keySet(), grammarName);
-								if (g.isSome()) {
-									modifiedModules.add(grammarToModules.get(Option.unwrap(g)));
-								}
-								else {
-									throw new RuntimeException("Grammar not found: "+grammarName);
-								}
-							}
-							else {
-								throw new RuntimeException("Found non disambiguated name in production definition: "+e.getName());
-							}
-						}
+					NonterminalContractor nc = new NonterminalContractor();
+					for (ContractedNonterminal cnt: nc.getContractionList(g)) {
+						menv.add(cnt);
 					}
 				}
-				if (modifiedNames.size() == 1) {
-					Module modify = IterUtil.first(modifiedModules); 
-					if (modify instanceof FortressModule) {
-						modulesReplacingFortressModules.put(m.getName(), modify.getName());
-					}
-					m.setModify(modify);
-				}
-				else if (modifiedNames.isEmpty()) {
-					error("No modifications found, you must modify at least one existing Fortress grammar to be useful. ", IterUtil.first(m.getDeclaredNonterminals()).getName());
-				}
-				else {
-					error("NYI: Modifications to multiple grammars", IterUtil.first(m.getDeclaredNonterminals()).getName());
-				}
 			}
 		}
+
+		renameModulesToFreshName(menv);
+		return new Result(menv.getModules(), _errors);
 	}
 
-	private static QualifiedIdName getGrammarName(APIName apiName) {
-		List<Id> apiIds = new LinkedList<Id>();
-		apiIds.addAll(apiName.getIds());
-		Id gId = apiIds.remove(apiIds.size()-1);
-		return NodeFactory.makeQualifiedIdName(apiIds, gId);
+	private static void renameModulesToFreshName(ModuleEnvironment menv) {
+		Map<String, QualifiedIdName> moduleNames = new HashMap<String, QualifiedIdName>();
+		for (Module module: menv.getModules()) {
+			if (module instanceof UserModule) {
+				QualifiedIdName freshName = getFreshName(module.getName().toString(), moduleNames);
+				module.setName(freshName);
+			}
+			Set<ModuleName> ls = new LinkedHashSet<ModuleName>();
+			for (ModuleName mn: module.getParameters()) {
+				String name = getFreshName(mn.name, menv);
+				ls.add(new ModuleName(renameModule(name, moduleNames)));
+			}
+			module.setParameters(ls);
+			Set<ModuleDependency> ms = new LinkedHashSet<ModuleDependency>();
+			for (ModuleDependency mp: module.getDependencies()) {
+				String name = getFreshName(mp.module.name, menv);
+				ms.add(new ModuleImport(new ModuleName(renameModule(name, moduleNames))));
+			}
+			module.setDependencies(ms);
+		}
 	}
 
-	/**
-	 * @param grammarToModules
-	 * @param g
-	 */
-	private static Collection<Module> initializeExtend(Map<GrammarIndex, Module> grammarToModules, GrammarIndex g) {
-		Collection<Module> extended = new LinkedList<Module>();
-		if (!g.getExtended().isEmpty()) {
-			for (GrammarIndex otherGrammar: g.getExtended()) { 
-				Module extend = newModule(otherGrammar, grammarToModules);					
-				extended.add(extend);
+	private static String getFreshName(String name, ModuleEnvironment menv) {
+		APIName apiName = NodeFactory.makeAPIName(name);
+		Id id = apiName.getIds().remove(apiName.getIds().size()-1);
+		QualifiedIdName qName = NodeFactory.makeQualifiedIdName(apiName, id);
+		Option<QualifiedIdName> on = menv.getContractedName(qName);
+		String nm = name;
+		if (on.isSome()) {
+			if (ModuleInfo.isFortressModule(Option.unwrap(on))) {
+				return Option.unwrap(Option.unwrap(on).getApi()).getIds().get(1).toString();
+			}
+			else {
+				return Option.unwrap(on).toString();
 			}
 		}
-		return extended;
+		return nm;
 	}
-
+	
 	/**
-	 * Create a new module m corresponding to the grammar g, if a corresponding module
-	 * has not already been created (look in grammarToModules).
-	 * If the grammar is part of the Fortress grammars then a FortressModule is
-	 * created and if it is a user defined grammar, a UserModule is created.  
-	 */
-	private static Module newModule(GrammarIndex g, Map<GrammarIndex, Module> grammarToModules) {
-		Module m = null;
-		if (grammarToModules.containsKey(g)) {
-			m = grammarToModules.get(g);
-		}
-		if (m != null) {
-			return m;
-		}
-		if (ModuleInfo.isFortressModule(g.getName().toString())) {
-			m = new FortressModule(g.getName().getName().toString(), g.getDeclaredNonterminals());
-		}
-		else {
-			m = new UserModule(g.getName().getName().toString(), g.getDeclaredNonterminals());
-		}
-		grammarToModules.put(g, m);
-		return m;		
-	}
-
-	/**
-	 * If the module is a user module, we must create a unique name to avoid conflicts with
-	 * existing Fortress grammar modules, and set the correct imports.
-	 * @param m
-	 * @param imports
+	 * Renames the given module name to a fresh name, 
+	 * if it is not the name of a core Fortress module.
+	 * @param nm
+	 * @param moduleNames
 	 * @return
 	 */
-	private static Module initializeNewModule(Module m, Collection<Module> imports) {
-		if (!(m instanceof FortressModule)) { 
-			m.setName(FreshName.getFreshName(m.getName()));
+	private static String renameModule(String nm,
+			Map<String, QualifiedIdName> moduleNames) {
+		if (ModuleInfo.getFortressModuleNames().contains(nm)) {
+			return nm;
 		}
-		m.setImports(imports);
-		return m;
+		return getFreshName(nm, moduleNames).toString();
 	}
+
+	private static QualifiedIdName getFreshName(String name,
+			Map<String, QualifiedIdName> moduleNames) {
+		QualifiedIdName freshName;
+		if (moduleNames.containsKey(name)) {
+			freshName = moduleNames.get(name);
+		}
+		else {
+			String fn = FreshName.getFreshName(name.toString().replace('.', '_'));
+			freshName = NodeFactory.makeQualifiedIdName(new Id(fn));
+			moduleNames.put(name, freshName);
+		}
+		return freshName;
+	}
+
 }

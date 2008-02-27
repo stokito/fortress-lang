@@ -33,7 +33,6 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -46,6 +45,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
 import com.sun.fortress.syntax_abstractions.MacroCompiler;
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
+import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 
@@ -172,15 +172,15 @@ public class FortressParser {
 
 				xtc.parser.Result parseResult = null; 
 				ParserBase p = null;
-
+			
 				System.out.println("Parsing files: "+f.getName());
 				if (!ppr.getGrammars().isEmpty()) {
-
-					// Compile the macro declarations and create a temporary parser
+					
+					// Compile the syntax abstractions and create a temporary parser
 					MacroCompiler macroCompiler = new FileBasedMacroCompiler();
 					MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
 					if (!tr.isSuccessful()) { return new Result(tr.errors()); }
-					Class<?> temporaryParserClass = tr.getParserClass();
+					Class<?> temporaryParserClass = tr.getParserClass(); 
 
 					try {
 						p = ParserMediator.getParser(temporaryParserClass, in, f.toString());
@@ -198,7 +198,6 @@ public class FortressParser {
 					parseResult = ((com.sun.fortress.parser.Fortress) p).pFile(0);
 				}
 
-
 				if (parseResult.hasValue()) {
 					Object cu = ((SemanticValue) parseResult).value;
 					if (cu instanceof CompilationUnit) {
@@ -208,7 +207,7 @@ public class FortressParser {
 					        return new Result((Api) cu, f.lastModified());
 					    }
 					    else if (cu instanceof Component) {
-						return new Result((Component) cu, f.lastModified());
+					    	return new Result((Component) cu, f.lastModified());
 					    }
 					}
 					

@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.phases.Analyzable;
@@ -43,32 +45,29 @@ import edu.rice.cs.plt.tuple.Option;
 
 public abstract class Module implements Analyzable<Module> {
 
-	protected String name;
+	protected QualifiedIdName name;
 	private boolean isTopLevel;
 	
 	protected Module modify;
-	protected Collection<Module> imports;
 	private Map<String, Set<SyntaxSymbol>> tokenMap;
 
-	protected List<ModuleName> parameters;
-	protected List<ModuleDependency> dependencies;
+	protected Set<ModuleName> parameters;
+	protected Set<ModuleDependency> dependencies;
 	
-	protected ProductionEnv productionEnv;
 	protected Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredProductions;
 
 	protected Collection<? extends Module> extendedModules; 
 	
 	public Module() {
-		this.imports = new LinkedList<Module>();
 		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
 		
 		this.declaredProductions = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
 		this.extendedModules = new java.util.HashSet<Module>();
-		this.parameters = new LinkedList<ModuleName>();
-		this.dependencies = new LinkedList<ModuleDependency>();
+		this.parameters = new LinkedHashSet<ModuleName>();
+		this.dependencies = new LinkedHashSet<ModuleDependency>();
 	}
 
-	public Module(String name,Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredProductions) {
+	public Module(QualifiedIdName name,Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredProductions) {
 		this();
 		this.name = name;
 		this.declaredProductions.addAll(declaredProductions);
@@ -82,22 +81,14 @@ public abstract class Module implements Analyzable<Module> {
 		return this.isTopLevel;
 	}
 
-	public String getName() {
+	public QualifiedIdName getName() {
 		return this.name;
 	}
 	
-	public void setName(String name) {
-		this.name = name.substring(0, 1).toUpperCase()+name.substring(1);
+	public void setName(QualifiedIdName name) {
+		this.name = name;
 	}
 
-	public Collection<Module> getImports() {
-		return imports;
-	}
-	
-	public void setImports(Collection<Module> imports) {
-		this.imports = imports;
-	}
-	
 	public Module getModify() {
 		return modify;
 	}
@@ -105,13 +96,21 @@ public abstract class Module implements Analyzable<Module> {
 	public void setModify(Module modify) {
 		this.modify = modify;
 	}
-
-	public List<ModuleName> getParameters() {
+	
+	public Set<ModuleName> getParameters() {
 		return this.parameters;
 	}
 
-	public Collection<? extends ModuleDependency> getDependencies() {
+	public void setParameters(Set<ModuleName> ls) {
+		this.parameters = ls;		
+	}
+	
+	public Collection<ModuleDependency> getDependencies() {
 		return this.dependencies;
+	}
+
+	public void setDependencies(Set<ModuleDependency> ls) {
+		this.dependencies = ls;
 	}
 	
 	public Collection<ProductionIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
@@ -205,15 +204,24 @@ public abstract class Module implements Analyzable<Module> {
 		
 		s+= indent+"* Toplevel: "+this.isTopLevel+"\n";
 		
-		s+= indent+"* Imports\n";
+		s+= indent+"* Parameters\n";
 		tmpIndent = indent;
 		indent += indentation;
-		Iterator<Module> mit = this.imports.iterator();
-		while (mit.hasNext()) {
-			s+= indent+"- "+mit.next().getName()+"\n";
+		Iterator<ModuleName> pit = this.parameters.iterator();
+		while (pit.hasNext()) {
+			s+= indent+"- "+pit.next().toString()+"\n";
 		}
 		indent = tmpIndent;
 		
+		s+= indent+"* Dependencies\n";
+		tmpIndent = indent;
+		indent += indentation;
+		Iterator<ModuleDependency> dit = this.dependencies.iterator();
+		while (dit.hasNext()) {
+			s+= indent+"- "+dit.next().visibleName().toString()+"\n";
+		}
+		indent = tmpIndent;
+			
 		s+= indent+"* modify\n";
 		tmpIndent = indent;
 		indent += indentation;
@@ -222,12 +230,13 @@ public abstract class Module implements Analyzable<Module> {
 	    }
 	    indent = tmpIndent;
 	    
-		s+= indent+"* declared productions\n";
+		s+= indent+"* declared nonterminals\n";
 		tmpIndent = indent;
 		indent += indentation;
-		Iterator<ProductionIndex<? extends GrammarMemberDecl>> pit = this.declaredProductions.iterator();
-		while (pit.hasNext()) {
-			s+= indent+"- "+pit.next().getName()+"\n";
+		Iterator<ProductionIndex<? extends GrammarMemberDecl>> nit = this.declaredProductions.iterator();
+		while (nit.hasNext()) {
+			ProductionIndex<? extends GrammarMemberDecl> member = nit.next();
+			s+= indent+"- "+member.getType()+" "+member.getName()+"\n";
 		}
 		indent = tmpIndent;
 		
