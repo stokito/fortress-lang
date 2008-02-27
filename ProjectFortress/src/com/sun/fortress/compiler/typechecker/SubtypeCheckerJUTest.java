@@ -22,7 +22,8 @@ import java.util.*;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 
@@ -48,83 +49,296 @@ public class SubtypeCheckerJUTest extends TestCase {
         return ta.subtype(s, t);
     }
 
-    public void testAnySubtyping() {
-        SubtypeChecker t = makeAnalyzer(trait("A"),
-                                        trait("B", "A"),
-                                        trait("C", "A"));
+    private static ProperTraitIndex makeTrait(String name,
+                                              List<StaticParam> sparams,
+                                              String... supers) {
+        List<TraitTypeWhere> extendsClause =
+            new ArrayList<TraitTypeWhere>(supers.length);
+        for (String sup : supers) {
+            TraitType supT = (TraitType) parseType(sup);
+            extendsClause.add(new TraitTypeWhere(supT, new WhereClause()));
+        }
+        TraitAbsDeclOrDecl ast = new TraitDecl(NodeFactory.makeId(name), sparams,
+                                               extendsClause,
+                                               Collections.<Decl>emptyList());
+        return new ProperTraitIndex(ast,
+                                    Collections.<Id, Method>emptyMap(),
+                                    Collections.<Id, Method>emptyMap(),
+                                    Collections.<Function>emptySet(),
+                                    CollectUtil.<SimpleName, Method>emptyRelation(),
+                                    CollectUtil.<SimpleName, FunctionalMethod>emptyRelation());
+    }
 
-        assertEquals(TRUE, sub(t, ANY,      ANY));
-        assertEquals(TRUE, sub(t, BOTTOM,   ANY));
-        assertEquals(TRUE, sub(t, VOID,     ANY));
-        assertEquals(TRUE, sub(t, "B",      ANY));
-        // tparam
-        assertEquals(TRUE, sub(t, "A->B",   ANY));
-        assertEquals(TRUE, sub(t, "(A, B)", ANY));
-        // tapp
+    private static List<StaticParam> makeSparams(StaticParam... params) {
+        List<StaticParam> sparams = new ArrayList<StaticParam>(params.length);
+        for (StaticParam p : params) {
+            sparams.add(p);
+        }
+        return sparams;
+    }
+
+    Type alpha = NodeFactory.makeIdType("ALPHA");
+    Type beta  = NodeFactory.makeIdType("BETA");
+
+    // trait E[\T extends Number, bool b, int i, nat n, opr ODOT\] extends B end
+    ProperTraitIndex traitE =
+        makeTrait("E",
+                  makeSparams(NodeFactory.makeSimpleTypeParam("T", "Number"),
+                              NodeFactory.makeBoolParam("b"),
+                              NodeFactory.makeIntParam("i"),
+                              NodeFactory.makeNatParam("n"),
+                              NodeFactory.makeOperatorParam("ODOT")),
+                  "D");
+
+    private static List<StaticArg> makeSargs(StaticArg... args) {
+        List<StaticArg> sargs = new ArrayList<StaticArg>(args.length);
+        for (StaticArg p : args) {
+            sargs.add(p);
+        }
+        return sargs;
+    }
+
+    InstantiatedType instE =
+        NodeFactory.makeInstantiatedType("E",
+                                         makeSargs(NodeFactory.makeTypeArg("ZZ32"),
+                                                   NodeFactory.makeBoolArg("trueV"),
+                                                   NodeFactory.makeIntArg("two"),
+                                                   NodeFactory.makeIntArg("three"),
+                                                   NodeFactory.makeOprArg("+")));
+
+    InstantiatedType instEp =
+        NodeFactory.makeInstantiatedType("E",
+                                         makeSargs(NodeFactory.makeTypeArg("ZZ32"),
+                                                   NodeFactory.makeBoolArg("falseV"),
+                                                   NodeFactory.makeIntArg("two"),
+                                                   NodeFactory.makeIntArg("two"),
+                                                   NodeFactory.makeOprArg("+")));
+
+    SubtypeChecker checker = makeAnalyzer(trait("Number"),
+                                          trait("ZZ32", "Number"),
+                                          trait("RR64", "Number"),
+                                          trait("A"),
+                                          trait("B", "A"),
+                                          trait("C", "B"),
+                                          trait("D", "B"),
+                                          traitE);
+
+    public void testAnySubtyping() {
+        assertEquals(TRUE, sub(checker, ANY,      ANY));
+        assertEquals(TRUE, sub(checker, BOTTOM,   ANY));
+        assertEquals(TRUE, sub(checker, VOID,     ANY));
+        assertEquals(TRUE, sub(checker, "B",      ANY));
+        assertEquals(TRUE, sub(checker, alpha,    ANY));
+        assertEquals(TRUE, sub(checker, "A->B",   ANY));
+        assertEquals(TRUE, sub(checker, "(A, B)", ANY));
+        assertEquals(TRUE, sub(checker, instE,    ANY));
+
+        assertEquals(FALSE, sub(checker, ANY, BOTTOM));
+        assertEquals(FALSE, sub(checker, ANY, VOID));
+        assertEquals(FALSE, sub(checker, ANY, "B"));
+        assertEquals(FALSE, sub(checker, ANY, alpha));
+        assertEquals(FALSE, sub(checker, ANY, "A->B"));
+        assertEquals(FALSE, sub(checker, ANY, "(A, B)"));
+        assertEquals(FALSE, sub(checker, ANY, instE));
+    }
+
+    public void testBottomSubtyping() {
+        assertEquals(TRUE, sub(checker, BOTTOM, ANY));
+        assertEquals(TRUE, sub(checker, BOTTOM, BOTTOM));
+        assertEquals(TRUE, sub(checker, BOTTOM, VOID));
+        assertEquals(TRUE, sub(checker, BOTTOM, "B"));
+        assertEquals(TRUE, sub(checker, BOTTOM, alpha));
+        assertEquals(TRUE, sub(checker, BOTTOM, "A->B"));
+        assertEquals(TRUE, sub(checker, BOTTOM, "(A, B)"));
+        assertEquals(TRUE, sub(checker, BOTTOM, instE));
+
+        assertEquals(FALSE, sub(checker, ANY,      BOTTOM));
+        assertEquals(FALSE, sub(checker, VOID,     BOTTOM));
+        assertEquals(FALSE, sub(checker, "B",      BOTTOM));
+        assertEquals(FALSE, sub(checker, alpha,    BOTTOM));
+        assertEquals(FALSE, sub(checker, "A->B",   BOTTOM));
+        assertEquals(FALSE, sub(checker, "(A, B)", BOTTOM));
+        assertEquals(FALSE, sub(checker, instE,    BOTTOM));
+    }
+
+    public void testReflexiveSubtyping() {
+        assertEquals(TRUE, sub(checker, ANY, ANY));
+        assertEquals(TRUE, sub(checker, BOTTOM, BOTTOM));
+        assertEquals(TRUE, sub(checker, VOID, VOID));
+        assertEquals(TRUE, sub(checker, "B", "B"));
+        assertEquals(TRUE, sub(checker, alpha, alpha));
+        assertEquals(TRUE, sub(checker, "A->B", "A->B"));
+        assertEquals(TRUE, sub(checker, "(A, B)", "(A, B)"));
+        assertEquals(TRUE, sub(checker, instE, instE));
+    }
+
+    public void testVarSubtyping() {
+        assertEquals(TRUE,  sub(checker, alpha, "Number"));
+
+        assertEquals(FALSE, sub(checker, alpha, BOTTOM));
+        assertEquals(FALSE, sub(checker, alpha, VOID));
+        assertEquals(FALSE, sub(checker, alpha, "B"));
+        assertEquals(FALSE, sub(checker, alpha, beta));
+        assertEquals(FALSE, sub(checker, alpha, "A->B"));
+        assertEquals(FALSE, sub(checker, alpha, "(A, B)"));
+        assertEquals(FALSE, sub(checker, alpha, instE));
     }
 
     public void testBasicTraitSubtyping() {
-        SubtypeChecker t = makeAnalyzer(trait("A"),
-                                        trait("B", "A"),
-                                        trait("C", "B"),
-                                        trait("D", "B"));
+        assertEquals(TRUE,  sub(checker, "A", "A"));
+        assertEquals(FALSE, sub(checker, "A", "B"));
+        assertEquals(FALSE, sub(checker, "A", "C"));
+        assertEquals(FALSE, sub(checker, "A", "D"));
 
-        assertEquals(TRUE, sub(t, "A", "A"));
-        assertEquals(FALSE, sub(t, "A", "B"));
-        assertEquals(FALSE, sub(t, "A", "C"));
-        assertEquals(FALSE, sub(t, "A", "D"));
+        assertEquals(TRUE,  sub(checker, "B", "A"));
+        assertEquals(TRUE,  sub(checker, "B", "B"));
+        assertEquals(FALSE, sub(checker, "B", "C"));
+        assertEquals(FALSE, sub(checker, "B", "D"));
 
-        assertEquals(TRUE, sub(t, "B", "A"));
-        assertEquals(TRUE, sub(t, "B", "B"));
-        assertEquals(FALSE, sub(t, "B", "C"));
-        assertEquals(FALSE, sub(t, "B", "D"));
+        assertEquals(TRUE,  sub(checker, "C", "A"));
+        assertEquals(TRUE,  sub(checker, "C", "B"));
+        assertEquals(TRUE,  sub(checker, "C", "C"));
+        assertEquals(FALSE, sub(checker, "C", "D"));
 
-        assertEquals(TRUE, sub(t, "C", "A"));
-        assertEquals(TRUE, sub(t, "C", "B"));
-        assertEquals(TRUE, sub(t, "C", "C"));
-        assertEquals(FALSE, sub(t, "C", "D"));
-
-        assertEquals(TRUE, sub(t, "D", "A"));
-        assertEquals(TRUE, sub(t, "D", "B"));
-        assertEquals(FALSE, sub(t, "D", "C"));
-        assertEquals(TRUE, sub(t, "D", "D"));
+        assertEquals(TRUE,  sub(checker, "D", "A"));
+        assertEquals(TRUE,  sub(checker, "D", "B"));
+        assertEquals(FALSE, sub(checker, "D", "C"));
+        assertEquals(TRUE,  sub(checker, "D", "D"));
     }
 
     public void testArrowSubtyping() {
-        SubtypeChecker t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "B"));
+        assertEquals(TRUE, sub(checker, "A->A", "A->A"));
+        assertEquals(TRUE, sub(checker, "A->B", "A->A"));
+        assertEquals(TRUE, sub(checker, "A->C", "A->A"));
+        assertEquals(TRUE, sub(checker, "A->D", "A->A"));
 
-        assertEquals(TRUE, sub(t, "A->A", "A->A"));
-        assertEquals(TRUE, sub(t, "A->B", "A->A"));
-        assertEquals(TRUE, sub(t, "A->C", "A->A"));
-        assertEquals(TRUE, sub(t, "A->D", "A->A"));
+        assertEquals(TRUE,  sub(checker, "A->C", "C->C"));
+        assertEquals(TRUE,  sub(checker, "B->C", "C->C"));
+        assertEquals(TRUE,  sub(checker, "C->C", "C->C"));
+        assertEquals(FALSE, sub(checker, "D->C", "C->C"));
 
-        assertEquals(TRUE, sub(t, "A->C", "C->C"));
-        assertEquals(TRUE, sub(t, "B->C", "C->C"));
-        assertEquals(TRUE, sub(t, "C->C", "C->C"));
-        assertEquals(FALSE, sub(t, "D->C", "C->C"));
+        assertEquals(FALSE, sub(checker, "C->A", "A->C"));
+        assertEquals(TRUE,  sub(checker, "A->C", "C->A"));
 
-        assertEquals(FALSE, sub(t, "C->A", "A->C"));
-        assertEquals(TRUE, sub(t, "A->C", "C->A"));
+        assertEquals(FALSE, sub(checker, ANY,      "A->B"));
+        assertEquals(FALSE, sub(checker, VOID,     "A->B"));
+        assertEquals(FALSE, sub(checker, "B",      "A->B"));
+        assertEquals(FALSE, sub(checker, alpha,    "A->B"));
+        assertEquals(FALSE, sub(checker, "(A, B)", "A->B"));
+        assertEquals(FALSE, sub(checker, instE,    "A->B"));
     }
 
     public void testVoidSubtyping() {
-        SubtypeChecker t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "A"),
-                                      trait("E", "D"));
-
-        assertEquals(FALSE, sub(t, "A", VOID));
-        assertEquals(TRUE, sub(t, VOID, VOID));
-        assertEquals(FALSE, sub(t, VOID, "A"));
-        assertEquals(TRUE, sub(t, VOID, ANY));
-        assertEquals(TRUE, sub(t, BOTTOM, VOID));
-        assertEquals(FALSE, sub(t, ANY, VOID));
+        assertEquals(FALSE, sub(checker, ANY,      VOID));
+        assertEquals(FALSE, sub(checker, "A",      VOID));
+        assertEquals(FALSE, sub(checker, alpha,    VOID));
+        assertEquals(FALSE, sub(checker, "A->B",   VOID));
+        assertEquals(FALSE, sub(checker, "(A, B)", VOID));
+        assertEquals(FALSE, sub(checker, instE,    VOID));
     }
 
+    public void testTupleSubtyping() {
+        assertEquals(TRUE,  sub(checker, "(B, C)", "(A, B)"));
+        assertEquals(FALSE, sub(checker, "(A, B)", "(B, C)"));
+        assertEquals(FALSE, sub(checker, ANY,      "(A, B)"));
+        assertEquals(FALSE, sub(checker, VOID,     "(A, B)"));
+        assertEquals(FALSE, sub(checker, "B",      "(A, B)"));
+        assertEquals(FALSE, sub(checker, alpha,    "(A, B)"));
+        assertEquals(FALSE, sub(checker, "A->B",   "(A, B)"));
+        assertEquals(FALSE, sub(checker, instE,    "(A, B)"));
+    }
+
+    public void testInstSubtyping() {
+        assertEquals(TRUE,  sub(checker, instE,    "A"));
+        assertEquals(TRUE,  sub(checker, instE,    "B"));
+        assertEquals(TRUE,  sub(checker, instE,    "D"));
+        assertEquals(FALSE, sub(checker, instE,    "C"));
+
+        assertEquals(FALSE, sub(checker, instE,    instEp));
+        assertEquals(FALSE, sub(checker, instEp,   instE));
+
+        assertEquals(FALSE, sub(checker, ANY,      instE));
+        assertEquals(FALSE, sub(checker, VOID,     instE));
+        assertEquals(FALSE, sub(checker, "Number", instE));
+        assertEquals(FALSE, sub(checker, alpha,    instE));
+        assertEquals(FALSE, sub(checker, "A->B",   instE));
+        assertEquals(FALSE, sub(checker, "(A, B)", instE));
+
+        assertEquals(FALSE, sub(checker, instE, BOTTOM));
+        assertEquals(FALSE, sub(checker, instE, VOID));
+        assertEquals(FALSE, sub(checker, instE, "Number"));
+        assertEquals(FALSE, sub(checker, instE, alpha));
+        assertEquals(FALSE, sub(checker, instE, "A->B"));
+        assertEquals(FALSE, sub(checker, instE, "(A, B)"));
+    }
+
+    private ExtentRange makeExtentRange(IntArg arg) {
+        return new ExtentRange(arg.getSpan(), Option.<StaticArg>none(),
+                               Option.<StaticArg>some(arg));
+    }
+
+    private Option<Indices> makeIndices(List<ExtentRange> ext) {
+        return Option.some(new Indices(new Span(), ext));
+    }
+
+    public void testAbbreviatedSubtyping() {
+        Span span = new Span();
+        Type zz = parseType("ZZ32");
+        TypeArg zzA = NodeFactory.makeTypeArg("ZZ32");
+        IntArg zero = NodeFactory.makeIntArgVal("0");
+        IntArg three = NodeFactory.makeIntArg("three");
+        QualifiedIdName arrName1 = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Array1");
+        InstantiatedType arr1 = NodeFactory.makeInstantiatedType(span, false,
+                                                                 arrName1, zzA,
+                                                                 zero, three);
+        QualifiedIdName arrName2 = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Array2");
+        InstantiatedType arr2 = NodeFactory.makeInstantiatedType(span, false,
+                                                                 arrName2, zzA,
+                                                                 zero, three,
+                                                                 zero, three);
+        QualifiedIdName arrName3 = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Array3");
+        InstantiatedType arr3 = NodeFactory.makeInstantiatedType(span, false,
+                                                                 arrName3, zzA,
+                                                                 zero, three,
+                                                                 zero, three,
+                                                                 zero, three);
+        QualifiedIdName matName = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Matrix");
+        InstantiatedType mat  = NodeFactory.makeInstantiatedType(span, false,
+                                                                 matName, zzA,
+                                                                 three, three);
+
+        List<ExtentRange> ext1 = new ArrayList<ExtentRange>(1);
+        ext1.add(makeExtentRange(three));
+        Option<Indices> ind1 = makeIndices(ext1);
+
+        List<ExtentRange> ext2 = new ArrayList<ExtentRange>(2);
+        ext2.add(makeExtentRange(three));
+        ext2.add(makeExtentRange(three));
+        Option<Indices> ind2 = makeIndices(ext2);
+
+        List<ExtentRange> ext3 = new ArrayList<ExtentRange>(3);
+        ext3.add(makeExtentRange(three));
+        ext3.add(makeExtentRange(three));
+        ext3.add(makeExtentRange(three));
+        Option<Indices> ind3 = makeIndices(ext3);
+
+        ExtentRange dim1 = makeExtentRange(three);
+        List<ExtentRange> dim2 = new ArrayList<ExtentRange>(1);
+        dim2.add(makeExtentRange(three));
+        ArrayType arrT1 = NodeFactory.makeArrayType(span, zz, ind1);
+        ArrayType arrT2 = NodeFactory.makeArrayType(span, zz, ind2);
+        ArrayType arrT3 = NodeFactory.makeArrayType(span, zz, ind3);
+        MatrixType matT = NodeFactory.makeMatrixType(span, zz, dim1, dim2);
+
+        assertEquals(TRUE, sub(checker, arr1, arrT1));
+        assertEquals(TRUE, sub(checker, arrT1, arr1));
+        assertEquals(TRUE, sub(checker, arr2, arrT2));
+        assertEquals(TRUE, sub(checker, arrT2, arr2));
+        assertEquals(TRUE, sub(checker, arr3, arrT3));
+        assertEquals(TRUE, sub(checker, arrT3, arr3));
+        assertEquals(TRUE, sub(checker, mat,   matT));
+        assertEquals(TRUE, sub(checker, matT,   mat));
+    }
 
     private static final GlobalEnvironment GLOBAL_ENV;
     static {
@@ -138,7 +352,11 @@ public class SubtypeCheckerJUTest extends TestCase {
 
         ApiIndex library =
             api("FortressLibrary",
-                absTrait("Object", "FortressBuiltin.Any"));
+                absTrait("Object", "FortressBuiltin.Any"),
+                absTrait("Array1", "FortressBuiltin.Any"),
+                absTrait("Array2", "FortressBuiltin.Any"),
+                absTrait("Array3", "FortressBuiltin.Any"),
+                absTrait("Matrix", "FortressBuiltin.Any"));
         apis.put(library.ast().getName(), library);
 
         GLOBAL_ENV = new GlobalEnvironment.FromMap(apis);
@@ -221,19 +439,6 @@ public class SubtypeCheckerJUTest extends TestCase {
         }
         TraitAbsDeclOrDecl ast;
         List<StaticParam> sparams = Collections.<StaticParam>emptyList();
-        /*
-        if (name.contains("[\\")) {
-            int index = name.indexOf("[\\");
-            name = name.substring(0, index);
-            String s = name.substring(index+3);
-            while(s.contains(",")) {
-                index = s.indexOf(",");
-                sparams.add(parseStaticArg(s.substring(0, index)));
-                s = s.substring(index+1);
-            }
-            sparams.add(parseType(s));
-        }
-        */
         if (absDecl) {
             ast = new AbsTraitDecl(NodeFactory.makeId(name), sparams,
                                    extendsClause,
@@ -272,52 +477,19 @@ public class SubtypeCheckerJUTest extends TestCase {
             types.add(parseType(s));
             return NodeFactory.makeTupleType(types);
         }
-        /*
-        else if (s.contains("[\\")) {
-            int openIndex = s.indexOf("[\\");
-            QualifiedIdName name = NodeFactory.makeQualifiedIdName(s.substring(0, openIndex));
-            List<StaticArg> sargs = new ArrayList<StaticArg>();
-            s = s.substring(openIndex+3, s.length()-3);
-            while(s.contains(",")) {
-                int commaIndex = s.indexOf(",");
-                sargs.add(parseStaticArg(s.substring(0, commadIndex)));
-                s = s.substring(commaIndex+1);
-            }
-            sargs.add(parseStaticArg(s));
-            return NodeFactory.makeInstantiatedType(name, sargs);
-        }
-        */
         else {
-            return NodeFactory.makeInstantiatedType(s);
+            return NodeFactory.makeIdType(s);
         }
     }
-
-    /*
-    private static StaticArg parseStaticArg(String s) {
-        s = s.trim();
-        if (s.contains("[\\")) {
-            int openIndex = s.indexOf("[\\");
-            QualifiedIdName name = NodeFactory.makeQualifiedIdName(s.substring(0, openIndex));
-            List<StaticArg> sargs = new ArrayList<StaticArg>();
-            s = s.substring(openIndex+3, s.length()-3);
-            while(s.contains(",")) {
-                int commaIndex = s.indexOf(",");
-                sargs.add(parseStaticArg(s.substring(0, commadIndex)));
-                s = s.substring(commaIndex+1);
-            }
-            sargs.add(parseStaticArg(s));
-            return NodeFactory.makeTypeArg(NodeFactory.makeInstantiatedType(name, sargs));
-        }
-        else {
-            return NodeFactory.makeIdArg(s);
-        }
-    }
-    */
 
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */
     private static SubtypeChecker makeAnalyzer(TraitIndex... traits) {
         ComponentIndex c = component("SubtypeCheckerTestComponent", traits);
-        return SubtypeChecker.make(new TraitTable(c, GLOBAL_ENV));
+        SubtypeChecker sc = SubtypeChecker.make(new TraitTable(c, GLOBAL_ENV));
+        List<StaticParam> sparams = new ArrayList<StaticParam>();
+        sparams.add(NodeFactory.makeSimpleTypeParam("ALPHA", "Number"));
+        sparams.add(NodeFactory.makeSimpleTypeParam("BETA",  "A"));
+        return sc.extend(sparams, FortressUtil.emptyWhereClause());
     }
 
 }
