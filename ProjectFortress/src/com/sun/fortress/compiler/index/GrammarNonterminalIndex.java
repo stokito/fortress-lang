@@ -17,22 +17,23 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collection;
+
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes._TerminalDef;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class GrammarTerminalIndex extends ProductionIndex<_TerminalDef> {
+public class GrammarNonterminalIndex<T extends NonterminalDecl> extends ProductionIndex<T>{
 
-	public GrammarTerminalIndex(Option<_TerminalDef> ast) {
-		super(ast);
+	public GrammarNonterminalIndex(Option<T> ast) {
+		super(ast);	
 	}
 
-	public SyntaxDef getSyntaxDef() {
+	public Collection<SyntaxDef> getSyntaxDefs() {
 		if (this.ast().isNone()) {
 			throw new RuntimeException("Ast not found.");
 		}
-		return Option.unwrap(this.ast()).getSyntaxDef();
+		return Option.unwrap(this.ast()).getSyntaxDefs();
 	}
-
 }

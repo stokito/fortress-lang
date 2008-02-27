@@ -15,5 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component SyntaxRepetition
-export SyntaxRepetition
+
+  import ArrayList.{...}
+
+  export SyntaxRepetition
+
+  object SelectQuery(val:List[\String\]) 
+    toString():String = val
+  end
+
 end

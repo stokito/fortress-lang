@@ -446,7 +446,7 @@ Expr ParenthesisDelimited =
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
 
 /* Selector ::=
-     MethodInvocation ParenthesisDeliited*
+     MethodInvocation ParenthesisDelimited*
    | FieldSelection Subscripting* ParenthesisDelimited*
    MethodInvocation ::= . w Id StaticArgs? ParenthesisDelimited
    FieldSelection ::= . w Id

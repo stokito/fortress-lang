@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.NonterminalDef;
 import edu.rice.cs.plt.tuple.Option;
 
-public class ProductionDefIndex extends ProductionIndex<NonterminalDef> {
+public class ProductionDefIndex extends GrammarNonterminalIndex<NonterminalDef> {
 
 	public ProductionDefIndex(Option<NonterminalDef> ast) {
 		super(ast);

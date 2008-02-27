@@ -28,9 +28,7 @@ import xtc.parser.Result;
 
 public class ParserMediator {
 
-	private Class<?> parserClass;
 	private static ParserBase parser;
-	private Result result;
 
 	public ParserMediator() {
 	}
@@ -50,11 +48,12 @@ public class ParserMediator {
 	 * @throws SecurityException
 	 * @throws NoSuchMethodException
 	 */
-	public static ParserBase getParser(Class<?> parserClass,
-			BufferedReader reader, String filename) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
-			Constructor<?> constructor = parserClass.getConstructor(Reader.class, String.class);
-			parser = (ParserBase) constructor.newInstance(reader, filename);
-			return parser;
+	public static ParserBase getParser(Class<?> parserClass, BufferedReader reader, String filename)
+		throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
+
+		Constructor<?> constructor = parserClass.getConstructor(Reader.class, String.class);
+		parser = (ParserBase) constructor.newInstance(reader, filename);
+		return parser;
 	}
 
 	/**
@@ -79,7 +78,7 @@ public class ParserMediator {
 		Object args = index;
 		return invokeMethod(methodName, types, args).toString();
 	}
-	
+
 	/**
 	 * Looks up the given method in the current parser object using reflection using the supplied argument types.
 	 * The method is invoked with the supplied arguments.
@@ -96,7 +95,8 @@ public class ParserMediator {
 	 */
 	private static Object invokeMethod(String methodName, Class[] types, Object args) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
 		Method pFile = parser.getClass().getMethod(methodName, types);
-		return pFile.invoke(parser, args);
+		Object o = pFile.invoke(parser, args);
+		return o;
 	}
 
 

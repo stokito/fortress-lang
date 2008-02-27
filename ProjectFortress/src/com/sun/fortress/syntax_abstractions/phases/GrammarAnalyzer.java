@@ -70,7 +70,7 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	}
 	
 	/**
-	 * Returns the collection of inherited nonterminal definitions with the same name as
+	 * Returns the collection of names of inherited nonterminal definitions with the same name as
 	 * provided as argument.
 	 * @param name
 	 * @param a
@@ -80,17 +80,12 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
 		for (ProductionIndex<? extends GrammarMemberDecl> n: getInheritedSet(a)) {
 			if (n.getName().getName().equals(name)) {
-//				if (g.ast().isSome()) {
-//					QualifiedIdName gname = Option.unwrap(g.ast()).getName();
-//					APIName gApi = Option.unwrap(gname.getApi());
-//					rs.addAll(Collections.singleton(SyntaxAbstractionUtil.qualifyProductionName(gApi , gname.getName(), name)));				
-//				}
 				rs.add(n.getName());
 			}
 		}
 		return rs;
 	}
-	
+
 	/**
 	 * Returns the collection of declared nonterminal definitions with the same name as
 	 * provided as argument.
@@ -116,17 +111,17 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 * @return
 	 */
 	private Collection<ProductionIndex<? extends GrammarMemberDecl>> getInheritedSet(Analyzable<T> a) {
-		Collection<ProductionIndex<? extends GrammarMemberDecl>> nonterminals = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>(); 
+		Collection<ProductionIndex<? extends GrammarMemberDecl>> member = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>(); 
 		for (T gi: a.getExtended()) {
 			for (ProductionIndex<? extends GrammarMemberDecl> n: this.getContainedSet(gi)) {
-				if (!n.isPrivate()) {
+				if (!n.isPrivate() && !member.contains(n)) {
 					if (this.getDeclared(n.getName().getName(), a).isEmpty()) {
-						nonterminals.add(n);
+						member.add(n);
 					}
 				}
 			}
 		}
-		return nonterminals;
+		return member;
 	}
 
 	/**

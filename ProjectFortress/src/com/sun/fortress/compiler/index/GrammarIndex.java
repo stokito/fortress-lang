@@ -25,6 +25,7 @@ import java.util.Set;
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -89,6 +90,19 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 			return Option.unwrap(this.ast()).getName();
 		}
 		throw new RuntimeException("No name for grammar: "+this.hashCode());
+	}
+
+	public Option<GrammarNonterminalIndex<? extends NonterminalDecl>> getNonterminalDecl(Id name) {
+		for (ProductionIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
+			if (name.getText().equals(m.getName().getName().getText())) {
+				if (m.ast().isSome()) {
+					if (m instanceof GrammarNonterminalIndex) {
+						return Option.<GrammarNonterminalIndex<? extends NonterminalDecl>>some((GrammarNonterminalIndex) m);
+					}
+				}
+			}
+		}
+		return Option.none();
 	}
 
 }

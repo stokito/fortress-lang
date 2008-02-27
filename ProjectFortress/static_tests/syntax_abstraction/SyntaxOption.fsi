@@ -25,9 +25,9 @@ api SyntaxOption
          Hello? world
          do
            if (Hello.isJust()) then
-             StringLiteralExpr(Hello.unJust().val " world")
+             StringLiteralExpr(Hello.unJust().val " " world)
            else
-             StringLiteralExpr("world")
+             StringLiteralExpr(world)
            end
          end
       end
@@ -35,7 +35,7 @@ api SyntaxOption
  
   grammar A
       Hello :Expr:=
-         hello do StringLiteralExpr("hello") end
+         hello do StringLiteralExpr(hello) end
       end
   end
 

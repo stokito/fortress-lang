@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.sun.fortress.nodes.GrammarMemberDecl;

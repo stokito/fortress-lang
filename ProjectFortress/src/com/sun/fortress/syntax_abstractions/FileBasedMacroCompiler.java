@@ -45,14 +45,15 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		if (!geir.isSuccessful()) { return new Result(null, geir.errors()); }
 		
 		/* 
-		 * Resolve grammar extensions and extensions of nonterminal definitions, but leave the 
-		 * the content of the nonterminals untouched
+		 * Resolve grammar extensions and extensions of nonterminal definitions.
 		 */
 		ModuleTranslator.Result mrr = ModuleTranslator.translate(envs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
-
-		Map<String, String> modulesReplacingFortressModules = mrr.modulesReplacingFortressModules();
-			
+		
+		for (Module m: mrr.modules()) {
+			// System.err.println(m);
+		}
+		
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */
@@ -63,17 +64,13 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 * For each changed module write it to a file and run Rats! to 
 		 * generate a temporary parser.
 		 */
-		RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules(), 
-																			 gtr.keywords(),
-																			 gtr.keywordModules(),
-																			 modulesReplacingFortressModules);
+		RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules());
 		if (!rpgr.isSuccessful()) { return new Result(null, rpgr.errors()); }
 
 		/*
 		 * Return the temporary parser
 		 */
 		return new Result(rpgr.parserClass());
-
 	}
 
 }

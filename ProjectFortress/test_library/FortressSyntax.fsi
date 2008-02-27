@@ -21,7 +21,7 @@ api FortressSyntax
 
   grammar Declaration 
       Decls : List[\Decl\] end
-      Decl : Decl end
+      Decl : List[\Decl\] end
       AbsDecls : List[\AbsDecl\] end
       AbsDecl : AbsDecl end
   end
@@ -31,6 +31,12 @@ api FortressSyntax
       ExprFront : Expr end
       MathPrimary : Expr end
       Primary : List[\Expr\] end (* Should be a pure list *)
+  end
+
+  grammar Identifier 
+      id : String end
+      idstart : String end
+      idrest : String end
   end
 
   grammar Literal 

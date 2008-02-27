@@ -1,4 +1,4 @@
-(*******************************************************************************
+/*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -13,21 +13,18 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************)
+ ******************************************************************************/
 
-api SyntaxGrammarImportsA
- 
-  import FortressAst.{...}
+package com.sun.fortress.compiler.index;
 
-  grammar A
-      Hello:StringLiteralExpr:=
-         hello do StringLiteralExpr("Hello") end
-      end
+import com.sun.fortress.nodes.NonterminalDef;
 
-      World:Expr:=
-         the answer do IntLiteralExpr(42) end
-      end
+import edu.rice.cs.plt.tuple.Option;
 
-  end
+public class GrammarNonterminalCoreFortressIndex extends ProductionDefIndex {
 
-end
+	public GrammarNonterminalCoreFortressIndex(Option<NonterminalDef> ast) {
+		super(ast);
+	}
+
+}

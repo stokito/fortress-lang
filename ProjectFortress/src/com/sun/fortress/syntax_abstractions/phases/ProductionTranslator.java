@@ -70,7 +70,6 @@ import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.NotPredicateSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
-import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
@@ -91,32 +90,35 @@ import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.syntax_abstractions.rats.util.ProductionEnum;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
+import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+// Todo: rename to member translator
 public class ProductionTranslator {
-
+	private List<Production> productions;
+	private Collection<StaticError> errors;
+	
 	public class Result extends StaticPhaseResult {
-		private List<Production> productions;
 
-		public Result(List<Production> productions, 
-				Iterable<? extends StaticError> errors) {
+		public Result(Iterable<? extends StaticError> errors) {
 			super(errors);
-			this.productions = productions;
 		}
 
 		public Result(Collection<StaticError> errors) {
 			super(errors);
-			this.productions = new LinkedList<Production>();
 		}
 
 		public List<Production> productions() { return productions; }
 
 	}
-
-	private static NonterminalNameToDeclaredReturnType _nonterminalNameToDeclaredReturnType;
+	
+	public ProductionTranslator() {
+		this.productions = new LinkedList<Production>();
+		this.errors = new LinkedList<StaticError>();
+	}
 
 	/**
 	 * Translate a collection of Fortress productions to Rats! productions
@@ -124,38 +126,36 @@ public class ProductionTranslator {
 	 * @param env 
 	 * @return
 	 */
-	public static Result translate(Collection<ProductionIndex<? extends GrammarMemberDecl>> nonterminals) {
-		_nonterminalNameToDeclaredReturnType = new NonterminalNameToDeclaredReturnType(nonterminals);
+	public static Result translate(Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {	
+		return new ProductionTranslator().doTranslate(members);
+	}
+	
+	private Result doTranslate(
+			Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {
 		
-		ProductionTranslator nt = new ProductionTranslator();
-		List<Production> ratsProductions = new LinkedList<Production>();
-		Collection<StaticError> errors = new LinkedList<StaticError>();
-
-		for (ProductionIndex<? extends GrammarMemberDecl> nonterminal: nonterminals) {
-			Result result = nt.translate(nonterminal);
-			for (StaticError se: result.errors()) {
-				errors.add(se);
-			}
-			ratsProductions.addAll(result.productions());
+		for (ProductionIndex<? extends GrammarMemberDecl> member: members) {
+			this.translate(member);
 		}
 
-		return nt.new Result(ratsProductions, errors);
+		return new Result(errors);
 	}
 
 	/**
 	 * Translate a Fortress production to a Rats! production 
-	 * @param p
+	 * @param member
 	 * @return
 	 */
-	private Result translate(ProductionIndex<? extends GrammarMemberDecl> p) {
+	private Result translate(ProductionIndex<? extends GrammarMemberDecl> member) {
 		Collection<StaticError> errors = new LinkedList<StaticError>();
-		NonterminalTranslator nt = new NonterminalTranslator(p);
-		Production ratsProduction = p.getAst().accept(nt);
+		NonterminalTranslator nt = new NonterminalTranslator(member);
+		productions.add(member.getAst().accept(nt));
 		errors.addAll(nt.errors());
-		return new Result(FortressUtil.mkList(ratsProduction), errors);
+		return new Result(errors);
 	}
 
-	private class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
+	
+	
+	private static class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
 		private Collection<StaticError> errors;
 		private ProductionIndex/*<? extends GrammarMemberDecl>*/ pi; // Unsafe to prevent bug in Java 5 on Solaris 
 		
@@ -167,21 +167,18 @@ public class ProductionTranslator {
 		public Collection<StaticError> errors() {
 			return this.errors;
 		}
-		
-		private TraitType unwrap(Option<TraitType> t) {
-			if (t.isNone()) {
-				throw new RuntimeException("Production type is not defined, malformed AST");
-			}
-			return Option.unwrap(t);
-		}
 				
 		@Override
 		public Production forNonterminalDef(NonterminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
-			TraitType type = unwrap(that.getType());
+			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
 			String name = that.getName().getName().toString();
-			List<Sequence> sequence = visitSyntaxDefs(that.getSyntaxDefs(), name, type);
-			Production p = new FullProduction(attr, type.toString(),
+			
+			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
+			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
+			List<Sequence> sequence = sdtr.alternatives();
+			
+			Production p = new FullProduction(attr, new FortressTypeToJavaType().analyze(type),
 					new NonTerminal(name),
 					new OrderedChoice(sequence));
 			p.name = new NonTerminal(name);
@@ -190,28 +187,19 @@ public class ProductionTranslator {
 
 		@Override
 		public Production forNonterminalExtensionDef(NonterminalExtensionDef that) {
-			if (that.getType().isNone()) {
-				throw new RuntimeException("Nonterminal extension doesn't have a type: "+that);
-			}
-			TraitType type = unwrap(that.getType());
-			String name = that.getName().getName().toString();
-			List<Sequence> sequence = visitSyntaxDefs(that.getSyntaxDefs(), name, type);
-			Collection<ProductionIndex<? extends GrammarMemberDecl>> ls = ((ProductionExtendIndex) this.pi).getExtends();
-			QualifiedIdName otherQualifiedName = IterUtil.first(ls).getName();
-			Production p = new AlternativeAddition(type.toString(),
-					new NonTerminal(name),
-					new OrderedChoice(sequence), 
-					new SequenceName(ModuleInfo.getExtensionPoint(otherQualifiedName .toString())),false);
-			p.name = new NonTerminal(name);
-			return p;
+			throw new RuntimeException("Nonterminal extension definition should not appear"+that);
 		}
 
 		@Override
 		public Production for_TerminalDef(_TerminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
-			TraitType type = unwrap(that.getType());
+			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
 			String name = that.getName().getName().toString();
-			Sequence sequence = visitSyntaxDef(that.getSyntaxDef(), name, type);
+			
+			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
+			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
+			List<Sequence> sequence = sdtr.alternatives();
+			
 			Production p = new FullProduction(attr, type.toString(),
 					new NonTerminal(name),
 					new OrderedChoice(sequence));
@@ -219,272 +207,6 @@ public class ProductionTranslator {
 			return p;
 		}
 		
-		private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs, String name, TraitType type) {
-			List<Sequence> sequence = new LinkedList<Sequence>();
-			for (SyntaxDef syntaxDef: syntaxDefs) {
-				sequence.add(visitSyntaxDef(syntaxDef, name, type));		
-			}
-			return sequence;
-		}
-		
-		private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, TraitType type) {
-			List<Element> elms = new LinkedList<Element>();
-			// Translate the symbols
-			Collection<PrefixedSymbol> boundVariables = new LinkedList<PrefixedSymbol>();
-			for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
-				elms.addAll(sym.accept(new SymbolTranslator()));
-				boundVariables.addAll(sym.accept(new VariableCollector()));
-			}		
-			String newName = FreshName.getFreshName(name).toUpperCase();
-			ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformationExpression(), type.toString(), boundVariables, _nonterminalNameToDeclaredReturnType);
-			if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
-			elms.add(acr.action());
-			return new Sequence(new SequenceName(newName), elms);
-		}
-	}
-
-	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
-
-		private List<Element> mkList(Element e) {
-			List<Element> els = new LinkedList<Element>();
-			els.add(e);
-			return els;
-		}
-
-		@Override
-		public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
-			return mkList(new NonTerminal(that.getNonterminal().getName().stringName()));
-		}	
-
-		@Override
-		public List<Element> forKeywordSymbol(KeywordSymbol that) {
-			return mkList(new xtc.parser.StringLiteral(that.getToken()));
-		}
-
-		@Override
-		public List<Element> forTokenSymbol(TokenSymbol that) {
-			return mkList(new xtc.parser.StringLiteral(that.getToken()));
-		}
-
-		@Override
-		public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
-			return mkList(new NonTerminal("w"));
-		}
-
-		@Override
-		public List<Element> forBreaklineSymbol(BreaklineSymbol that) {
-			return mkList(new NonTerminal("br"));
-		}
-
-		@Override
-		public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
-			return mkList(new NonTerminal("backspace"));
-		}
-
-		@Override
-		public List<Element> forNewlineSymbol(NewlineSymbol that) {
-			return mkList(new NonTerminal("newline"));
-		}
-
-		@Override
-		public List<Element> forCarriageReturnSymbol(CarriageReturnSymbol that) {
-			return mkList(new NonTerminal("return"));
-		}
-
-		@Override
-		public List<Element> forFormfeedSymbol(FormfeedSymbol that) {
-			return mkList(new NonTerminal("formfeed"));
-		}
-
-		@Override
-		public List<Element> forTabSymbol(TabSymbol that) {
-			return mkList(new NonTerminal("tab"));
-		}
-
-		@Override
-		public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
-			List<CharRange> crs = new LinkedList<CharRange>();
-			final String mess = "Incorrect escape rewrite: ";
-			for (CharacterSymbol c: that.getCharacters()) {
-				// TODO: Error when begin < end
-				CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
-					@Override
-					public CharRange forCharacterInterval(CharacterInterval that) {
-						if (that.getBegin().length() != 1) {
-							new RuntimeException(mess +that.getBegin());
-						}
-						if (that.getEnd().length() != 1) {
-							new RuntimeException(mess+that.getEnd());
-						}
-						return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
-					}
-
-					@Override
-					public CharRange forCharSymbol(CharSymbol that) {
-						if (that.getString().length() != 1) {
-							new RuntimeException(mess+that.getString());
-						}
-						return new CharRange(that.getString().charAt(0));
-					}					
-				});
-				crs.add(cr);
-			}
-			return mkList(new CharClass(crs));
-		}
-
-		@Override
-		public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that,
-				Option<List<Element>> id_result, List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new Binding(Option.unwrap(that.getId()).getText(), e));
-				return symbol_result;
-			}
-			if (symbol_result.isEmpty()) {
-				if (that.getId().isSome()) {
-					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+Option.unwrap(that.getId()).getText() + " "+that.getSymbol());
-				}
-				else {
-					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
-				}
-			}
-			throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
-		}
-
-		@Override
-		public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new xtc.parser.Option(e));
-				return symbol_result;
-			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
-		}
-
-		@Override
-		public List<Element> forRepeatOneOrMoreSymbolOnly(
-				RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new xtc.parser.Repetition(true, e));
-				return symbol_result;
-			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed repeat-one-or-more symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
-		}
-
-		@Override
-		public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new xtc.parser.Repetition(false, e));
-				return symbol_result;
-			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
-		}
-
-		@Override
-		public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new FollowedBy(e));
-				return symbol_result;
-			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
-		}
-
-		@Override
-		public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new NotFollowedBy(e));
-				return symbol_result;
-			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
-		}
-
-		@Override
-		public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
-			return new LinkedList<Element>();
-		}
-
-	}
-
-	public class VariableCollector extends NodeDepthFirstVisitor<Collection<PrefixedSymbol>> {
-
-		@Override
-		public Collection<PrefixedSymbol> defaultCase(com.sun.fortress.nodes.Node that) {
-			return new LinkedList<PrefixedSymbol>();
-		}	
-		
-		@Override
-		public Collection<PrefixedSymbol> forPrefixedSymbol(PrefixedSymbol that) {
-			Collection<PrefixedSymbol> c = super.forPrefixedSymbol(that);
-			if (that.getId().isSome()) {
-				c.add(that);
-			}
-			return c;
-		}
-
-	}
-
-	public static class NonterminalNameToDeclaredReturnType {
-
-		private Collection<ProductionIndex<? extends GrammarMemberDecl>> _nonterminals;
-		private Map<String, Type> _cache;
-		
-		public NonterminalNameToDeclaredReturnType(
-				Collection<ProductionIndex<? extends GrammarMemberDecl>> nonterminals) {
-			this._nonterminals = nonterminals;
-			this._cache = new HashMap<String, Type>();
-		}
-
-		/**
-		 * Given a name of a nonterminal or terminal definition, the type of the
-		 * corresponding member is returned.
-		 * The algorithm works by traversing the collection of members.
-		 * The type of the first member found is returned.
-		 * If the name is the empty String we return
-		 * FortressLibrary.String return.
-		 * This is kind of a hack see {@link ActionCreater#getType} for use.   
-		 * If a member is not found with the given name then a none value is returned
-		 * @param name
-		 * @return
-		 */
-		public Option<Type> getType(String name) {
-			if (name.equals("")) {
-				return Option.<Type>some(new IdType(NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.STRING)));
-			}
-			if (this._cache.containsKey(name)) {
-				return Option.<Type>some(this._cache.get(name));
-			}
-			
-			for (ProductionIndex<? extends GrammarMemberDecl> n: this._nonterminals) {
-				if (n.getName().getName().getText().equals(name)) {
-					this._cache.put(name, n.getType());
-					return Option.<Type>some(n.getType());
-				}
-			}
-			return Option.none();
-		}
 	}
 
 }
