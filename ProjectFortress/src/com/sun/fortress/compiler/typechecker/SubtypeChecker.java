@@ -25,7 +25,7 @@ import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.lambda.Lambda;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
@@ -58,6 +58,125 @@ public abstract class SubtypeChecker {
                                  WhereClause whereClause) {
         return new ConsSubtypeChecker(_table, this,
                                       _staticParamEnv.extend(params, whereClause));
+    }
+
+    /**
+     * Convert the type to a normal form.
+     * A normalized type has the following properties:
+     *
+     * 1) The ArrowType and MatrixType are desugared into InstantiatedType.
+     *
+     *    ArrayType ::= Type [ ExtentRange(, ExtentRange)* ]
+     *    ArrayType(Type element, Indicies indices)
+     *    Indices(List<ExtentRange> extents)
+     *    ExtentRange(Option<StaticArg> base, Option<StaticArg> size)
+     *    trait Array1[\T, nat b0, nat s0\]
+     *    trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
+     *    trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
+     *
+     *    MatrixType ::= Type ^ IntExpr
+     *                 | Type ^ ( ExtentRange (BY ExtentRange)* )
+     *    MatrixType(Type element, List<ExtentRange> dimensions)
+     *    trait Matrix[\T extends Number, nat s0, nat s1\]
+     *
+     *    InstantiatedType(QualifiedIdName name, List<StaticArg> args)
+     *
+     */
+    public static Type normalize(Type t) {
+        if (isArray(t)) {
+            ArrayType tt = (ArrayType)t;
+            Span span = tt.getSpan();
+            TypeArg elem = NodeFactory.makeTypeArg(tt.getElement());
+            IntArg zero = NodeFactory.makeIntArgVal("0");
+            List<ExtentRange> dims = tt.getIndices().getExtents();
+            try {
+                if (dims.size() == 1) {
+                    ExtentRange first = dims.get(0);
+                    QualifiedIdName name =
+                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
+                                                        "Array1");
+                    StaticArg base;
+                    if (first.getBase().isSome())
+                         base = Option.unwrap(first.getBase());
+                    else base = zero;
+                    return NodeFactory.makeInstantiatedType(span, false, name,
+                                                            elem, base,
+                                                            Option.unwrap(first.getSize()));
+                } else if (dims.size() == 2) {
+                    ExtentRange first  = dims.get(0);
+                    ExtentRange second = dims.get(1);
+                    QualifiedIdName name =
+                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
+                                                    "Array2");
+                    StaticArg base1;
+                    StaticArg base2;
+                    if (first.getBase().isSome())
+                         base1 = Option.unwrap(first.getBase());
+                    else base1 = zero;
+                    if (second.getBase().isSome())
+                         base2 = Option.unwrap(first.getBase());
+                    else base2 = zero;
+                    return NodeFactory.makeInstantiatedType(span, false, name,
+                                                            elem, base1,
+                                                            Option.unwrap(first.getSize()),
+                                                            base2,
+                                                            Option.unwrap(second.getSize()));
+                } else if (dims.size() == 3) {
+                    ExtentRange first  = dims.get(0);
+                    ExtentRange second = dims.get(1);
+                    ExtentRange third  = dims.get(2);
+                    QualifiedIdName name =
+                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
+                                                        "Array3");
+                    StaticArg base1;
+                    StaticArg base2;
+                    StaticArg base3;
+                    if (first.getBase().isSome())
+                         base1 = Option.unwrap(first.getBase());
+                    else base1 = zero;
+                    if (second.getBase().isSome())
+                         base2 = Option.unwrap(first.getBase());
+                    else base2 = zero;
+                    if (third.getBase().isSome())
+                         base3 = Option.unwrap(first.getBase());
+                    else base3 = zero;
+                    return NodeFactory.makeInstantiatedType(span, false, name,
+                                                            elem, base1,
+                                                            Option.unwrap(first.getSize()),
+                                                            base2,
+                                                            Option.unwrap(second.getSize()),
+                                                            base3,
+                                                            Option.unwrap(third.getSize()));
+
+                }
+                return error("Desugaring " + t + " to InstantiatedType is not " +
+                             "yet supported.");
+            } catch (Exception x) {
+                return error("Desugaring " + t + " to InstantiatedType is not " +
+                             "yet supported.");
+            }
+        } else if (isMatrix(t)) {
+            MatrixType tt = (MatrixType)t;
+            List<ExtentRange> dims = tt.getDimensions();
+            if (dims.size() == 2) {
+                ExtentRange first  = dims.get(0);
+                ExtentRange second = dims.get(1);
+                // Or first.getBase() == second.getBase() == 0
+                if (first.getBase().isNone() && second.getBase().isNone() &&
+                    first.getSize().isSome() && second.getSize().isSome()) {
+                    Span span = tt.getSpan();
+                    QualifiedIdName name =
+                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
+                                                        "Matrix");
+                    return NodeFactory.makeInstantiatedType(span, false, name,
+                                                            NodeFactory.makeTypeArg(tt.getElement()),
+                                                            Option.unwrap(first.getSize()),
+                                                            Option.unwrap(second.getSize()));
+                }
+            }
+            return error("Desugaring " + t + " to InstantiatedType is not yet " +
+                         "supported.");
+        } return t;
     }
 
     private Lambda<Type, Type> makeSubst(List<? extends StaticParam> params,
@@ -195,12 +314,20 @@ public abstract class SubtypeChecker {
         } else return _extends;
     }
 
-    private boolean isNamedType(Type t) {
+    private boolean isValidIdType(Type t) {
         if (isIdType(t)) {
             TypeConsIndex index = _table.typeCons(((IdType)t).getName());
             return (index instanceof TraitIndex ||
                     index instanceof TypeAliasIndex);
         } else return false;
+    }
+
+    private boolean isValidTraitType(Type t) {
+        if (t instanceof NamedType) {
+            TypeConsIndex index = _table.typeCons(((NamedType)t).getName());
+            return (index instanceof TraitIndex ||
+                    index instanceof TypeAliasIndex);
+        } else return (t instanceof AbbreviatedType);
     }
 
     private boolean isIdType(Type t) {
@@ -215,10 +342,10 @@ public abstract class SubtypeChecker {
     private boolean isInst(Type t) {
         return (t instanceof InstantiatedType);
     }
-    private boolean isArray(Type t) {
+    private static boolean isArray(Type t) {
         return (t instanceof ArrayType);
     }
-    private boolean isMatrix(Type t) {
+    private static boolean isMatrix(Type t) {
         return (t instanceof MatrixType);
     }
 
@@ -431,7 +558,7 @@ public abstract class SubtypeChecker {
      * 5) For instantiated types, where clauses are not supported.
      */
     public Boolean subtype(Type s, Type t) {
-        return subtype(s, t, _emptyHistory);
+        return subtype(normalize(s), normalize(t), _emptyHistory);
     }
 
     private Boolean subtype(final Type s, final Type t, SubtypeHistory history) {
@@ -449,7 +576,7 @@ public abstract class SubtypeChecker {
             if (s.equals(t)) { return TRUE; }
             // [S-Var]  p; Delta |- ALPHA <: Delta(ALPHA)
             // getExtends(IdType s) returns bounds of s if s is a type parameter
-            if (isIdType(s) && !isNamedType(s)) {
+            if (isIdType(s) && !isValidIdType(s)) {
                 for (TraitType ty : getExtends((IdType)s)) {
                     if (equivalent(t, ty, h)) return true;
                 }
@@ -509,78 +636,53 @@ public abstract class SubtypeChecker {
             //          1 <= i <= |T'[\t...\]...|
             //         ----------------------------------------------------
             //          p; Delta |- T[\s...\] <: [X...|->s...]T'[\t...\]_i
-            if (isNamedType(s) && isNamedType(t)) {
-                IdType ss = (IdType)s;
-                IdType tt = (IdType)t;
-                if (nameString(ss.getName()).equals(nameString(tt.getName()))) {
+            if (isValidTraitType(s) && isValidTraitType(t)) {
+                // equivalent named types without static arguments
+                if (isValidIdType(s) && isValidIdType(t) &&
+                    nameString(((IdType)s).getName()).equals(nameString(((IdType)t).getName())))
                     return TRUE;
-                } else {
-                    TypeConsIndex index = _table.typeCons(ss.getName());
-                    if (index instanceof TraitIndex) {
-                        TraitIndex traitIndex = (TraitIndex)index;
+                if (isInst(s) && isInst(t)) {
+                    InstantiatedType ss = (InstantiatedType)s;
+                    InstantiatedType tt = (InstantiatedType)t;
+                    if (nameString(ss.getName()).equals(nameString(tt.getName())))
+                        return equivalentStaticArgs(ss.getArgs(),tt.getArgs(),h);
+                }
+                TypeConsIndex index = _table.typeCons(((NamedType)s).getName());
+                if (index instanceof TraitIndex) {
+                    TraitIndex traitIndex = (TraitIndex)index;
+                    if (isIdType(s)) {
                         for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
                             TraitType sup = _sup.getType();
                             if (subtype(sup, t, h)) return TRUE;
                         }
                         return FALSE;
-                    } else if (index instanceof TypeAliasIndex) {
-                        return FALSE;
-                    } else {
-                        throw new IllegalStateException("Unexpected index type");
-                    }
-                }
-
-            }
-            if (isInst(s) && isInst(t)) {
-                InstantiatedType ss = (InstantiatedType)s;
-                InstantiatedType tt = (InstantiatedType)t;
-                List<StaticArg> sargs = ss.getArgs();
-                if (nameString(ss.getName()).equals(nameString(tt.getName()))) {
-                    return equivalentStaticArgs(sargs, tt.getArgs(), h);
-                } else {
-                    TypeConsIndex index = _table.typeCons(ss.getName());
-                    if (index instanceof TraitIndex) {
-                        TraitIndex traitIndex = (TraitIndex)index;
+                    } else { // (isInst(s))
                         try {
                             Lambda<Type, Type> subst =
-                                makeSubst(traitIndex.staticParameters(), sargs);
+                                makeSubst(traitIndex.staticParameters(),
+                                          ((InstantiatedType)s).getArgs());
                             for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
                                 TraitType sup = _sup.getType();
-                                if (subtype(subst.value(sup), t, h)) return TRUE;
+                                if (subtype(subst.value(sup), t, h))
+                                    return TRUE;
                             }
                             return FALSE;
                         } catch (ProgramError ex) {
                             return FALSE;
                         }
-                    } else if (index instanceof TypeAliasIndex) {
-                        return FALSE;
-                    } else {
-                        throw new IllegalStateException("Unexpected index type");
                     }
+                } else if (index instanceof TypeAliasIndex) {
+                    return FALSE;
+                } else {
+                    throw new IllegalStateException("Unexpected index type");
                 }
             }
-
-            if (isArray(s) && isArray(t)) {
-                ArrayType ss = (ArrayType)s;
-                ArrayType tt = (ArrayType)t;
-                return (subtype(ss.getElement(), tt.getElement(), h) &&
-                        equivalent(ss.getIndices(), tt.getIndices(), h));
-            }
-            if (isMatrix(s) && isMatrix(t)) {
-                MatrixType ss = (MatrixType)s;
-                MatrixType tt = (MatrixType)t;
-                return (subtype(ss.getElement(), tt.getElement(), h) &&
-                        equivalent(ss.getDimensions(), tt.getDimensions(), h));
-            }
-
             // [NS-Any]    p; Delta |- Any </: t  (where t =/= Any)
             if (s.equals(ANY) && !t.equals(ANY)) { return FALSE; }
             // [NS-Bottom] p; Delta |- s </: Bottom  (where s =/= Bottom)
             if (t.equals(BOTTOM) && !s.equals(BOTTOM)) { return FALSE; }
             // [NS-Void]   p; Delta |- s </: ()  (where s =/= Bottom /\ s =/= ())
             if (t.equals(VOID) && !s.equals(VOID)) { return FALSE; }
-            // [NS-Name]   p; Delta |- s </: T'  (where s =/= Bottom /\ s =/= T)
-            if (isNamedType(t) && !isNamedType(s)) { return FALSE; }
             // [NS-Arrow]  p; Delta |- s </: t1 -> t2  (where s =/= Bottom /\
             //                                               s =/= s1 -> s2)
             if (isArrow(t) && !isArrow(s)) { return FALSE; }
@@ -589,7 +691,7 @@ public abstract class SubtypeChecker {
             if (isTuple(t) && !isTuple(s)) { return FALSE; }
             // [NS-Tapp]   p; Delta |- s </: T'[\...\] (where s =/= Bottom /\
             //                                                s =/= T[\...\] )
-            if (isInst(t) && !isInst(s)) { return FALSE; }
+            if (isValidTraitType(t) && !isValidTraitType(s)) { return FALSE; }
             return FALSE;
         }
     }

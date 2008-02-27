@@ -1204,35 +1204,38 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             abstract TraitType();
                 /**
-                 * array type
-                 * TraitType ::= Type [ ArraySize? ]
-                 * e.g.) ZZ64[3, 2]
+                 * named type
                  */
-                ArrayType(Type element, Indices indices);
+                abstract NamedType(QualifiedIdName name);
+                    /**
+                     * type name
+                     * TraitType ::= QualifiedName
+                     * e.g.) T
+                     */
+                    IdType();
+                    /**
+                     * instantiated type
+                     * TraitType ::= QualifiedName [\StaticArgList\]
+                     * e.g.) List[\ZZ32\]
+                     */
+                    InstantiatedType(List<StaticArg> args);
                 /**
-                 * type name
-                 * TraitType ::= QualifiedName
-                 * e.g.) T
+                 * abbreviated type
                  */
-                IdType(QualifiedIdName name);
-                /**
-                 * inferred type
-                 * Used internally for type analysis
-                 */
-                InferenceVarType(Object id, int index = -1);
-                /**
-                 * matrix type
-                 * TraitType ::= Type ^ IntExpr
-                 *             | Type ^ ( ExtentRange (BY ExtentRange)* )
-                 * e.g.)
-                 */
-                MatrixType(Type element, List<ExtentRange> dimensions);
-                /**
-                 * instantiated type
-                 * TraitType ::= QualifiedName [\StaticArgList\]
-                 * e.g.) List[\ZZ32\]
-                 */
-                InstantiatedType(QualifiedIdName name, List<StaticArg> args);
+                abstract AbbreviatedType(Type element);
+                    /**
+                     * array type
+                     * TraitType ::= Type [ ArraySize? ]
+                     * e.g.) ZZ64[3, 2]
+                     */
+                    ArrayType(Indices indices);
+                    /**
+                     * matrix type
+                     * TraitType ::= Type ^ IntExpr
+                     *             | Type ^ ( ExtentRange (BY ExtentRange)* )
+                     * e.g.)
+                     */
+                    MatrixType(List<ExtentRange> dimensions);
             /**
              * labeled type: tuple type or argument type
              */
@@ -1261,6 +1264,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) ()
              */
             VoidType();
+            /**
+             * inferred type
+             * Used internally for type analysis
+             */
+            InferenceVarType(Object id, int index = -1);
             /**
              * A binary intersection.  Used internally for type analysis.
              */
