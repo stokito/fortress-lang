@@ -69,7 +69,7 @@ public class ContractedNonterminal {
 	public ProductionIndex<? extends GrammarMemberDecl> getNonterminal() {
 		List<SyntaxDef> syntaxDefs = new LinkedList<SyntaxDef>();
 		QualifiedIdName name = this.getName();
-		for (ProductionIndex<? extends GrammarMemberDecl> gnt: this.members) {
+		for (ProductionIndex/*<? extends GrammarMemberDecl>*/ gnt: this.members) {
 			contractedNames.add(gnt.getName());
 			if (gnt instanceof GrammarNonterminalIndex) {
 				syntaxDefs.addAll(((GrammarNonterminalIndex) gnt).getSyntaxDefs());
@@ -95,7 +95,7 @@ public class ContractedNonterminal {
 	 * @return
 	 */
 	public QualifiedIdName getName() {
-		for (ProductionIndex<? extends GrammarMemberDecl> member: this.members) { 
+		for (ProductionIndex/*<? extends GrammarMemberDecl>*/ member: this.members) { 
 			if (member instanceof ProductionDefIndex) {
 				return member.getName();
 			}
