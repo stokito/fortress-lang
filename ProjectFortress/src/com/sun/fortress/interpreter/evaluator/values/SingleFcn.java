@@ -61,7 +61,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
     abstract public String  at();
     abstract public List<FType> getDomain();
-
+    public boolean isOverride() { return false; }
+    
     /**
      * For now, prefer to unwrap tuples because that avoid creating
      * new memo entries for tuple types.

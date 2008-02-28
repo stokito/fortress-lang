@@ -38,10 +38,16 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.ConstructorFnName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierOverride;
+import com.sun.fortress.nodes.NodeAbstractVisitor_void;
+import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.HasParams;
@@ -244,13 +250,37 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
                 SingleFcn.createSymbolicInstantiation(bte, ap, getAt());
             genericArgs.put(s, instantiationTypes);
         }
-
+        
+        final Set<String> overridden = new HashSet<String>();
+//        final NodeVisitor_void overrideFinder = new NodeAbstractVisitor_void() {
+//
+//            FnAbsDeclOrDecl current;
+//            
+//            public void forModifierOverride(ModifierOverride mo) {
+//                overridden.add(current.stringName());
+//                System.err.println("Override of " + current.stringName());
+//            }
+//
+//            @Override
+//            public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl that) {
+//                current = that;
+//                for (Modifier m : that.getMods()) {
+//                    m.accept(this);
+//                }
+//            }
+//             
+//        };
+         
+        
         //  Find all the methods in selfType, using the containing environment
         // to give them meaning.
-        accumulateEnvMethods(
+        accumulateEnvMethods(null, overridden,
           signaturesToTraitsContainingMethods,
           generics, genericArgs, selfType, bte);
 
+//        for (AbsDeclOrDecl d : defs ) {
+//            d.accept(overrideFinder);
+//        }
         // Accumulate all the trait methods, evaluated against their
         // trait environments.
         // TODO The signature map uses EQUALITY, and that might be wrong,
@@ -258,7 +288,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         for (FType t : extendedTraits) {
             FTypeTrait ft = (FTypeTrait) t;
             BetterEnv e = ft.getMembers();
-            accumulateEnvMethods(
+            accumulateEnvMethods(overridden, null, 
              signaturesToTraitsContainingMethods, generics, genericArgs, ft, e);
         }
 
@@ -436,12 +466,16 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
      * @param e
      */
     private void accumulateEnvMethods(
+            Set<String> alreadyOverridden,
+            Set<String> newOverrides,
             GHashMap<SingleFcn, FTraitOrObject> signaturesToTraitsContainingMethods,
             MultiMap<String, GenericMethod> generics,
             Map<String, List<FType>> genericArgs, FTraitOrObject ft, BetterEnv e) {
         for (String s : e) {
             FValue fv = e.getValue(s);
-            // This has got to be wrong...
+            if (alreadyOverridden == null || ! alreadyOverridden.contains(s)) {
+                
+           // This has got to be wrong...
             if (fv instanceof OverloadedFunction) {
                 // Treat the overloaded function as a bag of separate
                 // definitions.
@@ -449,20 +483,30 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
                         .getOverloads();
                 for (Overload ov : overloads) {
                     SingleFcn sfcn = ov.getFn();
+                    if (newOverrides != null && sfcn.isOverride())
+                        newOverrides.add(s);
                     // extract below as method, call it here.
                     signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
                 }
             } else
                 if (fv instanceof GenericMethod) {
                 GenericMethod gfv = (GenericMethod) fv;
+                if (newOverrides != null && gfv.isOverride())
+                    newOverrides.add(s);
+                
                 MethodClosure sfcn = gfv.make(genericArgs.get(s), gfv.getAt());
+                
                 signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
 
             } else if (fv instanceof MethodClosure) {
+                MethodClosure mc = (MethodClosure) fv;
                 signaturesToTraitsContainingMethods.putIfAbsent
-                    ((MethodClosure) fv, ft);
+                    (mc, ft);
+                if (newOverrides != null && mc.isOverride())
+                    newOverrides.add(s);
             } else {
                 bug(errorMsg("Don't handle ", fv, " yet"));
+            }
             }
             // Record the name to ensure that it is defined somewhere.
             traitsToNamesReferenced.putItem(ft, ((Fcn)fv).asMethodName());
