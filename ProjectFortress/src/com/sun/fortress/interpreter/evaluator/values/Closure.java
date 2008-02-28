@@ -36,8 +36,11 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnExpr;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierOverride;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
@@ -53,9 +56,21 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
  * A Closure value is a function, plus some environment information.
  */
 public class Closure extends NonPrimitive implements Scope, HasFinishInitializing {
+    
     protected FType returnType;
     protected List<FType> instArgs;
     protected Applicable def;
+
+    @Override
+    public boolean isOverride() {
+        if (def instanceof FnAbsDeclOrDecl) {
+            List<Modifier> mods = ((FnAbsDeclOrDecl) def).getMods();
+            for (Modifier mod : mods)
+                if (mod instanceof ModifierOverride)
+                    return true;
+        }
+        return false;
+    }
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Fcn#getFnName()

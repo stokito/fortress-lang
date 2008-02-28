@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+component disp0
+export Executable
+
+(* Test: Careful examination of dispatch rules *)
+
+trait A
+  f(self, other:ZZ32):String = "f FAIL"
+  g(other:ZZ32):String = "g FAIL"
+end
+
+object B extends A
+ override   f(self, other:Number):String = "f PASS"
+ override   g(other:Number):String = "g PASS"
+end
+
+run(args:String...):()= do
+   println(f(B, 17))
+   println(B.g(17))
+   end
+
+end
