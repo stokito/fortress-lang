@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -62,7 +62,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     abstract public String  at();
     abstract public List<FType> getDomain();
     public boolean isOverride() { return false; }
-    
+
     /**
      * For now, prefer to unwrap tuples because that avoid creating
      * new memo entries for tuple types.
