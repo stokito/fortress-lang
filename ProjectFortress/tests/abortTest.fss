@@ -15,18 +15,26 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-native component NativeThread
-export NativeThread
+component abortTest
+export Executable
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+run(args:String...):()=do
+    iters : ZZ32 = 3000
+    successes : ZZ32 := 0
+    failures : ZZ32 := 0
+    for i <- 0#iters do
+        try
+            tryatomic do 
+                successes+= 1 
+                abort()
+            end
+        catch e
+            AtomicConflict => atomic do failures+= 1 end
+        end
+    end
+    
+    assert(successes=0, "Abort failed")
+    assert(failures=iters,"Abort failed")
 
-object PrimitiveThread[\T\] (fcn:()->T)
-  val():T         = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$val")
-  wait():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$wait")
-  ready():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$ready")
-  stop():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$stop")
 end
-
-abort():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$abort")
 end

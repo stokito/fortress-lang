@@ -24,4 +24,6 @@ object PrimitiveThread[\T\](fcn:()->T)
     stop():()
 end
 
+abort():()
+
 end

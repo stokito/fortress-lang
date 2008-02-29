@@ -24,6 +24,7 @@ import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
+import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -34,6 +35,7 @@ import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
+import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
@@ -105,4 +107,14 @@ public class PrimitiveThread extends Constructor {
             return FVoid.V;
         }
     }
+
+    public static final class abort extends NativeFn0 {
+        protected FValue act() {
+            Transaction current = BaseTask.getThreadState().transaction();
+	    if (current != null)
+		current.abort();
+            return FVoid.V;
+	}
+    }
+            
 }
