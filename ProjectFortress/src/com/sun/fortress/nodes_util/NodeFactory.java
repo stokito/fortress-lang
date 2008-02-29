@@ -415,21 +415,21 @@ public class NodeFactory {
   * Alternatively, you can invoke the FnDef constructor without a selfName
   */
  public static FnDef makeFnDecl(Span s, List<Modifier> mods,
-   Option<Id> optSelfName, SimpleName name,
-   List<StaticParam> staticParams,
-   List<Param> params,
-   Option<Type> returnType,
-   Option<List<TraitType>> throwss,
-   WhereClause where, Contract contract,
-   Expr body) {
-  String selfName;
-  if (optSelfName.isSome()) {
-   selfName = Option.unwrap(optSelfName).getText();
-  } else {
-   selfName = WellKnownNames.defaultSelfName;
-  }
-  return new FnDef(s, mods, name, staticParams, params, returnType,
-    throwss, where, contract, selfName, body);
+                                Option<Id> optSelfName, SimpleName name,
+                                List<StaticParam> staticParams,
+                                List<Param> params,
+                                Option<Type> returnType,
+                                Option<List<TraitType>> throwss,
+                                WhereClause where, Contract contract,
+                                Expr body) {
+     String selfName;
+     if (optSelfName.isSome()) {
+         selfName = Option.unwrap(optSelfName).getText();
+     } else {
+         selfName = WellKnownNames.defaultSelfName;
+     }
+     return new FnDef(s, mods, name, staticParams, params, returnType,
+                      throwss, where, contract, selfName, body);
  }
 
  public static Id makeId(String string) {

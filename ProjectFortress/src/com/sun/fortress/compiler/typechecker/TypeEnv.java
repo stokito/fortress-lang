@@ -82,13 +82,7 @@ public abstract class TypeEnv {
             // FortressBuiltin.ImmutableHeapSequence.
             VarargsParam _param = (VarargsParam) param;
 
-            Type result =
-                makeInstantiatedType(_param.getVarargsType().getSpan(),
-                                     false,
-                                     makeQualifiedIdName
-                                         (Arrays.asList
-                                              (makeId("FortressBuiltin")),
-                                          makeId("ImmutableHeapSequence")));
+            Type result = Types.fromVarargsType(_param.getVarargsType());
             return some(result);
         }
     }
