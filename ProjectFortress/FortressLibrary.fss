@@ -117,8 +117,10 @@ trait TotalComparison
     (* We're both a partial order (including Unordered) and a total
        order (TotalComparison alone).  Avoid ambiguity between the
        default definitions of CMP and >=. *)
-    opr =(self, other:Comparison): Boolean = false
+    opr =(self, other:TotalComparison): Boolean = false
+    opr =(self, other:Unordered): Boolean = false
     opr CMP(self, other:Unordered): Boolean = Unordered
+    opr <(self, other:Unordered): Boolean = false
     opr >=(self, other:Unordered): Boolean = false
     opr >=(self, other:Comparison): Boolean = NOT (other < self)
     opr LEXICO(self, other:TotalComparison): TotalComparison = self
@@ -2120,6 +2122,12 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
+    opr[r:Range[\T\]]: Range[\T\] = fail("Unrecognized Range " r)
+    opr[_:OpenRange[\Any\]] : Range[\T\] = self
+    opr[other:LowerRange[\T\]] : Range[\T\]
+    opr[other:UpperRange[\T\]] : Range[\T\]
+    opr[other:ExtentRange[\T\]] : Range[\T\]
+    opr[other:FullRange[\T\]] : FullRange[\T\]
     opr =(self,_:Range[\T\]): Boolean = false
 end
 
@@ -2131,14 +2139,18 @@ end
 
 object OpenRange[\T\]() extends { Range[\T\], PartialRange[\T\] }
     toString():String = "#"
+    opr[_:OpenRange[\T\]] : OpenRange[\T\] = self
+
+    opr[other:LowerRange[\T\]] : LowerRange[\T\] = other
+    opr[other:UpperRange[\T\]] : UpperRange[\T\] = other
+    opr[other:ExtentRange[\T\]] : ExtentRange[\T\] = other
+    opr[other:FullRange[\T\]] : FullRange[\T\] = other
     opr =(self,_:OpenRange[\T\]): Boolean = true
-    opr CMP(self,other:Range[\T\]): Comparison = do
-        println("# CMP " other)
+    opr CMP(self,other:Range[\T\]): Comparison =
         typecase other of
             OpenRange[\T\] => EqualTo
             else => GreaterThan
         end
-      end
 end
 
 opr PARTIAL_LEXICO(a:Comparison, b:Comparison) =
@@ -2178,6 +2190,21 @@ opr PCMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison = do
 
 opr PCMP(a:Integral, b:Integral): TotalComparison = a CMP b
 
+(** Non-traditional subtraction of bounds, elementwise on tuples **)
+opr SUBTR[\A,B\](t1:(A,B), t2:(A,B)): (A,B) = do
+    (a1,b1) = t1
+    (a2,b2) = t2
+    (a1 SUBTR a2, b1 SUBTR b2)
+  end
+
+opr SUBTR[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): (A,B,C) = do
+    (a1,b1,c1) = t1
+    (a2,b2,c2) = t2
+    (a1 SUBTR a2, b1 SUBTR b2, c1 SUBTR c2)
+  end
+
+opr SUBTR[\T extends Integral\](a:T, b:T):T = 1 + a - b
+
 (** join upper and lower bounds comparisons (total or partial) to
     yield partial containment. **)
 
@@ -2186,9 +2213,32 @@ trait RangeWithLower[\T\] extends Range[\T\]
     getter lower():T
 end
 
+rangeBoundError[\T\](r1:Range[\T\], r2: Range[\T\]): Range[\T\] =
+    fail(r1 "[" r2 "] does not contain bound of indexing range")
+
 object LowerRange[\T\](lo:T) extends { RangeWithLower[\T\], PartialRange[\T\] }
     getter lower():T = lo
     toString():String = lower() "#"
+    opr[_:OpenRange[\T\]] : LowerRange[\T\] = self
+    opr[other:LowerRange[\T\]] : LowerRange[\T\] =
+        if other.lower() >= lower() then
+            other
+        else
+            rangeBoundError[\T\](self,other)
+        end
+    opr[other:ExtentRange[\T\]] : FullRange[\T\] = lower() # other.extent()
+    opr[other:UpperRange[\T\]] : FullRange[\T\] =
+        if other.upper() >= lower() then
+            lower() : other.upper()
+        else
+            rangeBoundError[\T\](self,other)
+        end
+    opr[other:FullRange[\T\]] : FullRange[\T\] =
+        if other.lower() >= lower() then
+            other
+        else
+            rangeBoundError[\T\](self,other)
+        end
     opr =(self, x:LowerRange[\T\]): Boolean = lower() = x.lower()
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
@@ -2212,6 +2262,22 @@ end
 object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
     getter upper():T = up
     toString():String = ":" upper()
+    opr[_:OpenRange[\T\]] : UpperRange[\T\] = self
+    opr[other:LowerRange[\T\]] : FullRange[\T\] = other.lower():upper()
+    opr[other:UpperRange[\T\]] : UpperRange[\T\] =
+        if other.upper() <= upper() then
+            other
+        else
+            rangeBoundError[\T\](self,other)
+        end
+    opr[other:ExtentRange[\T\]] : FullRange[\T\] =
+        (upper() SUBTR other.extent()) # other.extent()
+    opr[other:FullRange[\T\]] : FullRange[\T\] =
+        if other.upper() <= upper() then
+            other
+        else
+            rangeBoundError[\T\](self,other)
+        end
     opr =(self,x:UpperRange[\T\]): Boolean = upper() = x.upper()
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
@@ -2235,6 +2301,22 @@ end
 
 object ExtentRange[\T\](ex:T) extends { RangeWithExtent[\T\], PartialRange[\T\] }
     getter extent():T = ex
+    opr[_:OpenRange[\T\]] : ExtentRange[\T\] = self
+    opr[other:LowerRange[\T\]] : FullRange[\T\] = other.lower() # extent()
+    opr[other:UpperRange[\T\]] : FullRange[\T\] =
+        (other.upper() SUBTR extent()) # extent()
+    opr[other:ExtentRange[\T\]] : ExtentRange[\T\] =
+        if other.extent() <= extent() then
+            other
+        else
+            rangeBoundError[\T\](self,other)
+        end
+    opr[other:FullRange[\T\]] : FullRange[\T\] =
+        if other.extent() <= extent() then
+            other
+        else
+            rangeBoundError[\T\](self,other)
+        end
     opr =(self,x:ExtentRange[\T\]): Boolean = extent() = x.extent()
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
@@ -2267,7 +2349,7 @@ trait FullRange[\T\]
         elif r.lower() IN self then
             r.lower():upper()
         else
-            fail(self "[" r "] does not contain lower bound")
+            rangeBoundError[\T\](self,r)
         end
     opr[r:UpperRange[\T\]]: FullRange[\T\] =
         if r.upper() = upper() then
@@ -2276,7 +2358,7 @@ trait FullRange[\T\]
         elif r.upper() IN self then
             lower():r.upper()
         else
-            fail(self "[" r "] does not contain upper bound")
+            rangeBoundError[\T\](self,r)
         end
     opr[r:ExtentRange[\T\]]: FullRange[\T\] =
         if r.extent() <= extent() then
@@ -2286,9 +2368,9 @@ trait FullRange[\T\]
         end
     opr[r:FullRange[\T\]]: FullRange[\T\] =
         if r.lower() < lower() then
-            fail(self "[" r "] does not contain lower bound")
+            rangeBoundError[\T\](self,r)
         elif r.upper() > upper() then
-            fail(self "[" r "] does not contain upper bound")
+            rangeBoundError[\T\](self,r)
         else
             r
         end
@@ -2307,8 +2389,9 @@ trait FullRange[\T\]
                     (Comparison,Unordered) => Unordered
                     (LessThan,LessThan) => Unordered
                     (GreaterThan,GreaterThan) => Unordered
-                    (EqualTo,EqualTo) => EqualTo
-                    else => b
+                    (EqualTo,Comparison) => b
+                    (GreaterThan,Comparison) => LessThan
+                    else (* LessThan,Comparison *) => GreaterThan
                 end
             else => INVERSE (other CMP self)
         end

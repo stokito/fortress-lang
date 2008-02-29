@@ -45,6 +45,7 @@ public class FortressManager extends BaseManager {
       } else if (me==null || me==Transaction.COMMITTED_TRANS ||
                  Math.random() > 0.5) {
           other.abort();
+          return;
       }
       me.abort();
   }

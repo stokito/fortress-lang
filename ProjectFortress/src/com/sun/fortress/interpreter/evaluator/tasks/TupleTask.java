@@ -39,6 +39,9 @@ public class TupleTask extends BaseTask {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.setCurrentTask(this);
         res = new Evaluator(eval, expr).eval(expr);
+        /* Null out fields so they are not retained by GC after termination. */
+        eval = null;
+        expr = null;
     }
 
     public void print() {
