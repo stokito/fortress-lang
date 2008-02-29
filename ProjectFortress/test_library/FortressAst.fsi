@@ -119,14 +119,31 @@ api FortressAst
      *          | FnSig
      * e.g.) swap (x: Object, y: Object): (Object, Object)
      *)
-   object AbsFnDecl() extends {FnAbsDeclOrDecl, AbsDecl } end
+   object AbsFnDecl(mods:List[\Modifier\],
+      name:SimpleName,
+      staticParams:List[\StaticParam\],
+      params:List[\Param\],
+      returnType:Maybe[\Type\],
+      throwsClause:Maybe[\List[\TraitType\]\],
+      whereClauses:List[\WhereClause\],
+      acontract:Contract,
+      selfName:String) extends {FnAbsDeclOrDecl, AbsDecl } end
    (**
      * functional declaration in components
      * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
      * e.g.) swap (x, y) = (y, x)
      *)
    trait FnDecl extends FnAbsDeclOrDecl end
-   object FnDef(body:Expr) extends FnDecl end
+   object FnDef(mods:List[\Modifier\],
+      name:SimpleName,
+      staticParams:List[\StaticParam\],
+      params:List[\Param\],
+      returnType:Maybe[\Type\],
+      throwsClause:Maybe[\List[\TraitType\]\],
+      whereClauses:List[\WhereClause\],
+      acontract:Contract,
+      selfName:String,
+      body:Expr) extends FnDecl end
 
    trait Param extends Node
       mods:List[\Modifier\]
@@ -224,8 +241,7 @@ api FortressAst
                      * Primary ::= Op[\StaticArgList\]
                      * e.g.) +[\String\]
                      *)
-                    object OpRef(List[\QualifiedOpName\] ops,
-                          List[\StaticArg\] staticArgs) end
+                    object OpRef(ops:List[\QualifiedOpName\], staticArgs:List[\StaticArg\]) end
 
    trait BaseExpr extends Primary end
 
@@ -277,7 +293,7 @@ api FortressAst
    object VoidType() extends NonArrowType end
 
    trait DimType extends NonArrowType end
-   object TaggedDimType(atype:Type, dims:DimExpr, Maybe[\UnitExpr\]) extends DimType end
+(*   object TaggedDimType(atype:Type, dims:DimExpr, Maybe[\UnitExpr\]) extends DimType end *)
    object TaggedUnitType(atype:Type, unitExpr:UnitExpr) extends NonArrowType end
 
    trait StaticArg extends Type end
@@ -373,13 +389,13 @@ api FortressAst
      * QualifiedIdName ::= Id(.Id)*
      * e.g.) com.sun.fortress.nodes_util.getName
      *)
-   object QualifiedIdName(aapi:Maybe[\APIName\], name:Id) extends QualifiedName end
+   object QualifiedIdName(apiName:Maybe[\APIName\], name:Id) extends QualifiedName end
    (**
      * qualified operator name
      * internal uses only
      * e.g.) com.sun.fortress.nodes_util.+
      *)
-   object QualifiedOpName(aapi:Maybe[\APIName\], name:OpName) extends QualifiedName end
+   object QualifiedOpName(apiName:Maybe[\APIName\], name:OpName) extends QualifiedName end
    (**
      * unqualified name
      *)
@@ -555,4 +571,5 @@ api FortressAst
          * BIG operator
          *)
         object BigFixity() extends Fixity end
+
 end

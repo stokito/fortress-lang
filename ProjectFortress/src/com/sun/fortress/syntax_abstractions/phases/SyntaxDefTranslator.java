@@ -155,7 +155,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
 			elms.addAll(sym.accept(new SymbolTranslator()));
 			boundVariables.addAll(sym.accept(new VariableCollector()));
-		}		
+		}
 		String newName = FreshName.getFreshName(name).toUpperCase();
 		ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformationExpression(), type, boundVariables);
 		if (!acr.isSuccessful()) { new Result(acr.errors()); }

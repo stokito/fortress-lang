@@ -133,7 +133,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public  FType getFType(Type t) {
-        return t.accept(this);
+    	return t.accept(this);
     }
 
     public FType getFType(VarargsType t) {

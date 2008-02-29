@@ -794,7 +794,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     }
     private void forObjectDecl3(ObjectDecl x) {
-
         BetterEnv e = containing;
         Id name = x.getName();
 

@@ -37,7 +37,9 @@ import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.phases.Analyzable;
 
@@ -60,7 +62,6 @@ public abstract class Module implements Analyzable<Module> {
 	
 	public Module() {
 		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
-		
 		this.declaredProductions = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
 		this.extendedModules = new java.util.HashSet<Module>();
 		this.parameters = new LinkedHashSet<ModuleName>();
@@ -237,6 +238,11 @@ public abstract class Module implements Analyzable<Module> {
 		while (nit.hasNext()) {
 			ProductionIndex<? extends GrammarMemberDecl> member = nit.next();
 			s+= indent+"- "+member.getType()+" "+member.getName()+"\n";
+			if (member.getAst() instanceof NonterminalDecl) {
+				for (SyntaxDef sd: ((NonterminalDecl) member.getAst()).getSyntaxDefs()) {
+					s+= indent+indent+" - "+sd.getSyntaxSymbols()+"\n";
+				}
+			}
 		}
 		indent = tmpIndent;
 		

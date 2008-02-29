@@ -56,7 +56,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 	private static final String STRINGLITERALEXPR = "StringLiteralExpr";
 	private Collection<_TerminalDef> _terminalDefs;
 	private List<Id> _apiName;
-	private String _var;
+	private String var;
 
 	@Override
 	public Node forGrammarDef(GrammarDef that) {
@@ -78,7 +78,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
 	@Override
 	public Node forPrefixedSymbol(PrefixedSymbol that) {
-		this._var = Option.unwrap(that.getId()).getText();
+		this.var = Option.unwrap(that.getId()).getText();
 		return super.forPrefixedSymbol(that);
 	}
 
@@ -101,8 +101,8 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 	private Node handleTerminal(SyntaxSymbol that, String token) {
 		// Create a new name for the terminal definition
 		String var = "";
-		if (null != this._var) {
-			var = FreshName.getFreshName("T"+this._var.toUpperCase());
+		if (null != this.var) {
+			var = FreshName.getFreshName("T"+this.var.toUpperCase());
 		}
 		else {
 			var = FreshName.getFreshName("T");
