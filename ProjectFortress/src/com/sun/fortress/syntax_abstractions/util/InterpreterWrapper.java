@@ -127,12 +127,12 @@ public class InterpreterWrapper {
         c.getDecls().clear();
         c.getDecls().addAll(decls);
         
-//try {
-//	System.err.println(writeJavaAST(c));
-//} catch (IOException e1) {
-//	// TODO Auto-generated catch block
-//	e1.printStackTrace();
-//}
+try {
+	System.err.println(writeJavaAST(c));
+} catch (IOException e1) {
+	// TODO Auto-generated catch block
+	e1.printStackTrace();
+}
         try {
         	System.err.println("Running interpreter...");
 

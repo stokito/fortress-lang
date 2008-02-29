@@ -90,7 +90,7 @@ public class ActionCreater {
 
 	private static final Id ANY = new Id("Any");
 
-	public static Result create(String productionName, 
+	public static Result create(String alternativeName, 
 			Expr e,
 			TraitType type,
 			Collection<PrefixedSymbol> boundVariables) {
@@ -106,8 +106,8 @@ public class ActionCreater {
 		List<Integer> indents = new LinkedList<Integer>();		
 		List<String> code = createVariabelBinding(indents, boundVariables);
 		code.addAll(createRatsAction(serializedComponent, indents));
-		addCodeLine("System.err.println(\"Parsing... production: "+productionName+"\");", code, indents);
-		addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+productionName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
+		addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
+		addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
 
 		// System.err.println(code);
 		Action a = new Action(code, indents);

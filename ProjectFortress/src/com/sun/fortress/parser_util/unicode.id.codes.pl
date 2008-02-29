@@ -202,7 +202,7 @@ print UTIL ")\");\n";
 print UTIL "\n";
 print UTIL "  private static java.util.regex.Pattern idRest = java.util.regex.Pattern.compile(\"(([_'".(join '', ranges1(@codesstart1));
 ranges2ValidId(@codesstart2);
-print UTIL "".(join '', ranges1(@codesrest1));
+print UTIL ")|([".(join '', ranges1(@codesrest1));
 ranges2ValidId(@codesrest2);
 print UTIL "))*\");\n";
 print UTIL "\n";
