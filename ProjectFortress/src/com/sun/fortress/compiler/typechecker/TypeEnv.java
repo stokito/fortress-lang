@@ -290,21 +290,21 @@ public abstract class TypeEnv {
      * that LValueBind does, since an LValueBind cannot be created.
      */
     public static class BindingLookup {
-    	
-    	private final SimpleName var;
-    	private final Option<Type> type;
-    	private final List<Modifier> mods;
-    	private final boolean mutable;
-    	
-    	public BindingLookup(LValueBind binding) {
-    		var = binding.getName();
-    		type = binding.getType();
-    		mods = binding.getMods();
-    		mutable = binding.isMutable();
-    	}
-    	
-    	public BindingLookup(SimpleName _var, FnAbsDeclOrDecl decl) {
-    		var = _var;
+
+        private final SimpleName var;
+        private final Option<Type> type;
+        private final List<Modifier> mods;
+        private final boolean mutable;
+
+        public BindingLookup(LValueBind binding) {
+            var = binding.getName();
+            type = binding.getType();
+            mods = binding.getMods();
+            mutable = binding.isMutable();
+        }
+
+        public BindingLookup(SimpleName _var, FnAbsDeclOrDecl decl) {
+            var = _var;
             type = wrap((Type)makeGenericArrowType(decl.getSpan(),
                     decl.getStaticParams(),
                     typeFromParams(decl.getParams()),
@@ -313,60 +313,60 @@ public abstract class TypeEnv {
                     decl.getWhere()));
             mods = decl.getMods();
             mutable = false;
-    	}
-    	
-    	public BindingLookup(SimpleName _var, Collection<? extends FnAbsDeclOrDecl> decls) {
-    		var = _var;
-    		Type _type = Types.ANY;
-    		mods = Collections.<Modifier>emptyList();
-    		for (FnAbsDeclOrDecl decl : decls) {
+        }
+
+        public BindingLookup(SimpleName _var, Collection<? extends FnAbsDeclOrDecl> decls) {
+            var = _var;
+            Type _type = Types.ANY;
+            mods = Collections.<Modifier>emptyList();
+            for (FnAbsDeclOrDecl decl : decls) {
                 _type = new AndType(_type,
                         makeGenericArrowType(decl.getSpan(),
-                                             decl.getStaticParams(),
-                                             typeFromParams(decl.getParams()),
-                                             unwrap(decl.getReturnType()), // all types have been filled in at this point
-                                             decl.getThrowsClause(),
-                                             decl.getWhere()));
+                                decl.getStaticParams(),
+                                typeFromParams(decl.getParams()),
+                                unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                decl.getThrowsClause(),
+                                decl.getWhere()));
                 mods.addAll(decl.getMods()); // TODO: change the mods?
-    		}
-    		type = wrap(_type);
-    		mutable = false;
-    	}
-    	
-    	public BindingLookup(SimpleName _var, Type _type) {
-    		this(_var, _type, Collections.<Modifier>emptyList(), false);
-    	}
-    	
-    	public BindingLookup(SimpleName _var, Option<Type> _type) {
-    		this(_var, _type, Collections.<Modifier>emptyList(), false);
-    	}
-    	
-    	public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods) {
-    		this(_var, _type, _mods, false);
-    	}
-    	
-    	public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods) {
-    		this(_var, _type, _mods, false);
-    	}
-    	
-    	public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods, boolean _mutable) {
-    		var = _var;
-    		type = some(_type);
-    		mods = _mods;
-    		mutable = _mutable;
-    	}
-    	
-    	public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods, boolean _mutable) {
-    		var = _var;
-    		type = _type;
-    		mods = _mods;
-    		mutable = _mutable;
-    	}
-    	
-    	public SimpleName getVar() { return var; }
-    	public Option<Type> getType() { return type; }
-    	public List<Modifier> getMods() { return mods; }
-    	public boolean isMutable() { return mutable; }
-    	
+            }
+            type = wrap(_type);
+            mutable = false;
+        }
+
+        public BindingLookup(SimpleName _var, Type _type) {
+            this(_var, _type, Collections.<Modifier>emptyList(), false);
+        }
+
+        public BindingLookup(SimpleName _var, Option<Type> _type) {
+            this(_var, _type, Collections.<Modifier>emptyList(), false);
+        }
+
+        public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods) {
+            this(_var, _type, _mods, false);
+        }
+
+        public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods) {
+            this(_var, _type, _mods, false);
+        }
+
+        public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods, boolean _mutable) {
+            var = _var;
+            type = some(_type);
+            mods = _mods;
+            mutable = _mutable;
+        }
+
+        public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods, boolean _mutable) {
+            var = _var;
+            type = _type;
+            mods = _mods;
+            mutable = _mutable;
+        }
+
+        public SimpleName getVar() { return var; }
+        public Option<Type> getType() { return type; }
+        public List<Modifier> getMods() { return mods; }
+        public boolean isMutable() { return mutable; }
+
     };
 }
