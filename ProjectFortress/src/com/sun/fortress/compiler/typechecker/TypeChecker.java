@@ -645,30 +645,30 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              Option<List<TypeCheckerResult>> requires_result,
                                              Option<List<TypeCheckerResult>> ensures_result,
                                              Option<List<TypeCheckerResult>> invariants_result) {
-    	TypeCheckerResult result = new TypeCheckerResult(that);
-    	
-    	// Check that each 'requires' expression is Boolean
-    	if (requires_result.isSome()) {
-    		for (TypeCheckerResult r : unwrap(requires_result)) {
-    			if (r.type().isNone()) continue;
-    			Type exprType = unwrap(r.type());
-    			result = TypeCheckerResult.compose(
-    				that,
-                    checkSubtype(exprType,
-                            Types.BOOLEAN,
-                            r.ast(),
-                            TypeError.make(errorMsg("Attempt to use expression of type ",
-                                                    exprType, " in a 'requires' clause, instead of ",
-                                                    Types.BOOLEAN),
-                                           r.ast())),
-                    result);
-    		}
-    	}
-    	
+        TypeCheckerResult result = new TypeCheckerResult(that);
+
+        // Check that each 'requires' expression is Boolean
+        if (requires_result.isSome()) {
+            for (TypeCheckerResult r : unwrap(requires_result)) {
+                if (r.type().isNone()) continue;
+                Type exprType = unwrap(r.type());
+                result = TypeCheckerResult.compose(
+                        that,
+                        checkSubtype(exprType,
+                                Types.BOOLEAN,
+                                r.ast(),
+                                TypeError.make(errorMsg("Attempt to use expression of type ",
+                                        exprType, " in a 'requires' clause, instead of ",
+                                        Types.BOOLEAN),
+                                        r.ast())),
+                                        result);
+            }
+        }
+
         return TypeCheckerResult.compose(that,
-                                         TypeCheckerResult.compose(that, requires_result),
-                                         TypeCheckerResult.compose(that, ensures_result),
-                                         TypeCheckerResult.compose(that, invariants_result),
+                TypeCheckerResult.compose(that, requires_result),
+                TypeCheckerResult.compose(that, ensures_result),
+                TypeCheckerResult.compose(that, invariants_result),
                                          result);
     }
     

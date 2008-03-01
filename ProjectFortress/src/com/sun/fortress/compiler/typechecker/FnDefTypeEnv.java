@@ -49,16 +49,16 @@ class FnDefTypeEnv extends TypeEnv {
         Set<? extends FnDef> fns = entries.getSeconds(var);
         if (fns.isEmpty()) { return parent.binding(var); }
 
-		Type type = Types.ANY;
-		for (FnDef fn : fns) {
+        Type type = Types.ANY;
+        for (FnDef fn : fns) {
             type = new AndType(type,
                     makeGenericArrowType(fn.getSpan(),
-                    					 fn.getStaticParams(),
-                                         typeFromParams(fn.getParams()),
-                                         unwrap(fn.getReturnType()), // all types have been filled in at this point
-                                         fn.getThrowsClause(),
-                                         fn.getWhere()));
-		}
-		return some(new BindingLookup(var, type));
+                            fn.getStaticParams(),
+                            typeFromParams(fn.getParams()),
+                            unwrap(fn.getReturnType()), // all types have been filled in at this point
+                            fn.getThrowsClause(),
+                            fn.getWhere()));
+        }
+        return some(new BindingLookup(var, type));
     }
 }
