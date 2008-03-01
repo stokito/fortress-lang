@@ -55,7 +55,6 @@ public abstract class TypeEnv {
         return typeEnv;
     }
 
-
     /**
      * Construct a new TypeEnv from the given bindings.
      */
@@ -155,19 +154,18 @@ public abstract class TypeEnv {
         return result;
     }
 
-
     /**
-     * Return an LValueBind that binds the given Id to a type
-     * (if the given Id is in this type environment).
+     * Return a BindingLookup that binds the given SimpleName to a type
+     * (if the given SimpleName is in this type environment).
      */
-    public abstract Option<LValueBind> binding(Id var);
+    public abstract Option<BindingLookup> binding(SimpleName var);
 
     /**
-     * Return the type of the given Id (if the given Id is in
+     * Return the type of the given SimpleName (if the given SimpleName is in
      * this type environment).
      */
-    public final Option<Type> type(Id var) {
-        Option<LValueBind> _binding = binding(var);
+    public final Option<Type> type(SimpleName var) {
+        Option<BindingLookup> _binding = binding(var);
         if (_binding.isSome()) {
             Option<Type> type = unwrap(_binding).getType();
             if (type.isSome()) {
@@ -186,24 +184,23 @@ public abstract class TypeEnv {
         }
     }
 
-
     /**
-     * Return the list of modifiers for the given Id (if that
-     * Id is in this type environment).
+     * Return the list of modifiers for the given SimpleName (if that
+     * SimpleName is in this type environment).
      */
-    public final Option<List<Modifier>> mods(Id var) {
-        Option<LValueBind> binding = binding(var);
+    public final Option<List<Modifier>> mods(SimpleName var) {
+        Option<BindingLookup> binding = binding(var);
 
         if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
         else { return Option.none(); }
     }
 
     /**
-     * Indicate whether the given Id is bound as a mutable
-     * variable (if the given Id is in this type environment).
+     * Indicate whether the given SimpleName is bound as a mutable
+     * variable (if the given SimpleName is in this type environment).
      */
-    public final Option<Boolean> mutable(Id var) {
-        Option<LValueBind> binding = binding(var);
+    public final Option<Boolean> mutable(SimpleName var) {
+        Option<BindingLookup> binding = binding(var);
 
         if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }
         else { return Option.none(); }
@@ -284,4 +281,92 @@ public abstract class TypeEnv {
     public final TypeEnv extend(Param param) {
         return new ParamTypeEnv(Arrays.asList(param), this);
     }
+    
+    /**
+     * A wrapper around the binding found in the TypeEnv.  Since some bindings
+     * do not have an Id to be indexed, there is no way to create the LValueBind
+     * node to represent the binding.  In the case of operators, for example,
+     * only a SimpleName exists, so the BindingLookup exports the same methods
+     * that LValueBind does, since an LValueBind cannot be created.
+     */
+    public static class BindingLookup {
+    	
+    	private final SimpleName var;
+    	private final Option<Type> type;
+    	private final List<Modifier> mods;
+    	private final boolean mutable;
+    	
+    	public BindingLookup(LValueBind binding) {
+    		var = binding.getName();
+    		type = binding.getType();
+    		mods = binding.getMods();
+    		mutable = binding.isMutable();
+    	}
+    	
+    	public BindingLookup(SimpleName _var, FnAbsDeclOrDecl decl) {
+    		var = _var;
+            type = wrap((Type)makeGenericArrowType(decl.getSpan(),
+                    decl.getStaticParams(),
+                    typeFromParams(decl.getParams()),
+                    unwrap(decl.getReturnType()), // all types have been filled in at this point
+                    decl.getThrowsClause(),
+                    decl.getWhere()));
+            mods = decl.getMods();
+            mutable = false;
+    	}
+    	
+    	public BindingLookup(SimpleName _var, Collection<? extends FnAbsDeclOrDecl> decls) {
+    		var = _var;
+    		Type _type = Types.ANY;
+    		mods = Collections.<Modifier>emptyList();
+    		for (FnAbsDeclOrDecl decl : decls) {
+                _type = new AndType(_type,
+                        makeGenericArrowType(decl.getSpan(),
+                                             decl.getStaticParams(),
+                                             typeFromParams(decl.getParams()),
+                                             unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                             decl.getThrowsClause(),
+                                             decl.getWhere()));
+                mods.addAll(decl.getMods()); // TODO: change the mods?
+    		}
+    		type = wrap(_type);
+    		mutable = false;
+    	}
+    	
+    	public BindingLookup(SimpleName _var, Type _type) {
+    		this(_var, _type, Collections.<Modifier>emptyList(), false);
+    	}
+    	
+    	public BindingLookup(SimpleName _var, Option<Type> _type) {
+    		this(_var, _type, Collections.<Modifier>emptyList(), false);
+    	}
+    	
+    	public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods) {
+    		this(_var, _type, _mods, false);
+    	}
+    	
+    	public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods) {
+    		this(_var, _type, _mods, false);
+    	}
+    	
+    	public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods, boolean _mutable) {
+    		var = _var;
+    		type = some(_type);
+    		mods = _mods;
+    		mutable = _mutable;
+    	}
+    	
+    	public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods, boolean _mutable) {
+    		var = _var;
+    		type = _type;
+    		mods = _mods;
+    		mutable = _mutable;
+    	}
+    	
+    	public SimpleName getVar() { return var; }
+    	public Option<Type> getType() { return type; }
+    	public List<Modifier> getMods() { return mods; }
+    	public boolean isMutable() { return mutable; }
+    	
+    };
 }

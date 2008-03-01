@@ -17,8 +17,6 @@
 
 package com.sun.fortress.compiler;
 
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
 
 /**
@@ -29,7 +27,6 @@ public abstract class TypeError extends StaticError {
     /**
      * Make a simple static error with the given location.
      */
-    
     public static StaticError make(String description, HasAt location) {
         return make(description, location.at());
     }
@@ -38,7 +35,6 @@ public abstract class TypeError extends StaticError {
      * Make a simple type error with type description "Error" and the given
      * location.
      */
-    
     public static StaticError make(final String description, final String location) {
         return new TypeError() {
             public String description() { return description; }

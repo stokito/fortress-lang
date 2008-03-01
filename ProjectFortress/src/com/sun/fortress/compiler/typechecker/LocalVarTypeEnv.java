@@ -42,15 +42,15 @@ class LocalVarTypeEnv extends TypeEnv {
     }
     
     /**
-     * Return an LValueBind that binds the given Id to a type
-     * (if the given Id is in this type environment).
+     * Return a BindingLookup that binds the given SimpleName to a type
+     * (if the given SimpleName is in this type environment).
      */
-    public Option<LValueBind> binding(Id var) {
+    public Option<BindingLookup> binding(SimpleName var) {
         for (LValue lval : entries.getLhs()) {
             if (lval instanceof LValueBind) {
                 LValueBind _lval = (LValueBind) lval;
                 if (_lval.getName().equals(var)) {
-                    return some(_lval);
+                    return some(new BindingLookup(_lval));
                 }
             } else {
                 return NI.nyi();

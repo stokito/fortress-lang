@@ -28,8 +28,8 @@ import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 /** 
- * A type environment whose outermost lexical scope consists of a map from IDs
- * to Variables.
+ * A type environment whose outermost lexical scope consists of a map from
+ * Ids to Variables.
  */
 class VarTypeEnv extends TypeEnv {
     private Map<Id, Variable> entries;
@@ -41,27 +41,28 @@ class VarTypeEnv extends TypeEnv {
     }
     
     /**
-     * Return an LValueBind that binds the given Id to a type
-     * (if the given Id is in this type environment).
+     * Return a BindingLookup that binds the given SimpleName to a type
+     * (if the given SimpleName is in this type environment).
      */
-    public Option<LValueBind> binding(Id var) {
-        if (entries.containsKey(var)) { 
-            Variable result = entries.get(var); 
+    public Option<BindingLookup> binding(SimpleName var) {
+    	if (!(var instanceof Id)) {	return parent.binding(var); }
+    	Id _var = (Id)var;
+        if (entries.containsKey(_var)) {
+            Variable result = entries.get(_var); 
             if (result instanceof DeclaredVariable) {
-                return some(((DeclaredVariable)result).ast()); 
+                return some(new BindingLookup(((DeclaredVariable)result).ast())); 
             } else if (result instanceof SingletonVariable) {
                 SingletonVariable _result = (SingletonVariable)result;
                 Id declaringTrait = _result.declaringTrait();
                 
-                return some(makeLValue(var, declaringTrait));
+                return some(new BindingLookup(makeLValue(_var, declaringTrait)));
             } else { // result instanceof ParamVariable 
                 ParamVariable _result = (ParamVariable)result;
                 Param param = _result.ast();
                 Option<Type> type = typeFromParam(param);
-                
-                return some(makeLValue(makeLValue(param.getName(), 
-                                                  type),
-                                       param.getMods()));
+
+                return some(new BindingLookup(makeLValue(
+                		makeLValue(param.getName(), type), param.getMods())));
             }
         } else { return parent.binding(var); }
     }

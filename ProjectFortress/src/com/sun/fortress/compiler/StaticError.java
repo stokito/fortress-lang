@@ -17,7 +17,6 @@
 
 package com.sun.fortress.compiler;
 
-import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
 
