@@ -95,6 +95,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                analyzer.extend(newStaticParams, whereClause));
     }
 
+    private TypeChecker extend(WhereClause whereClause) {
+        return new TypeChecker(table,
+                               staticParams.extend(Collections.<StaticParam>emptyList(), whereClause),
+                               params,
+                               analyzer.extend(Collections.<StaticParam>emptyList(), whereClause));
+    }
+
     private TypeChecker extend(List<LValueBind> bindings) {
         return new TypeChecker(table, staticParams,
                                params.extendWithLValues(bindings),
@@ -634,17 +641,39 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          TypeCheckerResult.compose(that, exprs_result));
     }
     
-    // STUBS --------------------
-    
     public TypeCheckerResult forContractOnly(Contract that, 
                                              Option<List<TypeCheckerResult>> requires_result,
                                              Option<List<TypeCheckerResult>> ensures_result,
                                              Option<List<TypeCheckerResult>> invariants_result) {
+    	TypeCheckerResult result = new TypeCheckerResult(that);
+    	
+    	// Check that each 'requires' expression is Boolean
+    	if (requires_result.isSome()) {
+    		for (TypeCheckerResult r : unwrap(requires_result)) {
+    			if (r.type().isNone()) continue;
+    			Type exprType = unwrap(r.type());
+    			result = TypeCheckerResult.compose(
+    				that,
+                    checkSubtype(exprType,
+                            Types.BOOLEAN,
+                            r.ast(),
+                            TypeError.make(errorMsg("Attempt to use expression of type ",
+                                                    exprType, " in a 'requires' clause, instead of ",
+                                                    Types.BOOLEAN),
+                                           r.ast())),
+                    result);
+    		}
+    	}
+    	
         return TypeCheckerResult.compose(that,
                                          TypeCheckerResult.compose(that, requires_result),
                                          TypeCheckerResult.compose(that, ensures_result),
-                                         TypeCheckerResult.compose(that, invariants_result));
+                                         TypeCheckerResult.compose(that, invariants_result),
+                                         result);
     }
+    
+    // STUBS --------------------
+    // NEED: WhereClause, ChainExpr, EnsuresClause
     
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that, List<TypeCheckerResult> exprs_result) {
         return TypeCheckerResult.compose(that, exprs_result);
@@ -1145,10 +1174,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    }
 //
 //    public RetType forMathPrimaryOnly(MathPrimary that, RetType front_result, List<RetType> rest_result) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType forChainExprOnly(ChainExpr that, RetType first_result) {
 //        return forPrimaryOnly(that);
 //    }
 //
@@ -2542,12 +2567,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        RetType val_result = that.getVal().accept(this);
 //        RetType op_result = that.getOp().accept(this);
 //        return forOpDimOnly(that, val_result, op_result);
-//    }
-//
-//    public RetType forWhereClause(WhereClause that) {
-//        List<RetType> bindings_result = recurOnListOfWhereBinding(that.getBindings());
-//        List<RetType> constraints_result = recurOnListOfWhereConstraint(that.getConstraints());
-//        return forWhereClauseOnly(that, bindings_result, constraints_result);
 //    }
 //
 //    public RetType forWhereType(WhereType that) {

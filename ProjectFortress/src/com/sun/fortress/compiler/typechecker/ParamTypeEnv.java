@@ -42,13 +42,13 @@ class ParamTypeEnv extends TypeEnv {
     }
     
     /**
-     * Return an LValueBind that binds the given Id to a type
-     * (if the given Id is in this type environment).
+     * Return a BindingLookup that binds the given SimpleName to a type
+     * (if the given SimpleName is in this type environment).
      */
-    public Option<LValueBind> binding(Id var) {
+    public Option<BindingLookup> binding(SimpleName var) {
         for (Param param: entries) {
             if (param.getName().equals(var)) {
-                some(makeLValue(var, typeFromParam(param)));
+                some(new BindingLookup(var, typeFromParam(param)));
             }
         }
         return parent.binding(var);

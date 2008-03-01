@@ -42,13 +42,14 @@ class FnTypeEnv extends TypeEnv {
     }
 
     /**
-     * Return an LValueBind that binds the given Id to a type
+     * Return a BindingLookup that binds the given Id to a type
      * (if the given Id is in this type environment).
      */
-    public Option<LValueBind> binding(Id var) {
+    public Option<BindingLookup> binding(SimpleName var) {
         Set<? extends Function> fns = entries.getSeconds(var);
+        if (fns.isEmpty()) { return parent.binding(var); }
+        
         Type type = Types.ANY;
-
         for (Function fn: fns) {
             if (fn instanceof DeclaredFunction) {
                 DeclaredFunction _fn = (DeclaredFunction)fn;
@@ -86,6 +87,6 @@ class FnTypeEnv extends TypeEnv {
                 
             }
         }
-        return some(makeLValue(var, type));
+        return some(new BindingLookup(var, type));
     }
 }

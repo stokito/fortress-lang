@@ -17,20 +17,20 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.compiler.*;
-import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
+
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
 
-import static com.sun.fortress.nodes_util.NodeFactory.*;
+import java.util.Collections;
+import java.util.Set;
+
+import static com.sun.fortress.nodes_util.NodeFactory.makeGenericArrowType;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 /** 
- * A type environment whose outermost lexical scope consists of a map from IDs
- * to FnDefs.
+ * A type environment whose outermost lexical scope consists of a map from
+ * SimpleNames to FnDefs.
  */
 class FnDefTypeEnv extends TypeEnv {
     private Relation<SimpleName, ? extends FnDef> entries;
@@ -42,23 +42,23 @@ class FnDefTypeEnv extends TypeEnv {
     }
     
     /**
-     * Return an LValueBind that binds the given Id to a type
-     * (if the given Id is in this type environment).
+     * Return a BindingLookup that binds the given SimpleName to a type
+     * (if the given SimpleName is in this type environment).
      */
-    public Option<LValueBind> binding(Id var) {
+    public Option<BindingLookup> binding(SimpleName var) {
         Set<? extends FnDef> fns = entries.getSeconds(var);
-        Type type = Types.ANY;
-        
-        for (FnDef fn: fns) {
+        if (fns.isEmpty()) { return parent.binding(var); }
+
+		Type type = Types.ANY;
+		for (FnDef fn : fns) {
             type = new AndType(type,
-                               makeGenericArrowType(fn.getSpan(),
-                                                    fn.getStaticParams(),
-                                                    typeFromParams(fn.getParams()),
-                                                    unwrap(fn.getReturnType()), // all types have been filled in at this point
-                                                    fn.getThrowsClause(),
-                                                    fn.getWhere()));
-            
-        }
-        return some(makeLValue(var, type));
+                    makeGenericArrowType(fn.getSpan(),
+                    					 fn.getStaticParams(),
+                                         typeFromParams(fn.getParams()),
+                                         unwrap(fn.getReturnType()), // all types have been filled in at this point
+                                         fn.getThrowsClause(),
+                                         fn.getWhere()));
+		}
+		return some(new BindingLookup(var, type));
     }
 }

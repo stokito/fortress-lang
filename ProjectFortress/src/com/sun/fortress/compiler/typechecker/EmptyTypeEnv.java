@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,7 +19,6 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
 
 import static edu.rice.cs.plt.tuple.Option.*;
 
@@ -30,5 +29,5 @@ class EmptyTypeEnv extends TypeEnv {
     
     private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
     
-    public Option<LValueBind> binding(Id var) { return none(); }
+    public Option<BindingLookup> binding(SimpleName var) { return none(); }
 }

@@ -42,10 +42,10 @@ class MethodTypeEnv extends TypeEnv {
     }
     
     /**
-     * Return an LValueBind that binds the given Id to a type
-     * (if the given Id is in this type environment).
+     * Return a BindingLookup that binds the given SimpleName to a type
+     * (if the given SimpleName is in this type environment).
      */
-    public Option<LValueBind> binding(Id var) {
+    public Option<BindingLookup> binding(SimpleName var) {
         Set<Method> methods = entries.getSeconds(var);
         Type type = Types.ANY;
         
@@ -76,6 +76,6 @@ class MethodTypeEnv extends TypeEnv {
                                      Types.VOID);
             }
         }
-        return some(makeLValue(var, type));
+        return some(new BindingLookup(var, type));
     }
 }

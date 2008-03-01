@@ -64,7 +64,6 @@ public final class StaticTestSuite extends TestSuite {
     }
     
     private void addStaticTests() {
-        boolean foundAFile = false;
         FilenameFilter fssFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.endsWith("fss");
@@ -73,7 +72,6 @@ public final class StaticTestSuite extends TestSuite {
         
         for (String filename : new File(testDir).list(fssFilter)) {
             File f = new File(testDir + filename);
-            foundAFile = true;
             
             if (SKIP_FAILING && isFailingDisambiguator(f)) {
                 // skip
@@ -165,15 +163,18 @@ public final class StaticTestSuite extends TestSuite {
         
         private void assertTypeCheckerFails(File f) throws IOException {
             Iterable<? extends StaticError> allErrors = compile(f);
-            String msg = "";
-            List<TypeError> typeErrors = new ArrayList();
+            String message = "";
+            if (!IterUtil.isEmpty(allErrors)) {
+            	message = " but got:";
+            }
+            List<TypeError> typeErrors = new ArrayList<TypeError>();
             for (StaticError error : allErrors) {
                 try { throw error; }
                 catch (TypeError e) { typeErrors.add(e); }
-                catch (Fortress.WrappedException e) { msg += "\nStaticError (wrapped): " + e.getCause().toString(); }
-                catch (StaticError e) { msg += "\nStaticError: " + e.toString(); }
+                catch (Fortress.WrappedException e) { message += "\nStaticError (wrapped): " + e.getCause().toString(); }
+                catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
             }
-            assertFalse("Source " + f + " was compiled without TypeErrors but got:" + msg,
+            assertFalse("Source " + f + " was compiled without TypeErrors" + message,
                         IterUtil.isEmpty(typeErrors));
             if (VERBOSE) {
                 System.out.println(f + "  OK -- errors:");
@@ -183,13 +184,11 @@ public final class StaticTestSuite extends TestSuite {
         
         private void assertWellFormedProgram(File f) throws IOException {
             Iterable<? extends StaticError> errors = compile(f);
-            String message = "Source " + f + " produces static errors:\n";
-            for (StaticError e : errors) {
-                if (e instanceof Fortress.WrappedException) {
-                    message += e.getCause().toString() + "\n";
-                } else {
-                    message += e.toString() + "\n";
-                }
+            String message = "Source " + f + " produces static errors:";
+            for (StaticError error : errors) {
+                try { throw error; }
+                catch (Fortress.WrappedException e) { message += "\nStaticError (wrapped): " + e.getCause().toString(); }
+                catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
             }
             assertTrue(message, IterUtil.isEmpty(errors));
             if (VERBOSE) { System.out.println(f + "  OK"); }
