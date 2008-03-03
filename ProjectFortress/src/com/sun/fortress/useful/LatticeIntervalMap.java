@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -38,10 +38,19 @@ public class LatticeIntervalMap <T, U, L extends LatticeOps<U>> extends
         super(new BATree2<T,U, U>(comparator), lattice_operations, null);
     }
 
+    /**
+     * Returns a copy of this lattice interval map, without any aliasing.
+     * This operation has time and space cost O(1).
+     */
     public LatticeIntervalMap<T,U,L> copy() {
         return new LatticeIntervalMap<T,U,L>(table.copy(), lattice, null);
     }
    
+    /**
+     * Returns a dual of this lattice interval map, ALIASED to this map.
+     * If you want an unaliased dual map, say dual().copy() (that is more
+     * efficient than copy().dual()).
+     */
     public LatticeIntervalMapBase<T, U, L> dual() {
         if (dualMap == null) {
             synchronized(table) {

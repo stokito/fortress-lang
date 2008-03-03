@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -14,10 +14,6 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-/*
- * Created on May 9, 2007
- *
- */
 package com.sun.fortress.useful;
 
 import java.util.AbstractMap;
@@ -49,7 +45,11 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
     
     abstract protected void putPair(T k, U lower, U upper);
     
-    /** puts min/intersection of v and old */
+    /** puts min/intersection of v and old.
+     *  returns the new (potentially lower) upper bound.
+     * 
+     *  @throws EmptyLatticeIntervalError
+     */
     public U meetPut(T k, U v) {
         BATree2Node<T,U,U> old = table.getNode(k);
         if (old != null) {
@@ -67,13 +67,17 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
     /**
      * @param lower
      * @param upper
-     * @throws Error
+     * @throws EmptyLatticeIntervalError
      */
     private void checkOrdered(U lower, U upper) throws Error {
         if (! leq(lower, upper))
             throw new EmptyLatticeIntervalError();
     }
-    /** puts max/union of v and old */
+    /** puts max/union of v and old.
+     *  returns the new (potentially higher) lower bound.
+     *  
+     *  @throws EmptyLatticeIntervalError
+     */
     public U joinPut(T k, U v) {
         BATree2Node<T,U,U> old = table.getNode(k);
         if (old != null) {
@@ -90,7 +94,10 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
 
     /**
      * Puts the lower (bottom) end of an interval.
-     * Differs from joinPut only in what it returns.
+     * Returns null if the interval was previously missing,
+     * otherwise returns the old lower bound.
+     * This has the same effect on the map as joinPut, but
+     * returns a different result.
      */
     public U put(T k, U v) {
         BATree2Node<T,U,U> old = table.getNode(k);

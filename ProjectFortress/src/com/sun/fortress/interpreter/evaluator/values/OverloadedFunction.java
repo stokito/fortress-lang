@@ -347,7 +347,7 @@ public class  OverloadedFunction extends Fcn
                     p1 = deRest(p1);
                     p2 = deRest(p2);
 
-                    if (p1==p2) {
+                    if (p1==p2  && !p1.isSymbolic() && !p2.isSymbolic()) {
                         exclDumpln("equal.");
                         continue;
                     }
@@ -369,7 +369,7 @@ public class  OverloadedFunction extends Fcn
                              * any problems will be flagged at the object level.
                              */
                             if (! p1.equals(p2))
-                                distinct = true;
+                                distinct = true; // This seems wrong/unnecessary
                     }
 
                     if (p1.excludesOther(p2)) {
@@ -378,6 +378,7 @@ public class  OverloadedFunction extends Fcn
                     } else {
 
                         boolean local_unrelated = true;
+                        // Check for subtype constraint.
                         boolean p1subp2 = p1.subtypeOf(p2);
                         boolean p2subp1 = p2.subtypeOf(p1);
                         if (p1subp2 && !p2subp1) {
