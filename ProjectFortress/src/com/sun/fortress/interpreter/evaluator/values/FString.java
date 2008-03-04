@@ -17,14 +17,14 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeString;
 import com.sun.fortress.nodes_util.Unprinter;
 
 
-public class FString extends FValue {
+public class FString extends FBuiltinValue {
     private final String val;
-    public FType type() {return FTypeString.ONLY;}
+    public FBuiltinType type() {return FTypeString.ONLY;}
     public String getString() {return val;}
     public String toString() {
         return "\"" + Unprinter.enQuote(val) + "\"";

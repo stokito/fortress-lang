@@ -434,4 +434,7 @@ public class FTypeTuple extends FType {
         return l;
     }
 
+    public final boolean isValueType() {
+        return true;
+    }
 }

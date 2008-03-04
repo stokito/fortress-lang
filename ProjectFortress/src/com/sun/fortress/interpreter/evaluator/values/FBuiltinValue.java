@@ -16,22 +16,10 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 
-public class FFloat extends FBuiltinValue {
-    private final double val;
-    public FBuiltinType type() {return FTypeFloat.ONLY;}
-    public double getFloat() {return val;}
-    public String getString() {return Double.toString(val);}
-    public String toString() {
-        return (val+":RR64");
-    }
-    private FFloat(double x) {
-        val = x;
-    }
-    static final FFloat Zero = new FFloat(0.0);
-    static public FFloat make(double x) {
-        return new FFloat(x);
-    }
+import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
+
+public abstract class FBuiltinValue extends FValue {
+    // Every BuiltinValue ought to have a BuiltinType (for now)
+    public abstract FBuiltinType type();
 }

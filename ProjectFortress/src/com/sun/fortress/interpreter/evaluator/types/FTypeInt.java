@@ -23,7 +23,7 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VarArgs;
 
 
-public class FTypeInt extends FType {
+public class FTypeInt extends FBuiltinType {
     public final static FTypeInt ONLY = new FTypeInt();
     protected FTypeInt() {
         super("ZZ32");
@@ -32,7 +32,7 @@ public class FTypeInt extends FType {
 
     protected List<FType> computeTransitiveExtends() {
         // only called once, cached by caller, don't bother to cache.
-        return  Useful.<FType>list(VarArgs.make(this, FTypeLong.ONLY, FTypeIntegral.ONLY,
+        return  Useful.<FType>list(VarArgs.<FType>make(this, FTypeLong.ONLY, FTypeIntegral.ONLY,
                                   FTypeFloat.ONLY, FTypeNumber.ONLY));
         
     }

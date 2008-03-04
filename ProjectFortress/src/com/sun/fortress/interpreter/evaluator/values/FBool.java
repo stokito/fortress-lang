@@ -17,10 +17,10 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 
-public class FBool extends FValue {
+public class FBool extends FBuiltinValue {
     public final static FBool TRUE = new FBool(true, "true");
 
     public final static FBool FALSE = new FBool(false, "false");
@@ -29,7 +29,7 @@ public class FBool extends FValue {
 
     private final String name;
 
-    public FType type() {
+    public FBuiltinType type() {
         return FTypeBool.ONLY;
     }
 

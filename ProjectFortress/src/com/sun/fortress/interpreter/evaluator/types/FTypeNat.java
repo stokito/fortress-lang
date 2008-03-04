@@ -32,7 +32,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
  * generic -- integers, variables (other nat? general??),
  * sums, products.
  */
-abstract public class FTypeNat extends FType {
+abstract public class FTypeNat extends FBuiltinType {
 
     protected FTypeNat(String s) {
         super(s);

@@ -22,7 +22,7 @@ import java.util.List;
 import com.sun.fortress.useful.Useful;
 
 
-public class FTypeFloat extends FType {
+public class FTypeFloat extends FBuiltinType {
     public final static FTypeFloat ONLY = new FTypeFloat();
     protected FTypeFloat() {
         super("RR64");

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-public class FTypeNumber extends FType {
+public class FTypeNumber extends FBuiltinType {
     public final static FTypeNumber ONLY = new FTypeNumber();
     protected FTypeNumber() {
         super("Number");

@@ -98,6 +98,10 @@ abstract public class FType implements Comparable<FType> {
         return cannotBeExtended;
     }
 
+    public boolean isValueType() {
+        return false;
+    }
+
     public int hashCode() {
         return hash;
     }

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-public class FTypeString extends FType {
+public class FTypeString extends FBuiltinType {
     public final static FTypeString ONLY = new FTypeString();
     protected FTypeString(String s) {
         super(s);

@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.useful.Useful;
 
-public class FTypeIntegral extends FType {
+public class FTypeIntegral extends FBuiltinType {
     public final static FTypeIntegral ONLY = new FTypeIntegral();
     protected FTypeIntegral() {
         super("Integral");

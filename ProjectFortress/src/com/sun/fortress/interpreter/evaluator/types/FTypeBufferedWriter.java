@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-public class FTypeBufferedWriter extends FType {
+public class FTypeBufferedWriter extends FBuiltinType {
     public final static FTypeBufferedWriter ONLY = new FTypeBufferedWriter();
     protected FTypeBufferedWriter() {
         super("BufferedWriter");
