@@ -44,6 +44,7 @@ import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
@@ -81,12 +82,23 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         initializeExcludes(excludes);
         finishInitializing();
         checkConstraints();
+        enforceValueness();
     }
 
     private void initializeExcludes(List<FType> excludes) {
         if (excludes != null)
             for (FType t : excludes)
                 addExclude(t);
+    }
+
+    private void enforceValueness() {
+        if (isValueType()) return;
+        for (FType t : getExtends()) {
+            if (t instanceof FTraitOrObjectOrGeneric && t.isValueType()) {
+                error(at,
+                      errorMsg(this, ": non-value subtype of value type ",t));
+            }
+        }
     }
 
     public List<FType> getExtends() {

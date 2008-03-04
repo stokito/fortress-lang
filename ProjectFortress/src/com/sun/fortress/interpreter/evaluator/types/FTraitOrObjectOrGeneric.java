@@ -32,6 +32,8 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierValue;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes_util.NodeComparator;
@@ -45,6 +47,14 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         super(s);
         this.env = env;
         this.decl = def;
+        boolean isValueType = false;
+        if (def instanceof TraitObjectAbsDeclOrDecl)
+            for (Modifier mod : ((TraitObjectAbsDeclOrDecl) def).getMods())
+                if (mod instanceof ModifierValue) {
+                    isValueType = true;
+                    break;
+                }
+        this.isValueType = isValueType;
     }
 
     List<? extends AbsDeclOrDecl> members;
@@ -54,6 +64,12 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     boolean functionalMethodsFinished;
     
     final private AbstractNode decl;
+
+    final private boolean isValueType;
+
+    @Override public boolean isValueType() {
+        return this.isValueType;
+    }
 
     public List<? extends AbsDeclOrDecl> getASTmembers() {
         return members;
