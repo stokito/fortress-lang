@@ -307,9 +307,11 @@ public abstract class SubtypeChecker {
         QualifiedIdName name = t.getName();
         if (name.getApi().isNone()) {
             Option<StaticParam> result = _staticParamEnv.binding(name.getName());
-            StaticParam sparam = Option.unwrap(result);
-            if (result.isSome() && isTypeParam(sparam)) {
-                return ((SimpleTypeParam)sparam).getExtendsClause();
+            if (result.isSome()) {
+                StaticParam sparam = Option.unwrap(result);
+                if (isTypeParam(sparam)) {
+                    return ((SimpleTypeParam)sparam).getExtendsClause();
+                } else return _extends;
             } else return _extends;
         } else return _extends;
     }
