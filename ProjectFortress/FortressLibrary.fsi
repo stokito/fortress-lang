@@ -17,12 +17,12 @@
 
 api FortressLibrary
 (************************************************************
-From NativeThread
+From Thread
 *)
 
 (* TODO: Hide the constructor when that functionality works. *)
 
-object PrimitiveThread[\T\](fcn:()->T)
+object Thread[\T\](fcn:()->T)
     getter val():T
     getter ready():Boolean
     wait():()
@@ -31,7 +31,7 @@ end
 
 abort():()
 (*
-End from NativeThread.
+End from Thread.
 *************************************************************)
 
 

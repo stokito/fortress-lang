@@ -1257,7 +1257,7 @@ public class Desugarer extends Rewrite {
 
         AbstractNode rewrittenExpr =  visit(body);
 
-        Expr in_fn = new VarRef(sp, new QualifiedIdName(new Id("PrimitiveThread")));
+        Expr in_fn = new VarRef(sp, new QualifiedIdName(new Id("Thread")));
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new Id("Any")))));
 

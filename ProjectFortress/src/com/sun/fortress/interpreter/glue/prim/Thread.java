@@ -46,9 +46,9 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class PrimitiveThread extends Constructor {
+public class Thread extends Constructor {
 
-    public PrimitiveThread(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public Thread(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
     }
 
@@ -116,5 +116,5 @@ public class PrimitiveThread extends Constructor {
             return FVoid.V;
 	}
     }
-            
+
 }
