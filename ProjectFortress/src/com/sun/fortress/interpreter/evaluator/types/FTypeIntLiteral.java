@@ -22,7 +22,7 @@ import java.util.List;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VarArgs;
 
-public class FTypeIntLiteral extends FType {
+public class FTypeIntLiteral extends FBuiltinType {
     public final static FTypeIntLiteral ONLY = new FTypeIntLiteral();
     private FTypeIntLiteral() {
         super("IntLiteral");
@@ -30,7 +30,7 @@ public class FTypeIntLiteral extends FType {
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(VarArgs.make(this, FTypeInt.ONLY, FTypeLong.ONLY, FTypeIntegral.ONLY, FTypeFloat.ONLY, FTypeNumber.ONLY));
+        return Useful.<FType>list(VarArgs.<FType>make(this, FTypeInt.ONLY, FTypeLong.ONLY, FTypeIntegral.ONLY, FTypeFloat.ONLY, FTypeNumber.ONLY));
     }
 
     public boolean subtypeOf(FType other) {

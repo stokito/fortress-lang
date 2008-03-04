@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.useful.Useful;
 
-public class FTypeFloatLiteral extends FType {
+public class FTypeFloatLiteral extends FBuiltinType {
     public final static FTypeFloatLiteral ONLY = new FTypeFloatLiteral();
     private FTypeFloatLiteral() {
         super("FloatLiteral");

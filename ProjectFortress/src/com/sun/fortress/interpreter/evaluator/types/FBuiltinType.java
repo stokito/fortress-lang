@@ -15,23 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator.values;
-import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
+package com.sun.fortress.interpreter.evaluator.types;
 
-public class FFloat extends FBuiltinValue {
-    private final double val;
-    public FBuiltinType type() {return FTypeFloat.ONLY;}
-    public double getFloat() {return val;}
-    public String getString() {return Double.toString(val);}
-    public String toString() {
-        return (val+":RR64");
+public abstract class FBuiltinType extends FType {
+    protected FBuiltinType(String s) {
+        super(s);
     }
-    private FFloat(double x) {
-        val = x;
-    }
-    static final FFloat Zero = new FFloat(0.0);
-    static public FFloat make(double x) {
-        return new FFloat(x);
+
+    public final boolean isValueType() {
+        return true;
     }
 }

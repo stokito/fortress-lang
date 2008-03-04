@@ -16,13 +16,13 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
 import com.sun.fortress.useful.MagicNumbers;
 
-public class FInt extends FValue implements HasIntValue {
+public class FInt extends FBuiltinValue implements HasIntValue {
   private final int val;
-  public FType type() {return FTypeInt.ONLY;}
+  public FBuiltinType type() {return FTypeInt.ONLY;}
   public int getInt() {return val;}
   public long getLong() {return (long)val;}
   public double getFloat() { return (double) val;}

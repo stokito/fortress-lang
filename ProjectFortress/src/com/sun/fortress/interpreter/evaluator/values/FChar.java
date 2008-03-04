@@ -16,15 +16,15 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeChar;
 
-public class FChar extends FValue {
-    // For now Fortress chars are equivalent to Java chars.  
-    // We will eventually need to expand the definition to include the unicode 
+public class FChar extends FBuiltinValue {
+    // For now Fortress chars are equivalent to Java chars.
+    // We will eventually need to expand the definition to include the unicode
     // characters which require more than 16 bits.
   private final char val;
-  public FType type() {return FTypeChar.ONLY;}
+  public FBuiltinType type() {return FTypeChar.ONLY;}
   public String getString() {return Character.toString(val);}
   public char getChar() {return val;}
 

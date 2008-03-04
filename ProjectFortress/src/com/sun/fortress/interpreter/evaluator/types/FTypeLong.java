@@ -22,7 +22,7 @@ import java.util.List;
 import com.sun.fortress.useful.Useful;
 
 
-public class FTypeLong extends FType {
+public class FTypeLong extends FBuiltinType {
     public final static FTypeLong ONLY = new FTypeLong();
     protected FTypeLong() {
         super("ZZ64");

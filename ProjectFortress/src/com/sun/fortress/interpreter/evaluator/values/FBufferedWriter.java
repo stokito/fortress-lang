@@ -18,14 +18,14 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.io.BufferedWriter;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
 import com.sun.fortress.useful.MagicNumbers;
 
 
-public class FBufferedWriter extends FValue {
+public class FBufferedWriter extends FBuiltinValue {
     private final BufferedWriter val;
-    public FType type() {return FTypeBufferedWriter.ONLY;}
+    public FBuiltinType type() {return FTypeBufferedWriter.ONLY;}
     public BufferedWriter getBufferedWriter() {return val;}
     public String toString() {
         return "BufferedWriterFileOpen";

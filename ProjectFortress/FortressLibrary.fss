@@ -72,7 +72,7 @@ see here.
 
 (** Equality *)
 
-opr =(a:Any, b:Any):Boolean = false
+opr =(a:Any, b:Any):Boolean = a SEQUIV b
 
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 
@@ -2630,6 +2630,8 @@ opr :(): OpenRange[\Any\] = OpenRange[\Any\]()
  * NUMERIC primitives, down here to avoid ordering hosure. *)
 
 opr |[\ N extends Integral \]x:N| = if x>=0 then x else -x end
+
+opr SEQUIV(a:Any, b:Any):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.AnyPrim$SEquiv")
 
 opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
 opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")

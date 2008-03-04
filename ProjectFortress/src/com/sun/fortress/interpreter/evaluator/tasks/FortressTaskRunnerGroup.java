@@ -1,17 +1,17 @@
 /********************************************************************************
-    Copyright 2007 Sun Microsystems, Inc., 
-    4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
-    U.S. Government Rights - Commercial software. 
-    Government users are subject to the Sun Microsystems, Inc. standard 
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ********************************************************************************/
 
@@ -21,19 +21,19 @@ import jsr166y.forkjoin.*;
 
 public class FortressTaskRunnerGroup extends ForkJoinPool {
     public static class FortressForkJoinWorkerThreadFactory
-	implements ForkJoinWorkerThreadFactory {
-	public FortressTaskRunner newThread(FortressTaskRunnerGroup group) {
-	    return new FortressTaskRunner(group);
-	}
-	public FortressTaskRunner newThread(ForkJoinPool pool) {
-	    return new FortressTaskRunner((FortressTaskRunnerGroup) pool);
-	}
+        implements ForkJoinWorkerThreadFactory {
+        public FortressTaskRunner newThread(FortressTaskRunnerGroup group) {
+            return new FortressTaskRunner(group);
+        }
+        public FortressTaskRunner newThread(ForkJoinPool pool) {
+            return new FortressTaskRunner((FortressTaskRunnerGroup) pool);
+        }
     }
 
-    static final FortressForkJoinWorkerThreadFactory factory = 
-	    new FortressForkJoinWorkerThreadFactory();
+    static final FortressForkJoinWorkerThreadFactory factory =
+            new FortressForkJoinWorkerThreadFactory();
 
-    public FortressTaskRunnerGroup(int groupSize) { 
-	super(groupSize, factory);
+    public FortressTaskRunnerGroup(int groupSize) {
+        super(groupSize, factory);
     }
 }

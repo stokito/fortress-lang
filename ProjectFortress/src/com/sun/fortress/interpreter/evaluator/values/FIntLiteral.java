@@ -17,13 +17,13 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 import java.math.BigInteger;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-public class FIntLiteral extends FValue implements HasIntValue {
+public class FIntLiteral extends FBuiltinValue implements HasIntValue {
 
     public static final BigInteger INT_MIN =
         BigInteger.valueOf(java.lang.Integer.MIN_VALUE);
@@ -61,7 +61,7 @@ public class FIntLiteral extends FValue implements HasIntValue {
         }
     }
 
-    public FType type() { return FTypeIntLiteral.ONLY; }
+    public FBuiltinType type() { return FTypeIntLiteral.ONLY; }
 
     public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
 
