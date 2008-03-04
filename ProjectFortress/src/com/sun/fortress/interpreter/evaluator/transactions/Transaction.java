@@ -50,8 +50,7 @@ public class Transaction {
    */
   public boolean waiting = false;
 
-  /**
-   * Number of times this transaction tried
+    /** Number of times this transaction tried
    */
   public int attempts = 0;
 
@@ -59,6 +58,8 @@ public class Transaction {
    * Number of unique memory references so far.
    */
   public int memRefs = 0;
+
+  /**
 
   /**
    * Time in nanos when transaction started
@@ -71,6 +72,8 @@ public class Transaction {
 
   // generate unique ids
   private static AtomicInteger unique = new AtomicInteger(100);
+
+  private long threadID;
 
   /** Updater for status */
   private static final
@@ -88,11 +91,13 @@ public class Transaction {
    * Creates a new, active transaction.
    */
   public Transaction() {
-    this.status = Status.ACTIVE;
-    this.id = this.startTime = System.nanoTime();
-    this.manager = FortressTaskRunner.getContentionManager();
+    status = Status.ACTIVE;
+    id = this.startTime = System.nanoTime();
+    manager = FortressTaskRunner.getContentionManager();
+    threadID = Thread.currentThread().getId();
   }
 
+  public long getThreadId() { return threadID;}
   /**
    * Creates a new transaction with given status.
    * @param myStatus active, committed, or aborted
