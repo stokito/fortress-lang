@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -34,7 +34,7 @@ public class FTypeInt extends FBuiltinType {
         // only called once, cached by caller, don't bother to cache.
         return  Useful.<FType>list(VarArgs.<FType>make(this, FTypeLong.ONLY, FTypeIntegral.ONLY,
                                   FTypeFloat.ONLY, FTypeNumber.ONLY));
-        
+
     }
 
     public boolean subtypeOf(FType other) {
