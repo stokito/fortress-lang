@@ -678,7 +678,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
         ft = staticParams.isEmpty() ?
-                  new FTypeObject(fname, e, x, x.getDecls(), x)
+                  new FTypeObject(fname, e, x, params, x.getDecls(), x)
                 : new FTypeGeneric(e, x, x.getDecls(), x);
 
         // Need to check for overloaded constructor.
@@ -818,7 +818,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         } else {
             // If there are no parameters, it is a singleton.
-            
+
             if (!staticParams.isEmpty()) {
                 // do nothing for generic singleton or its constructor
             } else {
@@ -1510,7 +1510,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // List<Decl> defs = x.getDecls();
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
-        ft = staticParams.isEmpty() ? new FTypeObject(fname, e, x, x.getDecls(), x)
+        ft = staticParams.isEmpty()
+                ? new FTypeObject(fname, e, x, params, x.getDecls(), x)
                 : new FTypeGeneric(e, x, x.getDecls(), x);
 
         // Need to check for overloaded constructor.
