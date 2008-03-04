@@ -19,9 +19,11 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
 import java.util.Set;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
@@ -34,18 +36,21 @@ public class FTypeObjectInstance extends FTypeObject implements
     @deprecated
     */
     public FTypeObjectInstance(String name, BetterEnv interior,
-            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
-            List<? extends AbsDeclOrDecl> members, Type instantiation_type) {
-        super(name, interior, interior.getAt(), members, generic.getDecl());
+                               FTypeGeneric generic, List<FType> bind_args,
+                               List<FType> name_args, Option<List<Param>> params,
+                               List<? extends AbsDeclOrDecl> members, Type instantiation_type) {
+        super(name, interior, interior.getAt(), params, members, generic.getDecl());
         this.generic = generic;
         this.bind_args = bind_args;
         this.name_args = name_args;
     }
 
     public FTypeObjectInstance(String name, BetterEnv interior,
-            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
-            List<? extends AbsDeclOrDecl> members) {
-        super(name, interior, interior.getAt(), members, generic.getDecl());
+                               FTypeGeneric generic,
+                               List<FType> bind_args, List<FType> name_args,
+                               Option<List<Param>> params,
+                               List<? extends AbsDeclOrDecl> members) {
+        super(name, interior, interior.getAt(), params, members, generic.getDecl());
         this.generic = generic;
         this.bind_args = bind_args;
         this.name_args = name_args;
@@ -80,5 +85,5 @@ public class FTypeObjectInstance extends FTypeObject implements
         return unifyNonVarGeneric(unify_env,tp_set,abm,val);
     }
 
-  
+
 }

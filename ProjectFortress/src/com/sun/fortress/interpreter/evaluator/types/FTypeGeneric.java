@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
@@ -45,6 +46,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.nodes.OprArg;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticArg;
@@ -277,7 +279,9 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             } else if (dod instanceof ObjectDecl) {
                 ObjectDecl td = (ObjectDecl) dod;
                 FTypeObject fto = new FTypeObjectInstance(td.getName().getText(),
-                                       clenv, gen, bind_args, key_args, gen.members);
+                                       clenv, gen, bind_args, key_args,
+                                                          td.getParams(),
+                                                          gen.members);
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
 
@@ -295,7 +299,9 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             } else if (dod instanceof _RewriteObjectExpr) {
                 _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
                 FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
-                        clenv, gen, bind_args, key_args, gen.members);
+                                                          clenv, gen, bind_args,
+                                                          key_args,
+                                                          Option.<List<Param>>none(), gen.members);
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
 
