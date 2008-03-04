@@ -17,7 +17,7 @@
 
 component FortressLibrary
 import NativeArray.{...}
-import NativeThread.{...}
+import Thread.{...}
 import NatReflect.{...}
 
 export Executable

@@ -28,7 +28,7 @@ end
 
 test1():() = do
    var x:ZZ32 = 0
-   pt:PrimitiveThread[\Any\] = spawn do x:=1 end
+   pt:Thread[\Any\] = spawn do x:=1 end
    pt.wait()
    assert(x=1, "test1 x=1")
 end
@@ -45,27 +45,27 @@ end
 test3():() = do
    var x : ZZ32 = 0
    var y : ZZ32 = 0
-   pt:PrimitiveThread[\Any\] = spawn do y := 1; while (x = 0) do end end
+   pt:Thread[\Any\] = spawn do y := 1; while (x = 0) do end end
    x:=1
    pt.wait()
    assert(y=1,"test3 y=1")
 end
 
 
-test4():() = do 
+test4():() = do
    var x : ZZ32 = 0
-   ft:PrimitiveThread[\Any\] = PrimitiveThread[\Any\](fn()=>do x:=1 end)
+   ft:Thread[\Any\] = Thread[\Any\](fn()=>do x:=1 end)
    ft.wait()
-   assert(x=1, "test4 PrimitiveThread wrong")
+   assert(x=1, "test4 Thread wrong")
 end
 
 test5():() = do
-   ft:PrimitiveThread[\Any\] = spawn(makeWork(10));
+   ft:Thread[\Any\] = spawn(makeWork(10));
    assert(ft.val(),10, "test5 wrong")
 end
 
 test6():() = do
-   ft:PrimitiveThread[\Any\] = spawn(makeWork(10000000));
+   ft:Thread[\Any\] = spawn(makeWork(10000000));
    assert(ft.ready(), false, "test7 can't be ready yet")
    ft.stop()
 end
@@ -74,7 +74,7 @@ run(args:String...):()=do
    test1()
    test2()
    test3()
-   test4() 
+   test4()
    test5()
    test6()
 end

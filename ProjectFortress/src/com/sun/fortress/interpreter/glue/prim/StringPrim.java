@@ -60,13 +60,13 @@ public static final class PrintTaskTrace extends NativeFn0 {
 
 public static final class PrintThreadInfo extends Util.S2V {
     protected void f(String x) {
-          System.out.println(" Thread " + Thread.currentThread().getName() + " operating on value " + x);
+          System.out.println(" Thread " + java.lang.Thread.currentThread().getName() + " operating on value " + x);
     }
 }
 
 public static final class ThrowError extends Util.S2V {
     protected void f(String x) {
-        String msg = " Thread " + Thread.currentThread().getName() + " got error " + x;
+        String msg = " Thread " + java.lang.Thread.currentThread().getName() + " got error " + x;
         error(msg);
     }
 }

@@ -15,18 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-native component NativeThread
-export NativeThread
+api Thread
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
-
-object PrimitiveThread[\T\] (fcn:()->T)
-  val():T         = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$val")
-  wait():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$wait")
-  ready():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$ready")
-  stop():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$stop")
+object Thread[\T\](fcn:()->T)
+    getter val():T
+    getter ready():Boolean
+    wait():()
+    stop():()
 end
 
-abort():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$abort")
+abort():()
+
 end
