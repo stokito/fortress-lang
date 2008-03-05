@@ -350,7 +350,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             );
         } catch (AbortedException ae) {
-            FObject f = (FObject) e.getValue(WellKnownNames.atomicConflictException);
+            FObject f = (FObject) e.getValue(WellKnownNames.tryatomicFailureException);
             FortressException f_exc = new FortressException(f);
             throw f_exc;
         }

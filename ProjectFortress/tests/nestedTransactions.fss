@@ -24,7 +24,7 @@ test1():()=do
         atomic do
             count += 1
         end
-        atomic do 
+        atomic do
             count += 1
             atomic do
                 count += 1
@@ -41,7 +41,7 @@ test1():()=do
         end
         atomic do
             count += 1
-        end      
+        end
     end
     assert(count,21000,"test1 failed")
 end
@@ -51,12 +51,12 @@ test2()=do
     var successes : ZZ32 = 0
     var failures  : ZZ32 = 0
     for i<-1#3000 do
-        atomic do 
-            count += 1 
+        atomic do
+            count += 1
             try
                 tryatomic do successes += 1 end
             catch e
-            AtomicConflict => atomic do failures+= 1 end 
+            TryAtomicFailure => atomic do failures+= 1 end
             end
         end
     end
@@ -65,7 +65,7 @@ end
 
 test3()=do
     var count :ZZ32 = 0
-    atomic do 
+    atomic do
         for i<-0#10 atomic do
             for j<-0#10 atomic do
                 for k<-0#10 atomic do
@@ -84,13 +84,7 @@ end
 
 run(args:String...):()=do
     test1()
-    test2() 
+    test2()
     test3()
 end
 end
-
-
-
-
-
-

@@ -24,15 +24,15 @@ run(args:String...):()=do
     failures : ZZ32 := 0
     for i <- 0#iters do
         try
-            tryatomic do 
-                successes+= 1 
+            tryatomic do
+                successes+= 1
                 abort()
             end
         catch e
-            AtomicConflict => atomic do failures+= 1 end
+            TryAtomicFailure => atomic do failures+= 1 end
         end
     end
-    
+
     assert(successes=0, "Abort failed")
     assert(failures=iters,"Abort failed")
 
