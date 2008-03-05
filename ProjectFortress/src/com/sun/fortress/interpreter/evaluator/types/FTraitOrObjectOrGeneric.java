@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -60,9 +60,9 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     List<? extends AbsDeclOrDecl> members;
 
     BetterEnv env;
-    
+
     boolean functionalMethodsFinished;
-    
+
     final private AbstractNode decl;
 
     final private boolean isValueType;
@@ -79,14 +79,14 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     final public BetterEnv getEnv() {
         return env;
     }
-    
+
     public  AbstractNode getDecl() {
         return decl;
     }
 
     public void initializeFunctionalMethods() {
         initializeFunctionalMethods(getEnv());
-        
+
     }
     public final void initializeFunctionalMethods(BetterEnv topLevel) {
         if (isSymbolic)
@@ -106,7 +106,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                         }, NodeComparator.fnAbsDeclOrDeclComparer);
 
         if (x instanceof FTypeGeneric) {
-            
+
             for (FnAbsDeclOrDecl dod : defs) {
 
                 int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
@@ -161,13 +161,13 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         finishFunctionalMethods(topLevel);
         functionalMethodsFinished = true;
     }
-    
+
     public void finishFunctionalMethods(BetterEnv topLevel) {
         if (isSymbolic)
             return;
-        
+
         List<? extends AbsDeclOrDecl> defs = members;
-        
+
         for (AbsDeclOrDecl dod : defs) {
             // Filter out non-functions.
             if (dod instanceof FnAbsDeclOrDecl) {
@@ -199,5 +199,5 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
             }
         }
     }
- 
+
 }
