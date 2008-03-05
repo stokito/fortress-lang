@@ -39,8 +39,32 @@ public class FortressManager2 extends BaseManager {
     public void pickOne(Transaction me, Transaction other) {
 	long mine = me.getThreadId();
 	long yours = other.getThreadId();
+	
 	if (mine < yours) {
-	    other.abort();
+	    if (me.isActive()) other.abort();
+	} else if (mine > yours) {
+	    if (other.isActive()) me.abort();
+	} else  return;
+
+    }
+
+    public void pickOne(Transaction me, Collection<Transaction> others) {
+	long min = me.getThreadId();
+	Transaction win = me;
+
+	for (Transaction t : others) {
+	    if (t.isActive()) {
+		long id = t.getThreadId();
+		if (id < min) {
+		    min = id;
+		    win = t;
+		}
+	    }
+	}
+	if (win == me) {
+	    for (Transaction t : others) {
+		t.abort();
+	    }
 	} else {
 	    me.abort();
 	}
@@ -53,10 +77,7 @@ public class FortressManager2 extends BaseManager {
 
     public void resolveConflict(Transaction me, Collection<Transaction> others) {
 	if (me == null || !me.isActive()) return;
-	for (Transaction t : others) {
-	    if (t != null && t.isActive())
-		pickOne(me, t);
-	    }
+	pickOne(me,others);
     }
 
     public void waitToRestart() {
