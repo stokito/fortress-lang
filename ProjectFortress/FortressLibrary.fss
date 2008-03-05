@@ -574,14 +574,7 @@ end
 object HiddenAPIMissing extends CheckedException
 end
 
-trait TryAtomicFailure extends {CheckedException}
-  comprises {AtomicAborted, AtomicConflict}
-end
-
-object AtomicAborted extends TryAtomicFailure
-end
-
-object AtomicConflict extends TryAtomicFailure
+object TryAtomicFailure extends CheckedException
 end
 
 (* Should take a spawned thread as an argument *)
