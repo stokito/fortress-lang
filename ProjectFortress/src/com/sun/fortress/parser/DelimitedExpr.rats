@@ -235,6 +235,16 @@ private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
 private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
      { yyValue = new CatchClause(createSpan(yyStart,yyCount), a1, a2); };
 
+/* MapExpr ::= { (w EntryList)? w } */
+Expr MapExpr =
+     void:opencurly a1:(w EntryList)? w void:closecurly
+     { if (a1 == null) a1 = FortressUtil.emptyExprs();
+       Op open  = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyStart+1),
+                                              "BIG {|->");
+       Op close = NodeFactory.makeOpEnclosing(createSpan(yyCount-1,1), "BIG }");
+       yyValue = ASTUtil.enclosing(createSpan(yyStart,yyCount), open, a1, close);
+     };
+
 /* Comprehension ::=
      (BIG w)? [ StaticArgs? w ArrayComprehensionClause
                           (br ArrayComprehensionClause)* w ]
@@ -253,7 +263,7 @@ FlowExpr Comprehension =
    / (BIG w)? opencurly a1:StaticArgs? w a2:Entry wr bar wr
      a3:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
-       Op open  = NodeFactory.makeOpBig(span, "BIG {");
+       Op open  = NodeFactory.makeOpBig(span, "BIG {|->");
        Op close = NodeFactory.makeOpBig(span, "BIG }");
        OpName opr = new Enclosing(span, open, close);
        if (a1 == null) a1 = Collections.<StaticArg>emptyList();
@@ -310,4 +320,8 @@ List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
 
 /* ExprList ::= Expr (w , w Expr)* */
 List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* EntryList ::= Entry (w , w Entry)* */
+List<Expr> EntryList = a1:Entry a2s:(w comma w Entry)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
