@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
@@ -49,7 +50,7 @@ public class PrimImmutableArray extends Constructor {
         return new PrimImmutableArrayObject(selfType, self_env);
     }
 
-    public static final class PrimImmutableArrayObject extends FObject {
+    public static final class PrimImmutableArrayObject extends FOrdinaryObject {
         protected final FValue[] contents;
 
         public PrimImmutableArrayObject(FType selfType, BetterEnv self_dot_env) {

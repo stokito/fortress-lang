@@ -76,8 +76,8 @@ public class Primitives {
         install_value(env, "false", FBool.FALSE);
 
         // Dual identity of true/false
-        install_type(env, "true", new Bool("true", FBool.TRUE));
-        install_type(env, "false", new Bool("false", FBool.FALSE));
+        install_type(env, "true", Bool.make(true));
+        install_type(env, "false", Bool.make(false));
 
         install_type(env, "Any", FTypeTop.ONLY);
 
@@ -100,8 +100,8 @@ public class Primitives {
         install_value(env, "FortressBuiltin.false", FBool.FALSE);
 
         // Dual identity of true/false
-        install_type(env, "FortressBuiltin.true", new Bool("true", FBool.TRUE));
-        install_type(env, "FortressBuiltin.false", new Bool("false", FBool.FALSE));
+        install_type(env, "FortressBuiltin.true", Bool.make(true));
+        install_type(env, "FortressBuiltin.false", Bool.make(false));
 
         install_type(env, "FortressBuiltin.Any", FTypeTop.ONLY);
         

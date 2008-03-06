@@ -24,6 +24,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
@@ -42,7 +43,7 @@ public class TNFoo extends Constructor {
         return new Obj(selfType, lex_env, self_env);
     }
 
-    private static final class Obj extends FObject {
+    private static final class Obj extends FOrdinaryObject {
         public Obj(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
             // might like to discard envs to perhaps save space,
             // but need self_dot_env for method invocation lookup

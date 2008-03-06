@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
@@ -56,7 +57,7 @@ public class FileReadStream extends Constructor {
         }
     }
 
-    private static final class PrimReader extends FObject {
+    private static final class PrimReader extends FOrdinaryObject {
         protected final BufferedReader reader;
         protected final String name;
         protected boolean eof = false;

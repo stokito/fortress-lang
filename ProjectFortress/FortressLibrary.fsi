@@ -1561,6 +1561,8 @@ printThreadInfo(a:String):()
 printThreadInfo(a:Number):()
 throwError(a:String):()
 
+opr SEQV(a:Any, b:Any):Boolean
+
 opr  OR(a:Boolean, b:Boolean):Boolean
 opr AND(a:Boolean, b:Boolean):Boolean
 opr  OR(a:Boolean, b:()->Boolean):Boolean

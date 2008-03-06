@@ -21,13 +21,15 @@ import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 
 public class FBool extends FBuiltinValue {
-    public final static FBool TRUE = new FBool(true, "true");
+    public final static FBool TRUE = new FBool(true);
 
-    public final static FBool FALSE = new FBool(false, "false");
+    public final static FBool FALSE = new FBool(false);
 
     private final boolean val;
 
-    private final String name;
+    private FBool(boolean b) {
+        this.val = b;
+    }
 
     public FBuiltinType type() {
         return FTypeBool.ONLY;
@@ -42,11 +44,19 @@ public class FBool extends FBuiltinValue {
     }
 
     public String getString() {
-        return name;
+        return val ? "true" : "false";
     }
 
-    private FBool(boolean b, String s) {
-        val = b;
-        name = s;
-    }
+    // Stuff for nativizing FBool.
+    // public void setConstructor(NativeConstructor con) {
+    //     // WARNING!  In order to run the tests we must reset con for
+    //     // each new test, so it's not OK to ignore setConstructor
+    //     // attempts after the first one.
+    //     if (con==null) return;
+    //     FBool.con = con;
+    // }
+
+    // public NativeConstructor getConstructor() {
+    //     return FBool.con;
+    // }
 }

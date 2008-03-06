@@ -27,12 +27,19 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
  */
 public class Bool extends FType {
 
+    static final Bool TRUE  = new Bool("true",  FBool.TRUE);
+    static final Bool FALSE = new Bool("false", FBool.FALSE);
+
     FBool value;
 
-    public Bool(String s, FBool value) {
+    private Bool(String s, FBool value) {
         super(s);
         this.value = value;
         cannotBeExtended = true;
+    }
+
+    public static Bool make(boolean b) {
+        return b ? Bool.TRUE : Bool.FALSE;
     }
 
     public FBool getValue() {
