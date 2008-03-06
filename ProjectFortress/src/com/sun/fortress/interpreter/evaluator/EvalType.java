@@ -329,8 +329,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forBoolConstant(BoolConstant b) {
-        if (b.isBool()) return new Bool("true", FBool.TRUE);
-        else return new Bool("false", FBool.FALSE);
+        return Bool.make(b.isBool());
     }
 
     public FType forIdType(IdType i) {

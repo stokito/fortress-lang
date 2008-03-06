@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
@@ -56,7 +57,7 @@ public class Thread extends Constructor {
         return new Thread_prim(selfType, lex_env, self_env);
     }
 
-    private static final class Thread_prim extends FObject {
+    private static final class Thread_prim extends FOrdinaryObject {
         private final FortressTaskRunnerGroup group;
         private final SpawnTask st;
 

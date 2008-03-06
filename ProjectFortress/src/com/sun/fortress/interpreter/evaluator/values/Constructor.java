@@ -655,13 +655,13 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     }
 
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        return new FObject(selfType, lex_env, self_env);
+        return new FOrdinaryObject(selfType, lex_env, self_env);
     }
 
     /**
      * @param be
      */
-    private void visitDefs(BuildEnvironments be) {
+    protected void visitDefs(BuildEnvironments be) {
         be.doDefs1234(defs);
 //        be.secondPass();
 //

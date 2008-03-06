@@ -21,21 +21,31 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
 
-public abstract class FObject extends FValue implements Selectable {
+public class FOrdinaryObject extends FObject {
+
+    final BetterEnv lexicalEnv;
+    final BetterEnv selfEnv;
+    final FType ftype;
+
+    public FOrdinaryObject(FType selfType,
+                           BetterEnv lexical_env, BetterEnv self_dot_env) {
+        this.lexicalEnv = lexical_env;
+        this.selfEnv = self_dot_env;
+        this.ftype = selfType;
+    }
+
     /**
      * The environment that you get from "self."
      */
-    public abstract BetterEnv getSelfEnv();
-
-    public abstract BetterEnv getLexicalEnv();
-
-    public FValue select(String s) {
-        return getSelfEnv().getValue(s);
+    public BetterEnv getSelfEnv() {
+        return selfEnv;
     }
 
-    public String getString() { return type().toString(); }
+    public BetterEnv getLexicalEnv() {
+        return lexicalEnv;
+    }
 
-    public String toString() {
-        return getString() + getClass().getSimpleName();
+    public FType type() {
+        return ftype;
     }
 }

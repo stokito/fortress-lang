@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedExc
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
@@ -36,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * Originally based on Christine's AtomicArray, in turn based on
  * Maurice's code.  Now modified beyond all recognition.
  */
-public class AtomicFTypeArray extends FObject {
+public class AtomicFTypeArray extends FOrdinaryObject {
     // We always synchronize with any writer of the following array:
     private final FValue[] array;
 

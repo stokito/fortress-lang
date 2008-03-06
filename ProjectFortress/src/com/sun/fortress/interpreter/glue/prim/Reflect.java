@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
@@ -65,7 +66,7 @@ public class Reflect extends Constructor {
         return it;
     }
 
-    private static final class ReflectedType extends FObject {
+    private static final class ReflectedType extends FOrdinaryObject {
         public ReflectedType(FType selfType, BetterEnv lex_env, BetterEnv self_dot_env) {
             super(selfType, lex_env, self_dot_env);
         }
