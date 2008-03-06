@@ -367,6 +367,7 @@ constant Expr MathPrimary =
 
 /* PrimaryFront ::=
      ArrayExpr
+   | MapExpr
    | Comprehension
    | LeftEncloser (w ExprList)? w RightEncloser
    | ParenthesisDelimited
@@ -376,6 +377,7 @@ constant Expr MathPrimary =
  */
 Expr PrimaryFront =
      ArrayExpr
+   / MapExpr
    / Comprehension
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { if (a2 == null) a2 = FortressUtil.emptyExprs();

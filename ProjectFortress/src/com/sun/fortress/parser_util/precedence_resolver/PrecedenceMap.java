@@ -411,8 +411,12 @@ public class PrecedenceMap {
      * check one of these two conditions.
      */
     public boolean matchedBrackets(String l, String r) {
+	/* "BIG {|->" is paired with "BIG }" */
+        if (l.equals("BIG {|->") && r.equals("BIG }")) return true;
+
         CanonOp le = rep.get(l);
         CanonOp re = rep.get(r);
+
 	/* [// may be paired with /] and [/ may be paired with //] */
         if (le!=null && re!=null) {
 	    if ((l.equals("[//") && r.equals("/]")) ||

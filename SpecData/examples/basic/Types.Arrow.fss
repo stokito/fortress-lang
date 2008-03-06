@@ -27,9 +27,8 @@ gg(x: ZZ32) = (x, x)
 run(args:String...) = do
 (** EXAMPLE **)
   f: (RR64, RR64) -> RR64
-  g: ZZ32 -> (ZZ32, ZZ32)
+  g: ZZ32 -> (ZZ32, ZZ32) throws IOFailure
 (** END EXAMPLE **)
-(*  g: ZZ32 -> (ZZ32, ZZ32) throws IOFailure *)
   f = ff
   g = gg
   println (f(g 3))
