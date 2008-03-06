@@ -328,6 +328,7 @@ public class Driver {
 
             if (!woLibrary)
                 for (ComponentWrapper cw : components) {
+                    if (cw != libcomp)
                     for (String s : lib.desugarer.getTopLevelRewriteNames()) {
                         if (!cw.isOwnName(s))
                             change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
