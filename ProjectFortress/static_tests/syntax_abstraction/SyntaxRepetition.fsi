@@ -26,7 +26,7 @@ api SyntaxRepetition
   end
 
   grammar Helloworld extends { A, Literal }
-      LiteralExpr |Expr=
+      LiteralExpr |Expr:=
         a:SELECT Tuples* world
         do 
           exprs:List[\Expr\] = emptyList[\Expr\](2);

@@ -20,26 +20,26 @@ api FortressSyntax
   import FortressAst.{...}
 
   grammar Declaration 
-      Decls : List[\Decl\] end
-      Decl : List[\Decl\] end
-      AbsDecls : List[\AbsDecl\] end
-      AbsDecl : AbsDecl end
+      Decls : List[\Decl\]
+      Decl : List[\Decl\]
+      AbsDecls : List[\AbsDecl\]
+      AbsDecl : AbsDecl
   end
 
   grammar Expression 
-      Expr : Expr end
-      ExprFront : Expr end
-      MathPrimary : Expr end
-      Primary : List[\Expr\] end (* Should be a pure list *)
+      Expr : Expr
+      ExprFront : Expr
+      MathPrimary : Expr
+      Primary : List[\Expr\] (* Should be a pure list *)
   end
 
   grammar Identifier 
-      id : String end
-      idstart : String end
-      idrest : String end
+      id : String
+      idstart : String
+      idrest : String
   end
 
   grammar Literal 
-      LiteralExpr : Expr end
+      LiteralExpr : Expr
   end
 end

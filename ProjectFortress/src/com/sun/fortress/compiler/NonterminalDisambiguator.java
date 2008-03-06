@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -39,18 +38,18 @@ import com.sun.fortress.useful.HasAt;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class ProductionDisambiguator extends NodeUpdateVisitor {
+public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
 	private NameEnv _env;
 	private List<StaticError> _errors;
 	private ProductionEnv _currentEnv;
 	private GlobalEnvironment _globalEnv;
 
-	public ProductionDisambiguator() {
+	public NonterminalDisambiguator() {
 		_errors = new LinkedList<StaticError>();
 	}
 
-	public ProductionDisambiguator(NameEnv env, GlobalEnvironment globalEnv, List<StaticError> newErrs) {
+	public NonterminalDisambiguator(NameEnv env, GlobalEnvironment globalEnv, List<StaticError> newErrs) {
 		this._env = env;
 		this._errors = newErrs;
 		this._globalEnv = globalEnv;
