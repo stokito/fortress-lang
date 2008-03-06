@@ -37,7 +37,6 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.compiler.ProductionDisambiguator;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;

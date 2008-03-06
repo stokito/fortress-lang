@@ -22,11 +22,9 @@ api SyntaxGrammarImportsA
   grammar A
       Hello:StringLiteralExpr:=
          hello do StringLiteralExpr("Hello") end
-      end
 
       World:Expr:=
          the answer do IntLiteralExpr(42) end
-      end
 
   end
 

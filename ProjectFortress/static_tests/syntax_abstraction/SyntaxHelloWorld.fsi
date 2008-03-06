@@ -21,12 +21,11 @@ api SyntaxHelloWorld
   import FortressSyntax.Literal
 
   grammar helloworld extends Literal
-    LiteralExpr |Expr=
+    LiteralExpr |Expr:=
       hello world 
         do
           StringLiteralExpr(hello " " world)
         end
-    end
   end
 
 end

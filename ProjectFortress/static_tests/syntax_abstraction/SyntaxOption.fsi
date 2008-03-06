@@ -21,7 +21,7 @@ api SyntaxOption
   import FortressSyntax.{...}
 
   grammar Helloworld extends { A, Literal }
-      LiteralExpr |Expr=
+      LiteralExpr |Expr:=
          Hello? world
          do
            if (Hello.isJust()) then
@@ -30,13 +30,12 @@ api SyntaxOption
              StringLiteralExpr(world)
            end
          end
-      end
   end
  
   grammar A
       Hello :Expr:=
          hello do StringLiteralExpr(hello) end
-      end
+       | skjfjhfdskh do StringLiteralExpr("hello") end
   end
 
 end

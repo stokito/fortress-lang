@@ -72,26 +72,26 @@ private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma 
 Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
 private GrammarMemberDecl NonterminalDef =
-      m1:(NonTermMod w)? a1:Id w void:bar a2:(w TraitType)? w void:equals w a4:SyntaxDef a4s:(w SyntaxDefOr)* w end
+      m1:(NonTermMod w)? a1:Id w void:bar a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
         yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
-    /m1:(NonTermMod w)? a1:Id w void:colon a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)* w end
+    /m1:(NonTermMod w)? a1:Id w void:colon a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
         yyValue = new NonterminalDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
-    / m1:(NonTermMod w)? a1:Id w void:colon w a2:TraitType w end
+    / m1:(NonTermMod w)? a1:Id w void:colon w a2:TraitType
       { Option<TraitType> type = Option.some(a2);
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
         if (m1 == null) m1 = Option.none();
         yyValue = new NonterminalDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
-     /m1:(NonTermMod w)? a1:Id w void:bar w a2:TraitType w void:equals w end
+     /m1:(NonTermMod w)? a1:Id w void:bar w a2:TraitType
       { Option<TraitType> type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
@@ -134,23 +134,6 @@ SyntaxSymbol SpaceOrBreakline =
       { yyValue = new WhitespaceSymbol(a1); }
     /  yyValue:Breakline;
 
-/*
-SyntaxSymbol      ::= (Id ":" )? Symbol
-                   | Whitespace
-                   | br
-Symbol            ::= BasicSymbol "?"
-                   | BasicSymbol "*"
-                   | BasicSymbol "+"
-                   | BasicSymbol "#"
-                   | BasicSymbol
-BasicSymbol       ::= ItemSymbol
-                   | PredicateSymbol
-ItemSymbol        ::= KeywordSymbol
-                   | TokenSymbol
-                   | NonterminalSymbol
-PredicateSymbol   ::= "NOT" ItemSymbol
-                   | "\land" ItemSymbol
-*/
 SyntaxSymbol SyntaxSymbol =
       Not w s1:Symbol
       {  if (s1 instanceof NoWhitespaceSymbol) {
@@ -292,7 +275,7 @@ transient String Tab = "TAB";      // tabulator
 
 String sr  = space+; // significant space
 private String space = " ";
-private String breakline = "\r\n" / "\r" / "\n" / nel / formfeed / ls / ps;
+private String breakline = "\r\n" / "\r" / "\n"; /* / nel / formfeed / ls / ps; */
 private String nel = '\u0085';
 private String formfeed = "\f";
 private String ls = '\u2028';

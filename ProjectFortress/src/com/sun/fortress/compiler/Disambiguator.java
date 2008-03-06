@@ -119,7 +119,7 @@ public class Disambiguator {
                 errors.addAll(newErrs); 
             }
         }
-        results = disambiguateProductions(results, errors, globalEnv);
+        results = disambiguateGrammarMembers(results, errors, globalEnv);
         return new ApiResult(results, errors);
     }
     
@@ -129,7 +129,7 @@ public class Disambiguator {
 	 * Second, Remove any whitespace as indicated by the ignore-whitespace symbol.
 	 * Third, Rewrite escape sequences.
 	 */
-    private static List<Api> disambiguateProductions(Iterable<Api> apis,
+    private static List<Api> disambiguateGrammarMembers(Iterable<Api> apis,
     												 List<StaticError> errors,
     												 GlobalEnvironment globalEnv) {
         List<Api> results = new ArrayList<Api>();
@@ -137,7 +137,7 @@ public class Disambiguator {
             ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
-			ProductionDisambiguator pd = new ProductionDisambiguator(env, globalEnv, newErrs);
+            NonterminalDisambiguator pd = new NonterminalDisambiguator(env, globalEnv, newErrs);
 			Api pdResult = (Api) api.accept(pd);
 			results.add(pdResult);
             if (!newErrs.isEmpty()) { 
