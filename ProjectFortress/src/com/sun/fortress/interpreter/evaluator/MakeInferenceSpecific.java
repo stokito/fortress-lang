@@ -56,7 +56,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
 
     BoundingMap<String, FType, TypeLatticeOps> abm;
     MakeInferenceSpecific dual;
-    boolean doClamp;
+    boolean doClamp; // TRUE for the dual map.
 
     MakeInferenceSpecific(BoundingMap<String, FType, TypeLatticeOps> abm) {
         this.abm = abm;
@@ -104,10 +104,10 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     @Override
     public void forIdType(IdType that) {
         String s = NodeUtil.nameString(that.getName());
-        if (doClamp) {
-            FType t = abm.get(s);
+        if (doClamp) { // True if COVARIANT
+            FType t = abm.get(s); // originally, most general type.
             if (t != null) {
-                abm.dual().put(s, t);
+                abm.dual().put(s, t); // clamp result to most general.
             }
         }
     }

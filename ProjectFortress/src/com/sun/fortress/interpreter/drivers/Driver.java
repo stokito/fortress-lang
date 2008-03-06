@@ -355,6 +355,7 @@ public class Driver {
          * will probably affect the code that builds object types and deals with
          * overloading there.
          */
+        List<Importer> importers = new ArrayList<Importer>();
         for (ComponentWrapper cw : components) {
             /*
              * Transitional stuff. Import everything from "library" into a
@@ -362,23 +363,44 @@ public class Driver {
              */
             
             if (cw != builtins) {
+                Importer imp = 
                 importAllExcept(builtins.getCompilationUnit(), cw.getEnvironment(), builtins.getEnvironment(), builtins.getEnvironment(),
                         Collections.<String> emptyList(),
                         "FortressBuiltins",
                         "FortressBuiltins",
                         cw);
-
-                if (cw != libcomp && !woLibrary)
-                    importAllExcept(lib.getCompilationUnit(), cw.getEnvironment(), lib.getEnvironment(), libcomp.getEnvironment(),
+                imp.runImports();
+                importers.add(imp);
+                
+                if (cw != libcomp && !woLibrary) {
+                    imp = importAllExcept(lib.getCompilationUnit(), cw.getEnvironment(), lib.getEnvironment(), libcomp.getEnvironment(),
                             Collections.<String> emptyList(),
                             "FortressLibrary",
                             "FortressLibrary",
                              cw);
+                    imp.runImports();
+                    importers.add(imp);
+                }
             }
 
-            injectExplicitImports(linker, cw);
+            importers.addAll(injectExplicitImports(linker, cw));
         }
 
+        boolean importChange = true;
+        
+        while (importChange) {
+            importChange = false;
+            for (Importer imp : importers) {
+                importChange |= imp.runImports();
+            }
+        }
+        
+        for (Importer imp : importers) {
+            imp.reportErrors();
+        }
+        
+        importers = null;
+        
         for (ComponentWrapper cw : components) {
             cw.initTypes();
         }
@@ -401,11 +423,12 @@ public class Driver {
         return comp.getEnvironment();
     }
 
-    private static void injectExplicitImports(
+    private static List<Importer> injectExplicitImports(
             HashMap<String, ComponentWrapper> linker, ComponentWrapper cw) {
         CompilationUnit c = cw.getCompilationUnit();
         List<Import> imports = c.getImports();
-
+        List<Importer> importers = new ArrayList<Importer>();
+         
         final BetterEnv e = cw.getEnvironment();
 
         /* First handle all imports that name the things they introduce. */
@@ -465,6 +488,7 @@ public class Driver {
                          * it with plain old name.
                          */
 
+                        // TODO This also needs to be thunked!
                         inject(e, api_e, from_e, name, alias, from_apiname,
                                NodeUtil.nameString(from_cw.getCompilationUnit().getName()), cw);
                     }
@@ -511,16 +535,19 @@ public class Driver {
                             },
                             new BASet<String>(StringComparer.V));// cw.ownNonFunctionNames.copy());
 
-                    importAllExcept(api_cw.getCompilationUnit(), e, api_e, from_e, except_names,
+                    Importer imp = importAllExcept(api_cw.getCompilationUnit(), e, api_e, from_e, except_names,
                                     from_apiname,
                                     NodeUtil.nameString(from_cw.getCompilationUnit().getName()),
                                     cw);
+                    imp.runImports(); // Be slightly aggressive till all imports are thunked.
+                    importers.add(imp);
 
                 }
             } else {
 
             }
         }
+        return importers;
     }
 
     /**
@@ -643,12 +670,20 @@ public class Driver {
 
     private static void notImport(String s, Object o, String api, String component) {
 //        System.err.println("Not importing from " + api + " into " + component + " name " + s + ", value " + o);
-    }
+    } 
 
+    static abstract class Importer {
+        abstract boolean runImports();
+        abstract void reportErrors();
+    }
+    
     /**
      * @param into_e
      * @param from_e
      * @param except_names
+     *
+     * Returns an Importer which can be used to iteratively attempt to complete
+     * all imports.
      *
      * The current import process can attempt to import some entities
      * twice into the same component.  This happens in the case of
@@ -658,8 +693,10 @@ public class Driver {
      * problem; in the mean time we simply catch duplicate insertions
      * here and silently ignore them.  This is a stopgap measure that
      * should go away.
+     * 
+     * 
      */
-    private static boolean importAllExcept(final CompilationUnit fromApi,
+    private static Importer importAllExcept(final CompilationUnit fromApi,
             final BetterEnv into_e,
             final BetterEnv api_e,
             final BetterEnv from_e,
@@ -668,9 +705,54 @@ public class Driver {
             final String c,
             final ComponentWrapper importer) {
 
-        final boolean[] flag = new boolean[1];
-
-         
+        final Set<String> vnames = new HashSet<String>();
+        final Set<String> tnames = new HashSet<String>();
+        
+        collectImportedValueAndTypeNames(fromApi, vnames, tnames);
+        
+       final Importer imp = new Importer() { 
+           final boolean[] noisy = new boolean[1];
+           
+           final Set<String> added = new HashSet<String>();
+        @Override
+        synchronized void reportErrors() {
+            noisy[0] = true;
+            
+            trysomeImports(api_e, vnames, tnames);        
+        }
+        
+        @Override
+        synchronized boolean runImports() {
+            
+            noisy[0] = false;
+            return trysomeImports(api_e, vnames, tnames);
+            
+        }
+        
+        private boolean trysomeImports(final BetterEnv api_e,
+                final Set<String> vnames, final Set<String> tnames) {
+            boolean flag = false;
+            for (String s : vnames) {
+                vv.visit(s, api_e.getValueRaw(s));
+            }
+            if (added.size() > 0) {
+                flag = true;
+                vnames.removeAll(added);
+                added.clear();
+            }
+            
+            for (String s : tnames) {
+                vt.visit(s, api_e.getType(s));
+            }
+            if (added.size() > 0) {
+                flag = true;
+                tnames.removeAll(added);
+                added.clear();
+            }
+            return flag;
+        }
+      
+        
         final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
                 try {
@@ -680,15 +762,18 @@ public class Driver {
                         FType old = into_e.getTypeNull(s);
                         if (old == null) {
                             into_e.putType(s, NI.cnnf(from_e.getTypeNull(s)));
+                            added.add(s);
                         } else {
                             importer.excludedImportNames.add(s);
                             into_e.removeType(s); // Safe to remove, because explcitly defined names are excluded already.
+                            added.add(s);
                         }
                     } else {
                         notImport(s, o, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
-                    error("Import of " + s + " from api " + a
+                    if (noisy[0])
+                        error("Import of " + s + " from api " + a
                           + " not found in implementing component " + c);
                 } catch (RedefinitionError re) {
                     if (re.existingValue == null ||
@@ -701,6 +786,7 @@ public class Driver {
             }
             }
         };
+        
         /*
          * Potential problem here, we have to make overloading work when we put
          * a function.
@@ -723,10 +809,12 @@ public class Driver {
                     }
                     if (do_import) {
                         into_e.putValue(s, NI.cnnf(from_e.getValueRaw(s)));
+                        added.add(s);
                     } else {
                         notImport(s, o, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
+                    if (noisy[0])
                     error("Import of " + s + " from api " + a
                           + " not found in implementing component " + c);
                 } catch (RedefinitionError re) {
@@ -740,77 +828,15 @@ public class Driver {
                 }
             }
         };
-        final Visitor2<String, Number> vi = new Visitor2<String, Number>() {
-            public void visit(String s, Number o) {
-                try {
-                    if (!except_names.contains(s) &&
-                            !importer.excludedImportNames.contains(s)) {
-                        into_e.putInt(s, NI.cnnf(from_e.getIntNull(s)));
-                    } else {
-                        notImport(s, o, a, c);
-                    }
-                } catch (CheckedNullPointerException ex) {
-                    error("Import of " + s + " from api " + a
-                          + " not found in implementing component " + c);
-                } catch (RedefinitionError re) {
-                    if (re.existingValue == null ||
-                        re.existingValue != re.attemptedReplacementValue) {
-                        /* Completely new or bogus definition. */
-                        throw re;
-                    } else {
-                        /* Redefining entity as itself; silently ignore. */
-                }
-            }
-            }
-        };
-        final Visitor2<String, Number> vn = new Visitor2<String, Number>() {
-            public void visit(String s, Number o) {
-                try {
-                    if (!except_names.contains(s) && !importer.excludedImportNames.contains(s)) {
-                        into_e.putNat(s, NI.cnnf(from_e.getNat(s)));
-                    } else {
-                        notImport(s, o, a, c);
-                    }
-                } catch (CheckedNullPointerException ex) {
-                    error("Import of " + s + " from api " + a
-                          + " not found in implementing component " + c);
-                } catch (RedefinitionError re) {
-                    if (re.existingValue == null ||
-                        re.existingValue != re.attemptedReplacementValue) {
-                        /* Completely new or bogus definition. */
-                        throw re;
-                    } else {
-                        /* Redefining entity as itself; silently ignore. */
-                }
-            }
-            }
-        };
-        final Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
-            public void visit(String s, Boolean o) {
-                try {
-                    if (!except_names.contains(s) && !importer.excludedImportNames.contains(s)) {
-                        into_e.putBool(s, NI.cnnf(from_e.getBool(s)));
-                    } else {
-                        notImport(s, o, a, c);
-                    }
-                } catch (CheckedNullPointerException ex) {
-                    error("Import of " + s + " from api " + a
-                          + " not found in implementing component " + c);
-                } catch (RedefinitionError re) {
-                    if (re.existingValue == null ||
-                        re.existingValue != re.attemptedReplacementValue) {
-                        /* Completely new or bogus definition. */
-                        throw re;
-                    } else {
-                        /* Redefining entity as itself; silently ignore. */
-                    }
-                }
-            }
-        };
-
-        final Set<String> vnames = new HashSet<String>();
-        final Set<String> tnames = new HashSet<String>();
         
+        };
+        
+        return imp;
+    }
+
+    private static void collectImportedValueAndTypeNames(
+            final CompilationUnit fromApi, final Set<String> vnames,
+            final Set<String> tnames) {
         final NodeVisitor_void apiDeclVisitor = new NodeAbstractVisitor_void() {
 
             @Override
@@ -967,14 +993,6 @@ public class Driver {
                 
              
             }
-            for (String s : vnames) {
-                vv.visit(s, api_e.getValueRaw(s));
-            }
-            for (String s : tnames) {
-                vt.visit(s, api_e.getType(s));
-            }
-        
-        return flag[0];
     }
 
     private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
