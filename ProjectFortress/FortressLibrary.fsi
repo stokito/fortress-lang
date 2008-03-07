@@ -363,7 +363,7 @@ end
 
 (* Obviously ought to be a non-parametric singleton when we get where
    clauses working. *)
-value object Nothing[\T\]() extends Maybe[\T\]
+value object Nothing[\T\] extends Maybe[\T\]
     getter size()
     getter isJust()
     getter unJust()

@@ -36,7 +36,7 @@ api SyntaxRepetition
           typeName:Id = Id("SelectQuery");
           name:QualifiedIdName = QualifiedIdName(Just[\APIName\](apiName), typeName);
           exprs1:List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()));
-          ops:List[\QualifiedOpName\] = <| QualifiedOpName(Nothing[\APIName\](), Enclosing(Op("<|", Just[\Fixity\](EnclosingFixity())), Op("|>", Just[\Fixity\](EnclosingFixity())))) |>
+          ops:List[\QualifiedOpName\] = <| QualifiedOpName(Nothing[\APIName\], Enclosing(Op("<|", Just[\Fixity\](EnclosingFixity())), Op("|>", Just[\Fixity\](EnclosingFixity())))) |>
           op:OpRef = OpRef(ops, emptyList[\StaticArg\]());
           oprExpr:OprExpr = OprExpr(op, Tuples)
           exprs2:List[\Expr\] = exprs1.addRight(oprExpr);

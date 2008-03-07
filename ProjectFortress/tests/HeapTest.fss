@@ -63,7 +63,7 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
         end
     end
 
-tre = Nothing[\(ZZ32,ZZ32,ZZ32)\]()
+tre = Nothing[\(ZZ32,ZZ32,ZZ32)\]
 
 unj(_:Nothing[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = (0,0,0)
 unj(j:Just[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = j.unJust()

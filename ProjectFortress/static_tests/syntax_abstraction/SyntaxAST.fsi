@@ -21,14 +21,14 @@ api SyntaxAST
   import FortressSyntax.{...}
   import ArrayList.{...}
 
-  object SelectQuery(val:List[\String\]) 
+  object SelectQuery(val:List[\String\])
     toString():String
   end
 
   grammar Helloworld extends { Literal }
       LiteralExpr |Expr=
         world
-        do 
+        do
           exprs:List[\Expr\] = emptyList[\Expr\](2);
           ids:List[\Id\] = emptyList[\Id\]();
           ids1:List[\Id\] = ids.addRight(Id("SyntaxAST"));
@@ -36,7 +36,7 @@ api SyntaxAST
           typeName:Id = Id("SelectQuery");
           name:QualifiedIdName = QualifiedIdName(Just[\APIName\](apiName), typeName);
           exprs1:List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()));
-          ops:List[\QualifiedOpName\] = <| QualifiedOpName(Nothing[\APIName\](), Enclosing(Op("<|", Just[\Fixity\](EnclosingFixity())), Op("|>", Just[\Fixity\](EnclosingFixity())))) |>
+          ops:List[\QualifiedOpName\] = <| QualifiedOpName(Nothing[\APIName\], Enclosing(Op("<|", Just[\Fixity\](EnclosingFixity())), Op("|>", Just[\Fixity\](EnclosingFixity())))) |>
           arg:List[\Expr\] = emptyList[\Expr\](1)
           tuples:List[\Expr\] = emptyList[\Expr\](2)
           tuples11:List[\Expr\] = tuples.addRight(StringLiteralExpr(""))
@@ -51,5 +51,5 @@ api SyntaxAST
         end
       end
   end
- 
+
 end

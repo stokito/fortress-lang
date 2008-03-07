@@ -92,7 +92,7 @@ aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
                 q := q'.merge(heap(kids.map[\(C,T)\](aStarPair[\T,C\]))))
             println("Queue update time: " updTime)
         end
-        Nothing[\T\]() (** If we get here the search failed. **)
+        Nothing[\T\] (** If we get here the search failed. **)
     end succeed
 
 (************************************************************

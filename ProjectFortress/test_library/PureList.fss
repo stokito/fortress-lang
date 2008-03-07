@@ -170,21 +170,21 @@ value object PureList[\E\]( it: FingerTree[\E\] )
     end
   reverse(): PureList[\E\] = PureList[\E\](it.revMap(identity[\E\]))
   contents():FingerTree[\E\] = it
-  left1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]()
+  left1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
   left1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
       Just[\E\](itt.left())
-  right1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]()
+  right1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
   right1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
       Just[\E\](itt.right())
   extractLeft1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
-      Nothing[\(E,PureList[\E\])\]()
+      Nothing[\(E,PureList[\E\])\]
   extractLeft1(itt: NonEmptyFingerTree[\E\]):
           Just[\(E,PureList[\E\])\] = do
       (h,t) = it.extractLeft()
       Just[\(E,PureList[\E\])\](h,PureList[\E\](t))
     end
   extractRight1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
-      Nothing[\(E,PureList[\E\])\]()
+      Nothing[\(E,PureList[\E\])\]
   extractRight1(itt: NonEmptyFingerTree[\E\]):
           Just[\(E,PureList[\E\])\] = do
       (i,l) = it.extractRight()

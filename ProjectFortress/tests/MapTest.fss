@@ -54,7 +54,7 @@ run(args:String...):() = do
     check(db')
     db = { expect[i]|->i  |  i <- perm }
     check(db)
-    assert(db.member("Empty"),Nothing[\ZZ32\](),"absent member")
+    assert(db.member("Empty"),Nothing[\ZZ32\],"absent member")
     for (v,k) <- expect.indexValuePairs() do
         assert(db.member(k),Just[\ZZ32\](v),"present member")
     end

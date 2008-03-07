@@ -423,7 +423,7 @@ value object Just[\T\](x:T) extends Maybe[\T\]
     opr[i:ZZ32]:T = if i=0 then x else fail("Maybe[" i "] nonzero index") end
     opr[r:Range[\ZZ32\]]:Maybe[\T\] = do
         r' = (0#1)[r]
-        if r'.extent()=0 then Nothing[\T\]() else self end
+        if r'.extent()=0 then Nothing[\T\] else self end
       end
 
     map[\G\](f: T->G): Just[\G\] = Just[\G\](f(x))
@@ -441,7 +441,7 @@ end
 
 (* Obviously ought to be a non-parametric singleton when we get where
    clauses working. *)
-value object Nothing[\T\]() extends Maybe[\T\]
+value object Nothing[\T\] extends Maybe[\T\]
     getter size()=0
     getter isJust() = false
     getter unJust() = throw UnJustNothing
@@ -454,8 +454,8 @@ value object Nothing[\T\]() extends Maybe[\T\]
         self
       end
 
-    map[\G\](f: T->G): Nothing[\G\] = Nothing[\G\]()
-    cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]()
+    map[\G\](f: T->G): Nothing[\G\] = Nothing[\G\]
+    cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]
 
     mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R = z
     reduce(_:(T,T)->T, z:T):T = z
