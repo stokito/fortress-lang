@@ -28,7 +28,7 @@ import java.util.Set;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
@@ -47,17 +47,12 @@ import edu.rice.cs.plt.tuple.Option;
  *  to those inherited from extended grammars (using inheritedNonterminalNames()).
  *  The name should not be qualified. 
  */
-public class ProductionEnv {
+public class NonterminalEnv {
 
 	private GrammarIndex current;
 	private Map<Id, Set<QualifiedIdName>> nonterminals = new HashMap<Id, Set<QualifiedIdName>>();
-	
-	public ProductionEnv(GrammarIndex currentGrammar, List<StaticError> errors) {
-		this.current = currentGrammar;
-		initializeNonterminals();
-	}
-	
-	public ProductionEnv(GrammarIndex currentGrammar) {
+		
+	public NonterminalEnv(GrammarIndex currentGrammar) {
 		this.current = currentGrammar;
 		initializeNonterminals();
 	}
@@ -70,7 +65,7 @@ public class ProductionEnv {
 	 * Initialize the mapping from nonterminal names to sets of qualified nonterminal names
 	 */
 	private void initializeNonterminals() {
-		for (ProductionIndex<? extends GrammarMemberDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
+		for (NonterminalIndex<? extends GrammarMemberDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
 			Id key = e.getName().getName();
 			GrammarDecl currentGrammar = Option.unwrap(this.getGrammarIndex().ast());
 			Id name = NodeFactory.makeId(currentGrammar.getName().stringName()+"."+key.stringName());

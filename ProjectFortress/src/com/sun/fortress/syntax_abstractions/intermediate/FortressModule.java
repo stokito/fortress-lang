@@ -19,7 +19,7 @@ package com.sun.fortress.syntax_abstractions.intermediate;
 
 import java.util.Collection;
 
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
@@ -33,7 +33,7 @@ public class FortressModule extends Module {
 
 	public FortressModule() {}
 	
-	public FortressModule(QualifiedIdName name, Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {
+	public FortressModule(QualifiedIdName name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		super(name, members);
 		initialize();
 	}
@@ -52,7 +52,7 @@ public class FortressModule extends Module {
 	}
 
 	public void addNonterminal(
-			ProductionIndex<? extends GrammarMemberDecl> member) {
+			NonterminalIndex<? extends GrammarMemberDecl> member) {
 		this.declaredMembers.add(member);
 	}
 }

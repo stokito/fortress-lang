@@ -19,10 +19,8 @@ package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,36 +28,21 @@ import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleImport;
 import xtc.parser.ModuleName;
 
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
-import com.sun.fortress.compiler.index.ProductionExtendIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedName;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.ContractedNonterminal;
-import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.useful.HasAt;
 
-import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 /*

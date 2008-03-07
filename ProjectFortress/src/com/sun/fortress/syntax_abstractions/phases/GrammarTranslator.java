@@ -33,7 +33,7 @@ import xtc.parser.Production;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
@@ -95,7 +95,7 @@ public class GrammarTranslator {
 		m.dependencies = mds;
 		
 		for (Production p: m.productions) {
-			for (ProductionIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
+			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
 				if (member.getName().getName().toString().equals(p.name.name)) {
 					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);				
 					p.choice.alternatives.addAll(ptr.alternatives());

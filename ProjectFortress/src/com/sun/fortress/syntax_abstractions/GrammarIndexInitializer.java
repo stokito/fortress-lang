@@ -26,10 +26,10 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.disambiguator.ProductionEnv;
+import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.ProductionExtendIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalExtendIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
@@ -70,15 +70,15 @@ public class GrammarIndexInitializer {
 		for (GrammarEnv env: envs) {
 			for (GrammarIndex g: env.getGrammars()) {
 				// Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
-				for (ProductionIndex /*<? extends GrammarMemberDecl> */ n: g.getDeclaredNonterminals()) {
-					if (n instanceof ProductionExtendIndex) {
+				for (NonterminalIndex /*<? extends GrammarMemberDecl> */ n: g.getDeclaredNonterminals()) {
+					if (n instanceof NonterminalExtendIndex) {
 						Id name = n.getName().getName();
 						GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-						Collection<ProductionIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name, g);
+						Collection<NonterminalIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name, g);
 						if (s.isEmpty()) {
 							ses.add(StaticError.make("Unknown extended nonterminal: "+name+" in grammar: "+g.getName(), n.getAst()));
 						}
-						((ProductionExtendIndex) n).addExtendedNonterminals(s);
+						((NonterminalExtendIndex) n).addExtendedNonterminals(s);
 					}
 				}
 			}
@@ -104,7 +104,7 @@ public class GrammarIndexInitializer {
 		for (GrammarEnv gEnv: envs) {
 			for (GrammarIndex g: gEnv.getGrammars()) {
 				// Init nonterminal envs
-				g.setEnv(new ProductionEnv(g));
+				g.setEnv(new NonterminalEnv(g));
 				if (g.ast().isSome()) {
 					List<GrammarIndex> gs = new LinkedList<GrammarIndex>();
 					for (QualifiedIdName otherName: Option.unwrap(g.ast()).getExtends()) {

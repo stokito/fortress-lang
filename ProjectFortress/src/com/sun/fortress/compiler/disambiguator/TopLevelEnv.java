@@ -18,7 +18,6 @@
 package com.sun.fortress.compiler.disambiguator;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;
@@ -28,15 +27,12 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
-
-import com.sun.fortress.useful.NI;
 
 public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;

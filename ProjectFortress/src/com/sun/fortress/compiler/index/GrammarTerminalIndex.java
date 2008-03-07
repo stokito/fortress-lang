@@ -22,7 +22,7 @@ import com.sun.fortress.nodes._TerminalDef;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class GrammarTerminalIndex extends ProductionIndex<_TerminalDef> {
+public class GrammarTerminalIndex extends NonterminalIndex<_TerminalDef> {
 
 	public GrammarTerminalIndex(Option<_TerminalDef> ast) {
 		super(ast);

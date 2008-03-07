@@ -22,7 +22,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.compiler.disambiguator.ProductionEnv;
+import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
@@ -37,24 +37,24 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 
 	private Option<GrammarDef> ast;
 	
-	private Collection<ProductionIndex<? extends GrammarMemberDecl>> members;
+	private Collection<NonterminalIndex<? extends GrammarMemberDecl>> members;
 
 	private Collection<GrammarIndex> extendedGrammars;
 
-	private ProductionEnv env;
+	private NonterminalEnv env;
 	
-	public GrammarIndex(Option<GrammarDef> ast, Set<ProductionIndex<? extends GrammarMemberDecl>> members) {
+	public GrammarIndex(Option<GrammarDef> ast, Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		this.ast = ast;
 		this.extendedGrammars = new LinkedList<GrammarIndex>();
 		this.members = members;
-		this.env = new ProductionEnv(this);
+		this.env = new NonterminalEnv(this);
 	}
 
 	public Option<GrammarDef> ast() {
 		return this.ast;
 	}
 	
-	public Collection<ProductionIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
+	public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
 //		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
 //		for (ProductionIndex<? extends GrammarMemberDecl> g: this.members) {
 //			if ((g instanceof ProductionDefIndex) || 
@@ -77,11 +77,11 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 		return this.extendedGrammars;
 	}
 
-	public void setEnv(ProductionEnv env) {
+	public void setEnv(NonterminalEnv env) {
 		this.env = env;
 	}
 
-	public ProductionEnv env() {
+	public NonterminalEnv env() {
 		return this.env;
 	}
 
@@ -93,7 +93,7 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 	}
 
 	public Option<GrammarNonterminalIndex<? extends NonterminalDecl>> getNonterminalDecl(Id name) {
-		for (ProductionIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
+		for (NonterminalIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
 			if (name.getText().equals(m.getName().getName().getText())) {
 				if (m.ast().isSome()) {
 					if (m instanceof GrammarNonterminalIndex) {

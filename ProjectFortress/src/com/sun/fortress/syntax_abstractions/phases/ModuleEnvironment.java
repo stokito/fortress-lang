@@ -29,7 +29,7 @@ import xtc.parser.ModuleName;
 
 import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarTerminalIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
@@ -104,8 +104,8 @@ public class ModuleEnvironment {
 	}
 
 	private UserModule merge(UserModule m1, UserModule m2) {
-		ProductionIndex<? extends GrammarMemberDecl> member1 = IterUtil.first(m1.getDeclaredNonterminals());
-		ProductionIndex<? extends GrammarMemberDecl> member2 = IterUtil.first(m2.getDeclaredNonterminals());
+		NonterminalIndex<? extends GrammarMemberDecl> member1 = IterUtil.first(m1.getDeclaredNonterminals());
+		NonterminalIndex<? extends GrammarMemberDecl> member2 = IterUtil.first(m2.getDeclaredNonterminals());
 		
 		if ((member1 instanceof GrammarNonterminalIndex) &&
 				(member2 instanceof GrammarNonterminalIndex)) {
@@ -124,9 +124,9 @@ public class ModuleEnvironment {
 	}
 
 	private FortressModule merge(FortressModule m1, FortressModule m2) {
-		for (ProductionIndex<? extends GrammarMemberDecl> member2: m2.getDeclaredNonterminals()) {
+		for (NonterminalIndex<? extends GrammarMemberDecl> member2: m2.getDeclaredNonterminals()) {
 			boolean found = false;
-			for (ProductionIndex<? extends GrammarMemberDecl> member1: m1.getDeclaredNonterminals()) {
+			for (NonterminalIndex<? extends GrammarMemberDecl> member1: m1.getDeclaredNonterminals()) {
 				if (member2.getName().equals(member1.getName())) {
 					if ((member1 instanceof GrammarNonterminalIndex) &&
 						(member2 instanceof GrammarNonterminalIndex)) {
@@ -153,7 +153,7 @@ public class ModuleEnvironment {
 	}
 
 	private Module makeNewModule(ContractedNonterminal nt) {
-		Collection<ProductionIndex<? extends GrammarMemberDecl>> ls = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
+		Collection<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
 		ls.add(nt.getNonterminal());
 		Module m;
 		if (ModuleInfo.isFortressModule(nt.getName())) {

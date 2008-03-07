@@ -93,7 +93,7 @@ public class NonterminalNameDisambiguator {
 	 * @param name
 	 * @return
 	 */
-	public Option<QualifiedIdName> handleNonterminalName(ProductionEnv currentEnv, QualifiedIdName name) {
+	public Option<QualifiedIdName> handleNonterminalName(NonterminalEnv currentEnv, QualifiedIdName name) {
 		// If it is already fully qualified
 		if (name.getApi().isSome()) {
 			APIName originalApiGrammar = Option.unwrap(name.getApi());

@@ -41,9 +41,9 @@ import com.sun.fortress.compiler.index.GrammarTerminalIndex;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.ParamVariable;
-import com.sun.fortress.compiler.index.ProductionDefIndex;
-import com.sun.fortress.compiler.index.ProductionExtendIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalDefIndex;
+import com.sun.fortress.compiler.index.NonterminalExtendIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.SingletonVariable;
 import com.sun.fortress.compiler.index.TraitIndex;
@@ -550,29 +550,29 @@ public class IndexBuilder {
     }
     
     
-    private Set<ProductionIndex<? extends GrammarMemberDecl>> buildMembers(List<GrammarMemberDecl> members) {
-    	Set<ProductionIndex<? extends GrammarMemberDecl>> result = new HashSet<ProductionIndex<? extends GrammarMemberDecl>>();
+    private Set<NonterminalIndex<? extends GrammarMemberDecl>> buildMembers(List<GrammarMemberDecl> members) {
+    	Set<NonterminalIndex<? extends GrammarMemberDecl>> result = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
     	Set<QualifiedIdName> names = new HashSet<QualifiedIdName>();
     	for (GrammarMemberDecl m: members) {
             if (names.contains(m.getName())) {
                 error("Nonterminal declared twice: "+m.getName(), m);
             }
             names.add(m.getName());
-            result.add(m.accept(new NodeDepthFirstVisitor<ProductionIndex<? extends GrammarMemberDecl>>(){
+            result.add(m.accept(new NodeDepthFirstVisitor<NonterminalIndex<? extends GrammarMemberDecl>>(){
 
 				@Override
-				public ProductionIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
-					return new ProductionDefIndex(Option.wrap(that));
+				public NonterminalIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
+					return new NonterminalDefIndex(Option.wrap(that));
 				}
 
 				@Override
-				public ProductionIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
+				public NonterminalIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
 						NonterminalExtensionDef that) {
-					return new ProductionExtendIndex(Option.wrap(that));
+					return new NonterminalExtendIndex(Option.wrap(that));
 				}
 				
 				@Override
-				public ProductionIndex<_TerminalDef> for_TerminalDef(
+				public NonterminalIndex<_TerminalDef> for_TerminalDef(
 						_TerminalDef that) {
 					return new GrammarTerminalIndex(Option.wrap(that));
 				}
