@@ -126,7 +126,7 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
   getRightChild():Map[\Key,Val\] = self
   showTree():String = "ε"
   toString():String = "{}"
-  member(x:Key): Maybe[\Val\] = Nothing[\Val\]()
+  member(x:Key): Maybe[\Val\] = Nothing[\Val\]
   opr[i:ZZ32]: (Key,Val) = do
       fail("Map: index " i " out of range")
     end
@@ -144,14 +144,14 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
   update(k:Key, v:Val):Map[\Key,Val\] = add(k, v)
   delete(k:Key):Map[\Key,Val\] = self
   updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\] =
-      f(Nothing[\Val\]()).maybe[\Map[\Key,Val\]\](
+      f(Nothing[\Val\]).maybe[\Map[\Key,Val\]\](
         fn (): EmptyMap[\Key,Val\] => self,
         fn (v:Val): Map[\Key,Val\] => add(k,v))
   opr UNION(self, other: Map[\Key,Val\]): Map[\Key,Val\] = other
   union(f:(Key,Val,Val)->Val, other: Map[\Key,Val\]): Map[\Key,Val\] =
       other
   splitAt(k:Key):(Map[\Key,Val\],Maybe[\Val\],Map[\Key,Val\]) =
-      (self,Nothing[\Val\](),self)
+      (self,Nothing[\Val\],self)
   belowEq(i:ZZ32): Map[\Key,Val\] = self
   aboveEq(i:ZZ32): Map[\Key,Val\] = self
 

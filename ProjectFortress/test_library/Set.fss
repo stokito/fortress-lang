@@ -104,7 +104,7 @@ opr BIG INTERSECTION[\R\](g:(Reduction[\Maybe[\Set[\R\]\]\],
                                    Just[\Set[\R\]\](s)))
 
 object Intersection[\E\] extends Reduction[\Maybe[\Set[\E\]\]\]
-    ee = Nothing[\Set[\E\]\]()
+    ee = Nothing[\Set[\E\]\]
     empty():Maybe[\Set[\E\]\] = ee
     join(a:Maybe[\Set[\E\]\], b:Maybe[\Set[\E\]\]): Maybe[\Set[\E\]\] =
         if NOT a.isJust() then b

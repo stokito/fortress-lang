@@ -20,15 +20,15 @@ export Executable
 
 equiv(a:Any, b:Any, other: Any...): () =
     if NOT (a SEQV b AND b SEQV a) then
-        res = BIG STRING ("" other)
+        res = BIG STRING [x<-other] ("" x)
         fail(a " not SEQV " b ": " res)
     end
 
 
 nequiv(a:Any, b:Any, other: Any...): () =
     if a SEQV b OR b SEQV a then
-        res = BIG STRING ("" other)
-        fail(a " not SEQV " b ": " res)
+        res = BIG STRING [x<-other] ("" x)
+        fail(a " SEQV " b ": " res)
     end
 
 run(args:String...) = do
@@ -68,19 +68,18 @@ run(args:String...) = do
     equiv(false,false)
     nequiv(true,false)
     nequiv(true,17)
-    n = Nothing[\ZZ32\]()
+    n = Nothing[\ZZ32\]
     j = Just[\ZZ32\](18)
     equiv(n,n)
     equiv(j,j)
     nequiv(n,j)
-    nequiv(n,Nothing[\ZZ32\]())
     nequiv(j,Just[\ZZ32\](18))
     nequiv(n,a)
     nequiv(n,true)
     nequiv(j,a)
     nequiv(j,false)
     equiv((a,j),(b,j))
-    nequiv((a,Nothing[\ZZ32\]()),(a,n))
+    nequiv((a,Just[\ZZ32\](18)),(a,j))
   end
 
 end

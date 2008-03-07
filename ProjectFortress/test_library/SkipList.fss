@@ -348,7 +348,7 @@ object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key
         (WhiteLevel1[\Key,Val\](newLeaf), Just[\Val\](child.values[values.size()]))
       end
     else
-      (self, Nothing[\Val\]())
+      (self, Nothing[\Val\])
     end
   end
 
@@ -452,7 +452,7 @@ object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
     if children[index].getKey() = k then
       height1_remove_helper(k, index)
     else
-      (self, Nothing[\Val\]())
+      (self, Nothing[\Val\])
     end
   end
 
@@ -685,7 +685,7 @@ object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
   getter height():ZZ32 = fail("Cannot get height of an empty tree")
   getter size():ZZ32 = 0
 
-  search(k:Key):Maybe[\Val\] = Nothing[\Val\]()
+  search(k:Key):Maybe[\Val\] = Nothing[\Val\]
 
   toString():String = "{}"
 
@@ -716,7 +716,7 @@ object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\]) extends Node[\Ke
   height():ZZ32 = 0
   size():ZZ32 = values.size()
 
-  search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](values[0]) else Nothing[\Val\]() end
+  search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](values[0]) else Nothing[\Val\] end
 
   add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
   add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
