@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
-import com.sun.fortress.compiler.disambiguator.ProductionEnv;
+import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Modifier;
@@ -42,7 +42,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
 	private NameEnv _env;
 	private List<StaticError> _errors;
-	private ProductionEnv _currentEnv;
+	private NonterminalEnv _currentEnv;
 	private GlobalEnvironment _globalEnv;
 
 	public NonterminalDisambiguator() {

@@ -25,8 +25,8 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
-import com.sun.fortress.compiler.index.ProductionDefIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalDefIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
@@ -55,14 +55,14 @@ public class NonterminalContractor {
 		Collection<ContractedNonterminal> result = new LinkedList<ContractedNonterminal>();		
 		GrammarAnalyzer<GrammarIndex> analyzer = new GrammarAnalyzer<GrammarIndex>();
 
-		for (ProductionIndex<? extends GrammarMemberDecl> n: analyzer.getContainedSet(g)) {
+		for (NonterminalIndex<? extends GrammarMemberDecl> n: analyzer.getContainedSet(g)) {
 			DependencyCollector dc = new DependencyCollector(Option.unwrap(n.getName().getApi()));
 			n.getAst().accept(dc);
 			Set<QualifiedIdName> dependencies = dc.getResult();
 			if (n.getAst() instanceof NonterminalExtensionDef) {
 				visitedGrammars = new LinkedList<GrammarIndex>();
 
-				List<ProductionIndex<? extends GrammarMemberDecl>> ls = getCollapsedNonterminal(n.getName().getName(), g);			
+				List<NonterminalIndex<? extends GrammarMemberDecl>> ls = getCollapsedNonterminal(n.getName().getName(), g);			
 				dependencies.addAll(getDependencies(ls));
 				
 				result.add(new ContractedNonterminal(ls, dependencies));
@@ -75,9 +75,9 @@ public class NonterminalContractor {
 	}
 
 	private Set<QualifiedIdName> getDependencies(
-			List<ProductionIndex<? extends GrammarMemberDecl>> ls) {
+			List<NonterminalIndex<? extends GrammarMemberDecl>> ls) {
 		Set<QualifiedIdName> s = new HashSet<QualifiedIdName>();
-		for (ProductionIndex<? extends GrammarMemberDecl> m: ls) {
+		for (NonterminalIndex<? extends GrammarMemberDecl> m: ls) {
 			DependencyCollector dc = new DependencyCollector(Option.unwrap(m.getName().getApi()));
 			m.getAst().accept(dc);
 			s.addAll(dc.getResult());
@@ -92,9 +92,9 @@ public class NonterminalContractor {
 	 * @param a
 	 * @return
 	 */
-	private List<ProductionIndex<? extends GrammarMemberDecl>> getCollapsedNonterminal(Id name, GrammarIndex g) {
+	private List<NonterminalIndex<? extends GrammarMemberDecl>> getCollapsedNonterminal(Id name, GrammarIndex g) {
 		visitedGrammars.add(g);		
-		List<ProductionIndex<? extends GrammarMemberDecl>> ls = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>(); 
+		List<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>(); 
 		for (GrammarIndex gi: g.getExtended()) {
 			if (!visitedGrammars.contains(gi)) {
 				ls.addAll(getCollapsedNonterminal(name, gi));

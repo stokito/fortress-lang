@@ -30,7 +30,7 @@ import xtc.tree.Attribute;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
@@ -70,14 +70,14 @@ public class MemberTranslator {
 	 * @param env 
 	 * @return
 	 */
-	public static Result translate(Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {	
+	public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {	
 		return new MemberTranslator().doTranslate(members);
 	}
 	
 	private Result doTranslate(
-			Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {
+			Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		
-		for (ProductionIndex<? extends GrammarMemberDecl> member: members) {
+		for (NonterminalIndex<? extends GrammarMemberDecl> member: members) {
 			this.translate(member);
 		}
 
@@ -89,7 +89,7 @@ public class MemberTranslator {
 	 * @param member
 	 * @return
 	 */
-	private Result translate(ProductionIndex<? extends GrammarMemberDecl> member) {
+	private Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 		NonterminalTranslator nt = new NonterminalTranslator(member);
 		productions.add(member.getAst().accept(nt));
@@ -101,9 +101,9 @@ public class MemberTranslator {
 	
 	private static class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
 		private Collection<StaticError> errors;
-		private ProductionIndex/*<? extends GrammarMemberDecl>*/ pi; // Unsafe to prevent bug in Java 5 on Solaris 
+		private NonterminalIndex/*<? extends GrammarMemberDecl>*/ pi; // Unsafe to prevent bug in Java 5 on Solaris 
 		
-		public NonterminalTranslator(ProductionIndex<? extends GrammarMemberDecl> pi) {
+		public NonterminalTranslator(NonterminalIndex<? extends GrammarMemberDecl> pi) {
 			this.errors = new LinkedList<StaticError>();
 			this.pi = pi;
 		}

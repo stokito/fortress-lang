@@ -21,7 +21,7 @@ import com.sun.fortress.nodes.NonterminalDef;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class GrammarNonterminalCoreFortressIndex extends ProductionDefIndex {
+public class GrammarNonterminalCoreFortressIndex extends NonterminalDefIndex {
 
 	public GrammarNonterminalCoreFortressIndex(Option<NonterminalDef> ast) {
 		super(ast);

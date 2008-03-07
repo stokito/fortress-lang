@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.Type;
@@ -35,7 +35,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class NonterminalTypeDictionary {
 
-	private static Collection<ProductionIndex<? extends GrammarMemberDecl>> members = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
+	private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> members = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
 	private static Map<String, Type> cache = new HashMap<String, Type>();
 
 	public static void addAll(Collection<Module> modules) {
@@ -61,7 +61,7 @@ public class NonterminalTypeDictionary {
 			return Option.<Type>some(cache.get(name));
 		}
 
-		for (ProductionIndex<? extends GrammarMemberDecl> n: members) {
+		for (NonterminalIndex<? extends GrammarMemberDecl> n: members) {
 			if (n.getName().getName().getText().equals(name)) {
 				cache.put(name, n.getType());
 				return Option.<Type>some(n.getType());

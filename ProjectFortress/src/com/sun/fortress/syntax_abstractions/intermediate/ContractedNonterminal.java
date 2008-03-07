@@ -23,8 +23,8 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarTerminalIndex;
-import com.sun.fortress.compiler.index.ProductionDefIndex;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalDefIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NonterminalDecl;
@@ -41,20 +41,20 @@ public class ContractedNonterminal {
 	/* The nonterminals are kept in a list corresponding to the ordering in which 
 	 * their alternatives should be merged.
 	 */
-	private List<ProductionIndex<? extends GrammarMemberDecl>> members;
+	private List<NonterminalIndex<? extends GrammarMemberDecl>> members;
 	private Set<QualifiedIdName> dependencies;
 	private List<QualifiedIdName> contractedNames;
 	
-	public ContractedNonterminal(List<ProductionIndex<? extends GrammarMemberDecl>> ls, 
+	public ContractedNonterminal(List<NonterminalIndex<? extends GrammarMemberDecl>> ls, 
 								 Set<QualifiedIdName> dependencies) {
 		this.members = ls;
 		this.dependencies = dependencies;
 		this.contractedNames = new LinkedList<QualifiedIdName>();
 	}
 
-	public ContractedNonterminal(ProductionIndex<? extends GrammarMemberDecl> n,
+	public ContractedNonterminal(NonterminalIndex<? extends GrammarMemberDecl> n,
 								 Set<QualifiedIdName> dependencies) {
-		this.members = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
+		this.members = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
 		this.members.add(n);
 		this.dependencies = dependencies;
 		this.contractedNames = new LinkedList<QualifiedIdName>();
@@ -66,10 +66,10 @@ public class ContractedNonterminal {
 	 * We assume the list is non-empty.
 	 * @return
 	 */
-	public ProductionIndex<? extends GrammarMemberDecl> getNonterminal() {
+	public NonterminalIndex<? extends GrammarMemberDecl> getNonterminal() {
 		List<SyntaxDef> syntaxDefs = new LinkedList<SyntaxDef>();
 		QualifiedIdName name = this.getName();
-		for (ProductionIndex/*<? extends GrammarMemberDecl>*/ gnt: this.members) {
+		for (NonterminalIndex/*<? extends GrammarMemberDecl>*/ gnt: this.members) {
 			contractedNames.add(gnt.getName());
 			if (gnt instanceof GrammarNonterminalIndex) {
 				syntaxDefs.addAll(((GrammarNonterminalIndex) gnt).getSyntaxDefs());
@@ -82,10 +82,10 @@ public class ContractedNonterminal {
 		Option<TraitType> type = this.members.get(0).getAst().getType();
 		NonterminalDef nonterminal = new NonterminalDef(span, name, type, Option.<Modifier>none(), syntaxDefs);
 		Option<NonterminalDef> nonterminalDef = Option.some(nonterminal);
-		return new ProductionDefIndex(nonterminalDef);
+		return new NonterminalDefIndex(nonterminalDef);
 	}
 
-	public List<ProductionIndex<? extends GrammarMemberDecl>> getContractionList() {
+	public List<NonterminalIndex<? extends GrammarMemberDecl>> getContractionList() {
 		return this.members;
 	}
 
@@ -95,8 +95,8 @@ public class ContractedNonterminal {
 	 * @return
 	 */
 	public QualifiedIdName getName() {
-		for (ProductionIndex/*<? extends GrammarMemberDecl>*/ member: this.members) { 
-			if (member instanceof ProductionDefIndex) {
+		for (NonterminalIndex/*<? extends GrammarMemberDecl>*/ member: this.members) { 
+			if (member instanceof NonterminalDefIndex) {
 				return member.getName();
 			}
 		}

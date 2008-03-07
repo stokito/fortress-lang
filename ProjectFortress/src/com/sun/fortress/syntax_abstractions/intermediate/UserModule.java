@@ -19,7 +19,7 @@ package com.sun.fortress.syntax_abstractions.intermediate;
 
 import java.util.Collection;
 
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -32,7 +32,7 @@ public class UserModule extends Module {
 	public UserModule() {}
 	
 	public UserModule(QualifiedIdName name,
-				      Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {
+				      Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		super(name, members);
 	}
 

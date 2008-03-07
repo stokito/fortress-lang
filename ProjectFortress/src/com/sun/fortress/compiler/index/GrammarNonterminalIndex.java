@@ -24,7 +24,7 @@ import com.sun.fortress.nodes.SyntaxDef;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class GrammarNonterminalIndex<T extends NonterminalDecl> extends ProductionIndex<T>{
+public class GrammarNonterminalIndex<T extends NonterminalDecl> extends NonterminalIndex<T>{
 
 	public GrammarNonterminalIndex(Option<T> ast) {
 		super(ast);	

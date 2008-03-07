@@ -36,7 +36,7 @@ import xtc.parser.SequenceName;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BreaklineSymbol;
@@ -104,7 +104,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		this.errors = new LinkedList<StaticError>();
 	}
 	
-	public static Result translate(ProductionIndex<? extends GrammarMemberDecl> member) {
+	public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
 		return new SyntaxDefTranslator().visit(member.getAst());
 	}
 

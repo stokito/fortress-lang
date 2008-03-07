@@ -17,22 +17,17 @@
 
 package com.sun.fortress.compiler.index;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TraitType;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public abstract class ProductionIndex<T extends GrammarMemberDecl> {
+public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
 	private Option<T> ast;
 	
-	public ProductionIndex(Option<T> ast) {
+	public NonterminalIndex(Option<T> ast) {
 		this.ast = ast;
 	}
 
