@@ -957,7 +957,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forAbstractNodeOnly(that);
 //    }
 //
-//    public RetType forGrammarDefOnly(GrammarDef that, RetType name_result, List<RetType> extends_result, List<RetType> productions_result) {
+//    public RetType forGrammarDefOnly(GrammarDef that, RetType name_result, List<RetType> extends_result, List<RetType> nonterminal_result) {
 //        return forGrammarDeclOnly(that, name_result, extends_result);
 //    }
 //

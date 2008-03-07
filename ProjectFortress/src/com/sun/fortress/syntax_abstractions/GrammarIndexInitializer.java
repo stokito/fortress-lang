@@ -61,7 +61,7 @@ public class GrammarIndexInitializer {
 	}
 
 	/**
-	 * Each production index is linked to the other  
+	 * Each nonterminal index is linked to the other  
 	 * @param envs
 	 * @param ses
 	 */
@@ -100,10 +100,10 @@ public class GrammarIndexInitializer {
 				m.put(g.getName(), g);
 			}
 		}
-		// Make sure that a gramar index has a reference to the grammar index's it extends
+		// Make sure that a grammar index has a reference to the grammar index's it extends
 		for (GrammarEnv gEnv: envs) {
 			for (GrammarIndex g: gEnv.getGrammars()) {
-				// Init productions envs
+				// Init nonterminal envs
 				g.setEnv(new ProductionEnv(g));
 				if (g.ast().isSome()) {
 					List<GrammarIndex> gs = new LinkedList<GrammarIndex>();

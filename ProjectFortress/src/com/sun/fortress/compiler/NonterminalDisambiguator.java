@@ -81,7 +81,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 			throw new RuntimeException("Type inference is not supported yet!");
 		}
 		NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-		Option<QualifiedIdName> oname = nnd.handleProductionName(_currentEnv, that.getName());
+		Option<QualifiedIdName> oname = nnd.handleNonterminalName(_currentEnv, that.getName());
 		this._errors.addAll(nnd.errors());
 		if (oname.isSome()) {
 			QualifiedIdName name = Option.unwrap(oname);
@@ -97,7 +97,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 			Option<? extends Modifier> modifier_result,
 			List<SyntaxDef> syntaxDefs_result) {
 		NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
-		Option<QualifiedIdName> oname = pnd.handleProductionName(_currentEnv, that.getName());
+		Option<QualifiedIdName> oname = pnd.handleNonterminalName(_currentEnv, that.getName());
 		this._errors.addAll(pnd.errors());
 		if (oname.isSome()) {
 			QualifiedIdName name = Option.unwrap(oname);

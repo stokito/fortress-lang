@@ -75,10 +75,6 @@ public class GrammarIndex {
 		return this.isTopLevel;
 	}
 
-	public boolean containsProduction(String productionName) {
-		return this.nonterminals.containsKey(NodeFactory.makeId(productionName));
-	}
-
 	public GrammarDef ast() {
 		return this.grammar;
 	}

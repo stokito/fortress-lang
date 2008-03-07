@@ -33,8 +33,8 @@ public class FortressModule extends Module {
 
 	public FortressModule() {}
 	
-	public FortressModule(QualifiedIdName name, Collection<ProductionIndex<? extends GrammarMemberDecl>> productions) {
-		super(name, productions);
+	public FortressModule(QualifiedIdName name, Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {
+		super(name, members);
 		initialize();
 	}
 
@@ -53,6 +53,6 @@ public class FortressModule extends Module {
 
 	public void addNonterminal(
 			ProductionIndex<? extends GrammarMemberDecl> member) {
-		this.declaredProductions.add(member);
+		this.declaredMembers.add(member);
 	}
 }

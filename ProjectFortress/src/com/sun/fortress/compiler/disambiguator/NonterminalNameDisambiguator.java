@@ -87,13 +87,13 @@ public class NonterminalNameDisambiguator {
 	}
 	
 	/**
-	 * Disambiguate the given production name against the given nonterminal environment.
+	 * Disambiguate the given nonterminal name against the given nonterminal environment.
 	 * If reportNonterminalErrors is false, don't report errors relating to nonterminals
 	 * @param currentEnv
 	 * @param name
 	 * @return
 	 */
-	public Option<QualifiedIdName> handleProductionName(ProductionEnv currentEnv, QualifiedIdName name) {
+	public Option<QualifiedIdName> handleNonterminalName(ProductionEnv currentEnv, QualifiedIdName name) {
 		// If it is already fully qualified
 		if (name.getApi().isSome()) {
 			APIName originalApiGrammar = Option.unwrap(name.getApi());
@@ -108,7 +108,7 @@ public class NonterminalNameDisambiguator {
 			if (originalApiGrammar == realApiGrammar) { newN = name; }
 			else { newN = NodeFactory.makeQualifiedIdName(realApiGrammar, name.getName()); }
 
-			if (!currentEnv.hasQualifiedProduction(newN)) {
+			if (!currentEnv.hasQualifiedNonterminal(newN)) {
 				error("Undefined nonterminal: " + NodeUtil.nameString(newN), newN);
 				return Option.none();
 			}
@@ -116,25 +116,25 @@ public class NonterminalNameDisambiguator {
 		}
 		else { // Unqualified name
 			// Is it defined in the current grammar?
-			if (currentEnv.hasProduction(name.getName())) {
-				Set<QualifiedIdName> names = currentEnv.declaredProductionNames(name.getName());
+			if (currentEnv.hasNonterminal(name.getName())) {
+				Set<QualifiedIdName> names = currentEnv.declaredNonterminalNames(name.getName());
 				if (names.size() > 1) {
 					error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
 					return Option.none();
 				}
 				if (names.isEmpty()) {
-					error("Internal error we know the production is there but can't see it: " + name, name);
+					error("Internal error we know the nonterminal is there but can't see it: " + name, name);
 					return Option.none();
 				}
 				QualifiedIdName qname = IterUtil.first(names);
 				return Option.some(qname);
 			}
 			else {
-				Set<QualifiedIdName> names = currentEnv.declaredProductionNames(name.getName());
-				// If the production is not defined in the current grammar then look
-				// among the inherited production names
+				Set<QualifiedIdName> names = currentEnv.declaredNonterminalNames(name.getName());
+				// If the nonterminal is not defined in the current grammar then look
+				// among the inherited nonterminal names
 				if (names.isEmpty()) {
-					names = currentEnv.inheritedProductionNames(name.getName());
+					names = currentEnv.inheritedNonterminalNames(name.getName());
 				}
 
 				// if not there it is undefined

@@ -18,86 +18,30 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
-import xtc.parser.AlternativeAddition;
-import xtc.parser.Binding;
-import xtc.parser.CharClass;
-import xtc.parser.CharRange;
-import xtc.parser.Element;
-import xtc.parser.FollowedBy;
 import xtc.parser.FullProduction;
 import xtc.parser.NonTerminal;
-import xtc.parser.NotFollowedBy;
 import xtc.parser.OrderedChoice;
 import xtc.parser.Production;
 import xtc.parser.Sequence;
-import xtc.parser.SequenceName;
-import xtc.parser.Terminal;
-import xtc.parser.TokenValue;
 import xtc.tree.Attribute;
-import xtc.tree.Node;
 
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.ProductionExtendIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AndPredicateSymbol;
-import com.sun.fortress.nodes.BackspaceSymbol;
-import com.sun.fortress.nodes.BreaklineSymbol;
-import com.sun.fortress.nodes.CarriageReturnSymbol;
-import com.sun.fortress.nodes.CharSymbol;
-import com.sun.fortress.nodes.CharacterClassSymbol;
-import com.sun.fortress.nodes.CharacterInterval;
-import com.sun.fortress.nodes.CharacterSymbol;
-import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.KeywordSymbol;
-import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.NonterminalSymbol;
-import com.sun.fortress.nodes.NotPredicateSymbol;
-import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
-import com.sun.fortress.nodes.RepeatSymbol;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SyntaxSymbol;
-import com.sun.fortress.nodes.TabSymbol;
-import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes._TerminalDef;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.parser_util.FortressUtil;
-import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
-import com.sun.fortress.syntax_abstractions.rats.util.ProductionEnum;
-import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Option;
 
-// Todo: rename to member translator
-public class ProductionTranslator {
+public class MemberTranslator {
 	private List<Production> productions;
 	private Collection<StaticError> errors;
 	
@@ -115,19 +59,19 @@ public class ProductionTranslator {
 
 	}
 	
-	public ProductionTranslator() {
+	public MemberTranslator() {
 		this.productions = new LinkedList<Production>();
 		this.errors = new LinkedList<StaticError>();
 	}
 
 	/**
-	 * Translate a collection of Fortress productions to Rats! productions
+	 * Translate a collection of grammar members to Rats! productions
 	 * @param 
 	 * @param env 
 	 * @return
 	 */
 	public static Result translate(Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {	
-		return new ProductionTranslator().doTranslate(members);
+		return new MemberTranslator().doTranslate(members);
 	}
 	
 	private Result doTranslate(
@@ -141,7 +85,7 @@ public class ProductionTranslator {
 	}
 
 	/**
-	 * Translate a Fortress production to a Rats! production 
+	 * Translate a grammar member to a Rats! production 
 	 * @param member
 	 * @return
 	 */
