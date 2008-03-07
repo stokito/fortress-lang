@@ -54,6 +54,9 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
     HasAt at;
     volatile List<FType> properTransitiveExtends;
     // Must be volatile due to lazy initialization / double-checked locking.
+    
+    volatile BetterEnv suppliedMembers;
+    volatile BetterEnv requiredMembers;
 
     abstract protected void finishInitializing();
 

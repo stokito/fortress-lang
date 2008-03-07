@@ -40,16 +40,16 @@ public class FTypeTrait extends FTraitOrObject {
      * which is defined as part of method invocation.
      */
     BetterEnv methodEnv;
-    volatile BetterEnv membersOf;
+    volatile BetterEnv declaredMembersOf;
     volatile protected boolean membersInitialized; // initially false
 
     public FTypeTrait(String name, BetterEnv interior, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
         super(name, interior, at, members, decl);
-        this.membersOf = new BetterEnv(at);
+        this.declaredMembersOf = new BetterEnv(at);
     }
 
     protected void finishInitializing() {
-        membersOf.bless();
+        declaredMembersOf.bless();
         BetterEnv interior = getEnv();
         methodEnv = new BetterEnv(interior, interior.getAt());
         methodEnv.bless();
@@ -82,11 +82,11 @@ public class FTypeTrait extends FTraitOrObject {
                 }
             }
         }
-        return membersOf;
+        return declaredMembersOf;
     }
 
     protected BetterEnv getMembersInternal() {
-        return membersOf;
+        return declaredMembersOf;
     }
 
 }
