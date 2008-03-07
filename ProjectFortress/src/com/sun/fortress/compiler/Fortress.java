@@ -57,6 +57,7 @@ import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.syntax_abstractions.phases.EscapeRewriter;
+import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Path;
@@ -232,8 +233,8 @@ public class Fortress {
             new GlobalEnvironment.FromMap(CollectUtil.compose(_repository.apis(),
                                                       apiIR.apis()));
         	
-        // Disambiguate syntax abstraction items
-    	ItemDisambiguator.ApiResult apiID = ItemDisambiguator.disambiguateApis(apiIR.apis(), apiEnv);
+        // Rewrite grammars, see GrammarRewriter for more details.
+    	GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(apiIR.apis(), apiEnv);
     	if (!apiID.isSuccessful()) { return apiID.errors(); }
 
         // Rebuild ApiIndices.

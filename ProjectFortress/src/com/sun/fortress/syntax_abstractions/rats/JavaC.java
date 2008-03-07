@@ -17,16 +17,11 @@
 
 package com.sun.fortress.syntax_abstractions.rats;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.tools.javac.*;
 
 public class JavaC {
 

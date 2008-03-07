@@ -32,8 +32,8 @@ public class UserModule extends Module {
 	public UserModule() {}
 	
 	public UserModule(QualifiedIdName name,
-				      Collection<ProductionIndex<? extends GrammarMemberDecl>> productions) {
-		super(name, productions);
+				      Collection<ProductionIndex<? extends GrammarMemberDecl>> members) {
+		super(name, members);
 	}
 
 	public String toString() {

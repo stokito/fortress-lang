@@ -75,15 +75,15 @@ public class SyntaxAbstractionUtil {
 
 	/**
 	 * Returns a qualified id name where the grammar name is added to the api.
-	 * E.g. api: Foo.Bar, grammar name Baz, and production Gnu gives 
+	 * E.g. api: Foo.Bar, grammar name Baz, and member Gnu gives 
 	 * APIName: Foo.Bar.Baz and id: Gnu.
 	 */
-	public static QualifiedIdName qualifyProductionName(APIName api, Id grammarName, Id productionName) {
+	public static QualifiedIdName qualifyMemberName(APIName api, Id grammarName, Id memberName) {
 		Collection<Id> names = new LinkedList<Id>();
 		names.addAll(api.getIds());
 		names.add(grammarName);
 		APIName apiGrammar = NodeFactory.makeAPIName(names);
-		return NodeFactory.makeQualifiedIdName(apiGrammar, productionName);
+		return NodeFactory.makeQualifiedIdName(apiGrammar, memberName);
 	}
 	
 	/**
@@ -144,41 +144,6 @@ public class SyntaxAbstractionUtil {
 			exprs.add(new TupleExpr(args));
 		}
 		return new OprExpr(span, opRef, exprs );
-		
-		/*
-		List<Expr> emptyListArgs = new LinkedList<Expr>();
-		emptyListArgs.add(NodeFactory.makeIntLiteralExpr(args.size()));
-		List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-		staticArgs.add(new TypeArg(new IdType(span, NodeFactory.makeQualifiedIdName(typeName))));
-		Option<Expr> rhs = Option.some(SyntaxAbstractionUtil.makeObjectInstantiation(span, "ArrayList", "emptyList", emptyListArgs, staticArgs));
-		
-		String lastFreshName = FreshName.getFreshName("ls");
-		
-		List<LValue> lhs = new LinkedList<LValue>();
-		Id freshVar = NodeFactory.makeId(lastFreshName);
-		Option<Type> type = Option.<Type>some(new InstantiatedType(NodeFactory.makeQualifiedIdName("ArrayList", "List"), staticArgs));
-		lhs.add(new LValueBind(span, freshVar, type , false));
-		List<Expr> body = new LinkedList<Expr>();
-		LocalVarDecl varDecl = new LocalVarDecl(span, false, body, lhs, rhs);
-		
-		List<DoFront> fronts = new LinkedList<DoFront>();
-		List<Expr> exprs = new LinkedList<Expr>();
-		exprs.add(varDecl);
-		
-		
-		for(Expr expr: args) {
-			String freshName = FreshName.getFreshName("ls");
-			List<Expr> newBody = new LinkedList<Expr>();
-			body.add(makeLocalVarDecl(span, freshName, lastFreshName, staticArgs, expr, newBody));
-			lastFreshName = freshName;
-			body = newBody;
-		}
-		
-		
-		exprs.add(new VarRef(span, NodeFactory.makeQualifiedIdName(lastFreshName)));
-		Block block = new Block(exprs);
-		fronts.add(new DoFront(span, block));
-		return new Do(span, fronts); */
 	}
 	
 	private static Expr makeLocalVarDecl(Span span, String freshName, String lastFreshName, List<StaticArg> staticArgs, Expr expr, List<Expr> newBody) {

@@ -56,22 +56,22 @@ public abstract class Module implements Analyzable<Module> {
 	protected Set<ModuleName> parameters;
 	protected Set<ModuleDependency> dependencies;
 	
-	protected Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredProductions;
+	protected Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredMembers;
 
 	protected Collection<? extends Module> extendedModules; 
 	
 	public Module() {
 		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
-		this.declaredProductions = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
+		this.declaredMembers = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
 		this.extendedModules = new java.util.HashSet<Module>();
 		this.parameters = new LinkedHashSet<ModuleName>();
 		this.dependencies = new LinkedHashSet<ModuleDependency>();
 	}
 
-	public Module(QualifiedIdName name,Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredProductions) {
+	public Module(QualifiedIdName name,Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredMembers) {
 		this();
 		this.name = name;
-		this.declaredProductions.addAll(declaredProductions);
+		this.declaredMembers.addAll(declaredMembers);
 	}
 
 	public void isTopLevel(boolean b) {
@@ -115,7 +115,7 @@ public abstract class Module implements Analyzable<Module> {
 	}
 	
 	public Collection<ProductionIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
-		return this.declaredProductions;
+		return this.declaredMembers;
 	}
 	
 	public Collection<? extends Module> getExtended() {
@@ -127,15 +127,15 @@ public abstract class Module implements Analyzable<Module> {
 	}
 
 	/**
-	 * Return true if the given production name are among the declared or inherited productions
+	 * Return true if the given member name are among the declared or inherited member
 	 * @param p
 	 * @param name
 	 * @return
 	 */
-	public boolean containsProduction(ProductionIndex<? extends GrammarMemberDecl> p, String name) {
-		for (ProductionIndex<? extends GrammarMemberDecl> production: this.declaredProductions) {
-			if ((production.getName().toString().equals(name)) &&
-				(!p.equals(production))) {
+	public boolean containsMember(ProductionIndex<? extends GrammarMemberDecl> p, String name) {
+		for (ProductionIndex<? extends GrammarMemberDecl> member: this.declaredMembers) {
+			if ((member.getName().toString().equals(name)) &&
+				(!p.equals(member))) {
 				return true;
 			}
 		}
@@ -143,31 +143,31 @@ public abstract class Module implements Analyzable<Module> {
 	}
 	
 	/**
-	 * Add a set of declared production to this module
-	 * @param productions
+	 * Add a set of declared nonterminals to this module
+	 * @param nonterminals
 	 */
-	public void addProductions(Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions) {
-		for (ProductionIndex<? extends NonterminalDecl> p: productions) {
-			this.addProduction(p.getName().toString(), p);
+	public void addNonterminals(Collection<? extends ProductionIndex<? extends NonterminalDecl>> nonterminals) {
+		for (ProductionIndex<? extends NonterminalDecl> n: nonterminals) {
+			this.addNonterminal(n.getName().toString(), n);
 		}
 	}
 	
 	/**
-	 * Add a declared production to this module 
+	 * Add a declared nonterminal to this module 
 	 */
-	private void addProduction(String name, ProductionIndex<? extends NonterminalDecl> p) {
-			this.declaredProductions.add(p);
+	private void addNonterminal(String name, ProductionIndex<? extends NonterminalDecl> n) {
+			this.declaredMembers.add(n);
 	}
 
 	/** 
-	 * Returns a set of all token symbols from all declared and inherited productions
+	 * Returns a set of all token symbols from all declared and inherited members
 	 * @return
 	 */
 	public Set<String> getKeywords() {
 		final Set<String> keywords = new HashSet<String>();
-		for (ProductionIndex<? extends GrammarMemberDecl> p: this.declaredProductions) {
-			if (p.ast().isSome()) {
-				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
+		for (ProductionIndex<? extends GrammarMemberDecl> m: this.declaredMembers) {
+			if (m.ast().isSome()) {
+				Option.unwrap(m.ast()).accept(new NodeDepthFirstVisitor_void(){
 					@Override
 					public void forKeywordSymbol(KeywordSymbol that) {
 						keywords.add(that.getToken());
@@ -179,14 +179,14 @@ public abstract class Module implements Analyzable<Module> {
 	}
 	
 	/** 
-	 * Returns a set of all token symbols from all declared and inherited productions
+	 * Returns a set of all token symbols from all declared and inherited members
 	 * @return
 	 */
 	public Set<String> getTokens() {
 		final Set<String> tokens = new HashSet<String>();
-		for (ProductionIndex<? extends GrammarMemberDecl> p: this.declaredProductions) {
-			if (p.ast().isSome()) {
-				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
+		for (ProductionIndex<? extends GrammarMemberDecl> m: this.declaredMembers) {
+			if (m.ast().isSome()) {
+				Option.unwrap(m.ast()).accept(new NodeDepthFirstVisitor_void(){
 					@Override
 					public void forTokenSymbol(TokenSymbol that) {
 						tokens.add(that.getToken());
@@ -234,7 +234,7 @@ public abstract class Module implements Analyzable<Module> {
 		s+= indent+"* declared nonterminals\n";
 		tmpIndent = indent;
 		indent += indentation;
-		Iterator<ProductionIndex<? extends GrammarMemberDecl>> nit = this.declaredProductions.iterator();
+		Iterator<ProductionIndex<? extends GrammarMemberDecl>> nit = this.declaredMembers.iterator();
 		while (nit.hasNext()) {
 			ProductionIndex<? extends GrammarMemberDecl> member = nit.next();
 			s+= indent+"- "+member.getType()+" "+member.getName()+"\n";

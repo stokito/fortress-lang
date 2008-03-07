@@ -109,7 +109,7 @@ public class GrammarTranslator {
 
 	private Module makeUserModule(UserModule module) {
 		Module m = RatsUtil.makeExtendingRatsModule(module);
-		ProductionTranslator.Result ptr = ProductionTranslator.translate(module.getDeclaredNonterminals());
+		MemberTranslator.Result ptr = MemberTranslator.translate(module.getDeclaredNonterminals());
 		m.productions = ptr.productions();
 		return m;
 	}

@@ -22,32 +22,17 @@
 
 package com.sun.fortress.syntax_abstractions.rats.util;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import xtc.parser.ModuleName;
+
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedName;
-import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
-import com.sun.fortress.syntax_abstractions.intermediate.Module;
-import com.sun.fortress.syntax_abstractions.old.RatsMacroDecl;
-import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import edu.rice.cs.plt.tuple.Option;
-
-
-import xtc.parser.ModuleDependency;
-import xtc.parser.ModuleImport;
-import xtc.parser.ModuleList;
-import xtc.parser.ModuleModification;
-import xtc.parser.ModuleName;
-import xtc.parser.Sequence;
-import xtc.tree.Attribute;
 
 public class ModuleInfo {
 

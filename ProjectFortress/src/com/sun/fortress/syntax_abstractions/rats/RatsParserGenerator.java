@@ -25,36 +25,16 @@ package com.sun.fortress.syntax_abstractions.rats;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import xtc.parser.Module;
+import xtc.tree.Attribute;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.syntax_abstractions.rats.util.ModuleEnum;
-import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
-import com.sun.fortress.syntax_abstractions.rules.RuleTranslator;
-
-import xtc.parser.Module;
-import xtc.parser.ModuleDependency;
-import xtc.parser.ModuleName;
-import xtc.parser.ParserBase;
-import xtc.parser.Production;
-import xtc.tree.Attribute;
-import xtc.tree.Comment;
 
 public class RatsParserGenerator {
 
