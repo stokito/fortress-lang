@@ -23,7 +23,7 @@ export Executable
    names found in an api are tied together with the entities imported. *)
 
 run(args:String...):() = do
-  b : Set[\String\] = EmptySet[\String\]().add("A").add("B").add("C").add("D")
+  b : Set[\String\] = set[\String\]().add("A").add("B").add("C").add("D")
   println(b)
   (* The call to String juxtaposition below is to convince the
      interpreter we want a set of Strings, not a set of StringLiterals. *)

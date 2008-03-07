@@ -20,37 +20,35 @@ component sudoku
 import Set.{...}
 export Executable
 
-emptySet = EmptySet[\ZZ32\]()
+emptySet = set[\ZZ32\]()
 
 initialSet(): Set[\ZZ32\] = set(1#9)
 
 (* DANGER: Race condition!  Last write of b[i,j] must actually cas... *)
 removeElement(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
    s:Set[\ZZ32\] = b[i,j]
-   if elem IN s then      (* Don't delete the element being removed! *)
+   if elem IN s then      (* Don't delete if it's a no-op *)
       r = s.delete(elem)
-      if NOT r.isEmpty() then
-         b[i,j] := r
-      end
+      b[i,j] := r
    end
 end
 
 propagateRow(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
    for k <- 0#9 do
-      removeElement(b,i,k,elem)
+      if j =/= k then removeElement(b,i,k,elem) end
    end
 
 
 propagateColumn(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
    for k <- 0#9 do
-     removeElement(b,k,j,elem)
+     if i =/= k then removeElement(b,k,j,elem) end
    end
 
 propagateSquare(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
    starti:ZZ32 = narrow(truncate(i/3)) 3
    startj:ZZ32 = narrow(truncate(j/3)) 3
    for k <-starti#3, l <- startj#3 do
-      removeElement(b,k,l,elem)
+      if i=/=k OR j=/=l then removeElement(b,k,l,elem) end
    end
 end
 

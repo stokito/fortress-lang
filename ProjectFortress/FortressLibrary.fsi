@@ -171,18 +171,6 @@ assert(flag: Boolean, failMsg: String): ()
 
 assert(x:Any, y:Any, failMsg: Any...): ()
 
-(** A Mapping[\Key,Value\] is a key/value mapping produced by the |->
-    operator.  These mappings are ordered by Key alone.  Mappings with
-    identical keys and different values compare for equality. **)
-value object Mapping[\Key,Value\](k: Key, v: Value)
-        extends StandardTotalOrder[\Mapping[\Key,Value\]\]
-    getter key(): Key
-    getter val(): Value
-end
-
-opr |->[\Key,Value\](k: Key, v: Value): Mapping[\Key, Value\]
-
-
 (** Generator
  *
  * We say an object which extends Generator[\T\] "generates objects of

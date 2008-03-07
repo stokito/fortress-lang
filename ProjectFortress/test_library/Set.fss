@@ -21,7 +21,9 @@ export Set
 
 weight:ZZ32 = 4
 
-trait Set[\E\] extends ZeroIndexed[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
+trait Set[\E\]
+      extends { ZeroIndexed[\E\], Equality[\Set[\E\]\] }
+      comprises {NodeSet[\E\], EmptySet[\E\]}
    getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
        IndexValueSetGenerator[\E\](self)
    seqgen[\R\](r: Reduction[\R\], body: E->R): R
@@ -30,7 +32,7 @@ trait Set[\E\] extends ZeroIndexed[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    getVal():E
    getLeftChild():Set[\E\]
    getRightChild():Set[\E\]
-   printTree():()
+   showTree():String
    toString():String
    opr IN(x:E, self):Boolean
    indexOf(x:E): ZZ32 = self.indexOfI(0,x)
@@ -50,7 +52,7 @@ trait Set[\E\] extends ZeroIndexed[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    add(z:E):Set[\E\]
    delete(z:E):Set[\E\]
    balancedDelete(r:Set[\E\]):Set[\E\]
-
+   opr | self | : ZZ32
    opr UNION(self,t2:Set[\E\]):Set[\E\]
    opr INTERSECTION(self,t2:Set[\E\]):Set[\E\]
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\]
@@ -60,34 +62,64 @@ trait Set[\E\] extends ZeroIndexed[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    splitIndex(x:ZZ32):(Set[\E\],Set[\E\])
    splitAt(x:E):(Set[\E\],Boolean,Set[\E\])
    concat3(v:E, t2:Set[\E\])
+   opr SUBSET(self, other:Set[\E\]): Boolean = (self SETCMP other) = LessThan
+   opr SUBSETEQ(self, other:Set[\E\]): Boolean
+   opr SUPSET(self, other:Set[\E\]): Boolean = other SUBSET self
+   opr SUPSETEQ(self, other:Set[\E\]): Boolean = other SUBSETEQ self
+   opr =(self, other:Set[\E\]): Boolean
+   opr SETCMP(self, other:Set[\E\]): Comparison
 end
 
 singleton[\E\](x:E): Set[\E\] = do
-   e = EmptySet[\E\]()
+   e = EmptySet[\E\]
    NodeSet[\E\](x,e,e)
 end
 
-set[\E\](): Set[\E\] = EmptySet[\E\]()
+set[\E\](): Set[\E\] = EmptySet[\E\]
 set[\E\](g: Generator[\E\]): Set[\E\] =
-    g.generate[\Set[\E\]\](Union[\E\](), singleton[\E\])
+    g.generate[\Set[\E\]\](Union[\E\], singleton[\E\])
 
 opr {[\E\] es: E... }: Set[\E\] =
-    es.generate[\Set[\E\]\](Union[\E\](),
+    es.generate[\Set[\E\]\](Union[\E\],
                                 fn (e:E): Set[\E\] => singleton[\E\](e))
 opr BIG {[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
                       T -> SomeCovariantCollection) ->
                     SomeCovariantCollection } : Set[\U\] =
     set(g(CVReduction,fn x => CVUnit(x)))
 
-object Union[\E\]() extends Reduction[\Set[\E\]\]
-   e = EmptySet[\E\]()
+opr BIG UNION[\R\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
+                    Set[\R\] = g(Union[\R\], identity[\R\])
+
+object Union[\E\] extends Reduction[\Set[\E\]\]
+   e = EmptySet[\E\]
    empty():Set[\E\] = e
    join(a:Set[\E\], b:Set[\E\]): Set[\E\] = a UNION b
 end
 
+opr BIG INTERSECTION[\R\](g:(Reduction[\Maybe[\Set[\R\]\]\],
+                             Set[\R\]->Maybe[\Set[\R\]\]) ->
+                            Maybe[\Set[\R\]\]): Set[\R\] =
+    Intersection[\R\].unwrap(g(Intersection[\R\],
+                               fn (s:Set[\R\]):Just[\Set[\R\]\] =>
+                                   Just[\Set[\R\]\](s)))
+
+object Intersection[\E\] extends Reduction[\Maybe[\Set[\E\]\]\]
+    ee = Nothing[\Set[\E\]\]()
+    empty():Maybe[\Set[\E\]\] = ee
+    join(a:Maybe[\Set[\E\]\], b:Maybe[\Set[\E\]\]): Maybe[\Set[\E\]\] =
+        if NOT a.isJust() then b
+        elif NOT b.isJust() then a
+        else Just[\Set[\E\]\](a.unJust() INTERSECTION b.unJust)
+        end
+    unwrap(w:Maybe[\Set[\E\]\]): Set[\E\] =
+        if w.isJust() then w.unJust()
+        else fail("BIG INTERSECTION: empty generator.")
+        end
+end
+
 value object SeqSetGenerator[\E\](s: Set[\E\])
       extends SequentialGenerator[\E\]
-   getter size(): ZZ32 = s.size()
+   getter size(): ZZ32 = |s|
    getter isEmpty(): Boolean = s.isEmpty()
    generate[\R\](r: Reduction[\R\], body: E->R): R =
       s.seqgen[\R\](r,body)
@@ -95,7 +127,7 @@ end
 
 value object IndexValueSetGenerator[\E\](s: Set[\E\])
       extends ZeroIndexed[\(ZZ32,E)\]
-   getter size(): ZZ32 = s.size()
+   getter size(): ZZ32 = |s|
    getter indices(): ZZ32 = s.indices()
    getter isEmpty(): Boolean = s.isEmpty()
    generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
@@ -105,13 +137,13 @@ value object IndexValueSetGenerator[\E\](s: Set[\E\])
    indexOf(i:ZZ32,v:E): Boolean = if s[i]=v then i else -1 end
 end
 
-object EmptySet[\E\]() extends Set[\E\]
+object EmptySet[\E\] extends Set[\E\]
    getter size():ZZ32 = 0
    getter bounds():Range[\ZZ32\] = 0#0
    getter isEmpty():Boolean = true
    opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
    opr[r:Range[\ZZ32\]] : Set[\E\] = do
-      r' = (bounds())[r]
+      rr = (bounds())[r]
       self
    end
    indexOfI(_:ZZ32, e:E):Boolean = -1
@@ -121,7 +153,7 @@ object EmptySet[\E\]() extends Set[\E\]
    getVal():E = fail("Empty set: cannot getVal()")
    getLeftChild():Set[\E\] = self
    getRightChild():Set[\E\] = self
-   printTree():() = print " EmptySet"
+   showTree():String = "ε"
    toString():String = "{}"
    opr IN(x:E, self):Boolean = false
    minimum():E = fail("Empty set: no minimum element.")
@@ -132,6 +164,7 @@ object EmptySet[\E\]() extends Set[\E\]
    delete(z:E):Set[\E\] = self
    balancedAdd(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = NodeSet[\E\](val,self,self)
    balancedDelete(r:Set[\E\]):Set[\E\] = r
+   opr | self |: ZZ32 = 0
    opr UNION(self, t2:Set[\E\]):Set[\E\] = t2
    opr INTERSECTION(self,t2:Set[\E\]):Set[\E\] = self
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\] = self
@@ -139,34 +172,39 @@ object EmptySet[\E\]() extends Set[\E\]
    splitAt(x:E):(Set[\E\],Boolean,Set[\E\]) = (self, false, self)
    splitIndex(x:ZZ32):(Set[\E\],Set[\E\]) = (self,self)
    concat3(v:E, t2:Set[\E\]) = t2.add(v)
+   opr =(self, other:Set[\E\]): Boolean = other.isEmpty()
+   opr SUBSETEQ(self, other:Set[\E\]): Boolean = true
+   override opr SUBSET(self, other:Set[\E\]): Boolean = NOT (other.isEmpty())
+   opr SETCMP(self, other:Set[\E\]): Comparison =
+      if other.isEmpty() then EqualTo else LessThan end
 end
 
 object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
-   sz:ZZ32 = 1 + left.size() + right.size()
+   sz:ZZ32 = 1 + |left| + |right|
    getter size():ZZ32 = sz
    getter isEmpty():Boolean = false
-   subscript(i:ZZ32):E = if i < left.size() then left.subscript(i)
-      elif i = left.size() then val
-      else right.subscript(i - left.size() - 1) end
+   subscript(i:ZZ32):E = if i < |left| then left.subscript(i)
+      elif i = |left| then val
+      else right.subscript(i - |left| - 1) end
    opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
                    else fail(self "[" i "] is out of bounds.") end
    opr[r:Range[\ZZ32\]] : Set[\E\] = do
       r' = (bounds())[r]
       (lside,rside) = splitIndex( r'.lower() )
-      (lside',rside') = rside.splitIndex( r'.size())
+      (lside',rside') = rside.splitIndex( r'.size() )
       lside'
    end
    indexOfI(i:ZZ32, e:E): ZZ32 =
        typecase _ = e CMP val of
            LessThan => left.indexOfI(i,e)
-           EqualTo => i+left.size()
-           GreaterThan => right.indexOfI(i+left.size()+1,e)
+           EqualTo => i+|left|
+           GreaterThan => right.indexOfI(i + |left| + 1,e)
        end
    generate[\R\](r: Reduction[\R\], body: E->R): R =
       r.join(r.join(left.generate[\R\](r,body),body(val)),
              right.generate[\R\](r,body))
    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = do
-       mi = left.size()+i0
+       mi = |left| + i0
        r.join(r.join(left.ivgen[\R\](i0,r,body),body(mi,val)),
               right.ivgen[\R\](mi+1,r,body))
      end
@@ -181,14 +219,8 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
    getLeftChild():Set[\E\] = left
    getRightChild():Set[\E\] = right
 
-   printTree():() = do
-      print("(")
-      print(val)
-      print(" ")
-      left.printTree()
-      right.printTree()
-      println(")")
-   end
+   showTree():String =
+      "(" left.showTree() " " val " " right.showTree() ")"
 
    toString():String = do
       (h,t) = removeMinimum()
@@ -244,12 +276,16 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
        (max, balancedAdd(val,left,delmax))
      end
 
+   opr | self | : ZZ32 = sz
+
    (* TODO: union, intersection, and difference should use hedge
       algorithms, which avoid splitting and the allocation it entails
       but require a pile of code instead. *)
    opr UNION(self, t2:NodeSet[\E\]):Set[\E\] = do
       (newl, _, newr) = t2.splitAt(val)
-      (left UNION newl).concat3(val, right UNION newr)
+      r = (left UNION newl).concat3(val, right UNION newr)
+      (* println(self "∪" t2 " = " r) *)
+      r
    end
    opr UNION(self, t2:Set[\E\]):Set[\E\] = self
 
@@ -268,6 +304,43 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
    end
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\] = self
 
+   opr =(self, other:Set[\E\]): Boolean =
+      if self SEQV other then true
+      elif other.isEmpty() then false
+      else
+         (l,m,r) = other.splitAt(val)
+         m AND: left=l AND: right=r
+      end
+   opr SUBSETEQ(self, other:Set[\E\]): Boolean =
+      if self SEQV other then true
+      elif other.isEmpty() then false
+      else
+         (l,m,r) = other.splitAt(val)
+         m AND: left SUBSETEQ l AND right SUBSETEQ r
+      end
+   opr SETCMP(self, other:Set[\E\]): Comparison =
+      if self SEQV other then EqualTo
+      elif other.isEmpty() then GreaterThan
+      else
+          (l,m,r) = other.splitAt(val)
+          typecase _ = left SETCMP l of
+              Unordered => Unordered
+              LessThan =>
+                  if m AND: right SUBSETEQ r then
+                       LessThan
+                  else Unordered end
+              EqualTo =>
+                  if m then right SETCMP r
+                  elif r SUBSETEQ right then
+                      GreaterThan
+                  else Unordered end
+              GreaterThan =>
+                  if r SUBSETEQ right then
+                       GreaterThan
+                  else Unordered end
+          end
+      end
+
    concat(t2:NodeSet[\E\]):Set[\E\] = do
       (min, delmin) = t2.removeMinimum()
       concat3(min, delmin)
@@ -275,11 +348,11 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
    concat(t2:Set[\E\]):Set[\E\] = self
 
    splitIndex(x:ZZ32):(Set[\E\],Set[\E\]) =
-      if x < left.size() then
+      if x < |left| then
         (ll,rl) = left.splitIndex(x)
         (ll,rl.concat3(val,right))
-      elif left.size() < x then
-        (lr,rr) = right.splitIndex(x - left.size() - 1)
+      elif |left| < x then
+        (lr,rr) = right.splitIndex(x - |left| - 1)
         (left.concat3(val,lr),rr)
       else
         (left,right.add(val))
@@ -301,7 +374,7 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
       l1 = left
       r1 = right
       v2 = t2.getVal()
-      n2 = t2.size()
+      n2 = |t2|
       l2 = t2.getLeftChild()
       r2 = t2.getRightChild()
       if   weight n1 < n2 then balancedAdd(v2,concat3(v,l2),r2)
@@ -311,21 +384,21 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
    concat3(v:E, t2:Set[\E\]) = add(v)
 
    balancedAdd(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = do
-      ln = left.size()
-      rn = right.size()
+      ln = |left|
+      rn = |right|
       if ln + rn < weight then NodeSet[\E\](val, left, right)
       elif rn > weight ln then do
-         rl = right.getRightChild().getLeftChild()
-         rr = right.getRightChild().getRightChild()
-         rln = rl.size()
-         rrn = rr.size()
+         rl = right.getLeftChild()
+         rr = right.getRightChild()
+         rln = |rl|
+         rrn = |rr|
          if rln < rrn then single_L(val, left, right) else double_L(val, left, right) end
          end
       elif ln > weight rn then do
-         ll = left.getLeftChild().getLeftChild()
-         lr = left.getLeftChild().getRightChild()
-         lln = ll.size()
-         lrn = lr.size()
+         ll = left.getLeftChild()
+         lr = left.getRightChild()
+         lln = |ll|
+         lrn = |lr|
          if (lrn < lln) then single_R(val, left, right) else double_R(val,left,right) end
          end
       else NodeSet[\E\](val,left,right) end
@@ -357,7 +430,7 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
       y1 = right.getLeftChild().getLeftChild()
       y2 = right.getLeftChild().getRightChild()
       z = right.getRightChild()
-      println("double_L " a " " b)
+      (* println("double_L " a " " b) *)
       NodeSet[\E\](b, NodeSet[\E\](a,x,y1),NodeSet[\E\](c,y2,z))
    end
 
