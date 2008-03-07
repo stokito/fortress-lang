@@ -23,7 +23,7 @@ trait Trait4
 end
 
 object Object4() extends Trait4
-  f():String = "PASS"
+  f():String = " PASS PASS PASS"
 end
 
 end
