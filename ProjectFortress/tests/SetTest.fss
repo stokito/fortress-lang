@@ -17,34 +17,71 @@
 
 component SetTest
 import Set.{...}
+import SetOrder.{...}
 export Executable
 
-  assertStr(a: Set[\ZZ32\], b:Set[\ZZ32\], s:String) =
-  if a.toString() =/= b.toString() then
-    fail(a "=/=" b ": " s)
+cmp(a:Set[\ZZ32\], b:Set[\ZZ32\], c:Comparison): () = do
+    assert(a SETCMP b, c, " unexpected set comparison")
+    assert(b SETCMP a, INVERSE c, " inverse set comparison")
+    assert(a SUBSET b, c<EqualTo,a," SUBSET ",b)
+    assert(a SUBSETEQ b, c<=EqualTo,a," SUBSETEQ ",b)
+    assert(a SUPSET b, c>EqualTo,a," SUPSET ",b)
+    assert(a SUPSETEQ b, c>=EqualTo,a," SUPSETEQ ",b)
+    assert(a=b, c=EqualTo, a," = ",b)
+    assert(b SUBSET a, c>EqualTo,b," SUBSET ",a)
+    assert(b SUBSETEQ a, c>=EqualTo,b," SUBSETEQ ",a)
+(*
+    assert(b SUPSET a, c<EqualTo,b," SUPSET ",a)
+    assert(b SUPSETEQ a, c<=EqualTo,b," SUPSETEQ ",a)
+*)
+    assert(b=a, c=EqualTo, b," = ",a)
   end
 
-  run(args:String...):() = do
+run(args:String...):() = do
     a: Set[\ZZ32\] = set[\ZZ32\]()
     b: Set[\ZZ32\] = set[\ZZ32\](1#10)
-    c: Set[\ZZ32\] = { 1 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+    c: Set[\ZZ32\] = { 1 1, 2, 4, 5, 6, 7, 8, 9, 10, 3 }
     d: Set[\ZZ32\] = { e | i <- 1#5, e <- {2 i, 2 i - 1} }
+    e: Set[\ZZ32\] = { 7, 9, 2, 3, 4, 6, 1 1, 8, 5, 10, 9, 8, 7 }
+    f: Set[\ZZ32\] = set[\ZZ32\](6#10)
 
-    for (i,v) <- d.indexValuePairs() do
-        assert(i+1,v," indexValuePairs wrong for ",d)
+    u = b UNION f
+    assert(u, set[\ZZ32\](1#15), " union")
+    i = b INTERSECTION f
+    assert(i, set[\ZZ32\](6#5), " intersection")
+    df = b DIFFERENCE f
+    assert(df, set[\ZZ32\](1#5), " difference")
+
+    cmp(a,a,EqualTo)
+    cmp(a,u,LessThan)
+    cmp(a,i,LessThan)
+    cmp(a,df,LessThan)
+    cmp(b,u,LessThan)
+    cmp(b,i,GreaterThan)
+    cmp(b,df,GreaterThan)
+    cmp(i,df,Unordered)
+
+    sets: (Set[\ZZ32\])[4] = [b c d e]
+
+    for s <- sets, (i,v) <- s.indexValuePairs() do
+        assert(i+1,v," indexValuePairs wrong for ",s)
     end
 
-    assertStr(b,c,"sets 1#10 are different")
-    assertStr(c,d,"set 1#10 and comprehension are different")
+    for s1 <- sets, s2 <- sets do
+        cmp(s1,s2,EqualTo)
+    end
+
     assert(BIG AND[x<-a] false, true, "nonempty? ", a)
-    assert(BIG OR[x<-b] true, true, "empty? ", b)
-    assert(17 NOTIN b, true, "17 IN ",b)
     assert(BIG AND[x<-1#10] x NOTIN a, true, "something in ",a)
-    assert(BIG AND[x<-1#10] x IN b, true, "something not in ",b)
-    assertStr(a[:], set[\ZZ32\](), "subscript operator[:] incorrect for empty set")
-    assertStr(b[:], b, "subscript operator[:] incorrect for tree set")
-    assertStr(b[5:], set[\ZZ32\](6#5), "subscript operator[x:] incorrect for tree set")
-    assertStr(b[9:9], singleton[\ZZ32\](10), "subscript operator[y:y] incorrect for tree set")
+    for s <- sets do
+        assert(BIG OR[x<-s] true, true, "empty? ", s)
+        assert(17 NOTIN s, true, "17 IN ",s)
+        assert(BIG AND[x<-1#10] x IN s, true, "something not in ",s)
+    end
+    assert(a[:], set[\ZZ32\](), "subscript operator[:] incorrect for empty set")
+    assert(b[:], b, "subscript operator[:] incorrect for tree set")
+    assert(b[5:], set[\ZZ32\](6#5), "subscript operator[x:] incorrect for tree set")
+    assert(b[9:9], singleton[\ZZ32\](10), "subscript operator[y:y] incorrect for tree set")
   end
 
 end

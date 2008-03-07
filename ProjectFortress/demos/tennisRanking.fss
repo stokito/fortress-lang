@@ -72,7 +72,7 @@ export Executable
 maxPlayers = 40         (* maximum number of players *)
 numPlayers:ZZ32 := 0    (* number of players possibly with new members *)
 oldPoints = 450 (* the current points for old members not yet played any game *)
-database:Map[\String,Player\] := EmptyMap[\String,Player\]()
+database:Map[\String,Player\] := mapping[\String,Player\]()
 tableBegin =
   "-------------------------------------------------------------------"
 gamesBegin = "begin"
@@ -151,7 +151,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
                          //        against "a" and "b"
    *)
   played:Map[\String,Map[\String,String\]\] :=
-    EmptyMap[\String,Map[\String,String\]\]()
+    mapping[\String,Map[\String,String\]\]()
 
   (* Has played a singles game with this player? *)
   playedSingle(against: String) =
@@ -184,7 +184,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
       againstGames:Map[\String,String\] :=
         if maybeAgainstGames.isJust()
         then maybeAgainstGames.unJust()
-        else EmptyMap[\String,String\]() end
+        else mapping[\String,String\]() end
       againstGames := againstGames.add("","")
       played := played.update(against, againstGames)
     end
@@ -196,7 +196,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
       withGames:Map[\String,String\] :=
         if maybeWithGames.isJust()
         then maybeWithGames.unJust()
-        else EmptyMap[\String,String\]() end
+        else mapping[\String,String\]() end
       withGames := withGames.add(against1,against2)
       played := played.update(team, withGames)
     end
