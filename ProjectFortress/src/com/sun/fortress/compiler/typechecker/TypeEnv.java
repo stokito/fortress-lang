@@ -327,7 +327,7 @@ public abstract class TypeEnv {
                                 unwrap(decl.getReturnType()), // all types have been filled in at this point
                                 decl.getThrowsClause(),
                                 decl.getWhere()));
-                mods.addAll(decl.getMods()); // TODO: change the mods?
+                mods.addAll(decl.getMods());
             }
             type = wrap(_type);
             mutable = false;

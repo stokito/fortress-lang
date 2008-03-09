@@ -28,10 +28,12 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Pair;
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
@@ -45,7 +47,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private TraitTable table;
     private StaticParamEnv staticParams;
     private TypeEnv params;
-    private final TypeAnalyzer analyzer;
+    private final SubtypeChecker subtypeChecker;
 
 
     public TypeChecker(TraitTable _table,
@@ -55,18 +57,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         table = _table;
         staticParams = _staticParams;
         params = _params;
-        analyzer = TypeAnalyzer.make(table);
+        subtypeChecker = SubtypeChecker.make(table);
     }
 
     private TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
                        TypeEnv _params,
-                       TypeAnalyzer _analyzer)
+                       SubtypeChecker _subtypeChecker)
     {
         table = _table;
         staticParams = _staticParams;
         params = _params;
-        analyzer = _analyzer;
+        subtypeChecker = _subtypeChecker;
     }
 
     private static Type typeFromLValueBinds(List<LValueBind> bindings) {
@@ -80,62 +82,62 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
         return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
-                               params.extend(newParams), analyzer.extend(newStaticParams, whereClause));
+                               params.extend(newParams), subtypeChecker.extend(newStaticParams, whereClause));
     }
 
     private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
         return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
-                               params.extendWithParams(newParams), analyzer.extend(newStaticParams, whereClause));
+                               params.extendWithParams(newParams), subtypeChecker.extend(newStaticParams, whereClause));
     }
 
     private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
         return new TypeChecker(table,
                                staticParams.extend(newStaticParams, whereClause),
                                params,
-                               analyzer.extend(newStaticParams, whereClause));
+                               subtypeChecker.extend(newStaticParams, whereClause));
     }
 
     private TypeChecker extend(WhereClause whereClause) {
         return new TypeChecker(table,
                                staticParams.extend(Collections.<StaticParam>emptyList(), whereClause),
                                params,
-                               analyzer.extend(Collections.<StaticParam>emptyList(), whereClause));
+                               subtypeChecker.extend(Collections.<StaticParam>emptyList(), whereClause));
     }
 
     private TypeChecker extend(List<LValueBind> bindings) {
         return new TypeChecker(table, staticParams,
                                params.extendWithLValues(bindings),
-                               analyzer);
+                               subtypeChecker);
     }
 
     private TypeChecker extend(LocalVarDecl decl) {
         return new TypeChecker(table, staticParams,
                                params.extend(decl),
-                               analyzer);
+                               subtypeChecker);
     }
 
     private TypeChecker extend(Param newParam) {
         return new TypeChecker(table, staticParams,
                                params.extend(newParam),
-                               analyzer);
+                               subtypeChecker);
     }
 
     public TypeChecker extendWithMethods(Relation<SimpleName, Method> methods) {
         return new TypeChecker(table, staticParams,
                                params.extendWithMethods(methods),
-                               analyzer);
+                               subtypeChecker);
     }
 
     public TypeChecker extendWithFunctions(Relation<SimpleName, FunctionalMethod> methods) {
         return new TypeChecker(table, staticParams,
                                params.extendWithFunctions(methods),
-                               analyzer);
+                               subtypeChecker);
     }
 
     public TypeChecker extendWithFnDefs(Relation<SimpleName, ? extends FnDef> fns) {
         return new TypeChecker(table, staticParams,
                                params.extendWithFnDefs(fns),
-                               analyzer);
+                               subtypeChecker);
     }
 
     /**
@@ -158,14 +160,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      * for the given node with the given TypeError will be returned.
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, StaticError error) {
-        ConstraintFormula constraints = analyzer.subtype(subtype, supertype);
         System.err.printf("checkSubtype: %s <: %s", subtype, supertype);
-        if (! constraints.isSatisfiable()) {
-            System.err.println("= FALSE");
+        if (!subtypeChecker.subtype(subtype, supertype)) {
+            System.err.println(" = FALSE");
             return new TypeCheckerResult(ast, error);
         } else {
-            System.err.println("= TRUE");
-            return new TypeCheckerResult(ast, constraints);
+            System.err.println(" = TRUE");
+            return new TypeCheckerResult(ast);
         }
     }
 
@@ -268,29 +269,30 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forQualifiedIdName(QualifiedIdName that) {
-        // Initialize apiTypeEnv assuming there is no API portion of 'that',
-        // and that the reference is to a var in the current type environment.
-        // If this is not the case, we'll fix it when checking if apiName.isSome().
-        TypeEnv apiTypeEnv = params;
-
+        Id name = that.getName();
         Option<APIName> apiName = that.getApi();
-
         if (apiName.isSome()) {
             // 'globals' must contain 'unwrap(apiName)', as this component has
             // been disambiguated already.
-            apiTypeEnv = TypeEnv.make(table.api(unwrap(apiName)));
+            TypeEnv apiTypeEnv = TypeEnv.make(table.compilationUnit(unwrap(apiName)));
+            Option<Type> type = apiTypeEnv.type(name);
+            if (type.isSome()) {
+                return new TypeCheckerResult(that,
+                                             NodeFactory.makeNamedType(unwrap(apiName),
+                                                                       (NamedType)unwrap(type)));
+            } else {
+                StaticError error =
+                    TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
+                                   that);
+                return new TypeCheckerResult(that, error);
+            }
         }
-        Id name = that.getName();
-
-        Option<Type> type = apiTypeEnv.type(name);
-
+        Option<Type> type = params.type(name);
         if (type.isSome()) {
-            // System.err.println(unwrap(type));
             return new TypeCheckerResult(that, unwrap(type));
         } else {
-            // System.err.println("y");
             StaticError error =
-                TypeError.make(errorMsg("Attempt to reference unbound variable: \n    ", that),
+                TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
                                that);
             return new TypeCheckerResult(that, error);
         }
@@ -418,13 +420,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             // Get union of all clauses' types
             for (TypeCheckerResult clauseResult : clauses_result) {
                 if (clauseResult.type().isSome()) {
-                    clauseType = analyzer.join(clauseType, (unwrap(clauseResult.type())));
+                    clauseType = new OrType(clauseType, unwrap(clauseResult.type()));
                 } else {
                     result = TypeCheckerResult.compose(that, clauseResult, result);
                 }
             }
             if (elseResult.type().isSome()) {
-                clauseType = analyzer.join(clauseType, unwrap(elseResult.type()));
+                clauseType = new OrType(clauseType, unwrap(elseResult.type()));
             } else {
                 result = TypeCheckerResult.compose(that, elseResult, result);
             }
@@ -467,10 +469,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 that,
                 checkSubtype(testType,
                              Types.BOOLEAN,
-                             test_result.ast(),
+                             that,
                              TypeError.make(errorMsg("Attempt to use expression of type ", testType, " ",
                                                      "as a test condition"),
-                                            test_result.ast())),
+                                            that)),
                 result);
         } else {
             result = TypeCheckerResult.compose(that, test_result, result);
@@ -491,7 +493,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Get union of all clauses' types
         for (TypeCheckerResult frontResult : fronts_result) {
             if (frontResult.type().isSome()) {
-                frontType = analyzer.join(frontType, unwrap(frontResult.type()));
+                frontType = new OrType(frontType, unwrap(frontResult.type()));
             } else {
                 result = TypeCheckerResult.compose(that, frontResult, result);
             }
@@ -524,7 +526,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Type overloadedType = Types.ANY;
         for (TypeCheckerResult fn_result : fns_result) {
             if (fn_result.type().isSome()) {
-              overloadedType = analyzer.meet(overloadedType, unwrap(fn_result.type()));
+              overloadedType = new AndType(overloadedType, unwrap(fn_result.type()));
             }
         }
         return TypeCheckerResult.compose(that,
@@ -671,6 +673,26 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypeCheckerResult.compose(that, invariants_result),
                                          result);
     }
+
+//    public TypeCheckerResult forChainExpr(ChainExpr that) {
+//        TypeCheckerResult result = new TypeCheckerResult(that);
+//        TypeCheckerResult first_result = that.getFirst().accept(this);
+//        final TypeChecker checker = this;
+//        
+//        
+//        IterUtil.fold(that.getLinks(), first_result, new Lambda2<TypeCheckerResult, Pair<Op, Expr>, TypeCheckerResult>() {
+//            public TypeCheckerResult value(TypeCheckerResult r, Pair<Op, Expr> p) {
+//                TypeCheckerResult expr_result = p.getB().accept(checker);
+//                Option<Type> opType = checker.params.type(p.getA());
+//                
+//                if (r.type().isSome()) {
+//                }
+//                return null;
+//            }
+//        });
+//        
+//        return null;
+//    }
     
     // STUBS --------------------
     // NEED: WhereClause, ChainExpr, EnsuresClause
@@ -2277,11 +2299,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        RetType front_result = that.getFront().accept(this);
 //        List<RetType> rest_result = recurOnListOfMathItem(that.getRest());
 //        return forMathPrimaryOnly(that, front_result, rest_result);
-//    }
-//
-//    public RetType forChainExpr(ChainExpr that) {
-//        RetType first_result = that.getFirst().accept(this);
-//        return forChainExprOnly(that, first_result);
 //    }
 //
 //    public RetType forFnRef(FnRef that) {

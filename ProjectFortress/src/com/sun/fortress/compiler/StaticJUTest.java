@@ -34,10 +34,9 @@ public class StaticJUTest extends TestCase {
         "XXXUndefinedNestedRef.fss",
         "XXXUndefinedRefInLoop.fss",
         "XXXUndefinedVar.fss",
-        "XXXUndefinedTopLevelVar.fss");
+        "XXXUndefinedTopLevelVar.fss"
+    );
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
-        "IfThen.fss",
-        "IfThenElse.fss",
         "SimpleProgram.fss",
         "MutualLetFn.fss",
         "SimpleObject.fss",
@@ -51,7 +50,8 @@ public class StaticJUTest extends TestCase {
         "XXXUndefinedNestedRef.fss",
         "XXXUndefinedRefInLoop.fss",
         "XXXUndefinedVar.fss",
-        "XXXUndefinedTopLevelVar.fss");
+        "XXXUndefinedTopLevelVar.fss"
+    );
     
     public static TestSuite suite() {
         return new StaticTestSuite("StaticJUTest",

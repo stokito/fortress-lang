@@ -22,10 +22,10 @@ export Executable
  * do not work. *)
   
 run(args:String...):() = do
-  odd(x:ZZ32):Boolean = if x == 1 then true else even(x-1) end
+  odd(x:ZZ32):Boolean = if x = 1 then true else even(x-1) end
   odd(5)
   f(x:ZZ32):ZZ32 = 0
-  even(x:ZZ32):Boolean = if x == 0 then true else odd(x-1) end
+  even(x:ZZ32):Boolean = if x = 0 then true else odd(x-1) end
   even(5)
 end
 

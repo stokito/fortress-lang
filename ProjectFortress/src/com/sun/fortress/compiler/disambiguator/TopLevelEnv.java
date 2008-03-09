@@ -231,7 +231,7 @@ public class TopLevelEnv extends NameEnv {
         if (_current.typeConses().containsKey(name) ||
             _current.dimensions().containsKey(name) ||
             _current.units().containsKey(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
+            return Collections.singleton(NodeFactory.makeQualifiedIdName(_current.ast().getName(), name));
         }
         else { return Collections.emptySet(); }
     }
@@ -240,7 +240,7 @@ public class TopLevelEnv extends NameEnv {
         // TODO: imports
         if (_current.variables().containsKey(name) ||
             _current.units().containsKey(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
+            return Collections.singleton(NodeFactory.makeQualifiedIdName(_current.ast().getName(), name));
         }
         else { return Collections.emptySet(); }
     }
@@ -248,7 +248,7 @@ public class TopLevelEnv extends NameEnv {
     public Set<QualifiedIdName> explicitFunctionNames(Id name) {
         // TODO: imports
         if (_current.functions().containsFirst(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
+            return Collections.singleton(NodeFactory.makeQualifiedIdName(_current.ast().getName(), name));
         }
         else { return Collections.emptySet(); }
     }
@@ -256,7 +256,7 @@ public class TopLevelEnv extends NameEnv {
     public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
         // TODO: imports
         if (_current.functions().containsFirst(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedOpName(name));
+            return Collections.singleton(NodeFactory.makeQualifiedOpName(_current.ast().getName(), name));
         }
         else { return Collections.emptySet(); }
     }
@@ -348,15 +348,14 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public TypeConsIndex typeConsIndex(final QualifiedIdName name) {
-        return name.getApi().apply(new OptionVisitor<APIName, TypeConsIndex>() {
-            public TypeConsIndex forSome(APIName api) {
-                return _globalEnv.api(api).typeConses().get(name.getName());
-            }
-            public TypeConsIndex forNone() {
-                Id id = name.getName();
-                return _current.typeConses().get(id);
-            }
-        });
+        Option<APIName> api = name.getApi();
+        // If no API in name or it's the current API, use its own typeCons.
+        // Otherwise, try to find the API in the global env and use its typeCons.
+        if (api.isNone() || _current.ast().getName().equals(Option.unwrap(api))) {
+            return _current.typeConses().get(name.getName());
+        } else {
+            return _globalEnv.api(Option.unwrap(api)).typeConses().get(name.getName());
+        }
     }
 
     public Option<GrammarIndex> grammarIndex(final QualifiedIdName name) {

@@ -21,7 +21,7 @@ export Executable
 (* Tests that mutually recursive local function definitions work as intended. *)
   
 run(args:String...):() = do
-  odd(x:ZZ32):Boolean = if (x = 1) then true else even(x-1) end
+  odd(x:ZZ32):Boolean = if x = 1 then true else even(x-1) end
   even(x:ZZ32):Boolean = if x = 0 then true else odd(x-1) end
   odd(5)
 end

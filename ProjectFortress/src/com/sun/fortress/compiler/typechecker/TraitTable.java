@@ -22,7 +22,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
@@ -39,18 +39,22 @@ public class TraitTable {
     public TypeConsIndex typeCons(Id name) { 
         return currentComponent.typeConses().get(name);
     }
+    
     public TypeConsIndex typeCons(QualifiedIdName name) {
         Id rawName = name.getName();
         Option<APIName> api = name.getApi();
-        
-        if (api.isSome()) {
-            APIName _api = Option.unwrap(api);
-            return globalEnv.api(_api).typeConses().get(rawName);
-        }
-        else {
+        if (api.isNone() || currentComponent.ast().getName().equals(Option.unwrap(api))) {
             return currentComponent.typeConses().get(rawName);
+        } else {
+            return globalEnv.api(Option.unwrap(api)).typeConses().get(rawName);
         }
     }
     
-    public ApiIndex api(APIName name) { return globalEnv.api(name); }
+    public CompilationUnitIndex compilationUnit(APIName name) {
+        if (currentComponent.ast().getName().equals(name)) {
+            return currentComponent;
+        } else {
+            return globalEnv.api(name);
+        }
+    }
 }
