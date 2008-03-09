@@ -108,25 +108,29 @@ List<WhereBinding> WhereBindingList =
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* WhereBinding ::=
-     Id (w Extends)?
-   | nat w Id
+     nat w Id
    | int w Id
    | bool w Id
    | unit w Id
+   | Id (w Extends)?
  */
 WhereBinding WhereBinding =
-     a1:Id a2:(w a2:Extends)?
-     { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
-       yyValue = new WhereType(createSpan(yyStart,yyCount), a1, a2);
-     }
-   / nat w a1:Id
+     nat w a1:Id
      { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
    / int w a1:Id
      { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
    / bool w a1:Id
      { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
    / unit w a1:Id
-     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); }
+   / a1:Id a2:(w a2:Extends)?
+     { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
+       yyValue = new WhereType(createSpan(yyStart,yyCount), a1, a2);
+     }
+   / opendoublesquare   // Error production
+     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
+                       "White square bracket is not a valid where-clause binding.");
+     };
 
 /* FnHeaderClause ::= (w NoNewlineIsType)? FnClauses */
 FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsType)? a2:FnClauses
@@ -306,24 +310,16 @@ private List<StaticParam> StaticParamList =
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* StaticParam ::=
-     Id (w Extends)? (w absorbs w unit)?
-   | nat w Id
+     nat w Id
    | int w Id
    | bool w Id
    | dim w Id
    | unit w Id (w : w NoNewlineType)? (w absorbs w unit)?
    | opr w Op
+   | Id (w Extends)? (w absorbs w unit)?
 */
 private StaticParam StaticParam =
-     a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
-     { if (a2 == null) a2 = Collections.<TraitType>emptyList();
-       boolean absorbs;
-       if (a3 == null) absorbs = false;
-       else            absorbs = true;
-       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),
-                                     a1, a2, absorbs);
-     }
-   / nat  w a1:Id
+     nat  w a1:Id
      { yyValue = new NatParam(createSpan(yyStart,yyCount), a1);}
    / int  w a1:Id
      { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
@@ -338,4 +334,16 @@ private StaticParam StaticParam =
                                derived, absorbs);
      }
    / opr  w a1:Op
-     { yyValue = new OperatorParam(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new OperatorParam(createSpan(yyStart,yyCount), a1); }
+   / a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
+     { if (a2 == null) a2 = Collections.<TraitType>emptyList();
+       boolean absorbs;
+       if (a3 == null) absorbs = false;
+       else            absorbs = true;
+       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),
+                                     a1, a2, absorbs);
+     }
+   / opendoublesquare   // Error production
+     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
+                       "White square bracket is not a valid static parameter.");
+     };
