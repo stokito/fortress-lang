@@ -17,7 +17,6 @@
 
 component SetTest
 import Set.{...}
-import SetOrder.{...}
 export Executable
 
 cmp(a:Set[\ZZ32\], b:Set[\ZZ32\], c:Comparison): () = do
