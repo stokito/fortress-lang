@@ -171,7 +171,10 @@ public final class StaticTestSuite extends TestSuite {
             for (StaticError error : allErrors) {
                 try { throw error; }
                 catch (TypeError e) { typeErrors.add(e); }
-                catch (Fortress.WrappedException e) { message += "\nStaticError (wrapped): " + e.getCause().toString(); }
+                catch (Fortress.WrappedException e) {
+                    e.getCause().printStackTrace();
+                    message += "\nStaticError (wrapped): " + e.getCause().toString();
+                }
                 catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
             }
             assertFalse("Source " + f + " was compiled without TypeErrors" + message,
@@ -187,7 +190,10 @@ public final class StaticTestSuite extends TestSuite {
             String message = "Source " + f + " produces static errors:";
             for (StaticError error : errors) {
                 try { throw error; }
-                catch (Fortress.WrappedException e) { message += "\nStaticError (wrapped): " + e.getCause().toString(); }
+                catch (Fortress.WrappedException e) {
+                    e.getCause().printStackTrace();
+                    message += "\nStaticError (wrapped): " + e.getCause().toString();
+                }
                 catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
             }
             assertTrue(message, IterUtil.isEmpty(errors));
