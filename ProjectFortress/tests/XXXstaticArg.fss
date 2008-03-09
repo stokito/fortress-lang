@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component XXXstaticArg
+
+export Executable
+
+  t1[\Elt extends Number, nat N, [\Elt s\]
+     \](): () = do
+
+    a = array[\Elt\](N)
+    a.fill(1)
+
+    b = array[\Elt\](N)
+    b.fill(2)
+
+    c = array[\Elt\](N)
+    c.fill(0)
+
+    for i <- 0#N do
+        a[i] := b[i] + s c[i]
+    end
+
+  end
+
+  run(args:String...) :() = do
+
+    t1[\RR64,200,3.0\]()
+
+    t1[\ZZ32,200,3\]()
+
+    t1[\ZZ64,200,3\]()
+
+  end
+
+end
