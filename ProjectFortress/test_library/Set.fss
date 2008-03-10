@@ -19,6 +19,9 @@ component Set
 import CovariantCollection.{...}
 export Set
 
+(** Thrown when taking big intersection of no sets. **)
+object EmptyIntersection extends UncheckedException end
+
 weight:ZZ32 = 4
 
 trait Set[\E\]
@@ -56,6 +59,7 @@ trait Set[\E\]
    opr UNION(self,t2:Set[\E\]):Set[\E\]
    opr INTERSECTION(self,t2:Set[\E\]):Set[\E\]
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\]
+   opr SYMDIFF(self,t2:Set[\E\]):Set[\E\]
    concat(t2:Set[\E\]):Set[\E\]
    (** Split at index x, meaning left result has size = x or
        left result has size < x and right result is empty. **)
@@ -113,7 +117,7 @@ object Intersection[\E\] extends Reduction[\Maybe[\Set[\E\]\]\]
         end
     unwrap(w:Maybe[\Set[\E\]\]): Set[\E\] =
         if w.isJust() then w.unJust()
-        else fail("BIG INTERSECTION: empty generator.")
+        else throw EmptyIntersection
         end
 end
 
@@ -168,6 +172,7 @@ object EmptySet[\E\] extends Set[\E\]
    opr UNION(self, t2:Set[\E\]):Set[\E\] = t2
    opr INTERSECTION(self,t2:Set[\E\]):Set[\E\] = self
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\] = self
+   opr SYMDIFF(self,t2:Set[\E\]):Set[\E\] = t2
    concat(t2:Set[\E\]):Set[\E\] = t2
    splitAt(x:E):(Set[\E\],Boolean,Set[\E\]) = (self, false, self)
    splitIndex(x:ZZ32):(Set[\E\],Set[\E\]) = (self,self)
@@ -303,6 +308,13 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
       if m then li.concat(ri) else li.concat3(val,ri) end
    end
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\] = self
+
+   opr SYMDIFF(self,t2:NodeSet[\E\]):Set[\E\] = do
+      (newl, m, newr) = t2.splitAt(val)
+      (li,ri) = (left SYMDIFF newl, right SYMDIFF newr)
+      if m then li.concat(ri) else li.concat3(val,ri) end
+   end
+   opr SYMDIFF(self,t2:Set[\E\]):Set[\E\] = self
 
    opr =(self, other:Set[\E\]): Boolean =
       if self SEQV other then true

@@ -18,6 +18,9 @@
 api Set
 import CovariantCollection.{...}
 
+(** Thrown when taking big intersection of no sets. **)
+object EmptyIntersection extends UncheckedException end
+
 (**
  * Sets represented using a tree structure.  The underlying type E
  * must support comparison using < and =.  When generated these sets
@@ -39,6 +42,7 @@ trait Set[\E\]
    opr UNION(self,t2:Set[\E\]):Set[\E\]
    opr INTERSECTION(self,t2:Set[\E\]):Set[\E\]
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\]
+   opr SYMDIFF(self,t2:Set[\E\]):Set[\E\]
    splitAt(e:E):(Set[\E\],Boolean,Set[\E\])
    opr SUBSET(self, other:Set[\E\]): Boolean
    opr SUBSETEQ(self, other:Set[\E\]): Boolean
