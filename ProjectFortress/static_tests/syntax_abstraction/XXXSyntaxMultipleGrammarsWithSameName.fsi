@@ -23,13 +23,11 @@ api XXXSyntaxMultipleGrammarsWithSameName
   grammar Wrong extends Literal
     Bar :LiteralExpr:= 
       bar do StringLiteral("") end
-    end
   end
 
   grammar Wrong extends Literal
     Foo :LiteralExpr:= 
       foo do StringLiteral("") end
-    end
   end
 
 end

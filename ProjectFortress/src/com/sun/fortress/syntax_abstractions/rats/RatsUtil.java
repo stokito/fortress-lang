@@ -218,18 +218,6 @@ public abstract class RatsUtil {
 		dependencies.addAll(module.getDependencies());
 		m.dependencies = dependencies;
 		
-//		// If we modify a core Fortress module then we need a lot of boiler plate 
-//		if (module.getModify() != null) {
-//			parameters.addAll(module.getModify().getParameters());
-//			dependencies.addAll(module.getModify().getDependencies());
-//			
-//			String modifyName = module.getModify().getName().toString();
-//			ModuleList args = new ModuleList(new LinkedList<ModuleName>());
-//			ModuleName moduleName = new ModuleName(modifyName+ModuleInfo.MODULE_NAME_EXTENSION);
-//			dependencies.add(new ModuleModification(moduleName, args, null));
-//			parameters.add(moduleName);
-//		}
-
 		m.documentation = getComment();
 		m.header = createHeader();
 		return m;

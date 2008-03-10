@@ -28,8 +28,6 @@ import com.sun.fortress.nodes.QualifiedIdName;
  * This module corresponds to a user defined grammar. 
  */
 public class UserModule extends Module {
-
-	public UserModule() {}
 	
 	public UserModule(QualifiedIdName name,
 				      Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {

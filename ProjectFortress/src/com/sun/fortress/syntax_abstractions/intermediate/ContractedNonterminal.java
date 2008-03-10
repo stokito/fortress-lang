@@ -85,10 +85,6 @@ public class ContractedNonterminal {
 		return new NonterminalDefIndex(nonterminalDef);
 	}
 
-	public List<NonterminalIndex<? extends GrammarMemberDecl>> getContractionList() {
-		return this.members;
-	}
-
 	/**
 	 * Returns the canonical name of the contracted nonterminal which is the name of
 	 * the nonterminal definition

@@ -50,7 +50,6 @@ public abstract class Module implements Analyzable<Module> {
 	protected QualifiedIdName name;
 	private boolean isTopLevel;
 	
-	protected Module modify;
 	private Map<String, Set<SyntaxSymbol>> tokenMap;
 
 	protected Set<ModuleName> parameters;
@@ -89,14 +88,6 @@ public abstract class Module implements Analyzable<Module> {
 	public void setName(QualifiedIdName name) {
 		this.name = name;
 	}
-
-	public Module getModify() {
-		return modify;
-	}
-	
-	public void setModify(Module modify) {
-		this.modify = modify;
-	}
 	
 	public Set<ModuleName> getParameters() {
 		return this.parameters;
@@ -124,39 +115,6 @@ public abstract class Module implements Analyzable<Module> {
 
 	public void setExtended(Collection<Module> ls) {
 		this.extendedModules = ls;		
-	}
-
-	/**
-	 * Return true if the given member name are among the declared or inherited member
-	 * @param p
-	 * @param name
-	 * @return
-	 */
-	public boolean containsMember(NonterminalIndex<? extends GrammarMemberDecl> p, String name) {
-		for (NonterminalIndex<? extends GrammarMemberDecl> member: this.declaredMembers) {
-			if ((member.getName().toString().equals(name)) &&
-				(!p.equals(member))) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
-	 * Add a set of declared nonterminals to this module
-	 * @param nonterminals
-	 */
-	public void addNonterminals(Collection<? extends NonterminalIndex<? extends NonterminalDecl>> nonterminals) {
-		for (NonterminalIndex<? extends NonterminalDecl> n: nonterminals) {
-			this.addNonterminal(n.getName().toString(), n);
-		}
-	}
-	
-	/**
-	 * Add a declared nonterminal to this module 
-	 */
-	private void addNonterminal(String name, NonterminalIndex<? extends NonterminalDecl> n) {
-			this.declaredMembers.add(n);
 	}
 
 	/** 
@@ -222,14 +180,6 @@ public abstract class Module implements Analyzable<Module> {
 			s+= indent+"- "+dit.next().visibleName().toString()+"\n";
 		}
 		indent = tmpIndent;
-			
-		s+= indent+"* modify\n";
-		tmpIndent = indent;
-		indent += indentation;
-	    if (this.getModify() != null) {
-	    	s+= indent+" "+this.getModify().getName()+"\n";
-	    }
-	    indent = tmpIndent;
 	    
 		s+= indent+"* declared nonterminals\n";
 		tmpIndent = indent;

@@ -45,7 +45,6 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
 import com.sun.fortress.syntax_abstractions.MacroCompiler;
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
-import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 

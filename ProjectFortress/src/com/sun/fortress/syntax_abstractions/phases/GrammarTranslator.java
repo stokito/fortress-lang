@@ -81,6 +81,12 @@ public class GrammarTranslator {
 		return new Result(errors);
 	}
 
+	/**
+	 * Load the corresponding Fortress grammar module and add the 
+	 * translated syntax definitions to the relevant productions.
+	 * @param module
+	 * @return
+	 */
 	private Module makeFortressModule(FortressModule module) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+module.getName().toString()+".rats");
 		
@@ -107,6 +113,11 @@ public class GrammarTranslator {
 		return m;
 	}
 
+	/**
+	 * Make a new module with the members defined in the module. 
+	 * @param module
+	 * @return
+	 */
 	private Module makeUserModule(UserModule module) {
 		Module m = RatsUtil.makeExtendingRatsModule(module);
 		MemberTranslator.Result ptr = MemberTranslator.translate(module.getDeclaredNonterminals());

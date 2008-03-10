@@ -42,7 +42,6 @@ api SyntaxRepetition
           exprs2:List[\Expr\] = exprs1.addRight(oprExpr);
           TightJuxt(exprs2)
         end
-      end
   end
  
   grammar A
@@ -52,7 +51,6 @@ api SyntaxRepetition
         exprs1:List[\Expr\] = exprs.addRight(StringLiteralExpr(""))
         exprs2:List[\Expr\] = exprs1.addRight(StringLiteralExpr(a))
         LooseJuxt(exprs2) end
-    end
   end
 
 end

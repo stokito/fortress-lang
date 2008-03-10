@@ -17,7 +17,7 @@
 
 api XXXSyntaxGrammarExtendsNonExistingGrammar
 
-  import * from FortressAst
+  import FortressAst.{...}
 
   grammar A extends Foo end
 
