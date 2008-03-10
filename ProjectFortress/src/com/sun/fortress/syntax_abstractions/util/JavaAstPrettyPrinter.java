@@ -54,7 +54,6 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.phases.NonterminalTypeDictionary;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.syntax_abstractions.util.ActionCreater.Kinds;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -237,68 +236,68 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	 */
 	private Option<Type> getType(PrefixedSymbol ps) {
 
-		Pair<String, Option<Kinds>> result = ps.getSymbol().accept(new NodeDepthFirstVisitor<Pair<String, Option<Kinds>>>() {
-
-			@Override
-			public Pair<String, Option<Kinds>> defaultCase(Node that) {
-				return new Pair<String, Option<Kinds>>("", Option.<Kinds>none());
-			}		
-
-			@Override
-			public Pair<String, Option<Kinds>> forOptionalSymbolOnly(
-					OptionalSymbol that,
-					Pair<String, Option<Kinds>> symbol_result) {
-				return handle(symbol_result, Kinds.OPTIONAL);
-			}
-
-			@Override
-			public Pair<String, Option<Kinds>> forRepeatOneOrMoreSymbolOnly(
-					RepeatOneOrMoreSymbol that,
-					Pair<String, Option<Kinds>> symbol_result) {
-				return handle(symbol_result, Kinds.REPETITION);
-			}
-
-			@Override
-			public Pair<String, Option<Kinds>> forRepeatSymbolOnly(
-					RepeatSymbol that, Pair<String, Option<Kinds>> symbol_result) {
-				return handle(symbol_result, Kinds.REPETITION);
-			}
-
-			@Override 
-			public Pair<String, Option<Kinds>> forNonterminalSymbol(NonterminalSymbol that) {
-				return new Pair<String, Option<Kinds>>(that.getNonterminal().getName().toString(), Option.<Kinds>none());
-			}
-
-			private Pair<String, Option<Kinds>> handle(
-					Pair<String, Option<Kinds>> p, Kinds kind) {
-				if (p.second().isNone()) {
-					return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
-				}
-				return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
-			}
-		});
-
-		Option<Type> type = NonterminalTypeDictionary.getType(result.first());
-
-		if (type.isNone()) {
-			return Option.none();
-		}
-
-		List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-		staticArgs.add(new TypeArg(Option.unwrap(type)));
-
-		if (result.second().isNone()) {
-			return type;
-		}
-
-		if (Option.unwrap(result.second()).equals(Kinds.OPTIONAL)) {
-			QualifiedIdName name = NodeFactory.makeQualifiedIdName("FortressLibrary", "Maybe");
-			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
-		}
-		else if (Option.unwrap(result.second()).equals(Kinds.REPETITION)) {
-			QualifiedIdName name = NodeFactory.makeQualifiedIdName("ArrayList", "List");
-			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
-		}
+//		Pair<String, Option<Kinds>> result = ps.getSymbol().accept(new NodeDepthFirstVisitor<Pair<String, Option<Kinds>>>() {
+//
+//			@Override
+//			public Pair<String, Option<Kinds>> defaultCase(Node that) {
+//				return new Pair<String, Option<Kinds>>("", Option.<Kinds>none());
+//			}		
+//
+//			@Override
+//			public Pair<String, Option<Kinds>> forOptionalSymbolOnly(
+//					OptionalSymbol that,
+//					Pair<String, Option<Kinds>> symbol_result) {
+//				return handle(symbol_result, Kinds.OPTIONAL);
+//			}
+//
+//			@Override
+//			public Pair<String, Option<Kinds>> forRepeatOneOrMoreSymbolOnly(
+//					RepeatOneOrMoreSymbol that,
+//					Pair<String, Option<Kinds>> symbol_result) {
+//				return handle(symbol_result, Kinds.REPETITION);
+//			}
+//
+//			@Override
+//			public Pair<String, Option<Kinds>> forRepeatSymbolOnly(
+//					RepeatSymbol that, Pair<String, Option<Kinds>> symbol_result) {
+//				return handle(symbol_result, Kinds.REPETITION);
+//			}
+//
+//			@Override 
+//			public Pair<String, Option<Kinds>> forNonterminalSymbol(NonterminalSymbol that) {
+//				return new Pair<String, Option<Kinds>>(that.getNonterminal().getName().toString(), Option.<Kinds>none());
+//			}
+//
+//			private Pair<String, Option<Kinds>> handle(
+//					Pair<String, Option<Kinds>> p, Kinds kind) {
+//				if (p.second().isNone()) {
+//					return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
+//				}
+//				return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
+//			}
+//		});
+//
+//		Option<Type> type = NonterminalTypeDictionary.getType(result.first());
+//
+//		if (type.isNone()) {
+//			return Option.none();
+//		}
+//
+//		List<StaticArg> staticArgs = new LinkedList<StaticArg>();
+//		staticArgs.add(new TypeArg(Option.unwrap(type)));
+//
+//		if (result.second().isNone()) {
+//			return type;
+//		}
+//
+////		if (Option.unwrap(result.second()).equals(Kinds.OPTIONAL)) {
+////			QualifiedIdName name = NodeFactory.makeQualifiedIdName("FortressLibrary", "Maybe");
+////			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
+////		}
+////		else if (Option.unwrap(result.second()).equals(Kinds.REPETITION)) {
+////			QualifiedIdName name = NodeFactory.makeQualifiedIdName("ArrayList", "List");
+////			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
+////		}
 		return Option.none();
 	}
 }

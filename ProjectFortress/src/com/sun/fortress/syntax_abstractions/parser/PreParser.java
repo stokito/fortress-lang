@@ -22,13 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
 
 import xtc.parser.ParseError;
 import xtc.parser.SemanticValue;
@@ -37,28 +31,15 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.Parser.Result;
-import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.GrammarIndex;
 import com.sun.fortress.useful.Useful;
 
-import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Box;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.SimpleBox;
 
 /**
  * Methods to parse a file to a collection of API ASTs which define

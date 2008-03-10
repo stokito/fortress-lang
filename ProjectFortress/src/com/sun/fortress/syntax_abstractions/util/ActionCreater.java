@@ -120,8 +120,6 @@ public class ActionCreater {
 		code.add(s);		
 	}
 
-	enum Kinds {OPTIONAL, REPETITION}
-
 	/**
 	 * 
 	 * @param ps

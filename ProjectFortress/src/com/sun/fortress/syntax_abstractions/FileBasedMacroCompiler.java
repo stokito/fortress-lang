@@ -50,9 +50,9 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		ModuleTranslator.Result mrr = ModuleTranslator.translate(envs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 		
-		for (Module m: mrr.modules()) {
+//		for (Module m: mrr.modules()) {
 			// System.err.println(m);
-		}
+//		}
 		
 		/*
 		 * Translate each grammar to a corresponding Rats! module

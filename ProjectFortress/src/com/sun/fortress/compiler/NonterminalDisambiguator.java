@@ -45,10 +45,6 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 	private NonterminalEnv _currentEnv;
 	private GlobalEnvironment _globalEnv;
 
-	public NonterminalDisambiguator() {
-		_errors = new LinkedList<StaticError>();
-	}
-
 	public NonterminalDisambiguator(NameEnv env, GlobalEnvironment globalEnv, List<StaticError> newErrs) {
 		this._env = env;
 		this._errors = newErrs;

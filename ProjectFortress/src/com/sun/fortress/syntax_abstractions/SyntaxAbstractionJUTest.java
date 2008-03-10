@@ -28,24 +28,23 @@ import com.sun.fortress.interpreter.drivers.ProjectProperties;
 public class SyntaxAbstractionJUTest extends TestCase {
     
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
-    private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList(
-        "SyntaxHelloWorldUse.fss",
-        "SyntaxHelloWorld.fss",
+    private final static List<String> FAILING_SYNTAXABSTRACTIONS = Arrays.asList(
+        "SyntaxASTUse.fss",
+        "SyntaxAST.fss",
         "SyntaxGrammarImportsUse.fss",
-        "XXXSyntaxGrammarImportsUse.fss",
         "SyntaxGrammarImports.fss",
         "SyntaxGrammarImportsA.fss",
-        "SyntaxProductionExtends.fsi",
+        "SyntaxHiUse.fss",
+        "SyntaxHi.fss",
         // really not working:
         // "XXXSyntaxNoFortressAstImport.fsi",
-        "XXXSyntaxMultipleGrammarsWithSameName.fsi",
-        "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi",
-        "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi");
+        "XXXSyntaxGrammarImportsUse.fss",
+        "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi");
     
     public static TestSuite suite() {
         return new StaticTestSuite("SyntaxAbstractionJUTest",
                                    STATIC_TESTS_DIR,
-                                   FAILING_DISAMBIGUATOR,
+                                   FAILING_SYNTAXABSTRACTIONS,
                                    null);     
     }
     
