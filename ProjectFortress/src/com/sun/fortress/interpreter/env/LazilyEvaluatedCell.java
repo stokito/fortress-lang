@@ -44,7 +44,7 @@ public class LazilyEvaluatedCell extends IndirectionCell {
     }
     
     public void storeValue(FValue f2) {
-        bug("Cannot store into lazy cell");
+        bug("Cannot store value "+ f2 +" into lazy cell; possible duplicate definition?");
     }
 
     public FValue getValue() {

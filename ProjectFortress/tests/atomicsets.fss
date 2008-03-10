@@ -20,11 +20,9 @@ component atomicsets
 import Set.{...}
 export Executable
 
-emptySet = Empty[\ZZ32\]()
-
-initialSet():Tree[\ZZ32\] = do
-   init:Tree[\ZZ32\] := emptySet
-   for i<-1#10 do
+initialSet():Set[\ZZ32\] = do
+   init:Set[\ZZ32\] := set[\ZZ32\]()
+   for i<-1#100 do
       atomic do
          init := init.add(i)
       end
@@ -33,7 +31,7 @@ initialSet():Tree[\ZZ32\] = do
 end
 
 run(args:String...):()=do
-   init:Tree[\ZZ32\] = initialSet()
-   println(init.toString())
+   init:Set[\ZZ32\] = initialSet()
+   assert(i IN init,true,i," NOTIN ",init), i <- 1#100
 end
 end
