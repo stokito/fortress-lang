@@ -47,12 +47,12 @@ end
 
 run(args:String...):()=do
    init:List[\ZZ32\] := Empty[\ZZ32\]()
-   for i<-1#100 do
+   for i<-1#10 do
       atomic do
          init := init.cons(i)
       end
    end
-   if init.count() = 100 then println("Pass") else println("Fail") end
+   if init.count() = 10 then println("Pass") else println("Fail") end
 
 end
 end
