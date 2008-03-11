@@ -1219,6 +1219,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * e.g.) List[\ZZ32\]
                      */
                     InstantiatedType(List<StaticArg> args);
+                    /**
+                     * type of a generic singleton, used during static checking
+                     */
+                    _RewriteGenericSingletonType(List<StaticParam> staticParams);
                 /**
                  * abbreviated type
                  */

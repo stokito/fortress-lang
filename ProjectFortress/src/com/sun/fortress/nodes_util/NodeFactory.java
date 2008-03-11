@@ -221,6 +221,15 @@ public class NodeFactory {
         return new InstantiatedType(new Span(),makeQualifiedIdName(name),sargs);
     }
 
+    public static InstantiatedType makeInstantiatedType(Id name,
+            List<StaticArg> sargs) {
+        return new InstantiatedType(name.getSpan(), new QualifiedIdName(name), sargs);
+    }
+
+    public static InstantiatedType makeInstantiatedType(Id name) {
+        return new InstantiatedType(name.getSpan(), new QualifiedIdName(name), Collections.<StaticArg>emptyList());
+    }
+
     public static Type inArrowType(Type type) {
         if (type instanceof ArgType) {
             ArgType ty = (ArgType)type;
@@ -257,6 +266,14 @@ public class NodeFactory {
                         Option.<List<Type>>none();
                     return new _RewriteGenericArrowType(span, inArrowType(domain), range,
                             throwsAsTypeList, staticParams, where);
+    }
+
+    public static _RewriteGenericArrowType makeGenericArrowType(
+            List<StaticParam> staticParams,
+            Type domain,
+            Type range) {
+        return new _RewriteGenericArrowType(new Span(), inArrowType(domain), range, 
+                Option.<List<Type>>none(), staticParams, new WhereClause());
     }
 
     public static KeywordType makeKeywordType(Id name, Type type) {
@@ -1057,4 +1074,7 @@ public class NodeFactory {
         }
     }
 
+    public static _RewriteGenericSingletonType makeGenericSingletonType(Id name, List<StaticParam> params) {
+        return new _RewriteGenericSingletonType(name.getSpan(), new QualifiedIdName(name), params);
+    }
 }
