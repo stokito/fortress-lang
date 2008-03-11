@@ -167,7 +167,7 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     getRightChild():Map[\Key,Val\] = self
     member(x:Key): Maybe[\Val\] = Nothing[\Val\]
     member(x:Key, v:Val): Val = v
-    opr[k:Key]: Val throws NotFound = NotFound(k)
+    opr[k:Key]: Val throws NotFound = throw NotFound
     minimum(): (Key,Val) = fail("Empty map: no minimum key.")
     removeMinimum():((Key,Val), Map[\Key,Val\]) =
       fail("Empty map: cannot remove minimum")
@@ -248,7 +248,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     getRightChild():Map[\Key,Val\] = right
 
     opr[k:Key]: Val throws NotFound =
-      typecase _ = x CMP key of
+      typecase _ = k CMP key of
           EqualTo  => val
           LessThan => left[k]
           else     => right[k]
