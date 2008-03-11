@@ -17,44 +17,17 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.aggregate.s
+component Expr.SetComp
 
+import Set.{...}
 export Executable
 
-trait Set[\T\]
-  add(x:T):Set[\T\]
-  size():ZZ32
-  contains(x:T):Boolean
-end
-
-object emptySet[\T\]() extends Set[\T\]
-  add(x:T):Set[\T\] = aSet[\T\](x, self)
-  size():ZZ32 = 0
-  contains(x:T):Boolean = false
-end
-
-object aSet[\T\](x:T, s:Set[\T\]) extends Set[\T\]
-  add(y:T):Set[\T\] = if contains(y) then self else aSet[\T\](y, self) end
-  size():ZZ32 = 1 + s.size()
-  contains(y:T):Boolean = x = y OR s.contains(y)
-end
-
-opr {[\T\] x:T...} = do
-   s:Set[\T\] := emptySet[\T\]()
-   print("{ ")
-   for v <- seq(x) do
-      print(v " ")
-      s := s.add(v)
-   end
-   println("}")
-   s
-end
-
-run(args:String...) = do
-s:Set[\ZZ32\]
+f() = do
 (** EXAMPLE **)
-s = {0, 1, 2, 3, 4}
+{ x^2 | x <- {0, 1, 2, 3, 4, 5}, x MOD 2 = 0}
 (** END EXAMPLE **)
 end
+
+run(args:String...) = println f()
 
 end
