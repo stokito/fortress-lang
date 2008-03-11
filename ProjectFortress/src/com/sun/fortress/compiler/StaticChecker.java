@@ -108,13 +108,18 @@ public class StaticChecker {
             TypeEnv typeEnv = TypeEnv.make(component);
             
             // Add all top-level function names to the component-level environment.
-            //typeEnv.extend(component.functions());
+            typeEnv = typeEnv.extendWithFunctions(component.functions());
             
             // Iterate over top-level variables, adding each to the component-level environment.
             typeEnv = typeEnv.extend(component.variables());
             
+            // Add all top-level object names declared in the component-level environment.
+            typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
+            
             TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env), 
-                                                      StaticParamEnv.make(), typeEnv);
+                                                      StaticParamEnv.make(),
+                                                      typeEnv,
+                                                      component);
             
 //        TypeCheckerResult result = new 
 //        // Iterate over top-level functions, checking the body of each.

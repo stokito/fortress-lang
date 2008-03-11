@@ -23,6 +23,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.index.ParamVariable;
 import com.sun.fortress.compiler.index.SingletonVariable;
@@ -271,6 +272,14 @@ public abstract class TypeEnv {
     public final TypeEnv extendWithParams(List<Param> params) {
         if (params.size() == 0) { return this; }
         else { return new ParamTypeEnv(params, this); }
+    }
+    
+    public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
+        if (typeConses.isEmpty()) {
+            return this;
+        } else {
+            return new ObjectTypeEnv(typeConses, this);
+        }
     }
 
     public final TypeEnv extend(Option<List<Param>> params) {
