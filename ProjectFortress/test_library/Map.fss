@@ -25,7 +25,7 @@ weight:ZZ32 = 4
 object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
         extends UncheckedException
     getter toString(): String =
-        "Map.KeyOverlapException: " key " |-> " val1 " and |-> " val2
+        "Map.KeyOverlap: " key " |-> " val1 " and |-> " val2
 end
 
 trait Map[\Key,Val\]
@@ -54,13 +54,19 @@ trait Map[\Key,Val\]
       res
     end
     removeMinimum():((Key,Val), Map[\Key,Val\])
+    maximum(): (Key,Val)
+    deleteMaximum():Map[\Key,Val\] = do
+      (_, res) = self.removeMaximum()
+      res
+    end
+    removeMaximum():((Key,Val), Map[\Key,Val\])
     add(k:Key, v:Val):Map[\Key,Val\]
     update(k:Key, v:Val):Map[\Key,Val\]
     delete(k:Key):Map[\Key,Val\]
     updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\]
     (** UNION favors the leftmost value when a key occurs in both maps. **)
     opr UNION(self, other: Map[\Key,Val\]): Map[\Key,Val\]
-    (** UPLUS (disjoint union) throws the KeyOverlapException when a key
+    (** UPLUS (disjoint union) throws KeyOverlap when a key
         occurs in both maps. **)
     opr UPLUS(self, other: Map[\Key,Val\]): Map[\Key,Val\]
     (** the union method takes a function f used to combine the values
@@ -168,12 +174,10 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     member(x:Key): Maybe[\Val\] = Nothing[\Val\]
     member(x:Key, v:Val): Val = v
     opr[k:Key]: Val throws NotFound = throw NotFound
-    minimum(): (Key,Val) = fail("Empty map: no minimum key.")
-    removeMinimum():((Key,Val), Map[\Key,Val\]) =
-      fail("Empty map: cannot remove minimum")
-    maximum(): (Key,Val) = fail("Empty map: no maximum key.")
-    removeMaximum():((Key,Val), Map[\Key,Val\]) =
-      fail("Empty map: cannot remove maximum")
+    minimum(): (Key,Val) = throw NotFound
+    removeMinimum():((Key,Val), Map[\Key,Val\]) = throw NotFound
+    maximum(): (Key,Val) = throw NotFound
+    removeMaximum():((Key,Val), Map[\Key,Val\]) = throw NotFound
     add(k:Key, v:Val):Map[\Key,Val\] = NodeMap[\Key,Val\]((k,v), self, self)
     update(k:Key, v:Val):Map[\Key,Val\] = add(k, v)
     delete(k:Key):Map[\Key,Val\] = self
@@ -327,7 +331,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     opr UPLUS(self, other: Map[\Key,Val\]): Map[\Key,Val\] = do
         (newl, mv, newr) = other.splitAt(key)
         if mv.isJust() then
-            throw KeyOverlapException(key,val,mv.unJust())
+            throw KeyOverlap[\Key,Val\](key,val,mv.unJust())
         else
             (left UPLUS newl).concat3(key,val,right UPLUS newr)
         end

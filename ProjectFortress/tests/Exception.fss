@@ -27,11 +27,11 @@ object Shaggy extends CheckedException
 end
 
 (* test1 tests basic catch mechanism *)
-test1():() = do 
+test1():() = do
     var x:ZZ32 := 3
     try
         throw Scooby
-        x := 5 
+        x := 5
     catch e
         Shaggy => x := 7
         Scooby => x := 9
@@ -41,7 +41,7 @@ end
 
 (* Test2 tests forbid mechanism *)
 foo():() = do
-    try 
+    try
         throw Scooby
     catch e
         Shaggy => assert(false, "Test2: Caught wrong exception")
@@ -59,19 +59,24 @@ test2():() = do
     end
     assert(x,7, "Didn't catch forbidden exception")
 end
-        
+
 (* Test3 tests finally mechanism *)
 
 test3():() = do
     var x:ZZ32 := 3
     (* not caught *)
     try
-        throw Scooby
+        try
+            throw Scooby
+        catch e
+            Shaggy => fail("test3: caught Shaggy instead of Scooby!")
+        finally x := 5
+        end
+        fail("test3: Fell through try/catch")
     catch e
-        Shaggy => assert(false, "Test3: Caught wrong exception")
-    finally x := 5
+        Scooby => ()
     end
-    assert(x, 5, "Test3: Finally not run when no exception caught")
+    assert(x, 5, "Test3: Finally not run when exception uncaught")
     (* caught *)
     try
         throw Scooby
@@ -141,5 +146,3 @@ run(args:String...):()=do
     ()
 end
 end
-
-
