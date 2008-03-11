@@ -20,9 +20,14 @@ package com.sun.fortress.interpreter.evaluator;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 
-public class FortressException extends RuntimeException {
+public class FortressException extends FortressError {
 
     FObject exc;
+
+    public FortressException(HasAt loc, Environment env, FObject e) {
+        super(loc,env,e.type().toString());
+        exc = e;
+    }
 
     public FortressException(FObject e) {
         super(e.type().toString());
@@ -30,9 +35,9 @@ public class FortressException extends RuntimeException {
     }
 
     public String toString() {
-        return "FortressException: " + exc.type().toString();
+        return "FortressException: " + exc.toString();
     }
 
     public FObject getException() {return exc;}
-    public String getName() {return exc.type().toString();}
+    public String getName() {return exc.toString();}
 }

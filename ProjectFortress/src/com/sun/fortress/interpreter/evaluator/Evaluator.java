@@ -1611,27 +1611,26 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = FVoid.V;
         try {
             res = body.accept(this);
+            return res;
         } catch (FortressException exc) {
-            Option<Catch> _catchClause = x.getCatchClause();
             FType excType = exc.getException().type();
+            Option<Catch> _catchClause = x.getCatchClause();
             if (_catchClause.isSome()) {
                 Catch _catch = Option.unwrap(_catchClause);
                 Id name = _catch.getName();
                 List<CatchClause> clauses = _catch.getClauses();
-                e.putValue(name.getText(), exc.getException());
-
                 for (CatchClause clause : clauses) {
                     TraitType match = clause.getMatch();
                     Block catchBody = clause.getBody();
                     FType foo = EvalType.getFType(match, e);
                     if (excType.subtypeOf(foo)) {
-                        res = catchBody.accept(this);
-                        return res;
+                        Evaluator evClause = new Evaluator(this, _catch);
+                        evClause.e.putValue(name.getText(), exc.getException());
+                        return catchBody.accept(evClause);
                     }
                 }
             }
-            List<TraitType> forbid = x.getForbid();
-            for (TraitType forbidType : forbid) {
+            for (TraitType forbidType : x.getForbid()) {
                 if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
                   FType ftype = e.getTypeNull(WellKnownNames.forbiddenException);
                   List<FValue> args = new ArrayList<FValue>();
@@ -1644,6 +1643,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                   throw f_exc;
                 }
             }
+            // Nothing has handled or excluded exc; re-throw!
+            throw exc;
         } finally {
             Option<Block> finallyClause = x.getFinallyClause();
             if (finallyClause.isSome()) {
@@ -1651,7 +1652,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 b.accept(this);
             }
         }
-        return res;
     }
 
     public FValue forArgExpr(ArgExpr x) {
@@ -1764,7 +1764,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forThrow(Throw throw1) {
         Expr ex = throw1.getExpr();
         FObject v = (FObject) ex.accept(this);
-        FortressException f_exc = new FortressException(v);
+        FortressException f_exc = new FortressException(throw1,e,v);
         throw f_exc;
         // neverReached
     }

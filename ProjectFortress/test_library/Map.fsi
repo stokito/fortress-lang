@@ -37,13 +37,16 @@ trait Map[\Key,Val\] extends Generator[\(Key,Val)\]
   member(x:Key, v:Val): Val
   deleteMinimum():Map[\Key,Val\]
   removeMinimum():((Key,Val), Map[\Key,Val\])
+  maximum(): (Key,Val)
+  deleteMaximum():Map[\Key,Val\]
+  removeMaximum():((Key,Val), Map[\Key,Val\])
   add(k:Key, v:Val):Map[\Key,Val\]
   update(k:Key, v:Val):Map[\Key,Val\]
   delete(k:Key):Map[\Key,Val\]
   updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\]
   (** UNION favors the leftmost value when a key occurs in both maps. **)
   opr UNION(other: Map[\Key,Val\]): Map[\Key,Val\]
-  (** UPLUS (disjoint union) throws the KeyOverlapException when a key
+  (** UPLUS (disjoint union) throws the KeyOverlap when a key
       occurs in both maps. **)
   opr UPLUS(other: Map[\Key,Val\]): Map[\Key,Val\]
   (** the union method takes a function f used to combine the values

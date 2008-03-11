@@ -33,6 +33,7 @@ check(db: Map[\String,ZZ32\]): () = do
         n += 1
         assert(k,expect[v],"Unexpectedly " k "|->" v)
     end
+    assert(n,5,"Found the wrong number of keys!")
   end
 
 
@@ -54,9 +55,34 @@ run(args:String...):() = do
     check(db')
     db = { expect[i]|->i  |  i <- perm }
     check(db)
+    db0 = db UNION db'
+    check(db0)
     assert(db.member("Empty"),Nothing[\ZZ32\],"absent member")
+    assert(db.member("Empty",77),77,"absent member with default 77")
     for (v,k) <- expect.indexValuePairs() do
         assert(db.member(k),Just[\ZZ32\](v),"present member")
+        assert(db[k],v,"present member")
+    end
+    try
+        r = db["Mary"]
+        fail("Found Mary |-> " r)
+    catch x
+        NotFound => ()
+        Any => fail("Unexpected exception")
+    end
+    try
+        dbf = db UPLUS db0
+        fail("Overlapped UPLUS => " dbf)
+    catch x
+        KeyOverlap[\String,ZZ32\] => ()
+        Any => fail("Unexpected exception")
+    end
+    try
+        dbf = { ("" "Mary") |-> 5, "Mary" |-> 5 }
+        fail("Overlapped aggregate => " dbf)
+    catch x
+        KeyOverlap[\String,ZZ32\] => ()
+        Any => fail("Unexpected exception")
     end
 end
 
