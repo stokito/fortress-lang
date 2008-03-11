@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Region
+export Executable
+
+run(args:String...):()=do
+    all = array1[\Any,7\]()
+    all[0] := Nothing[\ZZ32\]
+    all[1] := Nothing[\RR64\]
+    all[2] := Just[\ZZ32\](5)
+    all[3] := Just[\RR64\](17)
+    all[4] := 5
+    all[5] := false
+    all[6] := "Howdy"
+    assert(region(all).isLocalTo(Global))
+    for (i,v) <- all.indexValuePairs() do
+        assert(all.region(i).isLocalTo(region(all)))
+        assert(region(v).isLocalTo(Global))
+        assert(isShared(v),isShared(all))
+        assert(region(localize(v)).isLocalTo(here()))
+        assert(NOT isShared(v) ->: NOT isShared(localize(v)))
+        at region(v) do
+            println(v " at " region(v) "; here = " here())
+        end
+    end
+    try
+        at (throw NotFound) do
+            fail("Running block of flaky region computation!")
+        end
+    catch x
+        NotFound => println("OK")
+    end
+end
+
+end

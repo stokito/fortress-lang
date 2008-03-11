@@ -366,11 +366,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (s == 0) return FVoid.V;
         if (s == 1) {
             DoFront f = x.getFronts().get(0);
-                if (f.getLoc().isSome()) return NI("forAtDo");
-                if (f.isAtomic())
-                    return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
-                                                        f.getExpr()));
-             return f.getExpr().accept(this);
+            if (f.getLoc().isSome()) {
+                Expr regionExp = Option.unwrap(f.getLoc());
+                FValue region = regionExp.accept(this);
+            }
+            if (f.isAtomic())
+                return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
+                                                    f.getExpr()));
+            return f.getExpr().accept(new Evaluator(this));
        }
 
        TupleTask[] tasks = new TupleTask[s];
@@ -381,7 +384,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
                                                         f.getExpr()), this);
             else
-                tasks[i] = new TupleTask(f.getExpr(), this);
+                tasks[i] = new TupleTask(f.getExpr(), new Evaluator(this));
         }
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         BaseTask currentTask = runner.getCurrentTask();

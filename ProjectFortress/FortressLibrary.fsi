@@ -54,7 +54,71 @@ End from Thread.
 
 builtinPrimitive[\T\](javaClass:String):T
 
-(** Equality *)
+(************************************************************
+* Simple Combinators
+************************************************************)
+
+(** Casting *)
+
+cast[\T extends Any\](x:Any):T
+
+instanceOf[\T extends Any\](x:Any):Boolean
+
+(** Useful functions *)
+
+ignore(_:Any):()
+
+identity[\T extends Any\](x:T):T
+
+(* Should we depracate tuple and use identity instead?  Decision: no. *)
+tuple[\T\](x:T):T
+
+(* Function composition *)
+opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C
+
+(** Reflection of static type parameters for overloading purposes.
+    Works around shortcomings in the story on parametric overloading
+    (all overloadings must have the same parameters with the same
+    bounds).  Allows us to overload a function based on the parametric
+    type of an output. *)
+
+object __Proxy[\T extends (* U *) Any\]()
+    (* extends { __Proxy[\U\], Object } where { U extends Any } *)
+  getter toString()
+end
+
+fail(s:String)
+
+(************************************************************
+* Control over locality and location
+************************************************************)
+
+(* At the moment all Fortress objects are immediately shared by default. *)
+
+shared[\T extends Any\](x:T): T
+
+isShared(x:Any): Boolean
+
+localize[\T extends Any\](x:T): T
+
+(* copy is presently unimplemented.
+copy[\T extends Any\](x:T): T
+*)
+
+trait Region extends Equality[\Region\]
+    getter toString(): String
+    isLocalTo(r: Region): Boolean
+end
+
+object Global extends Region end
+
+region(a:Any): Region
+
+here(): Region
+
+(************************************************************
+* Equality and ordering
+************************************************************)
 
 opr =(a:Any, b:Any):Boolean
 
@@ -170,6 +234,10 @@ assert(flag:Boolean): ()
 assert(flag: Boolean, failMsg: String): ()
 
 assert(x:Any, y:Any, failMsg: Any...): ()
+
+(************************************************************
+* Generator support
+************************************************************)
 
 (** Generator
  *
@@ -316,7 +384,9 @@ opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean
 sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\]
 
 
-(** Maybe type *)
+(************************************************************
+* The Maybe type, used instead of null
+************************************************************)
 
 (* This makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
@@ -383,7 +453,9 @@ value object Nothing[\T\] extends Maybe[\T\]
     opr =(self,_:Nothing[\T\])
 end
 
-(** Exception hierarchy *)
+(************************************************************
+* Exception hierarchy
+************************************************************)
 
 trait Exception comprises { UncheckedException, CheckedException }
 end
@@ -483,30 +555,9 @@ end
 object AtomicSpawnSynchronization extends {UncheckedException}
 end
 
-(** Casting *)
-
-cast[\T extends Any\](x:Any):T
-
-instanceOf[\T extends Any\](x:Any):Boolean
-
-(** Useful functions *)
-
-ignore(_:Any):()
-
-identity[\T extends Any\](x:T):T
-
-(** Transactional retry *)
-retry[\T\]():T
-
-(* Should we depracate tuple and use identity instead?  Decision: no. *)
-tuple[\T\](x:T):T
-
-(* Function composition *)
-opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C
-
-(** Boilerplate code for Array *)
-
-fail(s:String)
+(************************************************************
+* Array support
+************************************************************)
 
 trait HasRank extends Equality[\HasRank\] excludes { Number, MaybeType }
   (* comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] } *)

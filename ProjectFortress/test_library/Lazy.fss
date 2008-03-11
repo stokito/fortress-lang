@@ -57,7 +57,7 @@ object Lazy[\T\](settable s : State[\T\])
    ownership and are responsible for making sure the thunk is
    evaluated.  The state s of a thunk has three values:
        Done, in which case we return (s,false)
-       Pending, in which case attempt() will block using retry().
+       Pending, in which case attempt() will block using abort().
        Thunk, in which case we return (s,true) after first atomically
          replacing s with Pending to indicate that we have seized
          ownership.
@@ -67,7 +67,7 @@ object Lazy[\T\](settable s : State[\T\])
           old = s
           computed := old.isDone()
           if NOT old.isDone() then
-              if old.isPending() then retry() end
+              if old.isPending() then abort() end
               s := Pending[\T\]
               (old, true)
           else
@@ -93,7 +93,7 @@ end
 
 object Pending[\T\]() extends State[\T\]
   getter isPending():Boolean = true
-  getter value():T = retry()
+  getter value():T = abort()
 end
 
 object Done[\T\](v:T) extends State[\T\]
