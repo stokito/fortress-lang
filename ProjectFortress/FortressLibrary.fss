@@ -70,7 +70,88 @@ see here.
 
 *)
 
-(** Equality *)
+(************************************************************
+* Simple Combinators
+************************************************************)
+
+(** Casting *)
+
+cast[\T extends Any\](x:Any):T =
+  typecase x of
+    T => x
+    else => throw CastError
+  end
+
+instanceOf[\T extends Any\](x:Any):Boolean =
+  typecase x of
+    T => true
+    else => false
+  end
+
+(** Useful functions *)
+
+ignore(_:Any):() = ()
+
+identity[\T extends Any\](x:T):T = x
+
+(* Should we depracate tuple and use identity instead?  Decision: no. *)
+tuple[\T\](x:T):T = x
+
+(* Function composition *)
+opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
+
+(** Reflection of static type parameters for overloading purposes.
+    Works around shortcomings in the story on parametric overloading
+    (all overloadings must have the same parameters with the same
+    bounds).  Allows us to overload a function based on the parametric
+    type of an output. *)
+
+object __Proxy[\T extends (* U *) Any\]()
+    (* extends { __Proxy[\U\], Object } where { U extends Any } *)
+  getter toString() = "__Proxy object, should not be user-visible."
+end
+
+fail(s:String) = do
+   println("FAIL: " s)
+   printTaskTrace()
+   throwError(s)
+   throw FailCalled(s)
+end
+
+(************************************************************
+* Control over locality and location
+************************************************************)
+
+(* At the moment all Fortress objects are immediately shared by default. *)
+
+shared[\T extends Any\](x:T): T = x
+
+isShared(x:Any): Boolean = true
+
+localize[\T extends Any\](x:T): T = x
+
+(* copy is presently unimplemented.
+copy[\T extends Any\](x:T): T =
+*)
+
+trait Region extends Equality[\Region\]
+    getter toString(): String
+    isLocalTo(r: Region): Boolean = false
+    opr =(self, other:Region): Boolean = self SEQUIV other
+end
+
+object Global extends Region
+    getter toString(): String = "Global"
+    isLocalTo(_: Region): Boolean = true
+end
+
+region(a:Any): Region = Global
+
+here(): Region = Global
+
+(************************************************************
+* Equality and ordering
+************************************************************)
 
 opr =(a:Any, b:Any):Boolean = a SEQV b
 
@@ -207,6 +288,10 @@ assert(x:Any, y:Any, failMsg: Any...): () =
         msg = x " =/= " y "; " (BIG STRING failMsg)
         fail(msg)
     end
+
+(************************************************************
+* Generator support
+************************************************************)
 
 (** Generator
  *
@@ -387,7 +472,9 @@ opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
 
-(** Maybe type *)
+(************************************************************
+* The Maybe type, used instead of null
+************************************************************)
 
 (* This makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
@@ -466,7 +553,9 @@ value object Nothing[\T\] extends Maybe[\T\]
     opr =(self,_:Nothing[\T\]) = true
 end
 
-(** Exception hierarchy *)
+(************************************************************
+* Exception hierarchy
+************************************************************)
 
 trait Exception comprises { UncheckedException, CheckedException }
 end
@@ -566,61 +655,9 @@ end
 object AtomicSpawnSynchronization extends {UncheckedException}
 end
 
-(** Casting *)
-
-cast[\T extends Any\](x:Any):T =
-  typecase x of
-    T => x
-    else => printTaskTrace(); throw CastError
-  end
-
-instanceOf[\T extends Any\](x:Any):Boolean =
-  typecase x of
-    T => true
-    else => false
-  end
-
-(** Useful functions *)
-
-ignore(_:Any):() = ()
-
-identity[\T extends Any\](x:T):T = x
-
-(** Transactional retry *)
-retry[\T\]():T = fail("Transactional retry not yet implemented.")
-
-(* Should we depracate tuple and use identity instead?  Decision: no. *)
-tuple[\T\](x:T):T = x
-
-(* Function composition *)
-opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
-
-(* Retrieve values from tuples in a well-typed way. *)
-first[\T\](t:T, u:Any...): T = t
-
-second[\A,T\](a:A, t:T, u:Any...): T = t
-
-third[\A,B,T\](a:A, b:B, t:T, u:Any...): T = t
-
-(** Reflection of static type parameters for overloading purposes.
-    Works around shortcomings in the story on parametric overloading
-    (all overloadings must have the same parameters with the same
-    bounds).  Allows us to overload a function based on the parametric
-    type of an output. *)
-
-object __Proxy[\T extends (* U *) Any\]()
-    (* extends { __Proxy[\U\], Object } where { U extends Any } *)
-  getter toString() = "__Proxy object, should not be user-visible."
-end
-
-(** Boilerplate code for Array *)
-
-fail(s:String) = do
-   println("FAIL: " s)
-   printTaskTrace()
-   throwError(s)
-   throw FailCalled(s)
-end
+(************************************************************
+* Array support
+************************************************************)
 
 oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
    fail("Index of dimension " s " out of bounds; got " got " which is not in " l "#" sz);
@@ -709,6 +746,9 @@ trait Indexed[\E, I\] extends Generator[\E\]
 
     (** Indexing.  i IN bounds() must hold. *)
     opr[i:I] : E
+
+    (** Locality of a particular index (NOT of its contents!). *)
+    region(i:I): Region = Global
 
     (** Indexing by ranges.  The results are 0-based when the
         underlying index type has a notion of 0.  This ensures
