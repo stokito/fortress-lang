@@ -67,12 +67,18 @@ public class Reflect extends Constructor {
     }
 
     private static final class ReflectedType extends FOrdinaryObject {
-        public ReflectedType(FType selfType, BetterEnv lex_env, BetterEnv self_dot_env) {
+        public ReflectedType(FTypeObject selfType,
+                             BetterEnv lex_env, BetterEnv self_dot_env) {
             super(selfType, lex_env, self_dot_env);
         }
 
         FType getTy() {
             return getSelfEnv().getType("T");
+        }
+
+        public boolean seqv(FValue other) {
+            if (!(other instanceof ReflectedType)) return false;
+            return getTy()==((ReflectedType)other).getTy();
         }
     }
 

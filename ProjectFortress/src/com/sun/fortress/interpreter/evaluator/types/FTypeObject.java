@@ -69,6 +69,14 @@ public class FTypeObject extends FTraitOrObject {
         cannotBeExtended = true;
     }
 
+    public List<Id> getFieldNames() {
+        return fields;
+    }
+
+    public List<SimpleName> getMethodNames() {
+        return methods;
+    }
+
     @Override
     protected void finishInitializing() {
         // TODO Auto-generated method stub

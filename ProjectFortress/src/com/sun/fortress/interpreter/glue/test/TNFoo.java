@@ -44,7 +44,8 @@ public class TNFoo extends Constructor {
     }
 
     private static final class Obj extends FOrdinaryObject {
-        public Obj(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
+        public Obj(FTypeObject selfType,
+                   BetterEnv lexical_env, BetterEnv self_dot_env) {
             // might like to discard envs to perhaps save space,
             // but need self_dot_env for method invocation lookup
             super(selfType, lexical_env, self_dot_env);

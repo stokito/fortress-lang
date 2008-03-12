@@ -79,4 +79,8 @@ public class Dummy_fcn extends Simple_fcn {
         // TODO Auto-generated method stub
         return true;
     }
+
+    public boolean seqv(FValue v) {
+        return false;
+    }
 }

@@ -36,4 +36,8 @@ public class FBufferedWriter extends FBuiltinValue {
     public static FValue make(BufferedWriter x) {
         return new FBufferedWriter(x);
     }
-  }
+    public boolean seqv(FValue v) {
+        // pointer equality checked already.
+        return false;
+    }
+}

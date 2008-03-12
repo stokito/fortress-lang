@@ -35,4 +35,9 @@ public class FChar extends FBuiltinValue {
   FChar(char x) {
     val = x;
   }
+
+  public boolean seqv(FValue v) {
+      if (!(v instanceof FChar)) return false;
+      return getChar()==((FChar)v).getChar();
+  }
 }

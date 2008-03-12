@@ -18,6 +18,9 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 public abstract class FConstructedValue extends FValue {
     /**
      * Stores its ftype explicitly.
@@ -41,4 +44,10 @@ public abstract class FConstructedValue extends FValue {
     protected FConstructedValue(FType type) {
         ftype = type;
     }
+
+    public boolean seqv(FValue v) {
+        bug(errorMsg("seqv of FConstructedValue ",this," and ",v));
+        return false;
+    }
+
 }

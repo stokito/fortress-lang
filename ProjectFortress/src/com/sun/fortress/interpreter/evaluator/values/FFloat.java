@@ -34,4 +34,13 @@ public class FFloat extends FBuiltinValue {
     static public FFloat make(double x) {
         return new FFloat(x);
     }
+    public boolean seqv(FValue v) {
+        if (!(v instanceof FBuiltinValue)) return false;
+        if (v instanceof FFloat || v instanceof FFloatLiteral ||
+            v instanceof FInt   || v instanceof FIntLiteral   ||
+            v instanceof FLong) {
+            return (getFloat() == v.getFloat());
+        }
+        return false;
+    }
 }

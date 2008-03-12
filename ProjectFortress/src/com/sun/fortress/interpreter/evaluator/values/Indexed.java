@@ -87,6 +87,10 @@ public int size(int i) {
     return product;
   }
 
+    public boolean seqv(FValue v) {
+        return false;
+    }
+
 /* (non-Javadoc)
  * @see com.sun.fortress.interpreter.evaluator.values.IndexedShape#copyTo(com.sun.fortress.interpreter.evaluator.values.Indexed, int[], int)
  */

@@ -61,6 +61,8 @@ public class AnonymousConstructor extends NonPrimitive {
         return false;
     }
 
+    public boolean seqv(FValue v) { return false; }
+
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         // TODO Auto-generated method stub

@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
@@ -59,91 +59,94 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class GenericConstructor
-extends SingleFcn
-implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
-    private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
+    extends SingleFcn
+    implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
+private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
 
-        public Constructor make(List<FType> args, HasAt within) {
-            // Use the generic type to make the specific type
-            String name = odefOrDecl.stringName();
-            FTypeGeneric gt = (FTypeGeneric) env.getType(name);
+    public Constructor make(List<FType> args, HasAt within) {
+        // Use the generic type to make the specific type
+        String name = odefOrDecl.stringName();
+        FTypeGeneric gt = (FTypeGeneric) env.getType(name);
 
-            /*
-             * Necessary to fake an instantiation expression.
-             */
-            //QualifiedIdName qin = NodeFactory.makeQualifiedIdName(odefOrDecl.getSpan(), name);
-            //InstantiatedType inst_type = new InstantiatedType(qin, statics);
-            FTypeObject ft = (FTypeObject) gt.make(args, odefOrDecl);
+        /*
+         * Necessary to fake an instantiation expression.
+         */
+        //QualifiedIdName qin = NodeFactory.makeQualifiedIdName(odefOrDecl.getSpan(), name);
+        //InstantiatedType inst_type = new InstantiatedType(qin, statics);
+        FTypeObject ft = (FTypeObject) gt.make(args, odefOrDecl);
 
-            // Use the augmented environment from the specific type.
-            BetterEnv clenv = ft.getEnv();
+        // Use the augmented environment from the specific type.
+        BetterEnv clenv = ft.getEnv();
 
-            // Build the constructor
-//            Option<List<Param>> params = odefOrDecl.getParams();
-//            List<Parameter> fparams =
-//                EvalType.paramsToParameters(clenv, Option.unwrap(params));
+        // Build the constructor
+        //            Option<List<Param>> params = odefOrDecl.getParams();
+        //            List<Parameter> fparams =
+        //                EvalType.paramsToParameters(clenv, Option.unwrap(params));
 
-            Constructor cl = makeAConstructor(clenv, ft,  odefOrDecl.getParams());
-            return cl;
-        }
-
-
+        Constructor cl = makeAConstructor(clenv, ft,  odefOrDecl.getParams());
+        return cl;
     }
 
-     Memo1PCL<List<FType>,  Constructor, HasAt> memo =
-         new Memo1PCL<List<FType>,  Constructor, HasAt>(new Factory(), FType.listComparer, InstantiationLock.L);
 
-     public Constructor make(List<FType> l,  HasAt within) {
-        return memo.make(l,  within);
-    }
+}
 
-    public GenericConstructor(BetterEnv env, GenericWithParams odefOrDecl, SimpleName cfn) {
-        super(env);
-        this.env = env;
-        this.odefOrDecl = odefOrDecl;
-        this.cfn = cfn;
-    }
+Memo1PCL<List<FType>,  Constructor, HasAt> memo =
+    new Memo1PCL<List<FType>,  Constructor, HasAt>(new Factory(), FType.listComparer, InstantiationLock.L);
 
-  Environment env;
-  GenericWithParams odefOrDecl;
-  SimpleName cfn;
-  volatile Simple_fcn symbolicInstantiation;
+public Constructor make(List<FType> l,  HasAt within) {
+    return memo.make(l,  within);
+}
+
+public GenericConstructor(BetterEnv env, GenericWithParams odefOrDecl, SimpleName cfn) {
+    super(env);
+    this.env = env;
+    this.odefOrDecl = odefOrDecl;
+    this.cfn = cfn;
+}
+
+Environment env;
+GenericWithParams odefOrDecl;
+SimpleName cfn;
+volatile Simple_fcn symbolicInstantiation;
 
 
-  public GenericWithParams getDefOrDecl() {
-      return odefOrDecl;
-  }
+public GenericWithParams getDefOrDecl() {
+    return odefOrDecl;
+}
 
-  public String getString() {
-      return s(odefOrDecl);
-  }
+public String getString() {
+    return s(odefOrDecl);
+}
 
-  protected Constructor constructAConstructor(BetterEnv clenv,
-                                              FTypeObject objectType,
-                                              Option<List<Param>> objectParams) {
+public boolean seqv(FValue v) { return false; }
+
+protected Constructor constructAConstructor(BetterEnv clenv,
+                                            FTypeObject objectType,
+                                            Option<List<Param>> objectParams) {
     return new Constructor(clenv, objectType, odefOrDecl, objectParams);
-  }
+}
 
-  private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, Option<List<Param>> objectParams) {
-      Constructor cl = constructAConstructor(clenv, objectType, objectParams);
-      cl.finishInitializing();
-      FTypeGeneric.flushPendingTraitFMs();
-      return cl;
-  }
+private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, Option<List<Param>> objectParams) {
+    Constructor cl = constructAConstructor(clenv, objectType, objectParams);
+    cl.finishInitializing();
+    FTypeGeneric.flushPendingTraitFMs();
+    return cl;
+}
 
-  public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
-      return make(argValues, location);
-  }
+public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
+    return make(argValues, location);
+}
 
-  public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
+public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
     List<StaticParam> params = odefOrDecl.getStaticParams();
 
     ArrayList<FType> argValues = argsToTypes(args, e, x, params);
     return make(argValues, x);
 }
 
-public static ArrayList<FType> argsToTypes(List<StaticArg> args, BetterEnv e, HasAt x,
-        List<StaticParam> params) {
+public static ArrayList<FType> argsToTypes(List<StaticArg> args,
+                                           BetterEnv e, HasAt x,
+                                           List<StaticParam> params) {
     // Evaluate each of the args in e, inject into clenv.
     if (args.size() != params.size() ) {
         error(x, e,
@@ -157,20 +160,20 @@ public static ArrayList<FType> argsToTypes(List<StaticArg> args, BetterEnv e, Ha
 }
 
 @Override
-public String at() {
+    public String at() {
     // TODO Auto-generated method stub
     return odefOrDecl.at();
 }
 
 @Override
-public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
-   // TODO Auto-generated method stub
+    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    // TODO Auto-generated method stub
     Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
     return foo.apply(args, loc, envForInference);
 }
 
 @Override
-public SimpleName getFnName() {
+    public SimpleName getFnName() {
     // TODO Auto-generated method stub
     return cfn;
 }
@@ -186,7 +189,7 @@ public String stringName() {
  * Cut and paste from FGenericFunction
  */
 @Override
-public List<FType> getDomain() {
+    public List<FType> getDomain() {
     if (symbolicInstantiation == null) {
         synchronized (this) {
             if (symbolicInstantiation == null) {
@@ -198,10 +201,10 @@ public List<FType> getDomain() {
                      */
                     symbolic_static_args =
                         FGenericFunction.symbolicStaticsByPartition.syncPutIfMissing(this,
-                                createSymbolicInstantiation(getWithin(),
-                                        odefOrDecl.getStaticParams(),
-                                        FortressUtil.emptyWhereClause(),
-                                        odefOrDecl));
+                                                                                     createSymbolicInstantiation(getWithin(),
+                                                                                                                 odefOrDecl.getStaticParams(),
+                                                                                                                 FortressUtil.emptyWhereClause(),
+                                                                                                                 odefOrDecl));
                 }
                 symbolicInstantiation = make(symbolic_static_args, odefOrDecl);
             }

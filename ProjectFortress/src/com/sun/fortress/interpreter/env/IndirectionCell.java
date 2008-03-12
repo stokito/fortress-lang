@@ -22,6 +22,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class IndirectionCell extends FValue {
     protected volatile FValue theValue;
@@ -58,4 +59,10 @@ public class IndirectionCell extends FValue {
         }
         return theValue.type();
     }
+
+    public boolean seqv(FValue v) {
+        bug(errorMsg("seqv on IndirectionCell ",this," and ",v));
+        return false;
+    }
+
 }

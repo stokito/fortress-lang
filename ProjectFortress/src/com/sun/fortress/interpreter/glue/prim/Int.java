@@ -23,7 +23,6 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
@@ -133,34 +132,7 @@ public static final class Pow extends NativeFn2 {
 public static final class FromLong extends Util.L2Z {
     protected int f(long x) { return Int.rc(x); }
 }
-public static final class MkRange extends Util.ZZ2o {
-    protected FValue f(int l, int u) {
-        return new FRange(l,u);
-    }
-}
-public static final class ElementOf extends NativeFn2 {
-    protected FValue act(FValue x, FValue y) {
-        return FBool.make(((FRange) y).contains(x));
-    }
-}
 
-private static abstract class Rg2I extends NativeFn1 {
-    protected abstract int f(FRange r);
-    protected final FValue act(FValue x) {
-        return FInt.make(f((FRange)x));
-    }
-}
-public static final class RangeBase extends Rg2I {
-    protected int f(FRange r) { return r.getBase(); }
-}
-public static final class RangeSize extends Rg2I {
-    protected int f(FRange r) { return r.getSize(); }
-}
-public static final class Sequential extends NativeFn1 {
-    protected final FValue act(FValue x) {
-        return ((FRange)x).sequential();
-    }
-}
 public static int rc(long i) {
     int r = (int) i;
     if ((long) r != i) {

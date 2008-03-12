@@ -88,4 +88,8 @@ public class FRange extends FValue {
     public int getBase() {
         return base;
     }
+
+    public boolean seqv(FValue v) {
+        return false;
+    }
 }

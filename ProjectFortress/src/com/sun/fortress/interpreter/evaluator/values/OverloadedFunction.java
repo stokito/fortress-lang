@@ -122,6 +122,8 @@ public class  OverloadedFunction extends Fcn
         return fnName;
     }
 
+    public boolean seqv(FValue v) { return false; }
+
     public boolean hasSelfDotMethodInvocation() {
         return false;
     }

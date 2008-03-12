@@ -61,7 +61,8 @@ public class Thread extends Constructor {
         private final FortressTaskRunnerGroup group;
         private final SpawnTask st;
 
-        public Thread_prim(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
+        public Thread_prim(FTypeObject selfType,
+                           BetterEnv lexical_env, BetterEnv self_dot_env) {
             super(selfType, lexical_env, self_dot_env);
             int numThreads = Runtime.getRuntime().availableProcessors();
             String numThreadsString = System.getenv("FORTRESS_THREADS");
