@@ -31,7 +31,7 @@ trait NatParam
   abstract getter toString(): String
 end
 
-value object N[\nat n\]() extends { NatParam }
+value object N[\nat n\] extends { NatParam }
 end
 
 (* Actually convert a ZZ32 into a NatParam. *)

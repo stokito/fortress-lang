@@ -32,7 +32,7 @@ trait NatParam
   getter toString(): String
 end
 
-value object N[\nat n\]() extends { NatParam }
+value object N[\nat n\] extends { NatParam }
   toZZ() = n
   toString() = "" n
 end
@@ -47,7 +47,7 @@ end
  * it in the spec for clarity and sanity's sake.
  *)
   __refl'[\nat r, nat b\](x:ZZ32):NatParam =
-    if x=0 then N[\r\]()
+    if x=0 then N[\r\]
     elif (x REM (b+b)) = 0 then
       __refl'[\r, b+b\](x)
     else

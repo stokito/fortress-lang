@@ -124,7 +124,7 @@ opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\] =
 opr BIG {|->[\Key,Val\] g: ( Reduction[\SomeCovariantCollection\],
                              (Key,Val) -> SomeCovariantCollection) ->
                            SomeCovariantCollection } : Map[\Key,Val\] =
-    mapping(g(CVReduction,fn x=>CVUnit(x)))
+    mapping(g(CVReduction,scvUnit))
 
 opr BIG UNION[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
                               Map[\Key,Val\] -> Map[\Key,Val\]) ->

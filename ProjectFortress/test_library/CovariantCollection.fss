@@ -102,7 +102,7 @@ object CVUnit[\T\](obj:T) extends CovariantCollection[\T\]
     generate[\R\](red:Reduction[\R\], body: T->R): R = body(obj)
 end
 
-object CVEmpty[\T\]() extends CovariantCollection[\T\]
+object CVEmpty[\T\] extends CovariantCollection[\T\]
     getter size() = 0
     opr[i:ZZ32]:T = fail("CVEmpty index " i)
     opr[rng:FullRange[\ZZ32\]]: CovariantCollection[\T\] =
@@ -116,7 +116,11 @@ object CVEmpty[\T\]() extends CovariantCollection[\T\]
 end
 
 (* Try to get BottomTypes in. *)
-cvEmpty[\T\](): CVEmpty[\T\] = CVEmpty[\T\]()
+cvEmpty[\T\](): CovariantCollection[\T\] = CVEmpty[\T\]
+
+cvUnit[\T\](x:T): CovariantCollection[\T\] = CVUnit[\T\](x)
+
+scvUnit(x:Any): SomeCovariantCollection = cvUnit(x)
 
 cvJoin[\T,U\](l:CovariantCollection[\T\], r:CovariantCollection[\U\]):
         SomeCovariantCollection =

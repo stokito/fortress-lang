@@ -19,7 +19,7 @@ api Lazy
 
 (* A Lazy[\T\] is a lazily evaluated T with memoization.
    It can eventually be started in parallel. *)
-trait Lazy[\T\] comprises {}
+value trait Lazy[\T\] comprises { ... }
   getter value(): T
   run(): ()
 end

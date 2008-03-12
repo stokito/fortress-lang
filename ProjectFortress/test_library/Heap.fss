@@ -60,7 +60,7 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     (** Given an instance of Heap[\K,V\], get the empty Heap[\K,V\] **)
     getter empty(): Heap[\K,V\]
     (** Get the (key,value) pair with minimal associated key **)
-    getter minimum(): (K,V) throws QueueEmpty = do
+    getter minimum(): (K,V) throws NotFound = do
         (r,_) = extractMin()
         r
       end
@@ -77,7 +77,7 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     insert(k:K, v:V): Heap[\K,V\] = self.merge(self.singleton[\K,V\](k,v))
     (** Extract the (key,value) pair with minimal associated key,
      along with a heap with that key and value pair removed. **)
-    extractMin(): (K,V,Heap[\K,V\]) throws QueueEmpty
+    extractMin(): (K,V,Heap[\K,V\]) throws NotFound
     (** We generate elements by repeated splitting.  This is fairly
         allocation-intensive (O(n) worst case) but gives reasonable
         parallelism. **)
@@ -101,9 +101,6 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
       end
 end
 
-object QueueEmpty extends CheckedException
-end
-
 object HeapMerge[\K,V\](boiler: Heap[\K,V\]) extends Reduction[\Heap[\K,V\]\]
     empty(): Heap[\K,V\] = boiler.empty()
     join(a:Heap[\K,V\], b:Heap[\K,V\]): Heap[\K,V\] = a.merge(b)
@@ -113,6 +110,7 @@ hm[\K,V\](boiler: Heap[\K,V\]):HeapMerge[\K,V\] = HeapMerge[\K,V\](boiler)
 
 trait Pairing[\K,V\] extends Heap[\K,V\]
         comprises { EmptyP[\K,V\], NodeP[\K,V\] }
+    getter empty(): Pairing[\K,V\] = EmptyP[\K,V\]
     dump(): String
     singleton(k:K, v:V): Pairing[\K,V\] = do
         e = empty()
@@ -125,17 +123,16 @@ trait Pairing[\K,V\] extends Heap[\K,V\]
     ems(e: EmptyP[\K,V\], leftSib: NodeP[\K,V\]): NodeP[\K,V\]
 end
 
-object EmptyP[\K,V\]() extends Pairing[\K,V\]
-    getter empty(): Pairing[\K,V\] = self
+object EmptyP[\K,V\] extends Pairing[\K,V\]
     getter isEmpty(): Boolean = true
-    getter minimum(): (K,V) throws QueueEmpty = throw QueueEmpty
+    getter minimum(): (K,V) throws NotFound = throw NotFound
     dump(): String = "E"
     check(): EmptyP[\K,V\] = self
     check(pk:K):Boolean = true
     merge(h:Heap[\K,V\]): Heap[\K,V\] = h
     merge(h:Pairing[\K,V\]): Pairing[\K,V\] = h
     insert(k:K, v:V): Pairing[\K,V\] = NodeP[\K,V\](k,v,self,self)
-    extractMin(): (K,V,Pairing[\K,V\]) throws QueueEmpty = throw QueueEmpty
+    extractMin(): (K,V,Pairing[\K,V\]) throws NotFound = throw NotFound
     emk(e: EmptyP[\K,V\]): Pairing[\K,V\] = self
     ems(_: EmptyP[\K,V\], leftSib: NodeP[\K,V\]): NodeP[\K,V\] = leftSib
     generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty()
@@ -143,14 +140,6 @@ end
 
 object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
         extends Pairing[\K,V\]
-    getter empty(): Pairing[\K,V\] =
-        if sibs.isEmpty() then
-            sibs
-        else
-            println("\nFAIL: Non-empty sibs in:\n" dump())
-            fail("dying")
-            sibs.empty()
-        end
     getter isEmpty(): Boolean = false
     getter minimum(): (K,V) = (k,v)
     dump():String = "N(" k "," v "," sibs.dump() "," kids.dump() ")"
@@ -206,7 +195,7 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
         merge(e,leftSib).merge(e,sibs.emk(e))
 end
 
-emptyPairing[\K,V\](): Pairing[\K,V\] = EmptyP[\K,V\]()
+emptyPairing[\K,V\](): Pairing[\K,V\] = EmptyP[\K,V\]
 singletonPairing[\K,V\](k:K, v:V): Pairing[\K,V\] =
     emptyPairing[\K,V\]().singleton(k,v)
 
@@ -222,6 +211,7 @@ pairing[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\] =
 
 trait LazyPairing[\K,V\] extends Heap[\K,V\]
         comprises { EmptyLP[\K,V\], NodeLP[\K,V\] }
+    getter empty(): LazyPairing[\K,V\] = EmptyLP[\K,V\]
     dump(): String
     singleton(k:K, v:V): LazyPairing[\K,V\] = do
         e = empty()
@@ -231,17 +221,16 @@ trait LazyPairing[\K,V\] extends Heap[\K,V\]
     plink(e:EmptyLP[\K,V\],mn:NodeLP[\K,V\],mx:NodeLP[\K,V\]):NodeLP[\K,V\]
 end
 
-object EmptyLP[\K,V\]() extends LazyPairing[\K,V\]
-    getter empty(): LazyPairing[\K,V\] = self
+object EmptyLP[\K,V\] extends LazyPairing[\K,V\]
     getter isEmpty(): Boolean = true
-    getter minimum(): (K,V) throws QueueEmpty = throw QueueEmpty
+    getter minimum(): (K,V) throws NotFound = throw NotFound
     check() = self
     check(pk:K):Boolean = true
     dump(): String = "EL"
     merge(h:Heap[\K,V\]): Heap[\K,V\] = h
     merge(h:LazyPairing[\K,V\]): LazyPairing[\K,V\] = h
     insert(k:K, v:V): LazyPairing[\K,V\] = NodeLP[\K,V\](k,v,self,self)
-    extractMin(): (K,V,LazyPairing[\K,V\]) throws QueueEmpty = throw QueueEmpty
+    extractMin(): (K,V,LazyPairing[\K,V\]) throws NotFound = throw NotFound
     plink(e:EmptyLP[\K,V\],mn:NodeLP[\K,V\],mx:NodeLP[\K,V\]):NodeLP[\K,V\] =
         NodeLP[\K,V\](mn.k,mn.v,mx,mn.kids)
     generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty()
@@ -249,7 +238,6 @@ end
 
 object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K,V\])
         extends LazyPairing[\K,V\]
-    getter empty(): LazyPairing[\K,V\] = pending.empty()
     getter isEmpty(): Boolean = false
     getter minimum(): (K,V) = (k,v)
     check() = do
@@ -286,7 +274,7 @@ object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K
         NodeLP[\K,V\](mn.k,mn.v,e,self.merge(mx).merge(mn.kids))
 end
 
-emptyLazy[\K,V\](): LazyPairing[\K,V\] = EmptyLP[\K,V\]()
+emptyLazy[\K,V\](): LazyPairing[\K,V\] = EmptyLP[\K,V\]
 singletonLazy[\K,V\](k:K, v:V): LazyPairing[\K,V\] =
     emptyLazy[\K,V\]().singleton(k,v)
 

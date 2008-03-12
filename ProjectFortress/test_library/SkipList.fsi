@@ -120,7 +120,7 @@ generate_tail[\Key,Val\](node:LeafNode[\Key,Val\], length:ZZ32):Node[\Key,Val\]
 generate_tail[\Key,Val\](node:NonLeafNode[\Key,Val\], length:ZZ32):Node[\Key,Val\]
 
 (* Represents an empty tree *)
-object EmptyNode[\Key,Val\]() extends Node[\Key,Val\] end
+object EmptyNode[\Key,Val\] extends Node[\Key,Val\] end
 
 (* A leaf node.  For a given unique key, stores an array of values *)
 object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\]) extends Node[\Key,Val\] end

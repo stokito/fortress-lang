@@ -82,7 +82,7 @@ opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C
     bounds).  Allows us to overload a function based on the parametric
     type of an output. *)
 
-object __Proxy[\T extends (* U *) Any\]()
+object __Proxy[\T extends (* U *) Any\]
     (* extends { __Proxy[\U\], Object } where { U extends Any } *)
   getter toString()
 end
@@ -1294,7 +1294,7 @@ trait PartialRange[\T\] extends Range[\T\]
     excludes { FullRange[\T\] }
 end
 
-object OpenRange[\T\]() extends { Range[\T\], PartialRange[\T\] }
+object OpenRange[\T\] extends { Range[\T\], PartialRange[\T\] }
     toString():String
     opr =(self,_:OpenRange[\T\]): Boolean
     opr CMP(self,other:Range[\T\]): Comparison

@@ -106,7 +106,7 @@ opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
     bounds).  Allows us to overload a function based on the parametric
     type of an output. *)
 
-object __Proxy[\T extends (* U *) Any\]()
+object __Proxy[\T extends (* U *) Any\]
     (* extends { __Proxy[\U\], Object } where { U extends Any } *)
   getter toString() = "__Proxy object, should not be user-visible."
 end
@@ -761,7 +761,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         and obtain a closed range of indices on the underlying
         data. **)
     opr[r:Range[\I\]] : Indexed[\E,I\]
-    opr[_:OpenRange[\Any\]] : Indexed[\E,I\] = self[OpenRange[\I\]()]
+    opr[_:OpenRange[\Any\]] : Indexed[\E,I\] = self[OpenRange[\I\]]
 
     (** Roughly speaking, ivmap(f) is equivalent to
         indexValuePairs.map(f).  However ivmap function isn't merely a
@@ -945,11 +945,11 @@ end
 
 (** Factory for arrays that returns an empty 0-indexed array of a given
     run-time-determined size. **)
-array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr1(__Proxy[\E\](),reflect(x))
+array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr1(__Proxy[\E\],reflect(x))
 array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] =
-    __arr2(__Proxy[\E\](),reflect(x), reflect(y))
+    __arr2(__Proxy[\E\],reflect(x), reflect(y))
 array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] =
-    __arr3(__Proxy[\E\](),reflect(x), reflect(y), reflect(z))
+    __arr3(__Proxy[\E\],reflect(x), reflect(y), reflect(z))
 
 (* This should be local to array, but we don't support local
    parametric methods in the language spec at all at the moment. *)
@@ -963,11 +963,11 @@ __arr3[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
 (** Factory for immutable arrays that returns an empty 0-indexed array
     of a given run-time-determined size. **)
 immutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\] =
-    __imm1(__Proxy[\E\](),reflect(x))
+    __imm1(__Proxy[\E\],reflect(x))
 immutableArray[\E\](x:ZZ32,y:ZZ32):ImmutableArray[\E,(ZZ32,ZZ32)\] =
-    __imm2(__Proxy[\E\](),reflect(x), reflect(y))
+    __imm2(__Proxy[\E\],reflect(x), reflect(y))
 immutableArray[\E\](x:ZZ32,y:ZZ32,z:ZZ32):ImmutableArray[\E,(ZZ32,ZZ32,ZZ32)\] =
-    __imm3(__Proxy[\E\](),reflect(x), reflect(y), reflect(z))
+    __imm3(__Proxy[\E\],reflect(x), reflect(y), reflect(z))
 
 (* This should be local to immutableArray, but we don't support local
    parametric methods in the language spec at all at the moment. *)
@@ -980,12 +980,12 @@ __imm3[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     ImmutableArray3[\E,0,n,0,m,0,p\] = immutableArray3[\E,n,m,p\]()
 *)
 
-primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\] = __parr(__Proxy[\E\](),reflect(x))
+primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\] = __parr(__Proxy[\E\],reflect(x))
 __parr[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):PrimitiveArray[\E,n\] =
     PrimitiveArray[\E,n\]()
 
 primitiveImmutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\] =
-    __piarr(__Proxy[\E\](),reflect(x))
+    __piarr(__Proxy[\E\],reflect(x))
 __piarr[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):PrimImmutableArray[\E,n\] =
     PrimImmutableArray[\E,n\]()
 
@@ -1126,12 +1126,12 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         if o=0 then
             self
         else
-            __subarrayI(self,reflect(o),N[\s0\](),N[\b0\]())
+            __subarrayI(self,reflect(o),N[\s0\],N[\b0\])
         end
 
     opr[r: Range[\ZZ32\]] : ImmutableArray[\T,ZZ32\] = do
         r' = (bounds())[r]
-        z = N[\0\]()
+        z = N[\0\]
         s = reflect(r'.size())
         l = reflect(r'.lower())
         __subarrayI(self,z,s,l)
@@ -1178,12 +1178,12 @@ trait Array1[\T, nat b0, nat s0\]
         if o=0 then
             self
         else
-            __subarray(self,reflect(o),N[\s0\](),N[\b0\]())
+            __subarray(self,reflect(o),N[\s0\],N[\b0\])
         end
 
     opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
         r' = (bounds())[r]
-        z = N[\0\]()
+        z = N[\0\]
         s = reflect(r'.size())
         l = reflect(r'.lower())
         __subarray(self,z,s,l)
@@ -1292,7 +1292,7 @@ end
    K-dimensional array types. *)
 __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
     r = array1[\T,s0\]()
-    typecase _ = N[\b0\]() of
+    typecase _ = N[\b0\] of
         N[\0\] => r
         else => r.subarray[\b0,s0,0\]()
     end
@@ -1303,7 +1303,7 @@ __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
    is used to allocate storage for varargs. *)
 __immutableFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
     r = immutableArray1[\T,s0\]()
-    typecase _ = N[\b0\]() of
+    typecase _ = N[\b0\] of
         N[\0\] => r
         else => r.subarray[\b0,s0,0\]()
     end
@@ -1311,7 +1311,7 @@ __immutableFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
 
 (* TODO: fix when Number is covariant. *)
 array1[\T, nat s0\]():Array1[\T,0,s0\] =
-    typecase _ = __Proxy[\T\]() of
+    typecase _ = __Proxy[\T\] of
         __Proxy[\ZZ32\] => vector[\T,s0\]()
         __Proxy[\ZZ64\] => vector[\T,s0\]()
         __Proxy[\Integral\] => vector[\T,s0\]()
@@ -1417,7 +1417,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
       r' = (bounds())[r]
       (z0,z1) = r'.extent()
       (l0,l1) = r'.lower()
-      __subarray(N[\0\](),reflect(z0), N[\0\](),reflect(z1),
+      __subarray(N[\0\],reflect(z0), N[\0\],reflect(z1),
                  reflect(l0),reflect(l1))
     end
   opr[_:OpenRange[\ZZ32\]] : Array2[\T,0,s0,0,s1\] =
@@ -1608,7 +1608,7 @@ __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
 (* array2 is a factory for 0-based 2-D arrays. *)
 (* TODO: fix when Number is covariant. *)
 array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
-    typecase _ = __Proxy[\T\]() of
+    typecase _ = __Proxy[\T\] of
         __Proxy[\ZZ32\] => matrix[\T,s0,s1\]()
         __Proxy[\ZZ64\] => matrix[\T,s0,s1\]()
         __Proxy[\Integral\] => matrix[\T,s0,s1\]()
@@ -1742,8 +1742,8 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
         r' = (bounds())[r]
         (z0,z1,z2) = r'.size()
         (l0,l1,l2) = r'.lower()
-        __subarray(N[\0\](),reflect(z0), N[\0\](),reflect(z1),
-                   N[\0\](),reflect(z2), reflect(l0),reflect(l1), reflect(l2))
+        __subarray(N[\0\],reflect(z0), N[\0\],reflect(z1),
+                   N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2))
       end
     opr[_:OpenRange[\ZZ32\]] : Array3[\T,0,s0,0,s1,0,s2\] =
         subarray[\0,s0,0,s1,0,s2,0,0,0\]()
@@ -2155,7 +2155,7 @@ trait PartialRange[\T\] extends Range[\T\]
     excludes { FullRange[\T\] }
 end
 
-object OpenRange[\T\]() extends { Range[\T\], PartialRange[\T\] }
+object OpenRange[\T\] extends { Range[\T\], PartialRange[\T\] }
     toString():String = "#"
     opr[_:OpenRange[\T\]] : OpenRange[\T\] = self
 
@@ -2641,8 +2641,8 @@ opr #[\T\](x:T) : ExtentRange[\T\] = ExtentRange[\T\](x)
 opr :[\T\](x:T) : UpperRange[\T\] = UpperRange[\T\](x)
 *)
 
-opr #(): OpenRange[\Any\] = OpenRange[\Any\]()
-opr :(): OpenRange[\Any\] = OpenRange[\Any\]()
+opr #(): OpenRange[\Any\] = OpenRange[\Any\]
+opr :(): OpenRange[\Any\] = OpenRange[\Any\]
 
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)

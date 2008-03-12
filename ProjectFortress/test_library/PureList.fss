@@ -60,7 +60,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
       drop(n.lower()).take(n.extent())
   split(n:ZZ32): (List[\E\], List[\E\])
   split(): (List[\E\], List[\E\])
-  reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
+  reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
   filter(p: E -> Boolean): List[\E\] =
       concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
                                               else emptyList[\E\]() end)
@@ -69,11 +69,11 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
                fn () => " ",
                fn (h,t) => h (BIG STRING [e<-t] ", " e)) "|>"
   concatMap[\G\](f: E->List[\G\]): List[\G\] =
-      generate[\List[\G\]\](Concat[\G\](),f)
+      generate[\List[\G\]\](Concat[\G\],f)
   map[\G\](f: E->G): List[\G\] =
       concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
   ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
-      indexValuePairs().generate[\List[\G\]\](Concat[\G\](),
+      indexValuePairs().generate[\List[\G\]\](Concat[\G\],
                 fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
 end
 
@@ -82,31 +82,31 @@ opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
 opr BIG <|[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
                       T -> SomeCovariantCollection) ->
                     SomeCovariantCollection|>: List[\U\] =
-    list(g(CVReduction,fn x=>CVUnit(x)))
+    list(g(CVReduction,scvUnit))
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
 list[\E\](g:Generator[\E\]):List[\E\] =
-    g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+    g.generate[\List[\E\]\](Concat[\E\], singleton[\E\])
 
 (** Flatten a list of lists *)
 concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
 
 (** A reduction object for concatenating lists. *)
-object Concat[\E\]() extends Reduction[\ List[\E\] \]
+object Concat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
 end
 
 (** The same for reverse concatenation *)
-object RevConcat[\E\]() extends Reduction[\ List[\E\] \]
+object RevConcat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
 end
 
 (** A reduction object for concatenating specifically PureLists. *)
-object PLConcat[\E\]() extends Reduction[\ PureList[\E\] \]
-  empty(): PureList[\E\] = D0[\E\]()
+object PLConcat[\E\] extends Reduction[\ PureList[\E\] \]
+  empty(): PureList[\E\] = D0[\E\]
   join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
 end
 
@@ -127,7 +127,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       it.generate[\R\](r,body)
   seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
   append(f:List[\E\]): PureList[\E\] =
-      append(f.generate[\PureList[\E\]\](PLConcat[\E\](),singleton[\E\]))
+      append(f.generate[\PureList[\E\]\](PLConcat[\E\],singleton[\E\]))
   append(f:PureList[\E\]): PureList[\E\] =
       PureList[\E\](it.append(f.contents()))
   addLeft(e:E):PureList[\E\] =
@@ -199,7 +199,7 @@ value object SeqListGenerator[\E\]( it: FingerTree[\E\] )
         it.seqgen[\R\](r,fn (x: E): R => body(x))
 end
 
-emptyList[\E\](): List[\E\] = PureList[\E\](D0[\E\]())
+emptyList[\E\](): List[\E\] = PureList[\E\](D0[\E\])
 singleton[\E\](e:E): List[\E\] =
     PureList[\E\](D1[\E\](e))
 
@@ -361,7 +361,7 @@ trait D34[\E\] extends D24[\E\]
   nodes2(x:D14[\E\]):D23[\D23[\E\]\]
 end
 
-object D0[\E\]() extends { D01[\E\] }
+object D0[\E\] extends { D01[\E\] }
   getter isEmpty():Boolean = true
   generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
@@ -391,8 +391,8 @@ object D1[\E\](a:E)
   getter right():Just[\E\] = a
   getter extractLeft():(E,FingerTree[\E\]) = uncons()
   getter extractRight():Just[\(E,FingerTree[\E\])\] = unsnoc()
-  getter uncons():(E,D0[\E\]) = (a,D0[\E\]())
-  getter unsnoc():(D0[\E\],E) = (D0[\E\](),a)
+  getter uncons():(E,D0[\E\]) = (a,D0[\E\])
+  getter unsnoc():(D0[\E\],E) = (D0[\E\],a)
   getter car() = a
   getter rac() = a
   leafSize(self):ZZ32 = leafSize(a)
@@ -406,9 +406,9 @@ object D1[\E\](a:E)
   snoc(e:E):D2[\E\] = D2[\E\](a,e)
   append(f:FingerTree[\E\]) = f.addLeftD(self)
   addLeft(e:E):FingerTree[\E\] = addLeftD(D1[\E\](e))
-  addLeftD(e:D14[\E\]) = Deep[\E\](e,D0[\D23[\E\]\](),self)
+  addLeftD(e:D14[\E\]) = Deep[\E\](e,D0[\D23[\E\]\],self)
   addRight(e:E):FingerTree[\E\] = addRightD(D1[\E\](e))
-  addRightD(e:D14[\E\]) = Deep[\E\](self,D0[\D23[\E\]\](),e)
+  addRightD(e:D14[\E\]) = Deep[\E\](self,D0[\D23[\E\]\],e)
   append3(e:D04[\E\],f:Deep[\E\]):FingerTree[\E\] = f.addLeftD(e).addLeftD(self)
   nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
     fail("Should never be called, shortcoming of comprises handling.")
@@ -429,13 +429,13 @@ object D1[\E\](a:E)
       else
           fail("D1.drop(" n ") >= leafSize()")
       end
-  split(): (D1[\E\],D0[\E\]) = (self,D0[\E\]())
+  split(): (D1[\E\],D0[\E\]) = (self,D0[\E\])
   split(n:ZZ32): (D1[\E\],D0[\E\]) = if n<=0 then fail("D1.split <= 0")
                                              else split() end
   index(n:ZZ32): (ZZ32, E) = (n,a)
   split3(n:ZZ32): (D0[\E\], E, D0[\E\]) = split3()
   split3(): (D0[\E\], E, D0[\E\]) = do
-      e = D0[\E\]()
+      e = D0[\E\]
       (e,a,e)
     end
   revMap(f:E->E): D1[\E\] = D1[\E\](f(a))
@@ -484,7 +484,7 @@ object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
       xt.nodes1().cons(D3[\E\](a,b,xh))
     end
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
-  toFinger()=Deep[\E\](D1[\E\](a),D0[\D23[\E\]\](),D1[\E\](b))
+  toFinger()=Deep[\E\](D1[\E\](a),D0[\D23[\E\]\],D1[\E\](b))
   toString()="(" a "," b ")"
   take(n:ZZ32): D12[\E\] =
       if n <= 0 then
@@ -517,9 +517,9 @@ object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
       if n <= 0 then
           fail("D2.split3 <= 0")
       elif n <= leafSize(a) then
-          (D0[\E\](), a, D1[\E\](b))
+          (D0[\E\], a, D1[\E\](b))
       else
-          (D1[\E\](a), b, D0[\E\]())
+          (D1[\E\](a), b, D0[\E\])
       end
   split():(D1[\E\],D1[\E\]) = (D1[\E\](a),D1[\E\](b))
   revMap(f:E->E): D2[\E\] = D2[\E\](f(b),f(a))
@@ -566,7 +566,7 @@ object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
   nodes2(x:D24[\E\]):D23[\D23[\E\]\] =
     x.nodes1().cons(self)
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
-  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\](),D1[\E\](c))
+  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\],D1[\E\](c))
   toString()="(" a "," b "," c ")"
   take(n:ZZ32): D13[\E\] =
       if n <= 0 then
@@ -614,13 +614,13 @@ object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
       if n <= 0 then
           fail("D3.split3 <= 0")
       elif n <= leafSize(a) then
-          (D0[\E\](), a, D2[\E\](b,c))
+          (D0[\E\], a, D2[\E\](b,c))
       else
           na = n - leafSize(a)
           if na <= leafSize(b) then
               (D1[\E\](a), b, D1[\E\](c))
           else
-              (D2[\E\](a,b), c, D0[\E\]())
+              (D2[\E\](a,b), c, D0[\E\])
           end
       end
   split():(D2[\E\],D1[\E\]) = (D2[\E\](a,b),D1[\E\](c))
@@ -669,7 +669,7 @@ object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
   nodes2(x:D14[\E\]):D23[\D23[\E\]\] =
     D1[\E\](d).nodes2(x).cons(D3[\E\](a,b,c))
   nodes1():D2[\D23[\E\]\] = D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,d))
-  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\](),D2[\E\](c,d))
+  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\],D2[\E\](c,d))
   toString()="{" a "," b "," c "," d "}"
   take(n:ZZ32): D14[\E\] =
       if n <= 0 then
@@ -732,7 +732,7 @@ object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
       if n <= 0 then
           fail("D4.split3 <= 0")
       elif n <= leafSize(a) then
-          (D0[\E\](), a, D3[\E\](b,c,d))
+          (D0[\E\], a, D3[\E\](b,c,d))
       else
           na = n - leafSize(a)
           if na <= leafSize(b) then
@@ -742,7 +742,7 @@ object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
               if nb <= leafSize(c) then
                   (D2[\E\](a,b), c, D1[\E\](d))
               else
-                  (D3[\E\](a,b,c), d, D0[\E\]())
+                  (D3[\E\](a,b,c), d, D0[\E\])
               end
           end
       end
@@ -883,7 +883,7 @@ object Deep[\E\]
     end
   split(): (FingerTree[\E\], FingerTree[\E\]) = do
       (ll, rr) = m.split()
-      (deepR[\E\](l,ll,D0[\E\]()), deepL[\E\](D0[\E\](),rr,r))
+      (deepR[\E\](l,ll,D0[\E\]), deepL[\E\](D0[\E\],rr,r))
     end
   index(n:ZZ32): (ZZ32,E) =
       if n < 0 then
