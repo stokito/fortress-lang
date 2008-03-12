@@ -30,7 +30,7 @@ check(db: Map[\String,ZZ32\]): () = do
     for (k,v) <- database do
         atomic if NOT seen[v] then seen[v] := true
                else fail("Duplicated " k "|->" v) end
-        n += 1
+        atomic n += 1
         assert(k,expect[v],"Unexpectedly " k "|->" v)
     end
     assert(n,5,"Found the wrong number of keys!")
