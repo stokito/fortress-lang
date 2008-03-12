@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -52,7 +52,7 @@ public class Primitives {
     public static void install_type(BetterEnv env, String name, FType t) {
         env.putType(name, t);
     }
-   
+
     public static void install_value(BetterEnv env, String name, FValue v) {
         env.putValue(name, v);
     }
@@ -81,7 +81,7 @@ public class Primitives {
 
         install_type(env, "Any", FTypeTop.ONLY);
 
-        
+
         install_type(env, "FortressBuiltin.ZZ32", FTypeInt.ONLY);
         install_type(env, "FortressBuiltin.ZZ64", FTypeLong.ONLY);
         install_type(env, "FortressBuiltin.Integral", FTypeIntegral.ONLY);
@@ -104,8 +104,8 @@ public class Primitives {
         install_type(env, "FortressBuiltin.false", Bool.make(false));
 
         install_type(env, "FortressBuiltin.Any", FTypeTop.ONLY);
-        
-        
+
+
         FTypeNumber.ONLY.addExclude(FTypeString.ONLY);
         FTypeNumber.ONLY.addExclude(FTypeChar.ONLY);
         FTypeNumber.ONLY.addExclude(FTypeBool.ONLY);
@@ -136,9 +136,9 @@ public class Primitives {
         FTypeChar.ONLY.addExclude(FTypeBool.ONLY);
         FTypeChar.ONLY.addExclude(FTypeString.ONLY);
         FTypeChar.ONLY.addExclude(FTypeNumber.ONLY);
-        
-        
-        
+
+
+
 
 
     }

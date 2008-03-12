@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -35,14 +35,14 @@ public class LazilyEvaluatedCell extends IndirectionCell {
     }
 
     public String toString() {
-        if (theValue==null) { 
+        if (theValue==null) {
             return "thunk " + NodeUtil.dump(exp);
         }
         if (theValue instanceof IndirectionCell)
             return "Uninitialized " + theValue.getClass().getSimpleName();
         return theValue.toString();
     }
-    
+
     public void storeValue(FValue f2) {
         bug("Cannot store value "+ f2 +" into lazy cell; possible duplicate definition?");
     }
