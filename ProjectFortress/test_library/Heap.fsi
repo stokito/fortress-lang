@@ -59,7 +59,7 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     (** Given an instance of Heap[\K,V\], get the empty Heap[\K,V\] **)
     getter empty(): Heap[\K,V\]
     (** Get the (key,value) pair with minimal associated key **)
-    getter minimum(): (K,V) throws QueueEmpty
+    getter minimum(): (K,V) throws NotFound
     (** Given an instance of Heap[\K,V\], generate a singleton Heap[\K,V\] **)
     singleton(k:K, v:V): Heap[\K,V\]
     (** Return a heap that contains the key-value pairings in both of
@@ -69,27 +69,15 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     insert(k:K, v:V): Heap[\K,V\]
     (** Extract the (key,value) pair with minimal associated key,
      along with a heap with that key and value pair removed. **)
-    extractMin(): (K,V,Heap[\K,V\]) throws QueueEmpty
-end
-
-object QueueEmpty extends CheckedException
+    extractMin(): (K,V,Heap[\K,V\]) throws NotFound
 end
 
 object HeapMerge[\K,V\](boiler: Heap[\K,V\]) extends Reduction[\Heap[\K,V\]\]
 end
 
-hm[\K,V\](boiler: Heap[\K,V\]):HeapMerge[\K,V\]
-
 trait Pairing[\K,V\] extends Heap[\K,V\]
-        comprises { EmptyP[\K,V\], NodeP[\K,V\] }
+        comprises { ... }
     dump(): String
-end
-
-object EmptyP[\K,V\]() extends Pairing[\K,V\]
-end
-
-object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
-        extends Pairing[\K,V\]
 end
 
 emptyPairing[\K,V\](): Pairing[\K,V\]
@@ -103,15 +91,8 @@ pairing[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\]
  *)
 
 trait LazyPairing[\K,V\] extends Heap[\K,V\]
-        comprises { EmptyLP[\K,V\], NodeLP[\K,V\] }
+        comprises { ... }
     dump(): String
-end
-
-object EmptyLP[\K,V\]() extends LazyPairing[\K,V\]
-end
-
-object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K,V\])
-        extends LazyPairing[\K,V\]
 end
 
 emptyLazy[\K,V\](): LazyPairing[\K,V\]

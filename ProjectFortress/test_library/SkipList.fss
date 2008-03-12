@@ -90,7 +90,7 @@ end
 
 (* Construct an empty skip list *)
 NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
-  SkipList[\Key,Val,pInverse\](EmptyNode[\Key,Val\]())
+  SkipList[\Key,Val,pInverse\](EmptyNode[\Key,Val\])
 
 
 (* A Node is the basic type for the Skip List data structure.
@@ -208,7 +208,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   end
 
   getLeaves():List[\LeafNode[\Key,Val\]\] = children.generate[\List[\LeafNode[\Key,Val\]\]\](
-    Concat[\LeafNode[\Key,Val\]\](),
+    Concat[\LeafNode[\Key,Val\]\],
     fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves())
 
   (* break this internal node.
@@ -340,7 +340,7 @@ object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key
   remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
     if child.getKey() = k then
       if child.values.size() = 1 then
-        (EmptyNode[\Key,Val\](), Just[\Val\](child.values[0]))
+        (EmptyNode[\Key,Val\], Just[\Val\](child.values[0]))
       else
         values:Array[\Val,ZZ32\] = array[\Val\](child.values.size() - 1)
         values[0 # values.size()] := child.values[0 # values.size()]
@@ -354,7 +354,7 @@ object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key
 
   merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] =
     height1_merge_leaves(nodes.generate[\List[\LeafNode[\Key,Val\]\]\](
-      Concat[\LeafNode[\Key,Val\]\](),
+      Concat[\LeafNode[\Key,Val\]\],
       fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves()))
 
   (* helper function for height1_merge where nodes is a list of all leaves *)
@@ -475,7 +475,7 @@ object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] =
     height1_merge_leaves(nodes.generate[\List[\LeafNode[\Key,Val\]\]\](
-      Concat[\LeafNode[\Key,Val\]\](),
+      Concat[\LeafNode[\Key,Val\]\],
       fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves()))
 
   (* helper function for height1_merge where nodes is a list of all leaves *)
@@ -680,7 +680,7 @@ end
 
 (* The empty node represents an empty tree. It is neither a leaf node nor
    an internal node, and the empty node does not have a height. *)
-object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
+object EmptyNode[\Key,Val\] extends Node[\Key,Val\]
 
   getter height():ZZ32 = fail("Cannot get height of an empty tree")
   getter size():ZZ32 = 0

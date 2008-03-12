@@ -41,15 +41,14 @@ run(args:String...):() = do
     body(x:ZZ32): Number =
         if x MOD 2 = 0 then x else 1.0 x end
 
-    cv1(x): SomeCovariantCollection = CVUnit(x)
     samples1 : CovariantCollection[\ZZ32\] =
-        __generate(samples,CVReduction,cv1)
+        __generate(samples,CVReduction,scvUnit)
     list1 : List[\ZZ32\] = list(samples1)
     for (i,j) <- list1.zip[\ZZ32\](samples) do
         assert(i,j,"Not the same in ", list1, " and ", samples)
     end
 
-    cv2(x): SomeCovariantCollection = CVUnit(body(x))
+    cv2(x): SomeCovariantCollection = scvUnit(body(x))
     samples2 : CovariantCollection[\RR64\] =
         __generate(samples,CVReduction,cv2)
     list2 : List[\RR64\] = list(samples2)

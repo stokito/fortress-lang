@@ -37,40 +37,20 @@ trait SomeCovariantCollection
 end
 
 trait CovariantCollection[\T\]
-          extends { ZeroIndexed[\T\], Indexed[\T,ZZ32\] }
-(*        comprises { CVJoin[\T,U,V\], CVUnit[\T\], CVEmpty[\T\] } *)
+        extends { ZeroIndexed[\T\], Indexed[\T,ZZ32\],
+                  SomeCovariantCollection }
+        comprises { ... }
     getter indices(): Generator[\ZZ32\]
 
     opr[rng:Range[\ZZ32\]]: CovariantCollection[\T\]
 end
 
-object CVJoin[\T, U extends T, V extends T\](
-    l:CovariantCollection[\U\], r:CovariantCollection[\V\])
-        extends CovariantCollection[\T\]
-    getter size()
-    opr[i:ZZ32]:T
-    opr[rng:FullRange[\ZZ32\]]: CovariantCollection[\T\]
-
-    generate[\R\](red:Reduction[\R\], body: T->R): R
-end
-
-object CVUnit[\T\](obj:T) extends CovariantCollection[\T\]
-    getter size()
-    opr[i:ZZ32]:T
-    opr[rng:FullRange[\ZZ32\]]: CovariantCollection[\T\]
-    generate[\R\](red:Reduction[\R\], body: T->R): R
-end
-
-object CVEmpty[\T\]() extends CovariantCollection[\T\]
-    getter size()
-    opr[i:ZZ32]:T
-    opr[rng:FullRange[\ZZ32\]]: CovariantCollection[\T\]
-
-    generate[\R\](red:Reduction[\R\], body: T->R): R
-end
-
 (* Try to get BottomTypes in. *)
-cvEmpty[\T\](): CVEmpty[\T\]
+cvEmpty[\T\](): CovariantCollection[\T\]
+
+cvUnit[\T\](x:T): CovariantCollection[\T\]
+
+scvUnit(x:Any): SomeCovariantCollection
 
 cvJoin[\T,U\](l:CovariantCollection[\T\], r:CovariantCollection[\U\]):
         SomeCovariantCollection

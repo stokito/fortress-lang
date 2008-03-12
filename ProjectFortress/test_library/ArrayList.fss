@@ -94,7 +94,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     split(n:ZZ32): (List[\E\], List[\E\])
     split(): (List[\E\], List[\E\])
     reverse(): List[\E\] =
-        generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
+        generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
     filter(p: E -> Boolean): List[\E\] =
         concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
                                              else emptyList[\E\]() end)
@@ -103,11 +103,11 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
                fn () => " ",
                fn (h,t) => h (BIG STRING [e<-t] ", " e)) "|>"
     concatMap[\G\](f: E->List[\G\]): List[\G\] =
-        generate[\List[\G\]\](Concat[\G\](),f)
+        generate[\List[\G\]\](Concat[\G\],f)
     map[\G\](f: E->G): List[\G\] =
         concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
     ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
-        indexValuePairs().generate[\List[\G\]\](Concat[\G\](),
+        indexValuePairs().generate[\List[\G\]\](Concat[\G\],
                   fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
 end
 
@@ -116,12 +116,12 @@ opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
 opr BIG <|[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
                       T -> SomeCovariantCollection) ->
                     SomeCovariantCollection|>: List[\U\] =
-    list(g(CVReduction,fn x=>CVUnit(x)))
+    list(g(CVReduction,scvUnit))
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
 list[\E\](g:Generator[\E\]):List[\E\] =
-    g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+    g.generate[\List[\E\]\](Concat[\E\], singleton[\E\])
 list[\E\](g:Indexed[\E,ZZ32\]):List[\E\] = do
     sz = g.size()
     a = primitiveImmutableArray[\E\](sz)
@@ -162,13 +162,13 @@ concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
   end
 
 (** A reduction object for concatenating lists. *)
-object Concat[\E\]() extends Reduction[\ List[\E\] \]
+object Concat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
 end
 
 (** The same for reverse concatenation *)
-object RevConcat[\E\]() extends Reduction[\ List[\E\] \]
+object RevConcat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
 end

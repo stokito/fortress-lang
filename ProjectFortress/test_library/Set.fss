@@ -89,7 +89,7 @@ opr {[\E\] es: E... }: Set[\E\] =
 opr BIG {[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
                       T -> SomeCovariantCollection) ->
                     SomeCovariantCollection } : Set[\U\] =
-    set(g(CVReduction,fn x => CVUnit(x)))
+    set(g(CVReduction,scvUnit))
 
 opr BIG UNION[\R\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
                     Set[\R\] = g(Union[\R\], identity[\R\])
