@@ -73,4 +73,15 @@ public abstract class FTupleLike extends FValue implements Selectable {
         return (this.getString()+':'+this.type().toString());
     }
 
+    public boolean seqv(FValue v) {
+        if (!(v instanceof FTupleLike)) return false;
+        FTupleLike t = (FTupleLike)v;
+        if (getVals().size() != t.getVals().size()) return false;
+        Iterator<FValue> titer = t.getVals().iterator();
+        for (FValue i : getVals()) {
+            FValue ti = titer.next();
+            if (i!=ti && !i.seqv(ti)) return false;
+        }
+        return true;
+    }
 }

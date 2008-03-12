@@ -64,7 +64,8 @@ public class FileReadStream extends Constructor {
         protected boolean consumed = false;
 
         public PrimReader(String name, BufferedReader reader,
-                          FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
+                          FTypeObject selfType,
+                          BetterEnv lexical_env, BetterEnv self_dot_env) {
             super(selfType, lexical_env, self_dot_env);
             this.reader = reader;
             this.name = name;

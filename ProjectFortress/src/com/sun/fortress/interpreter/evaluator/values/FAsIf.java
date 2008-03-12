@@ -19,6 +19,9 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 public class FAsIf extends FValue {
     private final FValue fvalue;
     private final FType ftype;
@@ -59,5 +62,8 @@ public class FAsIf extends FValue {
     public char getChar() {
         return fvalue.getChar();
     }
-
+    public boolean seqv(FValue v) {
+        bug(errorMsg("seqv on FAsIf ",this," and ",v));
+        return false;
+    }
 }

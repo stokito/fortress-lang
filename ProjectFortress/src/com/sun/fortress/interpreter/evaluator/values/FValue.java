@@ -53,6 +53,11 @@ public abstract class FValue {
     public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}
     public char getChar() { throw new InterpreterBug("getChar not implemented for "  + getClass().getSimpleName());}
 
+    /**
+     * seqv can ignore pointer equivalence; that must be checked before calling.
+     */
+    public abstract boolean seqv(FValue other);
+
     // map "select type"
     static protected List<FType> typeListFromParameters(List<Parameter> params) {
         ArrayList<FType> al = new ArrayList<FType>(params.size());

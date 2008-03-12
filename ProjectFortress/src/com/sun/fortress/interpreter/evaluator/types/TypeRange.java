@@ -23,7 +23,6 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
@@ -55,9 +54,6 @@ public class TypeRange {
         } else if (v instanceof FIntLiteral) {
             FIntLiteral i = (FIntLiteral) v;
             return new TypeRange(0, i.getInt());
-        } else if (v instanceof FRange) {
-            FRange r = (FRange) v;
-            return new TypeRange(r.getBase(), r.getSize());
         } else
             return NI.ni();
     }

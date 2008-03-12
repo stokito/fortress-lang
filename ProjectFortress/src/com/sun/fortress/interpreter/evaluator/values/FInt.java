@@ -30,6 +30,16 @@ public class FInt extends FBuiltinValue implements HasIntValue {
   public String toString() {
       return "ZZ32 " + val;
   }
+  public boolean seqv(FValue v) {
+      if (!(v instanceof FBuiltinValue)) return false;
+      if (v instanceof FInt || v instanceof FLong) {
+          return (getLong() == v.getLong());
+      }
+      if (v instanceof FFloat || v instanceof FFloatLiteral) {
+          return (getFloat() == v.getFloat());
+      }
+      return false;
+  }
   private FInt(int x) {
     val = x;
   }

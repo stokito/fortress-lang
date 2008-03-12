@@ -17,17 +17,18 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 
 public class FOrdinaryObject extends FObject {
 
     final BetterEnv lexicalEnv;
     final BetterEnv selfEnv;
-    final FType ftype;
+    final FTypeObject ftype;
 
-    public FOrdinaryObject(FType selfType,
+    public FOrdinaryObject(FTypeObject selfType,
                            BetterEnv lexical_env, BetterEnv self_dot_env) {
         this.lexicalEnv = lexical_env;
         this.selfEnv = self_dot_env;
@@ -48,4 +49,18 @@ public class FOrdinaryObject extends FObject {
     public FType type() {
         return ftype;
     }
+
+    public boolean seqv(FValue v) {
+        if (!(ftype.isValueType())) return false;
+        if (!(v instanceof FOrdinaryObject)) return false;
+        FOrdinaryObject o = (FOrdinaryObject) v;
+        if (ftype != o.type()) return false;
+        if (getLexicalEnv() != o.getLexicalEnv()) return false;
+        for (Id fld : ftype.getFieldNames()) {
+            String name = fld.getText();
+            if (!(select(name).seqv(o.select(name)))) return false;
+        }
+        return true;
+    }
+
 }

@@ -104,6 +104,8 @@ public class FGenericFunction extends SingleFcn
         return getString() + fndef.at();
     }
 
+    public boolean seqv(FValue v) { return false; }
+
     protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
         Closure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
          cl.finishInitializing();

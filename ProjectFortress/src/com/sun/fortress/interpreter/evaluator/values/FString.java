@@ -29,6 +29,10 @@ public class FString extends FBuiltinValue {
     public String toString() {
         return "\"" + Unprinter.enQuote(val) + "\"";
     }
+    public boolean seqv(FValue v) {
+        if (!(v instanceof FString)) return false;
+        return (getString().equals(v.getString()));
+    }
     protected FString(String x) {
         val = x;
     }

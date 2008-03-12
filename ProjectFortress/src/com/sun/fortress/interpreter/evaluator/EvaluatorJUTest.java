@@ -33,8 +33,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FRange;
-import com.sun.fortress.interpreter.evaluator.values.FRangeIterator;
 import com.sun.fortress.useful.HasAt;
 
 public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
@@ -291,38 +289,6 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
   //   assertTrue(! res.getBool());
   // }
 
-    public void testFRange() {
-        FRange test1 = new FRange(1, 10);
-        FRange first = test1.firstHalf();
-        FRangeIterator iter = new FRangeIterator(test1);
-        FRange second = test1.secondHalf();
-        assertTrue(first.getBase() == 1);
-        assertTrue(first.getSize() > 0);
-        assertTrue(second.getBase() == first.getBase() + first.getSize());
-        assertTrue(second.getSize() > 0);
-        assertTrue(first.getSize() + second.getSize() == 10);
-        assertTrue(iter.hasNext());
-        assertTrue(!iter.hasAtMostOne());
-        assertTrue(((FInt)iter.next()).getInt() == 1);
-        assertTrue(((FInt)iter.next()).getInt() == 2);
-        assertTrue(((FInt)iter.next()).getInt() == 3);
-        assertTrue(((FInt)iter.next()).getInt() == 4);
-        assertTrue(((FInt)iter.next()).getInt() == 5);
-        assertTrue(((FInt)iter.next()).getInt() == 6);
-        assertTrue(((FInt)iter.next()).getInt() == 7);
-        assertTrue(((FInt)iter.next()).getInt() == 8);
-        assertTrue(((FInt)iter.next()).getInt() == 9);
-        assertTrue(iter.hasAtMostOne());
-        assertTrue(((FInt)iter.next()).getInt() == 10);
-        FRange test2 = new FRange(1, 11);
-        first = test2.firstHalf();
-        second = test2.secondHalf();
-        assertTrue(first.getBase() == 1);
-        assertTrue(first.getSize() > 0);
-        assertTrue(second.getBase() == first.getBase() + first.getSize());
-        assertTrue(second.getSize() > 0);
-        assertTrue(first.getSize() + second.getSize() == 11);
-    }
     public void testEnvironment() {
         BetterEnv e = new BetterEnv("e");
         e.putValue("x", FInt.make(7));

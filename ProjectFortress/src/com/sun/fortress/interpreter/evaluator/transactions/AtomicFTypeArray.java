@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedExc
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -49,7 +50,7 @@ public class AtomicFTypeArray extends FOrdinaryObject {
     public static final boolean TRACE_ARRAY = false;
 
     public AtomicFTypeArray
-            (FType selfType, BetterEnv self_dot_env) {
+            (FTypeObject selfType, BetterEnv self_dot_env) {
         super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
         int capacity = self_dot_env.getValue("s0").getInt();
         array        = new FValue[capacity];

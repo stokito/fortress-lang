@@ -53,7 +53,8 @@ public class PrimImmutableArray extends Constructor {
     public static final class PrimImmutableArrayObject extends FOrdinaryObject {
         protected final FValue[] contents;
 
-        public PrimImmutableArrayObject(FType selfType, BetterEnv self_dot_env) {
+        public PrimImmutableArrayObject(FTypeObject selfType,
+                                        BetterEnv self_dot_env) {
             super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
             int capacity = self_dot_env.getValue("s0").getInt();
             this.contents = new FValue[capacity];

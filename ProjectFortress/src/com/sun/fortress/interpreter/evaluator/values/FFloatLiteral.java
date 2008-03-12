@@ -31,4 +31,16 @@ public class FFloatLiteral extends FBuiltinValue {
     public FFloatLiteral(String s) {
         value = s;
     }
+
+    public boolean seqv(FValue v) {
+        // HACK that's only sort-of correct.  If we care about all the digits,
+        // there must be some sort of normalization.
+        if (!(v instanceof FBuiltinValue)) return false;
+        if (v instanceof FFloat || v instanceof FFloatLiteral ||
+            v instanceof FInt   || v instanceof FIntLiteral   ||
+            v instanceof FLong) {
+            return (getFloat() == v.getFloat());
+        }
+        return false;
+    }
 }

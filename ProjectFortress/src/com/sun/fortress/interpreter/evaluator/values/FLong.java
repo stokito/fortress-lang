@@ -32,6 +32,16 @@ public class FLong extends FBuiltinValue implements HasIntValue {
   public String toString() {
       return "ZZ64 " + val;
   }
+  public boolean seqv(FValue v) {
+      if (!(v instanceof FBuiltinValue)) return false;
+      if (v instanceof FLong || v instanceof FInt) {
+          return (getLong() == v.getLong());
+      }
+      if (v instanceof FFloat || v instanceof FFloatLiteral) {
+          return (getFloat() == v.getFloat());
+      }
+      return false;
+  }
   private FLong(long x) {
     val = x;
   }

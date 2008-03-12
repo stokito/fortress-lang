@@ -56,7 +56,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
  * A Closure value is a function, plus some environment information.
  */
 public class Closure extends NonPrimitive implements Scope, HasFinishInitializing {
-    
+
     protected FType returnType;
     protected List<FType> instArgs;
     protected Applicable def;
@@ -83,7 +83,7 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
     protected HasAt getAt() {
         return def;
     }
-    
+
     public String stringName() {
         return def.stringName();
     }
@@ -104,6 +104,17 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
             (type() != null ? type() : "NULL")) + def.at();
     }
 
+    public boolean seqv(FValue v) {
+        if (!(v instanceof Closure)) return false;
+        Closure c = (Closure) v;
+        if (getDef() != c.getDef()) return false;
+        if (type()   != c.type()) return false;
+        if (getEnv() == c.getEnv()) return true;
+        // TODO: environment walking and matching.  Worth it??
+        // We'd need to compute FV(body).
+        return false;
+    }
+
     public Closure(BetterEnv e, Applicable fndef) {
         super(e); // TODO verify that this is the proper environment
         def = NativeApp.checkAndLoadNative(fndef);
@@ -114,13 +125,13 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
         def = NativeApp.checkAndLoadNative(fndef);
         instArgs = args;
     }
-    
+
     public int hashCode() {
         return def.hashCode() +
         System.identityHashCode(getEnv()) +
         (instArgs == null ? 0 : instArgs.hashCode());
     }
-    
+
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass().equals(this.getClass())) {
@@ -240,11 +251,11 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
         FType ft = EvalType.getFTypeFromOption(rt, env);
         if (ft instanceof FTypeDynamic)
             ft = BottomType.ONLY;
-        
+
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
         setParamsAndReturnType(fparams, ft);
-        
+
         return; //  this;
     }
 

@@ -43,7 +43,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
     ObjectAbsDeclOrDecl odecl;
     FType t;
     GenericConstructor genericConstructor;
-    
+
     public GenericSingleton(ObjectAbsDeclOrDecl odecl, FType t, GenericConstructor gc) {
         super();
         this.odecl = odecl;
@@ -51,7 +51,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
         this.genericConstructor = gc;
     }
 
-    
+
     private class Factory implements Factory1P<List<FType>, FObject, HasAt> {
 
         public FObject make(List<FType> args, HasAt location) {
@@ -60,14 +60,13 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
             apply(Collections.<FValue>emptyList(),
                     location,
                     genericConstructor.getWithin());
-            
         }
 
 
     }
 
      Memo1P<List<FType>, FObject, HasAt> memo = new Memo1P<List<FType>, FObject, HasAt>(new Factory());
-    
+
     public FObject make(List<FType> l, HasAt location) {
         return memo.make(l, location);
     }
@@ -81,9 +80,14 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
         // TODO Auto-generated method stub
         return odecl.getName();
     }
-    
+
     public String getString() {
         return s(odecl);
+    }
+
+    public boolean seqv(FValue v) {
+        // pointer equality checked already.
+        return false;
     }
 
     public List<StaticParam> getStaticParams() {
@@ -93,7 +97,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
     public FObject typeApply(HasAt location, List<FType> argValues) {
         return make(argValues, location);
     }
-    
+
     public FObject typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
         List<StaticParam> params = odecl.getStaticParams();
         ArrayList<FType> argValues = GenericConstructor.argsToTypes(args, e, x, params);

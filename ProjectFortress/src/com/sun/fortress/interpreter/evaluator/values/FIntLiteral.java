@@ -75,4 +75,12 @@ public class FIntLiteral extends FBuiltinValue implements HasIntValue {
     }
     public BigInteger getLit() { return value; }
     public double getFloat() { return value.doubleValue(); }
+    public boolean seqv(FValue v) {
+        if (!(v instanceof FBuiltinValue)) return false;
+        if (v instanceof FIntLiteral)
+            return value.equals(((FIntLiteral)v).value);
+        if (v instanceof FFloat || v instanceof FFloatLiteral)
+            return getFloat()==v.getFloat();
+        return false;
+    }
 }

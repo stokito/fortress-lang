@@ -43,12 +43,10 @@ import com.sun.fortress.interpreter.evaluator.values.FAsIf;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FChar;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FGenerator;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FStringLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
@@ -896,11 +894,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forGeneratorClause(GeneratorClause x) {
-        List<Id> names = x.getBind();
-        Expr init = x.getInit();
-        FValue rval = init.accept(this);
-        FRange range = (FRange)rval;
-        return new FGenerator(names, range);
+        return bug(x,errorMsg("Generator clause "+x+" remains after desugaring"));
     }
 
     public FValue forId(Id x) {

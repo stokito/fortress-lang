@@ -47,6 +47,11 @@ public class FBool extends FBuiltinValue {
         return val ? "true" : "false";
     }
 
+    public boolean seqv(FValue v) {
+        // Pointer equivalence gets checked before call.
+        return false;
+    }
+
     // Stuff for nativizing FBool.
     // public void setConstructor(NativeConstructor con) {
     //     // WARNING!  In order to run the tests we must reset con for
