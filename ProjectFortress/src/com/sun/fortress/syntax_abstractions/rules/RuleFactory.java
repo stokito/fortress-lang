@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -30,16 +30,16 @@ public class RuleFactory {
 //		Collection<Rule> cs = new LinkedList<Rule>();
 //		if (nonterminalName.equals("BlockElems")) {
 //			if (syntaxParams.size() > inx+1) {
-//				cs.add(getBlockElemsRule(syntaxParams.get(inx+1)));	
-//			}			
+//				cs.add(getBlockElemsRule(syntaxParams.get(inx+1)));
+//			}
 //		}
 //		return cs;
 //	}
-//	
+//
 //	private static Rule getBlockElemsRule(SyntaxParam syntaxParam) {
 //		return new BlockElemsRule(ModuleEnum.LOCALDECL, syntaxParam.getIdentifier());
 //	}
-	
-	
+
+
 
 }
