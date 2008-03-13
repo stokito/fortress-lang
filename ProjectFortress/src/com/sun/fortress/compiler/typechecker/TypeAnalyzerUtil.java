@@ -382,7 +382,7 @@ public class TypeAnalyzerUtil {
     public static Pair<Pair<Type,Type>, Map<InferenceVarType,Integer>>
         canonicalize(Type t, Type s) {
         Map<InferenceVarType,Integer> map = mapVs(t, s);
-        return new Pair(new Pair(canon(t, map), canon(s, map)), map);
+        return Pair.make(Pair.make(canon(t, map), canon(s, map)), map);
     }
 
     private static Map<InferenceVarType,Type> canon(Map<InferenceVarType,Type> bounds,

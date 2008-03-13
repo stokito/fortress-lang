@@ -727,14 +727,14 @@ public abstract class SubtypeChecker {
             new HashMap<Pair<Type,Type>,Boolean>();
 
         public void put(Type s, Type t, Boolean r) {
-            Pair<Type, Type> types = new Pair(s, t);
+            Pair<Type, Type> types = Pair.make(s, t);
             if (!subtypeCache.containsKey(types)) {
                 subtypeCache.put(types, r);
             }
         }
 
         public Option<Boolean> contains(Type s, Type t) {
-            Pair<Type, Type> types = new Pair(s, t);
+            Pair<Type, Type> types = Pair.make(s, t);
             if (subtypeCache.containsKey(types))
                 return Option.some(subtypeCache.get(types));
             else return Option.<Boolean>none();

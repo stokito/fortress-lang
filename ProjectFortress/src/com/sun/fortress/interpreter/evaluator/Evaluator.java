@@ -658,7 +658,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     new ArrayList<Pair<FValue,Option<String>>>();
                 if (expr instanceof TupleExpr) {
                     for (Expr e : ((TupleExpr)expr).getExprs()) {
-                        vals.add(new Pair(e.accept(ev), getName(e)));
+                        vals.add(new Pair<FValue,Option<String>>(e.accept(ev),
+                                                                 getName(e)));
                     }
                 } else { // !(expr instanceof TupleExpr)
                     FValue val = expr.accept(ev);
@@ -666,7 +667,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         error(expr, "RHS does not yield a tuple.");
                     }
                     for (FValue v : ((FTuple)val).getVals()) {
-                        vals.add(new Pair(v, Option.<String>none()));
+                        vals.add(new Pair<FValue,Option<String>>(v, Option.<String>none()));
                     }
                 }
                 int index = 0;
@@ -1273,8 +1274,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // single element that is the application of the function to
                     // the argument.  This new element is an expression.
                     Pair<MathItem,FValue> app =
-                        new Pair(dummyExpr(),
-                                 functionInvocation(arg,(Fcn)ftn,argE));
+                        new Pair<MathItem,FValue>(dummyExpr(),
+                                                  functionInvocation(arg,(Fcn)ftn,argE));
                     vs.set(ftnInd, app);
                     vs.remove(ftnInd+1);
                     // It is a static error if a function argument is immediately
@@ -1348,8 +1349,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // with a single element that does the appropriate operator
                     // application.  This new element is an expression.
                     Pair<MathItem,FValue> app =
-                        new Pair(dummyExpr(),
-                                 mathItemApplication((NonExprMI)opr,front,opr));
+                        new Pair<MathItem,FValue>(dummyExpr(),
+                                                  mathItemApplication((NonExprMI)opr,front,opr));
                     vs.set(frontInd, app);
                     vs.remove(frontInd+1);
                     // Reassociate the resulting sequence (which is one element
@@ -1399,13 +1400,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
             boolean isExponentiation = false;
             for (MathItem mi : rest) {
                 if (mi instanceof ExprMI)
-                    vs.add(new Pair(mi, ((ExprMI)mi).getExpr().accept(this)));
+                    vs.add(new Pair<MathItem,FValue>(mi, ((ExprMI)mi).getExpr().accept(this)));
                 else { // mi instanceof NonExprMI
                     if (isExponentiation)
                        return error(x, "It is a static error if an " +
                                     "exponentiation is immediately followed " +
                                     "by a subscripting or an exponentiation.");
-                    vs.add(new Pair(mi, null));
+                    vs.add(new Pair<MathItem,FValue>(mi, null));
                     isExponentiation = (mi instanceof ExponentiationMI);
                 }
             }
