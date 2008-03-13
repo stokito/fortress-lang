@@ -96,7 +96,13 @@ public class Parser {
             _lastModified = Math.max(r1.lastModified(), r2.lastModified());
         }
 
-        public Iterable<Api> apis() { return _apis; }
+        public Result(Iterable<? extends StaticError> errors) {
+			super(errors);
+            _apis = IterUtil.empty();
+            _components = IterUtil.empty();
+		}
+
+		public Iterable<Api> apis() { return _apis; }
         public Iterable<Component> components() { return _components; }
         public long lastModified() { return _lastModified; }
     }

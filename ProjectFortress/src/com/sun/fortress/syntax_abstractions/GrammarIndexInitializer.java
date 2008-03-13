@@ -78,7 +78,6 @@ public class GrammarIndexInitializer {
 						if (s.isEmpty()) {
 							ses.add(StaticError.make("Unknown extended nonterminal: "+name+" in grammar: "+g.getName(), n.getAst()));
 						}
-						((NonterminalExtendIndex) n).addExtendedNonterminals(s);
 					}
 				}
 			}

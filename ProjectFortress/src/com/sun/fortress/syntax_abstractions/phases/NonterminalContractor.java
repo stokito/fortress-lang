@@ -56,6 +56,7 @@ public class NonterminalContractor {
 		GrammarAnalyzer<GrammarIndex> analyzer = new GrammarAnalyzer<GrammarIndex>();
 
 		for (NonterminalIndex<? extends GrammarMemberDecl> n: analyzer.getContainedSet(g)) {
+			System.err.println("Name: "+n.getName());
 			DependencyCollector dc = new DependencyCollector(Option.unwrap(n.getName().getApi()));
 			n.getAst().accept(dc);
 			Set<QualifiedIdName> dependencies = dc.getResult();

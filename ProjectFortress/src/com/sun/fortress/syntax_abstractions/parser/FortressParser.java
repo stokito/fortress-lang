@@ -32,7 +32,7 @@ import xtc.parser.SemanticValue;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
-import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -56,76 +56,6 @@ import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.SimpleBox;
 
 public class FortressParser {
-
-	public static class Result extends StaticPhaseResult {
-		private final Iterable<Api> _apis;
-		private final Iterable<Component> _components;
-		private long _lastModified;
-
-		public Result() {
-			_apis = IterUtil.empty();
-			_components = IterUtil.empty();
-		}
-
-		public Result(Api api, long lastModified) {
-			_apis = IterUtil.singleton(api);
-			_components = IterUtil.empty();
-			_lastModified = lastModified;
-		}
-
-		public Result(Iterable<? extends StaticError> errors) {
-			super(errors);
-			_apis = IterUtil.empty();
-			_components = IterUtil.empty();
-		}
-
-		public Result(Component component, long lastModified) {
-			_components = IterUtil.singleton(component);
-			_apis = IterUtil.empty();
-			_lastModified = lastModified;
-		}
-
-		public Result(StaticError error) {
-			super(IterUtil.singleton(error));
-			_apis = IterUtil.empty();
-			_components = IterUtil.empty();
-		}
-
-		public Result(Result r1, Result r2) {
-			super(r1, r2);
-			_apis = IterUtil.compose(r1._apis, r2._apis);
-			_components = IterUtil.compose(r1._components, r2._components);
-			_lastModified = Math.max(r1.lastModified(), r2.lastModified());
-		}
-
-		public Iterable<Api> apis() { return _apis; }
-		public Iterable<Component> components() { return _components; }
-		public long lastModified() { return _lastModified; }
-	}
-
-	public static class Error extends StaticError {
-		private final ParseError _parseError;
-		private final ParserBase _parser;
-
-		public Error(ParseError parseError, ParserBase parser) {
-			_parseError = parseError;
-			_parser = parser;
-		}
-
-		public String typeDescription() { return "Parse Error"; }
-
-		public String description() {
-			String result = _parseError.msg;
-			// TODO: I don't know for sure whether this is allowed to be null
-			if (result == null || result.equals("")) { result = "Unspecified cause"; }
-			return result;
-		}
-
-		public String at() {
-			if (_parseError.index == -1) { return "Unspecified location"; }
-			else { return _parser.location(_parseError.index).toString(); }
-		}
-	}
 
 	/**
 	 * Parse the given files and any additional files that are expected to contain
@@ -200,7 +130,6 @@ public class FortressParser {
 				if (parseResult.hasValue()) {
 					Object cu = ((SemanticValue) parseResult).value;
 					if (cu instanceof CompilationUnit) {
-					    String s = f.getCanonicalPath();
 					    
 					    if (cu instanceof Api) {
 					        return new Result((Api) cu, f.lastModified());

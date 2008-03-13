@@ -17,32 +17,14 @@
 
 package com.sun.fortress.compiler.index;
 
-import java.util.Collection;
-import java.util.LinkedList;
-
-import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 
 import edu.rice.cs.plt.tuple.Option;
 
 public class NonterminalExtendIndex extends GrammarNonterminalIndex<NonterminalExtensionDef> {
-
-	private Collection<NonterminalIndex<? extends GrammarMemberDecl>> extend;
 	
 	public NonterminalExtendIndex(Option<NonterminalExtensionDef> ast) {
 		super(ast);
-		this.extend = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-	}
-
-	public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getExtends() {
-		return this.extend;
-	}
-
-	public void addExtendedNonterminal(NonterminalIndex<? extends GrammarMemberDecl> ext) {
-		this.extend.add(ext);
 	}
 	
-	public void addExtendedNonterminals(Collection<NonterminalIndex<? extends GrammarMemberDecl>> ext) {
-		this.extend.addAll(ext);
-	}
 }

@@ -23,7 +23,7 @@ import java.util.Iterator;
 
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.syntax_abstractions.parser.FortressParser.Result;
+import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.Api;

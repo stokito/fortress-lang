@@ -103,7 +103,7 @@ public class Fortress {
         
         BatchCachingRepository bcr = Driver.fssRepository(path, _repository);
             
-        FortressParser.Result result = compileInner(bcr, files);
+        Parser.Result result = compileInner(bcr, files);
  
         // Parser.Result pr = Parser.parse(files, env);
         if (!result.isSuccessful()) { return result.errors(); }
@@ -115,9 +115,9 @@ public class Fortress {
         return IterUtil.empty();
     }
 
-    private FortressParser.Result compileInner(BatchCachingRepository bcr,
+    private Parser.Result compileInner(BatchCachingRepository bcr,
             String... files) {
-        FortressParser.Result result = new FortressParser.Result();
+        Parser.Result result = new Parser.Result();
         
         bcr.addRootApis("FortressBuiltin");
         bcr.addRootApis("FortressLibrary");
@@ -140,9 +140,9 @@ public class Fortress {
             } catch (ProgramError pe) {
                 Iterable<? extends StaticError> se = pe.getStaticErrors();
                 if (se == null)
-                    result = new FortressParser.Result(result, new FortressParser.Result(new WrappedException(pe)));
+                    result = new Parser.Result(result, new Parser.Result(new WrappedException(pe)));
                 else 
-                    result = new FortressParser.Result(result, new FortressParser.Result(se));
+                    result = new Parser.Result(result, new Parser.Result(se));
             } catch (Exception ex) {
                 result = addExceptionToResult(result, ex);
             }
@@ -168,30 +168,30 @@ public class Fortress {
         return result;
     }
 
-    private FortressParser.Result addExceptionToResult(
-            FortressParser.Result result, Exception ex) {
-        result = new FortressParser.Result(result, new FortressParser.Result(new WrappedException(ex)));
+    private Parser.Result addExceptionToResult(
+            Parser.Result result, Exception ex) {
+        result = new Parser.Result(result, new Parser.Result(new WrappedException(ex)));
         return result;
     }
 
-    private FortressParser.Result addComponentToResult(
-            BatchCachingRepository bcr, FortressParser.Result result,
+    private Parser.Result addComponentToResult(
+            BatchCachingRepository bcr, Parser.Result result,
             APIName name) throws FileNotFoundException, IOException {
         Component c = (Component) bcr.getComponent(name).ast();
-        result = new FortressParser.Result(result, new FortressParser.Result(c, bcr.getModifiedDateForComponent(name)));
+        result = new Parser.Result(result, new Parser.Result(c, bcr.getModifiedDateForComponent(name)));
         return result;
     }
 
-    private FortressParser.Result addApiToResult(BatchCachingRepository bcr,
-            FortressParser.Result result, APIName name)
+    private Parser.Result addApiToResult(BatchCachingRepository bcr,
+            Parser.Result result, APIName name)
             throws FileNotFoundException, IOException {
         Api a = (Api) bcr.getApi(name).ast();
-        result = new FortressParser.Result(result, new FortressParser.Result(a, bcr.getModifiedDateForApi(name)));
+        result = new Parser.Result(result, new Parser.Result(a, bcr.getModifiedDateForApi(name)));
         return result;
     }
 
     private Iterable<? extends StaticError> analyze(GlobalEnvironment env,
-            FortressParser.Result pr) {
+            Parser.Result pr) {
         Iterable<Api> apis = pr.apis();
         Iterable<Component> components = pr.components();
         long lastModified = pr.lastModified();
@@ -305,7 +305,7 @@ public class Fortress {
         
         BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
         
-        FortressParser.Result result = compileInner(bcr, componentName);
+        Parser.Result result = compileInner(bcr, componentName);
  
         if (!result.isSuccessful()) { return result.errors(); }
         
