@@ -52,6 +52,13 @@ public class Overload implements Comparable, HasAt {
     }
 
 
+    public int getSelfParameterIndex() {
+        if (fn instanceof HasSelfParameter) {
+            return ((HasSelfParameter)fn).getSelfParameterIndex();
+        }
+        return -1;
+    }
+    
 
     /**
      * @param fn The fn to set.

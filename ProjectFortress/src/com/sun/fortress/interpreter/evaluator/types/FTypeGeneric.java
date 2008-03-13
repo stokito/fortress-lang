@@ -96,7 +96,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     }
 
     public FTypeGeneric(FTypeGeneric orig, TraitObjectAbsDeclOrDecl new_def) {
-        super(orig.getName(), orig.getEnv(), orig.getDecl());
+        super(orig.getName(), orig.getWithin(), orig.getDecl());
         genericAt = orig.getDef();
         def = new_def;
         params = new_def.getStaticParams();

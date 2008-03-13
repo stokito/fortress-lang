@@ -263,7 +263,7 @@ abstract public class FType implements Comparable<FType> {
 
     }
 
-    public BetterEnv getEnv() {
+    public BetterEnv getWithin() {
         return BetterEnv.blessedEmpty();
     }
 

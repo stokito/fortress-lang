@@ -53,15 +53,15 @@ public class PartiallyDefinedMethod extends MethodClosure {
                 s(def) : (s(def) + Useful.listInOxfords(instArgs))) + def.at();
     }
 
-    public PartiallyDefinedMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef) {
-        super(within, fndef); // TODO verify that this is the proper environment
+    public PartiallyDefinedMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer) {
+        super(within, fndef, definer); // TODO verify that this is the proper environment
         if (!evaluationEnv.getBlessed())
             System.err.println("urp!");
         this.evaluationEnv = evaluationEnv;
      }
 
-    protected PartiallyDefinedMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, List<FType> args) {
-        super(within, fndef, args);
+    protected PartiallyDefinedMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer, List<FType> args) {
+        super(within, fndef, definer, args);
         this.evaluationEnv = evaluationEnv;
         if (!evaluationEnv.getBlessed())
             System.err.println("urp!");

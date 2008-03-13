@@ -46,20 +46,23 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     Set<String> fields;
 
     BetterEnv methodEnvironment;
+    
+    FType definer;
 
     public BuildTraitEnvironment(BetterEnv within, BetterEnv methodEnvironment,
-            Set<String> fields) {
+            FType definer, Set<String> fields) {
         super(within);
+        this.definer = definer;
         this.fields = fields;
         this.methodEnvironment = methodEnvironment;
     }
 
     protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
-        return new PartiallyDefinedMethod(containing, methodEnvironment, x);
+        return new PartiallyDefinedMethod(containing, methodEnvironment, x, definer);
     }
 
     protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {
-        return new GenericMethod(containing, methodEnvironment, x, true);
+        return new GenericMethod(containing, methodEnvironment, x, definer, true);
     }
 
     /**

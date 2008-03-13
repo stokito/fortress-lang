@@ -50,7 +50,7 @@ public class FTypeTrait extends FTraitOrObject {
 
     protected void finishInitializing() {
         declaredMembersOf.bless();
-        BetterEnv interior = getEnv();
+        BetterEnv interior = getWithin();
         methodEnv = new BetterEnv(interior, interior.getAt());
         methodEnv.bless();
     }
@@ -68,7 +68,7 @@ public class FTypeTrait extends FTraitOrObject {
         List<? extends AbsDeclOrDecl> defs = getASTmembers();
 
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
-                forTraitMethods, null);
+                forTraitMethods, this, null);
 
         inner.doDefs1234(defs);
         membersInitialized = true;
@@ -88,5 +88,5 @@ public class FTypeTrait extends FTraitOrObject {
     protected BetterEnv getMembersInternal() {
         return declaredMembersOf;
     }
-
+ 
 }

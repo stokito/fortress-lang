@@ -164,7 +164,7 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     getter toString():String = "{}"
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
-    dom():Set[\Key\] = set[\Key\]()
+    dom(self):Set[\Key\] = set[\Key\]()
     opr | self |: ZZ32 = 0
     getPair():(Key, Val) = fail("emptyMap.getPair()")
     getKey():Key = fail("emptyMap.getKey()")

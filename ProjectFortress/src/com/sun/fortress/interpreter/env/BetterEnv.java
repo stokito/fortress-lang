@@ -177,6 +177,12 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     public BetterEnv(BetterEnv existing, BetterEnv additions) {
         if ( !existing.blessed || !additions.blessed )
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
+        augment(existing, additions);
+        parent = existing;
+        bless();
+    }
+
+    private void augment(BetterEnv existing, BetterEnv additions) {
         type_env = augment(existing.type_env, additions.type_env);
         nat_env = augment(existing.nat_env, additions.nat_env);
         int_env = augment(existing.int_env, additions.int_env);
@@ -185,10 +191,13 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         api_env = augment(existing.api_env, additions.api_env);
         cmp_env = augment(existing.cmp_env, additions.cmp_env);
         dcl_env = augment(existing.dcl_env, additions.dcl_env);
-        parent = existing;
-        bless();
     }
 
+    public BetterEnv augment(BetterEnv additions) {
+        augment(this, additions);
+        return this;
+    }
+    
     public BetterEnv(BetterEnv containing, HasAt x) {
         this(containing);
         within = x;

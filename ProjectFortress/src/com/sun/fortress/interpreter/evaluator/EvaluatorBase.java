@@ -122,7 +122,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         break;
                     }
                 }
-                e = selfType.getEnv();
+                e = selfType.getWithin();
             } else
                 return error(loc,
                         errorMsg(

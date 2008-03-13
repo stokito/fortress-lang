@@ -70,9 +70,9 @@ public class GenericMethod extends MethodClosure implements
         MethodClosure cl;
         if (FType.anyAreSymbolic(args))
             cl = isTraitMethod ? new PartiallyDefinedMethodInstance(getEnv(),
-                    clenv, getDef(), args, this)
+                    clenv, getDef(), getDefiner(), args, this)
                     : new MethodClosureInstance(getEnv(), clenv, getDef(),
-                           args, this);
+                           getDefiner(), args, this);
         else {
             // TODO Intention is that this is a plain old instantiation,
             // however there are issues of capturing the evaluation
@@ -80,9 +80,9 @@ public class GenericMethod extends MethodClosure implements
             // MethodClosureInstance ought to be MethodClosure, but
             // isn't, yet.
             cl = isTraitMethod ? new PartiallyDefinedMethod(getEnv(),
-                    clenv, getDef(), args)
+                    clenv, getDef(), getDefiner(), args)
                     : new MethodClosureInstance(getEnv(), clenv, getDef(),
-                            args, this);
+                            getDefiner(), args, this);
         }
         cl.finishInitializing();
         return (MethodClosure) cl;
@@ -112,10 +112,10 @@ public class GenericMethod extends MethodClosure implements
     }
 
     public GenericMethod(BetterEnv declarationEnv, BetterEnv evaluationEnv,
-            FnAbsDeclOrDecl fndef, boolean isTraitMethod) {
+            FnAbsDeclOrDecl fndef, FType definer, boolean isTraitMethod) {
         super(// new SpineEnv(declarationEnv, fndef), // Add an extra scope/layer for the generics.
                 declarationEnv, // not yet, it changes overloading semantics.
-                fndef);
+                fndef, definer );
         this.isTraitMethod = isTraitMethod;
         this.evaluationEnv = evaluationEnv;
     }

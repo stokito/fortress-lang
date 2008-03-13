@@ -191,30 +191,31 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
             setParams(Collections.<Parameter> emptyList());
         }
 
-        BetterEnv bte = new BetterEnv(getWithin(), getAt());
+        BetterEnv bte = selfType.getMethodExecutionEnv(); // new BetterEnv(getWithin(), getAt());
+        selfType.getMembers(); // has initializing side-effect.
         finishInitializing(bte);
     }
 
     private void finishInitializing(BetterEnv bte) {
 
-        GHashMap<SingleFcn, FTraitOrObject>
-            signaturesToTraitsContainingMethods =
-                new GHashMap<SingleFcn, FTraitOrObject>(
-                         SingleFcn.signatureEquivalence);
-
-        MultiMap<String, GenericMethod> generics =
-            new MultiMap<String, GenericMethod>();
-
-        HashSet<String> fields = new HashSet<String>();
+       // HashSet<String> fields = new HashSet<String>();
          // HashMap<String, String> com.sun.fortress.interpreter.rewrite =
         //  new HashMap<String, String>();
 
-        BuildObjectEnvironment bt =
-            new BuildObjectEnvironment(bte, selfType.getEnv(), fields);
+      //  BuildObjectEnvironment bt =
+      //      new BuildObjectEnvironment(bte, selfType.getWithin(), selfType, fields);
 
         // Inject methods into this environment
         // This should create new MethodClosures
-        visitDefs(bt);
+       // visitDefs(bt);
+
+        GHashMap<SingleFcn, FTraitOrObject>
+        signaturesToTraitsContainingMethods =
+            new GHashMap<SingleFcn, FTraitOrObject>(
+                     SingleFcn.signatureEquivalence);
+
+        MultiMap<String, GenericMethod> generics =
+             new MultiMap<String, GenericMethod>();
 
         // TODO deal with ORDER and ambiguity.  TransitiveExtends returns
         // a topological sort, which is close, but not perfect.
@@ -509,7 +510,8 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
             }
             }
             // Record the name to ensure that it is defined somewhere.
-            traitsToNamesReferenced.putItem(ft, ((Fcn)fv).asMethodName());
+            // The name of the overloaded function goes wrong, if it is a functional method.
+            traitsToNamesReferenced.putItem(ft, s);// ((Fcn)fv).asMethodName());
         }
     }
 

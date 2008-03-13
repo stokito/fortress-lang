@@ -103,7 +103,7 @@ abstract public class Fcn extends FValue {
 
     /**
      * Returns the name if this "function" is regarded as a method.
-     * Ought to throw an exception if it cannot be a method.
+     * For functions, just returns the name.
      */
     public String asMethodName() {
         return NodeUtil.nameString(getFnName());

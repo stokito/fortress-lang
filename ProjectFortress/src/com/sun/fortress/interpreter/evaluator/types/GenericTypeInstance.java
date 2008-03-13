@@ -49,7 +49,7 @@ public interface GenericTypeInstance {
      * For purposes of inferring functional methods in overloadings.
      * @return
      */
-    public BetterEnv getEnv();
+    public BetterEnv getWithin();
 
     public List<FType> getTransitiveExtends();
 
