@@ -131,6 +131,7 @@ public class FileTests {
                     }
                 }
                 finally {
+                    fr = null;
                     System.setErr(oldErr);
                     System.setOut(oldOut);
                     in.close();

@@ -51,15 +51,29 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
 
 
     List<FType> extends_;
-    HasAt at;
+    final private HasAt at;
+    
     volatile List<FType> properTransitiveExtends;
     // Must be volatile due to lazy initialization / double-checked locking.
     
+    /**
+     * Exactly what methods (traits) or fields (objects) are
+     * supplied by this object or trait.
+     */
     volatile BetterEnv suppliedMembers;
+    
+    /**
+     * Exactly what methods (traits) or fields (objects) are
+     * required by this object or trait.  For objects, this
+     * must be empty; if it isn't, the contents form an error
+     * message.
+     * 
+     */
     volatile BetterEnv requiredMembers;
 
     abstract protected void finishInitializing();
-
+    abstract public BetterEnv getMembers();
+    
     /**
      * Set extends, excludes, and replace the environment.
      *
@@ -164,6 +178,10 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
             }
         }
         return properTransitiveExtends;
+    }
+    
+    public HasAt getAt() {
+        return at;
     }
 
 
@@ -280,4 +298,10 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         }
         return true;
     }
+    
+    public void initializeRequiredAndSupplied() {
+        BetterEnv m = getMembers();
+        List<FType> exts = getExtends();
+    }
+
 }

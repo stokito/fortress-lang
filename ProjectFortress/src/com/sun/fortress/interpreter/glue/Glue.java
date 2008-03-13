@@ -44,7 +44,7 @@ public class Glue {
 
                     String fttn = t.getName();
                     if (fttn.equals(trait)) {
-                        Number n = t.getEnv().getNat(nat);
+                        Number n = t.getWithin().getNat(nat);
                         return n.intValue();
                     }
 
@@ -62,7 +62,7 @@ public class Glue {
 
                     String fttn = t.getName();
                     if (fttn.equals(trait)) {
-                        return  t.getEnv().getType(param);
+                        return  t.getWithin().getType(param);
                     }
 
             }

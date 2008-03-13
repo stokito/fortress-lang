@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
@@ -30,17 +31,18 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 
 public class BuildObjectEnvironment extends BuildTraitEnvironment {
 
-    public BuildObjectEnvironment(BetterEnv within, BetterEnv methodEnvironment, Set<String> fields) {
-        super(within, methodEnvironment, fields);
+     
+    public BuildObjectEnvironment(BetterEnv within, BetterEnv methodEnvironment, FType definer, Set<String> fields) {
+        super(within, methodEnvironment, definer, fields);
         // TODO Auto-generated constructor stub
     }
 
     protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
-        return new MethodClosure(e,x);
+        return new MethodClosure(containing,x, definer);
     }
 
     protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {
-        return new GenericMethod(e, e, x, false); // TODO need to get notself methods done
+        return new GenericMethod(containing, e, x, definer, false); 
     }
 
 

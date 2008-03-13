@@ -42,8 +42,8 @@ public class PartiallyDefinedMethodInstance extends PartiallyDefinedMethod  impl
     }
 
     public PartiallyDefinedMethodInstance(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef,
-            List<FType> args, GenericMethod generator) {
-        super(within, evaluationEnv, fndef, args);
+            FType definer, List<FType> args, GenericMethod generator) {
+        super(within, evaluationEnv, fndef, definer, args);
         //this.evaluationEnv = evaluationEnv;
         this.generator = generator;
     }

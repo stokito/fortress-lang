@@ -267,7 +267,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             if (staticParams.isEmpty()) {
                     FTypeTrait ftt =
                         (FTypeTrait) containing.getType(NodeUtil.nameString(name));
-                    BetterEnv interior = ftt.getEnv();
+                    BetterEnv interior = ftt.getWithin();
                     ftt.getMembers();
             }
             return null;
@@ -284,7 +284,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             if (staticParams.isEmpty()) {
                     FTypeTrait ftt = (FTypeTrait) containing
                             .getType(NodeUtil.nameString(name));
-                    BetterEnv interior = ftt.getEnv();
+                    BetterEnv interior = ftt.getWithin();
                     ftt.getMembers();
             }
             return null;
@@ -351,26 +351,26 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         }
     }
 
-    /**
-     * Put the mappings into "into", but create closures against forTraitMethods.
-     *
-     * @param into
-     * @param forTraitMethods
-     * @param defs
-     * @param fields
-     */
-    private void doTraitMethodDefs(FTypeTrait ftt, Set<String> fields) {
-        BetterEnv into = ftt.getMembers();
-        BetterEnv forTraitMethods = ftt.getMethodExecutionEnv();
-        List<? extends AbsDeclOrDecl> defs = ftt.getASTmembers();
-
-        BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
-                forTraitMethods, fields);
-
-        inner.doDefs1234(defs);
-
-    }
-
+//    /**
+//     * Put the mappings into "into", but create closures against forTraitMethods.
+//     *
+//     * @param into
+//     * @param forTraitMethods
+//     * @param defs
+//     * @param fields
+//     */
+//    private void doTraitMethodDefs(FTypeTrait ftt, Set<String> fields) {
+//        BetterEnv into = ftt.getMembers();
+//        BetterEnv forTraitMethods = ftt.getMethodExecutionEnv();
+//        List<? extends AbsDeclOrDecl> defs = ftt.getASTmembers();
+//
+//        BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
+//                forTraitMethods, ftt, fields);
+//
+//        inner.doDefs1234(defs);
+//
+//    }
+//
     public void doDefs1234(List<? extends AbsDeclOrDecl> defs) {
         doDefs(defs);
         doDefs234(defs);
@@ -1076,7 +1076,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
            {
                 FTypeTrait ftt = (FTypeTrait) containing
                         .getType(NodeUtil.nameString(name));
-                BetterEnv interior = ftt.getEnv();
+                BetterEnv interior = ftt.getWithin();
                 finishTrait(x, ftt, interior);
 
             }
@@ -1151,7 +1151,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
            {
                 FTypeTrait ftt = (FTypeTrait) containing
                         .getType(NodeUtil.nameString(name));
-                BetterEnv interior = ftt.getEnv();
+                BetterEnv interior = ftt.getWithin();
                 finishTrait(x, ftt, interior);
 
             }
@@ -1498,7 +1498,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private void forAbsObjectDecl1(AbsObjectDecl x) {
         // List<Modifier> mods;
 
-        BetterEnv e = containing;
         Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
@@ -1511,8 +1510,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
         ft = staticParams.isEmpty()
-                ? new FTypeObject(fname, e, x, params, x.getDecls(), x)
-                : new FTypeGeneric(e, x, x.getDecls(), x);
+                ? new FTypeObject(fname, containing, x, params, x.getDecls(), x)
+                : new FTypeGeneric(containing, x, x.getDecls(), x);
 
         // Need to check for overloaded constructor.
 
@@ -1521,7 +1520,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         if (params.isSome()) {
             if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
-                GenericConstructor gen = new GenericConstructor(e, x, name);
+                GenericConstructor gen = new GenericConstructor(containing, x, name);
                 guardedPutValue(containing, fname, gen, x);
             } else {
                 // TODO need to deal with constructor overloading.
@@ -1537,7 +1536,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         } else {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
-                makeGenericSingleton(x, e, name, fname, ft);
+                makeGenericSingleton(x, containing, name, fname, ft);
 
             } else {
                 // Simply need to create a named value so that imports will work.

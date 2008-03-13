@@ -79,6 +79,16 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         return d;
 
     }
+    
+    /**
+     * This is just like getNormalizedDomain, except that the method version
+     * of functional methods appends a "nat" Type indicating the position of
+     * the self parameter.
+     * @return
+     */
+    public List<FType> getNormalizedDomainForTables() {
+        return getNormalizedDomain();
+    }
 
     public List<FValue> fixupArgCount(List<FValue> args) {
         System.out.println("Naive fixupArgCount "+this+
@@ -95,8 +105,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     static class SignatureEquivalence extends Hasher<SingleFcn> {
         @Override
         public long hash(SingleFcn x) {
-            long a = (long) x.getFnName().hashCode() * MagicNumbers.s;
-            long b =  (long) x.getNormalizedDomain().hashCode() * MagicNumbers.l;
+            long a = (long) x.asMethodName().hashCode() * MagicNumbers.s;
+            long b =  (long) x.getNormalizedDomainForTables().hashCode() * MagicNumbers.l;
             // System.err.println("Hash of " + x + " yields " + a + " and " + b);
 
             return a + b;
@@ -104,11 +114,11 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
         @Override
         public boolean equiv(SingleFcn x, SingleFcn y) {
-            List<FType> dx = x.getNormalizedDomain();
-            List<FType> dy = y.getNormalizedDomain();
+            List<FType> dx = x.getNormalizedDomainForTables();
+            List<FType> dy = y.getNormalizedDomainForTables();
             if (dx.size() != dy.size())
                 return false;
-            if (! x.getFnName().equals(y.getFnName()))
+            if (! x.asMethodName().equals(y.asMethodName()))
                 return false;
             for (int i = 0; i < dx.size(); i++) {
                 if (! dx.get(i).equals(dy.get(i)))

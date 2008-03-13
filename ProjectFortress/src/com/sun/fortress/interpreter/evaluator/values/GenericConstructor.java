@@ -75,8 +75,8 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
         //InstantiatedType inst_type = new InstantiatedType(qin, statics);
         FTypeObject ft = (FTypeObject) gt.make(args, odefOrDecl);
 
-        // Use the augmented environment from the specific type.
-        BetterEnv clenv = ft.getEnv();
+            // Use the augmented environment from the specific type.
+            BetterEnv clenv = ft.getWithin();
 
         // Build the constructor
         //            Option<List<Param>> params = odefOrDecl.getParams();

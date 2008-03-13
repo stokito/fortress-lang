@@ -248,209 +248,20 @@ public class  OverloadedFunction extends Fcn
 
             if (!noCheck && !o1.guaranteedOK) {
 
-            for (int j = i-1; j >= 0 ; j--) {
+                for (int j = i-1; j >= 0 ; j--) {
 
-                Overload o2 = new_overloads.get(j);
-                if (o2.guaranteedOK)
-                    continue;
-                SingleFcn f1 = o1.getFn();
-                SingleFcn f2 = o2.getFn();
-
-                if (genericFMAndInstance(f1, f2) || genericFMAndInstance(f2, f1))
-                    continue;
-
-                boolean samePartition = false;
-
-                // Spot the case where two generics have equal static parameter lists
-                if (f1 instanceof ClosureInstance && f2 instanceof ClosureInstance) {
-                    GenericFunctionOrMethod g1 = ((ClosureInstance) f1).getGenerator();
-                    GenericFunctionOrMethod g2 = ((ClosureInstance) f2).getGenerator();
-                    if (FGenericFunction.genComparer.compare(g1, g2) == 0) {
-                        samePartition = true;
-                    }
-                }
-                // Yutch, we need to fix that type hierarchy
-                if (f1 instanceof FunctionalMethodInstance && f2 instanceof FunctionalMethodInstance) {
-                    GenericFunctionOrMethod g1 = ((FunctionalMethodInstance) f1).getGenerator();
-                    GenericFunctionOrMethod g2 = ((FunctionalMethodInstance) f2).getGenerator();
-                    if (FGenericFunction.genComparer.compare(g1, g2) == 0) {
-                        samePartition = true;
-                    }
-                }
-
-                List<FType> pl1 = o1.getParams();
-                List<FType> pl2 = o2.getParams();
-
-                int l1 = pl1.size();
-                boolean rest1 = (l1 > 0 && pl1.get(l1-1) instanceof FTypeRest);
-
-                int l2 = pl2.size();
-                boolean rest2 = (l2 > 0 && pl2.get(l2-1) instanceof FTypeRest);
-
-                // by construction, l1 is bigger.
-                // (see sort order above)
-                // possibilities
-                // rest1 l2 can be no smaller than l1-1; iterate to l2
-                // rest2 test out to l1
-                // both  test out to l1
-                // neither = required
-
-                int min;
-                if (rest2) {
-                    // both, rest2
-                    min = l1;
-                } else if (rest1) {
-                    // rest1
-                    if (l2 < l1-1) continue;
-                    min = l2;
-                } else {
-                    // neither
-                    if (l1 != l2)
+                    Overload o2 = new_overloads.get(j);
+                    if (o2.guaranteedOK)
                         continue;
-                    min = l1;
-                }
+                    SingleFcn f1 = o1.getFn();
+                    SingleFcn f2 = o2.getFn();
 
-                int p1better = -1; // set to index where p1 is subtype
-                int p2better = -1; // set to index where p2 is subtype
-
-                boolean distinct = false; // known to exclude
-                int unrelated = -1; // neither subtype nor exclude nor identical
-                boolean unequal = false;
-                boolean sawSymbolic1 = false;
-                boolean sawSymbolic2 = false;
-                int selfIndex = -1;
-
-                /* This is a hack for dealing with cases like
-                 *
-                   trait Bar[\A,nat n\]
-                       get():ZZ32 = n
-                   end
-
-                   object Baz[\A,nat n\]() extends Bar[\A,n\]
-                   end
-
-                   f[\A\](x:Bar[\A,17\]) = 20
-                   g[\A\](x:Baz[\A,17\]) = 21
-                   h[\A\](x:Bar[\A,17\]) = 22
-                   h[\A\](x:Baz[\A,17\]) = 23
-
-
-
-                 */
-                boolean allObjInstance1 = true;
-                boolean allObjInstance2 = true;
-
-                exclDumpln("Checking exclusion of ",pl1," and ",pl2,":");
-                for (int k = 0; k < min; k++) {
-                    FType p1 = pl1.get(k);
-                    FType p2 = k < l2 ? pl2.get(k) : pl2.get(l2-1);
-                    exclDump(k,": ",p1," and ",p2,", ",p1.getExtends()," and ",p2.getExtends(),", ");
-
-                    p1 = deRest(p1);
-                    p2 = deRest(p2);
-
-                    if (p1==p2  && !p1.isSymbolic() && !p2.isSymbolic()) {
-                        exclDumpln("equal.");
+                    if (genericFMAndInstance(f1, f2) || genericFMAndInstance(f2, f1))
                         continue;
-                    }
 
-                    allObjInstance1 &= p1 instanceof FTypeObject;
-                    allObjInstance2 &= p2 instanceof FTypeObject;
-
-                    unequal = true;
-
-                    if (f1 instanceof HasSelfParameter &&
-                            f2 instanceof HasSelfParameter &&
-                            ((HasSelfParameter)f1).getSelfParameterIndex() == ((HasSelfParameter)f2).getSelfParameterIndex() &&
-                            ((HasSelfParameter)f1).getSelfParameterIndex() == k) {
-                            exclDumpln("self params.");
-                            // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
-                            selfIndex = k;
-                            /*
-                             * Somebody Else's Problem -- if self parameters are different,
-                             * any problems will be flagged at the object level.
-                             */
-                            if (! p1.equals(p2))
-                                distinct = true; // This seems wrong/unnecessary
-                    }
-
-                    if (p1.excludesOther(p2)) {
-                        exclDumpln("distinct.");
-                        distinct = true;
-                    } else {
-
-                        boolean local_unrelated = true;
-                        // Check for subtype constraint.
-                        boolean p1subp2 = p1.subtypeOf(p2);
-                        boolean p2subp1 = p2.subtypeOf(p1);
-                        if (p1subp2 && !p2subp1) {
-                            p1better = k;
-                            local_unrelated = false;
-                            exclDumpln(" left better.");
-                        } else if (p2subp1 && !p1subp2) {
-                            p2better = k;
-                            local_unrelated = false;
-                            exclDumpln(" right better.");
-                        } else if (selfIndex != k) {
-                            if (p1.isSymbolic() )
-                                sawSymbolic1 = true;
-
-                            if (p2.isSymbolic() )
-                                sawSymbolic2 = true;
-                        }
-                        if (local_unrelated && unrelated == -1) {
-                            // Here we check for self parameters!
-                            if (selfIndex != k) {
-                                unrelated = k;
-                                exclDumpln("Unrelated.");
-                            }
-                        }
-                    }
+                    completeOverloadingCheck(o1, o2, new_overloads, within);
+                    
                 }
-
-                distinct |= unequal && (allObjInstance1 || allObjInstance2);
-
-                if (!distinct && (sawSymbolic1 || sawSymbolic2)) {
-                    String explanation;
-                    if (sawSymbolic1 && sawSymbolic2)
-                        explanation = errorMsg("\nBecause ", o1, " and ", o2, " have parameters\n");
-                    else if (sawSymbolic1)
-                        explanation = errorMsg("\nBecause ", o1, " has a parameter\n");
-                    else
-                        explanation = errorMsg("\nBecause ", o2, " has a parameter\n");
-                    explanation = explanation + "with generic type, at least one pair of parameters must have excluding types";
-                    error(o1, o2, within, explanation);
-                }
-
-                if (!distinct && unrelated != -1) {
-                    String s1 = parameterName(unrelated, o1);
-                    String s2 = parameterName(unrelated, o2);
-
-                    String explanation = errorMsg(Ordinal.ordinal(unrelated+1), " parameters ", s1, ":", pl1, " and ", s2, ":", pl2, " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present");
-                    error(o1, o2, within, explanation);
-                }
-
-                if (!distinct && p1better >= 0 && p2better >= 0 &&  !meetExistsIn(o1, o2, new_overloads)) {
-                    error(o1, o2, within,
-                            errorMsg("Overloading of\n\t(first) ", o1, " and\n\t(second) ", o2, " fails because\n\t",
-                            formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
-                            formatParameterComparison(p2better, o1, o2, "less")));
-                }
-                if (!distinct && p1better < 0 && p2better < 0 && selfIndex < 0) {
-                    String explanation = null;
-                    if (l1 == l2 && rest1 == rest2) {
-                        if (unequal)
-                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                        " fails because their parameter lists have potentially overlapping (non-excluding) types");
-                        else
-                            explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                        " fails because their parameter lists have the same types");
-                    } else
-                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                        " fails because of ambiguity in overlapping rest (...) parameters");
-                    error(o1, o2, within, explanation);
-                }
-            }
             }
         }
         FType ftoa = FTypeOverloadedArrow.make(ftalist);
@@ -467,6 +278,185 @@ public class  OverloadedFunction extends Fcn
         }
     }
 
+    static public void completeOverloadingCheck(Overload o1, Overload o2, List<Overload> new_overloads, BetterEnv within) {
+        List<FType> pl1 = o1.getParams();
+        List<FType> pl2 = o2.getParams();
+
+        int l1 = pl1.size();
+        boolean rest1 = (l1 > 0 && pl1.get(l1-1) instanceof FTypeRest);
+
+        int l2 = pl2.size();
+        boolean rest2 = (l2 > 0 && pl2.get(l2-1) instanceof FTypeRest);
+
+        // by construction, l1 is bigger.
+        // (see sort order above)
+        // possibilities
+        // rest1 l2 can be no smaller than l1-1; iterate to l2
+        // rest2 test out to l1
+        // both  test out to l1
+        // neither = required
+
+        int min;
+        boolean do_continue = false;
+        if (rest2) {
+            // both, rest2
+            min = l1;
+        } else if (rest1) {
+            // rest1
+            if (l2 < l1-1)
+                do_continue = true;
+            min = l2;
+        } else {
+            // neither
+            if (l1 != l2)
+                do_continue = true;
+            min = l1;
+        }
+
+        if (!do_continue) {
+
+
+            int p1better = -1; // set to index where p1 is subtype
+            int p2better = -1; // set to index where p2 is subtype
+
+            boolean distinct = false; // known to exclude
+            int unrelated = -1; // neither subtype nor exclude nor identical
+            boolean unequal = false;
+            boolean sawSymbolic1 = false;
+            boolean sawSymbolic2 = false;
+            int selfIndex = -1;
+
+            /* This is a hack for dealing with cases like
+             *
+       trait Bar[\A,nat n\]
+           get():ZZ32 = n
+       end
+
+       object Baz[\A,nat n\]() extends Bar[\A,n\]
+       end
+
+       f[\A\](x:Bar[\A,17\]) = 20
+       g[\A\](x:Baz[\A,17\]) = 21
+       h[\A\](x:Bar[\A,17\]) = 22
+       h[\A\](x:Baz[\A,17\]) = 23
+
+
+
+             */
+            boolean allObjInstance1 = true;
+            boolean allObjInstance2 = true;
+
+            exclDumpln("Checking exclusion of ",pl1," and ",pl2,":");
+            for (int k = 0; k < min; k++) {
+                FType p1 = pl1.get(k);
+                FType p2 = k < l2 ? pl2.get(k) : pl2.get(l2-1);
+                exclDump(k,": ",p1," and ",p2,", ",p1.getExtends()," and ",p2.getExtends(),", ");
+
+                p1 = deRest(p1);
+                p2 = deRest(p2);
+
+                if (p1==p2  && !p1.isSymbolic() && !p2.isSymbolic()) {
+                    exclDumpln("equal.");
+                    continue;
+                }
+
+                allObjInstance1 &= p1 instanceof FTypeObject;
+                allObjInstance2 &= p2 instanceof FTypeObject;
+
+                unequal = true;
+
+                if ( o1.getSelfParameterIndex() == k &&
+                        o1.getSelfParameterIndex() == o2.getSelfParameterIndex()) {
+                    exclDumpln("self params.");
+                    // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
+                    selfIndex = k;
+                    /*
+                     * Somebody Else's Problem -- if self parameters are different,
+                     * any problems will be flagged at the object level.
+                     */
+                    if (! p1.equals(p2))
+                        distinct = true; // This seems wrong/unnecessary
+                }
+
+                if (p1.excludesOther(p2)) {
+                    exclDumpln("distinct.");
+                    distinct = true;
+                } else {
+
+                    boolean local_unrelated = true;
+                    // Check for subtype constraint.
+                    boolean p1subp2 = p1.subtypeOf(p2);
+                    boolean p2subp1 = p2.subtypeOf(p1);
+                    if (p1subp2 && !p2subp1) {
+                        p1better = k;
+                        local_unrelated = false;
+                        exclDumpln(" left better.");
+                    } else if (p2subp1 && !p1subp2) {
+                        p2better = k;
+                        local_unrelated = false;
+                        exclDumpln(" right better.");
+                    } else if (selfIndex != k) {
+                        if (p1.isSymbolic() )
+                            sawSymbolic1 = true;
+
+                        if (p2.isSymbolic() )
+                            sawSymbolic2 = true;
+                    }
+                    if (local_unrelated && unrelated == -1) {
+                        // Here we check for self parameters!
+                        if (selfIndex != k) {
+                            unrelated = k;
+                            exclDumpln("Unrelated.");
+                        }
+                    }
+                }
+            }
+
+            distinct |= unequal && (allObjInstance1 || allObjInstance2);
+
+            if (!distinct && (sawSymbolic1 || sawSymbolic2)) {
+                String explanation;
+                if (sawSymbolic1 && sawSymbolic2)
+                    explanation = errorMsg("\nBecause ", o1, " and ", o2, " have parameters\n");
+                else if (sawSymbolic1)
+                    explanation = errorMsg("\nBecause ", o1, " has a parameter\n");
+                else
+                    explanation = errorMsg("\nBecause ", o2, " has a parameter\n");
+                explanation = explanation + "with generic type, at least one pair of parameters must have excluding types";
+                error(o1, o2, within, explanation);
+            }
+
+            if (!distinct && unrelated != -1) {
+                String s1 = parameterName(unrelated, o1);
+                String s2 = parameterName(unrelated, o2);
+
+                String explanation = errorMsg(Ordinal.ordinal(unrelated+1), " parameters ", s1, ":", pl1, " and ", s2, ":", pl2, " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present");
+                error(o1, o2, within, explanation);
+            }
+
+            if (!distinct && p1better >= 0 && p2better >= 0 &&  !meetExistsIn(o1, o2, new_overloads)) {
+                error(o1, o2, within,
+                        errorMsg("Overloading of\n\t(first) ", o1, " and\n\t(second) ", o2, " fails because\n\t",
+                                formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
+                                formatParameterComparison(p2better, o1, o2, "less")));
+            }
+            if (!distinct && p1better < 0 && p2better < 0 && selfIndex < 0) {
+                String explanation = null;
+                if (l1 == l2 && rest1 == rest2) {
+                    if (unequal)
+                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                        " fails because their parameter lists have potentially overlapping (non-excluding) types");
+                    else
+                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                        " fails because their parameter lists have the same types");
+                } else
+                    explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                    " fails because of ambiguity in overlapping rest (...) parameters");
+                error(o1, o2, within, explanation);
+            }
+        } // if not do_continue
+    }
+    
     private boolean genericFMAndInstance(SingleFcn f1, SingleFcn f2) {
         if (f1 instanceof GenericFunctionalMethod && f2 instanceof FunctionalMethod) {
             GenericFunctionalMethod gfm = (GenericFunctionalMethod) f1;
@@ -478,7 +468,7 @@ public class  OverloadedFunction extends Fcn
         return false;
     }
 
-    private String formatParameterComparison(int i, Overload o1, Overload o2,
+    static private String formatParameterComparison(int i, Overload o1, Overload o2,
             String how) {
         String s1 = parameterName(i, o1);
         String s2 = parameterName(i, o2);
@@ -489,7 +479,7 @@ public class  OverloadedFunction extends Fcn
      * @param i
      * @param f1
      */
-    private String parameterName(int i, Overload o) {
+    static private String parameterName(int i, Overload o) {
         SingleFcn f1 = o.getFn();
         String s1;
         if (f1 instanceof NonPrimitive) {
@@ -509,7 +499,7 @@ public class  OverloadedFunction extends Fcn
      * @param overloads2
      * @return
      */
-    private boolean meetExistsIn(Overload o1, Overload o2, List<Overload> overloads2) {
+    static private boolean meetExistsIn(Overload o1, Overload o2, List<Overload> overloads2) {
         List<FType> pl1 = o1.getParams();
         List<FType> pl2 = o2.getParams();
 
@@ -528,7 +518,7 @@ public class  OverloadedFunction extends Fcn
         return false;
     }
 
-    private FType deRest(FType p1) {
+    static private FType deRest(FType p1) {
         if (p1 instanceof FTypeRest) p1 = ((FTypeRest)p1).getType();
         return p1;
     }

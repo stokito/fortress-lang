@@ -76,7 +76,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     }
 
     @Override
-    final public BetterEnv getEnv() {
+    final public BetterEnv getWithin() {
         return env;
     }
 
@@ -85,7 +85,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     }
 
     public void initializeFunctionalMethods() {
-        initializeFunctionalMethods(getEnv());
+        initializeFunctionalMethods(getWithin());
 
     }
     public final void initializeFunctionalMethods(BetterEnv topLevel) {
@@ -122,7 +122,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                         // If the container is generic, then we create an
                         // empty top-level overloading, to be filled in as
                         // the container is instantiated.
-                        Fcn cl = new GenericFunctionalMethod(getEnv(), fndod,
+                        Fcn cl = new GenericFunctionalMethod(getWithin(), fndod,
                                 spi, (FTypeGeneric)x);
 
                         topLevel.putValueNoShadowFn(fndodname, cl);
@@ -143,7 +143,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
                     String fndodname = NodeUtil.nameString(fndod.getName());
 
-                    Fcn cl = new FunctionalMethod(getEnv(), fndod, spi, x);
+                    Fcn cl = new FunctionalMethod(getWithin(), fndod, spi, x);
                     if (x instanceof GenericTypeInstance)
                         topLevel.putFunctionalMethodInstance(fndodname, cl);
                     else
@@ -157,7 +157,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     public void finishFunctionalMethods() {
         if (functionalMethodsFinished)
             return;
-        BetterEnv topLevel = getEnv();
+        BetterEnv topLevel = getWithin();
         finishFunctionalMethods(topLevel);
         functionalMethodsFinished = true;
     }
