@@ -21,7 +21,7 @@ import ArrayList.{...}
 export Executable
 
 appending[\T\](xs: List[\T\]...): List[\T\] =
-    xs.generate[\List[\T\]\](Concat[\T\](), identity[\List[\T\]\])
+    xs.generate[\List[\T\]\](Concat[\T\], identity[\List[\T\]\])
 
 showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
     n = headers.size()
@@ -177,7 +177,7 @@ run(args:String...):() = do
             timeHdr("uconsume"),
             timeHdr("ugen") )
     table: List[\List[\RR64\]\] = samples.generate[\List[\List[\RR64\]\]\](
-        Concat[\List[\RR64\]\](),
+        Concat[\List[\RR64\]\],
         fn (s: ZZ32): List[\List[\RR64\]\] =>
           singleton[\List[\RR64\]\](
             appending[\RR64\](
