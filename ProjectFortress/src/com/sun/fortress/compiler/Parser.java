@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -120,6 +120,10 @@ public class Parser {
 
         public String description() {
             String result = _parseError.msg;
+            int size = result.length();
+            if (size > 8 && result.substring(size-8,size).equals("expected"))
+                 result = "syntax error";
+            else result = "syntax error: " + result;
             // TODO: I don't know for sure whether this is allowed to be null
             if (result == null || result.equals("")) { result = "Unspecified cause"; }
             return result;
@@ -176,7 +180,7 @@ public class Parser {
                     Object cu = ((SemanticValue) parseResult).value;
                     if (cu instanceof Api) {
                         Api _cu = (Api) cu;
-                        
+
                         if (f.toString().endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
                             return new Result(_cu, f.lastModified());
                         } else {
@@ -186,7 +190,7 @@ public class Parser {
                         }
                     } else if (cu instanceof Component) {
                         Component _cu = (Component) cu;
-                        
+
                         if (f.toString().endsWith(ProjectProperties.COMP_SOURCE_SUFFIX)) {
                             return new Result(_cu, f.lastModified());
                         } else {

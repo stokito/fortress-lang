@@ -30,6 +30,7 @@ option setOfString(FORTRESS_KEYWORDS);
 /* A word is an identifier if it begins with a letter and is not a reserved
    word, an operator, or all or part of a numeral.
  */
+/*
         String id      = s1:idstart s2:idrest*
         { String s = s1;
           for (String ss : s2.list()) {
@@ -41,6 +42,8 @@ option setOfString(FORTRESS_KEYWORDS);
               return yyError.select(s + " is a keyword!", yyError.index + 10);
           }
         };
+*/
+        String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
         String idstart = UnicodeIdStart / [_] ;
         String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
 private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
