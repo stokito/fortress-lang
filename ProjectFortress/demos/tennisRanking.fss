@@ -572,8 +572,8 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
        4. Prepare to calculate a new ranking result.
      *)
     toSortResult:Array[\(ZZ32,String),ZZ32\] := array[\(ZZ32,String)\](numPlayers)
-    for (index,kv) <- seq(database.indexValuePairs()) do
-        (_,v) = kv
+    index : ZZ32 := 0
+    for (_,v) <- database do
         (* if never played any game in this term, then -50 penalties *)
         if v.thisGames = 0
         then v.thisPoints  -= 50
@@ -583,7 +583,12 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
         if v.thisPoints > mvp then mvp := v.thisPoints end
         if v.thisGames  > mep then mep := v.thisGames  end
         key = - v.totalPoints
-        toSortResult[index] := (key, v.name)
+        ix = atomic do
+               ixr = index
+               index := ixr + 1
+               ixr
+             end
+        toSortResult[ix] := (key, v.name)
     end
 
     (* calculuate a new ranking result *)
