@@ -1272,7 +1272,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * inferred type
              * Used internally for type analysis
              */
-            InferenceVarType(Object id, int index = -1);
+            InferenceVarType(Object id);
             /**
              * A binary intersection.  Used internally for type analysis.
              */

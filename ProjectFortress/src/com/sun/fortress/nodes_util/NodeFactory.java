@@ -127,10 +127,6 @@ public class NodeFactory {
                 t.getName(), args);
     }
 
-    public static InferenceVarType makeCanonicalizedInferenceVarType(int index) {
-        return new InferenceVarType(new Integer(index), index);
-    }
-
     public static InferenceVarType makeInferenceVarType() {
         return new InferenceVarType(new Object());
     }
