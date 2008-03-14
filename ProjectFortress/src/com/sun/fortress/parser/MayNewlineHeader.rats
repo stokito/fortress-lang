@@ -386,6 +386,14 @@ StaticArg StaticArg =
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new UnitArg(span, ExprFactory.makeVarRef(new Id(span, a1)));
      }
+   / a1:"true"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new BoolArg(span, new BoolConstant(span, true));
+     }
+   / a1:"false"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new BoolArg(span, new BoolConstant(span, false));
+     }
    / one w slash w a1:Type
      { Span span = createSpan(yyStart,1);
        DimExpr base = new BaseDim(createSpan(yyStart,1));
