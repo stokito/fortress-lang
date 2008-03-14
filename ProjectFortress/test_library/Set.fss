@@ -214,10 +214,10 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
               right.ivgen[\R\](mi+1,r,body))
      end
    seqgen[\R\](r: Reduction[\R\], body: E->R): R = do
-      lg = left.generate[\R\](r,body)
+      lg = left.seqgen[\R\](r,body)
       vg = body(val)
       mg = r.join(lg,vg)
-      rg = right.generate[\R\](r,body)
+      rg = right.seqgen[\R\](r,body)
       r.join(mg,rg)
    end
    getVal():E = val

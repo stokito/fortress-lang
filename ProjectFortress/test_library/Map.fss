@@ -235,10 +235,10 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
                right.ivgen[\R\](mi+1,r,body))
       end
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = do
-        ll = left.generate[\R\](r,body)
+        ll = left.seqgen[\R\](r,body)
         mm = body(key,val)
         lm = r.join(ll,mm)
-        rr = right.generate[\R\](r,body)
+        rr = right.seqgen[\R\](r,body)
         r.join(lm,rr)
       end
 
