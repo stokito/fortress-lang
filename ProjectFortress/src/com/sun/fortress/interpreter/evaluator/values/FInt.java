@@ -28,7 +28,7 @@ public class FInt extends FBuiltinValue implements HasIntValue {
   public double getFloat() { return (double) val;}
   public String getString() {return Integer.toString(val);}
   public String toString() {
-      return "ZZ32 " + val;
+      return val + ":ZZ32";
   }
   public boolean seqv(FValue v) {
       if (!(v instanceof FBuiltinValue)) return false;

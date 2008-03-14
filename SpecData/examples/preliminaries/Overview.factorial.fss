@@ -22,7 +22,7 @@ component Overview.factorial
 export Executable
 
 (** EXAMPLE **)
-opr (n: ZZ32)! = PROD[i <- 1:n]i (* factorial *)
+opr (n: ZZ32)! = PROD[i <- 1:n]i
 (** END EXAMPLE **)
 
 run(args:String...) = do
