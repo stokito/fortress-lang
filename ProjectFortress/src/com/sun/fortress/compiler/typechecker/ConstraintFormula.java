@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Collections;
 import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.InferenceVarType;
@@ -33,11 +34,43 @@ import static com.sun.fortress.compiler.typechecker.Types.BOTTOM;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 import static edu.rice.cs.plt.debug.DebugUtil.error;
 
+/**
+ * An immutable representation of constraints on a set of inference variables.  Certain typing 
+ * assertions (such as subtyping) can be made under the assumption that a certain ConstraintFormula 
+ * is satisfied.  Combining a number of these formulas, it is possible to determine whether a 
+ * certain portion of a program is well-formed (and, if so, how the inference variables that appear 
+ * within the program should be instantiated).
+ */
 public abstract class ConstraintFormula {
 
+    /** Merge this and another formula by asserting that they must both be true. */
+    public abstract ConstraintFormula and(ConstraintFormula c, SubtypeHistory history);
+    
+    /** Merge this and another formula by asserting that one of the two must be true. */
+    public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
+    
+    /**
+     * Apply a type substitution to the contents of a formula.  Callers assume responsibility
+     * for guaranteeing that the substitution will not change the satisfiability (or truth) of the
+     * formula.  Substitutions of bounded inference variables must map to other (or the same)
+     * inference variables, not arbitrary types.
+     */
+    public abstract ConstraintFormula applySubstitution(Lambda<Type, Type> sigma);
+    
+    /** Determine whether the formula is true for all inference variable instantiations. */
+    public abstract boolean isTrue();
+    
+    /** Determine whether the formula is false for all inference variable instantiations. */
+    public abstract boolean isFalse();
+    
+    /** Determine whether there exists some choice for inference variables that makes the formula true. */
+    public boolean isSatisfiable() { return !isFalse(); }
+
+    
     public static final ConstraintFormula TRUE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return f; }
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return this; }
+        public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return this; }
         public boolean isTrue() { return true; }
         public boolean isFalse() { return false; }
         public String toString() { return "(true)"; }
@@ -46,6 +79,7 @@ public abstract class ConstraintFormula {
     public static final ConstraintFormula FALSE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return this; }
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return f; }
+        public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return this; }
         public boolean isTrue() { return false; }
         public boolean isFalse() { return true; }
         public String toString() { return "(false)"; }
@@ -59,17 +93,10 @@ public abstract class ConstraintFormula {
     public static class SimpleFormula extends ConstraintFormula {
         private Map<InferenceVarType, Type> _upperBounds;
         private Map<InferenceVarType, Type> _lowerBounds;
-        public SimpleFormula(Map<InferenceVarType, Type> upperBounds, Map<InferenceVarType, Type> lowerBounds) {
+        
+        private SimpleFormula(Map<InferenceVarType, Type> upperBounds, Map<InferenceVarType, Type> lowerBounds) {
             _upperBounds = upperBounds;
             _lowerBounds = lowerBounds;
-        }
-
-        public Map<InferenceVarType, Type> getUpper() {
-            return _upperBounds;
-        }
-
-        public Map<InferenceVarType, Type> getLower() {
-            return _lowerBounds;
         }
 
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) {
@@ -86,6 +113,20 @@ public abstract class ConstraintFormula {
                 // simplification for now -- arbitrarily pick one
                 return this;
             }
+        }
+        
+        public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) {
+            Map<InferenceVarType, Type> newUppers =
+                new HashMap<InferenceVarType, Type>(_upperBounds.size());
+            Map<InferenceVarType, Type> newLowers =
+                new HashMap<InferenceVarType, Type>(_lowerBounds.size());
+            for (Map.Entry<InferenceVarType, Type> e : _upperBounds.entrySet()) {
+                newUppers.put((InferenceVarType) sigma.value(e.getKey()), sigma.value(e.getValue()));
+            }
+            for (Map.Entry<InferenceVarType, Type> e : _lowerBounds.entrySet()) {
+                newUppers.put((InferenceVarType) sigma.value(e.getKey()), sigma.value(e.getValue()));
+            }
+            return new SimpleFormula(newUppers, newLowers);
         }
 
         public boolean isTrue() { return false; }
@@ -118,8 +159,7 @@ public abstract class ConstraintFormula {
         }
 
         private ConstraintFormula merge(SimpleFormula f, SubtypeHistory history) {
-            debug.logStart();
-            debug.logValues(new String[]{"this", "f"}, this, f);
+            debug.logStart(new String[]{"this", "f"}, this, f);
             Map<InferenceVarType, Type> uppers = new HashMap<InferenceVarType, Type>();
             Map<InferenceVarType, Type> lowers = new HashMap<InferenceVarType, Type>();
             ConstraintFormula conditions = TRUE;
@@ -147,8 +187,7 @@ public abstract class ConstraintFormula {
                     conditions = conditions.and(history.subtype(lower, upper), history);
                     if (!conditions.isTrue()) {
 //                    if (conditions.isFalse()) {
-                        debug.logValue("result", FALSE);
-                        debug.logEnd();
+                        debug.logEnd("result", FALSE);
                         return FALSE;
                     }
                 }
@@ -156,44 +195,44 @@ public abstract class ConstraintFormula {
                 if (lower != null) { lowers.put(t, lower); }
             }
             ConstraintFormula result = new SimpleFormula(uppers, lowers).and(conditions, history);
-            debug.logValue("result", result);
-            debug.logEnd();
+            debug.logEnd("result", result);
             return result;
         }
     }
 
 
     public static ConstraintFormula upperBound(InferenceVarType var, Type bound, SubtypeHistory history) {
-        debug.logStart();
-        debug.logValues(new String[]{"var","upperBound"}, var, bound);
-        try {
-        if (history.subtype(ANY, bound).isTrue()) { return TRUE; }
-        else {
-            return new SimpleFormula(Collections.singletonMap(var, bound),
-                                     Collections.<InferenceVarType, Type>emptyMap());
+        debug.logStart(new String[]{"var","upperBound"}, var, bound);
+        if (history.subtype(ANY, bound).isTrue()) {
+            debug.logEnd("result", TRUE);
+            return TRUE;
         }
-        } finally { debug.logEnd(); }
+        else {
+            ConstraintFormula result =
+                new SimpleFormula(Collections.singletonMap(var, bound),
+                                  Collections.<InferenceVarType, Type>emptyMap());
+            debug.logEnd("result", result);
+            return result;
+        }
     }
 
     public static ConstraintFormula lowerBound(InferenceVarType var, Type bound, SubtypeHistory history) {
-        debug.logStart();
-        debug.logValues(new String[]{"var","lowerBound"}, var, bound);
-        try {
-        if (history.subtype(bound, BOTTOM).isTrue()) { return TRUE; }
-        else {
-            return new SimpleFormula(Collections.<InferenceVarType, Type>emptyMap(),
-                                     Collections.singletonMap(var, bound));
+        debug.logStart(new String[]{"var","lowerBound"}, var, bound);
+        if (history.subtype(bound, BOTTOM).isTrue()) {
+            debug.logEnd("result", TRUE);
+            return TRUE;
         }
-        } finally { debug.logEnd(); }
+        else {
+            ConstraintFormula result =
+                new SimpleFormula(Collections.<InferenceVarType, Type>emptyMap(),
+                                  Collections.singletonMap(var, bound));
+            debug.logEnd("result", result);
+            return result;
+        }
     }
 
     public static ConstraintFormula fromBoolean(boolean b) {
         return b ? TRUE : FALSE;
     }
 
-    public abstract ConstraintFormula and(ConstraintFormula c, SubtypeHistory history);
-    public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
-    public abstract boolean isTrue();
-    public abstract boolean isFalse();
-    public boolean isSatisfiable() { return !isFalse(); }
 }

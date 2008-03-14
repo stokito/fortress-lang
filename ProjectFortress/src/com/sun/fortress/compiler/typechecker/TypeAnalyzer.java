@@ -33,39 +33,83 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 
 import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
 import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarType;
-import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarTypes;
+
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.normalize;
-import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.canonicalize;
-import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.unCanonicalize;
 
-public abstract class TypeAnalyzer {
-    private static final boolean SIMPLIFIED_SUBTYPING = true;
+/**
+ * Provides core type analysis algorithms in a specific type context.
+ */
+public class TypeAnalyzer {
+    private static final boolean SIMPLIFIED_SUBTYPING = false;
 
-    private static final int MAX_SUBTYPE_DEPTH = 4;
+    private static final int MAX_SUBTYPE_DEPTH = 6;
+    
+    private static final Option<List<Type>> THROWS_BOTTOM =
+        Option.some(Collections.singletonList(Types.BOTTOM));
+    
+    private final TraitTable _table;
+    private final StaticParamEnv _staticParamEnv;
+    private final SubtypeCache _cache;
+    private final SubtypeHistory _emptyHistory;
+    
+    public TypeAnalyzer(TraitTable table) {
+        this(table, StaticParamEnv.make(), RootSubtypeCache.INSTANCE);
+    }
+    
+    public TypeAnalyzer(TraitTable table, TypeAnalyzer enclosing, List<StaticParam> params,
+                        WhereClause whereClause) {
+        this(table, enclosing._staticParamEnv.extend(params, whereClause), enclosing._cache);
+    }
 
-    protected final TraitTable _table;
-    protected final SubtypeCache _cache;
-    protected final SubtypeHistory _emptyHistory;
-    protected final StaticParamEnv _staticParamEnv;
-
-    public TypeAnalyzer(TraitTable table, StaticParamEnv staticParamEnv) {
+    private TypeAnalyzer(TraitTable table, StaticParamEnv staticParamEnv, SubtypeCache parentCache) {
         _table = table;
-        _cache = new SubtypeCache();
-        _emptyHistory = new SubtypeHistory();
         _staticParamEnv = staticParamEnv;
+        _cache = new ChildSubtypeCache(parentCache);
+        _emptyHistory = new SubtypeHistory();
     }
     
-    public static TypeAnalyzer make(TraitTable table) {
-        return new LeafTypeAnalyzer(table);
+    
+    /**
+     * Convert the type to a normal form.
+     * A normalized type has the following properties:
+     * <ul>
+     * <li>The throws clause of all arrow types is a singleton list.
+     * </ul>
+     */
+    public Type normalize(Type t) {
+        return (Type) t.accept(new NodeUpdateVisitor() {
+
+            public Node forArrowTypeOnly(ArrowType t, Type newDomain,
+                                         Type newRange,
+                                         Option<List<Type>> newThrows) {
+                // fix newThrows so that it is a singleton list
+                if (newThrows.isNone()) { newThrows = THROWS_BOTTOM; }
+                else {
+                    List<Type> throwsList = Option.unwrap(newThrows);
+                    if (throwsList.isEmpty()) { newThrows = THROWS_BOTTOM; }
+                    else if (throwsList.size() > 1) {
+                        Type union = null;
+                        for (Type elt : throwsList) {
+                            if (union == null) { union = elt; }
+                            else { union = new OrType(union, elt); }
+                        }
+                        newThrows = Option.some(Collections.singletonList(union));
+                    }
+                }
+                if (t.getDomain() == newDomain && t.getRange() == newRange &&
+                    t.getThrowsClause() == newThrows)
+                     { return t; }
+                else {
+                    return NodeFactory.makeArrowType(t, newDomain, newRange,newThrows);
+                }
+            }
+
+        });
     }
     
-    public TypeAnalyzer extend(List<StaticParam> params, WhereClause whereClause) {
-        return new ConsTypeAnalyzer(_table, this, _staticParamEnv.extend(params, whereClause));
-    }
-    
+
     /**
      * Produce a formula that, if satisfied, will support s as a subtype of t.
      * Assumes s and t are normalized.
@@ -78,25 +122,31 @@ public abstract class TypeAnalyzer {
     public Type join(Type s, Type t) {
       return SIMPLIFIED_SUBTYPING ? jn(s, t, _emptyHistory) : join(s, t, _emptyHistory);
     }
-
+    
     public Type meet(Type s, Type t) {
-      return SIMPLIFIED_SUBTYPING ? mt(s, t, _emptyHistory) : meet(s, t, _emptyHistory);
+        return SIMPLIFIED_SUBTYPING ? mt(s, t, _emptyHistory) : meet(s, t, _emptyHistory);
     }
-
+    
     private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
-        try {
-        Option<ConstraintFormula> cached = cacheContains(s, t);
-        if (cached.isSome()) { return Option.unwrap(cached); }
-        else if (history.contains(s, t)) { return ConstraintFormula.FALSE; }
+        Option<ConstraintFormula> cached = _cache.get(s, t, history);
+        if (cached.isSome()) {
+            ConstraintFormula result = Option.unwrap(cached);
+            debug.logEnd("cached result", result);
+            return result;
+        }
+        else if (history.contains(s, t)) {
+            debug.logEnd("cyclic invocation result", ConstraintFormula.FALSE);
+            return ConstraintFormula.FALSE;
+        }
         else {
             final SubtypeHistory h = history.extend(s, t);
             ConstraintFormula result = ConstraintFormula.FALSE;
-
+            
             // Handle trivial cases
-            if (s.equals(BOTTOM)) { return ConstraintFormula.TRUE; }
-            if (t.equals(ANY)) { return ConstraintFormula.TRUE; }
-            if (s.equals(ANY) && !t.equals(ANY)) { return ConstraintFormula.FALSE; }
+            if (s.equals(BOTTOM)) { debug.logEnd(); return ConstraintFormula.TRUE; }
+            if (t.equals(ANY)) { debug.logEnd(); return ConstraintFormula.TRUE; }
+            if (s.equals(ANY) && !t.equals(ANY)) { debug.logEnd(); return ConstraintFormula.FALSE; }
 
             if (!result.isTrue()) {
                 ConstraintFormula tResult = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
@@ -429,33 +479,39 @@ public abstract class TypeAnalyzer {
                 });
                 result = result.or(sResult, h);
             }
-            cachePut(s, t, result);
+            _cache.put(s, t, history, result);
+            debug.logEnd("result", result);
             return result;
         }
-        } finally { debug.logEnd(); }
     }
-
+    
     /**
      * Produce a formula that, if satisfied, will support s as a subtype of t.
      * Assumes s and t are normalized.
      */
     private ConstraintFormula subtype(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
+        debug.logValues(new String[]{"cache size", "history size"}, _cache.size(), history.size());
         //debug.logStack();
-        try {
-        Option<ConstraintFormula> cached = cacheContains(s, t);
-        if (cached.isSome()) { return Option.unwrap(cached); }
-        else if (history.size() > MAX_SUBTYPE_DEPTH || history.contains(s, t)) {
-        /*
+        Option<ConstraintFormula> cached = _cache.get(s, t, history);
+        if (cached.isSome()) {
+            ConstraintFormula result = Option.unwrap(cached);
+            debug.logEnd("cached result", result);
+            return result;
+        }
+        else if (history.size() > MAX_SUBTYPE_DEPTH) {
+            debug.logEnd("max subtype depth result", ConstraintFormula.FALSE);
+            return ConstraintFormula.FALSE;
+        }
         else if (history.contains(s, t)) {
-        */
+            debug.logEnd("cyclic invocation result", ConstraintFormula.FALSE);
             return ConstraintFormula.FALSE;
         }
         else {
             final SubtypeHistory h = history.extend(s, t);
-
+            
             ConstraintFormula result = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-
+                
                 @Override public ConstraintFormula forType(Type t) {
                     return ConstraintFormula.FALSE;
                 }
@@ -932,21 +988,25 @@ public abstract class TypeAnalyzer {
             // match where declarations
             // reverse aliases
 
-            cachePut(s, t, result);
+            _cache.put(s, t, history, result);
+            debug.logEnd("result", result);
             return result;
         }
-        } finally { debug.logEnd(); }
     }
 
     public ConstraintFormula equivalent(Type s, Type t, SubtypeHistory history) {
+        debug.logStart(new String[]{"s", "t"}, s, t);
         ConstraintFormula result = subtype(s, t, history);
         if (!result.isFalse()) { result = result.and(subtype(t, s, history), history); }
+        debug.logEnd("result", result);
         return result;
     }
 
     public ConstraintFormula equiv(Type s, Type t, SubtypeHistory history) {
+        debug.logStart(new String[]{"s", "t"}, s, t);
         ConstraintFormula result = sub(s, t, history);
         if (!result.isFalse()) { result = result.and(sub(t, s, history), history); }
+        debug.logEnd("result", result);
         return result;
     }
 
@@ -1091,108 +1151,6 @@ public abstract class TypeAnalyzer {
     }
 
 
-    private Lambda<Type, Type> makeSubstitution(Iterable<? extends StaticParam> params,
-                                                Iterable<? extends StaticArg> args) {
-        return makeSubstitution(params, args, IterUtil.<Id>empty());
-    }
-
-    /** Assumes param/arg lists have the same length and corresponding elements are compatible. */
-    private Lambda<Type, Type> makeSubstitution(Iterable<? extends StaticParam> params,
-                                                Iterable<? extends StaticArg> args,
-                                                Iterable<? extends Id> hiddenParams) {
-        final Map<QualifiedIdName, Type> typeSubs = new HashMap<QualifiedIdName, Type>();
-        final Map<Op, Op> opSubs = new HashMap<Op, Op>();
-        final Map<QualifiedIdName, IntExpr> intSubs = new HashMap<QualifiedIdName, IntExpr>();
-        final Map<QualifiedIdName, BoolExpr> boolSubs = new HashMap<QualifiedIdName, BoolExpr>();
-        final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
-        final Map<QualifiedIdName, Expr> unitSubs = new HashMap<QualifiedIdName, Expr>();
-        for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
-            final StaticArg a = pair.second();
-            pair.first().accept(new NodeAbstractVisitor_void() {
-                @Override public void forSimpleTypeParam(SimpleTypeParam p) {
-                    typeSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
-                                 ((TypeArg) a).getType());
-                }
-                @Override public void forOperatorParam(OperatorParam p) {
-                    opSubs.put(p.getName(), ((OprArg) a).getName());
-                }
-                @Override public void forIntParam(IntParam p) {
-                    intSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
-                                ((IntArg) a).getVal());
-                }
-                @Override public void forNatParam(NatParam p) {
-                    intSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
-                                ((IntArg) a).getVal());
-                }
-                @Override public void forBoolParam(BoolParam p) {
-                    boolSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
-                                 ((BoolArg) a).getBool());
-                }
-                @Override public void forDimensionParam(DimensionParam p) {
-                    dimSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
-                                ((DimArg) a).getDim());
-                }
-                @Override public void forUnitParam(UnitParam p) {
-                    unitSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
-                                 ((UnitArg) a).getUnit());
-                }
-
-            });
-        }
-        for (Id id : hiddenParams) {
-            typeSubs.put(NodeFactory.makeQualifiedIdName(id), makeInferenceVarType());
-        }
-
-        return new Lambda<Type, Type>() {
-            public Type value(Type t) {
-                return (Type) t.accept(new NodeUpdateVisitor() {
-
-                    /** Handle type variables */
-                    @Override public Type forIdType(IdType n) {
-                        if (typeSubs.containsKey(n.getName())) {
-                            return typeSubs.get(n.getName());
-                        }
-                        else { return n; }
-                    }
-
-                    /** Handle arguments to opr parameters */
-                    @Override public OprArg forOprArg(OprArg n) {
-                        if (opSubs.containsKey(n.getName())) {
-                            return new OprArg(n.getSpan(), n.isParenthesized(),
-                                              opSubs.get(n.getName()));
-                        }
-                        else { return n; }
-                    }
-
-                    /** Handle names in IntExprs */
-                    @Override public IntExpr forIntRef(IntRef n) {
-                        if (intSubs.containsKey(n.getName())) {
-                            return intSubs.get(n.getName());
-                        }
-                        else { return n; }
-                    }
-
-                    /** Handle names in BoolExprs */
-                    @Override public BoolExpr forBoolRef(BoolRef n) {
-                        if (boolSubs.containsKey(n.getName())) {
-                            return boolSubs.get(n.getName());
-                        }
-                        else { return n; }
-                    }
-
-                    /** Handle names in DimExprs */
-                    @Override public DimExpr forDimRef(DimRef n) {
-                        if (dimSubs.containsKey(n.getName())) {
-                            return dimSubs.get(n.getName());
-                        }
-                        else { return n; }
-                    }
-                });
-            }
-        };
-    }
-
-
     /** Assumes type lists have the same length. */
     private ConstraintFormula subtype(Iterable<? extends Type> ss, Iterable<? extends Type> ts,
                                       SubtypeHistory history) {
@@ -1274,49 +1232,12 @@ public abstract class TypeAnalyzer {
     }
 
 
-    public ArrowType makeArrow(Type domain, Type range, Type throwsT, boolean io) {
-        return new ArrowType(domain, range,
-                             Option.some(Collections.singletonList(throwsT)), io);
-    }
-
-    public Type throwsType(ArrowType t) {
-        return IterUtil.first(Option.unwrap(t.getThrowsClause()));
-    }
-
-    public Iterable<Type> keywordTypes(Iterable<? extends KeywordType> keys) {
-        return IterUtil.map(keys, KEYWORD_TO_TYPE);
-    }
-
-    private static final Lambda<KeywordType, Type> KEYWORD_TO_TYPE =
-        new Lambda<KeywordType, Type>() {
-        public Type value(KeywordType k) { return k.getType(); }
-    };
-
-    /** Test whether the given tuples have the same arity and matching varargs/keyword entries */
-    /*
-    private boolean compatibleTuples(TupleType s, TupleType t) {
-        if (s.getElements().size() == t.getElements().size() &&
-            s.getVarargs().isSome() == t.getVarargs().isSome() &&
-            s.getKeywords().size() == t.getKeywords().size()) {
-            for (Pair<KeywordType, KeywordType> keys :
-                 IterUtil.zip(s.getKeywords(), t.getKeywords())) {
-                if (!keys.first().getName().equals(keys.second().getName())) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else { return false; }
-    }
-    */
-
-
-
-
+    /** An immutable record of all subtyping invocations in the call stack. */
     // Package private -- accessed by ConstraintFormula
     class SubtypeHistory {
         private final Relation<Type, Type> _entries;
         public SubtypeHistory() {
+            // no need for an index in either direction
             _entries = new HashRelation<Type, Type>(false, false);
         }
         private SubtypeHistory(Relation<Type, Type> entries) {
@@ -1324,15 +1245,14 @@ public abstract class TypeAnalyzer {
         }
         public int size() { return _entries.size(); }
         public boolean contains(Type s, Type t) {
-            Pair<Type, Type> pair = canonicalize(s, t).first();
-            return _entries.contains(pair.first(), pair.second());
+            InferenceVarTranslator trans = new InferenceVarTranslator();
+            return _entries.contains(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
         }
-        // Why creating a new SubtypeHistory? -- Sukyoung
         public SubtypeHistory extend(Type s, Type t) {
             Relation<Type, Type> newEntries = new HashRelation<Type, Type>();
             newEntries.addAll(_entries);
-            Pair<Type, Type> pair = canonicalize(s, t).first();
-            newEntries.add(pair.first(), pair.second());
+            InferenceVarTranslator trans = new InferenceVarTranslator();
+            newEntries.add(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
             return new SubtypeHistory(newEntries);
         }
         public ConstraintFormula subtype(Type s, Type t) {
@@ -1350,37 +1270,62 @@ public abstract class TypeAnalyzer {
                 TypeAnalyzer.this.jn(s, t, this) :
                 TypeAnalyzer.this.join(s, t, this);
         }
-    }    
+        public String toString() { return IterUtil.multilineToString(_entries); }
+    }
     
-    protected abstract Option<ConstraintFormula> cacheContains(Type s, Type t);
     
-    protected abstract void cachePut(Type s, Type t, ConstraintFormula c);
-
-    protected static class SubtypeCache {
-        HashMap<Pair<Type,Type>,ConstraintFormula> subtypeCache =
-            new HashMap<Pair<Type,Type>,ConstraintFormula>();
-
-        public void put(Type s, Type t, ConstraintFormula c) {
-            Pair<Pair<Type,Type>, Map<InferenceVarType,Integer>>
-                pair = canonicalize(s,t);
-            Pair<Type,Type> canonicalizedTypes = pair.first();
-            Map<InferenceVarType,Integer> map = pair.second();
-            if (!subtypeCache.containsKey(canonicalizedTypes)) {
-                subtypeCache.put(canonicalizedTypes, c);
-            }
+    /**
+     * A mutable collection of subtyping results from previously-completed invocations
+     * of subtyping in a specific type context.
+     */
+    protected static abstract class SubtypeCache {
+        public abstract void put(Type s, Type t, SubtypeHistory h, ConstraintFormula c);
+        public abstract Option<ConstraintFormula> get(Type s, Type t, SubtypeHistory h);
+        public abstract int size();
+    }
+    
+    protected static class RootSubtypeCache extends SubtypeCache {
+        public static final RootSubtypeCache INSTANCE = new RootSubtypeCache();
+        private RootSubtypeCache() {}
+        public void put(Type s, Type t, SubtypeHistory h, ConstraintFormula c) {
+            throw new IllegalArgumentException("Can't add values to the root cache");
+        }
+        public Option<ConstraintFormula> get(Type s, Type t, SubtypeHistory h) {
+            return Option.none();
+        }
+        public int size() { return 0; }
+        public String toString() { return "<root cache>"; }
+    };
+    
+    protected static class ChildSubtypeCache extends SubtypeCache {
+        
+        private final SubtypeCache _parent;
+        private final HashMap<Pair<Type,Type>, ConstraintFormula> _results;
+        
+        public ChildSubtypeCache(SubtypeCache parent) {
+            _parent = parent;
+            _results = new HashMap<Pair<Type,Type>, ConstraintFormula>();
         }
 
-        public Option<ConstraintFormula> contains(Type s, Type t) {
-            Pair<Pair<Type,Type>, Map<InferenceVarType,Integer>>
-                pair = canonicalize(s, t);
-            Map<InferenceVarType,Integer> map = pair.second();
-            Pair<Type,Type> canonicalizedTypes = pair.first();
-            if (subtypeCache.containsKey(canonicalizedTypes)) {
-                ConstraintFormula c = subtypeCache.get(canonicalizedTypes);
-                return Option.some(c);
-            } else {
-                return Option.<ConstraintFormula>none();
-            }
+        public void put(Type s, Type t, SubtypeHistory h, ConstraintFormula c) {
+            InferenceVarTranslator trans = new InferenceVarTranslator();
+            _results.put(Pair.make(trans.canonicalizeVars(s), trans.canonicalizeVars(t)),
+                         c.applySubstitution(trans.canonicalSubstitution()));
+        }
+
+        public Option<ConstraintFormula> get(Type s, Type t, SubtypeHistory h) {
+            // we currently ignore the history, leading to incorrect results in some cases
+            InferenceVarTranslator trans = new InferenceVarTranslator();
+            ConstraintFormula result = _results.get(Pair.make(trans.canonicalizeVars(s),
+                                                              trans.canonicalizeVars(t)));
+            if (result == null) { return _parent.get(s, t, h); }
+            else { return Option.some(result.applySubstitution(trans.revertingSubstitution())); }
+        }
+            
+        public int size() { return _results.size() + _parent.size(); }
+        
+        public String toString() {
+            return IterUtil.multilineToString(_results.entrySet()) + "\n=====\n" + _parent.toString();
         }
     }
 
