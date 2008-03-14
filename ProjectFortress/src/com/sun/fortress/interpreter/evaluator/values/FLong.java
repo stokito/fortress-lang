@@ -30,7 +30,7 @@ public class FLong extends FBuiltinValue implements HasIntValue {
   public double getFloat() { return (double) val;}
   public String getString() {return Long.toString(val);}
   public String toString() {
-      return "ZZ64 " + val;
+      return val + ": ZZ64";
   }
   public boolean seqv(FValue v) {
       if (!(v instanceof FBuiltinValue)) return false;

@@ -70,7 +70,7 @@ public abstract class FTupleLike extends FValue implements Selectable {
     }
 
     public String toString() {
-        return (this.getString()+':'+this.type().toString());
+        return (this.getString() + ": " + this.type().toString());
     }
 
     public boolean seqv(FValue v) {

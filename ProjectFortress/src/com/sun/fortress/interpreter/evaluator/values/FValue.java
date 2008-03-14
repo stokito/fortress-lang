@@ -41,7 +41,10 @@ public abstract class FValue {
     }
 
     public String toString() {
-        return getClass().getSimpleName() + " " + getString();
+        // We want this toString to look as close as possible to Fortress concrete syntax.
+        // EricAllen 3/13/2008
+        return getString() + ":" + getClass().getSimpleName();
+        //getClass().getSimpleName() + " " + getString();
     }
     public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
     public abstract FType type();
