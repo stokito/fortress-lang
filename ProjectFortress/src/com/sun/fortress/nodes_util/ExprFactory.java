@@ -353,6 +353,45 @@ public class ExprFactory {
         return new VoidLiteralExpr(span, false, "");
     }
 
+    public static If makeIf(IfClause _if, Expr _else) {
+	List<IfClause> ifclauses = new ArrayList<IfClause>();
+	ifclauses.add(_if);
+	List<Expr> elseBlock = new ArrayList<Expr>();
+	elseBlock.add(_else);
+	Block _elseClause = new Block( elseBlock);
+	return new If(ifclauses, Option.some(_elseClause));
+    }
+
+    public static If makeIf(IfClause _if) {
+	List<IfClause> ifclauses = new ArrayList<IfClause>();
+	ifclauses.add(_if);
+	return new If(ifclauses, Option.<Block>none());
+    }
+
+    public static Block makeBlock(Expr e) {
+	List<Expr> b = new ArrayList<Expr>();
+	b.add(e);
+	return new Block(b);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl( Id p, Expr _r, Expr _body_expr) {
+	List<Expr> _body = new ArrayList<Expr>();
+	List<LValue> _lhs = new ArrayList<LValue>();
+	Option<Expr> _rhs = Option.some(_r);
+	_body.add(_body_expr);
+	_lhs.add(new LValueBind(p,false));
+	return new LocalVarDecl(_body, _lhs, _rhs);
+    }
+
+    public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
+	List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
+	Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
+	links.add(link);
+	return new ChainExpr(e, links);
+    }
+
+
+
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
                          BATree<String, StaticParam> implicit_type_parameters) {
         List<StaticArg> staticArgs =

@@ -61,6 +61,7 @@ import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Voidoid;
@@ -1278,27 +1279,61 @@ public class Desugarer extends Rewrite {
     private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
 	List<Expr> r = Option.unwrap(_requires);
 	for (Expr e : r) {
-	    IfClause i = new IfClause(e, b);
-	    List<IfClause> ifclauses = new ArrayList<IfClause>();
-	    ifclauses.add(i);
-	    Expr err_fn = new VarRef(new QualifiedIdName(new Id("CallerViolation")));
-	    List<Expr> throwExprBlock = new ArrayList<Expr>();
-	    throwExprBlock.add(new Throw (err_fn));
-	    Block _elseClause = new Block( throwExprBlock);
-	    If _if = new If(ifclauses, Option.some(_elseClause));
-	    List<Expr> ifExprBlock = new ArrayList<Expr>();
-	    ifExprBlock.add(_if);
-	    b = new Block(ifExprBlock);
+	    If _if = ExprFactory.makeIf(new IfClause(e,b), 
+					new Throw(ExprFactory.makeVarRef("CallerViolation")));
+	    b = ExprFactory.makeBlock(_if);
 	}
         return b;
     }
 
     private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
-	return NI.nyi("Ensures");
+	List<EnsuresClause> es = Option.unwrap(_ensures);
+	for (EnsuresClause e : es) {
+	    Id t1 = gensymId("t1");	   
+	    If _inner_if = ExprFactory.makeIf(new IfClause(e.getPost(),
+					       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
+				  new Throw(ExprFactory.makeVarRef("CallerViolation")));
+	    If _if = ExprFactory.makeIf(new IfClause((Expr) ExprFactory.makeVarRef(t1),
+					 ExprFactory.makeBlock(_inner_if)),
+			    ExprFactory.makeBlock(ExprFactory.makeVarRef("result")));
+	    LocalVarDecl r = ExprFactory.makeLocalVarDecl(NodeFactory.makeId("result"), b, _if);
+	    Option<Expr> _pre = e.getPre();
+ 	    LocalVarDecl provided_lvd;
+	    if (_pre.isSome()) {
+		provided_lvd = ExprFactory.makeLocalVarDecl(t1, Option.unwrap(_pre), 
+							    ExprFactory.makeBlock(r));
+	    } else {
+		provided_lvd = ExprFactory.makeLocalVarDecl(t1, ExprFactory.makeVarRef("true"), 
+							    ExprFactory.makeBlock(r));
+	    }
+
+	    b = ExprFactory.makeBlock(provided_lvd);
+	}
+	return b;
     }
 
     private Block translateInvariants(Option<List<Expr>> _invariants, Block b) {
-	return NI.nyi("Invariants");
+ 	List<Expr> invariants = Option.unwrap(_invariants);
+ 	for (Expr e : invariants) {
+ 	    Id t1 = gensymId("t1");
+	    Id t_result = gensymId("result");
+	    Id t2 = gensymId("t2");
+
+	    Expr chain = (Expr) ExprFactory.makeChainExpr((Expr) ExprFactory.makeVarRef(t1),
+					      new Op("="),
+					      (Expr) ExprFactory.makeVarRef(t2));
+	    
+	    If _post = ExprFactory.makeIf(new IfClause(chain, 
+						       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
+					  new Throw(ExprFactory.makeVarRef("CallerViolation")));
+	    
+	    LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(t2, e, _post);
+	    LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId("result"), b, r2);
+
+	    b = ExprFactory.makeBlock(ExprFactory.makeLocalVarDecl(t1,e,r1));
+	}
+
+	return b;
     }
 
     private boolean looksLikeMethodInvocation(Juxt node) {
