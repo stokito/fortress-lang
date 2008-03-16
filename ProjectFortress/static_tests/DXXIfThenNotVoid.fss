@@ -18,18 +18,48 @@
 component DXXIfThenNotVoid
 export Executable
 
-object A end
-object B end
-
 (* Each IfClause should have type () if there is no corresponding 'else'. *)
 
 run(args:String...):() = do
-  if false then
-    A
-  elif true then
-    B
+  
+  (* test single if clause *)
+  if true then
+    1
+  end
+  
+  (* test multiple if clause # 1 *)
+  if true then
+    2
+  elif false then
+    3
+  end
+  
+  (* test multiple if clause # 2 *)
+  if true then
+    4
+    ()
+  elif false then
+    5
+  end
+  
+  (* test multiple if clause # 3 *)
+  if true then
+    6
+  elif false then
+    7
     ()
   end
+  
+  (* test multiple if clause # 4 *)
+  (* this one should be fine *)
+  if true then
+    8
+    ()
+  elif false then
+    9
+    ()
+  end
+
 end
 
 end

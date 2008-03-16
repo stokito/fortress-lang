@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 public class StaticPhaseResult {
     
-    private final Iterable<? extends StaticError> _errors;
+    public final Iterable<? extends StaticError> _errors;
     
     public StaticPhaseResult() {
         this(IterUtil.<StaticError>empty());

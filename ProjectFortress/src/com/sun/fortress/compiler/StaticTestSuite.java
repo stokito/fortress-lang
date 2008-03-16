@@ -21,27 +21,16 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.lambda.Lambda;
 
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.shell.CacheBasedRepository;
-import com.sun.fortress.shell.FileBasedRepository;
 
 public final class StaticTestSuite extends TestSuite {
     

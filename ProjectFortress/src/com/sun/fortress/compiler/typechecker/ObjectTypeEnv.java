@@ -48,39 +48,38 @@ class ObjectTypeEnv extends TypeEnv {
     public Option<BindingLookup> binding(SimpleName var) {
         if (!(var instanceof Id)) { return parent.binding(var); }
         Id _var = (Id)var;
-        
-        if (entries.containsKey(_var)) {
-            TypeConsIndex typeCons = entries.get(_var);
-            if (!(typeCons instanceof ObjectTraitIndex)) { return parent.binding(var); }
-            ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
-            ObjectAbsDeclOrDecl decl = (ObjectAbsDeclOrDecl)objIndex.ast();
-            Type type;
-            if (decl.getStaticParams().isEmpty()) {
-                if (decl.getParams().isNone()) {
-                    // No static params, no normal params
-                    type = NodeFactory.makeInstantiatedType(_var);
-                } else {
-                    // No static params, some normal params
-                    type = new ArrowType(var.getSpan(),
-                                         typeFromParams(unwrap(decl.getParams())),
-                                         NodeFactory.makeInstantiatedType(_var));
-                }
-            } else {
-                if (decl.getParams().isNone()) {
-                    // Some static params, no normal params
-                    type = NodeFactory.makeGenericSingletonType(_var, decl.getStaticParams());
-                } else {
-                    // Some static params, some normal params
-                    // TODO: handle type variables bound in where clause
-                    type = NodeFactory.makeGenericArrowType(decl.getStaticParams(),
-                                                            typeFromParams(unwrap(decl.getParams())),
-                                                            NodeFactory.makeInstantiatedType(_var));
-                }
-            }
 
-            return some(new BindingLookup(var, type, decl.getMods()));   
+        if (!entries.containsKey(_var)) { return parent.binding(var); }
+        TypeConsIndex typeCons = entries.get(_var);
+        
+        if (!(typeCons instanceof ObjectTraitIndex)) { return parent.binding(var); }
+        ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
+        
+        Type type;
+        ObjectAbsDeclOrDecl decl = (ObjectAbsDeclOrDecl)objIndex.ast();
+        if (decl.getStaticParams().isEmpty()) {
+            if (decl.getParams().isNone()) {
+                // No static params, no normal params
+                type = NodeFactory.makeInstantiatedType(_var);
+            } else {
+                // No static params, some normal params
+                type = new ArrowType(var.getSpan(),
+                        typeFromParams(unwrap(decl.getParams())),
+                        NodeFactory.makeInstantiatedType(_var));
+            }
         } else {
-            return parent.binding(var);
+            if (decl.getParams().isNone()) {
+                // Some static params, no normal params
+                type = NodeFactory.makeGenericSingletonType(_var, decl.getStaticParams());
+            } else {
+                // Some static params, some normal params
+                // TODO: handle type variables bound in where clause
+                type = NodeFactory.makeGenericArrowType(decl.getStaticParams(),
+                        typeFromParams(unwrap(decl.getParams())),
+                        NodeFactory.makeInstantiatedType(_var));
+            }
         }
+
+        return some(new BindingLookup(var, type, decl.getMods()));   
     }
 }
