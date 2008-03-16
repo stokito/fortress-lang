@@ -19,8 +19,6 @@ package com.sun.fortress.compiler.typechecker;
 
 import java.util.*;
 import com.sun.fortress.compiler.*;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -53,15 +51,25 @@ public class TypeCheckerResult extends StaticPhaseResult {
         return new TypeCheckerResult(_ast,
                                      Option.<Type>none(),
                                      collectErrors(results));
-    }       
+    }
+    
+    public static TypeCheckerResult compose(Node _ast, Type _type, List<TypeCheckerResult> results) {
+        return new TypeCheckerResult(_ast,
+                                     Option.wrap(_type),
+                                     collectErrors(results));
+    }
+    
+    public static TypeCheckerResult compose(Node _ast, Option<Type> _type, List<TypeCheckerResult> results) {
+        return new TypeCheckerResult(_ast,
+                                     _type,
+                                     collectErrors(results));
+    }
     
     public static TypeCheckerResult compose(Node _ast, Option<List<TypeCheckerResult>> results) {
         if (results.isSome()) {
-            Iterable<? extends StaticError> allErrors = collectErrors(Option.unwrap(results));
-            
             return new TypeCheckerResult(_ast,
                                          Option.<Type>none(),
-                                         allErrors);
+                                         collectErrors(Option.unwrap(results)));
         } else {
             return new TypeCheckerResult(_ast);
         }
