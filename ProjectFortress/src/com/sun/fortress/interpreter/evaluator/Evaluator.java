@@ -375,32 +375,38 @@ public class Evaluator extends EvaluatorBase<FValue> {
        }
 
        TupleTask[] tasks = new TupleTask[s];
+       List<Expr> locs = new ArrayList(0);
        for (int i = 0; i < s; i++) {
-            DoFront f = x.getFronts().get(i);
-            if (f.getLoc().isSome()) return NI("forAtDo");
-            if (f.isAtomic())
-                tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
-                                                        f.getExpr()), this);
-            else
-                tasks[i] = new TupleTask(f.getExpr(), new Evaluator(this));
-        }
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        BaseTask currentTask = runner.getCurrentTask();
-        TupleTask.forkJoin(tasks);
-        runner.setCurrentTask(currentTask);
-        for (int i = 0; i < s; i++) {
-            if (tasks[i].causedException()) {
-                Throwable t = tasks[i].taskException();
-                if (t instanceof Error) {
-                    throw (Error)t;
-                } else if (t instanceof RuntimeException) {
-                    throw (RuntimeException)t;
-                } else {
-                    error(x.getFronts().get(i), errorMsg("Wrapped Exception",t));
-                }
-            }
-        }
-        return FVoid.V;
+           DoFront f = x.getFronts().get(i);
+           if (f.getLoc().isSome()) {
+               locs.add(Option.unwrap(f.getLoc()));
+           }
+           if (f.isAtomic())
+               tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
+                                                       f.getExpr()), this);
+           else
+               tasks[i] = new TupleTask(f.getExpr(), new Evaluator(this));
+       }
+       if (locs.size()>0) {
+           List<FValue> regions = evalExprListParallel(locs);
+       }
+       FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+       BaseTask currentTask = runner.getCurrentTask();
+       TupleTask.forkJoin(tasks);
+       runner.setCurrentTask(currentTask);
+       for (int i = 0; i < s; i++) {
+           if (tasks[i].causedException()) {
+               Throwable t = tasks[i].taskException();
+               if (t instanceof Error) {
+                   throw (Error)t;
+               } else if (t instanceof RuntimeException) {
+                   throw (RuntimeException)t;
+               } else {
+                   error(x.getFronts().get(i), errorMsg("Wrapped Exception",t));
+               }
+           }
+       }
+       return FVoid.V;
     }
 
     public FValue forBlock(Block x) {
@@ -1710,8 +1716,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (!ProjectProperties.noStaticAnalysis) {
             FValue res = e.getValueNull(IterUtil.last(names).getText());
             if (res == null)
-                error(x, e, errorMsg("undefined variable ", IterUtil
-                        .last(names).getText()));
+                error(x, e, errorMsg("undefined variable ", names));
             return res;
 
         } else {
