@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -31,7 +31,7 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 
 public class BuildObjectEnvironment extends BuildTraitEnvironment {
 
-     
+
     public BuildObjectEnvironment(BetterEnv within, BetterEnv methodEnvironment, FType definer, Set<String> fields) {
         super(within, methodEnvironment, definer, fields);
         // TODO Auto-generated constructor stub
@@ -42,7 +42,7 @@ public class BuildObjectEnvironment extends BuildTraitEnvironment {
     }
 
     protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {
-        return new GenericMethod(containing, e, x, definer, false); 
+        return new GenericMethod(containing, e, x, definer, false);
     }
 
 

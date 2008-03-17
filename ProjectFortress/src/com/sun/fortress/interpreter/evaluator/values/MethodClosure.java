@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -38,19 +38,19 @@ public class MethodClosure extends Closure implements Method {
     final int selfParameterIndex;
 
     final FType definer;
-    
+
     public MethodClosure(BetterEnv within, Applicable fndef, FType definer) {
         super(within, fndef);
         this.definer = definer;
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        
+
     }
 
     public MethodClosure(BetterEnv within, Applicable fndef, FType definer, List<FType> args) {
         super(within, fndef, args);
         this.definer = definer;
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        
+
         // TODO this is really not figured out yet.
     }
 

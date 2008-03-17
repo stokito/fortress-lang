@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -197,7 +197,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         augment(this, additions);
         return this;
     }
-    
+
     public BetterEnv(BetterEnv containing, HasAt x) {
         this(containing);
         within = x;
@@ -674,7 +674,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
      }
 
     /**
-     * 
+     *
      * @param str
      * @param f2
      */
@@ -769,7 +769,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         type_env = type_env.delete(s, comparator);
     }
 
-  
+
 
 
 
