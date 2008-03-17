@@ -77,13 +77,13 @@ public final class Shell {
 
     /* Main entry point for the fortress shell.*/
     public void execute(String[] tokens) throws InterruptedException, Throwable {
-      
+
         if (tokens.length == 0) {
             printUsageMessage();
             System.exit(-1);
         }
 
-        // Otherwise, tokens.length > 1.
+        // Otherwise, tokens.length > 0.
         // First assemble tokens into a single string we can match against.
         StringBuilder msgBuffer = new StringBuilder(tokens[0]);
         for (String token : Arrays.asList(tokens).subList(1, tokens.length)) {
@@ -103,6 +103,10 @@ public final class Shell {
             //else if (msg.matches(LINK_PATTERN)) { interpreter.link(tokens[2], tokens[4], tokens[6]); }
             //else if (msg.matches(UPGRADE_PATTERN)) { interpreter.upgrade(tokens[2], tokens[4], tokens[6]); }
             else if (msg.matches(EXISTS_PATTERN)) { interpreter.exists(tokens[1]); }
+            else if (msg.matches(NAME)) {
+                interpreter.run(tokens[0], Arrays.asList(tokens).subList(1, tokens.length));
+            }
+
             else { printUsageMessage(); }
         }
         catch (UserError error) {
@@ -114,8 +118,7 @@ public final class Shell {
     }
 
     public static void main(String[] args) throws InterruptedException, Throwable {
-        // First argument is supplied by the fss script and is always present; it's simply $PWD.
-        new Shell(args[0]).execute(args);
+        new Shell("").execute(args);
     }
 
 }

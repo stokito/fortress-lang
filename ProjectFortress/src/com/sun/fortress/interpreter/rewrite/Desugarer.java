@@ -1279,7 +1279,7 @@ public class Desugarer extends Rewrite {
     private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
 	List<Expr> r = Option.unwrap(_requires);
 	for (Expr e : r) {
-	    If _if = ExprFactory.makeIf(new IfClause(e,b), 
+	    If _if = ExprFactory.makeIf(new IfClause(e,b),
 					new Throw(ExprFactory.makeVarRef("CallerViolation")));
 	    b = ExprFactory.makeBlock(_if);
 	}
@@ -1289,7 +1289,7 @@ public class Desugarer extends Rewrite {
     private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
 	List<EnsuresClause> es = Option.unwrap(_ensures);
 	for (EnsuresClause e : es) {
-	    Id t1 = gensymId("t1");	   
+	    Id t1 = gensymId("t1");
 	    If _inner_if = ExprFactory.makeIf(new IfClause(e.getPost(),
 					       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
 				  new Throw(ExprFactory.makeVarRef("CallerViolation")));
@@ -1300,10 +1300,10 @@ public class Desugarer extends Rewrite {
 	    Option<Expr> _pre = e.getPre();
  	    LocalVarDecl provided_lvd;
 	    if (_pre.isSome()) {
-		provided_lvd = ExprFactory.makeLocalVarDecl(t1, Option.unwrap(_pre), 
+		provided_lvd = ExprFactory.makeLocalVarDecl(t1, Option.unwrap(_pre),
 							    ExprFactory.makeBlock(r));
 	    } else {
-		provided_lvd = ExprFactory.makeLocalVarDecl(t1, ExprFactory.makeVarRef("true"), 
+		provided_lvd = ExprFactory.makeLocalVarDecl(t1, ExprFactory.makeVarRef("true"),
 							    ExprFactory.makeBlock(r));
 	    }
 
@@ -1322,11 +1322,11 @@ public class Desugarer extends Rewrite {
 	    Expr chain = (Expr) ExprFactory.makeChainExpr((Expr) ExprFactory.makeVarRef(t1),
 					      new Op("="),
 					      (Expr) ExprFactory.makeVarRef(t2));
-	    
-	    If _post = ExprFactory.makeIf(new IfClause(chain, 
+
+	    If _post = ExprFactory.makeIf(new IfClause(chain,
 						       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
 					  new Throw(ExprFactory.makeVarRef("CallerViolation")));
-	    
+
 	    LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(t2, e, _post);
 	    LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId("result"), b, r2);
 
