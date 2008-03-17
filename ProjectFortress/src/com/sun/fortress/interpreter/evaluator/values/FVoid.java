@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 public class FVoid extends FTuple {
     // At the user level, FVoids should look like "()". EricAllen 3/13/2008
-    public String getString() {return "()";} 
+    public String getString() {return "()";}
     public static final FVoid V = new FVoid();
     private FVoid() {
         super();
