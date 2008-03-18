@@ -1279,9 +1279,10 @@ public class Desugarer extends Rewrite {
     private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
 	List<Expr> r = Option.unwrap(_requires);
 	for (Expr e : r) {
-	    If _if = ExprFactory.makeIf(new IfClause(e,b),
-					new Throw(ExprFactory.makeVarRef("CallerViolation")));
-	    b = ExprFactory.makeBlock(_if);
+	    Span sp = e.getSpan();
+	    If _if = ExprFactory.makeIf(sp, new IfClause(sp,e,b), 
+					ExprFactory.makeThrow(sp,"CallerViolation"));
+	    b = ExprFactory.makeBlock(sp, _if);
 	}
         return b;
     }
@@ -1289,25 +1290,31 @@ public class Desugarer extends Rewrite {
     private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
 	List<EnsuresClause> es = Option.unwrap(_ensures);
 	for (EnsuresClause e : es) {
-	    Id t1 = gensymId("t1");
-	    If _inner_if = ExprFactory.makeIf(new IfClause(e.getPost(),
-					       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
-				  new Throw(ExprFactory.makeVarRef("CalleeViolation")));
-	    If _if = ExprFactory.makeIf(new IfClause((Expr) ExprFactory.makeVarRef(t1),
-					 ExprFactory.makeBlock(_inner_if)),
-			    ExprFactory.makeBlock(ExprFactory.makeVarRef("result")));
-	    LocalVarDecl r = ExprFactory.makeLocalVarDecl(NodeFactory.makeId("result"), b, _if);
+	    Span sp = e.getSpan();
+	    Id t1 = gensymId("t1");	   
+	    Block inner_block = 
+		ExprFactory.makeBlock(sp, 
+				      ExprFactory.makeVarRef(sp, "result"));
+	    If _inner_if = 
+		ExprFactory.makeIf(sp, 
+				   new IfClause(sp, e.getPost(), inner_block),
+				   ExprFactory.makeThrow(sp, "CalleeViolation"));
+
+	    If _if = ExprFactory.makeIf(sp, new IfClause(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
+							 ExprFactory.makeBlock(sp,_inner_if)),
+					ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"result")));
+	    LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"result"), b, _if);
 	    Option<Expr> _pre = e.getPre();
  	    LocalVarDecl provided_lvd;
 	    if (_pre.isSome()) {
-		provided_lvd = ExprFactory.makeLocalVarDecl(t1, Option.unwrap(_pre),
-							    ExprFactory.makeBlock(r));
+		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, Option.unwrap(_pre), 
+							    ExprFactory.makeBlock(sp, r));
 	    } else {
-		provided_lvd = ExprFactory.makeLocalVarDecl(t1, ExprFactory.makeVarRef("true"),
-							    ExprFactory.makeBlock(r));
+		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, ExprFactory.makeVarRef("true"), 
+							    ExprFactory.makeBlock(sp, r));
 	    }
 
-	    b = ExprFactory.makeBlock(provided_lvd);
+	    b = ExprFactory.makeBlock(sp, provided_lvd);
 	}
 	return b;
     }
@@ -1315,22 +1322,24 @@ public class Desugarer extends Rewrite {
     private Block translateInvariants(Option<List<Expr>> _invariants, Block b) {
  	List<Expr> invariants = Option.unwrap(_invariants);
  	for (Expr e : invariants) {
+	    Span sp = e.getSpan();
  	    Id t1 = gensymId("t1");
 	    Id t_result = gensymId("result");
 	    Id t2 = gensymId("t2");
 
-	    Expr chain = (Expr) ExprFactory.makeChainExpr((Expr) ExprFactory.makeVarRef(t1),
-					      new Op("="),
-					      (Expr) ExprFactory.makeVarRef(t2));
+	    Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
+							  new Op("="),
+							  (Expr) ExprFactory.makeVarRef(sp, t2));
+	    If _post = 
+		ExprFactory.makeIf(sp, new IfClause(sp,chain, 
+						    ExprFactory.makeBlock(sp, 
+									  ExprFactory.makeVarRef(sp,
+												 "result"))),
+					  ExprFactory.makeThrow(sp, "CalleeViolation"));
+	    LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(sp, t2, e, _post);
+	    LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId(sp, "result"), b, r2);
 
-	    If _post = ExprFactory.makeIf(new IfClause(chain,
-						       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
-					  new Throw(ExprFactory.makeVarRef("CalleeViolation")));
-
-	    LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(t2, e, _post);
-	    LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId("result"), b, r2);
-
-	    b = ExprFactory.makeBlock(ExprFactory.makeLocalVarDecl(t1,e,r1));
+	    b = ExprFactory.makeBlock(sp, ExprFactory.makeLocalVarDecl(sp, t1,e,r1));
 	}
 
 	return b;
