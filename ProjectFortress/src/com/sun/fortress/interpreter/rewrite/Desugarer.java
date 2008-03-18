@@ -1292,7 +1292,7 @@ public class Desugarer extends Rewrite {
 	    Id t1 = gensymId("t1");
 	    If _inner_if = ExprFactory.makeIf(new IfClause(e.getPost(),
 					       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
-				  new Throw(ExprFactory.makeVarRef("CallerViolation")));
+				  new Throw(ExprFactory.makeVarRef("CalleeViolation")));
 	    If _if = ExprFactory.makeIf(new IfClause((Expr) ExprFactory.makeVarRef(t1),
 					 ExprFactory.makeBlock(_inner_if)),
 			    ExprFactory.makeBlock(ExprFactory.makeVarRef("result")));
@@ -1325,7 +1325,7 @@ public class Desugarer extends Rewrite {
 
 	    If _post = ExprFactory.makeIf(new IfClause(chain,
 						       ExprFactory.makeBlock(ExprFactory.makeVarRef("result"))),
-					  new Throw(ExprFactory.makeVarRef("CallerViolation")));
+					  new Throw(ExprFactory.makeVarRef("CalleeViolation")));
 
 	    LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(t2, e, _post);
 	    LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId("result"), b, r2);
