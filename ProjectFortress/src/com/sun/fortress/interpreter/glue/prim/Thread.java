@@ -105,7 +105,8 @@ public class Thread extends Constructor {
     public static final class stop extends NativeMeth0 {
         public FValue act(FObject self) {
             Thread_prim tp = (Thread_prim) self;
-            tp.st.cancel();
+	    tp.group.shutdownNow();
+	    //            tp.st.cancel();
             return FVoid.V;
         }
     }

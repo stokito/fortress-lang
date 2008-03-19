@@ -22,6 +22,7 @@ package com.sun.fortress.interpreter.evaluator.transactions.manager;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Contention manager for Fortress should be called
@@ -36,25 +37,35 @@ public class FortressManager2 extends BaseManager {
 	super.openSucceeded();
     }
 
+    private void sleepFactor(int tid) {
+	long factor = tid * tid * tid * tid * 17;
+	sleep(factor);
+    }
+
     public void pickOne(Transaction me, Transaction other) {
-	long mine = me.getThreadId();
-	long yours = other.getThreadId();
+	int mine = (int) me.getThreadId();
+	int yours = (int) other.getThreadId();
 	
 	if (mine < yours) {
-	    if (me.isActive()) other.abort();
+	    if (me.isActive()) {
+		other.abort();
+	    }
 	} else if (mine > yours) {
-	    if (other.isActive()) me.abort();
+	    if (other.isActive()) {
+		me.abort();
+		sleepFactor(mine);
+	    }
 	} else  return;
-
     }
 
     public void pickOne(Transaction me, Collection<Transaction> others) {
-	long min = me.getThreadId();
+	int mine = (int) me.getThreadId();
+	int min = mine;
 	Transaction win = me;
 
 	for (Transaction t : others) {
 	    if (t.isActive()) {
-		long id = t.getThreadId();
+		int id = (int) t.getThreadId();
 		if (id < min) {
 		    min = id;
 		    win = t;
@@ -63,10 +74,12 @@ public class FortressManager2 extends BaseManager {
 	}
 	if (win == me) {
 	    for (Transaction t : others) {
-		t.abort();
+		if (t != me)
+		    t.abort();
 	    }
 	} else {
 	    me.abort();
+	    sleepFactor(mine);
 	}
     }
 
@@ -81,7 +94,7 @@ public class FortressManager2 extends BaseManager {
     }
 
     public void waitToRestart() {
-	int waitTime = (int) (Math.random() * 65536);
+	int waitTime = 100000;
 	sleep(waitTime);
     }
 

@@ -94,7 +94,12 @@ public class Transaction {
     status = Status.ACTIVE;
     id = this.startTime = System.nanoTime();
     manager = FortressTaskRunner.getContentionManager();
-    threadID = Thread.currentThread().getId();
+    int numThreads = Runtime.getRuntime().availableProcessors();
+    String numThreadsString = System.getenv("FORTRESS_THREADS");
+    if (numThreadsString != null)
+	numThreads = Integer.parseInt(numThreadsString);
+
+    threadID = Thread.currentThread().getId() % numThreads;
   }
 
   public long getThreadId() { return threadID;}
