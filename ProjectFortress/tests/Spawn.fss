@@ -31,15 +31,17 @@ test1():() = do
    pt:Thread[\Any\] = spawn do x:=1 end
    pt.wait()
    assert(x=1, "test1 x=1")
+   pt.stop()
 end
 
 test2():() = do
    var x : ZZ32 = 0
    var y : ZZ32 = 0
-   spawn atomic do  x:=1; y := 1 end
+   pt:Thread[\Any\] = spawn atomic do  x:=1; y := 1 end
    while (x = 0) do end
    assert(x=1,"test2 x=1")
    assert(y=1,"test2 y=1")
+   pt.stop()
 end
 
 test3():() = do
@@ -49,6 +51,7 @@ test3():() = do
    x:=1
    pt.wait()
    assert(y=1,"test3 y=1")
+   pt.stop()
 end
 
 
@@ -57,11 +60,13 @@ test4():() = do
    ft:Thread[\Any\] = Thread[\Any\](fn()=>do x:=1 end)
    ft.wait()
    assert(x=1, "test4 Thread wrong")
+   ft.stop()
 end
 
 test5():() = do
    ft:Thread[\Any\] = spawn(makeWork(10));
    assert(ft.val(),10, "test5 wrong")
+   ft.stop()
 end
 
 test6():() = do
