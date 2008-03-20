@@ -19,10 +19,10 @@ component SimpleProgram
 export Executable
   
 x:ZZ64 = 23
-f(num:ZZ64): ZZ64 = num + 1
+f(num:ZZ64):ZZ64 = num + 1
 
 run(args:String...):() = do
-  z:ZZ64 = f(x) * f(10)
+  z = f(x) * f(10)
   ()
 end
 

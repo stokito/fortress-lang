@@ -193,19 +193,35 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
+        TypeCheckerResult result = new TypeCheckerResult(that);
+        
+        Option<Type> returnType = that.getReturnType();
+        if (bodyResult.type().isSome()) {
+            Type bodyType = unwrap(bodyResult.type());
+            if (returnType.isNone()) {
+                returnType = wrap(bodyType);
+            }
+            
+            result = checkSubtype(bodyType,
+                                unwrap(returnType),
+                                that,
+                                TypeError.make(errorMsg("Function body has type ", bodyType, ", but ",
+                                                        "declared return type is ", unwrap(returnType)),
+                                               that));
+        }
 
-        return new TypeCheckerResult(new FnDef(that.getSpan(),
+        return TypeCheckerResult.compose(new FnDef(that.getSpan(),
                                                that.getMods(),
                                                that.getName(),
                                                that.getStaticParams(),
                                                that.getParams(),
-                                               that.getReturnType(),
+                                               returnType,
                                                that.getThrowsClause(),
                                                that.getWhere(),
                                                (Contract)contractResult.ast(),
                                                that.getSelfName(),
                                                (Expr)bodyResult.ast()),
-                                     IterUtil.compose(contractResult.errors(), bodyResult.errors()));
+                                     contractResult, bodyResult, result);
     }
 
 
@@ -588,30 +604,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                    newChecker.recurOnListOfExpr(that.getBody())));
     }
 
-    public TypeCheckerResult forFloatLiteralExpr(FloatLiteralExpr that) {
-        return new TypeCheckerResult(that, Types.FLOAT_LITERAL);
-    }
-
-    public TypeCheckerResult forIntLiteralExpr(IntLiteralExpr that) {
-        return new TypeCheckerResult(that, Types.INT_LITERAL);
-    }
-
-    public TypeCheckerResult forCharLiteralExpr(CharLiteralExpr that) {
-        return new TypeCheckerResult(that, Types.CHAR);
-    }
-
-    public TypeCheckerResult forStringLiteralExpr(StringLiteralExpr that) {
-        return new TypeCheckerResult(that, Types.STRING);
-    }
-
-    public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
-        return new TypeCheckerResult(that, Types.VOID);
-    }
-    
-    public TypeCheckerResult forInstantiatedType(InstantiatedType that) {
-        return new TypeCheckerResult(that);
-    }
-
     public TypeCheckerResult forArgExprOnly(ArgExpr that,
                                             List<TypeCheckerResult> exprs_result,
                                             Option<TypeCheckerResult> varargs_result,
@@ -656,8 +648,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forTupleExprOnly(TupleExpr that,
-                                            List<TypeCheckerResult> exprs_result) {
-        return TypeCheckerResult.compose(that, exprs_result);
+                                              List<TypeCheckerResult> exprs_result) {
+        List<Type> types = new ArrayList<Type>(exprs_result.size());
+        for (TypeCheckerResult r : exprs_result) {
+            if (r.type().isNone()) {
+                return TypeCheckerResult.compose(that, exprs_result);
+            }
+            types.add(unwrap(r.type()));
+        }
+        return TypeCheckerResult.compose(that, NodeFactory.makeTupleType(types), exprs_result);
     }
     
     public TypeCheckerResult forContractOnly(Contract that, 
@@ -710,6 +709,32 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return null;
 //    }
 
+    // TRIVIAL NODES ---------------------
+
+    public TypeCheckerResult forFloatLiteralExpr(FloatLiteralExpr that) {
+        return new TypeCheckerResult(that, Types.FLOAT_LITERAL);
+    }
+
+    public TypeCheckerResult forIntLiteralExpr(IntLiteralExpr that) {
+        return new TypeCheckerResult(that, Types.INT_LITERAL);
+    }
+
+    public TypeCheckerResult forCharLiteralExpr(CharLiteralExpr that) {
+        return new TypeCheckerResult(that, Types.CHAR);
+    }
+
+    public TypeCheckerResult forStringLiteralExpr(StringLiteralExpr that) {
+        return new TypeCheckerResult(that, Types.STRING);
+    }
+
+    public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
+        return new TypeCheckerResult(that, Types.VOID);
+    }
+    
+    public TypeCheckerResult forInstantiatedType(InstantiatedType that) {
+        return new TypeCheckerResult(that);
+    }
+    
     public TypeCheckerResult forNormalParam(NormalParam that) {
         // No checks needed to be performed on a NormalParam.
         return new TypeCheckerResult(that);
@@ -724,9 +749,43 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // No checks needed to be performed on a TypeArg.
         return new TypeCheckerResult(that);
     }
+
+    public TypeCheckerResult forInFixity(InFixity that) {
+        // No checks needed to be performed on a InFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    public TypeCheckerResult forPreFixity(PreFixity that) {
+        // No checks needed to be performed on a PreFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    public TypeCheckerResult forPostFixity(PostFixity that) {
+        // No checks needed to be performed on a PostFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    public TypeCheckerResult forNoFixity(NoFixity that) {
+        // No checks needed to be performed on a NoFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    public TypeCheckerResult forMultiFixity(MultiFixity that) {
+        // No checks needed to be performed on a MultiFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    public TypeCheckerResult forEnclosingFixity(EnclosingFixity that) {
+        // No checks needed to be performed on a EnclosingFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    public TypeCheckerResult forBigFixity(BigFixity that) {
+        // No checks needed to be performed on a BigFixity.
+        return new TypeCheckerResult(that);
+    }
     
-    // STUBS --------------------
-    // NEED: WhereClause, ChainExpr, EnsuresClause
+    // STUBS -----------------------------
     
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that, List<TypeCheckerResult> exprs_result) {
         return TypeCheckerResult.compose(that, exprs_result);
