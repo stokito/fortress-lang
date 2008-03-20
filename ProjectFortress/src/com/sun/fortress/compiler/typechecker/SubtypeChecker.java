@@ -350,7 +350,12 @@ public abstract class SubtypeChecker {
     private static boolean isMatrix(Type t) {
         return (t instanceof MatrixType);
     }
-
+    private boolean isUnion(Type t) {
+        return (t instanceof OrType);
+    }
+    private boolean isIntersection(Type t) {
+        return (t instanceof AndType);
+    }
     private boolean isIdArg(StaticArg t) {
         return (t instanceof IdArg);
     }
@@ -678,6 +683,10 @@ public abstract class SubtypeChecker {
                 } else {
                     throw new IllegalStateException("Unexpected index type");
                 }
+            }
+            if (isUnion(s)) {
+                OrType unionType = (OrType)s;
+                return subtype(unionType.getFirst(), t) || subtype(unionType.getSecond(), t);
             }
             // [NS-Any]    p; Delta |- Any </: t  (where t =/= Any)
             if (s.equals(ANY) && !t.equals(ANY)) { return FALSE; }
