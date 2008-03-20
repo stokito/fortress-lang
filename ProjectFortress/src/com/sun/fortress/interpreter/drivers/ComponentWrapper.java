@@ -222,6 +222,10 @@ public class ComponentWrapper {
        return p;
     }
 
+    public String name() {
+        return NodeUtil.nameString(p.getName());
+    }
+
     /**
      * Returns the component wrapper for the API apiname that this component
      * exports.

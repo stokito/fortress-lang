@@ -256,8 +256,7 @@ public class FileTests {
 //                );
         
        
-        fr.addRootApis(NodeFactory.makeAPIName("FortressBuiltin"));
-        fr.addRootApis(NodeFactory.makeAPIName("FortressLibrary"));
+        fr.addRootApis();
         
         for (int i = 0; i < files.length; i++) {
             double f = i / (double) files.length;
@@ -269,7 +268,6 @@ public class FileTests {
                     int l = s.lastIndexOf(".fss");
                     //System.err.println("Adding " + s);
                     String testname = s.substring(0, l);
-                    //fr.addRootComponents(NodeFactory.makeAPIName(testname));
                     suite.addTest(new FSSTest(fr, dirname, testname, failsOnly, expect_failure));
                 } else if (s.endsWith(".tfs")) {
                     int l = s.lastIndexOf(".tfs");

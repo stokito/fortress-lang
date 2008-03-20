@@ -15,14 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component MapExprTest
-export Executable
+api NativeSimpleTypes
+(*
+import FortressLibrary.{...}
+*)
 
-object Map[\K,V\] end
-
-opr { |->[\ K,V \] xs: (K,V)... }: Map[\K,V\] = Map[\K,V\]
-opr BIG {|->[\K,V,T\] g: (Reduction[\Map[\K,V\]\], T -> Map[\K,V\]) -> Map[\K,V\] }: Map[\K,V\] = Map[\K,V\]
-
-run(args:String...):() = ()
+object Boolean
+    extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
+end
 
 end

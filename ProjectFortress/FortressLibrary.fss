@@ -54,7 +54,6 @@ object RR64          extends { Number }      excludes { String, Boolean }
 object String        extends { Any }         excludes { IntLiteral, FloatLiteral, Boolean }
 object IntLiteral    extends { ZZ32, ZZ64, RR64 }
 object FloatLiteral  extends { RR64 }
-object Boolean       extends { Any }
 
 trait  Any           extends {}
   Note that everything is considered to extend the type Any.
@@ -2870,40 +2869,59 @@ opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
 opr  OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
 opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
 opr NOT(a:Boolean):Boolean = if a then false else true end
-opr =(a:Boolean, b:Boolean):Boolean = if a then b else NOT b end
 opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
 opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else true end
 opr <->(a: Boolean, b:Boolean):Boolean = a=b
+
+true : Boolean = () SEQV ()
+false : Boolean = true SEQV ()
+
 opr +[\T extends Number\](x:T):T = x
 
 opr =[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    a1=a2 AND: b1=b2
+    (a1=a2) AND: (b1=b2)
   end
 
 opr <[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    a1<a2 OR: (a1=a2 AND: b1<b2)
+    typecase _ = a1 CMP a2 of
+        LessThan => true
+        EqualTo => b1 < b2
+        GreaterThan => false
+  end
   end
 
 opr <=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    a1<a2 OR: (a1=a2 AND: b1<=b2)
+    typecase _ = a1 CMP a2 of
+        LessThan => true
+        EqualTo => b1 <= b2
+        GreaterThan => false
+  end
   end
 
 opr >[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    a1>a2 OR: (a1=a2 AND: b1>b2)
+    typecase _ = a1 CMP a2 of
+        LessThan => false
+        EqualTo => b1 > b2
+        GreaterThan => true
+  end
   end
 
 opr >=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    a1>a2 OR: (a1=a2 AND: b1>=b2)
+    typecase _ = a1 CMP a2 of
+        LessThan => false
+        EqualTo => b1 >= b2
+        GreaterThan => true
+  end
   end
 
 opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
@@ -2915,31 +2933,47 @@ opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
 opr =[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    a1=a2 AND: b1=b2 AND: c1=c2
+    (a1=a2) AND: (b1=b2) AND: (c1=c2)
   end
 
 opr <[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    a1<a2 OR: (a1=a2 AND: (b1<b2 OR: (b1=b2 AND: c1<c2)))
+    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => true
+        EqualTo => c1 < c2
+        GreaterThan => false
+  end
   end
 
 opr <=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    a1<a2 OR: (a1=a2 AND: (b1<b2 OR: (b1=b2 AND: c1<=c2)))
+    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => true
+        EqualTo => c1 <= c2
+        GreaterThan => false
+  end
   end
 
 opr >[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    a1>a2 OR: (a1=a2 AND: (b1>b2 OR: (b1=b2 AND: c1>c2)))
+    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => false
+        EqualTo => c1 > c2
+        GreaterThan => true
+  end
   end
 
 opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    a1>a2 OR: (a1=a2 AND: (b1>b2 OR: (b1=b2 AND: c1>=c2)))
+    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => false
+        EqualTo => c1 >= c2
+        GreaterThan => true
+  end
   end
 
 opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do

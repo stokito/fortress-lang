@@ -15,14 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component MapExprTest
-export Executable
+api NativeSimplePreTypes
 
-object Map[\K,V\] end
+trait PreBoolean
+        comprises { Boolean }
+    getter toString(): Boolean
+    generate[\R\](r:Reduction[\R\],b:()->R): R
+    map[\G\](f: ()->G): Maybe[\G\]
+    cross[\G\](g: Generator[\G\]): Generator[\((),G)\]
+    mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R
+    loop(f:()->()): ()
 
-opr { |->[\ K,V \] xs: (K,V)... }: Map[\K,V\] = Map[\K,V\]
-opr BIG {|->[\K,V,T\] g: (Reduction[\Map[\K,V\]\], T -> Map[\K,V\]) -> Map[\K,V\] }: Map[\K,V\] = Map[\K,V\]
-
-run(args:String...):() = ()
+    opr =(self, other:Boolean): Boolean
+    opr <(self, other:Boolean): Boolean
+    opr CMP(self, other:Boolean): Boolean
+end
 
 end

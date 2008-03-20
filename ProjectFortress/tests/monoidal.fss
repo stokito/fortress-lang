@@ -18,10 +18,10 @@
 component monoidal
 export Executable
 
-object Identity[\opr OPLUS\]()
+object Identity[\opr OPLUS\]
 end
 
-object Zero[\opr OTIMES\]()
+object Zero[\opr OTIMES\]
 end
 
 trait Monoid[\T extends Monoid[\T,OPLUS\], opr OPLUS\]

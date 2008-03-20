@@ -62,18 +62,13 @@ public class Primitives {
         install_type(env, "ZZ64", FTypeLong.ONLY);
         install_type(env, "Integral", FTypeIntegral.ONLY);
         install_type(env, "String", FTypeString.ONLY);
-        install_type(env, "Boolean", FTypeBool.ONLY);
         install_type(env, "Char", FTypeChar.ONLY);
         install_type(env, "RR64", FTypeFloat.ONLY);
         install_type(env, "Number", FTypeNumber.ONLY);
-        // install_type(env, "ZZ32Range", FTypeRange.ONLY);
         install_type(env, "BufferedWriter", FTypeBufferedWriter.ONLY);
 
         install_type(env, "IntLiteral", FTypeIntLiteral.ONLY);
         install_type(env, "FloatLiteral", FTypeFloatLiteral.ONLY);
-
-        install_value(env, "true", FBool.TRUE);
-        install_value(env, "false", FBool.FALSE);
 
         // Dual identity of true/false
         install_type(env, "true", Bool.make(true));
@@ -90,14 +85,10 @@ public class Primitives {
         install_type(env, "FortressBuiltin.Char", FTypeChar.ONLY);
         install_type(env, "FortressBuiltin.RR64", FTypeFloat.ONLY);
         install_type(env, "FortressBuiltin.Number", FTypeNumber.ONLY);
-        // install_type(env, "ZZ32Range", FTypeRange.ONLY);
         install_type(env, "FortressBuiltin.BufferedWriter", FTypeBufferedWriter.ONLY);
 
         install_type(env, "FortressBuiltin.IntLiteral", FTypeIntLiteral.ONLY);
         install_type(env, "FortressBuiltin.FloatLiteral", FTypeFloatLiteral.ONLY);
-
-        install_value(env, "FortressBuiltin.true", FBool.TRUE);
-        install_value(env, "FortressBuiltin.false", FBool.FALSE);
 
         // Dual identity of true/false
         install_type(env, "FortressBuiltin.true", Bool.make(true));

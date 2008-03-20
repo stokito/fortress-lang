@@ -120,8 +120,7 @@ public class Fortress {
             String... files) {
         Parser.Result result = new Parser.Result();
         
-        bcr.addRootApis("FortressBuiltin");
-        bcr.addRootApis("FortressLibrary");
+        bcr.addRootApis();
         
         for (String s : files) {
             APIName name  = Driver.fileAsApi(s);

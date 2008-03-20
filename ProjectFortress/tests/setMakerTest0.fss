@@ -74,7 +74,7 @@ object rng z:ZZ32 = 0 end (* Parsing test for SR *)
 (* object rng z:ZZ32 = 0; end (* FAILS *) *)
 (* object rng; z:ZZ32 = 0 end (* FAILS *) *)
 
-object SetMaker[\T\]() extends Set[\T\]
+object SetMaker[\T\] extends Set[\T\]
   add(x:T):() = println("add " x)
 end
 

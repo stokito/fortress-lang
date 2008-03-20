@@ -149,6 +149,7 @@ public class Driver {
      
     public static String libraryName = "FortressLibrary";
     public static String builtinsName = "FortressBuiltin";
+    public static String nativesName = "NativeSimpleTypes";
     
     private Driver() {};
 
@@ -229,7 +230,38 @@ public class Driver {
         return null;
     }
 
+    private static boolean injectLibraryTraits(List<ComponentWrapper> components,
+                                               ComponentWrapper lib) {
+        boolean change = false;
+        for (ComponentWrapper cw : components) {
+            for (String s : lib.desugarer.getTopLevelRewriteNames()) {
+                if (cw.isOwnName(s)) {
+                    continue;
+                }
+                change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
+            }
+        }
+        return change;
+    }
 
+    private static void injectLibraryNames(List<Importer> importers,
+                                           ComponentWrapper cw,
+                                           ComponentWrapper lib,
+                                           ComponentWrapper libcomp,
+                                           String libraryName) {
+        if (cw != libcomp) {
+            // System.err.println("Injecting names for comp "+libcomp.name()+" into comp "+cw.name());
+            Importer imp =
+                importAllExcept(lib.getCompilationUnit(),
+                                cw.getEnvironment(),
+                                lib.getEnvironment(), libcomp.getEnvironment(),
+                                Collections.<String> emptyList(),
+                                libraryName, libraryName,
+                                cw);
+            imp.runImports();
+            importers.add(imp);
+        }
+    }
     
     public static BetterEnv evalComponent(CompilationUnit p,
                                           boolean woLibrary,
@@ -290,14 +322,13 @@ public class Driver {
         if (!woLibrary) {
             libcomp = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
             lib = libcomp.getExportedCW(libraryName);
-            
-//            lib = new ComponentWrapper(readTreeOrSourceApi(libraryName, libraryName, fr));
-//            lib.getExports(true);
-//            pile.push(lib);
-        } else {
-            //comp.getEnvironment().installPrimitives();
         }
         
+        ComponentWrapper nativescomp =
+            ensureApiImplemented(fr, linker, pile,
+                                 NodeFactory.makeAPIName(nativesName));
+        ComponentWrapper natives = nativescomp.getExportedCW(nativesName);
+
         /*
          * This performs closure over APIs and components, ensuring that all are
          * initialized through phase one of building environments.
@@ -327,14 +358,9 @@ public class Driver {
             }
 
             if (!woLibrary)
-                for (ComponentWrapper cw : components) {
-                    if (cw != libcomp)
-                    for (String s : lib.desugarer.getTopLevelRewriteNames()) {
-                        if (!cw.isOwnName(s))
-                            change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
+                change |= injectLibraryTraits(components, lib);
+            change |= injectLibraryTraits(components, natives);
                     }
-                }
-        }
 
         /*
          * After all apis etc have been imported, populate their environments.
@@ -364,27 +390,15 @@ public class Driver {
              */
             
             if (cw != builtins) {
-                Importer imp = 
-                importAllExcept(builtins.getCompilationUnit(), cw.getEnvironment(), builtins.getEnvironment(), builtins.getEnvironment(),
-                        Collections.<String> emptyList(),
-                        "FortressBuiltins",
-                        "FortressBuiltins",
-                        cw);
-                imp.runImports();
-                importers.add(imp);
-                
-                if (cw != libcomp && !woLibrary) {
-                    imp = importAllExcept(lib.getCompilationUnit(), cw.getEnvironment(), lib.getEnvironment(), libcomp.getEnvironment(),
-                            Collections.<String> emptyList(),
-                            "FortressLibrary",
-                            "FortressLibrary",
-                             cw);
-                    imp.runImports();
-                    importers.add(imp);
+                injectLibraryNames(importers,cw,builtins,builtins,builtinsName);
+                if (cw != libcomp)
+                    injectLibraryNames(importers,cw,lib,libcomp,libraryName);
+                injectLibraryNames(importers,cw,natives,nativescomp,nativesName);
                 }
-            }
+            // System.err.println("Injected all implicit names into "+cw.name());
 
             importers.addAll(injectExplicitImports(linker, cw));
+            // System.err.println("Injected all explicit names into "+cw.name());
         }
 
         boolean importChange = true;
@@ -418,8 +432,6 @@ public class Driver {
         for (ComponentWrapper cw : components) {
             cw.initVars();
         }
-
-        // Libraries.link(be, dis);
 
         return comp.getEnvironment();
     }
@@ -478,6 +490,7 @@ public class Driver {
                 /* Pull in names, UNqualified */
 
                 if (ix instanceof ImportNames) {
+                    // System.err.println("Importing "+source+" into "+cw.name());
                     /* A set of names */
                     List<AliasedSimpleName> names = ((ImportNames) ix).getAliasedNames();
                     for (AliasedSimpleName an : names) {
@@ -522,6 +535,7 @@ public class Driver {
                 /* Pull in names, UNqualified */
 
                 if (ix instanceof ImportStar) {
+                    // System.err.println("Importing "+source+" into "+cw.name());
                     /* All names BUT excepts, as they are listed.
                      * Include all names defined locally in the "except" list,
                      * because local definitions block import-* imports.

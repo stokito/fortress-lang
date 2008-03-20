@@ -24,6 +24,7 @@ import java.util.Set;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -70,4 +71,8 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
 		return Option.none();
 	}
 
+    @Override
+    public String toString() {
+        return (Useful.listInOxfords(_staticParams)+"  "+super.toString());
+}
 }
