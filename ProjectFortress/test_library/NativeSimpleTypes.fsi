@@ -16,9 +16,6 @@
  ******************************************************************************)
 
 api NativeSimpleTypes
-(*
-import FortressLibrary.{...}
-*)
 
 object Boolean
     extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }

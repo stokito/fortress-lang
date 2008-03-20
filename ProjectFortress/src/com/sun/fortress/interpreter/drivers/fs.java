@@ -38,7 +38,7 @@ import com.sun.fortress.useful.Useful;
 
 public class fs {
 
-  
+
     // Options set by main()
     private static boolean doAst = false;
     private static boolean verbose = false;
@@ -156,18 +156,18 @@ public class fs {
             } else {
                 fr = Driver.defaultRepository();
             }
-            
+
             fr.addRootApis();
-            
+
             if (verbose)  { System.err.println("Parsing/reading " + s); }
             long begin = System.currentTimeMillis();
-            
+
             Option<CompilationUnit> p = Option.none();
-            
+
             try {
                 APIName name;
                 name = Driver.fileAsApi(s);
-                
+
                 if (name != null) {
                     p = Option.wrap(fr.getApi(name).ast());
                 } else {
@@ -178,7 +178,7 @@ public class fs {
                         name = NodeFactory.makeAPIName(s);
                         p = Option.wrap(fr.getLinkedComponent(name).ast());
                     }
-                } 
+                }
                 reportCompletion("Parsing " + s, begin);
             }
             finally { }
@@ -229,7 +229,7 @@ public class fs {
 //            (new File(tmpFile)).delete();
 //        }
     }
-    
+
     static void usage() {
         System.err.println("Usage: java fs flags* filename run-args");
         System.err.println("Iteratively parses the Fortress source file found in filename and executes it using run-args.");

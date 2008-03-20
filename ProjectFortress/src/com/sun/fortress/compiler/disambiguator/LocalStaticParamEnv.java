@@ -46,33 +46,33 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
         return super.hasTypeParam(name);
     }
 
-	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
-		return Collections.emptySet();
-	}
+    @Override
+    public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
+        return Collections.emptySet();
+    }
 
-	@Override
-	public boolean hasGrammar(QualifiedIdName name) {
-		return false;
-	}
+    @Override
+    public boolean hasGrammar(QualifiedIdName name) {
+        return false;
+    }
 
-	@Override
-	public boolean hasQualifiedGrammar(QualifiedIdName name) {
-		return false;
-	}
+    @Override
+    public boolean hasQualifiedGrammar(QualifiedIdName name) {
+        return false;
+    }
 
-	@Override
-	public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
-		return Collections.emptySet();
-	}
+    @Override
+    public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
+        return Collections.emptySet();
+    }
 
-	@Override
-	public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
-		return Option.none();
-	}
+    @Override
+    public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
+        return Option.none();
+    }
 
     @Override
     public String toString() {
         return (Useful.listInOxfords(_staticParams)+"  "+super.toString());
-}
+    }
 }

@@ -50,14 +50,14 @@ public class ComponentWrapper {
     HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
 
     BuildEnvironments be;
-    
+
     BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    
+
     Desugarer desugarer;
-    
+
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
 
@@ -80,9 +80,9 @@ public class ComponentWrapper {
         p = comp;
         if (ProjectProperties.noStaticAnalysis)
             p = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(p);
-        else 
+        else
             p = (CompilationUnit) RewriteInPresenceOfTypeInfo.Only.visit(p);
-        
+
         BetterEnv e = BetterEnv.empty();
         e.setTopLevel();
         be = comp.is_native() ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
@@ -95,14 +95,14 @@ public class ComponentWrapper {
      */
     public ComponentWrapper(Component comp, ComponentWrapper api) {
         this(comp);
-        
+
         exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
 
     public static boolean overloadable(Object u) {
         return u instanceof Fcn || u instanceof GenericConstructor;
     }
-    
+
     @Override
     public String toString() {
         return ("Wrapper for "+p.toString()+" exports: "+exports);
@@ -123,18 +123,18 @@ public class ComponentWrapper {
     public void getExports(boolean isLibrary) {
         if (visitState != UNVISITED)
             return;
-        
+
         visitState = IMPORTED;
 
         desugarer = new Desugarer(isLibrary);
-        
+
         for (ComponentWrapper api: exports.values()) {
             api.getExports(isLibrary);
         }
     }
 
     public void preloadTopLevel() {
-        
+
         desugarer.preloadTopLevel(p);
         /* Need to capture these names early so that rewriter
          * name injection will follow the same no-duplicates
@@ -144,20 +144,20 @@ public class ComponentWrapper {
         for (ComponentWrapper api: exports.values()) {
             api.preloadTopLevel();
         }
-        
+
     }
-    
+
      /**
      *
      */
     public CompilationUnit populateOne() {
         if (visitState != IMPORTED)
             return bug("Component wrapper in wrong visit state: " + visitState);
-        
+
         visitState = POPULATED;
 
         CompilationUnit cu = p;
-        
+
        cu = (CompilationUnit) desugarer.visit(cu); // Rewrites p!
                                       // Caches information in dis!
         be.visit(cu);
@@ -166,11 +166,11 @@ public class ComponentWrapper {
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
         be.getEnvironment().visit(nameCollector);
         p = cu;
-        
+
         for (ComponentWrapper api: exports.values()) {
             api.populateOne();
         }
-        
+
         return cu;
     }
 
@@ -233,7 +233,7 @@ public class ComponentWrapper {
     public ComponentWrapper getExportedCW(String apiname) {
         return exports.get(apiname);
     }
-    
+
     public boolean isOwnName(String s) {
         return ownNames.contains(s);
     }

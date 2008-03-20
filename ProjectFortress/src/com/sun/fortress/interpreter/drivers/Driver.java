@@ -129,8 +129,8 @@ public class Driver {
 
     private static boolean _libraryTest = false;
 
-    private static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
-        ProjectProperties.noStaticAnalysis ? 
+    private static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY =
+        ProjectProperties.noStaticAnalysis ?
                 new BatchCachingRepository(
                       (ProjectProperties.SOURCE_PATH),
                       new CacheBasedRepository(ProjectProperties.INTERPRETER_CACHE_DIR)
@@ -146,11 +146,11 @@ public class Driver {
                        * The interface should be improved.
                        */
     public static BatchCachingRepository CURRENT_INTERPRETER_REPOSITORY = null;
-     
+
     public static String libraryName = "FortressLibrary";
     public static String builtinsName = "FortressBuiltin";
     public static String nativesName = "NativeSimpleTypes";
-    
+
     private Driver() {};
 
     static public void runTests() {
@@ -167,17 +167,17 @@ public class Driver {
          CURRENT_INTERPRETER_REPOSITORY = DEFAULT_INTERPRETER_REPOSITORY;
         return CURRENT_INTERPRETER_REPOSITORY;
     }
-    
+
     public static BatchCachingRepository extendedRepository(String s) {
        return specificRepository(ProjectProperties.SOURCE_PATH.prepend(s));
     }
-    
+
     public static BatchCachingRepository specificRepository(Path p) {
         // This is bogus; we need to find a better way to communicate with the
         // syntax transfomer.
-       
-        BatchCachingRepository fr = 
-            ProjectProperties.noStaticAnalysis ? 
+
+        BatchCachingRepository fr =
+            ProjectProperties.noStaticAnalysis ?
                     new BatchCachingRepository(
                           p,
                           new CacheBasedRepository(ProjectProperties.INTERPRETER_CACHE_DIR)
@@ -187,26 +187,26 @@ public class Driver {
                 p,
                 new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR)
                 );
-        
+
         CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
     }
-    
+
     public static BatchCachingAnalyzingRepository fssRepository(Path p, FortressRepository derived) {
         // This is bogus; we need to find a better way to communicate with the
         // syntax transfomer.
-       
-        BatchCachingAnalyzingRepository fr = 
-            
+
+        BatchCachingAnalyzingRepository fr =
+
             new BatchCachingAnalyzingRepository(false,
                 p,
                 derived
                 );
-        
+
         CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
     }
-    
+
     public static ArrayList<ComponentWrapper> components;
 
     public static APIName fileAsComponent(String s) {
@@ -262,7 +262,7 @@ public class Driver {
             importers.add(imp);
         }
     }
-    
+
     public static BetterEnv evalComponent(CompilationUnit p,
                                           boolean woLibrary,
                                           FortressRepository fr) throws IOException {
@@ -308,22 +308,22 @@ public class Driver {
         /*
          * This is a patch; eventually, it will all be done explicitly.
          */
-        
+
         /*
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
         ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr));
         builtins.getEnvironment().installPrimitives();
-        
+
         ComponentWrapper lib = null;
         ComponentWrapper libcomp = null;
-        
+
         if (!woLibrary) {
             libcomp = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
             lib = libcomp.getExportedCW(libraryName);
         }
-        
+
         ComponentWrapper nativescomp =
             ensureApiImplemented(fr, linker, pile,
                                  NodeFactory.makeAPIName(nativesName));
@@ -360,7 +360,7 @@ public class Driver {
             if (!woLibrary)
                 change |= injectLibraryTraits(components, lib);
             change |= injectLibraryTraits(components, natives);
-                    }
+        }
 
         /*
          * After all apis etc have been imported, populate their environments.
@@ -388,34 +388,32 @@ public class Driver {
              * Transitional stuff. Import everything from "library" into a
              * Component.
              */
-            
+
             if (cw != builtins) {
                 injectLibraryNames(importers,cw,builtins,builtins,builtinsName);
                 if (cw != libcomp)
                     injectLibraryNames(importers,cw,lib,libcomp,libraryName);
                 injectLibraryNames(importers,cw,natives,nativescomp,nativesName);
-                }
-            // System.err.println("Injected all implicit names into "+cw.name());
+            }
 
             importers.addAll(injectExplicitImports(linker, cw));
-            // System.err.println("Injected all explicit names into "+cw.name());
         }
 
         boolean importChange = true;
-        
+
         while (importChange) {
             importChange = false;
             for (Importer imp : importers) {
                 importChange |= imp.runImports();
             }
         }
-        
+
         for (Importer imp : importers) {
             imp.reportErrors();
         }
-        
+
         importers = null;
-        
+
         for (ComponentWrapper cw : components) {
             cw.initTypes();
         }
@@ -441,7 +439,7 @@ public class Driver {
         CompilationUnit c = cw.getCompilationUnit();
         List<Import> imports = c.getImports();
         List<Importer> importers = new ArrayList<Importer>();
-         
+
         final BetterEnv e = cw.getEnvironment();
 
         /* First handle all imports that name the things they introduce. */
@@ -685,13 +683,13 @@ public class Driver {
 
     private static void notImport(String s, Object o, String api, String component) {
 //        System.err.println("Not importing from " + api + " into " + component + " name " + s + ", value " + o);
-    } 
+    }
 
     static abstract class Importer {
         abstract boolean runImports();
         abstract void reportErrors();
     }
-    
+
     /**
      * @param into_e
      * @param from_e
@@ -708,8 +706,8 @@ public class Driver {
      * problem; in the mean time we simply catch duplicate insertions
      * here and silently ignore them.  This is a stopgap measure that
      * should go away.
-     * 
-     * 
+     *
+     *
      */
     private static Importer importAllExcept(final CompilationUnit fromApi,
             final BetterEnv into_e,
@@ -722,28 +720,28 @@ public class Driver {
 
         final Set<String> vnames = new HashSet<String>();
         final Set<String> tnames = new HashSet<String>();
-        
+
         collectImportedValueAndTypeNames(fromApi, vnames, tnames);
-        
-       final Importer imp = new Importer() { 
+
+       final Importer imp = new Importer() {
            final boolean[] noisy = new boolean[1];
-           
+
            final Set<String> added = new HashSet<String>();
         @Override
         synchronized void reportErrors() {
             noisy[0] = true;
-            
-            trysomeImports(api_e, vnames, tnames);        
+
+            trysomeImports(api_e, vnames, tnames);
         }
-        
+
         @Override
         synchronized boolean runImports() {
-            
+
             noisy[0] = false;
             return trysomeImports(api_e, vnames, tnames);
-            
+
         }
-        
+
         private boolean trysomeImports(final BetterEnv api_e,
                 final Set<String> vnames, final Set<String> tnames) {
             boolean flag = false;
@@ -755,7 +753,7 @@ public class Driver {
                 vnames.removeAll(added);
                 added.clear();
             }
-            
+
             for (String s : tnames) {
                 vt.visit(s, api_e.getType(s));
             }
@@ -766,8 +764,8 @@ public class Driver {
             }
             return flag;
         }
-      
-        
+
+
         final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
                 try {
@@ -801,7 +799,7 @@ public class Driver {
             }
             }
         };
-        
+
         /*
          * Potential problem here, we have to make overloading work when we put
          * a function.
@@ -843,9 +841,9 @@ public class Driver {
                 }
             }
         };
-        
+
         };
-        
+
         return imp;
     }
 
@@ -991,9 +989,9 @@ public class Driver {
                     vnames.add(s);
                 }
             }
-            
+
         };
-        
+
             if (fromApi instanceof Api)
 
                 for (AbsDecl ad : ((Api) fromApi).getDecls()) {
@@ -1005,8 +1003,8 @@ public class Driver {
                 for (Decl ad : ((Component) fromApi).getDecls()) {
                     ad.accept(apiDeclVisitor);
                 }
-                
-             
+
+
             }
     }
 
@@ -1093,7 +1091,7 @@ public class Driver {
     /**
      * Returns the component wrapper (for the component) that exports this API.
      * Needs to generalize to sets of APIs in the future, perhaps.
-     * 
+     *
      * @param linker
      * @param pile
      * @param id
@@ -1114,9 +1112,9 @@ public class Driver {
             Api newapi = readTreeOrSourceApi(apiname, apiname, fr);
             Component newcomp;
             //boolean is_native = false;
-            
+
             newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
-            
+
             ComponentWrapper apicw = new ComponentWrapper(newapi);
             newwrapper = new ComponentWrapper(newcomp, apicw);
             newwrapper.getExports(true);
@@ -1221,14 +1219,14 @@ public class Driver {
     }
 
     public static Component readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
-        
+
         String name  = key;
         APIName apiname = NodeFactory.makeAPIName(name);
 
         ComponentIndex ci = p.getComponent(apiname);
         CompilationUnit c = ci.ast();
         return (Component) c;
-        
+
     }
 
 
@@ -1238,7 +1236,7 @@ public class Driver {
         ApiIndex ci = p.getApi(apiname);
         CompilationUnit c = ci.ast();
         return (Api) c;
-       
+
     }
 
     static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();

@@ -2891,7 +2891,7 @@ opr <[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
         LessThan => true
         EqualTo => b1 < b2
         GreaterThan => false
-  end
+    end
   end
 
 opr <=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
@@ -2901,7 +2901,7 @@ opr <=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
         LessThan => true
         EqualTo => b1 <= b2
         GreaterThan => false
-  end
+    end
   end
 
 opr >[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
@@ -2911,7 +2911,7 @@ opr >[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
         LessThan => false
         EqualTo => b1 > b2
         GreaterThan => true
-  end
+    end
   end
 
 opr >=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
@@ -2921,7 +2921,7 @@ opr >=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
         LessThan => false
         EqualTo => b1 >= b2
         GreaterThan => true
-  end
+    end
   end
 
 opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
@@ -2943,7 +2943,7 @@ opr <[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
         LessThan => true
         EqualTo => c1 < c2
         GreaterThan => false
-  end
+    end
   end
 
 opr <=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
@@ -2953,7 +2953,7 @@ opr <=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
         LessThan => true
         EqualTo => c1 <= c2
         GreaterThan => false
-  end
+    end
   end
 
 opr >[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
@@ -2963,7 +2963,7 @@ opr >[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
         LessThan => false
         EqualTo => c1 > c2
         GreaterThan => true
-  end
+    end
   end
 
 opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
@@ -2973,7 +2973,7 @@ opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
         LessThan => false
         EqualTo => c1 >= c2
         GreaterThan => true
-  end
+    end
   end
 
 opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
