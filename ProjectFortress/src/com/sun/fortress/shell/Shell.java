@@ -31,15 +31,15 @@ import static com.sun.fortress.shell.ConvenientStrings.*;
 
 public final class Shell {
     /* Patterns for parsing shell messages.*/
-    private static final String NAME =                   "[\\S]+";
-    private static final String COMPILE_PATTERN =        "compile " + NAME + "((.fss)|(.fsi))";
-    private static final String SELF_UPGRADE_PATTERN =   "selfupgrade " + NAME + ".tar";
-    private static final String SCRIPT_PATTERN =         "script " + NAME + ".fsx";
-    private static final String RUN_PATTERN =            "run " + NAME;
-    private static final String API_PATTERN =            "api " + NAME + ".fss";
-    private static final String LINK_PATTERN =           "link " + NAME + " from " + NAME + " with " + NAME;
-    private static final String UPGRADE_PATTERN =        "upgrade " + NAME + " from " + NAME + " with " + NAME;
-    private static final String EXISTS_PATTERN =         "exists " + NAME;
+//    private static final String NAME =                   "[\\S]+";
+//    private static final String COMPILE_PATTERN =        "compile " + NAME + "((.fss)|(.fsi))";
+//    private static final String SELF_UPGRADE_PATTERN =   "selfupgrade " + NAME + ".tar";
+//    private static final String SCRIPT_PATTERN =         "script " + NAME + ".fsx";
+//    private static final String RUN_PATTERN =            "run " + NAME;
+//    private static final String API_PATTERN =            "api " + NAME + ".fss";
+//    private static final String LINK_PATTERN =           "link " + NAME + " from " + NAME + " with " + NAME;
+//    private static final String UPGRADE_PATTERN =        "upgrade " + NAME + " from " + NAME + " with " + NAME;
+//    private static final String EXISTS_PATTERN =         "exists " + NAME;
 
     private String pwd;
     /* Relative location of the resident fortress to the jar file this class is packaged into. */
@@ -65,14 +65,32 @@ public final class Shell {
     /* Helper method to print usage message.*/
     private void printUsageMessage() {
         System.err.println("Usage:");
-        System.err.println("  " + COMPILE_PATTERN);
+        System.err.println(" compile somefile.fs{s,i}");
         //System.err.println("  " + SELF_UPGRADE_PATTERN);
         //System.err.println("  " + SCRIPT_PATTERN);
-        System.err.println("  " + RUN_PATTERN);
+        System.err.println(" [run] [-test] [-debug] somefile.fss");
         //System.err.println("  " + API_PATTERN);
         //System.err.println("  " + LINK_PATTERN);
         //System.err.println("  " + UPGRADE_PATTERN);
-        System.err.println("  " + EXISTS_PATTERN);
+        System.err.println(" help");
+    }
+    
+    private void printHelpMessage() {
+        System.err.println
+        ("Invoked as script: fortress args\n"+
+         "Invoked by java: java ... com.sun.fortress.shell.Shell args\n"+
+         "args: compile somefile.fs{s,i}\n"+
+         "  ensures that component or interface 'somefile' is up-to-date,\n"+
+         "  checked and present in the cache\n"+
+         "args: [run] [-test] [-debug] somefile.fss more_args\n"+
+         "  compile somefile.fss and link/compile all APIs and components\n"+
+         "  necessary to run it, and then run it, passing more_args to the\n"+
+         "  fortress program.  A runnable fortress program exports Executable\n"+
+         "  and supplies a run(args:String...) function.\n"+
+         "  -test  first runs test functions associated with the program.\n"+
+         "  -debug includes Java stack traces with any errors, and enables\n"+
+         "         additional output."
+        );
     }
 
     /* Main entry point for the fortress shell.*/
@@ -83,31 +101,20 @@ public final class Shell {
             System.exit(-1);
         }
 
-        // Otherwise, tokens.length > 0.
-        // First assemble tokens into a single string we can match against.
-        StringBuilder msgBuffer = new StringBuilder(tokens[0]);
-        for (String token : Arrays.asList(tokens).subList(1, tokens.length)) {
-            msgBuffer.append(" " + token);
-        }
-        String msg = msgBuffer.toString();
-
         // Now match the assembled string.
         try {
-            if      (msg.matches(COMPILE_PATTERN)) { interpreter.compile(false, tokens[1]); }
-            //else if (msg.matches(SELF_UPGRADE_PATTERN)) { interpreter.selfUpgrade(tokens[2]); }
-            //else if (msg.matches(SCRIPT_PATTERN)) { interpreter.script(tokens[2]); }
-            else if (msg.matches(RUN_PATTERN)) {
-                interpreter.run(tokens[1], Arrays.asList(tokens).subList(2, tokens.length));
-            }
-            //else if (msg.matches(API_PATTERN)) { interpreter.api(tokens[2]); }
-            //else if (msg.matches(LINK_PATTERN)) { interpreter.link(tokens[2], tokens[4], tokens[6]); }
-            //else if (msg.matches(UPGRADE_PATTERN)) { interpreter.upgrade(tokens[2], tokens[4], tokens[6]); }
-            else if (msg.matches(EXISTS_PATTERN)) { interpreter.exists(tokens[1]); }
-            else if (msg.matches(NAME)) {
-                interpreter.run(tokens[0], Arrays.asList(tokens).subList(1, tokens.length));
-            }
-
-            else { printUsageMessage(); }
+            String what = tokens[0];
+            if (what.equals("run")) {
+                interpreter.run(Arrays.asList(tokens).subList(1, tokens.length));
+            } else if (what.equals("compile")) {
+                interpreter.compile(false, tokens[1]);
+            } else if (what.contains(".fss") || what.startsWith("-")) {
+                // no "run" command.
+                interpreter.run(Arrays.asList(tokens));
+            } else if (what.equals("help")) {
+                printHelpMessage();
+                
+            } else { printUsageMessage(); }
         }
         catch (UserError error) {
             System.err.println(error.getMessage());

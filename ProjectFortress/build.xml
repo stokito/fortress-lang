@@ -227,17 +227,28 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <echo message="Operators up to date? ${operators.uptodate}"/>
     </target>
 
-    <target name="operatorsGen"  unless="operators.uptodate"
-	    depends="init, compileCommon, checkOperatorsUptodate"
-     description="Automatically generate visitors for AST nodes.">
-        <echo message="Regenerating operators"/>
-        <java classname="${package.prefix}.unicode.OperatorStuffGenerator"
-	      fork="true">
-            <classpath>
-                <pathelement location="${build}"/>
-            </classpath>
-        </java>
-    </target>
+	   <target name="operatorsGen"  unless="operators.uptodate"
+		    depends="init, compileCommon, checkOperatorsUptodate"
+	     description="Automatically generate visitors for AST nodes.">
+	        <echo message="Regenerating operators"/>
+	        <java classname="${package.prefix}.unicode.OperatorStuffGenerator"
+		      fork="true">
+	            <classpath>
+	                <pathelement location="${build}"/>
+	            </classpath>
+	        </java>
+	    </target>
+
+	   <target name="DumpProperties"
+	     description="Dump properties as seen by a Java program.">
+            <java classname="${package.prefix}.interpreter.drivers.DumpProperties"
+		      fork="true">
+            	<sysproperty key="DEBUG" value="true"/>
+	            <classpath>
+	                <pathelement location="${build}"/>
+	            </classpath>
+	        </java>
+	    </target>
 
     <target name="checkNodesUptodate">
         <condition property="nodes.uptodate">

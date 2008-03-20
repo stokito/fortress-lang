@@ -49,7 +49,7 @@ public class PathBasedSyntaxTransformingRepository extends PathBasedRepository {
     }
 
     protected CompilationUnit getCompilationUnit(File f) throws IOException {
-       Result result = FortressParser.parse(f, env);
+       Result result = FortressParser.parse(f, env, verbose());
        if (result.isSuccessful()) {
            Iterator<Api> apis = result.apis().iterator();
            Iterator<Component> components = result.components().iterator();

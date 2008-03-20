@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,41 +15,29 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component contraTest
+component natInference0
 export Executable
 
-trait Object end
-
-trait ThingOf[\T\] extends ThingOf[\S\] where [\S\]{ T extends S }
+trait T[\nat n\]
+  f() = println("n is " n)
 end
 
-trait A extends Object end
+object O extends T[\3\] end
+object P extends T[\4\] end
 
-trait B extends A end
-
-f(x:ThingOf[\A\]) = do
-  println("PASS: f(ThingOf[A]) called")
+g[\nat m\](x:T[\m\], y:T[\m\]) = do
+  x.f();
+  y.f();
 end
 
-g(x:ThingOf[\A\]) = do
-  println("FAIL: g(ThingOf[A]) called")
-end
-
-g(x:ThingOf[\B\]) = do
-  println("PASS: g(ThingOf[B]) called")
-end
-
-object ToBo() extends ThingOf[\B\]
-end
-
-run(args:String...):() = do
-
-  tob:ThingOf[\B\] = ToBo()
-
-  f(tob)
-
-  g(tob)
-
+run(args:String...) = do 
+  println "Hello, World!"
+    g(O,O);
+    g(P,P);
+    (* g(O,P); this one is supposed to fail *)
+  end
+test testHello() = do
+  println "Hello passed its test!"
 end
 
 end

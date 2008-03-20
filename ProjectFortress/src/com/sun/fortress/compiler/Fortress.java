@@ -101,13 +101,14 @@ public class Fortress {
      */
     public Iterable<? extends StaticError> compile(Path path, String... files) {
         
-        BatchCachingRepository bcr = Driver.fssRepository(path, _repository);
+        BatchCachingAnalyzingRepository bcr = Driver.fssRepository(path, _repository);
             
         Parser.Result result = compileInner(bcr, files);
  
         // Parser.Result pr = Parser.parse(files, env);
         if (!result.isSuccessful()) { return result.errors(); }
-        System.out.println("Parsing done.");
+        if (bcr.verbose())
+            System.err.println("Parsing done.");
         
         GlobalEnvironment env = new GlobalEnvironment.FromMap(bcr.apis());
         
@@ -115,7 +116,7 @@ public class Fortress {
         return IterUtil.empty();
     }
 
-    private Parser.Result compileInner(BatchCachingRepository bcr,
+    private Parser.Result compileInner(BatchCachingAnalyzingRepository bcr,
             String... files) {
         Parser.Result result = new Parser.Result();
         
@@ -150,7 +151,8 @@ public class Fortress {
         
         for (APIName name : bcr.staleApis()) {
             try {
-                System.err.println("Adding api " + name);
+                if (bcr.verbose())
+                    System.err.println("Adding api " + name);
                 result = addApiToResult(bcr, result, name);
             } catch (Exception ex) {
                 result = addExceptionToResult(result, ex);
@@ -159,7 +161,8 @@ public class Fortress {
         
         for (APIName name : bcr.staleComponents()) {
             try {
-                System.err.println("Adding component " + name);
+                if (bcr.verbose())
+                    System.err.println("Adding component " + name);
                 result = addComponentToResult(bcr, result, name);
             } catch (Exception ex) {
                 result = addExceptionToResult(result, ex);
@@ -296,7 +299,7 @@ public class Fortress {
         return IterUtil.empty();
     }
     
-    public Iterable<? extends StaticError>  run(Path path, String componentName, List<String> args) {
+    public Iterable<? extends StaticError>  run(Path path, String componentName, boolean test, boolean debug, List<String> args) {
         BatchCachingRepository _bcr = Driver.specificRepository(path);
         
         if (! (_bcr instanceof BatchCachingAnalyzingRepository) ) {
@@ -304,18 +307,17 @@ public class Fortress {
         }
         
         BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
-        
+        bcr.setVerbose(debug);
         Parser.Result result = compileInner(bcr, componentName);
  
         if (!result.isSuccessful()) { return result.errors(); }
         
-        System.out.println("Parsing done.");
+        if (bcr.verbose())
+            System.err.println("Parsing done.");
               
             try {
                 CompilationUnit cu = bcr.getLinkedComponent(NodeFactory.makeAPIName(componentName)).ast();
-                Driver.runProgram(bcr,
-                        cu,
-                        args);
+                Driver.runProgram(bcr, cu, test, args);
             } catch (Throwable th) {
                 // TODO FIXME what is the proper treatment of errors/exceptions etc.?
                 if (th instanceof FortressError) {

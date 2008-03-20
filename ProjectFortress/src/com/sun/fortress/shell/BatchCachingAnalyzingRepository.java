@@ -35,6 +35,7 @@ import com.sun.fortress.useful.ReversedList;
 
 public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
 
+    
     public BatchCachingAnalyzingRepository(FortressRepository source,
             FortressRepository cache) {
         super(source, cache);
@@ -58,7 +59,7 @@ public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
         // TODO Auto-generated constructor stub
     }
     
-    protected void refreshCache() {
+     protected void refreshCache() {
         
         Fortress fort = new Fortress(this);
         
@@ -71,6 +72,7 @@ public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
         
         Map<APIName, ApiIndex> apimap = this.apis();
         
+        if (verbose())
         System.err.println("Refresh analyzing\nstale apis       = " + newStaleApiNames() +
                                             "\nstale components = " + newStaleComponentNames() +
                                             "\nknown apis       = " + apimap.keySet()

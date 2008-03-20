@@ -191,11 +191,11 @@ public class Driver {
         return fr;
     }
     
-    public static BatchCachingRepository fssRepository(Path p, FortressRepository derived) {
+    public static BatchCachingAnalyzingRepository fssRepository(Path p, FortressRepository derived) {
         // This is bogus; we need to find a better way to communicate with the
         // syntax transfomer.
        
-        BatchCachingRepository fr = 
+        BatchCachingAnalyzingRepository fr = 
             
             new BatchCachingAnalyzingRepository(false,
                 p,
