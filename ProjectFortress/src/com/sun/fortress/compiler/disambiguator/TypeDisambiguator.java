@@ -235,8 +235,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 TypeConsIndex typeCons = _env.typeConsIndex(n);
                 // System.err.println(that.getSpan()+":");
                 // System.err.println(" that: "+that);
-                //System.err.println("n: " + n);
-                //System.err.println("typeCons: " + typeCons);
+                // System.err.println(" n: " + n);
+                // System.err.println(" typeCons: " + typeCons);
                 // System.err.println(" _env: "+_env);
 
                 if (!typeCons.staticParameters().isEmpty()) {

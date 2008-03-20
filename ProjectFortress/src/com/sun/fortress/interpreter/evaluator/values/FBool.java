@@ -64,5 +64,5 @@ public class FBool extends NativeConstructor.FNativeObject {
 
     public NativeConstructor getConstructor() {
         return FBool.con;
-}
+    }
 }

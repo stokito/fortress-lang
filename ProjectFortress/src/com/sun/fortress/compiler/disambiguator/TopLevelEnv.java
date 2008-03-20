@@ -184,10 +184,10 @@ public class TopLevelEnv extends NameEnv {
 
     private void initializeOnDemandGrammarNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-        	for (Map.Entry<QualifiedIdName, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
-        		Id key = grammarEntry.getKey().getName();
+            for (Map.Entry<QualifiedIdName, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
+                Id key = grammarEntry.getKey().getName();
                 if (_onDemandGrammarNames.containsKey(key)) {
-                	_onDemandGrammarNames.get(key).add(new QualifiedIdName(key.getSpan(),
+                    _onDemandGrammarNames.get(key).add(new QualifiedIdName(key.getSpan(),
                                                            Option.some(apiEntry.getKey()),
                                                            key));
 
@@ -215,15 +215,15 @@ public class TopLevelEnv extends NameEnv {
         return false;
     }
 
-	@Override
-	public boolean hasGrammar(QualifiedIdName name) {
+    @Override
+    public boolean hasGrammar(QualifiedIdName name) {
         if (_current instanceof ApiIndex) {
-        	if (((ApiIndex) _current).grammars().containsKey(name)) {
-        		return true;
-        	}
+            if (((ApiIndex) _current).grammars().containsKey(name)) {
+                return true;
+            }
         }
         return false;
-	}
+    }
 
 
     public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
@@ -261,18 +261,18 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
 
-	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
+    @Override
+    public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
         // TODO: imports
-		if (_current instanceof ApiIndex) {
-			QualifiedIdName lookupName = NodeFactory.makeQualifiedIdName(name.getName());
-			if (((ApiIndex)_current).grammars().containsKey(lookupName)) {
-				APIName api = ((ApiIndex)_current).ast().getName();
-				return Collections.singleton(NodeFactory.makeQualifiedIdName(api, lookupName.getName()));
-			}
-		}
+        if (_current instanceof ApiIndex) {
+            QualifiedIdName lookupName = NodeFactory.makeQualifiedIdName(name.getName());
+            if (((ApiIndex)_current).grammars().containsKey(lookupName)) {
+                APIName api = ((ApiIndex)_current).ast().getName();
+                return Collections.singleton(NodeFactory.makeQualifiedIdName(api, lookupName.getName()));
+            }
+        }
         return Collections.emptySet();
-	}
+    }
 
     private Set<QualifiedIdName> onDemandNames(Id name, Map<Id, Set<QualifiedIdName>> table)
     {
@@ -361,7 +361,7 @@ public class TopLevelEnv extends NameEnv {
             TypeConsIndex res = _current.typeConses().get(name.getName());
             if (res != null) return res;
             System.err.println("Lookup of "+name.getName()+" in current api was null!\n  Trying qualified lookup, api = "+api);
-    }
+        }
         TypeConsIndex res = _globalEnv.api(actualApi).typeConses().get(name.getName());
         if (res != null) return res;
         System.err.println("Still couldn't find "+name.getName());
@@ -370,22 +370,22 @@ public class TopLevelEnv extends NameEnv {
 
     public Option<GrammarIndex> grammarIndex(final QualifiedIdName name) {
         QualifiedIdName lookupName = NodeFactory.makeQualifiedIdName(name.getName());
-		if (name.getApi().isSome()) {
-        	APIName n = Option.unwrap(name.getApi());
-        	if (_globalEnv.definesApi(n)) {
-        		return Option.some(_globalEnv.api(n).grammars().get(lookupName));
-        	}
-        	else {
-        		return Option.none();
-        	}
+        if (name.getApi().isSome()) {
+            APIName n = Option.unwrap(name.getApi());
+            if (_globalEnv.definesApi(n)) {
+                return Option.some(_globalEnv.api(n).grammars().get(lookupName));
+            }
+            else {
+                return Option.none();
+            }
         }
         if (_current instanceof ApiIndex) {
-        	return Option.some(((ApiIndex) _current).grammars().get(lookupName));
+            return Option.some(((ApiIndex) _current).grammars().get(lookupName));
         }
         else {
-        	_errors.add(StaticError.make("Attempt to get grammar definition from a component: " + name,
-                name.getSpan().toString()));
-        	return Option.none();
+            _errors.add(StaticError.make("Attempt to get grammar definition from a component: " + name,
+                                         name.getSpan().toString()));
+            return Option.none();
         }
     }
 }

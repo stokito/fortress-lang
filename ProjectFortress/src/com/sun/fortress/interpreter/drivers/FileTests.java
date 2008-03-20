@@ -59,7 +59,7 @@ public class FileTests {
         String dir;
         String name;
         BatchCachingRepository fr;
-        
+
         /**
          * If true, only print test output for unexpected results.
          */
@@ -104,9 +104,9 @@ public class FileTests {
                     Annotations anns = new Annotations(fssFile);
                     APIName apiname = NodeFactory.makeAPIName(s);
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
-                    
+
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
-                    
+
                     {
                         CompilationUnit p = ci.ast();
 
@@ -232,6 +232,7 @@ public class FileTests {
     public static Test suite(String dirname, boolean failsOnly, boolean expect_failure) throws IOException {
         return suite(dirname, failsOnly, expect_failure, 0.0, 1.0);
     }
+
     public static Test suite(String dirname, boolean failsOnly, boolean expect_failure, double begin, double end) throws IOException {
         TestSuite suite = new TestSuite("Test for default package");
         // $JUnit-BEGIN$
@@ -239,11 +240,11 @@ public class FileTests {
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);
-        
-        BatchCachingRepository fr = 
+
+        BatchCachingRepository fr =
             Driver.extendedRepository(dir.getCanonicalPath());
-            
-//            ProjectProperties.noStaticAnalysis ? 
+
+//            ProjectProperties.noStaticAnalysis ?
 //                    new BatchCachingRepository(
 //                          //new PathBasedSyntaxTransformingRepository
 //                          (ProjectProperties.SOURCE_PATH.prepend(dir)),
@@ -254,10 +255,10 @@ public class FileTests {
 //                (ProjectProperties.SOURCE_PATH.prepend(dir)),
 //                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
 //                );
-        
-       
+
+
         fr.addRootApis();
-        
+
         for (int i = 0; i < files.length; i++) {
             double f = i / (double) files.length;
             if (f < begin || f >= end)

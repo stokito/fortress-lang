@@ -52,17 +52,17 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
     private final RepositoryUpdater ru;
     private final Set<APIName> alreadyCachedComponent = new HashSet<APIName>();
     private final Set<APIName> alreadyCachedApi = new HashSet<APIName>();
-    
+
     private final List<APIName> alreadyCachedApiList = new ArrayList<APIName>();
-    
+
     public BatchCachingRepository(FortressRepository source,
             FortressRepository cache) {
         this(false, source, cache);
     }
-    
+
     /**
      * This constructor helps us evade a circularity.
-     * 
+     *
      * @param doLink
      * @param p
      * @param cache
@@ -75,19 +75,19 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
         this.ru = new RepositoryUpdater(source, derived, linker);
     }
-   
+
    public BatchCachingRepository(Path p,
            FortressRepository cache) {
        this(false, p, cache);
    }
-   
+
     public BatchCachingRepository(boolean doLink, FortressRepository source,
             FortressRepository cache) {
         this.source = source;
         this.derived = cache;
 
         MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
-  
+
         this.ru = new RepositoryUpdater(source, derived, linker);
     }
 
@@ -96,7 +96,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         derived.setVerbose(new_verbose);
         return super.setVerbose(new_verbose);
     }
-    
+
     private static MinimalMap<APIName, Set<APIName>> linker(boolean doLink) {
         MinimalMap<APIName, Set<APIName>> linker = doLink ? new MinimalMap<APIName, Set<APIName>>() {
                 public Set<APIName> get(APIName key) {
@@ -113,21 +113,21 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
     public Iterable<APIName> staleApis() {
         return ru.staleApis;
     }
-    
+
     public Iterable<APIName> staleComponents() {
         return ru.staleComponents;
     }
-    
+
     private void addRootComponent(APIName n) {
-            if (!alreadyCachedComponent.contains(n)) {
-                ru.addComponent(n);
+        if (!alreadyCachedComponent.contains(n)) {
+            ru.addComponent(n);
             refreshCache();
         }
     }
 
     private void addRootApi(APIName n) {
-            if (!alreadyCachedApi.contains(n)) {
-                ru.addApi(n);
+        if (!alreadyCachedApi.contains(n)) {
+            ru.addApi(n);
             refreshCache();
         }
     }
@@ -164,10 +164,10 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
             }
         } catch (IOException ex) {
             /* Any exceptions seen here are reported elsewhere. */
-   
+
         }
     }
-    
+
     Fn<APIName, Api> toApi = new Fn<APIName, Api>() {
 
         @Override
@@ -180,11 +180,11 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
             } catch (IOException e) {
                 throw new Error(e);
             }
-            
+
         }
-        
+
     };
-    
+
     Fn<APIName, Component> toComponent = new Fn<APIName, Component>() {
 
         @Override
@@ -197,19 +197,19 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
             } catch (IOException e) {
                 throw new Error(e);
             }
-            
+
         }
-        
+
     };
-    
+
     public Set<APIName> newStaleApiNames() {
         return Useful.difference(ru.staleApis, alreadyCachedApi);
     }
-    
+
     public Set<APIName> newStaleComponentNames() {
         return Useful.difference(ru.staleComponents, alreadyCachedComponent);
     }
-    
+
     protected Set<Api> newStaleApis() {
         return Useful.applyToAll(newStaleApiNames(),
                 toApi);
@@ -219,7 +219,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         return Useful.applyToAll(newStaleComponentNames(),
                 toComponent);
     }
-    
+
     protected void resetStale() {
         ru.staleApis.clear();
         ru.staleComponents.clear();
@@ -276,7 +276,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
     public ComponentIndex getLinkedComponent(APIName name)
     throws FileNotFoundException, IOException {
         ComponentIndex ci = getComponent(name);
-        
+
         // Cannot use iterator, will fail with comodification exception.
         // Expect to add APIs as new components are inhaled.
         for (int i = 0; i < alreadyCachedApiList.size(); i++) {
@@ -286,7 +286,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
             // For side-effect only; get the component, and all its APIs.
             ComponentIndex ici = getComponent(implementor);
         }
-        
+
         return ci;
 }
 

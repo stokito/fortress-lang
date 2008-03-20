@@ -35,7 +35,6 @@ import com.sun.fortress.useful.ReversedList;
 
 public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
 
-    
     public BatchCachingAnalyzingRepository(FortressRepository source,
             FortressRepository cache) {
         super(source, cache);
@@ -58,34 +57,34 @@ public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
         super(doLink, source, cache);
         // TODO Auto-generated constructor stub
     }
-    
-     protected void refreshCache() {
-        
+
+    protected void refreshCache() {
+
         Fortress fort = new Fortress(this);
-        
+
         Set<Api> staleA = newStaleApis();
         Set<Component> staleC = newStaleComponents();
-        
+
         // The typechecker is insufficienbtly lazy, and works too hard in the zero case.
         if (staleA.size() == 0 && staleC.size() == 0)
             return;
-        
+
         Map<APIName, ApiIndex> apimap = this.apis();
-        
+
         if (verbose())
         System.err.println("Refresh analyzing\nstale apis       = " + newStaleApiNames() +
                                             "\nstale components = " + newStaleComponentNames() +
                                             "\nknown apis       = " + apimap.keySet()
                                             );
-        
-        
-        
+
+
+
         Iterable<? extends StaticError> errors =
             fort.analyze(new GlobalEnvironment.FromMap(apimap),
                     staleA,
                     staleC,
                     System.currentTimeMillis());
-        
+
         if (errors.iterator().hasNext()) {
             resetStale();
             throw new ProgramError(errors);

@@ -477,7 +477,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      /* If we are already in a transaction, don't evaluate in parallel */
         } else if (BaseTask.getThreadState().transactionNesting() > 0) {
             for (Expr exp : exprs) {
-            resList.add(exp.accept(this));
+                resList.add(exp.accept(this));
             }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
