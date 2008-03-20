@@ -349,13 +349,23 @@ public class TopLevelEnv extends NameEnv {
 
     public TypeConsIndex typeConsIndex(final QualifiedIdName name) {
         Option<APIName> api = name.getApi();
+        APIName actualApi;
         // If no API in name or it's the current API, use its own typeCons.
         // Otherwise, try to find the API in the global env and use its typeCons.
-        if (api.isNone() || _current.ast().getName().equals(Option.unwrap(api))) {
-            return _current.typeConses().get(name.getName());
+        if (api.isNone()) {
+            actualApi = _current.ast().getName();
         } else {
-            return _globalEnv.api(Option.unwrap(api)).typeConses().get(name.getName());
+            actualApi = Option.unwrap(api);
         }
+        if (api.isNone() || _current.ast().getName().equals(actualApi)) {
+            TypeConsIndex res = _current.typeConses().get(name.getName());
+            if (res != null) return res;
+            System.err.println("Lookup of "+name.getName()+" in current api was null!\n  Trying qualified lookup, api = "+api);
+    }
+        TypeConsIndex res = _globalEnv.api(actualApi).typeConses().get(name.getName());
+        if (res != null) return res;
+        System.err.println("Still couldn't find "+name.getName());
+        return null;
     }
 
     public Option<GrammarIndex> grammarIndex(final QualifiedIdName name) {

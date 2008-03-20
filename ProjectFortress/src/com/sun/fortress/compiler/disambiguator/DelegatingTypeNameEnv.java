@@ -57,4 +57,8 @@ public abstract class DelegatingTypeNameEnv extends TypeNameEnv {
     public TypeConsIndex typeConsIndex(QualifiedIdName name) {
         return _parent.typeConsIndex(name);
     }
+
+    public String toString() {
+        return _parent.toString();
+}
 }

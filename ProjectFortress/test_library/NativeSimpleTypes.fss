@@ -15,14 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component MapExprTest
-export Executable
+native component NativeSimpleTypes
+import NativeSimplePreTypes.{...}
+export NativeSimpleTypes
 
-object Map[\K,V\] end
+language="java"
+package="com.sun.fortress.interpreter.glue.prim"
 
-opr { |->[\ K,V \] xs: (K,V)... }: Map[\K,V\] = Map[\K,V\]
-opr BIG {|->[\K,V,T\] g: (Reduction[\Map[\K,V\]\], T -> Map[\K,V\]) -> Map[\K,V\] }: Map[\K,V\] = Map[\K,V\]
-
-run(args:String...):() = ()
+object Boolean
+        extends { PreBoolean,
+                  SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
+end
 
 end

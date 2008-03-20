@@ -51,7 +51,7 @@ trait A[\T\]
   f(self):Boolean = true
 end
 
-object O[\T\]() extends A[\T\]
+object O[\T\] extends A[\T\]
 end
 
 (*
@@ -59,7 +59,7 @@ object P extends A[\ZZ32\] end
 *)
 
 run(args: String...): () = do
-  t = O[\ZZ32\]()
+  t = O[\ZZ32\]
   f(t)
   ()
 end

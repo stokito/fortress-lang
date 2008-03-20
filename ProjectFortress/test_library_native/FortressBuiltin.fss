@@ -18,9 +18,10 @@
 native component FortressBuiltin
 export FortressBuiltin
 
-trait Any end
+language="java"
+package="com.sun.fortress.interpreter.glue.prim"
 
-trait Boolean extends { Any } end
+trait Any end
 
 trait String extends { Any }
     (* excludes { IntLiteral, FloatLiteral, Boolean } *)
@@ -58,8 +59,10 @@ trait Region extends { Any } end
 trait BufferedReader extends { Any } end
 trait BufferedWriter extends { Any } end
 
+(*
 true: Boolean = builtInPrimitive(
                   "com.sun.fortress.interpreter.evaluator.values.FBool.TRUE")
 false: Boolean = builtInPrimitive(
                   "com.sun.fortress.interpreter.evaluator.values.FBool.FALSE")
+*)
 end

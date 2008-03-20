@@ -16,11 +16,12 @@
  ******************************************************************************)
 
 api FortressBuiltin
+(* import NativeSimpleTypes.{Boolean} *)
 
 trait Any end
-
-trait Boolean extends { Any } end
-
+(*
+trait Boolean extends { Any } comprises {...} end
+*)
 trait String extends { Any }
     (* excludes { IntLiteral, FloatLiteral, Boolean } *)
 end
@@ -54,8 +55,5 @@ end
 trait IntLiteral extends { ZZ32, ZZ64, RR64 } end
 
 trait FloatLiteral extends { RR64 } end
-
-object true extends Boolean end
-object false extends Boolean end
 
 end

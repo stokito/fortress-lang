@@ -19,28 +19,20 @@ component booleanGuard
 import ArrayList.{...}
 export Executable
 
-(* Hunt for bugs in boolean comprehension guards *)
-object Filt(x:Boolean) extends SequentialGenerator[\()\]
-   generate[\R\](r: Reduction[\R\], body: ()->R): R =
-       if x then body() else r.empty() end
-end
-
 run(args:String...):() = do
     a = <|0+0,1,2,3,5,6,7|>
-    c = <| x | x <- a, Filt(true) |>
-    assert(c,a," Filt(true)")
-    b = <| x | x <- a, Filt(x>2) |>
-    assert(b,a.filter(fn (x)=>x>2)," Filt(x>2)")
-    d = <| x | x <- a, Filt(false) |>
-    assert(d.isEmpty(), "not isEmpty Filt(false)")
-    e = <| 17 | _ <- Filt(true) |>
-    assert(e,<|17|>,"Filt(true) =/= <|17|>")
-(* Await type inference fixes
-    q = <| q | q <- Just(17,3) |>
-    println(q)
-    f = <| x | x <- Filt(true) |>
-    println(f)
-*)
+    c = <| x | x <- a, true |>
+    assert(c,a," true")
+    b = <| x | x <- a, x>2 |>
+    assert(b,a.filter(fn (x)=>x>2)," x>2")
+    d = <| x | x <- a, false |>
+    assert(d.isEmpty(), "not isEmpty false")
+    e = <| 17 | _ <- true |>
+    assert(e,<|17|>,"true =/= <|17|>")
+    q = <| q | q <- Just[\(ZZ32,ZZ32)\](17,3) |>
+    assert(q,<|(17,3),(17,3)|>.drop(1), " Just")
+    f = <| x | x <- true |>
+    assert(f,<|(),()|>.drop(1), " void")
   end
 
 end

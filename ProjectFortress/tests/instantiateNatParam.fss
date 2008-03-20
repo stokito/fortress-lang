@@ -22,7 +22,7 @@ trait Bar[\A,nat n\]
   get():ZZ32 = n
 end
 
-object Baz[\A,nat n\]() extends Bar[\A,n\]
+object Baz[\A,nat n\] extends Bar[\A,n\]
 end
 
 f[\A\](x:Bar[\A,17\]) = 20
@@ -31,7 +31,7 @@ h[\A\](x:Bar[\A,17\]) = 22
 h[\A\](x:Baz[\A,17\]) = 23
 
 run(args:String...) = do
-  b = Baz[\ZZ32,17\]()
+  b = Baz[\ZZ32,17\]
   println(f(b))
   println(g(b))
   println(h(b))

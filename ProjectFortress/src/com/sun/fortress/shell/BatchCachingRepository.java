@@ -43,6 +43,8 @@ import com.sun.fortress.useful.Useful;
 
 public class BatchCachingRepository extends StubRepository implements FortressRepository {
 
+    private static final String[] roots = {"FortressBuiltin","FortressLibrary","NativeSimpleTypes"};
+
     private final FortressRepository source;
 
     private final FortressRepository derived;
@@ -116,33 +118,21 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         return ru.staleComponents;
     }
     
-    public void addRootComponents(APIName... roots) {
-        boolean anyChange = false;
-        for (APIName n : roots) {
+    private void addRootComponent(APIName n) {
             if (!alreadyCachedComponent.contains(n)) {
-                anyChange = true;
                 ru.addComponent(n);
-            }
-        }
-        if (anyChange) {
             refreshCache();
         }
     }
 
-    public void addRootApis(APIName... roots) {
-        boolean anyChange = false;
-        for (APIName n : roots) {
+    private void addRootApi(APIName n) {
             if (!alreadyCachedApi.contains(n)) {
-                anyChange = true;
                 ru.addApi(n);
-            }
-        }
-        if (anyChange) {
             refreshCache();
         }
     }
 
-    public void addRootApis(String... roots) {
+    public void addRootApis() {
         boolean anyChange = false;
         for (String s : roots) {
             APIName n = NodeFactory.makeAPIName(s);
@@ -269,7 +259,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
 
     public ApiIndex getApi(APIName name) throws FileNotFoundException,
             IOException {
-        addRootApis(name);
+        addRootApi(name);
         Throwable th = ru.apiExceptions.get(name);
         resurrectException(th);
         return derived.getApi(name);
@@ -277,7 +267,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
 
     public ComponentIndex getComponent(APIName name)
     throws FileNotFoundException, IOException {
-        addRootComponents(name);
+        addRootComponent(name);
         Throwable th = ru.componentExceptions.get(name);
         resurrectException(th);
         return derived.getComponent(name);

@@ -262,9 +262,6 @@ trait NonEmptyFingerTree[\E\] extends FingerTree[\E\]
   getter right():E
   getter extractLeft():(E,FingerTree[\E\])
   getter extractRight():(FingerTree[\E\],E)
-  take(n:ZZ32): NonEmptyFingerTree[\E\]
-  drop(n:ZZ32): NonEmptyFingerTree[\E\]
-  split(n:ZZ32): (NonEmptyFingerTree[\E\], FingerTree[\E\])
   split(): (NonEmptyFingerTree[\E\], FingerTree[\E\])
   split3(n:ZZ32): (FingerTree[\E\], E, FingerTree[\E\])
 end

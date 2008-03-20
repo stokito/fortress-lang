@@ -27,7 +27,7 @@ trait List[\E\] comprises {Elem[\E\], Empty[\E\]}
    count():ZZ32
 end
 
-object Empty[\E\]() extends List[\E\]
+object Empty[\E\] extends List[\E\]
    car():E = do ThrowError(" Empty List has no car") car() end
    cdr():List[\E\] = do ThrowError(" Empty List has no cdr") cdr() end
    cons(z:E) =  Elem[\E\](z, self)
@@ -46,7 +46,7 @@ object Elem[\E\](val:E, rest:List[\E\]) extends List[\E\]
 end
 
 run(args:String...):()=do
-   init:List[\ZZ32\] := Empty[\ZZ32\]()
+   init:List[\ZZ32\] := Empty[\ZZ32\]
    for i<-1#10 do
       atomic do
          init := init.cons(i)

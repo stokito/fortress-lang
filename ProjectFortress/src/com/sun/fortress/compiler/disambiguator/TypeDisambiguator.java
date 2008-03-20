@@ -233,8 +233,11 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             new Lambda<QualifiedIdName, Type>() {
             public Type value(QualifiedIdName n) {
                 TypeConsIndex typeCons = _env.typeConsIndex(n);
+                // System.err.println(that.getSpan()+":");
+                // System.err.println(" that: "+that);
                 //System.err.println("n: " + n);
                 //System.err.println("typeCons: " + typeCons);
+                // System.err.println(" _env: "+_env);
 
                 if (!typeCons.staticParameters().isEmpty()) {
                     error("Type requires static arguments: " + NodeUtil.nameString(n),

@@ -312,13 +312,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Option<Type> type = apiTypeEnv.type(name);
             if (type.isSome()) {
                 Type _type = unwrap(type);
-                if (_type instanceof NamedType) {
-                    return new TypeCheckerResult(that,
-                                                 NodeFactory.makeNamedType(api,
-                                                                           (NamedType)unwrap(type)));
-                } else {
-                    return new TypeCheckerResult(that, _type);
+                if (_type instanceof NamedType) { // Do we need to qualify?
+                    NamedType _namedType = (NamedType)_type;
+                    
+                    // Type was declared in that API, so it's not qualified;
+                    // prepend it with the API.
+                    if (_namedType.getName().getApi().isNone()) {
+                        _type = NodeFactory.makeNamedType(api, (NamedType)unwrap(type));
+                    }
                 }
+                return new TypeCheckerResult(that, _type);
             } else {
                 StaticError error =
                     TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),

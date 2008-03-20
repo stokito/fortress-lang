@@ -17,22 +17,23 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 
-public class FBool extends FBuiltinValue {
+public class FBool extends NativeConstructor.FNativeObject {
     public final static FBool TRUE = new FBool(true);
-
     public final static FBool FALSE = new FBool(false);
+    private static volatile NativeConstructor con;
 
     private final boolean val;
 
     private FBool(boolean b) {
+        super(null);
         this.val = b;
     }
 
-    public FBuiltinType type() {
-        return FTypeBool.ONLY;
+    public FBool(NativeConstructor con) {
+        super(con);
+        val = false;
     }
 
     static public FBool make(boolean b) {
@@ -53,15 +54,15 @@ public class FBool extends FBuiltinValue {
     }
 
     // Stuff for nativizing FBool.
-    // public void setConstructor(NativeConstructor con) {
-    //     // WARNING!  In order to run the tests we must reset con for
-    //     // each new test, so it's not OK to ignore setConstructor
-    //     // attempts after the first one.
-    //     if (con==null) return;
-    //     FBool.con = con;
-    // }
+    public void setConstructor(NativeConstructor con) {
+        // WARNING!  In order to run the tests we must reset con for
+        // each new test, so it's not OK to ignore setConstructor
+        // attempts after the first one.
+        if (con==null) return;
+        FBool.con = con;
+    }
 
-    // public NativeConstructor getConstructor() {
-    //     return FBool.con;
-    // }
+    public NativeConstructor getConstructor() {
+        return FBool.con;
+}
 }

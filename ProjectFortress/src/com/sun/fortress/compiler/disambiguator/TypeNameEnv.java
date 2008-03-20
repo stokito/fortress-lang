@@ -73,6 +73,7 @@ public abstract class TypeNameEnv {
         List<APIName> result = new ArrayList<APIName>();
         result.add(NodeFactory.makeAPIName("FortressBuiltin"));
         result.add(NodeFactory.makeAPIName("FortressLibrary"));
+        result.add(NodeFactory.makeAPIName("NativeSimpleTypes"));
         return result;
     }
     /**

@@ -16,6 +16,29 @@
  ******************************************************************************)
 
 api FortressLibrary
+(*
+import NativeSimpleTypes.{Boolean}
+import Thread.{Thread,abort}
+*)
+
+(************************************************************
+From NativeSimpleTypes
+*)
+
+(*
+trait Boolean
+    extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
+    comprises { ... }
+end
+*)
+
+true : Boolean
+false : Boolean
+
+(*
+End from NativeSimpleTypes.
+*************************************************************)
+
 (************************************************************
 From Thread
 *)
@@ -1607,7 +1630,6 @@ opr AND(a:Boolean, b:Boolean):Boolean
 opr  OR(a:Boolean, b:()->Boolean):Boolean
 opr AND(a:Boolean, b:()->Boolean):Boolean
 opr NOT(a:Boolean):Boolean
-opr =(a:Boolean, b:Boolean):Boolean
 opr ->(a: Boolean, b:Boolean):Boolean
 opr ->(a: Boolean, b:()->Boolean):Boolean
 opr <->(a: Boolean, b:Boolean):Boolean
