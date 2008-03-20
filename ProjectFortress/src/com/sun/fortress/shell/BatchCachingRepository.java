@@ -41,7 +41,7 @@ import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.ReversedList;
 import com.sun.fortress.useful.Useful;
 
-public class BatchCachingRepository implements FortressRepository {
+public class BatchCachingRepository extends StubRepository implements FortressRepository {
 
     private final FortressRepository source;
 
@@ -89,6 +89,12 @@ public class BatchCachingRepository implements FortressRepository {
         this.ru = new RepositoryUpdater(source, derived, linker);
     }
 
+    public boolean setVerbose(boolean new_verbose) {
+        source.setVerbose(new_verbose);
+        derived.setVerbose(new_verbose);
+        return super.setVerbose(new_verbose);
+    }
+    
     private static MinimalMap<APIName, Set<APIName>> linker(boolean doLink) {
         MinimalMap<APIName, Set<APIName>> linker = doLink ? new MinimalMap<APIName, Set<APIName>>() {
                 public Set<APIName> get(APIName key) {

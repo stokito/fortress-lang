@@ -230,6 +230,9 @@ public class FileTests {
     }
 
     public static Test suite(String dirname, boolean failsOnly, boolean expect_failure) throws IOException {
+        return suite(dirname, failsOnly, expect_failure, 0.0, 1.0);
+    }
+    public static Test suite(String dirname, boolean failsOnly, boolean expect_failure, double begin, double end) throws IOException {
         TestSuite suite = new TestSuite("Test for default package");
         // $JUnit-BEGIN$
         dirname = ProjectProperties.backslashToSlash(dirname);
@@ -257,6 +260,9 @@ public class FileTests {
         fr.addRootApis(NodeFactory.makeAPIName("FortressLibrary"));
         
         for (int i = 0; i < files.length; i++) {
+            double f = i / (double) files.length;
+            if (f < begin || f >= end)
+                continue;
             String s = files[i];
             if (!s.startsWith(".")) {
                 if (s.endsWith(".fss")) {

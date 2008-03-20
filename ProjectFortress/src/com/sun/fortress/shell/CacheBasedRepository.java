@@ -44,7 +44,7 @@ import com.sun.fortress.nodes.Id;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class CacheBasedRepository implements FortressRepository {
+public class CacheBasedRepository extends StubRepository implements FortressRepository {
 
     
     protected final Map<APIName, ApiIndex> apis = 

@@ -49,5 +49,6 @@ public interface FortressRepository {
     
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException ;
 
-    
+    public boolean setVerbose(boolean new_value);
+    public boolean verbose();
 }

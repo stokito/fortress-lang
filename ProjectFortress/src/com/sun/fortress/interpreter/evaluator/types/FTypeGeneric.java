@@ -80,9 +80,12 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     };
 
     static public void flushPendingTraitFMs() {
-        for (int i = 0; i < pendingFunctionalMethodFinishes.get().size(); i++) {
-            FTraitOrObjectOrGeneric tt = pendingFunctionalMethodFinishes.get().get(i);
+        List<FTraitOrObjectOrGeneric> al = pendingFunctionalMethodFinishes.get();
+        for (int i = 0; i < al.size(); i++) {
+            FTraitOrObjectOrGeneric tt = al.get(i);
+            al.set(i, null);
             tt.finishFunctionalMethods();
+            
         }
         pendingFunctionalMethodFinishes.get().clear();
     }

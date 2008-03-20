@@ -27,7 +27,25 @@ import com.sun.fortress.nodes.APIName;
 
 public class StubRepository implements FortressRepository {
 
-    public void addApi(APIName name, ApiIndex definition) {
+    private boolean verbose;
+    
+    /**
+     * Sets "verbose" flag to new_verbose, returns old value.
+     * @param new_verbose
+     * @return
+     */
+    public boolean setVerbose(boolean new_verbose) {
+        boolean old_verbose = verbose;
+        verbose = new_verbose;
+        return old_verbose;
+    }
+    
+    public boolean verbose() {
+        return verbose;
+    }
+    
+
+     public void addApi(APIName name, ApiIndex definition) {
         throw new UnsupportedOperationException();
     }
 

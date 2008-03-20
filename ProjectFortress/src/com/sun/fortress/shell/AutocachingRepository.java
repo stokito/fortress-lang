@@ -25,7 +25,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
 
-public class AutocachingRepository implements FortressRepository {
+public class AutocachingRepository extends StubRepository implements FortressRepository {
 
     private final FortressRepository source;
     private final FortressRepository cache;
@@ -35,6 +35,7 @@ public class AutocachingRepository implements FortressRepository {
         this.cache = cache;
     }
     
+  
     public void addApi(APIName name, ApiIndex definition) {
         cache.addApi(name, definition);
 

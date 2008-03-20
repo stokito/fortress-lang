@@ -39,7 +39,7 @@ import com.sun.fortress.useful.Path;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class PathBasedRepository implements FortressRepository {
+public class PathBasedRepository extends StubRepository implements FortressRepository {
 
     /**
      * Any components/APIs found on path are "regular" -- not native.
@@ -68,7 +68,7 @@ public class PathBasedRepository implements FortressRepository {
         this.writer = writer;
     }
     
-    public void addApi(APIName name, ApiIndex definition) {
+     public void addApi(APIName name, ApiIndex definition) {
         apis.put(name, definition);
         writer.addApi(name, definition);
     }

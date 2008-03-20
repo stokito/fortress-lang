@@ -25,6 +25,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.interpreter.drivers.*;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
@@ -36,6 +37,9 @@ import java.io.*;
 
 public class CommandInterpreter {
     private Shell shell;
+    
+    boolean debug;
+    boolean test;
     
     CommandInterpreter(Shell _shell) { 
         shell = _shell;
@@ -102,6 +106,21 @@ public class CommandInterpreter {
         Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName)), new PathBasedRepository(ProjectProperties.SOURCE_PATH)); 
     }
     
+    void run(List<String> args) throws UserError, IOException, Throwable {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to run");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+        
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")) debug = true;
+            if (s.equals("-test")) test= true;
+            run(rest);
+        } else {
+            run(s, rest);
+        }
+    }
     void run(String fileName, List<String> args) throws UserError, IOException, Throwable {
         try {
             //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
@@ -122,16 +141,28 @@ public class CommandInterpreter {
                 fileName = fileName.substring(0, fileName.length() - ProjectProperties.COMP_SOURCE_SUFFIX.length());
             }
             
-            Iterable<? extends StaticError> errors = fortress.run(path, fileName, args);
+            Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, debug, args);
         
-            for (StaticError error: errors) { System.err.println(error); }
+            for (StaticError error: errors) { 
+                System.err.println(error);
+                }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }
         catch (RepositoryError error) {
             System.err.println(error); 
         }
-//        Driver.runProgram(Driver.DEFAULT_INTERPRETER_REPOSITORY,
-//                Option.unwrap(ASTIO.readJavaAst(fileName)), new ArrayList<String>());
+        catch (FortressError e) {
+          System.err.println("\n--------Fortress error appears below--------\n");
+          if (debug) {
+              e.printStackTrace();
+          } else {
+              e.printInterpreterStackTrace(System.err);
+              System.err.println();
+              System.err.println(e.getMessage());
+              System.err.println("Turn on -debug for Java-level error dump.");
+          }
+          System.exit(1);
+      }
     }
     
     void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }

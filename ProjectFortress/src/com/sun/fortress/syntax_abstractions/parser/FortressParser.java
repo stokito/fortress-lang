@@ -62,7 +62,7 @@ public class FortressParser {
 	 * referenced APIs.
 	 */
 	public static Result parse(Iterable<? extends File> files,
-			final GlobalEnvironment env, final Path path) {
+			final GlobalEnvironment env, final Path path, final boolean verbose) {
 		// box allows mutation of a final var
 		final Box<Result> result = new SimpleBox<Result>(new Result());
 
@@ -71,7 +71,7 @@ public class FortressParser {
 
 		Lambda<File, Set<File>> parseAndGetDepends = new Lambda<File, Set<File>>() {
 			public Set<File> value(File f) {
-				Result r = parse(f, env);
+				Result r = parse(f, env, verbose);
 				result.set(new Result(result.value(), r));
 				if (r.isSuccessful()) {
 					Set<File> newFiles = new HashSet<File>();
@@ -91,7 +91,7 @@ public class FortressParser {
 	}
 
 	/** Parses a single file. */
-	public static Result parse(File f, final GlobalEnvironment env) {
+	public static Result parse(File f, final GlobalEnvironment env, boolean verbose) {
 		try {
 			BufferedReader in = Useful.utf8BufferedFileReader(f);
 			try {
@@ -102,7 +102,8 @@ public class FortressParser {
 				xtc.parser.Result parseResult = null; 
 				ParserBase p = null;
 			
-				System.out.println("Parsing files: "+f.getName());
+				if (verbose)
+				    System.err.println("Parsing files: "+f.getName());
 				if (!ppr.getGrammars().isEmpty()) {
 					
 					// Compile the syntax abstractions and create a temporary parser
