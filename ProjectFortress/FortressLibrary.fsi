@@ -408,7 +408,7 @@ end
 value trait Maybe[\T\]
         extends { MaybeType, SequentialGenerator[\T\], ZeroIndexed[\T\] }
         comprises { Nothing[\T\], Just[\T\] }
-    abstract getter unJust() : T throws UnJustNothing
+    abstract getter unJust() : T throws NotFound
     abstract unJust(t:T): T
     abstract maybe[\R\](nothingAction: ()->R, justAction: T->R): R
 end
@@ -528,9 +528,6 @@ object IOFailure extends CheckedException
 end
 
 object MatchFailure extends CheckedException
-end
-
-object UnJustNothing extends CheckedException
 end
 
 (* SetsNotDisjoint? *)

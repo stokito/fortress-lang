@@ -42,7 +42,7 @@ run(args:String...):() = do
         end
         fail("Fell through first catch!")
     catch x
-        UnJustNothing => println("OK: Caught unjustNothing.")
+        NotFound => println("OK: Caught unjustNothing.")
     finally
         finallyCount += 1
     end
