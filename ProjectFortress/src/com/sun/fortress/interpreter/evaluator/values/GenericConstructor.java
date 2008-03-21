@@ -193,14 +193,14 @@ public String stringName() {
     if (symbolicInstantiation == null) {
         synchronized (this) {
             if (symbolicInstantiation == null) {
-                List<FType> symbolic_static_args = FGenericFunction.symbolicStaticsByPartition.get(this);
+                List<FType> symbolic_static_args = FGenericFunction.FunctionsAndState.symbolicStaticsByPartition.get(this);
                 if (symbolic_static_args == null) {
                     /* TODO This is not quite right, because we risk
                      * identifying two functions whose where clauses are
                      * interpreted differently in two different environments.
                      */
                     symbolic_static_args =
-                        FGenericFunction.symbolicStaticsByPartition.syncPutIfMissing(this,
+                        FGenericFunction.FunctionsAndState.symbolicStaticsByPartition.syncPutIfMissing(this,
                                                                                      createSymbolicInstantiation(getWithin(),
                                                                                                                  odefOrDecl.getStaticParams(),
                                                                                                                  FortressUtil.emptyWhereClause(),

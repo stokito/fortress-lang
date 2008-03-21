@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -23,6 +23,6 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 
 public class InstantiationLock {
     static public final ReentrantLock L = new ReentrantLock();
-    static public String lastOverloadThrowable;
-    static public OverloadedFunction lastOverload;
+    //static public String lastOverloadThrowable;
+    //static public OverloadedFunction lastOverload;
 }

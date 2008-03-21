@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -64,7 +64,15 @@ public interface  GenericFunctionOrMethod {
     }
 
     static final GenericComparer genComparer = new GenericComparer();
-    public static final BATree<GenericFunctionOrMethod, List<FType>>
-    symbolicStaticsByPartition = new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
+    
+    
+    static public class FunctionsAndState {
+        public static BATree<GenericFunctionOrMethod, List<FType>>
+        symbolicStaticsByPartition = new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
+        
+        public static void reset() {
+            symbolicStaticsByPartition = new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
+        }
+    }
 
 }

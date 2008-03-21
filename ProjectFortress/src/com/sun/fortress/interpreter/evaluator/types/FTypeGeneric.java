@@ -187,8 +187,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
    private StaticArg paramToArg(StaticParam p) {
        return p.accept(paramToArg);
-    }
-
+    }   
 
  List<StaticParam> params;
 
