@@ -28,45 +28,85 @@ object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
         "Map.KeyOverlap: " key " |-> " val1 " and |-> " val2
 end
 
+(** Note that the map interface is purely functional; methods return a
+    fresh map rather than updating the receiving map in place.
+    Methods that operate on a particular key leave the rest of the map
+    untouched unless otherwise specified. **)
 trait Map[\Key,Val\]
       extends { Generator[\(Key,Val)\], Equality[\Map[\Key,Val\]\] }
       comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
+    getter isEmpty():Boolean
     getter showTree():String
     getter toString():String
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
     seq(self): SequentialGenerator[\(Key,Val)\] =
         SeqMapGenerator[\Key,Val\](self)
-    dom(self): Set[\Key\]
+    dom(self):Set[\Key\]
     opr | self |: ZZ32
-    getPair():(Key, Val)
-    getKey():Key
-    getVal():Val
+    getPair():(Key, Val) throws NotFound
+    getKey():Key throws NotFound
+    getVal():Val throws NotFound
     getLeftChild():Map[\Key,Val\]
     getRightChild():Map[\Key,Val\]
-    opr[k:Key]: Val throws NotFound
-    member(x:Key): Maybe[\Val\]
+    opr[k:Key]: Val throws NotFound = mem(k).getVal()
+    mem(k:Key): Map[\Key,Val\] = do
+        n : Map[\Key,Val\] := self
+        notDone : Boolean := true
+        while notDone do
+            typecase ni = n of
+                NodeMap[\Key,Val\] =>
+                    typecase _ = k CMP n.getKey() of
+                        LessThan => n := ni.getLeftChild()
+                        EqualTo  => notDone := false
+                        else     => n := ni.getRightChild()
+                    end
+                else => notDone := false
+            end
+        end
+        n
+      end
+    member(x:Key): Maybe[\Val\] =
+        typecase t = mem(x) of
+            NodeMap[\Key,Val\] => Just[\Val\](t.getVal())
+            else => Nothing[\Val\]
+        end
     (** The two-argument version of member returns the default value v
         if the key is absent from the map. **)
-    member(x:Key, v:Val): Val
-    minimum():(Key,Val)
-    deleteMinimum():Map[\Key,Val\] = do
+    member(x:Key, v:Val): Val =
+        typecase t = mem(x) of
+            NodeMap[\Key,Val\] => t.getVal()
+            else => v
+        end
+    (** minimum and maximum refer to the key **)
+    minimum():(Key,Val) throws NotFound
+    deleteMinimum():Map[\Key,Val\]  throws NotFound = do
       (_, res) = self.removeMinimum()
       res
     end
-    removeMinimum():((Key,Val), Map[\Key,Val\])
-    maximum(): (Key,Val)
-    deleteMaximum():Map[\Key,Val\] = do
+    removeMinimum():((Key,Val), Map[\Key,Val\]) throws NotFound
+    maximum(): (Key,Val) throws NotFound
+    deleteMaximum():Map[\Key,Val\] throws NotFound = do
       (_, res) = self.removeMaximum()
       res
     end
-    removeMaximum():((Key,Val), Map[\Key,Val\])
+    removeMaximum():((Key,Val), Map[\Key,Val\]) throws NotFound
+
+    (** If no mapping presently exists, maps k to v. **)
     add(k:Key, v:Val):Map[\Key,Val\]
+    (** Maps k to v. **)
     update(k:Key, v:Val):Map[\Key,Val\]
+    (** Eliminate any mapping for key k. **)
     delete(k:Key):Map[\Key,Val\]
+    (** Process mapping for key k with function f:
+        * If no mapping exists, f is passed Nothing[\Val\]
+        * If k maps to value v, f is passed Just[\Val\](v)
+        If f returns nothing, the mapping for k is deleted; otherwise
+        it is updated with the value contained in the result.
+     **)
     updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\]
     (** UNION favors the leftmost value when a key occurs in both maps. **)
     opr UNION(self, other: Map[\Key,Val\]): Map[\Key,Val\]
-    (** UPLUS (disjoint union) throws KeyOverlap when a key
+    (** UPLUS (disjoint union) throws the KeyOverlap exception when a key
         occurs in both maps. **)
     opr UPLUS(self, other: Map[\Key,Val\]): Map[\Key,Val\]
     (** the union method takes a function f used to combine the values
@@ -144,15 +184,13 @@ object SeqMapGenerator[\Key,Val\](o:Map[\Key,Val\])
 end
 
 object DisjointMapUnion[\Key,Val\] extends Reduction[\Map[\Key,Val\]\]
-    e = EmptyMap[\Key,Val\]
-    empty():Map[\Key,Val\] = e
+    empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
     join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
         a UPLUS b
 end
 
 object MapUnion[\Key,Val\] extends Reduction[\Map[\Key,Val\]\]
-    e = EmptyMap[\Key,Val\]
-    empty():Map[\Key,Val\] = e
+    empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
     join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
         a UNION b
 end
@@ -166,14 +204,11 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
     dom(self):Set[\Key\] = set[\Key\]()
     opr | self |: ZZ32 = 0
-    getPair():(Key, Val) = fail("emptyMap.getPair()")
-    getKey():Key = fail("emptyMap.getKey()")
-    getVal():Val = fail("emptyMap.getVal()")
+    getPair():(Key, Val) = throw NotFound
+    getKey():Key = throw NotFound
+    getVal():Val = throw NotFound
     getLeftChild():Map[\Key,Val\] = self
     getRightChild():Map[\Key,Val\] = self
-    member(x:Key): Maybe[\Val\] = Nothing[\Val\]
-    member(x:Key, v:Val): Val = v
-    opr[k:Key]: Val throws NotFound = throw NotFound
     minimum(): (Key,Val) = throw NotFound
     removeMinimum():((Key,Val), Map[\Key,Val\]) = throw NotFound
     maximum(): (Key,Val) = throw NotFound
@@ -214,8 +249,8 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
                           right:Map[\Key,Val\]) extends Map[\Key,Val\]
     sz:ZZ32 = 1 + |left| + |right|
     (key, val) = pair
-    getter size():ZZ32 = sz
     getter isEmpty():Boolean = false
+    getter size():ZZ32 = sz
     getter showTree():String =
       "[" left.showTree() " (" key "," val ") " right.showTree() "]"
     getter toString():String = do
@@ -251,46 +286,42 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     getLeftChild():Map[\Key,Val\] = left
     getRightChild():Map[\Key,Val\] = right
 
-    opr[k:Key]: Val throws NotFound =
-      typecase _ = k CMP key of
-          EqualTo  => val
-          LessThan => left[k]
-          else     => right[k]
-      end
-
-    member(x:Key): Maybe[\Val\] =
-      typecase _ = x CMP key of
-          EqualTo  => Just[\Val\](val)
-          LessThan => left.member(x)
-          else     => right.member(x)
-      end
-    member(x:Key, v:Val): Val =
-      typecase _ = x CMP key of
-          EqualTo  => val
-          LessThan => left.member(x,v)
-          else     => right.member(x,v)
-      end
-
-    minimum() =
-      if left.isEmpty() then (key,val)
-      else left.minimum()
+    minimum():(Key,Val) = do
+        t : NodeMap[\Key,Val\] := self
+        notDone : Boolean := true
+        while notDone do
+            typecase l = t.getLeftChild() of
+                NodeMap[\Key,Val\] => t := l
+                else => notDone := false
+            end
+        end
+        t.getPair()
       end
     removeMinimum() =
-      if left.isEmpty() then (pair,right)
-      else
-        (min, delmin) = left.removeMinimum()
-        (min, balancedAdd(pair,delmin,right))
-      end
-    maximum() =
-      if right.isEmpty() then (key,val)
-      else right.maximum()
+        typecase left of
+            NodeMap[\Key,Val\] =>
+                (min, delmin) = left.removeMinimum()
+                (min, balancedAdd(pair,delmin,right))
+            else => (pair, right)
+        end
+    maximum():(Key,Val) = do
+        t : NodeMap[\Key,Val\] := self
+        notDone : Boolean := true
+        while notDone do
+            typecase r = t.getRightChild() of
+                NodeMap[\Key,Val\] => t := r
+                else => notDone := false
+            end
+        end
+        t.getPair()
       end
     removeMaximum() =
-      if right.isEmpty() then (pair,left)
-      else
-        (min, delmin) = right.removeMaximum()
-        (min, balancedAdd(pair,delmin,left))
-      end
+        typecase right of
+            NodeMap[\Key,Val\] =>
+                (max, delmax) = left.removeMaximum()
+                (max, balancedAdd(pair,left,delmax))
+            else => (pair, left)
+        end
 
     add(k:Key, v:Val):Map[\Key,Val\] =
       typecase _ = k CMP key of
@@ -357,10 +388,11 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
         end
 
     concat(t2:Map[\Key,Val\]): Map[\Key,Val\] =
-        if t2.isEmpty() then self
-        else
-            (min, butMin) = t2.removeMinimum()
-            self.concat3(min,butMin)
+        typecase t2 of
+            NodeMap[\Key,Val\] =>
+                (min, butMin) = t2.removeMinimum()
+                self.concat3(min,butMin)
+            else => self
         end
     concat3(k:Key, v:Val, t2:Map[\Key,Val\]): Map[\Key,Val\] = add(k,v)
     concat3(k:Key, v:Val, t2:NodeMap[\Key,Val\]): Map[\Key,Val\] =
