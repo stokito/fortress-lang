@@ -22,7 +22,9 @@ import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeGenericArrowType;
@@ -60,5 +62,18 @@ class FnDefTypeEnv extends TypeEnv {
                             fn.getWhere()));
         }
         return some(new BindingLookup(var, type));
+    }
+
+    @Override
+    public List<BindingLookup> contents() {
+        List<BindingLookup> result = new ArrayList<BindingLookup>();
+        for (SimpleName name : entries.firstSet()) {
+            Option<BindingLookup> element = binding(name);
+            if (element.isSome()) {
+                result.add(unwrap(element));
+            }
+        }
+        result.addAll(parent.contents());
+        return result;
     }
 }

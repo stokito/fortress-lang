@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.collect.Relation;
@@ -81,5 +82,18 @@ class ObjectTypeEnv extends TypeEnv {
         }
 
         return some(new BindingLookup(var, type, decl.getMods()));   
+    }
+
+    @Override
+    public List<BindingLookup> contents() {
+        List<BindingLookup> result = new ArrayList<BindingLookup>();
+        for (SimpleName name : entries.keySet()) {
+            Option<BindingLookup> element = binding(name);
+            if (element.isSome()) {
+                result.add(unwrap(element));
+            }
+        }
+        result.addAll(parent.contents());
+        return result;
     }
 }

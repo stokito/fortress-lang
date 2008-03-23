@@ -33,11 +33,11 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * to Variables.
  */
 class LocalVarTypeEnv extends TypeEnv {
-    private LocalVarDecl entries;
+    private LocalVarDecl decl;
     private TypeEnv parent;
     
     LocalVarTypeEnv(LocalVarDecl _entries, TypeEnv _parent) {
-        entries = _entries;
+        decl = _entries;
         parent = _parent;
     }
     
@@ -46,7 +46,7 @@ class LocalVarTypeEnv extends TypeEnv {
      * (if the given SimpleName is in this type environment).
      */
     public Option<BindingLookup> binding(SimpleName var) {
-        for (LValue lval : entries.getLhs()) {
+        for (LValue lval : decl.getLhs()) {
             if (lval instanceof LValueBind) {
                 LValueBind _lval = (LValueBind) lval;
                 if (_lval.getName().equals(var)) {
@@ -57,5 +57,19 @@ class LocalVarTypeEnv extends TypeEnv {
             }
         }
         return parent.binding(var);
+    }
+
+    @Override
+    public List<BindingLookup> contents() {
+        List<BindingLookup> result = new ArrayList<BindingLookup>();
+        for (LValue lval : decl.getLhs()) {
+            if (lval instanceof LValueBind) {
+                result.add(new BindingLookup((LValueBind) lval));
+            } else {
+                return NI.nyi();
+            }
+        }
+        result.addAll(parent.contents());
+        return result;
     }
 }

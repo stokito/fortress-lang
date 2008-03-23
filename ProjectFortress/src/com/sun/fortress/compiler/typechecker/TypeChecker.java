@@ -200,7 +200,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
         TypeCheckerResult result = new TypeCheckerResult(that);
-
+        
         Option<Type> returnType = that.getReturnType();
         if (bodyResult.type().isSome()) {
             Type bodyType = unwrap(bodyResult.type());
@@ -348,7 +348,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
         Option<Type> varType = var_result.type();
-
         if (varType.isSome()) {
             return TypeCheckerResult.compose(that, unwrap(varType), var_result);
         } else {
@@ -398,7 +397,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forTraitDecl(TraitDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
-        TypeCheckerResult nameResult = that.getName().accept(this);
         TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
         TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
         TypeCheckerResult whereResult = that.getWhere().accept(this);
@@ -438,7 +436,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
         }
 
-        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult,
+        return TypeCheckerResult.compose(that, modsResult, staticParamsResult,
                                          extendsClauseResult, whereResult, excludesResult, comprisesResult,
                                          fieldsResult, methodsResult);
     }
@@ -793,7 +791,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // No checks needed to be performed on a BigFixity.
         return new TypeCheckerResult(that);
     }
-
+    
+    public TypeCheckerResult forTraitTypeWhereOnly(TraitTypeWhere that,
+                                                   TypeCheckerResult type_result,
+                                                   TypeCheckerResult where_result) {
+        return TypeCheckerResult.compose(that, type_result, where_result);
+    }
+    
     // STUBS -----------------------------
 
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that, List<TypeCheckerResult> exprs_result) {
@@ -1847,10 +1851,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    }
 //
 //    public RetType forKeywordTypeOnly(KeywordType that, RetType name_result, RetType type_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forTraitTypeWhereOnly(TraitTypeWhere that, RetType type_result, RetType where_result) {
 //        return forAbstractNodeOnly(that);
 //    }
 //

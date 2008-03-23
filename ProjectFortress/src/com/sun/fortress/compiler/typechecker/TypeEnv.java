@@ -228,6 +228,19 @@ public abstract class TypeEnv {
     public final Option<Boolean> mutable(String var) {
         return mutable(makeId(var));
     }
+    
+    public abstract List<BindingLookup> contents();
+    public final String description() {
+        StringBuffer sb = new StringBuffer();
+        sb.append('(');
+        for (BindingLookup b : contents()) {
+            sb.append(b);
+            sb.append(", ");
+        }
+        sb.delete(sb.length()-2, sb.length());
+        sb.append(')');
+        return sb.toString();
+    }
 
     /**
      * Produce a new type environment extending this with the given variable bindings.
@@ -376,6 +389,11 @@ public abstract class TypeEnv {
         public Option<Type> getType() { return type; }
         public List<Modifier> getMods() { return mods; }
         public boolean isMutable() { return mutable; }
+        
+        @Override
+        public String toString() {
+            return String.format("%s:%s", var, type);
+        }
 
     };
 }
