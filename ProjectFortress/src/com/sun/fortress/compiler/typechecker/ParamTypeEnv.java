@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.collect.Relation;
@@ -46,11 +47,23 @@ class ParamTypeEnv extends TypeEnv {
      * (if the given SimpleName is in this type environment).
      */
     public Option<BindingLookup> binding(SimpleName var) {
+        if (!(var instanceof Id)) { return parent.binding(var); }
+        Id _var = (Id)var;
         for (Param param: entries) {
-            if (param.getName().equals(var)) {
-                some(new BindingLookup(var, typeFromParam(param)));
+            if (param.getName().getText().equals(_var.getText())) {
+                return some(new BindingLookup(_var, typeFromParam(param)));
             }
         }
-        return parent.binding(var);
+        return parent.binding(_var);
+    }
+
+    @Override
+    public List<BindingLookup> contents() {
+        List<BindingLookup> result = new ArrayList<BindingLookup>();
+        for (Param param : entries) {
+            result.add(new BindingLookup(param.getName(), typeFromParam(param)));
+        }
+        result.addAll(parent.contents());
+        return result;
     }
 }

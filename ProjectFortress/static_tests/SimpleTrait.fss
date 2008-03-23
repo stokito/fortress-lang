@@ -15,17 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SimpleObject
+component SimpleTrait
 export Executable
-
-object Point(x:RR64, y:RR64)
-  getX():RR64 = x
-  getY():RR64 = y
-end
   
-run(args:String...):() = do
-  p1 = Point(0.0, 0.0)
-  p2 = Point(1.0, 1.0)
+trait A extends {Any}
+  method1(x:ZZ32):ZZ32 = x
 end
 
+run(args:String...):() = ()
+
 end
+
+  

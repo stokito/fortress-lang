@@ -17,6 +17,9 @@
 
 package com.sun.fortress.compiler.typechecker;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -30,4 +33,9 @@ class EmptyTypeEnv extends TypeEnv {
     private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
     
     public Option<BindingLookup> binding(SimpleName var) { return none(); }
+
+    @Override
+    public List<BindingLookup> contents() {
+        return Collections.emptyList();
+    }
 }

@@ -30,7 +30,7 @@ public class Types {
     public static final Type OBJECT = NodeFactory.makeInstantiatedType("FortressLibrary", "Object");
     public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
 
-    public static final Type VOID = NodeFactory.makeTupleType(Collections.<Type>emptyList());
+    public static final Type VOID = new VoidType();
     public static final Type FLOAT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "FloatLiteral");
     public static final Type INT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "IntLiteral");
     public static final Type BOOLEAN = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "Boolean");

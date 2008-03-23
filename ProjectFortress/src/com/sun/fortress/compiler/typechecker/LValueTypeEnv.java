@@ -50,4 +50,14 @@ class LValueTypeEnv extends TypeEnv {
         }
         return parent.binding(var);
     }
+
+    @Override
+    public List<BindingLookup> contents() {
+        List<BindingLookup> result = new ArrayList<BindingLookup>();
+        for (LValueBind entry : entries) {
+            result.add(new BindingLookup(entry));
+        }
+        result.addAll(parent.contents());
+        return result;
+    }
 }
