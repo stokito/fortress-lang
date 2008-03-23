@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,26 +27,26 @@ import com.sun.fortress.nodes.APIName;
 /**
  * Allows the {@link Fortress} class to interface with a custom repository
  * implementation.  May be based on a file system, database, transient
- * memory, etc. 
+ * memory, etc.
  */
 public interface FortressRepository {
-    
+
     /**
      * Provide an updating view of the apis present in the repository.
      * Need not support mutation.
      */
     public Map<APIName, ApiIndex> apis();
-    
+
     public void addApi(APIName name, ApiIndex definition);
-    
+
     public void addComponent(APIName name, ComponentIndex definition);
-   
+
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException;
-    
+
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException;
-    
+
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException ;
-    
+
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException ;
 
     public boolean setVerbose(boolean new_value);

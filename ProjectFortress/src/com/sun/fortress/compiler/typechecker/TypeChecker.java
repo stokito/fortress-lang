@@ -173,12 +173,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      * for the given node with the given TypeError will be returned.
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, StaticError error) {
+        /*
         System.err.printf("checkSubtype: %s <: %s", subtype, supertype);
+        */
         if (!subtypeChecker.subtype(subtype, supertype)) {
+            /*
             System.err.println(" = FALSE");
+            */
             return new TypeCheckerResult(ast, error);
         } else {
+            /*
             System.err.println(" = TRUE");
+            */
             return new TypeCheckerResult(ast);
         }
     }
@@ -194,14 +200,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
         TypeCheckerResult result = new TypeCheckerResult(that);
-        
+
         Option<Type> returnType = that.getReturnType();
         if (bodyResult.type().isSome()) {
             Type bodyType = unwrap(bodyResult.type());
             if (returnType.isNone()) {
                 returnType = wrap(bodyType);
             }
-            
+
             result = checkSubtype(bodyType,
                                 unwrap(returnType),
                                 that,
@@ -308,13 +314,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             } else {
                 apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
             }
-            
+
             Option<Type> type = apiTypeEnv.type(name);
             if (type.isSome()) {
                 Type _type = unwrap(type);
                 if (_type instanceof NamedType) { // Do we need to qualify?
                     NamedType _namedType = (NamedType)_type;
-                    
+
                     // Type was declared in that API, so it's not qualified;
                     // prepend it with the API.
                     if (_namedType.getName().getApi().isNone()) {
@@ -661,8 +667,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         return TypeCheckerResult.compose(that, NodeFactory.makeTupleType(types), exprs_result);
     }
-    
-    public TypeCheckerResult forContractOnly(Contract that, 
+
+    public TypeCheckerResult forContractOnly(Contract that,
                                              Option<List<TypeCheckerResult>> requires_result,
                                              Option<List<TypeCheckerResult>> ensures_result,
                                              Option<List<TypeCheckerResult>> invariants_result) {
@@ -696,19 +702,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        TypeCheckerResult result = new TypeCheckerResult(that);
 //        TypeCheckerResult first_result = that.getFirst().accept(this);
 //        final TypeChecker checker = this;
-//        
-//        
+//
+//
 //        IterUtil.fold(that.getLinks(), first_result, new Lambda2<TypeCheckerResult, Pair<Op, Expr>, TypeCheckerResult>() {
 //            public TypeCheckerResult value(TypeCheckerResult r, Pair<Op, Expr> p) {
 //                TypeCheckerResult expr_result = p.getB().accept(checker);
 //                Option<Type> opType = checker.params.type(p.getA());
-//                
+//
 //                if (r.type().isSome()) {
 //                }
 //                return null;
 //            }
 //        });
-//        
+//
 //        return null;
 //    }
 
@@ -733,11 +739,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
         return new TypeCheckerResult(that, Types.VOID);
     }
-    
+
     public TypeCheckerResult forInstantiatedType(InstantiatedType that) {
         return new TypeCheckerResult(that);
     }
-    
+
     public TypeCheckerResult forNormalParam(NormalParam that) {
         // No checks needed to be performed on a NormalParam.
         return new TypeCheckerResult(that);
@@ -787,9 +793,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // No checks needed to be performed on a BigFixity.
         return new TypeCheckerResult(that);
     }
-    
+
     // STUBS -----------------------------
-    
+
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that, List<TypeCheckerResult> exprs_result) {
         return TypeCheckerResult.compose(that, exprs_result);
     }
