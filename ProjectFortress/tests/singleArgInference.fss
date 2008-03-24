@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component singleArgInference
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 (* See #62 *)

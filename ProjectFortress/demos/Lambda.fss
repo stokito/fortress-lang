@@ -17,7 +17,7 @@
 component Lambda
 import OneShotFlag.{...}
 import Map.{...}
-import ArrayList.{...}
+import List.{...}
 import File.{...}
 export Executable
 

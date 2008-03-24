@@ -17,7 +17,7 @@
 
 component whereTest
 
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 trait T[\S, int i, unit U, bool b\]

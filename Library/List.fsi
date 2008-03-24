@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api ArrayList
+api List
 import CovariantCollection.{...}
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).

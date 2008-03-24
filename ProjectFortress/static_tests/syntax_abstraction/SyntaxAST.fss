@@ -16,7 +16,7 @@
  ******************************************************************************)
 component SyntaxAST
 
-  import ArrayList.{...}
+  import List.{...}
 
   export SyntaxAST
 

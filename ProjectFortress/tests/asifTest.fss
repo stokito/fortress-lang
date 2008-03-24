@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component asifTest
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 (* For still-not-working cases involving self parameters, see

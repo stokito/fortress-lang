@@ -17,7 +17,7 @@
 
 component comprehensions
 import Set.{...}
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 run(args:String...):() = ()
