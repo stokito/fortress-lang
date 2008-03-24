@@ -69,7 +69,7 @@ public class ProjectProperties {
     /**
      * If the property is defined, return that value,
      * else return BASE_DIR + default_name .
-     * 
+     *
      * @param property_name
      * @param default_name
      * @return
@@ -99,13 +99,13 @@ public class ProjectProperties {
 
     /**
      * No-op right now.
-     * 
+     *
      * Intended to replace backslashes in a string with slashes.
      * It is a myth that Windows needs backslashes in path names;
      * in fact, it is only the DOS shell.  This fix was backed out
      * because a different fix for the same problem was added; however,
      * once tested this may be re-enabled.
-     * 
+     *
      * @param s
      */
     public static String backslashToSlash(String s) {
@@ -126,7 +126,7 @@ public class ProjectProperties {
 
     static final StringMap allProps = new StringMap.ComposedMaps(
             new StringMap.FromReflection(ProjectProperties.class),
-            new StringMap.FromSysProps(), 
+            new StringMap.FromSysProps(),
             new StringMap.FromEnv(),
             searchTail
     );
@@ -137,7 +137,7 @@ public class ProjectProperties {
             result = Useful.substituteVarsCompletely(result, allProps, 1000);
         return result;
     }
-    
+
     static final public String get(String s, String ifMissing) {
         String result =  allProps.get(s);
         if (result == null)
@@ -146,7 +146,7 @@ public class ProjectProperties {
             result = Useful.substituteVarsCompletely(result, allProps, 1000);
         return result;
     }
-    
+
     static final public boolean getBoolean(String s, boolean ifMissing) {
         String result =  allProps.get(s);
         if (result != null)
@@ -158,13 +158,13 @@ public class ProjectProperties {
         char c = result.charAt(0);
         if (c == 'y' || c == 't' || c == '1') return true;
         if (c == 'n' || c == 'f' || c == '0') return false;
-        
+
         throw new Error("Unexpected definition of prop/env " + s + ", got " + result + ", need t/f/y/n/0/1[...]");
     }
 
     /**
      * Searches for property/environment definition in the following order
-     * 
+     *
      * System.getProperty("fortress.cache")
      * System.getenv("FORTRESS_CACHE")
      * ./.fortress.properties .getProperty("fortress.cache")
@@ -176,9 +176,9 @@ public class ProjectProperties {
     private static String searchDef(String asProp, String asEnv, String defaultValue) {
         String result = null;
         result = System.getProperty(asProp);
-        if (result == null) 
+        if (result == null)
             result = System.getenv(asEnv);
-        if (result == null) 
+        if (result == null)
             result = searchTail.get(asProp);
         result =  result == null ? defaultValue : result;
         result = Useful.substituteVarsCompletely(result, allProps, 1000);
@@ -188,7 +188,7 @@ public class ProjectProperties {
     /** This static field holds the absolute path of the (sub)project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
-     * 
+     *
      * The path name includes a trailing slash!
      */
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_HOME}/ProjectFortress/");
@@ -197,12 +197,9 @@ public class ProjectProperties {
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}.interpreter_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}.analyzed_cache");
     public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${BASEDIR}.syntax_cache");
-    
+
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
-   
-    
-    //public static final String TEST_LIB_DIR = someImplDir("TEST_LIB_DIR", "test_library");
-    //public static final String TEST_LIB_NATIVE_DIR = someImplDir("TEST_LIB_NATIVE_DIR", "test_library_native");
+
 
     static {
         ensureDirectoryExists(INTERPRETER_CACHE_DIR);
