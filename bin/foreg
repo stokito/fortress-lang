@@ -43,8 +43,8 @@ if [ -z "$FORTRESS_HOME" ]; then
         # MacOS
         READLINK=/usr/bin/readlink
      else
-       echo "You need to set FORTRESS_HOME to the directory containing ProjectFortress"
-       echo "The target of the symbolic link could not be followed."
+       echo "You need to set FORTRESS_HOME to the directory containing ProjectFortress" 1>&2
+       echo "The target of the symbolic link could not be followed." 1>&2
        exit 1
      fi
      # Follow the link, figure out if it is absolute or relative.
@@ -59,15 +59,17 @@ if [ -z "$FORTRESS_HOME" ]; then
      # echo Symlink resolves to $cmd
   fi
   FORTRESS_HOME=${cmd%/*}/..
-  echo guessing FORTRESS_HOME=$FORTRESS_HOME
+  echo guessing FORTRESS_HOME=$FORTRESS_HOME 1>&2
 fi
 
 if [ -e ${FORTRESS_HOME}/ProjectFortress ]; then
   true
 else
-  echo "FORTRESS_HOME should be the name of the parent directory of ProjectFortress"
-  echo "instead of '$FORTRESS_HOME'"
+  echo "FORTRESS_HOME should be the name of the parent directory of ProjectFortress" 1>&2
+  echo "instead of '$FORTRESS_HOME'" 1>&2
   exit 1
 fi
 
-emacs -batch "$@" -l $FORTRESS_HOME/Fortify/fortify.el -f foreg
+USE_EMACS=${USE_EMACS:-emacs}
+[ -n "$EMACS" ] && unset EMACSLOADPATH
+"${USE_EMACS}" -batch "$@" -l $FORTRESS_HOME/Fortify/fortify.el -f foreg

@@ -70,4 +70,6 @@ else
   exit 1
 fi
 
-emacs -batch "$@" -l $FORTRESS_HOME/Fortify/fortify.el -f fortex
+USE_EMACS=${USE_EMACS:-emacs}
+[ -n "$EMACS" ] && unset EMACSLOADPATH
+"${USE_EMACS}" -batch "$@" -l $FORTRESS_HOME/Fortify/fortify.el -f fortex
