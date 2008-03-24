@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component booleanGuard
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 run(args:String...):() = do

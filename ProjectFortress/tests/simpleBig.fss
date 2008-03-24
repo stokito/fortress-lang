@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component simpleBig
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 opr BIG STAR[\T\](g:(Reduction[\Number\],T->Number)->Number):Number =

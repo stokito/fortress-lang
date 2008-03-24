@@ -17,7 +17,7 @@
 
 api FortressAst
 
-   import ArrayList.{List}
+   import List.{List}
 
    (* Fortress representation of Fortress AST nodes *)
    trait Node

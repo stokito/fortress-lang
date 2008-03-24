@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ListTest
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 prElt = fn x => print(x " ")

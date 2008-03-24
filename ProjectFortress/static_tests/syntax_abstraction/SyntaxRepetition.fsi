@@ -19,7 +19,7 @@ api SyntaxRepetition
 
   import FortressAst.{...}
   import FortressSyntax.{...}
-  import ArrayList.{...}
+  import List.{...}
 
   object SelectQuery(val:List[\String\]) 
     toString():String

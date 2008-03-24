@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component RangeTest
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 chkOrder[\T\](a:Range[\T\], b:Range[\T\], expect: Comparison): () = do

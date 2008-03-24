@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ArrayListLong
-import ArrayList.{...}
+import List.{...}
 export Executable
 
 assertStr(a:ZZ32, b:ZZ32, s:String, l: List[\ZZ32\]) =

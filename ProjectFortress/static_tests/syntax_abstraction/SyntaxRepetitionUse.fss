@@ -17,7 +17,7 @@
 component SyntaxRepetitionUse
 
   import SyntaxRepetition.{Helloworld, SelectQuery}
-  import ArrayList.{...}
+  import List.{...}
 
   export Executable
 
