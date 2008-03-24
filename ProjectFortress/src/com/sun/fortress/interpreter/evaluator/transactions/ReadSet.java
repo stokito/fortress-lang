@@ -41,9 +41,18 @@ public class ReadSet extends AbstractSet<Transaction> {
    * @return Whether this transaction was already present.
    */
   public boolean add(Transaction t) {
+      cleanup();
       boolean res = elements.contains(t);
-      elements.addIfAbsent(t);
+      if (!res) {
+	  elements.add(t);
+      }
       return res;
+  }
+ 
+  public void cleanup() {
+      for (Transaction t : elements)
+	  if (!t.isActive())
+	      remove(t);
   }
 
   /**
