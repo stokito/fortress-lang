@@ -187,11 +187,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <delete file="testFile.txt"/>
         <delete>
             <fileset dir="src" includes="**/*.class" />
-            <fileset dir="test_library" includes="**/*.tfi" />
-            <fileset dir="test_library" includes="**/*.tfs" />
-            <fileset dir="test_library_native" includes="**/*.tfs" />
-            <fileset dir="static_tests" includes="*.tfs" />
-            <fileset dir="static_tests" includes="*.tfi" />
         </delete>
     </target>
 
