@@ -260,7 +260,7 @@ public class  OverloadedFunction extends Fcn
                         continue;
 
                     completeOverloadingCheck(o1, o2, new_overloads, within);
-                    
+
                 }
             }
         }
@@ -296,17 +296,17 @@ public class  OverloadedFunction extends Fcn
         boolean allObjInstance1;
         boolean allObjInstance2;
         boolean do_continue;
-        
+
         int l1;
         int l2;;
-        
+
         boolean rest1;
         boolean rest2;
-       
+
         public OverloadComparisonResult() {
             reset();
         }
-        
+
         public void reset() {
              p1better = -1; // set to index where p1 is subtype
              p2better = -1; // set to index where p2 is subtype
@@ -321,27 +321,27 @@ public class  OverloadedFunction extends Fcn
              allObjInstance1 = true;
              allObjInstance2 = true;
              do_continue = false;
-             
+
              l1 = -1;
              l2 = -2;
              rest1 = false;
              rest2 = false;
-             
+
        }
-        
+
     }
-    
+
     static public OverloadComparisonResult completeOverloadingCheck(Overload o1, Overload o2, List<Overload> new_overloads, BetterEnv within) {
-        
+
         OverloadComparisonResult ocr = new OverloadComparisonResult();
 
         List<FType> pl1 = o1.getParams();
         List<FType> pl2 = o2.getParams();
-        
-        { 
+
+        {
         ocr.l1 = pl1.size();
         ocr.l2 = pl2.size();
-        
+
         ocr.rest1 = (ocr.l1 > 0 && pl1.get(ocr.l1-1) instanceof FTypeRest);
         ocr.rest2 = (ocr.l2 > 0 && pl2.get(ocr.l2-1) instanceof FTypeRest);
 
@@ -353,7 +353,7 @@ public class  OverloadedFunction extends Fcn
         // both  test out to l1
         // neither = required
 
-        
+
         if (ocr.rest2) {
             // both, rest2
             ocr.min = ocr.l1;
@@ -471,7 +471,7 @@ public class  OverloadedFunction extends Fcn
             ocr.distinct |= ocr.unequal && (ocr.allObjInstance1 || ocr.allObjInstance2);
         }
         }
-        
+
         if (!ocr.do_continue) {
 
             if (!ocr.distinct && (ocr.sawSymbolic1 || ocr.sawSymbolic2)) {
@@ -517,7 +517,7 @@ public class  OverloadedFunction extends Fcn
         } // if not do_continue
         return ocr;
     }
-    
+
     private boolean genericFMAndInstance(SingleFcn f1, SingleFcn f2) {
         if (f1 instanceof GenericFunctionalMethod && f2 instanceof FunctionalMethod) {
             GenericFunctionalMethod gfm = (GenericFunctionalMethod) f1;
@@ -638,7 +638,7 @@ public class  OverloadedFunction extends Fcn
     /**
      * Add an overload to the list of overloads. Not Allowed after the
      * overloaded function has been (completely) finished.
-     * 
+     *
      * @param overload
      */
     public void addOverload(Overload overload) {

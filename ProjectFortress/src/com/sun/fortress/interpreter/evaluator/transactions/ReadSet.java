@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,7 +26,7 @@ public class ReadSet extends AbstractSet<Transaction> {
   public ReadSet() {
       elements = new CopyOnWriteArrayList<Transaction>();
   }
-	
+
   /**
    * Initialize one object from another.
    * @param aSet Initialize from this other object.
@@ -48,7 +48,7 @@ public class ReadSet extends AbstractSet<Transaction> {
       }
       return res;
   }
- 
+
   public void cleanup() {
       for (Transaction t : elements)
 	  if (!t.isActive())
