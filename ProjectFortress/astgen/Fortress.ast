@@ -1128,7 +1128,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * type
      */
-    abstract Type(boolean parenthesized = false);
+    abstract Type(ignoreForEquals boolean parenthesized = false);
         /**
          * dimension expression
          */
