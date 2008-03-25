@@ -49,7 +49,7 @@ class ParamTypeEnv extends TypeEnv {
     public Option<BindingLookup> binding(SimpleName var) {
         if (!(var instanceof Id)) { return parent.binding(var); }
         Id _var = (Id)var;
-        for (Param param: entries) {
+        for (Param param : entries) {
             if (param.getName().getText().equals(_var.getText())) {
                 return some(new BindingLookup(_var, typeFromParam(param)));
             }

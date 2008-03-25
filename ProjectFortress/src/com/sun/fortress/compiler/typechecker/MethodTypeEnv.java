@@ -48,9 +48,10 @@ class MethodTypeEnv extends TypeEnv {
      */
     public Option<BindingLookup> binding(SimpleName var) {
         Set<Method> methods = entries.getSeconds(var);
-        Type type = Types.ANY;
+        if (methods.isEmpty()) { return parent.binding(var); }
         
-        for (Method method: methods) {
+        Type type = Types.ANY;
+        for (Method method : methods) {
             if (method instanceof DeclaredMethod) {
                 DeclaredMethod _method = (DeclaredMethod)method;
                 FnAbsDeclOrDecl decl = _method.ast();

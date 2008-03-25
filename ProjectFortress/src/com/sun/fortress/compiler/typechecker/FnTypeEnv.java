@@ -23,6 +23,8 @@ import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
@@ -50,13 +52,12 @@ class FnTypeEnv extends TypeEnv {
         Set<? extends Function> fns = entries.getSeconds(var);
         if (fns.isEmpty()) { return parent.binding(var); }
         
-        Type type = Types.ANY;
+        LinkedList<Type> overloadedTypes = new LinkedList<Type>();
         for (Function fn: fns) {
             if (fn instanceof DeclaredFunction) {
                 DeclaredFunction _fn = (DeclaredFunction)fn;
                 FnAbsDeclOrDecl decl = _fn.ast();
-                type = new AndType(type,
-                                   makeGenericArrowType(decl.getSpan(),
+                overloadedTypes.add(makeGenericArrowType(decl.getSpan(),
                                                         decl.getStaticParams(),
                                                         typeFromParams(decl.getParams()),
                                                         unwrap(decl.getReturnType()), // all types have been filled in at this point
@@ -65,8 +66,7 @@ class FnTypeEnv extends TypeEnv {
             } else if (fn instanceof FunctionalMethod) {
                 FunctionalMethod _fn = (FunctionalMethod)fn;
                 FnAbsDeclOrDecl decl = _fn.ast();
-                type = new AndType(type,
-                                   makeGenericArrowType(decl.getSpan(),
+                overloadedTypes.add(makeGenericArrowType(decl.getSpan(),
                                                         decl.getStaticParams(),
                                                         typeFromParams(decl.getParams()),
                                                         unwrap(decl.getReturnType()), // all types have been filled in at this point
@@ -77,8 +77,7 @@ class FnTypeEnv extends TypeEnv {
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
-                type = new AndType(type,
-                                   makeGenericArrowType(_fn.declaringTrait().getSpan(),
+                overloadedTypes.add(makeGenericArrowType(_fn.declaringTrait().getSpan(),
                                                         _fn.staticParams(),
                                                         typeFromParams(unwrap(_fn.params())),
                                                         makeInstantiatedType(makeQualifiedIdName(_fn.declaringTrait()),
@@ -88,7 +87,7 @@ class FnTypeEnv extends TypeEnv {
                 
             }
         }
-        return some(new BindingLookup(var, type));
+        return some(new BindingLookup(var, makeAndType(overloadedTypes)));
     }
 
     @Override
