@@ -34,6 +34,11 @@ assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
     fail("Failed assertion: " s l.toString() " and " r.toString())
   end
 
+chkApp(tl: List[\ZZ32\], t : List[\Any\]) = do
+    assert("Hello" IN t, true, "missing Hello from ", t)
+    assert(l IN t, true, "missing ",l," from ",t), l <- tl
+  end
+
 chkPop[\T\](l:List[\T\],fro:ZZ32,sz:ZZ32,by:ZZ32): () =
   typecase l of
     List[\ZZ32\] => chkPopZ(l,fro,sz,by)
@@ -88,6 +93,7 @@ run(args:String...):() = do
       print(".")
       assert(li,li,"Lists unequal")
       assert(li CMP li,EqualTo,"Lists CMP unequal")
+      chkPop(li[#],i)
       (ll,lr) = li.split()
       print(".")
       lii = ll.append(lr)
@@ -149,6 +155,11 @@ run(args:String...):() = do
           assertStr(j=0 OR: li < lj, " NOT < ", lj)
       end
   end
+  testStr : List[\String\] = <| "Hello" asif String |>
+  testU : List[\Any\] = testStr.append(testLens)
+  chkApp(testLens,testU)
+  chkApp(testLens,testU.append(testStr).drop(1))
+  chkApp(testLens,testStr.append(testU).drop(1))
   finish = nanoTime()
   ms = ((finish-start) + 500000) DIV 1000000
   println("\nSucceeded in " (ms/1000.0) "s")

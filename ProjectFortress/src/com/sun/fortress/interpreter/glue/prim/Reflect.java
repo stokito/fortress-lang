@@ -25,6 +25,7 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
@@ -104,8 +105,8 @@ public class Reflect extends Constructor {
             for (FType ty : join) {
                 return makeReflectedType(ty);
             }
-            /* Should be unreachable. */
-            return null;
+            /* Empty join means top. */
+            return makeReflectedType(FTypeTop.ONLY);
         }
     }
 
