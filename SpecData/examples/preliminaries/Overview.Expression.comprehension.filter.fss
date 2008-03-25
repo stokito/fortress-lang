@@ -1,6 +1,6 @@
 (** COPYRIGHT **)
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,25 +17,17 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.AlsoA.fss
+component Overview.Expression.comprehension.filter
+import Set.{...}
 
 export Executable
 
-factorial(n) =
-  if n = 0 then 1
-  else n factorial(n-1) end
-
-f() =
+run(args:String...) = do
+t:Set[\ZZ32\] = {-1, 0, 1, 2, 3, 4}
 (** EXAMPLE **)
-do
-  factorial(100)
-also do
-  factorial(500)
-also do
-  factorial(1000)
-end
+v = {x | x <- t, x >= 0}
 (** END EXAMPLE **)
-
-run(args:String...) = println f()
+println v
+end
 
 end

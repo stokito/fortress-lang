@@ -17,16 +17,18 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.comprehension.filter
-import Set.{...}
+component Expr.ListComp
 
+import Set.{...}
+import PureList.{...}
 export Executable
 
-run(args:String...) = do
-  t:Set[\ZZ32\] = {0, 1, 2, 3, 4}
+f() = do
 (** EXAMPLE **)
-  v = {x | x <-t, x >= 0}
+<| x^2 | x <- {0, 1, 2, 3, 4, 5}, x MOD 2 = 0|>
 (** END EXAMPLE **)
 end
+
+run(args:String...) = println f()
 
 end
