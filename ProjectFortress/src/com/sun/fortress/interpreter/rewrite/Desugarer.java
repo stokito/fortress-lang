@@ -803,6 +803,15 @@ public class Desugarer extends Rewrite {
                                             ac.getOpr(), ac.getBody());
                 } else if (node instanceof Spawn) {
                     return translateSpawn((Spawn)node);
+                } else if (node instanceof Typecase) {
+                    Typecase tc = (Typecase) node;
+                    Pair<List<Id>, Option<Expr>> bind = tc.getBind();
+                    List<Id> lid = bind.getA();
+                    Option<Expr> oe = bind.getB();
+                    if (oe.isNone()) {
+                        node = ExprFactory.makeTypecase(tc, lid, (Expr) tupleForIdList(lid));
+                    }
+                    
                 } else {
                     atTopLevelInsideTraitOrObject = false;
                 }
@@ -860,6 +869,24 @@ public class Desugarer extends Rewrite {
         for (Id b : binds) params.add(NodeFactory.makeParam(b));
         Expr res = ExprFactory.makeFnExpr(g.getSpan(),params,body);
         return res;
+    }
+    
+    /**
+     * Given List<Id>, generate tuple of corresponding VarRef
+     */
+    Expr tupleForIdList(List<Id> binds) {
+        if (binds.size() == 1)
+            return ExprFactory.makeVarRef(binds.get(0));
+        
+        List<Expr> refs = new ArrayList<Expr>(binds.size());
+       
+        for (Id b : binds)
+            refs.add(ExprFactory.makeVarRef(b));
+        
+        return ExprFactory.makeTuple(
+                new Span(binds.get(0).getSpan(),
+                         binds.get(binds.size()-1).getSpan()),
+                refs);
     }
 
     /**
