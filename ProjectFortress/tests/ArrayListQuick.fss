@@ -94,6 +94,8 @@ run(args:String...):() = do
       assert(li,li,"Lists unequal")
       assert(li CMP li,EqualTo,"Lists CMP unequal")
       chkPop(li[#],i)
+      chkPop(li.addRight(i),i+1)
+      chkPop(li.addLeft(-1),-1,i+1)
       (ll,lr) = li.split()
       print(".")
       lii = ll.append(lr)
@@ -160,6 +162,8 @@ run(args:String...):() = do
   chkApp(testLens,testU)
   chkApp(testLens,testU.append(testStr).drop(1))
   chkApp(testLens,testStr.append(testU).drop(1))
+  chkApp(testLens,testLens.addLeft("Hello"))
+  chkApp(testLens,testLens.addRight("Hello"))
   finish = nanoTime()
   ms = ((finish-start) + 500000) DIV 1000000
   println("\nSucceeded in " (ms/1000.0) "s")

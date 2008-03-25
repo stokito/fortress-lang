@@ -16,8 +16,8 @@
  ******************************************************************************)
 
 api Map
+import List.{SomeList}
 import Set.{Set}
-import CovariantCollection.{SomeCovariantCollection}
 
 object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
         extends UncheckedException
@@ -104,16 +104,15 @@ mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]
 
 opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\]
 
-opr BIG {|->[\Key,Val\] g: ( Reduction[\SomeCovariantCollection\],
-                             (Key,Val) -> SomeCovariantCollection) ->
-                           SomeCovariantCollection } : Map[\Key,Val\]
+opr BIG {|->[\Key,Val\] g: ( Reduction[\SomeList\], (Key,Val) -> SomeList) ->
+                           SomeList } : Map[\Key,Val\]
 
 opr BIG UNION[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
                               Map[\Key,Val\] -> Map[\Key,Val\]) ->
-                            SomeCovariantCollection ) : Map[\Key,Val\]
+                            Map[\Key,Val\] ) : Map[\Key,Val\]
 
 opr BIG UPLUS[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
                               Map[\Key,Val\] -> Map[\Key,Val\]) ->
-                            SomeCovariantCollection ) : Map[\Key,Val\]
+                            Map[\Key,Val\] ) : Map[\Key,Val\]
 
 end

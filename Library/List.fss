@@ -72,11 +72,13 @@ expansion(curr: ZZ32, new: ZZ32) =
         curr
     end
 
+(** Lists of some item type.  Used to collect elements of unknown type
+    into a list whose element type is as specific as possible. **)
 trait SomeList excludes { Number, HasRank }
         (* comprises List[\E\] where [\E\] *)
     append(f:SomeList): SomeList = app(self,f)
-    addLeft(e:Any): SomeList = fail("Not yet")
-    addRight(e:Any): SomeList = fail("Not yet")
+    addLeft(e:Any): SomeList = addL(e,self)
+    addRight(e:Any): SomeList = addR(self,e)
 end
 
 app[\E,F\](a:List[\E\], b:List[\F\]): SomeList =
@@ -90,6 +92,18 @@ app'[\T,E,F\](t:Reflect[\T\], a:List[\E\], b:List[\F\]): List[\T\] =
             emptyList[\T\](a.size()+b.size()).appendR[\E\](a).appendR[\F\](b)
     end
 
+addL[\E,F\](x:E, xs:List[\F\]): SomeList =
+    addL'(joinReflected(Reflect[\E\](),Reflect[\F\]()),x,xs)
+
+addL'[\T,E,F\](t:Reflect[\T\], x:E, xs:List[\F\]): List[\T\] =
+    emptyList[\T\](scale(xs.size())).addRight(x).appendR[\F\](xs)
+
+addR[\E,F\](xs:List[\F\],x:E): SomeList =
+    addR'(joinReflected(Reflect[\E\](),Reflect[\F\]()),xs,x)
+
+addR'[\T,E,F\](t:Reflect[\T\], xs:List[\F\], x:E): List[\T\] =
+    emptyList[\T\](scale(xs.size())).appendR[\F\](xs).addRight(x)
+
 (** Generic list trait.
     We return a Generator for non-List-specific operations for which
     reuse of the Generator won't increase asymptotic complexity, but
@@ -102,6 +116,10 @@ trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
     append(f:List[\E\]): List[\E\]
+    appendRC[\T\](other:List[\T\]): List[\E\]
+    appendLC[\T\](other:List[\T\]): List[\E\]
+    appendR[\T\](other:List[\T\]): List[\E\]
+    appendL[\T\](other:List[\T\]): List[\E\]
     addLeft(e:E):List[\E\]
     addRight(e:E):List[\E\]
     take(n:ZZ32): List[\E\]
@@ -133,9 +151,7 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T,U\] g: ( Reduction[\SomeList\],
-                      T -> SomeList) ->
-                    SomeList|>: List[\U\] =
+opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\U\] =
     g(CVConcat,cvSingleton)
 
 (** Convert generator into list; can be used to desugar list
@@ -156,6 +172,7 @@ list[\E\](f: ImmutableArray[\E,ZZ32\]): List[\E\] =
     else
         fromImmutableArray[\E\](f[#].copy())
     end
+list[\E\](r: List[\E\]): List[\E\] = r
 
 (** Flatten an int-indexed collection of lists **)
 concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
@@ -447,6 +464,8 @@ end
 emptyList[\E\](): List[\E\] =
     ArrayList(PrimImmutableArray[\E,0\](),0,noShot,0,noShot)
 
+(** emptyList[\E\](n) allocates an empty list that can accept n
+    addRight operations without reallocating the underlying storage. **)
 emptyList[\E\](n:ZZ32): List[\E\] =
     ArrayList(primitiveImmutableArray[\E\](n),0,noShot,0,oneShot())
 

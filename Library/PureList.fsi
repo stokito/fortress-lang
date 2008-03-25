@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api PureList
-import CovariantCollection.{...}
+import List.{SomeList}
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
     16:2 2006.
@@ -60,9 +60,7 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants *)
 opr <|[\E\] xs: E... |>: List[\E\]
-opr BIG <|[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
-                      T -> SomeCovariantCollection) ->
-                    SomeCovariantCollection|>: List[\U\]
+opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList|>: List[\U\]
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)

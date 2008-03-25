@@ -16,7 +16,6 @@
  ******************************************************************************)
 
 api List
-import CovariantCollection.{...}
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).
 
@@ -51,6 +50,17 @@ import CovariantCollection.{...}
     Baking these off vs PureLists, they look very good in practice.
  **)
 
+(** Lists of some item type.  Used to collect elements of unknown type
+    into a list whose element type is as specific as possible. **)
+trait SomeList excludes { Number, HasRank }
+        (* comprises List[\E\] where [\E\] *)
+    append(f:SomeList): SomeList
+(*
+    addLeft(e:Any): SomeList
+    addRight(e:Any): SomeList
+*)
+end
+
 (** Generic list trait.
     We return a Generator for non-List-specific operations for which
     reuse of the Generator won't increase asymptotic complexity, but
@@ -78,9 +88,7 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants *)
 opr <|[\E\] xs: E... |>: List[\E\]
-opr BIG <|[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
-                      T -> SomeCovariantCollection) ->
-                    SomeCovariantCollection|>: List[\U\]
+opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\U\]
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -92,14 +100,24 @@ concat[\E\](x:List[\List[\E\]\]):List[\E\]
 emptyList[\E\](): List[\E\]
 
 (** emptyList[\E\](n) allocates an empty list that can accept n
-    insertions without reallocating the underlying storage. **)
+    addRight operations without reallocating the underlying storage. **)
 emptyList[\E\](n:ZZ32): List[\E\]
 
 singleton[\E\](e:E): List[\E\]
 
+(** A reduction object for concatenating lists. *)
 object Concat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\]
   join(a:List[\E\], b:List[\E\]): List[\E\]
+end
+
+(** Covariant Singleton function, for use with CVConcat. **)
+cvSingleton(e:Any): SomeList
+
+(** A reduction object for concatenating lists covariantly. *)
+object CVConcat extends Reduction[\SomeList\]
+  empty(): SomeList
+  join(a:SomeList, b:SomeList): SomeList
 end
 
 end

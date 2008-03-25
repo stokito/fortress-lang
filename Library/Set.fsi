@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api Set
-import CovariantCollection.{...}
+import List.{SomeList}
 
 (** Thrown when taking big intersection of no sets. **)
 object EmptyIntersection extends UncheckedException end
@@ -58,9 +58,7 @@ singleton[\E\](x:E): Set[\E\]
 set[\E\](): Set[\E\]
 set[\E\](g: Generator[\E\]): Set[\E\]
 opr {[\E\] es: E... }: Set[\E\]
-opr BIG {[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
-                      T -> SomeCovariantCollection) ->
-                    SomeCovariantCollection } : Set[\U\]
+opr BIG {[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList } : Set[\U\]
 
 opr BIG UNION[\R\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
                     Set[\R\]
