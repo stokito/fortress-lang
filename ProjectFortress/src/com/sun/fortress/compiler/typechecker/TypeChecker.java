@@ -829,7 +829,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         final TypeCheckerResult r = TypeCheckerResult.compose(that, exprs_result);
         final Type lhsType = unwrap(exprs_result.get(0).type());
         final Type rhsType = unwrap(exprs_result.get(1).type());
-        System.err.printf("tightJuxt::: lhs, rhs = %s, %s\n", lhsType, rhsType);
+//        System.err.printf("tightJuxt::: lhs, rhs = %s, %s\n", lhsType, rhsType);
         
         return lhsType.accept(new NodeAbstractVisitor<TypeCheckerResult>() {
                     
@@ -840,6 +840,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     
             @Override
             public TypeCheckerResult forArrowType(ArrowType _that) {
+//                System.err.printf(" -- forArrowType: domain=%s\n", _that.getDomain().getClass());
                 return checkSubtype(rhsType,
                                     _that.getDomain(),
                                     that,
