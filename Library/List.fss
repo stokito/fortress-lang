@@ -17,7 +17,7 @@
 
 component List
 import OneShotFlag.{...}
-import CovariantCollection.{...}
+import TypeReflect.{...}
 import NativeArray.{...}
 
 export List
@@ -72,12 +72,30 @@ expansion(curr: ZZ32, new: ZZ32) =
         curr
     end
 
+trait SomeList excludes { Number, HasRank }
+        (* comprises List[\E\] where [\E\] *)
+    append(f:SomeList): SomeList = app(self,f)
+    addLeft(e:Any): SomeList = fail("Not yet")
+    addRight(e:Any): SomeList = fail("Not yet")
+end
+
+app[\E,F\](a:List[\E\], b:List[\F\]): SomeList =
+    app'(joinReflected(Reflect[\E\](),Reflect[\F\]()),a,b)
+
+app'[\T,E,F\](t:Reflect[\T\], a:List[\E\], b:List[\F\]): List[\T\] =
+    typecase (a,b) of
+        (List[\T\],SomeList) => a.appendRC[\F\](b)
+        (SomeList,List[\T\]) => b.appendLC[\E\](a)
+        else =>
+            emptyList[\T\](a.size()+b.size()).appendR[\E\](a).appendR[\F\](b)
+    end
+
 (** Generic list trait.
     We return a Generator for non-List-specific operations for which
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
+trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
         excludes { Number, HasRank }
     getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
     getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
@@ -89,8 +107,10 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     take(n:ZZ32): List[\E\]
     drop(n:ZZ32): List[\E\]
     opr [n:ZZ32]: E
-    opr [n:Range[\ZZ32\]]: List[\E\] =
-        drop(n.lower()).take(n.extent())
+    opr [n:Range[\ZZ32\]]: List[\E\] = do
+        r = (0#size())[n]
+        drop(r.lower()).take(r.extent())
+      end
     split(n:ZZ32): (List[\E\], List[\E\])
     split(): (List[\E\], List[\E\])
     reverse(): List[\E\] =
@@ -113,10 +133,10 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
-                      T -> SomeCovariantCollection) ->
-                    SomeCovariantCollection|>: List[\U\] =
-    list(g(CVReduction,scvUnit))
+opr BIG <|[\T,U\] g: ( Reduction[\SomeList\],
+                      T -> SomeList) ->
+                    SomeList|>: List[\U\] =
+    g(CVConcat,cvSingleton)
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -167,6 +187,12 @@ object Concat[\E\] extends Reduction[\ List[\E\] \]
   join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
 end
 
+(** A reduction object for concatenating lists covariantly. *)
+object CVConcat extends Reduction[\SomeList\]
+  empty(): SomeList = emptyList()
+  join(a:SomeList, b:SomeList): SomeList = a.append(b)
+end
+
 (** The same for reverse concatenation *)
 object RevConcat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\] = emptyList[\E\]()
@@ -188,13 +214,13 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
     getter extractLeft(): Maybe[\(E,ArrayList[\E\])\] =
         if isEmpty() then Nothing[\(E,ArrayList[\E\])\]
         else Just[\(E,ArrayList[\E\])\](underlying.get(firstUsed),
-                       ArrayList[\E\](underlying, firstUsed+1, noShot,
-                                      firstUnused, canExtendRight))
+                       ArrayList(underlying, firstUsed+1, noShot,
+                                 firstUnused, canExtendRight))
         end
     getter extractRight(): Maybe[\(ArrayList[\E\],E)\] =
         if isEmpty() then Nothing[\(ArrayList[\E\],E)\]
         else Just[\(ArrayList[\E\],E)\](
-                       ArrayList[\E\](underlying, firstUsed, canExtendLeft,
+                       ArrayList(underlying, firstUsed, canExtendLeft,
                                       firstUnused-1, noShot),
                        underlying.get(firstUnused-1))
         end
@@ -223,55 +249,55 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
 
     get(i:ZZ32): E = underlying.get(firstUsed+i)
 
-    fill(start: ZZ32, under: ImmutableArray[\E,ZZ32\]): () = do
+    fill[\T\](start: ZZ32, under: ImmutableArray[\T,ZZ32\]): () = do
         shift = start - firstUsed
-        under.init0(i+shift, underlying.get(i)), i <- firstUsed#size()
+        under.init0(i+shift, cast[\T\](underlying.get(i))), i <- firstUsed#size()
       end
 
     (** Return new ArrayList enlarged on the left by at least i
         elements.  It claims canExtendLeft.  **)
-    enlargeLeft(i:ZZ32): ArrayList[\E\] = do
+    enlargeLeft[\T\](i:ZZ32): ArrayList[\T\] = do
         sz0 = underlying.size()
         sz = (sz0 + i) MAX scale(sz0)
         fstUsed = sz - sz0
         under = primitiveImmutableArray[\E\](sz)
-        fill(fstUsed,under)
+        fill[\T\](fstUsed,under)
         fstUnused = fstUsed + size()
-        ArrayList[\E\](under,fstUsed,noShot,fstUnused,oneShot())
+        ArrayList(under,fstUsed,noShot,fstUnused,oneShot())
       end
 
     (** Return new ArrayList enlarged on the right by at least i
         elements.  It claims canExtendRight.  **)
-    enlargeRight(i:ZZ32): ArrayList[\E\] = do
+    enlargeRight[\T\](i:ZZ32): ArrayList[\T\] = do
         sz0 = underlying.size()
         sz = (sz0 + i) MAX scale(sz0)
         under = primitiveImmutableArray[\E\](sz)
-        fill(firstUsed,under)
-        ArrayList[\E\](under,firstUsed,oneShot(),firstUnused,noShot)
+        fill[\T\](firstUsed,under)
+        ArrayList(under,firstUsed,oneShot(),firstUnused,noShot)
       end
 
     addLeft(e:E): List[\E\] = do
         c = if canExtendLeft.tryOnce() AND firstUsed > 0 then
                 self
             else
-                enlargeLeft(1)
+                enlargeLeft[\E\](1)
             end
         cFirstUsed1 = c.firstUsed-1
         cUnder = c.underlying
         cUnder.init0(cFirstUsed1,e)
-        ArrayList[\E\]( cUnder, cFirstUsed1,   oneShot(),
+        ArrayList( cUnder, cFirstUsed1,   oneShot(),
                                 c.firstUnused, c.canExtendRight )
       end
     addRight(e:E): List[\E\] = do
         c = if canExtendRight.tryOnce() AND firstUnused < underlying.size() then
                 self
             else
-                enlargeRight(1)
+                enlargeRight[\E\](1)
             end
         cFirstUnused = c.firstUnused
         cUnder = c.underlying
         cUnder.init0(cFirstUnused,e)
-        ArrayList[\E\]( cUnder, c.firstUsed,    c.canExtendLeft,
+        ArrayList( cUnder, c.firstUsed,    c.canExtendLeft,
                                 cFirstUnused+1, oneShot() )
       end
 
@@ -279,38 +305,52 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
         on available space. **)
     append(other:List[\E\]): List[\E\] =
         if rightSpace() >= other.size() AND: canExtendRight.tryOnce() then
-            appendR(firstUnused,other)
+            appendR[\E\](other)
         elif other.leftSpace() >= size() AND: other.canExtendLeft.tryOnce() then
-            other.appendL(self)
+            other.appendL[\E\](self)
         else
             (* Enlarge on the right.  Note missed opportunity for parallelism in
                the name of maintainability: we could do the two copy operations
                in enlargeRight and appendR in parallel. *)
             otherSize = other.size()
-            fresh = enlargeRight(otherSize)
-            fresh.appendR(other)
+            fresh = enlargeRight[\E\](otherSize)
+            fresh.appendR[\E\](other)
         end
-    appendR(other:List[\E\]): List[\E\] = do
-        other.fill(firstUnused,underlying)
-        ArrayList[\E\](underlying,firstUsed,canExtendLeft,
+    appendR[\T\](other:List[\T\]): List[\E\] = do
+        other.fill[\E\](firstUnused,underlying)
+        ArrayList(underlying,firstUsed,canExtendLeft,
                             firstUnused+other.size(),oneShot())
       end
-    appendL(left:List[\E\]): List[\E\] = do
+    appendRC[\T\](other:List[\T\]): List[\E\] =
+        if rightSpace() >= other.size() AND: canExtendRight.tryOnce() then
+            appendR[\T\](other)
+        else
+            fresh = enlargeRight[\E\](other.size())
+            fresh.appendR[\T\](other)
+        end
+    appendL[\T\](left:List[\T\]): List[\E\] = do
         lsz = left.size()
         fstUsed = firstUsed - lsz
-        left.fill(fstUsed,underlying)
-        ArrayList[\E\](underlying,fstUsed,oneShot(),firstUnused,canExtendRight)
+        left.fill[\E\](fstUsed,underlying)
+        ArrayList(underlying,fstUsed,oneShot(),firstUnused,canExtendRight)
       end
+    appendLC[\T\](left:List[\T\]): List[\E\] =
+        if leftSpace() >= left.size() AND: canExtendLeft.tryOnce() then
+            appendL[\T\](left)
+        else
+            fresh = enlargeLeft[\E\](left.size())
+            fresh.appendL[\T\](left)
+        end
 
     (** Return first n elements of this list.  take(n) never fails: If n is
         negative or 0, an empty list is returned; if n is larger than size(),
         the whole list is returned. **)
     take(n:ZZ32): ArrayList[\E\] =
         if n <= 0 then
-            ArrayList[\E\](underlying,firstUsed,canExtendLeft,
+            ArrayList(underlying,firstUsed,canExtendLeft,
                                       firstUsed,noShot)
         elif n < size() then
-            ArrayList[\E\](underlying, firstUsed,canExtendLeft,
+            ArrayList(underlying, firstUsed,canExtendLeft,
                                        firstUsed+n, noShot)
         else
             self
@@ -322,25 +362,25 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
         if n <= 0 then
             self
         elif n < size() then
-            ArrayList[\E\](underlying, firstUsed+n, noShot,
+            ArrayList(underlying, firstUsed+n, noShot,
                                        firstUnused, canExtendRight)
         else
-            ArrayList[\E\](underlying, firstUnused, noShot,
+            ArrayList(underlying, firstUnused, noShot,
                                        firstUnused, canExtendRight)
         end
     split(n:ZZ32): (ArrayList[\E\],ArrayList[\E\]) =
         if n <= 0 then
-            (ArrayList[\E\](underlying, firstUsed,canExtendLeft,
+            (ArrayList(underlying, firstUsed,canExtendLeft,
                                         firstUsed,noShot),
              self)
         elif n < size() then
-            (ArrayList[\E\](underlying, firstUsed,canExtendLeft,
+            (ArrayList(underlying, firstUsed,canExtendLeft,
                                         firstUsed+n, noShot),
-             ArrayList[\E\](underlying, firstUsed+n, noShot,
+             ArrayList(underlying, firstUsed+n, noShot,
                                         firstUnused, canExtendRight))
         else
             (self,
-             ArrayList[\E\](underlying, firstUnused, noShot,
+             ArrayList(underlying, firstUnused, noShot,
                                         firstUnused, canExtendRight))
         end
     split(): (ArrayList[\E\],ArrayList[\E\]) = do
@@ -405,10 +445,12 @@ value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:ArrayList[\A\], ys:ArrayList[\B\
 end
 
 emptyList[\E\](): List[\E\] =
-    ArrayList[\E\](PrimImmutableArray[\E,0\](),0,noShot,0,noShot)
+    ArrayList(PrimImmutableArray[\E,0\](),0,noShot,0,noShot)
 
 emptyList[\E\](n:ZZ32): List[\E\] =
-    ArrayList[\E\](primitiveImmutableArray[\E\](n),0,noShot,0,oneShot())
+    ArrayList(primitiveImmutableArray[\E\](n),0,noShot,0,oneShot())
+
+cvSingleton(e:Any): SomeList = singleton(e)
 
 singleton[\E\](e:E): List[\E\] = do
     u = PrimImmutableArray[\E,1\]()
