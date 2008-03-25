@@ -17,23 +17,93 @@
 
 package com.sun.fortress.nodes_util;
 
-import java.util.Collections;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Accumulator;
+import com.sun.fortress.nodes.AnonymousFnName;
+import com.sun.fortress.nodes.ArgExpr;
+import com.sun.fortress.nodes.ArrayComprehension;
+import com.sun.fortress.nodes.ArrayElement;
+import com.sun.fortress.nodes.ArrayElements;
+import com.sun.fortress.nodes.AsExpr;
+import com.sun.fortress.nodes.AsIfExpr;
+import com.sun.fortress.nodes.Assignment;
+import com.sun.fortress.nodes.AtomicExpr;
+import com.sun.fortress.nodes.Block;
+import com.sun.fortress.nodes.CaseExpr;
+import com.sun.fortress.nodes.ChainExpr;
+import com.sun.fortress.nodes.CharLiteralExpr;
+import com.sun.fortress.nodes.Do;
+import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.Exit;
+import com.sun.fortress.nodes.ExponentiationMI;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.ExprMI;
+import com.sun.fortress.nodes.FieldRef;
+import com.sun.fortress.nodes.FloatLiteralExpr;
+import com.sun.fortress.nodes.FnExpr;
+import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.For;
+import com.sun.fortress.nodes.GeneratedExpr;
+import com.sun.fortress.nodes.GeneratorClause;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.If;
+import com.sun.fortress.nodes.IfClause;
+import com.sun.fortress.nodes.IntLiteralExpr;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.Label;
+import com.sun.fortress.nodes.LetExpr;
+import com.sun.fortress.nodes.LetFn;
+import com.sun.fortress.nodes.LocalVarDecl;
+import com.sun.fortress.nodes.LooseJuxt;
+import com.sun.fortress.nodes.MathItem;
+import com.sun.fortress.nodes.MathPrimary;
+import com.sun.fortress.nodes.MethodInvocation;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.QualifiedOpName;
+import com.sun.fortress.nodes.Spawn;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.StringLiteralExpr;
+import com.sun.fortress.nodes.SubscriptExpr;
+import com.sun.fortress.nodes.SubscriptingMI;
+import com.sun.fortress.nodes.Throw;
+import com.sun.fortress.nodes.TightJuxt;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Try;
+import com.sun.fortress.nodes.TryAtomicExpr;
+import com.sun.fortress.nodes.TupleExpr;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.Typecase;
+import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.VoidLiteralExpr;
+import com.sun.fortress.nodes.While;
+import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.parser_util.precedence_resolver.ASTUtil;
+
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Useful;
+
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.lambda.Lambda;
-
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.useful.*;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
-import com.sun.fortress.parser_util.precedence_resolver.ASTUtil;
-import com.sun.fortress.parser_util.FortressUtil;
-
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteralExpr constructor without parenthesized or val */
@@ -209,6 +279,10 @@ public class ExprFactory {
 
     public static TupleExpr makeTuple(List<Expr> exprs) {
         return new TupleExpr(new Span(), false, exprs);
+    }
+
+    public static TupleExpr makeTuple(Span span, List<Expr> exprs) {
+        return new TupleExpr(span, false, exprs);
     }
 
     public static TupleExpr makeTuple(Expr... exprs) {
@@ -655,6 +729,27 @@ public class ExprFactory {
             return makeSubscriptExpr(span, front, sub.getExprs(),
                                      Option.wrap(sub.getOp()));
         }
+    }
+
+    /**
+     * For rewriting the id list, expr, of an existing typecase.
+     * @param tc
+     * @param lid
+     * @param expr
+     * @return
+     */
+    public static Typecase makeTypecase(Typecase tc, List<Id> lid, Expr expr) {
+        /* Span in_span,
+         * boolean in_parenthesized, 
+         * Pair<List<Id>, Option<Expr>> in_bind,
+         * List<TypecaseClause> in_clauses,
+         * Option<Block> in_elseClause
+         */
+        return new Typecase(tc.getSpan(),
+                tc.isParenthesized(),
+                Pair.make(lid, Option.wrap(expr)),
+                tc.getClauses(),
+                tc.getElseClause());
     }
 
 }
