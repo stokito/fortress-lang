@@ -166,6 +166,22 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                     "but was type ", subtype),
                                            ast));
     }
+    
+    private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, String error) {
+        if (!subtypeChecker.subtype(subtype, supertype)) {
+            return new TypeCheckerResult(ast, TypeError.make(error, ast));
+        } else {
+            return new TypeCheckerResult(ast);
+        }
+    }
+    
+    private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, Type resultType, String error) {
+        if (!subtypeChecker.subtype(subtype, supertype)) {
+            return new TypeCheckerResult(ast, resultType, TypeError.make(error, ast));
+        } else {
+            return new TypeCheckerResult(ast, resultType);
+        }
+    }
 
     /**
      * Check the subtype relation for the given types.  If subtype <: supertype, then a TypeCheckerResult
@@ -560,14 +576,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                           List<TypeCheckerResult> staticArgs_result) {
 
         // Get intersection of overloaded function types.
-        Type overloadedType = Types.ANY;
+        LinkedList<Type> overloadedTypes = new LinkedList<Type>();
         for (TypeCheckerResult fn_result : fns_result) {
             if (fn_result.type().isSome()) {
-              overloadedType = new AndType(overloadedType, unwrap(fn_result.type()));
+              overloadedTypes.add(unwrap(fn_result.type()));
             }
         }
         return TypeCheckerResult.compose(that,
-                                         overloadedType,
+                                         NodeFactory.makeAndType(overloadedTypes),
                                          TypeCheckerResult.compose(that, fns_result),
                                          TypeCheckerResult.compose(that, staticArgs_result));
     }
@@ -800,8 +816,40 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     
     // STUBS -----------------------------
 
-    public TypeCheckerResult forTightJuxtOnly(TightJuxt that, List<TypeCheckerResult> exprs_result) {
-        return TypeCheckerResult.compose(that, exprs_result);
+//    public TypeCheckerResult forTightJuxt(TightJuxt that) {
+//        List<TypeCheckerResult> exprs_result = recurOnListOfExpr(that.getExprs());
+//        return forTightJuxtOnly(that, exprs_result);
+//    }
+
+    public TypeCheckerResult forTightJuxtOnly(final TightJuxt that,
+                                              final List<TypeCheckerResult> exprs_result) {
+        // The expressions list contains at least two elements.
+        assert (exprs_result.size() >= 2);
+        
+        final TypeCheckerResult r = TypeCheckerResult.compose(that, exprs_result);
+        final Type lhsType = unwrap(exprs_result.get(0).type());
+        final Type rhsType = unwrap(exprs_result.get(1).type());
+        System.err.printf("tightJuxt::: lhs, rhs = %s, %s\n", lhsType, rhsType);
+        
+        return lhsType.accept(new NodeAbstractVisitor<TypeCheckerResult>() {
+                    
+            @Override
+            public TypeCheckerResult forBottomType(BottomType _that) {
+                return TypeCheckerResult.compose(that, Types.BOTTOM, exprs_result);
+            }
+                    
+            @Override
+            public TypeCheckerResult forArrowType(ArrowType _that) {
+                return checkSubtype(rhsType,
+                                    _that.getDomain(),
+                                    that,
+                                    _that.getRange(),
+                                    errorMsg("Wrong argument type for application. ",
+                                             "Got ", rhsType, ", expected ", _that.getDomain()));
+            }
+            
+            
+        });
     }
 
     public TypeCheckerResult forComponentOnly(Component that,
@@ -2383,11 +2431,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    public RetType forLooseJuxt(LooseJuxt that) {
 //        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
 //        return forLooseJuxtOnly(that, exprs_result);
-//    }
-//
-//    public RetType forTightJuxt(TightJuxt that) {
-//        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
-//        return forTightJuxtOnly(that, exprs_result);
 //    }
 //
 //    public RetType forMathPrimary(MathPrimary that) {

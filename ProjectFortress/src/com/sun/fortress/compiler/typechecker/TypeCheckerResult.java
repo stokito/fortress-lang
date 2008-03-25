@@ -126,6 +126,13 @@ public class TypeCheckerResult extends StaticPhaseResult {
         nodeConstraints = ConstraintFormula.TRUE;
     }
     
+    public TypeCheckerResult(Node _ast, Type _type, StaticError _error) {
+        super(IterUtil.make(_error));
+        ast = _ast;
+        type = Option.wrap(_type);
+        nodeConstraints = ConstraintFormula.TRUE;
+    }
+    
     public TypeCheckerResult(Node _ast, Option<Type> _type, ConstraintFormula _constraints) {
         super();
         ast = _ast;

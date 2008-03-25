@@ -15,14 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SimpleProgram
+component SimpleFunctionCall
 export Executable
   
-x:ZZ64 = 23
-f(num:ZZ64):ZZ64 = num + 1
+f(s:String):String = s
 
 run(args:String...):() = do
-  z = f(x) * f(10)
+  f("asdad")
   ()
 end
 

@@ -20,19 +20,22 @@ package com.sun.fortress.compiler.typechecker;
 import com.sun.fortress.nodes.*;
 
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import static com.sun.fortress.nodes_util.NodeFactory.makeAndType;
 import static com.sun.fortress.nodes_util.NodeFactory.makeGenericArrowType;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 /** 
- * A type environment whose outermost lexical scope consists of a map from
- * SimpleNames to FnDefs.
+ * A type environment whose outermost scope binds local function definitions.
  */
 class FnDefTypeEnv extends TypeEnv {
     private Relation<SimpleName, ? extends FnDef> entries;
@@ -51,17 +54,16 @@ class FnDefTypeEnv extends TypeEnv {
         Set<? extends FnDef> fns = entries.getSeconds(var);
         if (fns.isEmpty()) { return parent.binding(var); }
 
-        Type type = Types.ANY;
+        LinkedList<Type> overloadedTypes = new LinkedList<Type>();
         for (FnDef fn : fns) {
-            type = new AndType(type,
-                    makeGenericArrowType(fn.getSpan(),
-                            fn.getStaticParams(),
-                            typeFromParams(fn.getParams()),
-                            unwrap(fn.getReturnType()), // all types have been filled in at this point
-                            fn.getThrowsClause(),
-                            fn.getWhere()));
+            overloadedTypes.add(makeGenericArrowType(fn.getSpan(),
+                    fn.getStaticParams(),
+                    typeFromParams(fn.getParams()),
+                    unwrap(fn.getReturnType()), // all types have been filled in at this point
+                    fn.getThrowsClause(),
+                    fn.getWhere()));
         }
-        return some(new BindingLookup(var, type));
+        return some(new BindingLookup(var, makeAndType(overloadedTypes)));
     }
 
     @Override

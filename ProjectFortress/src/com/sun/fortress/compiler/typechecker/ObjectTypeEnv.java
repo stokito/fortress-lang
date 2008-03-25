@@ -75,7 +75,8 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
-                type = NodeFactory.makeGenericArrowType(decl.getStaticParams(),
+                type = NodeFactory.makeGenericArrowType(decl.getSpan(),
+                        decl.getStaticParams(),
                         typeFromParams(unwrap(decl.getParams())),
                         NodeFactory.makeInstantiatedType(_var));
             }

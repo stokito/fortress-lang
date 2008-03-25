@@ -23,16 +23,21 @@ import java.math.BigInteger;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Lambda2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+
+import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
+import com.sun.fortress.compiler.typechecker.Types;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static edu.rice.cs.plt.tuple.Option.unwrap;
 import static edu.rice.cs.plt.tuple.Option.wrap;
 
 public class NodeFactory {
@@ -250,12 +255,15 @@ public class NodeFactory {
                 Option.<List<Type>>none());
     }
 
-    public static _RewriteGenericArrowType makeGenericArrowType(Span span,
+    public static AbstractArrowType makeGenericArrowType(Span span,
             List<StaticParam> staticParams,
             Type domain,
             Type range,
             Option<List<TraitType>> throws_,
             WhereClause where) {
+        if (staticParams.isEmpty() && where.getConstraints().isEmpty() && where.getBindings().isEmpty()) {
+            return makeArrowType(span, domain, range, throws_);
+        }
         Option<List<Type>> throwsAsTypeList =
             throws_.isSome() ?
                     Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
@@ -264,11 +272,15 @@ public class NodeFactory {
                             throwsAsTypeList, staticParams, where);
     }
 
-    public static _RewriteGenericArrowType makeGenericArrowType(
+    public static AbstractArrowType makeGenericArrowType(
+            Span span,
             List<StaticParam> staticParams,
             Type domain,
             Type range) {
-        return new _RewriteGenericArrowType(new Span(), inArrowType(domain), range, 
+        if (staticParams.isEmpty()) {
+            return makeArrowType(span, domain, range, Option.<List<TraitType>>none());
+        }
+        return new _RewriteGenericArrowType(span, inArrowType(domain), range, 
                 Option.<List<Type>>none(), staticParams, new WhereClause());
     }
 
@@ -1072,5 +1084,22 @@ public class NodeFactory {
 
     public static _RewriteGenericSingletonType makeGenericSingletonType(Id name, List<StaticParam> params) {
         return new _RewriteGenericSingletonType(name.getSpan(), new QualifiedIdName(name), params);
+    }
+    
+
+
+    public static Type makeAndType(List<Type> types) {
+        if (types.isEmpty()) {
+            return Types.ANY;
+        } else if (types.size() == 1) {
+            return types.get(0);
+        } else {
+            return IterUtil.fold(IterUtil.skipFirst(types), types.get(0),
+                    new Lambda2<Type, Type, Type>() {
+                        public Type value(Type arg0, Type arg1) {
+                            return new AndType(arg0, arg1);
+                        }
+            });
+        }
     }
 }
