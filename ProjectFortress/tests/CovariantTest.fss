@@ -17,7 +17,6 @@
 
 component CovariantTest
 import TypeReflect.{...}
-import CovariantCollection.{...}
 import List.{...}
 export Executable
 
@@ -41,16 +40,16 @@ run(args:String...):() = do
     body(x:ZZ32): Number =
         if x MOD 2 = 0 then x else 1.0 x end
 
-    samples1 : CovariantCollection[\ZZ32\] =
-        __generate(samples,CVReduction,scvUnit)
+    samples1 : List[\ZZ32\] =
+        __generate(samples,CVConcat,cvSingleton)
     list1 : List[\ZZ32\] = list(samples1)
     for (i,j) <- list1.zip[\ZZ32\](samples) do
         assert(i,j,"Not the same in ", list1, " and ", samples)
     end
 
-    cv2(x): SomeCovariantCollection = scvUnit(body(x))
-    samples2 : CovariantCollection[\RR64\] =
-        __generate(samples,CVReduction,cv2)
+    cv2(x): SomeList = cvSingleton(body(x))
+    samples2 : List[\RR64\] =
+        __generate(samples,CVConcat,cv2)
     list2 : List[\RR64\] = list(samples2)
     for (i,j) <- list1.zip[\RR64\](list2) do
         assert(i,j,"Not the same in ", list1, " and ", list2)
