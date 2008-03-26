@@ -654,7 +654,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     </target>
 
     <target name="parser" unless="parser.uptodate"
-            depends="checkParserUptodate"
+            depends="checkParserUptodate, operatorsGen"
             description="Fortress Parser">
        <echo message="Rebuilding parser..."/>
        <java fork="yes"
