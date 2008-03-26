@@ -68,7 +68,7 @@ public final class Shell {
         System.err.println(" compile somefile.fs{s,i}");
         //System.err.println("  " + SELF_UPGRADE_PATTERN);
         //System.err.println("  " + SCRIPT_PATTERN);
-        System.err.println(" [run] [-test] [-debug] somefile.fss");
+        System.err.println(" [run] [-test] [-debug] somefile.fss arg...");
         //System.err.println("  " + API_PATTERN);
         //System.err.println("  " + LINK_PATTERN);
         //System.err.println("  " + UPGRADE_PATTERN);
@@ -108,7 +108,7 @@ public final class Shell {
                 interpreter.run(Arrays.asList(tokens).subList(1, tokens.length));
             } else if (what.equals("compile")) {
                 interpreter.compile(false, tokens[1]);
-            } else if (what.contains(".fss") || what.startsWith("-")) {
+            } else if (what.contains(".fss") || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
                 interpreter.run(Arrays.asList(tokens));
             } else if (what.equals("help")) {
