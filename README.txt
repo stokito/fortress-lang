@@ -26,7 +26,8 @@ other tools can make use of these files too.
 
 Library: The home for all of the Fortress standard libraries.
 
-bin: Shell scripts for our various projects. 
+bin: Shell scripts for our various projects. These are bash scripts; 
+you will need an installation of bash on your system to run them.
 
 You will also see the following files:
 
@@ -43,13 +44,18 @@ used by the internals of the Fortress interpreter. (Normally, there is
 no reason to override the settings in this file.)
 
 Setting up your environment
------------------------
+---------------------------
+We assume you are using an operating system with a Unix-style shell
+(for example, Solaris, Linux, Mac OS X, or Cygwin on Windows).
+
 In your shell startup script, define environment variable
 FORTRESS_HOME to point to the Fortress subdirectory you just checked
 out. It is very important to set this  environment variable; it is 
 used by several scripts and build files.
 
-In your shell startup script, add $FORTRESS_HOME/bin to your path.
+In your shell startup script, add $FORTRESS_HOME/bin to your path. 
+The shell scripts in this directory are bash scripts. To run them, 
+you must have bash accessible in /bin/bash. 
 
 If you have Java 5 and Ant 1.6.5 or greater, make sure the following
 environment variables are set in your startup script:
@@ -73,7 +79,7 @@ any Fortress file, simply by typing one of the following commands at a
 command line:
 
 fortress compile somefile.fs{s,i} 
-fortress [run] [-test] [-debug] somefile.fss args
+fortress [run] [-test] [-debug] somefile.fss arg...
 fortress help
 
 A command of the form "fortress compile somefile.fss" or 
