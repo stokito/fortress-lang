@@ -141,7 +141,7 @@ public class FTypeTuple extends FType {
                  * unique.  This catches the rather special case of
                  * omitted type information in
                  * tests/overloadTest3.fss. */
-                return (currType==FTypeDynamic.ONLY);
+                return (currType==FTypeDynamic.ONLY); // this is one place where we might need Dynamic
             } else {
                 return true;
             }

@@ -122,10 +122,10 @@ public class FileTests {
                                 args.add(dir + "/tennis050307");
                                 args.add(dir + "/tennis051707");
                                 args.add(dir + "/tennisGames");
-                                Driver.runProgram(fr, p, true, args);
+                                Driver.runProgram(fr, p, true, false, args);
                             }
                             else {
-                                Driver.runProgram(fr, p, true, new ArrayList<String>());
+                                Driver.runProgram(fr, p, true, false, new ArrayList<String>());
                             }
                         }
                     }
@@ -219,7 +219,7 @@ public class FileTests {
             Unprinter up = new Unprinter(lex);
             lex.name(); // Inhale opening parentheses
             CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
-            Driver.runProgram(fr, p, true, new ArrayList<String>());
+            Driver.runProgram(fr, p, true, false, new ArrayList<String>());
         }
 
     }

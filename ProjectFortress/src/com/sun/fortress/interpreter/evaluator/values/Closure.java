@@ -248,9 +248,9 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
         Option<Type> rt = x.getReturnType();
         BetterEnv env = getEvalEnv(); // should need this for types,
                                     // below.
-        FType ft = EvalType.getFTypeFromOption(rt, env);
+        FType ft = EvalType.getFTypeFromOption(rt, env, BottomType.ONLY);
         if (ft instanceof FTypeDynamic)
-            ft = BottomType.ONLY;
+            throw new Error("We think this code is dead"); // ft = BottomType.ONLY;
 
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 

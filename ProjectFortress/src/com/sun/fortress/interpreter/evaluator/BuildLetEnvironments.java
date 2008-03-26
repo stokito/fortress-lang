@@ -25,6 +25,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -79,7 +80,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             }
             // TODO Local functions cannot be Enclosing, can they?
             // Local functions cannot be any operator including Enclosing.
-            FType ft = EvalType.getFTypeFromOption(retType,containing);
+            FType ft = EvalType.getFTypeFromOption(retType,containing, FTypeTop.ONLY);
             List<Parameter> fparams = EvalType.paramsToParameters(containing, params);
             cl.setParamsAndReturnType(fparams, ft);
         }
