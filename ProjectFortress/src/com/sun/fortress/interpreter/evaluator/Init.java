@@ -19,7 +19,6 @@ package com.sun.fortress.interpreter.evaluator;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
 import com.sun.fortress.interpreter.evaluator.types.FTypeChar;
 import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
@@ -69,7 +68,6 @@ public class Init {
         FTypeTop.ONLY.resetState();
         FTypeDynamic.ONLY.resetState();
 
-        FTypeBool.ONLY.resetState();
         FTypeBufferedWriter.ONLY.resetState();
         FTypeChar.ONLY.resetState();
 

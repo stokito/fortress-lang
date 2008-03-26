@@ -29,9 +29,9 @@ import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
+import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.useful.HasAt;
 
@@ -41,9 +41,9 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
         super("EvaluatorJUTest");
     }
 
-  BufferedReader bs(String s) {
-    return new BufferedReader(new StringReader(s));
-  }
+    BufferedReader bs(String s) {
+        return new BufferedReader(new StringReader(s));
+    }
 
     class TestTask extends BaseTask {
 	public void print() {
@@ -90,7 +90,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
       s.bless();
       BetterEnv s1 = new BetterEnv(s, "s1");
       FType t1 = FTypeInt.ONLY;
-      FType t2 = FTypeBool.ONLY;
+      FType t2 = FTypeVoid.ONLY;
       FType t3 = FTypeFloat.ONLY;
       s1.putType("x", t1);
       s1.bless();
