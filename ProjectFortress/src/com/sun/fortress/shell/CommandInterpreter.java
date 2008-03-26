@@ -40,6 +40,7 @@ public class CommandInterpreter {
     
     boolean debug;
     boolean test;
+    boolean nolib;
     
     CommandInterpreter(Shell _shell) { 
         shell = _shell;
@@ -116,6 +117,7 @@ public class CommandInterpreter {
         if (s.startsWith("-")) {
             if (s.equals("-debug")) debug = true;
             if (s.equals("-test")) test= true;
+            if (s.equals("-nolib")) nolib= true;
             run(rest);
         } else {
             run(s, rest);
@@ -141,7 +143,7 @@ public class CommandInterpreter {
                 fileName = fileName.substring(0, fileName.length() - ProjectProperties.COMP_SOURCE_SUFFIX.length());
             }
             
-            Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, debug, args);
+            Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, debug, nolib, args);
         
             for (StaticError error: errors) { 
                 System.err.println(error);

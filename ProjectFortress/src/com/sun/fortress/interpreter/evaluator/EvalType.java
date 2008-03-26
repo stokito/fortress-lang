@@ -72,17 +72,17 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return forQualifiedIdName(t);
     }
 
-    public static FType getFTypeFromOption(Option<Type> t, final BetterEnv e) {
+    public static FType getFTypeFromOption(Option<Type> t, final BetterEnv e, final FType ifMissing) {
         return t.apply(new OptionVisitor<Type, FType>() {
             public FType forSome(Type t) { return getFType(t, e); }
-            public FType forNone() { return FTypeDynamic.ONLY; }
+            public FType forNone() { return ifMissing; }
         });
     }
 
-    public  FType getFTypeFromOption(Option<Type> t) {
+    public  FType getFTypeFromOption(Option<Type> t, final FType ifMissing) {
         return t.apply(new OptionVisitor<Type, FType>() {
             public FType forSome(Type t) { return getFType(t); }
-            public FType forNone() { return FTypeDynamic.ONLY; }
+            public FType forNone() { return ifMissing; }
         });
     }
 
@@ -162,14 +162,14 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             FType ptype;
             if (in_p instanceof NormalParam) {
                 Option<Type> type = ((NormalParam)in_p).getType();
-                ptype = e.getFTypeFromOption(type);
+                ptype = e.getFTypeFromOption(type, FTypeTop.ONLY);
             }
             else { // in_p instanceof VarargsParam
                 ptype = e.getFType(((VarargsParam)in_p).getVarargsType());
             }
             // TOP?  or Dynamic?
             if (ptype instanceof FTypeDynamic)
-                ptype = FTypeTop.ONLY;
+                throw new Error("We think this code is dead"); // ptype = FTypeTop.ONLY;
             Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p));
             fparams.add(i++, fp);
         }

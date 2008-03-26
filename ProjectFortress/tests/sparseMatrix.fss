@@ -45,7 +45,7 @@ mkMatrix[\nat n\]() : RR64[n,n] = do
 end
 
 mkVector[\nat n\]() : RR64[n] = do
-  f(i) = random(4.0)-2.0
+  f(_:Any):RR64 = random(4.0)-2.0
   array1[\RR64,n\](f)
 end
 

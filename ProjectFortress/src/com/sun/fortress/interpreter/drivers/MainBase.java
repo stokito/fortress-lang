@@ -130,7 +130,7 @@ public abstract class MainBase {
         }
         if (interpret) {
             FortressRepository fr = Driver.defaultRepository();;
-            Driver.runProgram(fr, p, false, fortressArgs);
+            Driver.runProgram(fr, p, false, false, fortressArgs);
         }
     }
     
@@ -153,7 +153,7 @@ public abstract class MainBase {
         }
         if (interpret) {
             FortressRepository fr = Driver.defaultRepository();
-            Driver.runProgram(fr, Option.unwrap(p), false, fortressArgs);
+            Driver.runProgram(fr, Option.unwrap(p), false, false, fortressArgs);
         }
     }
 

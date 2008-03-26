@@ -686,7 +686,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
      }
 
     public void putVariable(String str, FValue f2) {
-        putValue(str, new ReferenceCell(FTypeDynamic.ONLY, f2));
+        putValue(str, new ReferenceCell(FTypeDynamic.ONLY, f2)); // Top?
      }
 
     public void putVariablePlaceholder(String str) {

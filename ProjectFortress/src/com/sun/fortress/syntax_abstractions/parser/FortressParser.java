@@ -61,7 +61,7 @@ public class FortressParser {
 	 * Parse the given files and any additional files that are expected to contain
 	 * referenced APIs.
 	 */
-	public static Result parse(Iterable<? extends File> files,
+	private static Result parse(Iterable<? extends File> files,
 			final GlobalEnvironment env, final Path path, final boolean verbose) {
 		// box allows mutation of a final var
 		final Box<Result> result = new SimpleBox<Result>(new Result());

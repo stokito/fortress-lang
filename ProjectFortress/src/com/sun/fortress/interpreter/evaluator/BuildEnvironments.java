@@ -996,7 +996,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                                              ft, ")"));
                         }
                     } else {
-                        ft = FTypeDynamic.ONLY;
+                        ft = FTypeDynamic.ONLY; // top?
                     }
                     /* Finally, can finish this initialiation. */
                     bindInto.storeType(x, sname, ft);

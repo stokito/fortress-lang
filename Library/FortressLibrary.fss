@@ -1095,7 +1095,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
             r "]"
         else
             f(i:ZZ32,t:T):String = " " t
-            j(a:String,b:String) = a b
+            j(a:String,b:String):String = a b
             r indexValuePairs().mapReduce[\String\](f,j,"") " ]"
         end
       end

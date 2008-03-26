@@ -396,7 +396,7 @@ abstract public class FType implements Comparable<FType> {
             }
         } else {
             // Empty set, best we can do
-            a = FTypeDynamic.SingleT;
+            a = FTypeDynamic.SingleT; // why isn't this a real empty set?
         }
         return a;
     }

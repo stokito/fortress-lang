@@ -28,6 +28,7 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimensionParam;
@@ -170,7 +171,7 @@ public class GenericMethod extends MethodClosure implements
             }
         }
 
-        FType ft = EvalType.getFTypeFromOption(rt, env);
+        FType ft = EvalType.getFTypeFromOption(rt, env, FTypeTop.ONLY);
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
         setParamsAndReturnType(fparams, ft);

@@ -1198,9 +1198,9 @@ public class Driver {
         }
     }
 
-    public static void runProgram(FortressRepository fr, CompilationUnit p, boolean runTests,
+    public static void runProgram(FortressRepository fr, CompilationUnit p, boolean runTests, boolean nolib, 
             List<String> args) throws Throwable {
-        runProgram(fr, p, runTests, false, false, args);
+        runProgram(fr, p, runTests, false, nolib, args);
     }
 
 
