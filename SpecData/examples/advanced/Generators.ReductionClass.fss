@@ -1,0 +1,38 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Generators.ReductionClass
+export Executable
+
+(** EXAMPLE **)
+object SumZZ32 extends Reduction[\ZZ32\]
+    empty(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a+b
+end
+
+z = (1#100).generate[\ZZ32\](SumZZ32, fn (x) => 3 x + 2)
+(** END EXAMPLE **)
+
+run(args:String...) = do
+    y = SUM [x <- 1#100] 3 x + 2
+    assert(z,y,"Sums unequal")
+    println(z)
+  end
+
+end
