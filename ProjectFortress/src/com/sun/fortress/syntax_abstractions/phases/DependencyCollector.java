@@ -31,13 +31,15 @@ import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
 import edu.rice.cs.plt.tuple.Option;
 
+/*
+ * Collect the names of nonterminals referred form the alternatives of any 
+ * nonterminal declaration it is applied to.
+ */
 public class DependencyCollector extends NodeDepthFirstVisitor_void {
 
-	private APIName apiName;
 	private Set<QualifiedIdName> result;
 	
-	public DependencyCollector(APIName apiName) {
-		this.apiName = apiName;
+	public DependencyCollector() {
 		this.result = new HashSet<QualifiedIdName>();
 	}
 

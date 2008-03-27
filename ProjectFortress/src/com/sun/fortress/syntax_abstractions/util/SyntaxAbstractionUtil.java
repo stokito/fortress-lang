@@ -61,119 +61,120 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class SyntaxAbstractionUtil {
 
-    public static final String FORTRESSAST = "FortressAst";
-    public static final String FORTRESSBUILTIN = "FortressBuiltin";
-    public static final String STRINGLITERALEXPR = "StringLiteralExpr";
-    public static final String STRINGLITERAL = "StringLiteral";
-    public static final String FORTRESSLIBRARY = "FortressLibrary";
-    public static final String MAYBE = "Maybe";
-    public static final String JUST = "Just";
-    public static final String NOTHING = "Nothing";
-    public static final String STRING = "String";
-    public static final String LIST = "List";
-    public static final String ARRAYLIST = "ArrayList";
+	public static final String FORTRESSAST = "FortressAst";
+	public static final String FORTRESSBUILTIN = "FortressBuiltin";
+	public static final String STRINGLITERALEXPR = "StringLiteralExpr";
+	public static final String STRINGLITERAL = "StringLiteral";
+	public static final String FORTRESSLIBRARY = "FortressLibrary";
+	public static final String MAYBE = "Maybe";
+	public static final String JUST = "Just";
+	public static final String NOTHING = "Nothing";
+	public static final String STRING = "String";
+	public static final String LIST = "List";
 
-    /**
-     * Returns a qualified id name where the grammar name is added to the api.
-     * E.g. api: Foo.Bar, grammar name Baz, and member Gnu gives
-     * APIName: Foo.Bar.Baz and id: Gnu.
-     */
-    public static QualifiedIdName qualifyMemberName(APIName api, Id grammarName, Id memberName) {
-        Collection<Id> names = new LinkedList<Id>();
-        names.addAll(api.getIds());
-        names.add(grammarName);
-        APIName apiGrammar = NodeFactory.makeAPIName(names);
-        return NodeFactory.makeQualifiedIdName(apiGrammar, memberName);
-    }
+	/**
+	 * Returns a qualified id name where the grammar name is added to the api.
+	 * E.g. api: Foo.Bar, grammar name Baz, and member Gnu gives
+	 * APIName: Foo.Bar.Baz and id: Gnu.
+	 */
+	public static QualifiedIdName qualifyMemberName(APIName api, Id grammarName, Id memberName) {
+		Collection<Id> names = new LinkedList<Id>();
+		names.addAll(api.getIds());
+		names.add(grammarName);
+		APIName apiGrammar = NodeFactory.makeAPIName(names);
+		return NodeFactory.makeQualifiedIdName(apiGrammar, memberName);
+	}
 
-    /**
-     * Create a Java representation of a Fortress AST which when evaluated
-     * instantiates a new object of the given name from the given api, with the given option
-     * as argument.
-     * @param span
-     * @param apiName
-     * @param objectName
-     * @param arg
-     * @return
-     */
-    public static Expr makeObjectInstantiation(Span span, String apiName,
-                                               String objectName,
-                                               List<Expr> args,
-                                               List<StaticArg> staticArgs) {
-        List<Expr> exprs = new LinkedList<Expr>();
+	/**
+	 * Create a Java representation of a Fortress AST which when evaluated
+	 * instantiates a new object of the given name from the given api, with the given option
+	 * as argument.
+	 * @param span
+	 * @param apiName
+	 * @param objectName
+	 * @param arg
+	 * @return
+	 */
+	public static Expr makeObjectInstantiation(Span span, String apiName,
+			String objectName, List<Expr> args, List<StaticArg> staticArgs) {
+		List<Expr> exprs = new LinkedList<Expr>();
+		QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName, objectName);
+		exprs.add(NodeFactory.makeFnRef(span, name, staticArgs));
+		if (args.isEmpty()) {
+			exprs.add(new VoidLiteralExpr());
+		}
+		else {
+			exprs.add(new TupleExpr(args));
+		}
+		return NodeFactory.makeTightJuxt(span, exprs);
+	}
+	
+	public static Expr makeNoParamObjectInstantiation(Span span, String apiName, String objectName, List<StaticArg> staticArgs) {
+		QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName, objectName);
+		return NodeFactory.makeFnRef(span, name, staticArgs);
+	}
 
-        QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName, objectName);
-        exprs.add(NodeFactory.makeFnRef(span, name, staticArgs));
-        if (args.isEmpty()) {
-            exprs.add(new VoidLiteralExpr());
-        }
-        else {
-            exprs.add(new TupleExpr(args));
-        }
-        return NodeFactory.makeTightJuxt(span, exprs);
-    }
+	public static Expr makeVoidObjectInstantiation(Span span, String apiName, String objectName, List<Expr> args) {
+		return makeObjectInstantiation(span, apiName, objectName, args, new LinkedList<StaticArg>());
+	}
 
-    public static Expr makeObjectInstantiation(Span span, String apiName, String objectName, List<Expr> args) {
-        return makeObjectInstantiation(span, apiName, objectName, args, new LinkedList<StaticArg>());
-    }
+	public static TraitType unwrap(Option<TraitType> t) {
+		if (t.isNone()) {
+			throw new RuntimeException("Grammar member declaration does not have a type, malformed AST");
+		}
+		return Option.unwrap(t);
+	}
 
-    public static TraitType unwrap(Option<TraitType> t) {
-        if (t.isNone()) {
-            throw new RuntimeException("Grammar member declaration does not have a type, malformed AST");
-        }
-        return Option.unwrap(t);
-    }
+	public static Expr makeList(Span span, List<Expr> args, String typeName) {
+		List<QualifiedOpName> ops = new LinkedList<QualifiedOpName>();
+		OpName opName = new Enclosing(new Op("<|", Option.<Fixity>some(new EnclosingFixity())), new Op("|>", Option.<Fixity>some(new EnclosingFixity())));
+		ops.add(new QualifiedOpName(span, opName ));
 
-    public static Expr makeList(Span span, List<Expr> args, String typeName) {
-        List<QualifiedOpName> ops = new LinkedList<QualifiedOpName>();
-        OpName opName = new Enclosing(new Op("<|", Option.<Fixity>some(new EnclosingFixity())), new Op("|>", Option.<Fixity>some(new EnclosingFixity())));
-        ops.add(new QualifiedOpName(span, opName ));
+		List<StaticArg> staticArgs = new LinkedList<StaticArg>();
+		Type type = new IdType(span, NodeFactory.makeQualifiedIdName(typeName));
+		staticArgs.add(new TypeArg(type));
 
-        List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-        Type type = new IdType(span, NodeFactory.makeQualifiedIdName(typeName));
-        staticArgs.add(new TypeArg(type));
+		OpRef opRef = new OpRef(span, ops, staticArgs);
 
-        OpRef opRef = new OpRef(span, ops, staticArgs);
+		List<Expr> exprs = new LinkedList<Expr>();
+		if (args.isEmpty()) {
+			return SyntaxAbstractionUtil.makeObjectInstantiation(span, "List", "emptyList", new LinkedList<Expr>(), staticArgs);
+		}
+		else {
+			args.add(0, new AsIfExpr(args.remove(0), type));
+			exprs.add(new TupleExpr(args));
+		}
+		return new OprExpr(span, opRef, exprs );
+	}
 
-        List<Expr> exprs = new LinkedList<Expr>();
-        if (args.isEmpty()) {
-            return SyntaxAbstractionUtil.makeObjectInstantiation(span, "ArrayList", "emptyList", new LinkedList<Expr>(), staticArgs);
-        }
-        else {
-            args.add(0, new AsIfExpr(args.remove(0), type));
-            exprs.add(new TupleExpr(args));
-        }
-        return new OprExpr(span, opRef, exprs );
-    }
+	private static Expr makeLocalVarDecl(Span span, String freshName, String lastFreshName, List<StaticArg> staticArgs, Expr expr, List<Expr> newBody) {
+		List<LValue> lhs = new LinkedList<LValue>();
+		Id freshVar = NodeFactory.makeId(freshName);
+		Option<Type> type = Option.<Type>some(new InstantiatedType(NodeFactory.makeQualifiedIdName("List", "List"), staticArgs));
+		lhs.add(new LValueBind(span, freshVar, type , false));
 
-    private static Expr makeLocalVarDecl(Span span, String freshName, String lastFreshName, List<StaticArg> staticArgs, Expr expr, List<Expr> newBody) {
-        List<LValue> lhs = new LinkedList<LValue>();
-        Id freshVar = NodeFactory.makeId(freshName);
-        Option<Type> type = Option.<Type>some(new InstantiatedType(NodeFactory.makeQualifiedIdName("ArrayList", "List"), staticArgs));
-        lhs.add(new LValueBind(span, freshVar, type , false));
+		QualifiedIdName name = NodeFactory.makeQualifiedIdName(lastFreshName, "addRight");
+		List<Expr> exprs = new LinkedList<Expr>();
+		exprs.add(NodeFactory.makeFnRef(span, name));
+		List<Expr> args = new LinkedList<Expr>();
+		args.add(expr);
+		exprs.add(new TupleExpr(args));
+		Option<Expr> rhs = Option.<Expr>some(new TightJuxt(exprs));
 
-        QualifiedIdName name = NodeFactory.makeQualifiedIdName(lastFreshName, "addRight");
-        List<Expr> exprs = new LinkedList<Expr>();
-        exprs.add(NodeFactory.makeFnRef(span, name));
-        List<Expr> args = new LinkedList<Expr>();
-        args.add(expr);
-        exprs.add(new TupleExpr(args));
-        Option<Expr> rhs = Option.<Expr>some(new TightJuxt(exprs));
+		return new LocalVarDecl(span, newBody, lhs, rhs);
+	}
 
-        return new LocalVarDecl(span, newBody, lhs, rhs);
-    }
-
-    public static Expr makeMaybe(Span span, Option<Expr> op, String typeArg) {
-        List<StaticArg> maybeStaticArgs = new LinkedList<StaticArg>();
-        maybeStaticArgs.add(new TypeArg(new IdType(NodeFactory.makeQualifiedIdName("FortressAst", typeArg))));
-        if (op.isSome()) {
-            List<Expr> justArgs = new LinkedList<Expr>();
-            justArgs.add(Option.unwrap(op));
-            return SyntaxAbstractionUtil.makeObjectInstantiation(span, "FortressAst", "Just", justArgs , maybeStaticArgs);
-        }
-        else {
-            return SyntaxAbstractionUtil.makeObjectInstantiation(span, "FortressAst", "Nothing", new LinkedList<Expr>(), maybeStaticArgs);
-        }
-    }
+	public static Expr makeMaybe(Span span, Option<Expr> op, String typeArg) {
+		List<StaticArg> maybeStaticArgs = new LinkedList<StaticArg>();
+		maybeStaticArgs.add(new TypeArg(new IdType(NodeFactory.makeQualifiedIdName(FORTRESSAST, typeArg))));
+		if (op.isSome()) {
+			List<Expr> justArgs = new LinkedList<Expr>();
+			justArgs.add(Option.unwrap(op));
+			return SyntaxAbstractionUtil.makeObjectInstantiation(span, FORTRESSAST, JUST, justArgs, maybeStaticArgs);
+		}
+		else {
+			return SyntaxAbstractionUtil.makeNoParamObjectInstantiation(span, FORTRESSAST, NOTHING, maybeStaticArgs);
+		}
+	}
 
 }

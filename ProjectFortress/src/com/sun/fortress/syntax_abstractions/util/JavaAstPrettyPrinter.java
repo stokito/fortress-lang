@@ -211,7 +211,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 			this.code.add(staticArgVarName+".add("+type.accept(this)+");");
 			this.code.add("Expr "+rVarName+" = null;");
 			this.code.add("if ("+varName+".list().isEmpty()) {");
-			this.code.add(rVarName + " = SyntaxAbstractionUtil.makeObjectInstantiation(createSpan(yyStart, yyCount), \"ArrayList\", \"emptyList\", Option.<Expr>none(), "+staticArgVarName+");");
+			this.code.add(rVarName + " = SyntaxAbstractionUtil.makeObjectInstantiation(createSpan(yyStart, yyCount), \"List\", \"emptyList\", Option.<Expr>none(), "+staticArgVarName+");");
 			this.code.add("}");
 
 			this.code.add("else {");
@@ -295,7 +295,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 ////			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
 ////		}
 ////		else if (Option.unwrap(result.second()).equals(Kinds.REPETITION)) {
-////			QualifiedIdName name = NodeFactory.makeQualifiedIdName("ArrayList", "List");
+////			QualifiedIdName name = NodeFactory.makeQualifiedIdName("List", "List");
 ////			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
 ////		}
 		return Option.none();

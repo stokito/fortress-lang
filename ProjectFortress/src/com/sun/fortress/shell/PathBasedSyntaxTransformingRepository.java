@@ -36,28 +36,28 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class PathBasedSyntaxTransformingRepository extends PathBasedRepository {
 
-    final GlobalEnvironment env;
-    
-    public PathBasedSyntaxTransformingRepository(Path p, FortressRepository repoForGlobalEnv) {
-        super(p);
-        this.env = new GlobalEnvironment.FromRepository(repoForGlobalEnv); // this is legal????
-    }
-    
-    public PathBasedSyntaxTransformingRepository(Path p) {
-        super(p);
-        this.env = new GlobalEnvironment.FromRepository(this);
-    }
+	final GlobalEnvironment env;
 
-    protected CompilationUnit getCompilationUnit(File f) throws IOException {
-       Result result = FortressParser.parse(f, env, verbose());
-       if (result.isSuccessful()) {
-           Iterator<Api> apis = result.apis().iterator();
-           Iterator<Component> components = result.components().iterator();
-           if (apis.hasNext()) return apis.next();
-           if (components.hasNext()) return components.next();
-           throw new ProgramError("Successful parse result was nonetheless empty, file " + f.getCanonicalPath());
-       }
-       throw new ProgramError(result.errors());
-    }
+	public PathBasedSyntaxTransformingRepository(Path p, FortressRepository repoForGlobalEnv) {
+		super(p);
+		this.env = new GlobalEnvironment.FromRepository(repoForGlobalEnv); // this is legal????
+	}
+
+	public PathBasedSyntaxTransformingRepository(Path p) {
+		super(p);
+		this.env = new GlobalEnvironment.FromRepository(this);
+	}
+
+	protected CompilationUnit getCompilationUnit(File f) throws IOException {
+		Result result = FortressParser.parse(f, env, verbose());
+		if (result.isSuccessful()) {
+			Iterator<Api> apis = result.apis().iterator();
+			Iterator<Component> components = result.components().iterator();
+			if (apis.hasNext()) return apis.next();
+			if (components.hasNext()) return components.next();
+			throw new ProgramError("Successful parse result was nonetheless empty, file " + f.getCanonicalPath());
+		}
+		throw new ProgramError(result.errors());
+	}
 
 }

@@ -190,7 +190,7 @@ public abstract class Module implements Analyzable<Module> {
 			s+= indent+"- "+member.getType()+" "+member.getName()+"\n";
 			if (member.getAst() instanceof NonterminalDecl) {
 				for (SyntaxDef sd: ((NonterminalDecl) member.getAst()).getSyntaxDefs()) {
-					s+= indent+indent+" - "+sd.getSyntaxSymbols()+"\n";
+					s+= indent+indent+" - "+toString(sd.getSyntaxSymbols())+"\n";
 				}
 			}
 		}
@@ -204,6 +204,15 @@ public abstract class Module implements Analyzable<Module> {
 		}
 		indent = tmpIndent;
 		return s;
+	}
+
+	private String toString(List<SyntaxSymbol> syntaxSymbols) {
+		String result = "";
+		SyntaxSymbolPrinter ssp = new SyntaxSymbolPrinter();
+		for (SyntaxSymbol s: syntaxSymbols) {
+			result += " "+s.accept(ssp);
+		}
+		return result;
 	}
 
 }

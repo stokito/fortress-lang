@@ -34,6 +34,9 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
 import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
 
 import edu.rice.cs.plt.iter.IterUtil;
