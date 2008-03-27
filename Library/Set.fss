@@ -177,7 +177,7 @@ object EmptySet[\E\] extends Set[\E\]
    concat3(v:E, t2:Set[\E\]) = t2.add(v)
    opr =(self, other:Set[\E\]): Boolean = other.isEmpty()
    opr SUBSETEQ(self, other:Set[\E\]): Boolean = true
-   override opr SUBSET(self, other:Set[\E\]): Boolean = NOT (other.isEmpty())
+   opr SUBSET(self, other:Set[\E\]): Boolean = NOT (other.isEmpty())
    opr SETCMP(self, other:Set[\E\]): Comparison =
       if other.isEmpty() then EqualTo else LessThan end
 end
