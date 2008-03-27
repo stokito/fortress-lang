@@ -33,15 +33,17 @@ public class FortressTask extends BatchTask {
     private boolean nolib = false;
     private boolean verbose = false;
     private boolean test = false;
+    private boolean compile = false;
 
     public FortressTask() { super("fortress"); }
 
+    public void setCompile(boolean val) { execOptions.append(" compile "); }
     public void setAst(boolean val) { execOptions.append(" -ast "); }
     public void setKeep(boolean val) { execOptions.append(" -keep "); }
     public void setPause(boolean val) { execOptions.append(" -pause "); }
     public void setParseOnly(boolean val) { execOptions.append(" -parseOnly "); }
     public void setNolib(boolean val) { execOptions.append(" -nolib "); }
-    public void setVerbose(boolean val) { execOptions.append("-v"); }
-    public void setTest(boolean val) { execOptions.append("-t"); }
+    public void setVerbose(boolean val) { execOptions.append(" -v "); }
+    public void setTest(boolean val) { execOptions.append(" -test "); }
 
 }

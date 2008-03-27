@@ -18,6 +18,7 @@
 (** END COPYRIGHT **)
 
 component ConditionalOps
+import NativeSimpleTypes.{Boolean}
 
 export Executable
 
