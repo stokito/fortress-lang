@@ -345,7 +345,7 @@ The result is that a formatted file is created, with the same name and
 at the same location as the input file, but with extension .tex.
 
 As a convenience, a bash script "fortify" is provided in
-FORTRESS_HOME/bin that executes this command on a given file.
+FORTRESS_HOME/bin. This script executes the fortify command on a given file.
 
 fortex
 -----
@@ -357,8 +357,8 @@ beginning of each line. For example, the following function definition
 "factorial" is preceded by a doc comment:  
 
 (**
-* Takes a non-negative integer n and returns n!
-**)
+ * Takes a non-negative integer n and returns n!
+ **)
 factorial(n) =
     if n = 0 then 1
     else n factorial(n-1) end
