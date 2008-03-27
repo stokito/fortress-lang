@@ -253,7 +253,7 @@ initialize(fin: FileReadStream) =
        due to the current status of the interpreter; the StackOverflow
        exception is thrown if the database is initialized in any order
      *)
-    lt(x: (String,ZZ32,ZZ32,ZZ32,ZZ32), y: (String,ZZ32,ZZ32,ZZ32,ZZ32)) =
+    lt(x: (String,ZZ32,ZZ32,ZZ32,ZZ32), y: (String,ZZ32,ZZ32,ZZ32,ZZ32)): Boolean =
       do
         (x1, _, _, _, _) = x
         (y1, _, _, _, _) = y
@@ -592,7 +592,7 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
     end
 
     (* calculuate a new ranking result *)
-    lt(x: (ZZ32, String), y: (ZZ32, String)) =
+    lt(x: (ZZ32, String), y: (ZZ32, String)): Boolean =
       do
         (x1, _) = x
         (y1, _) = y
