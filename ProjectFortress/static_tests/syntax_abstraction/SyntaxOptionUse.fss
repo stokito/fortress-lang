@@ -16,12 +16,13 @@
  ******************************************************************************)
 component SyntaxOptionUse
 import SyntaxOption.Helloworld
+import FortressAst.{...}
 
 export Executable
 
-foo():() = print(world)
+foo():() = print (world)
 
-run(args:String...) = do foo() 
+run(args:String...) = do foo()
                          print (hello world)
                       end
 end

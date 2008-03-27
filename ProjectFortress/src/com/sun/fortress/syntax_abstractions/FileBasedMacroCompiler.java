@@ -29,15 +29,18 @@ import java.util.Collection;
 import java.util.Map;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
 import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 
+import edu.rice.cs.plt.tuple.Option;
+
 public class FileBasedMacroCompiler implements MacroCompiler {
 
 	public Result compile(Collection<GrammarEnv> envs, GlobalEnvironment env) {
-		
+				
 		/*
 		 * Initialize GrammarIndex
 		 */
@@ -51,7 +54,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 		
 //		for (Module m: mrr.modules()) {
-			// System.err.println(m);
+//			 System.err.println(m);
 //		}
 		
 		/*

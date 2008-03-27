@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.FortressError;
@@ -204,7 +205,7 @@ public class Fortress {
             Iterable<Api> apis, Iterable<Component> components,
             long lastModified) {
         // Handle APIs first
-
+    	
         // Build ApiIndices before disambiguating to allow circular references.
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
@@ -225,7 +226,7 @@ public class Fortress {
         Disambiguator.ApiResult apiDR =
             Disambiguator.disambiguateApis(apis, rawApiEnv);
         if (!apiDR.isSuccessful()) { return apiDR.errors(); }
-
+        
         // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
         if (!apiIR.isSuccessful()) { return apiIR.errors(); }
@@ -335,6 +336,18 @@ public class Fortress {
         return IterUtil.empty();
     }
 
+    private void dumpDisambiguated(Iterable<Api> apis) {
+        String dir = System.getProperty("java.io.tmpdir")+File.separatorChar;
+    	try {
+        for (Api a: apis) {
+        	System.err.println("Dump api: "+a.getName());
+			ASTIO.writeJavaAst(a, dir+a.getName());
+        }
+		} catch (IOException e) {
+			throw new WrappedException(e);
+		}
+	}
+    
     static class WrappedException extends StaticError {
 
         private final Throwable throwable;
@@ -351,6 +364,7 @@ public class Fortress {
 
         @Override
         public String toString() {
+        	throwable.printStackTrace();
             return throwable.getMessage();
         }
 

@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
@@ -75,18 +76,6 @@ public class PreParser {
 	        	return this.grammars;
 	        }
 	    }
-	
-	/**
-	 * Convert to a filename that is canonical for each (logical) file, preventing
-	 * reparsing the same file.
-	 */
-	private static File canonicalRepresentation(File f) {
-		// treat the same absolute path as the same file; different absolute path but
-		// the same *canonical* path (a symlink, for example) is treated as two
-		// different files; if absolute file can't be determined, assume they are
-		// distinct.
-		return IOUtil.canonicalCase(IOUtil.attemptAbsoluteFile(f));
-	}
 
 	/** Parses a single file. */
 	public static Result parse(File f, GlobalEnvironment env) {
@@ -145,8 +134,4 @@ public class PreParser {
 		}
 	}
 
-	/** Get the filename in which the given API should be defined. */
-	private static File fileForApiName(APIName api) {
-		return new File(NodeUtil.nameString(api) + ".fsi");
-	}
 }

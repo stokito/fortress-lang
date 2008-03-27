@@ -140,12 +140,12 @@ public class ActionCreater {
 
 			@Override
 			public Option<Type> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
-				return handle(that.getSymbol(), SyntaxAbstractionUtil.ARRAYLIST, SyntaxAbstractionUtil.LIST);
+				return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
 			}
 
 			@Override
 			public Option<Type> forRepeatSymbol(RepeatSymbol that) {
-				return handle(that.getSymbol(), SyntaxAbstractionUtil.ARRAYLIST, SyntaxAbstractionUtil.LIST);
+				return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
 			}
 
 			@Override 
@@ -216,7 +216,7 @@ public class ActionCreater {
 		Span span = new Span();
 		List<Import> imports = new LinkedList<Import>();
 		imports.add(makeImportStar(FORTRESS_AST));
-		imports.add(makeImportStar("ArrayList"));
+		imports.add(makeImportStar("List"));
 		// Exports:
 		List<Export> exports = new LinkedList<Export>();
 		List<APIName> exportApis = new LinkedList<APIName>();

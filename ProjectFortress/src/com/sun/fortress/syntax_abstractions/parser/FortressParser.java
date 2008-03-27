@@ -48,54 +48,16 @@ import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 
-import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.io.IOUtil;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Box;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.SimpleBox;
 
 public class FortressParser {
-
-	/**
-	 * Parse the given files and any additional files that are expected to contain
-	 * referenced APIs.
-	 */
-	private static Result parse(Iterable<? extends File> files,
-			final GlobalEnvironment env, final Path path, final boolean verbose) {
-		// box allows mutation of a final var
-		final Box<Result> result = new SimpleBox<Result>(new Result());
-
-		Set<File> fileSet = new HashSet<File>();
-		for (File f : files) { fileSet.add(canonicalRepresentation(f)); }
-
-		Lambda<File, Set<File>> parseAndGetDepends = new Lambda<File, Set<File>>() {
-			public Set<File> value(File f) {
-				Result r = parse(f, env, verbose);
-				result.set(new Result(result.value(), r));
-				if (r.isSuccessful()) {
-					Set<File> newFiles = new HashSet<File>();
-					for (CompilationUnit cu :
-						IterUtil.compose(r.apis(), r.components())) {
-						newFiles.addAll(extractNewDependencies(cu, env, path));
-					}
-					return newFiles;
-				}
-				else { return Collections.emptySet(); }
-			}
-		};
-
-		// parses all dependency files
-		CollectUtil.graphClosure(fileSet, parseAndGetDepends);
-		return result.value();
-	}
 
 	/** Parses a single file. */
 	public static Result parse(File f, final GlobalEnvironment env, boolean verbose) {
 		try {
 			BufferedReader in = Useful.utf8BufferedFileReader(f);
 			try {
-
+				
 				PreParser.Result ppr = PreParser.parse(f, env);
 				if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
 

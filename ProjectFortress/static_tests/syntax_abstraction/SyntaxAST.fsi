@@ -26,7 +26,7 @@ api SyntaxAST
   end
 
   grammar Helloworld extends { Literal }
-      LiteralExpr |Expr=
+      LiteralExpr |Expr:=
         world
         do
           exprs:List[\Expr\] = emptyList[\Expr\](2);
@@ -41,15 +41,14 @@ api SyntaxAST
           tuples:List[\Expr\] = emptyList[\Expr\](2)
           tuples11:List[\Expr\] = tuples.addRight(StringLiteralExpr(""))
           tuples12:List[\Expr\] = tuples11.addRight(StringLiteralExpr("a"))
-          tuples2:List[\Expr\] = tuples.addRight(StringLiteralExpr("b"))
-          arg1:List[\Expr\] = arg.addRight(LooseJuxt(tuples12))
+          tuples2:List[\Expr\] = tuples12.addRight(StringLiteralExpr("b"))
+          arg1:List[\Expr\] = arg.addRight(LooseJuxt(tuples2))
           arg2:List[\Expr\] = arg1.addRight(StringLiteralExpr("b"))
           op:OpRef = OpRef(ops, emptyList[\StaticArg\]());
           oprExpr:OprExpr = OprExpr(op, arg2)
           exprs2:List[\Expr\] = exprs1.addRight(oprExpr);
           TightJuxt(exprs2)
         end
-      end
   end
 
 end

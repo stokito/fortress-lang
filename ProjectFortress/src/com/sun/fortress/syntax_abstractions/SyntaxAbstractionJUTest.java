@@ -36,8 +36,6 @@ public class SyntaxAbstractionJUTest extends TestCase {
         "SyntaxGrammarImportsA.fss",
         "SyntaxHiUse.fss",
         "SyntaxHi.fss",
-        // really not working:
-        // "XXXSyntaxNoFortressAstImport.fsi",
         "XXXSyntaxGrammarImportsUse.fss",
         "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi");
     

@@ -55,12 +55,12 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
     }
 
     public void testTypeTranslatorInstantiatedTypeListString() {
-        InstantiatedType type = mkInstantiatedType("ArrayList", "List", stringType);
+        InstantiatedType type = mkInstantiatedType("List", "List", stringType);
         assertEquals(tt.analyze(type), "List<"+stringTypeResult+">");
     }
 
     public void testTypeTranslatorInstantiatedTypeListFortressASTType() {
-        InstantiatedType type = mkInstantiatedType("ArrayList", "List", fortressASTType);
+        InstantiatedType type = mkInstantiatedType("List", "List", fortressASTType);
         assertEquals(tt.analyze(type), "List<"+fortressASTTypeResult+">");
     }
 
@@ -80,25 +80,25 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
     }
 
     public void testTypeTranslatorInstantiatedTypeListListFortressASTType() {
-        InstantiatedType listType = mkInstantiatedType("ArrayList", "List", fortressASTType);
-        InstantiatedType listListType = mkInstantiatedType("ArrayList", "List", listType);
+        InstantiatedType listType = mkInstantiatedType("List", "List", fortressASTType);
+        InstantiatedType listListType = mkInstantiatedType("List", "List", listType);
         assertEquals(tt.analyze(listListType), "List<List<"+fortressASTTypeResult+">>");
     }
 
     public void testTypeTranslatorInstantiatedTypeListListStringType() {
-        InstantiatedType listType = mkInstantiatedType("ArrayList", "List", stringType);
-        InstantiatedType listListType = mkInstantiatedType("ArrayList", "List", listType);
+        InstantiatedType listType = mkInstantiatedType("List", "List", stringType);
+        InstantiatedType listListType = mkInstantiatedType("List", "List", listType);
         assertEquals(tt.analyze(listListType), "List<List<"+stringTypeResult+">>");
     }
 
     public void testTypeTranslatorInstantiatedTypeMaybeListFortressASTType() {
-        InstantiatedType listType = mkInstantiatedType("ArrayList", "List", fortressASTType);
+        InstantiatedType listType = mkInstantiatedType("List", "List", fortressASTType);
         InstantiatedType listListType = mkInstantiatedType("FortressLibrary", "Maybe", listType);
         assertEquals(tt.analyze(listListType), "Option<List<"+fortressASTTypeResult+">>");
     }
 
     public void testTypeTranslatorInstantiatedTypeMaybeListStringType() {
-        InstantiatedType listType = mkInstantiatedType("ArrayList", "List", stringType);
+        InstantiatedType listType = mkInstantiatedType("List", "List", stringType);
         InstantiatedType listListType = mkInstantiatedType("FortressLibrary", "Maybe", listType);
         assertEquals(tt.analyze(listListType), "Option<List<"+stringTypeResult+">>");
     }
