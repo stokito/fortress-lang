@@ -129,7 +129,7 @@ end
 
 object Yes extends BoardState end
 
-object Sudoku(settable cands : ZZ32, settable props : ZZ32,
+object Sudoku(var cands : ZZ32, var props : ZZ32,
               state : Array3[\BoardState,0,9,0,9,0,9\])
         extends SearchInstance[\Sudoku, ZZ32\]
     (* legalState check is expensive, so we compute it lazily and cache the result. *)
