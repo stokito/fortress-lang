@@ -428,6 +428,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                     <include name="**/*JUTests.class"/>
                     <exclude name="**/*$*.class"/>
                     <exclude name="**/SyntaxAbstractionJUTest.class"/>
+                    <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
                 </fileset>
             </batchtest>
         </junit>
@@ -461,6 +462,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                     <include name="**/*JUTests.class"/>
                     <exclude name="**/*$*.class"/>
                     <exclude name="**/SyntaxAbstractionJUTest.class"/>
+                    <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
                 </fileset>
             </batchtest>
         </junit>
@@ -544,7 +546,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
-                    <include name="**/SyntaxAbstractionJUTests.class"/>
+                    <include name="**/SyntaxAbstractionJUTest.class"/>
+                    <include name="**/SyntaxAbstractionJUTestAll.class"/>
                 </fileset>
             </batchtest>
       </junit>

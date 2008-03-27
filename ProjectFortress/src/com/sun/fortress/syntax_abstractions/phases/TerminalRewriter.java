@@ -116,7 +116,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 		
 		// Create the syntax symbol inside the terminal definition
 		List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
-		syntaxSymbols.add(new PrefixedSymbol(Option.some(NodeFactory.makeId(token)), that));
+		syntaxSymbols.add(that); 
 		syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeQualifiedIdName("FortressSyntax", "Identifier", "idrest"))));
 		
 		// Create the transformation expression

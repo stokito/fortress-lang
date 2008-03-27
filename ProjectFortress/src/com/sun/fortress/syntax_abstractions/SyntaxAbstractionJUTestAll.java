@@ -25,7 +25,7 @@ import junit.framework.TestSuite;
 import com.sun.fortress.compiler.StaticTestSuite;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
-public class SyntaxAbstractionJUTest extends TestCase {
+public class SyntaxAbstractionJUTestAll extends TestCase {
     
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
     private final static List<String> FAILING_SYNTAXABSTRACTIONS = Arrays.asList(
