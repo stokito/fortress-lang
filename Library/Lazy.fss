@@ -62,7 +62,7 @@ value object Lazy[\T\](var s : State[\T\])
          replacing s with Pending to indicate that we have seized
          ownership.
    *)
-  private attempt():(State[\T\],Boolean) =
+  attempt():(State[\T\],Boolean) =
       atomic do
           old = s
           computed := old.isDone()
