@@ -118,7 +118,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 			return SyntaxAbstractionUtil.makeNoParamObjectInstantiation(this.span, SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.NOTHING, it.getArgs());
 		}
 		List<Expr> args = new LinkedList<Expr>();
-		args.add(handleNode((Node)value));
+		args.add(dispatch(value, Option.<Type>none()));
 		return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.JUST, args, it.getArgs());
 	}
 	
