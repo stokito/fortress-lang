@@ -44,7 +44,7 @@ import static edu.rice.cs.plt.debug.DebugUtil.debug;
 public class TypeAnalyzer {
     private static final boolean SIMPLIFIED_SUBTYPING = false;
 
-    private static final int MAX_SUBTYPE_DEPTH = 6;
+    private static final int MAX_SUBTYPE_DEPTH = 4;
     
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(Types.BOTTOM));
