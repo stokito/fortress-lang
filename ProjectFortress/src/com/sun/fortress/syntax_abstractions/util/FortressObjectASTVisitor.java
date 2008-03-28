@@ -31,12 +31,15 @@ import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.interpreter.glue.prim.PrimImmutableArray;
 import com.sun.fortress.interpreter.glue.prim.PrimImmutableArray.PrimImmutableArrayObject;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Fixity;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Modifier;
@@ -44,16 +47,22 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VoidLiteralExpr;
+import com.sun.fortress.nodes.VoidType;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.parser_util.FortressUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -85,7 +94,7 @@ public class FortressObjectASTVisitor<T> {
 	}
 
 	public <V> List<V> dispatchList(FObject fObject) {
-		if (fObject.type().getName().equals("ArrayList")) {
+		if (fObject.type().getName().startsWith("ArrayList")) {
 			List<V> ls = new LinkedList<V>();
 			FValue firstUnused = getField(fObject, "firstUnused");
 			FValue firstUsed = getField(fObject, "firstUsed");
@@ -118,7 +127,9 @@ public class FortressObjectASTVisitor<T> {
 	 * @return
 	 */
 	public T dispatch(FObject value) {
-		if (value.type().toString().equals("FnDef")) {
+		if (value.type().toString().startsWith("ArrayList")) {
+			return (T) dispatchList(value);
+		} else if (value.type().toString().equals("FnDef")) {
 			return dispatchFnDef(value);
 		} else if (value.type().toString().equals("FnRef")) {
 			return dispatchFnRef(value);
@@ -138,6 +149,16 @@ public class FortressObjectASTVisitor<T> {
 			return dispatchString(value);
 		} else if (value.type().toString().equals("VoidLiteralExpr")) {
 			return dispatchVoid(value);
+		} else if (value.type().toString().equals("Type")) {
+			return dispatchType(value);
+		} else if (value.type().toString().equals("InstantiatedType")) {
+			return dispatchInstantiatedType(value);
+		} else if (value.type().toString().equals("VoidType")) {
+			return dispatchVoidType(value);
+		} else if (value.type().toString().equals("WhereClause")) {
+			return dispatchWhereClause(value);
+		} else if (value.type().toString().equals("Contract")) {
+			return dispatchContract(value);
 		} else if (value.type().toString().equals("APIName")) {
 			return dispatchAPIName(value);
 		} else if (value.type().toString().equals("QualifiedIdName")) {
@@ -176,9 +197,22 @@ public class FortressObjectASTVisitor<T> {
 		SimpleName name = new FortressObjectASTVisitor<SimpleName>(this.span).dispatch((FObject)v2);
 		FValue v3 = getField(value, "staticParams");
 		List<StaticParam> staticParams = dispatchList((FObject)v3);
-//		return (T) new FnDef(this.span, mods, name, staticParams, params, returnType,
-//					 		 throwsClause, whereClause, aconstract, selfName, body);
-		return (T) null;
+		FValue v4 = getField(value, "params");
+		List<Param> params = dispatchList((FObject)v4);
+		FValue v5 = getField(value, "returnType");
+		Option<Type> returnType = dispatchMaybe((FObject)v5);
+		FValue v6 = getField(value, "throwsClause");
+		Option<List<TraitType>> throwsClause = dispatchMaybe((FObject)v6);
+		FValue v7 = getField(value, "whereClause");
+		WhereClause whereClause = new FortressObjectASTVisitor<WhereClause>(this.span).dispatch((FObject)v7);
+		FValue v8 = getField(value, "acontract");
+		Contract acontract = new FortressObjectASTVisitor<Contract>(this.span).dispatch((FObject)v8);
+		FValue v9 = getField(value, "selfName");
+		String selfName = new FortressObjectASTVisitor<String>(this.span).dispatch((FValue)v9);
+		FValue v10 = getField(value, "body");
+		Expr body = new FortressObjectASTVisitor<Expr>(this.span).dispatch((FObject)v10);
+		return (T) new FnDef(this.span, mods, name, staticParams, params, returnType,
+					 		 throwsClause, whereClause, acontract, selfName, body);
 	}
 
 	private QualifiedIdName mkQFortressASTName(String name) {
@@ -237,6 +271,35 @@ public class FortressObjectASTVisitor<T> {
 		return (T) new VoidLiteralExpr(this.span);
 	}
 	
+	private T dispatchType(FObject value) {
+		if (value.type().toString().equals("InstantiatedType")) {
+			return dispatchInstantiatedType(value);
+		} else if (value.type().toString().equals("VoidType")) {
+			return dispatchVoidType(value);
+		} else {
+			throw new RuntimeException("NYI: "+value.type());
+		}
+	}
+	
+	private T dispatchInstantiatedType(FObject value) {
+		FValue v1 = getField(value, "name");
+		QualifiedIdName name = new FortressObjectASTVisitor<QualifiedIdName>(this.span).dispatch((FObject)v1);
+		FValue v2 = getField(value, "args");
+		List<StaticArg> staticArgs = dispatchList((FObject) v2);
+		return (T) new InstantiatedType(name, staticArgs);
+	}
+
+	private T dispatchVoidType(FObject value) {
+		return (T) new VoidType();
+	}
+
+	private T dispatchWhereClause(FObject value) {
+		return (T) FortressUtil.emptyWhereClause();
+	}
+	
+	private T dispatchContract(FObject value) {
+		return (T) new Contract();
+	}
 	private T dispatchAPIName(FObject value) {
 		FValue v1 = getField(value, "ids");
 		List<Id> ids = dispatchList((FObject)v1);

@@ -70,7 +70,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
    public BatchCachingRepository(boolean doLink, Path p,
             FortressRepository cache) {
         // TODO is this a fix?
-        this.source = new PathBasedSyntaxTransformingRepository(p); // WAS , this
+        this.source = new PathBasedSyntaxTransformingRepository(p, this); // WAS , this
         this.derived = cache;
         MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
         this.ru = new RepositoryUpdater(source, derived, linker);
