@@ -27,4 +27,13 @@ object Boolean
                   SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
 end
 
+object Thread[\T\] (fcn:()->T)
+  val():T         = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$val")
+  wait():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$wait")
+  ready():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$ready")
+  stop():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$stop")
+end
+
+abort():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$abort")
+
 end

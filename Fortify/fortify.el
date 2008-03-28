@@ -1417,9 +1417,10 @@ extension '.tex'."
     (fortify-if-not-blank-space)))
 
 (defun fortex ()
-  "Fortify the whole buffer expect for stylized comments. Strip
-  stylized comments of leading comment characters. Write the result to
-  a file in the same location as the read file, but with extension
+  "Fortify the whole buffer except for stylized comments, delimited by
+  (** and *) as the first non-whitespace characters on the first and last
+  line. Strip stylized comments of leading * characters. Write the
+  result to a file in the same location as the read file, but with extension
   .tex. Using this function, it is possible to write a legal Fortress
   file with doc comments (possibly containing embedded LaTeX commands)
   and produce a LaTeX file where all Fortress code is fortified and
@@ -1458,15 +1459,20 @@ extension '.tex'."
   starting at point. Once finished, point is at the very end of the
   processed doc comment."
   (requires (at-start-of-doc-comment))
-
-  (let ((more-lines t))
-    (remove-start-of-doc-comment)
-    (while (and more-lines (not (at-end-of-doc-comment)))
-      (remove-middle-of-doc-comment)
-      (setq more-lines (down-left-if-more-lines)))
-    (if (at-end-of-doc-comment)
-	(remove-end-of-doc-comment)
-      (signal-error "Missing end of doc comment"))))
+  (requires (looking-at "[ \t]*([*][*]+[ \t]*"))
+  (replace-match "")
+  (while (and (down-left-if-more-lines) (not (looking-at ".*[*])")))
+    (looking-at "^[ \t]*[*]*[ \t]*")
+    (replace-match ""))
+  (cond
+     ((looking-at "^[ \t]*[*]+)[ \t]*[\n]")
+      (replace-match "")
+      (goto-char (- (match-end 0) 1)))
+     ((looking-at "^[ \t]*[*]*[ \t]*\\(\\([* \t]*[^* \t\n]\\)*\\)[ \t]*[*]+)[ \t]*")
+      (replace-match "\\1")
+      (goto-char (match-end 0)))
+     (t
+      (signal-error "Unterminated documentation comment"))))
 
 (defun fortify-next-code-block ()
   "Finds and fortifies the contiguous block of Fortress code start at
@@ -1507,58 +1513,8 @@ extension '.tex'."
 	       (delete-line))
       (signal-error "Example must be terminated with '(* END EXAMPLE *)'."))))
 
-(defun remove-start-of-doc-comment ()
-  "Simple helper function that removes the leading whitespace and '('
-of a doc comment."
-  (requires (at-start-of-doc-comment))
-
-  (beginning-of-line)
-  (delete-whitespace)
-  ;; Precondition assures that the next character is "("
-  (delete-char 1))
-
-(defun remove-middle-of-doc-comment ()
-  "Simple helper function that removes the leading asterisks and whitespace
-of a line in the middle of a doc comment."
-  (beginning-of-line)
-  (delete-whitespace)
-  (delete-asterisks)
-  (delete-whitespace)
-
-  ;; Check if this line is the end of the doc comment.
-  ;; If so, move the end of the comment to the next line,
-  ;; so it'll be picked up when that line is processed.
-  (end-of-line)
-  (skip-preceding-whitespace)
-  (if (<= (line-beginning-position)
-	  (- (point) 3))
-      (progn (forward-char -3)
-	     (if (at-end-of-doc-comment)
-		 (progn (insert-char `?\n' 1)
-			(forward-char -1))))))
-
-
-(defun remove-end-of-doc-comment ()
-  "Simple helper function that removes the ending '**)' at the end of a
-doc comment."
-  (requires (at-end-of-doc-comment))
-
-  (beginning-of-line)
-  (delete-whitespace)
-  ;; Precondition assures that the next three characters are "**)"
-  (delete-char 3)
-  ;; Ensure that no text occurs on line, after the end of the doc comment
-  (skip-leading-whitespace)
-  (if (not (eolp))
-      (signal-error
-       "No extra text allowed on last line of a doc comment"))
-  (delete-line)
-  ;; There must be at least one line above us (i.e., the former start
-  ;; of the doc comment)
-  (forward-line -1))
-
-(defun at-start-of-copyright () (at-line "(** COPYRIGHT **)"))
-(defun at-end-of-copyright () (at-line "(** END COPYRIGHT **)"))
+(defun at-start-of-marked-copyright () (at-line "(** COPYRIGHT **)"))
+(defun at-end-of-marked-copyright () (at-line "(** END COPYRIGHT **)"))
 
 (defun at-start-of-example () (at-line "(** EXAMPLE **)"))
 (defun at-end-of-example () (at-line "(** END EXAMPLE **)"))
@@ -1582,10 +1538,11 @@ is true."
       (signal-error error-string))))
 
 (defun remove-copyright ()
-  (if (at-start-of-copyright)
-      (remove-block 'at-start-of-copyright 'at-end-of-copyright
-		    (concat "Copyright notice must be terminated with"
-			    "'(** END COPYRIGHT **)'."))))
+  (if (at-start-of-marked-copyright)
+    (remove-block 'at-start-of-marked-copyright 'at-end-of-marked-copyright
+                  (concat "Marked copyright notice must be terminated with"
+                          "'(** END COPYRIGHT **)'."))
+    (remove-block-copyright)))
 
 (defun omit-tests ()
   (remove-block 'at-start-of-tests 'at-end-of-tests
@@ -1604,26 +1561,20 @@ beginning of an example, delimited by the doc comment '(** EXAMPLE **)'."
 	       (candidate (buffer-substring left right)))
 	  (equal candidate line)))))
 
+(defvar block-copyright-regexp
+    "(\\*+[\n\t ]+Copyright[^*]*\\*+)[ \n\t]*"
+    "regexp for recognizing block copyright notice.")
+
+(defun remove-block-copyright ()
+    "Attempt to remove a block copyright notice if one exists."
+    (save-excursion
+      (if (re-search-forward block-copyright-regexp nil t)
+        (replace-match ""))))
+
 (defun at-start-of-doc-comment ()
   "Boolean function that determines whether point is at the beginning of a
 doc comment."
-  (save-excursion
-    (beginning-of-line)
-    (skip-leading-whitespace)
-    (and (char-after (+ 2 (point)))
-	 (equal "(" (char-to-string (char-after (point))))
-	 (equal "*" (char-to-string (char-after (+ 1 (point)))))
-	 (equal "*" (char-to-string (char-after (+ 2 (point))))))))
-
-(defun at-end-of-doc-comment ()
-  "Boolean function that determines whether point is at the en of a
-doc comment."
-  (save-excursion
-    (skip-leading-whitespace)
-    (and (char-after (+ 2 (point)))
-	 (equal "*" (char-to-string (char-after (point))))
-	 (equal "*" (char-to-string (char-after (+ 1 (point)))))
-	 (equal ")" (char-to-string (char-after (+ 2 (point))))))))
+  (looking-at "[ \t]*([*][*]"))
 
 (defun delete-whitespace ()
   "Simple helper function that deletes all whitespace immediately following
@@ -1664,13 +1615,6 @@ character."
 			(blank-spacep (char-to-string (char-after left)))))
       (setq left (1+ left)))
     result))
-
-(defun delete-asterisks ()
-  "Simple helper function that deletes a sequence of asterisks immediately
-after point."
-  (while (and (char-after (point))
-	      (equal "*" (char-to-string (char-after (point)))))
-    (delete-char 1)))
 
 (defun delete-line ()
   "Delete the current line and, if successful, return t. If current

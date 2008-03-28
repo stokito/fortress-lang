@@ -17,25 +17,6 @@
 
 api FortressLibrary
 
-(************************************************************
-From Thread
-*)
-
-(* TODO: Hide the constructor when that functionality works. *)
-
-object Thread[\T\](fcn:()->T)
-    getter val():T
-    getter ready():Boolean
-    wait():()
-    stop():()
-end
-
-abort():()
-(*
-End from Thread.
-*************************************************************)
-
-
 (** The following function is actually recognized as a special piece
     of built-in magic by the Fortress interpreter.  The javaClass
     argument names a Java Class which is a subclass of
@@ -51,7 +32,7 @@ End from Thread.
     com.sun.fortress.interpreter.glue.primitive.  These types are
     generally easier to work with, and the boilerplate packing and
     unpacking of values is done for you.
-*)
+**)
 
 builtinPrimitive[\T\](javaClass:String):T
 
@@ -76,17 +57,6 @@ tuple[\T\](x:T):T
 
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C
-
-(** Reflection of static type parameters for overloading purposes.
-    Works around shortcomings in the story on parametric overloading
-    (all overloadings must have the same parameters with the same
-    bounds).  Allows us to overload a function based on the parametric
-    type of an output. *)
-
-object __Proxy[\T extends (* U *) Any\]
-    (* extends { __Proxy[\U\], Object } where { U extends Any } *)
-  getter toString()
-end
 
 fail(s:String)
 
@@ -580,7 +550,7 @@ end
 trait Rank3 extends { Rank[\3\]} excludes { Number, String }
 end
 
-(* The trait Indexed_i[\n\] indicates that something has an i^th
+(** The trait Indexed_i[\n\] indicates that something has an i^th
  * dimension of size n.  In general anything which extends Indexed_i
  * must also extend Indexed_j for j < i. *)
 
@@ -957,7 +927,7 @@ trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
     dot(v: Vector[\T,s0\]): T
 end
 
-(* builtinFactory1 must be a non-overloaded 0-parameter factory for
+(** builtinFactory1 must be a non-overloaded 0-parameter factory for
    1-D arrays.  The type parameters are enshrined in LHSEvaluator.java
    and NonPrimitive.java; the factory name is enshrined in
    WellKnownNames.java.  There must be some factory, named in this
@@ -965,7 +935,7 @@ end
    K-dimensional array types. *)
 __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\]
 
-(* immutableFactory1 is a non-overloaded 0-parameter factory for
+(** immutableFactory1 is a non-overloaded 0-parameter factory for
    0-indexed 1-D arrays.  It is also mentioned in WellKnownNames as it
    is used to allocate storage for varargs. *)
 __immutableFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\]
@@ -976,7 +946,7 @@ array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\]
 
 immutableArray1[\T, nat s0\](): ImmutableArray1[\T,0,s0\]
 
-(* vector is the same as array1, but specialized to numeric type arguments *)
+(** vector is the same as array1, but specialized to numeric type arguments *)
 vector[\T extends Number, nat s0\]():Vector[\T,s0\]
 vector[\T extends Number, nat s0\](v:T):Vector[\T,s0\]
 vector[\T extends Number, nat s0\](f:ZZ32->T):Vector[\T,s0\]
@@ -1092,7 +1062,7 @@ opr -[\ T extends Number, nat n, nat m \]
 opr -[\ T extends Number, nat n, nat m \]
      (me:Matrix[\T,n,m\]): Matrix[\T,n,m\]
 
-(* Matrix multiplication; used to use a cache-oblivious algorithm, but
+(** Matrix multiplication; used to use a cache-oblivious algorithm, but
    we ran into trouble due to lack of support for atomic increment of
    matrix elements. *)
 opr DOT[\ T extends Number, nat n, nat m, nat p\]
@@ -1102,14 +1072,14 @@ opr juxtaposition[\ T extends Number, nat n, nat m, nat p\]
      (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\]
 
 
-(* matrix-vector multiplication *)
+(** matrix-vector multiplication *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\]
 
 opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\]
 
-(* vector-matrix multiplication *)
+(** vector-matrix multiplication *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\]
 
@@ -1145,11 +1115,11 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
 
     getter toString():String
 
-    (* Again, offset performs bounds checking and shifts to 0 indexing. *)
+    (** Again, offset performs bounds checking and shifts to 0 indexing. *)
     offset(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32)
     toIndex(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32)
 
-    (* And get and put are 0-indexed without bounds checks. *)
+    (** And get and put are 0-indexed without bounds checks. *)
     abstract put(t:(ZZ32,ZZ32,ZZ32), v:T) : ()
     abstract get(t:(ZZ32,ZZ32,ZZ32)):T
 
@@ -1182,12 +1152,9 @@ __builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
 
 array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\]
 
-(** The reduction traits allow us to define systematic
-recursively-decomposed computations in the absence of a real Generator
-hierarchy.  The simplest instance of a reduction defines two functions:
-  empty -- What to do if we reach an empty portion of a structure
-  join  -- How to combine two pieces of a structure if we don't care which dimension it was split in.
-**)
+(************************************************************
+* Reductions
+************************************************************)
 
 trait Reduction[\ R \]
     abstract getter toString():String
@@ -1240,14 +1207,7 @@ end
 
 opr BIG MAX[\T\](g:(Reduction[\Any\],T->Any)->Any): Any
 
-(** TODO: AndReduction and OrReduction have natural zeros, and could
- *  take advantage of early exit.
- *
- *  In the absence of full algebraic fanciness, we might still use
- *  label/exit on a thunked domain to achieve the same effect, in
- *  effect pushing the control into the reduction operator itself.
- *)
-
+(** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction extends Reduction[\Boolean\]
     getter toString()
     empty(): Boolean
@@ -1271,6 +1231,10 @@ object StringReduction extends Reduction[\String\]
 end
 
 opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String
+
+(************************************************************
+* Ranges
+************************************************************)
 
 (** Ranges in general represent uses of the # and : operators.
     It's mostly subtypes of Range that are interesting.
@@ -1358,7 +1322,7 @@ trait FullRange[\T\]
             - Restriction to an OpenRange is the identity.
             - An UpperRange or ExtentRange restrict the upper bound and
               extent of the range.
-          - A LowerRange restricts the lower bound and extent of the range.
+            - A LowerRange restricts the lower bound and extent of the range.
         Note that this makes it compatible with the square-bracket
         indexing of the Indexed trait. **)
     opr[r:LowerRange[\T\]]: FullRange[\T\]
@@ -1387,25 +1351,17 @@ opr :[\I extends Integral, J extends Integral, K extends Integral\]
      (lo:(I,J,K), hi:(I,J,K)): Range[\(I,J,K)\]
 
 (** Factories for incomplete ranges **)
-(* BUG: we can't define both a prefix and a suffix version of a single
-   operator right now.  They get thrown into the same overloading
-   bucket.  Meanwhile, if we define a prefix operator and use it in
-   suffix form it'll work and vice versa. *)
-(*
-opr [\T\](x:T)# : LowerRange[\T\]
-*)
+opr (x:T)#[\T\] : LowerRange[\T\]
 opr (x:T):[\T\] : LowerRange[\T\]
 opr #[\T\](x:T) : ExtentRange[\T\]
-
-(*
 opr :[\T\](x:T) : UpperRange[\T\]
-*)
 
 opr #(): OpenRange[\Any\]
 opr :(): OpenRange[\Any\]
 
 (***********************************************************
- * NUMERIC primitives, down here to avoid ordering hosure. *)
+* Numeric primitives
+************************************************************)
 
 opr |[\ N extends Integral \]x:N|
 
@@ -1430,10 +1386,18 @@ opr BITNOT(a:ZZ32):ZZ32
 opr =(a:ZZ32, b:ZZ32):Boolean
 opr <=(a:ZZ32, b:ZZ32):Boolean
 opr ^(a:ZZ32, b:Integral):Number
+(** widen converts a ZZ32 into a valid ZZ64 quantity. **)
 widen(a:ZZ32):ZZ64
+(** partitionL returns the highest power of 2 < a, used to
+    partition iteration spaces for arrays and ranges. **)
 partitionL(a:ZZ32):ZZ32
 
+(** nanoTime returns the current time in nanoseconds.  Currently
+    this only supports taking differences of results of nanoTime
+    to produce a time interval. **)
 nanoTime():ZZ64
+
+(** printTaskTrace dumps some internal error state. *)
 printTaskTrace():()
 
 recordTime(dummy: Any): ()
@@ -1547,10 +1511,10 @@ opr juxtaposition
 opr DOT(a:String, b:Boolean):String
 opr juxtaposition
      (a:String, b:Boolean):String
-oprDOT(a:String, c:Char):String
+opr DOT(a:String, c:Char):String
 opr juxtaposition
      (a:String, c:Char):String
-oprDOT(c:Char, a:String):String
+opr DOT(c:Char, a:String):String
 opr juxtaposition
      (c:Char, a:String):String
 opr DOT(a:String, b:()):String
@@ -1565,7 +1529,6 @@ opr juxtaposition(a:Any, b:String):String
 opr DOT(a:String, b:Any):String
 opr juxtaposition(a:String, b:Any):String
 
-__stringCmp(a:String, b:String):ZZ32
 opr =(a:String, b:String):Boolean
 opr <(a:String, b:String):Boolean
 opr <=(a:String, b:String):Boolean
@@ -1589,11 +1552,11 @@ println(a:Boolean):()
 println(a:Char):()
 print(a:Any):()
 println(a:Any):()
-(* 0-argument versions handle passing of () to single-argument versions. *)
+(** 0-argument versions handle passing of () to single-argument versions. **)
 print():()
 println():()
 
-(* These are useful temporary hacks for debugging multi-threaded programs *)
+(** These are useful temporary hacks for debugging multi-threaded programs **)
 printThreadInfo(a:String):()
 printThreadInfo(a:Number):()
 throwError(a:String):()

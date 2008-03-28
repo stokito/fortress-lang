@@ -17,7 +17,6 @@
 
 component FortressLibrary
 import NativeArray.{...}
-import Thread.{...}
 import NatReflect.{...}
 
 export Executable
@@ -1838,14 +1837,9 @@ end
 
 *************)
 
-(* Simple mockup of Generators and Reductions. *)
-
-(* The reduction traits allow us to define systematic
-recursively-decomposed computations in the absence of a real Generator
-hierarchy.  The simplest instance of a reduction defines two functions:
-  empty -- What to do if we reach an empty portion of a structure
-  join  -- How to combine two pieces of a structure if we don't care which dimension it was split in.
-*)
+(************************************************************
+* Reductions
+************************************************************)
 
 trait Reduction[\ R \]
     getter toString() = "A Reduction without a toString() of its own"
@@ -1919,14 +1913,7 @@ opr BIG MAX[\T\](g:(Reduction[\Any\],T->Any)->Any): Any =
         else => x
     end
 
-(** TODO: AndReduction and OrReduction have natural zeros, and could
- *  take advantage of early exit.
- *
- *  In the absence of full algebraic fanciness, we might still use
- *  label/exit on a thunked domain to achieve the same effect, in
- *  effect pushing the control into the reduction operator itself.
- *)
-
+(** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction extends Reduction[\Boolean\]
     getter toString() = "AndReduction"
     empty(): Boolean = true
@@ -2124,6 +2111,10 @@ object NaiveSeqGenerator[\E\](g: Generator[\E\])
       f mt
     end
 end
+
+(************************************************************
+* Ranges
+************************************************************)
 
 (** Ranges in general represent uses of the # and : operators.
     It's mostly subtypes of Range that are interesting.
@@ -2353,7 +2344,7 @@ trait FullRange[\T\]
             - Restriction to an OpenRange is the identity.
             - An UpperRange or ExtentRange restrict the upper bound and
               extent of the range.
-          - A LowerRange restricts the lower bound and extent of the range.
+            - A LowerRange restricts the lower bound and extent of the range.
         Note that this makes it compatible with the square-bracket
         indexing of the Indexed trait. **)
     opr[r:LowerRange[\T\]]: FullRange[\T\] =
@@ -2623,25 +2614,17 @@ opr :[\I extends Integral, J extends Integral, K extends Integral\]
   end
 
 (** Factories for incomplete ranges **)
-(* BUG: we can't define both a prefix and a suffix version of a single
-   operator right now.  They get thrown into the same overloading
-   bucket.  Meanwhile, if we define a prefix operator and use it in
-   suffix form it'll work and vice versa. *)
-(*
-opr [\T\](x:T)# : LowerRange[\T\] = LowerRange[\T\](x)
-*)
+opr (x:T)#[\T\] : LowerRange[\T\] = LowerRange[\T\](x)
 opr (x:T):[\T\] : LowerRange[\T\] = LowerRange[\T\](x)
 opr #[\T\](x:T) : ExtentRange[\T\] = ExtentRange[\T\](x)
-
-(*
 opr :[\T\](x:T) : UpperRange[\T\] = UpperRange[\T\](x)
-*)
 
 opr #(): OpenRange[\Any\] = OpenRange[\Any\]
 opr :(): OpenRange[\Any\] = OpenRange[\Any\]
 
 (***********************************************************
- * NUMERIC primitives, down here to avoid ordering hosure. *)
+* Numeric primitives
+************************************************************)
 
 opr |x:ZZ32|: ZZ32 = if x>=0 then x else -x end
 opr |x:ZZ64|: ZZ64 = if x>=0 then x else -x end
@@ -2798,10 +2781,10 @@ opr juxtaposition
 opr DOT(a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr juxtaposition
      (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-oprDOT(a:String, c:Char):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr DOT(a:String, c:Char):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr juxtaposition
      (a:String, c:Char):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-oprDOT(c:Char, a:String):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr DOT(c:Char, a:String):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr juxtaposition
      (c:Char, a:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr DOT(a:String, b:()):String = a "()"

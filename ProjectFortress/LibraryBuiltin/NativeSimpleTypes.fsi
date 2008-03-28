@@ -21,4 +21,13 @@ object Boolean
     extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
 end
 
+object Thread[\T\](fcn:()->T)
+    getter val():T
+    getter ready():Boolean
+    wait():()
+    stop():()
+end
+
+abort():()
+
 end
