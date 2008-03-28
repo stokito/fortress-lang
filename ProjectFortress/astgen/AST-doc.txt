@@ -1,0 +1,541 @@
+FORTRESS ABSTRACT SYNTAX TREE
+-----------------------------
+* Where each concrete AST node is evaluated or not yet implemented (NYI)
+ - Component                    : BuildEnvironments
+ - Api                          : BuildEnvironments
+ - ImportStar                   : Driver (injectExplicitImports)
+ - ImportNames                  : Driver (injectExplicitImports)
+ - ImportApi                    : Driver (injectExplicitImports)
+ - AliasedSimpleName            : Driver (injectExplicitImports)
+ - AliasedAPIName               : Driver (injectExplicitImports)
+ - Export                       : NYI
+ - AbsTraitDecl                 : BuildEnvironments
+ - TraitDecl                    : BuildEnvironments
+ - AbsObjectDecl                : BuildEnvironments
+ - ObjectDecl                   : BuildEnvironments
+ - AbsVarDecl                   : BuildEnvironments
+ - VarDecl                      : BuildEnvironments
+ - LValueBind                   : BuildLetEnvironments (forLocalVarDecl)
+ - UnpastingBind        	: NYI
+ - UnpastingSplit       	: NYI
+ - AbsFnDecl                    : BuildEnvironments
+ - FnDef                        : BuildEnvironments
+ - NormalParam                  : EvalType (paramsToParameters)
+ - VarargsParam                 : EvalType (paramsToParameters)
+ - DimUnitDecl          	: NYI
+ - TestDecl             	: NYI
+ - PropertyDecl         	: NYI
+ - AbsExternalSyntax    	: NYI
+ - ExternalSyntax       	: NYI
+ - AsExpr                       : Evaluator
+ - AsIfExpr                     : Evaluator
+ - Assignment                   : Evaluator
+ - Block                        : Evaluator
+ - CaseExpr                     : Evaluator
+ - Do                           : Evaluator
+ - For                          : Desugarer
+ - If                           : Evaluator
+ - Label                        : Evaluator
+ - ObjectExpr                   : rewritten to _RewriteObjectExpr
+ - _RewriteObjectExpr           : internal -- Evaluator
+ - Try                          : Evaluator
+ - TupleExpr                    : Evaluator
+ - Typecase                     : Evaluator
+ - While                        : Evaluator
+ - Accumulator                  : Desugarer
+ - ArrayComprehension           : NYI
+ - AtomicExpr                   : Evaluator
+ - Exit                         : Evaluator
+ - Spawn                        : Desugarer
+ - Throw                        : Evaluator
+ - TryAtomicExpr                : Evaluator
+ - FnExpr                       : Evaluator
+ - LetFn                        : BuildLetEnvironments
+ - LocalVarDecl                 : BuildLetEnvironments
+ - GeneratedExpr                : Desugarer
+ - SubscriptExpr                : Evaluator
+ - FloatLiteralExpr             : Evaluator
+ - IntLiteralExpr               : Evaluator
+ - CharLiteralExpr              : Evaluator
+ - StringLiteralExpr            : Evaluator
+ - VoidLiteralExpr              : Evaluator
+ - VarRef                       : Evaluator
+ - FieldRef                     : Evaluator
+ - FieldRefForSure              : internal
+ - _RewriteFieldRef             : internal
+ - FnRef                        : Evaluator
+ - _RewriteFnRef                : internal
+ - OpRef                        : Evaluator (forOprExpr)
+ - LooseJuxt                    : Evaluator
+ - TightJuxt                    : Evaluator
+ - OprExpr                      : Evaluator
+ - CoercionInvocation           : NYI
+ - MethodInvocation             : Evaluator
+ - MathPrimary                  : Evaluator
+ - ChainExpr                    : Evaluator
+ - ArrayElement                 : Evaluator
+ - ArrayElements                : Evaluator
+ - ExponentType                 : internal
+ - BaseDim                      : NYI
+ - DimRef                       : NYI
+ - ProductDim                   : NYI
+ - QuotientDim                  : NYI
+ - ExponentDim                  : NYI
+ - OpDim                        : NYI
+ - ArrowType                    : EvalType
+ - _RewriteGenericArrowType     : internal
+ - BottomType                   : internal
+ - ArrayType                    : EvalType
+ - IdType                       : EvalType
+ - InferenceVarType             : internal
+ - MatrixType                   : EvalType
+ - InstantiatedType             : EvalType
+ - TupleType                    : EvalType
+ - VoidType                     : EvalType
+ - IntersectionType             : internal
+ - UnionType                    : internal
+ - AndType                      : internal
+ - OrType                       : internal
+ - TaggedDimType                : NYI
+ - TaggedUnitType               : NYI
+ - IdArg                        : NYI
+ - TypeArg                      : EvalType
+ - IntArg                       : EvalType
+ - BoolArg                      : EvalType
+ - OprArg                       : EvalType
+ - DimArg                       : NYI
+ - UnitArg                      : NYI
+ - _RewriteImplicitType         : internal
+ - _RewriteIntersectionType     : internal
+ - _RewriteUnionType            : internal
+ - _RewriteFixedPointType       : internal
+ - NumberConstraint             : EvalType (forIntArg)
+ - IntRef                       : EvalType (forIntArg)
+ - SumConstraint                : EvalType (forIntArg)
+ - MinusConstraint              : EvalType (forIntArg)
+ - ProductConstraint            : EvalType (forIntArg)
+ - ExponentConstraint           : NYI
+ - BoolConstant                 : EvalType
+ - BoolRef                      : NYI
+ - NotConstraint                : NYI
+ - OrConstraint                 : NYI
+ - AndConstraint                : NYI
+ - ImpliesConstraint            : NYI
+ - BEConstraint                 : NYI
+ - WhereClause                  : NYI
+ - WhereType                    : NYI
+ - WhereNat                     : NYI
+ - WhereInt                     : NYI
+ - WhereBool                    : NYI
+ - WhereUnit                    : NYI
+ - WhereExtends                 : NYI
+ - TypeAlias                    : NYI
+ - WhereCoerces                 : NYI
+ - WhereWidens                  : NYI
+ - WhereWidensCoerces           : NYI
+ - WhereEquals                  : NYI
+ - UnitConstraint               : NYI
+ - LEConstraint                 : NYI
+ - LTConstraint                 : NYI
+ - GEConstraint                 : NYI
+ - GTConstraint                 : NYI
+ - IEConstraint                 : NYI
+ - BoolConstraintExpr           : NYI
+ - Contract                     : NYI
+ - EnsuresClause                : NYI
+ - ModifierAbstract     	: NYI
+ - ModifierAtomic       	: NYI
+ - ModifierGetter       	: NYI
+ - ModifierHidden       	: NYI
+ - ModifierIO           	: NYI
+ - ModifierOverride     	: NYI
+ - ModifierPrivate      	: NYI
+ - ModifierSettable     	: NYI
+ - ModifierSetter       	: NYI
+ - ModifierTest         	: NYI
+ - ModifierTransient    	: NYI
+ - ModifierValue        	: NYI
+ - ModifierVar          	: NYI
+ - ModifierWidens       	: NYI
+ - ModifierWrapped      	: NYI
+ - OperatorParam                : EvalType (bindGenericParameters)
+ - BoolParam                    : EvalType (bindGenericParameters)
+ - DimensionParam               : NYI
+ - IntParam                     : EvalType (bindGenericParameters)
+ - NatParam                     : EvalType (bindGenericParameters)
+ - SimpleTypeParam              : EvalType (bindGenericParameters)
+ - UnitParam                    : NYI
+ - APIName                      : Evaluator
+ - QualifiedIdName              : Evaluator
+ - QualifiedOpName      	: internal
+ - Id                           : Evaluator
+ - Op                           : Evaluator
+ - Enclosing                    : Evaluator
+ - AnonymousFnName      	: internal
+ - ConstructorFnName            : internal
+ - ArrayComprehensionClause     : NYI
+ - Binding                      : NYI (keyword parameters)
+ - CaseClause                   : Evaluator (forCaseExpr)
+ - Catch                        : Evaluator (forTry)
+ - CatchClause                  : Evaluator (forTry)
+ - DoFront                      : Evaluator (forDo)
+ - IfClause                     : Evaluator (forIf)
+ - TypecaseClause               : Evaluator (forTypecase)
+ - ExtentRange                  : NYI (unpasting)
+ - GeneratorClause              : Evaluator
+ - VarargsExpr                  : NYI
+ - VarargsType                  : EvalType
+ - KeywordType                  : NYI
+ - TraitTypeWhere               : NYI
+ - Indices                      : EvalType (forArrayType)
+ - ParenthesisDelimitedMI       : Evaluator (forMathPrimary)
+ - NonParenthesisDelimitedMI    : Evaluator (forMathPrimary)
+ - ExponentiationMI             : Evaluator (forMathPrimary)
+ - SubscriptingMI               : Evaluator (forMathPrimary)
+ - InFixity                     : OprUtil
+ - PreFixity                    : OprUtil
+ - PostFixity                   : OprUtil
+ - NoFixity                     : OprUtil
+ - MultiFixity                  : OprUtil
+ - EnclosingFixity              : OprUtil
+ - BigFixity                    : OprUtil
+
+
+* Differences between the Concrete Syntax Grammar (CSG) in the specification
+  and the Abstract Syntax Tree (AST) in Fortress.ast
+ 1) CSG defines productions for "NONTERMINALs" and "NONTERMINALList". For
+    example:
+
+Imports  ::= Import+
+Name     ::= Name | { NameList }
+NameList ::= Name(, Name)*
+
+    AST does not define such productions but use "List<NONTERMINAL>" instead.
+    For example, "List<Name>" is used instead of "NameList".
+
+ 2) CSG provides productions for component and API declarations that do not
+    include their "component DottedId/end" and "api DottedId/end" reserved
+    words:
+
+File ::= CompilationUnit
+       | Imports? Exports Decls?
+       | Imports? AbsDecls
+       | Imports AbsDecls?
+
+    AST does not provide such productions: They are all translated to
+    CompilationUnit.
+
+ 3) CSG distinguishes occurrences of "Id", "opr Op", and "opr EncloserPair".
+    For example:
+
+AliasedName ::= Id (as DottedId)?
+              | opr Op (as Op)?
+              | opr EncloserPair (as EncloserPair)?
+EncloserPair ::= LeftEncloser RightEncloser
+
+    AST does not distinguish them but uses FnName as follows:
+
+AliasedName(FnName fnName, Option<FnName> alias = new None<FnName>());
+
+ 4) CSG classifies declarations that can occur in trait, abstract trait, object,
+    and abstract object declarations in detail.  For example:
+
+GoInATrait        ::= Coercions? GoFrontInATrait GoBackInATrait?
+                    | Coercions? GoBackInATrait
+GoesFrontInATrait ::= AbsFldDecl
+                    | GetterSetterDecl
+                    | PropertyDecl
+GoesBackInATrait  ::= MdDecl
+                    | PropertyDecl
+
+    AST does not classify them but abstracts them as lists of Decls or lists of
+    AbsDecls as follows:
+
+TraitDecl(List<? extends Decl> decls) implements GenericDecl;
+
+ 5) CSG distinguishes kinds of modifiers for each declaration can have.  For
+    example:
+
+AbsTraitMod ::= value | test
+
+    AST does not distinguish them but abstracts them as lists of Modifiers
+    as follows:
+
+TraitObjectAbsDeclOrDecl(List<Modifier> mods ...)
+
+ 6) CSG has productions for most of clauses.  For example:
+
+Extends ::= extends TraitTypes
+
+    AST does not have such productions.  For example:
+
+TraitObjectAbsDeclOrDecl(..., Option<List<TraitType>> extendsClause ...)
+
+ 7) CSG distinguishes parameters of objects, methods, and functions.  For
+    example:
+
+ObjectValParam ::= ( ObjectParams? )
+ObjectParams ::= (ObjectParam ,)* (ObjectVarargs, )? ObjectKeyword(, ObjectKeyword)*
+               | (ObjectParam ,)* ObjectVarargs
+               | ObjectParam (, ObjectParam)*
+ObjectVarargs ::= transient Varargs
+ObjectKeyword ::= ObjectParam = Expr
+ObjectParam ::= ParamFldMods? Param
+              | transient Param
+
+    AST does not distinguish them but abstracts them as follows:
+
+abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
+               Id id);
+    NormalParam(Option<TypeRef> type = None.<TypeRef>make(),
+                Option<Expr> defaultExpr = None.<Expr>make());
+    VarargsParam(VarargsType varargsType);
+
+ 8) CSG distinguishes various forms of left-hand sides of variable and field
+    declarations.  For example:
+
+VarDecl ::= VarMods? VarWTypes InitVal
+          | VarMods? IdOrIdTuple = Expr
+          | VarMods? IdOrIdTuple : TypeRef ... InitVal
+          | VarMods? IdOrIdTuple : SimpleTupleType InitVal
+
+    AST does not distinguish them but abstracts them as follows:
+
+abstract VarAbsDeclOrDecl(List<LValueBind> lhs) implements VarFieldAbsDeclOrDecl;
+LValueBind(Id id, Option<TypeRef> type = None.<TypeRef>make(),
+           List<Modifier> mods = Collections.<Modifier>emptyList(),
+           boolean mutable) implements LHS;
+
+ 9) CSG distinguishes functional declarations in APIs and components (AbsFnDecl
+    and FnDecl, respectively) but it does not distinguish functional declarations
+    with and without body expressions.  AST does not distinguishes functional
+    declarations in APIs and functional declarations without body expressions
+    in components (both AbsFnDecl) but it distinguishes functional declarations
+    without body expressions in components (AbsFnDecl) and functional
+    declarations with body expressions (FnDef) in components.  These differences
+    are purely due to the different interests between the parser which cares
+    about syntactic entities and the later phases of the compiler which care
+    about semantic entities.
+
+10) CSG distinguishes function, method, getter, setter, and coercion declarations
+    but AST does not distinguish them.  Similarly, CSG distinguishes top-level
+    variable and field declarations but AST does not.
+
+11) A parenthesized expression in CSG:
+
+Parenthesized ::= ( Expr )
+
+    is represented as an Expr whose 'parenthesized" is set.
+
+12) CSG distinguishes big operators but AST abstracts them as Op.
+
+13) CSG syntactically restricts kinds of expressions that can appear after the
+    atomic and tryatomic reserved words.  AST abstracts them as Expr.
+
+14) Even though a function expression does not have a name, static parameters,
+    nor a where clause in CSG, AST includes them in FnExpr for the interpreter's
+    benefit.
+
+15) For the interpreter to manipulate scopes within block expressions, the
+    following syntax in CSG:
+
+BlockElem ::= LocalVarFnDecl
+            | Expr(, GeneratorList)?
+LocalVarFnDecl ::= LocalFnDecl+
+                 | LocalVarDecl
+
+    is represented as follows:
+
+LetExpr(List<Expr> body);
+    GeneratedExpr(Expr expr, List<Generator> gens);
+    LetFn(List<FnDef> fns);
+    LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = None.<Expr>make());
+
+    in AST.
+
+16) Unpasting syntax is slightly different.  The following syntax in CSG:
+
+Unpasting ::= [ UnpastingElems ]
+UnpastingElems ::= UnpastingElem RectSeparator UnpastingElems
+                 | UnpastingElem
+UnpastingElem ::= Id ([ UnpastingDim ])?
+                | Unpasting
+UnpastingDim ::= ExtentRange (BY ExtentRange)+
+
+    is represented in AST as follows:
+
+abstract Unpasting();
+    UnpastingBind(Id id, List<ExtentRange> dim);
+    UnpastingSplit(List<Unpasting> elems, int dim);
+
+17) In CSG, only Id or IntLiteral can appear in left-hand sides of array
+    comprehension clauses:
+
+ArrayComprehensionLeft ::= IdOrInt |-> Expr
+                         | ( IdOrInt, IdOrIntList ) |-> Expr
+IdOrInt ::= Id
+          | IntLiteral
+ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorList
+
+    AST abstracts them as:
+
+ArrayComprehensionClause(List<Expr> bind, Expr init, List<Generator> gens);
+
+18) Array expression syntax is slightly different.  The following syntax in CSG:
+
+Aggregate ::= [ RectElements ]
+RectElements ::= Expr MultiDimCons*
+MultiDimCons ::= RectSeparator Expr
+RectSeparator ::= ;+
+                | Whitespace
+
+    is represented in AST as follows:
+
+abstract ArrayExpr();
+    ArrayElement(Expr element);
+    ArrayElements(int dimension, List<ArrayExpr> elements);
+
+19) While CSG treats parenthesized expressions and tuple expressions as
+    functional arguments differently from other expressions as follows:
+
+BaseExpr ::= NoKeyTuple
+           | Parenthesized
+
+    AST does not distinguish them.
+
+20) Some expressions using operators cannot be parsed correctly without type
+    information.  Therefore, the following syntax in CSG:
+
+OpExpr ::= EncloserOp OpExpr? EncloserOp?
+         | OpExpr EncloserOp OpExpr?
+         | Primary
+EncloserOp ::= Encloser
+             | Op
+Primary ::= LeftEncloser ExprList? RightEncloser
+          | Primary . Id ([\StaticArgList\])? Parenthesized
+          | Primary . Id ([\StaticArgList\])? ()
+          | Primary ^ BaseExpr
+          | Primary ExponentOp
+          | Primary Parenthesized
+          | Primary ()
+          | Primary Primary
+
+    is abstracted in AST as follows:
+
+abstract OpExpr();
+    OprExpr(OprName op,
+            List<Expr> args = Collections.<Expr>emptyList());
+    abstract Primary();
+        Apply(Expr fn, Expr args);
+        ChainExpr(Expr first, List<Pair<Op, Expr>> links);
+        LooseJuxt(List<Expr> exprs);
+        TightJuxt(List<Expr> exprs);
+        FnRef(Expr expr,
+              List<StaticArg> staticArgs = Collections.<StaticArg>emptyList());
+
+21) Matrix types in CSG:
+
+TypeRef ::= TypeRef ^ StaticArg
+          | TypeRef ^ ( ExtentRange (BY ExtentRange)* )
+
+    is represented as follows in AST:
+
+MatrixType(TypeRef element, List<ExtentRange> dimensions);
+
+22) Array sizes in CSG:
+
+ArraySize ::= ExtentRange(, ExtentRange)*
+
+    is represented as follows in AST:
+
+abstract Indices();
+    FixedDim(List<ExtentRange> extents);
+
+23) CSG distinguishes prefix and postfix operators of dimensions and units:
+
+DUPreOp ::= square | cubic | inverse
+DUPostOp ::= squared | cubed
+
+    AST does not distinguish them:
+
+abstract DimUnitOp();
+    SquareDimUnit();
+    CubicDimUnit();
+    InverseDimUnit();
+
+24) AST has the following internal nodes that do not have corresponding syntax
+    in CSG:
+
+AnonymousFnName();
+ConstructorFnName(GenericWithParams def);
+
+25) CSG does not distinguish between different kinds of operators.  AST
+    classifies operators as follows:
+
+abstract OprName();
+    Enclosing(Op open, Op close);
+    Opr(Op op);
+    PostFix(Op op);
+    SubscriptOp();
+
+26) CSG distinguishes contracts used in coercion declarations and the other
+    functional declarations and object declarations.  AST abstracts them
+    as Contract.
+
+27) While CSG treats parenthesized types differently from other types as follows:
+
+NonArrowType ::= ( TypeRef? )
+
+    AST does not have a separate node for parenthesized types but maintains
+    a field describing parenthesizedness.
+
+28) While CSG has NonArrowType for the types of domain and range of an arrow
+    type, AST abstracts them as TypeRef.
+
+
+* Criteria for the Differences in CSG and AST
+ 1) It should be possible to reverse-engineer the source code from AST.
+ 2) Convenience for visitors is more preferrable to instanceof testing.
+ 3) Subclasses for variants are more preferrable to a class with a field.
+ 4) Do not propogate the subtype structure of a field to the enclosing method.
+ 5) Only leaves should be concrete classes.
+ 6) Common fields should be hoisted where possible and where it makes sense.
+
+
+* Frequently Asked Questions and Answers for Fortress.ast
+ 1) Why does it distinguish between List<TypeRef> and Option<List<TypeRef>>?
+   - Each of extends and excludes clauses and static parameter lists has type
+     List<...> because an empty clause or an empty list is a parse error.
+   - A parameter list of a functional has type List<Param> because a functional
+     always has a possibly empty parameter list.
+   - Each of comprises, throws, require, ensures, and invariants clauses has
+     type Option<List<...>> because we want to distinguish between:
+trait T end
+     and
+trait T comprises {...} end
+     for IDE supports.
+   - A parameter list of
+
+ 2) What are the purposes of the interfaces?
+
+ 3) What does the FnName hierarchy mean?
+    FnName (abstract)      : name representing a functional
+        DottedId           : qualified name
+        AnonymousFnName    : internal name for anonymous function expression
+        ConstructorFnName  : internal name for anonymous constructor expression
+        OprName (abstract) : name representing an operator
+            Enclosing      : a pair of enclosing operators
+            PostFix        : a postfix operator
+            SubscriptOp    : subscripting or subscripted assignment operator
+            Opr            : all the other operator
+
+ 4) What is the root of the node hierarchy, UIDObject?
+   - It provides a unique identification for each node.
+   - It should not include things that are applicable only to nodes.
+   - It should include things that are shared by nodes and the other parts
+     of the interpreter such as the "at" method.
+
+
+* Nodes That May Be Added Later
+ 1) Separate nodes for top-level functions, local functions, dotted methods,
+    functional methods, operators, coercions, getters, and setters.
