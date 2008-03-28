@@ -103,9 +103,9 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(TRUE, sub(t, "A->C", "C->C"));
         assertEquals(TRUE, sub(t, "B->C", "C->C"));
         assertEquals(TRUE, sub(t, "C->C", "C->C"));
-        //broken: assertEquals(FALSE, sub(t, "D->C", "C->C"));
+        assertEquals(FALSE, sub(t, "D->C", "C->C"));
         
-        //broken: assertEquals(FALSE, sub(t, "C->A", "A->C"));
+        assertEquals(FALSE, sub(t, "C->A", "A->C"));
         assertEquals(TRUE, sub(t, "A->C", "C->A"));
         
         debug.logEnd();

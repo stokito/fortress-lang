@@ -124,7 +124,7 @@ public abstract class ConstraintFormula {
                 newUppers.put((InferenceVarType) sigma.value(e.getKey()), sigma.value(e.getValue()));
             }
             for (Map.Entry<InferenceVarType, Type> e : _lowerBounds.entrySet()) {
-                newUppers.put((InferenceVarType) sigma.value(e.getKey()), sigma.value(e.getValue()));
+                newLowers.put((InferenceVarType) sigma.value(e.getKey()), sigma.value(e.getValue()));
             }
             return new SimpleFormula(newUppers, newLowers);
         }
