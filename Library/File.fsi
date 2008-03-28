@@ -22,30 +22,34 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
     getter fileName():String
     getter toString():String
 
-    (** eof returns true if an end-of-file condition has been
+    (** \VAR{eof} returns true if an end-of-file condition has been
         encountered on the stream. **)
     getter eof():Boolean
 
-    (** ready returns true if there is currently input from the stream
-        available to be consumed. **)
+    (** \VAR{ready} returns true if there is currently input from the stream
+        available to be consumed.
+     **)
     getter ready():Boolean
 
-    (** close the stream **)
+    (** close the stream
+     **)
     close():()
 
-    (** Returns the next available line from the stream, discarding
-        line termination characters.  Returns "" on eof. **)
+    (** \VAR{readLine} returns the next available line from the stream, discarding
+        line termination characters.  Returns "" on eof.
+     **)
     readLine():String
 
-    (** Returns the next available character from the stream, or "" on eof. **)
+    (** Returns the next available character from the stream, or "" on eof.
+     **)
     readChar():Char
 
-    (** Returns the next k characters from the stream.  It will block
+    (** \VAR{read} returns the next \VAR{k} characters from the stream.  It will block
         until at least one character is available, and will then
         return as many characters as are ready.  Will return "" on end
-        of file.  If k<=0 or absent a default value is chosen. **)
+        of file.  If k<=0 or absent a default value is chosen.
+     **)
     read(k:ZZ32):String
-
     read():String
 
     (** All file generators yield file contents in parallel by
@@ -74,17 +78,19 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
      **)
 
 
-    (** lines yields the lines found in the file a la readLine(). **)
+    (** \VAR{lines} yields the lines found in the file a la \VAR{readLine}.
+     **)
     lines(n:ZZ32):Generator[\String\]
     lines():Generator[\String\]
 
-    (** characters yields the characters found in the file a la readChar(). **)
+    (** \VAR{characters} yields the characters found in the file a la \VAR{readChar}.
+     **)
     characters(n:ZZ32):Generator[\String\]
     characters():Generator[\String\]
 
-    (** chunks returns chunks of characters found in the file, in the
-        sense of read().  The first argument is equivalent to the
-        argument k to read, the second (if present) is the number of
+    (** \VAR{chunks} returns chunks of characters found in the file, in the
+        sense of \VAR{read}.  The first argument is equivalent to the
+        argument \VAR{k} to read, the second (if present) is the number of
         chunks at a time.
      **)
     chunks(n:ZZ32,m:ZZ32):Generator[\String\]

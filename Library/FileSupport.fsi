@@ -18,7 +18,8 @@
 api FileSupport
 
 (***********************************************************
- * Types to support file input and output                  *)
+ * Types to support file input and output
+ ***********************************************************)
 
 trait Closeable
     close():()
@@ -30,30 +31,35 @@ trait FileStream extends Closeable
 end
 
 trait Consumable
-    consume(desc: String):()
-    whenUnconsumed(desc: String):()
+    consume():()
+    whenUnconsumed():()
 end
 
 trait ReadStream extends { Closeable, Consumable }
     (** eof returns true if an end-of-file condition has been
-        encountered on the stream. **)
+        encountered on the stream.
+     **)
     getter eof():Boolean
 
     (** ready returns true if there is currently input from the stream
-        available to be consumed. **)
+        available to be consumed.
+     **)
     getter ready():Boolean
 
     (** Returns the next available line from the stream, discarding
-        line termination characters.  Returns "" on eof. **)
+        line termination characters.  Returns "" on eof.
+     **)
     readLine():String
 
-    (** Returns the next available character from the stream, or "" on eof. **)
+    (** Returns the next available character from the stream, or "" on eof.
+     **)
     readChar():String
 
     (** Returns the next k characters from the stream.  It will block
         until at least one character is available, and will then
         return as many characters as are ready.  Will return "" on end
-        of file.  If k<=0 or absent a default value is chosen. **)
+        of file.  If k<=0 or absent a default value is chosen.
+     **)
     read(k:ZZ32):String
 
     read():String
@@ -90,11 +96,13 @@ trait ReadStream extends { Closeable, Consumable }
      **)
 
 
-    (** lines yields the lines found in the file a la readLine(). **)
+    (** lines yields the lines found in the file a la readLine().
+     **)
     lines(n:ZZ32):Generator[\String\]
     lines():Generator[\String\]
 
-    (** characters yields the characters found in the file a la readChar(). **)
+    (** characters yields the characters found in the file a la readChar().
+     **)
     characters(n:ZZ32):Generator[\String\]
     characters():Generator[\String\]
 
