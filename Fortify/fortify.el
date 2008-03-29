@@ -1472,9 +1472,7 @@ extension '.tex'."
      (requires (looking-at "^[ \t]*(\\*\\*+[ \t]*"))
      (replace-match "")  ; Strip opening delimiter
      (if (not (looking-at ".*[*])"))    ; Handle single-line doc comment by falling thru.
-         (while (and (down-left-if-more-lines) (not (looking-at ".*[*])")))
-           (looking-at "^[ \t]*[*]*[ \t]*")   ; Look for leading junk (always succeeds)
-           (replace-match "")))               ; Strip it
+         (remove-doc-comment-middle-lines))
      (cond
       ((looking-at "^[ \t]*[*]+)[ \t]*[\n]")  ; Just a terminator, kill the line.
        (replace-match "")
@@ -1484,6 +1482,26 @@ extension '.tex'."
        (match-end 0))
       (t
        (signal-error "Unterminated documentation comment"))))))
+
+(defun remove-doc-comment-middle-lines ()
+  "Iterate thru interior lines of doc comment, stripping junk & fortifying if needed"
+  (let ((fortification-mark nil))
+    (while (and (down-left-if-more-lines) (not (looking-at ".*\\*)")))
+      (looking-at "^[ \t]*\\**[ \t]*")   ; Look for leading junk (always succeeds)
+      (replace-match "")                 ; Strip it
+      (cond
+       ((looking-at "^%\\($\\|[^%]\\)")
+        (if (not fortification-mark)
+            (setq fortification-mark (copy-marker (point)))))
+       (fortification-mark
+        (fortify-region (marker-position fortification-mark) (point))
+        (setq fortification-mark nil))))
+    (cond
+     ((looking-at "^%\\($\\|[^%]\\)")
+      (signal-error "Can't fortify closing line of documentation comment."))
+     (fortification-mark
+      (fortify-region (marker-position fortification-mark) (point))
+      (setq fortification-mark nil)))))
 
 (defun fortify-next-code-block ()
   "Finds and fortifies the contiguous block of Fortress code start at
