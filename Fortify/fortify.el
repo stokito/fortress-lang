@@ -1419,7 +1419,7 @@ extension '.tex'."
 (defun fortify-region (left right)
   (save-excursion
     (goto-char left)
-    (push-mark (point) nil)
+    (push-mark (point) t)
     (goto-char right)
     (fortify-if-not-blank-space)))
 
@@ -1439,19 +1439,22 @@ extension '.tex'."
   all doc comments are written as LaTeX prose describing the
   code."
   (interactive)
-  (remove-copyright)
-  (print-header "TOOL FORTEX")
-  (let ((more-lines t))
+  (let ((case-fold-search t)
+        (more-lines t))
+    (remove-copyright)
     (goto-start-of-buffer)
+    (print-header "TOOL FORTEX")
+    (insert "\\FortexSettings\n")
     (while more-lines
-       (cond ((at-start-of-doc-comment)
-	      (remove-doc-comment-chars)
-	      (setq more-lines (down-left-if-more-lines)))
-	     ((at-start-of-tests)
-	      (setq more-lines (omit-tests)))
-	     (t (fortify-next-code-block)
-		(setq more-lines (down-left-if-more-lines)))))
-  (write-as-tex-file)))
+      (cond ((at-start-of-doc-comment)
+             (remove-doc-comment-chars)
+             (setq more-lines (down-left-if-more-lines)))
+            ((looking-at "^[ \t]*$")
+             (setq more-lines (down-left-if-more-lines)))
+            ((at-start-of-tests)
+             (setq more-lines (omit-tests)))
+            (t (setq more-lines (fortify-next-code-block))))))
+  (write-as-tex-file))
 
 (defun foreg ()
   "Fortify the region of the buffer delimited by special doc comments
@@ -1475,39 +1478,51 @@ extension '.tex'."
   (interactive)
   (goto-char
    (save-excursion
-     (requires (looking-at "^[ \t]*(\\*\\*+[ \t]*"))
-     (replace-match "")  ; Strip opening delimiter
-     (if (not (looking-at ".*[*])"))    ; Handle single-line doc comment by falling thru.
-         (remove-doc-comment-middle-lines))
+     (let ((start (point)))
+       (requires (looking-at "^\\( *\\)(\\*\\*+[ \t]*[\n]?"))
+       (replace-match "\\\\begin{FortressDoc}{\\1}\n" t)  ; Strip opening delimiter
+       (let ((end (point)))
+         (while (search-backward " " start t)
+           (replace-match "~" t))
+         (goto-char end)))
+     (remove-doc-comment-middle-lines)
+     (beginning-of-line)
      (cond
-      ((looking-at "^[ \t]*[*]+)[ \t]*[\n]")  ; Just a terminator, kill the line.
-       (replace-match "")
-       (- (match-end 0) 1))
-      ((looking-at "^[ \t]*[*]*[ \t]*\\(.*?\\)[ \t]*[*]+)[ \t]*")
-       (replace-match "\\1") ; Strip trailing comment
-       (match-end 0))
+      ((looking-at "^[ \t]*[*]+)[ \t]*$")  ; Just a terminator, kill the line.
+       (replace-match "\\\\end{FortressDoc}" t))
+      ((looking-at "^\\(.*?\\)[ \t]*[*]+)[ \t]*$")
+       (replace-match "\\1\n\\\\end{FortressDoc}" t))
       (t
-       (signal-error "Unterminated documentation comment"))))))
+       (signal-error "Unterminated documentation comment")))
+     (point))))
 
 (defun remove-doc-comment-middle-lines ()
   "Iterate thru interior lines of doc comment, stripping junk & fortifying if needed"
-  (let ((fortification-mark nil))
-    (while (and (down-left-if-more-lines) (not (looking-at ".*\\*)")))
-      (looking-at "^[ \t]*\\**[ \t]*")   ; Look for leading junk (always succeeds)
-      (replace-match "")                 ; Strip it
+  (let ((fortification-mark nil)
+        (still-removing     t))
+    (while still-removing
+      (looking-at "^[ \t]*\\(\\*+\\([ \t]+\\|$\\|\\([^*)]\\)\\)\\)?")
+      (replace-match "\\3" t)
+      (beginning-of-line)
+      ;; Handle block fortification (initial %)
       (cond
-       ((looking-at "^%\\($\\|[^%]\\)")
+       ((looking-at "^%[^%]*?$")
         (if (not fortification-mark)
             (setq fortification-mark (copy-marker (point)))))
        (fortification-mark
         (fortify-region (marker-position fortification-mark) (point))
-        (setq fortification-mark nil))))
-    (cond
-     ((looking-at "^%\\($\\|[^%]\\)")
-      (signal-error "Can't fortify closing line of documentation comment."))
-     (fortification-mark
-      (fortify-region (marker-position fortification-mark) (point))
-      (setq fortification-mark nil)))))
+        (setq fortification-mark nil)))
+      ;; Fortify intra-line %-delimited Fortress expressions
+      (while (looking-at "\\([^%\n]*\\)%\\([^%\n]+\\)%\\([^\n]*\\)$")
+        (replace-match "\\1%\\2\n\\2\n\\3" t)
+        ;; Point now after replacement.
+        (forward-line -1)
+        (beginning-of-line)
+        (push-mark (point) t)
+        (end-of-line)
+        (delete-char 1)
+        (fortify 4))
+      (setq still-removing (and (not (looking-at ".*\\*)")) (down-left-if-more-lines))))))
 
 (defun fortify-next-code-block ()
   "Finds and fortifies the contiguous block of Fortress code start at
@@ -1517,17 +1532,14 @@ extension '.tex'."
   (interactive)
   (requires (not (at-start-of-doc-comment)))
   (let ((more-lines t))
-    (push-mark (point) nil)
+    (push-mark (point) t)
     (while (and more-lines
 		(not (or (at-start-of-doc-comment)
 			 (at-start-of-tests))))
       (setq more-lines (down-left-if-more-lines)))
-    (if (or (at-start-of-doc-comment)
-	    (at-start-of-tests))
-	(progn (forward-line -1)
-	       (end-of-line))
-      (end-of-line))
-    (fortify-if-not-blank-space)))
+    (unless more-lines (end-of-line))
+    (fortify-if-not-blank-space)
+    more-lines))
 
 (defun fortify-if-not-blank-space ()
   "Checks that the region isn't empty before calling fortify."
@@ -1540,7 +1552,7 @@ extension '.tex'."
   (requires (at-start-of-example))
 
   (delete-line)
-  (push-mark (point) nil)
+  (push-mark (point) t)
   (let ((more-lines t))
     (while (and more-lines (not (at-end-of-example)))
       (setq more-lines (down-left-if-more-lines)))
@@ -1605,12 +1617,12 @@ beginning of an example, delimited by the doc comment '(** EXAMPLE **)'."
     "Attempt to remove a block copyright notice if one exists."
     (save-excursion
       (if (re-search-forward block-copyright-regexp nil t)
-        (replace-match ""))))
+        (replace-match "" t))))
 
 (defun at-start-of-doc-comment ()
   "Boolean function that determines whether point is at the beginning of a
 doc comment."
-  (looking-at "[ \t]*([*][*]"))
+  (looking-at "^ *(\\*\\*"))
 
 (defun delete-whitespace ()
   "Simple helper function that deletes all whitespace immediately following

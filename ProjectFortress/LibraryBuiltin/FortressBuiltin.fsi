@@ -19,9 +19,7 @@ api FortressBuiltin
 (* import NativeSimpleTypes.{Boolean} *)
 
 trait Any end
-(*
-trait Boolean extends { Any } comprises {...} end
-*)
+
 trait String extends { Any }
     (* excludes { IntLiteral, FloatLiteral, Boolean } *)
 end
@@ -37,7 +35,6 @@ trait  Integral extends { Number }
     (* excludes { String, Boolean, RR64, FloatLiteral } *)
 end
 
-(* trait BufferedReader extends { Any } end *)
 trait BufferedWriter extends { Any } end
 
 trait ZZ32 extends { Integral }

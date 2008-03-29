@@ -56,13 +56,6 @@ trait FloatLiteral extends { RR64 } end
 
 trait Region extends { Any } end
 
-trait BufferedReader extends { Any } end
 trait BufferedWriter extends { Any } end
 
-(*
-true: Boolean = builtInPrimitive(
-                  "com.sun.fortress.interpreter.evaluator.values.FBool.TRUE")
-false: Boolean = builtInPrimitive(
-                  "com.sun.fortress.interpreter.evaluator.values.FBool.FALSE")
-*)
 end
