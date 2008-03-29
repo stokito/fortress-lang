@@ -205,31 +205,26 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
 
 * Parallel tupling and argument evaluation.
 
-* Parallel for loops over simple ranges such as 0#n.  Only values of
-  type ZZ32Range can currently be used as for loop generators; true
-  generators do not yet exist due to shortcomings in the type system
-  and the absence of loop desugaring.
+* Parallel for loops over simple ranges such as 0#n.
 
-* Sequential for loops over simple ranges.  The seq() and sequential()
-  functions (which are identical) take a ZZ32Range and return an
-  equivalent sequential ZZ32Range.  Every use of the resulting range
-  as a loop generator will cause the loop to run sequentially.
+* Sequential for loops over simple ranges.  The functional method seq()
+  and the equivalent function sequential() can be used to turn any
+  Generator into a SequentialGenerator.
 
 * While loops, typecase, if, etc.  Note that for parametric types
   typecase isn't nearly as useful as you might think, since it cannot
   bind type variables; we are working to address this shortcoming.
 
-* The "atomic" construct uses code from the DSTM2 transactional memory
-  library.  Nested transactions are flattened.  We use their obstruction
+* The "atomic" construct uses code basedn on the DSTM2 library.
+  Nested transactions are flattened.  We use their obstruction
   free algorithm with a simple backoff contention manager.  Reductions
   are not yet implemented, so perform an explicit atomic update instead.
 
-* throw and catch.  Because of this lack we do not yet perform
-  arithmetic range checks.
+* throw and catch expressions.
 
-* Generators
+* Generators.
 
-* at and other data placement
+* at expressions.
 
 * spawn
 
@@ -261,6 +256,8 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 * Constraint solving for nat parameters
 
 * Reduction variables
+
+* Distributions
 
 * Any of the types which classify operator properties
 
