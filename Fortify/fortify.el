@@ -450,6 +450,10 @@ Fortress source code)."
 	 "^{ \\1 }")
 	;;   Simple name or literal
 	("\\^\\([A-Za-z0-9_.']+\\)" "^{ \\1 }")
+        ;; Handle bare _ so we don't subsequently confuse it with inserted subscripting:
+        ("\\(^\\|[^a-zA-Z0-9_{]\\)_\\([']*\\)\\($\\|[^a-zA-Z0-9_}]\\)" "\\1{\\\\tt\\\\_}\\2{}\\3")
+        ("\\(^\\|[^a-zA-Z0-9_{]\\)__\\([']*\\)\\($\\|[^a-zA-Z0-9_}]\\)" "\\1{\\\\tt\\\\_\\\\_}\\2{}\\3")
+        ("\\(^\\|[^a-zA-Z0-9_{]\\)___\\([']*\\)\\($\\|[^a-zA-Z0-9_}]\\)" "\\1{\\\\tt\\\\_\\\\_\\\\_}\\2{}\\3")
 	;; Subscripts
 	;;  Single-dimensional
 	;;     Single letter or digit with optional prime marks
@@ -1130,6 +1134,9 @@ Fortress source code)."
 	("\\(^\\|[^{A-Za-z0-9_\\\\]\\)_\\([A-Za-z]+\\)\\([']*\\)\\($\\|[^}_]\\)" "\\1{}\\\\mathbf{\\2}\\3\\4")
 	("\\(^\\|[^{A-Za-z0-9_\\\\]\\)_\\([A-Za-z]+\\)\\([0-9]+\\)\\([']*\\)\\($\\|[^}_]\\)" "\\1{}\\\\mathbf{\\2}_{\\3}\\4\\5")
 	("\\(^\\|[^{A-Za-z0-9_\\\\]\\)_\\([A-Za-z]+\\)_\\([A-Za-z0-9]+\\)\\([']*\\)\\($\\|[^}_]\\)" "\\1{}\\\\mathbf{\\2}_{\\\\mathrm{\\3}}\\4\\5")
+        ;;   Doubled underscores, leading and internal/trailing (only handle 1 pair)
+        ("\\(^\\|[^{A-Za-z0-9_\\\\]\\)__\\([A-Za-z][A-Za-z0-9]*[']*\\)\\($\\|[^}_]\\)" "\\1\\\\VAR{{\\\\tt\\\\_\\\\_}\\2}\\3")
+        ("\\(^\\|[^{A-Za-z0-9_\\\\]\\)\\([A-Za-z][A-Za-z0-9]*\\)__\\([A-Za-z0-9]*[']*\\)\\($\\|[^}_]\\)" "\\1\\\\VAR{\\2{\\\\tt\\\\_\\\\_}\\3}\\4")
 	;; Figuring out left, right, and infix | and ||
 	("\\(^\\| \\|\t\\|(\\|\\[\\|\\[\\\\\\|<\\\\\\|<<\\\\\\|,\\|;\\)||\\([^ \t\n]\\)" "\\1{}\\\\left\\\\|\\2")
 	("\\(^\\| \\|\t\\|(\\|\\[\\|\\[\\\\\\|<\\\\\\|<<\\\\\\|,\\|;\\)|\\([^ \t\n|]\\)" "\\1{}\\\\left\\2")
@@ -1412,7 +1419,7 @@ extension '.tex'."
 (defun fortify-region (left right)
   (save-excursion
     (goto-char left)
-    (push-mark)
+    (push-mark (point) nil)
     (goto-char right)
     (fortify-if-not-blank-space)))
 
@@ -1425,6 +1432,7 @@ extension '.tex'."
   file with doc comments (possibly containing embedded LaTeX commands)
   and produce a LaTeX file where all Fortress code is fortified and
   all doc comments are written as LaTeX prose describing the code."
+  (interactive)
   (remove-copyright)
   (print-header "TOOL FORTEX")
   (let ((more-lines t))
@@ -1458,30 +1466,34 @@ extension '.tex'."
   "Removes beginning comment characters of the contiguous doc comment
   starting at point. Once finished, point is at the very end of the
   processed doc comment."
-  (requires (at-start-of-doc-comment))
-  (requires (looking-at "[ \t]*([*][*]+[ \t]*"))
-  (replace-match "")
-  (while (and (down-left-if-more-lines) (not (looking-at ".*[*])")))
-    (looking-at "^[ \t]*[*]*[ \t]*")
-    (replace-match ""))
-  (cond
-     ((looking-at "^[ \t]*[*]+)[ \t]*[\n]")
-      (replace-match "")
-      (goto-char (- (match-end 0) 1)))
-     ((looking-at "^[ \t]*[*]*[ \t]*\\(\\([* \t]*[^* \t\n]\\)*\\)[ \t]*[*]+)[ \t]*")
-      (replace-match "\\1")
-      (goto-char (match-end 0)))
-     (t
-      (signal-error "Unterminated documentation comment"))))
+  (interactive)
+  (goto-char
+   (save-excursion
+     (requires (looking-at "^[ \t]*(\\*\\*+[ \t]*"))
+     (replace-match "")  ; Strip opening delimiter
+     (if (not (looking-at ".*[*])"))    ; Handle single-line doc comment by falling thru.
+         (while (and (down-left-if-more-lines) (not (looking-at ".*[*])")))
+           (looking-at "^[ \t]*[*]*[ \t]*")   ; Look for leading junk (always succeeds)
+           (replace-match "")))               ; Strip it
+     (cond
+      ((looking-at "^[ \t]*[*]+)[ \t]*[\n]")  ; Just a terminator, kill the line.
+       (replace-match "")
+       (- (match-end 0) 1))
+      ((looking-at "^[ \t]*[*]*[ \t]*\\(.*?\\)[ \t]*[*]+)[ \t]*")
+       (replace-match "\\1") ; Strip trailing comment
+       (match-end 0))
+      (t
+       (signal-error "Unterminated documentation comment"))))))
 
 (defun fortify-next-code-block ()
   "Finds and fortifies the contiguous block of Fortress code start at
   point and ending at the next doc comment (or the end of the
   file). Once finished, point is at the very end of the block of
   code."
+  (interactive)
   (requires (not (at-start-of-doc-comment)))
   (let ((more-lines t))
-    (push-mark)
+    (push-mark (point) nil)
     (while (and more-lines
 		(not (or (at-start-of-doc-comment)
 			 (at-start-of-tests))))
@@ -1504,7 +1516,7 @@ extension '.tex'."
   (requires (at-start-of-example))
 
   (delete-line)
-  (push-mark)
+  (push-mark (point) nil)
   (let ((more-lines t))
     (while (and more-lines (not (at-end-of-example)))
       (setq more-lines (down-left-if-more-lines)))
@@ -1635,6 +1647,7 @@ character."
 (defun down-left-if-more-lines ()
   "If there is a next line after point, moves point to the beginning of the
 next line and returns true. Returns false otherwise."
+  (interactive)
   (let ((last-line nil))
     (save-excursion
       (end-of-line)
