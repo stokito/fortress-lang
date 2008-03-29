@@ -1,144 +1,142 @@
 PROJECT FORTRESS SUBVERSION REPOSITORY
 
-This README exists in the top-level directory of the Fortress project.  
-Infoermation about Fortress can be found at the following website:
+This README exists in the top-level directory of the Fortress project.
+Information about Fortress can be found at the following website:
 
-http://projectfortress.sun.com
+  http://projectfortress.sun.com
 
-If you have Subversion installed, you can check out the Fortress 
-repository by going to the directory in which you want to check it out 
+If you have Subversion installed, you can check out the Fortress
+repository by going to the directory in which you want to check it out
 and issuing the following command:
 
-svn checkout https://projectfortress.sun.com/svn/Community/trunk PFC
+  svn checkout https://projectfortress.sun.com/svn/Community/trunk PFC
 
 (The name "PFC" merely specifies the name of the directory you want
-to check the code into. Feel free to substitute another directory
+to check the code into.  Feel free to substitute another directory
 name if you prefer.)
 
 You'll now have a subdirectory named 'PFC'.  Go into that
 directory and you'll see several subdirectories:
 
 Fortify: The Fortify tool for converting Fortress code into LaTeX,
-both interactively and in batch mode. Scripts are provided for 
+both interactively and in batch mode.  Scripts are provided for
 conveniently producing rendered Fortress code in LaTeX documents,
-for producing PDF "doc" files from Fortress source code, etc. See
+for producing PDF "doc" files from Fortress source code, etc.  See
 Fortify/fortify-doc.txt for more information.
 
 ProjectFortress: The Fortress interpreter.  You'll need to build the
-interpreter by following the instructions below for setting up your 
+interpreter by following the instructions below for setting up your
 environment in order to have a complete Fortress installation.
 
-Emacs: A directory holding the Emacs Lisp file fortress-mode.el, 
-which defines a Fortress mode for Emacs. To use this file, load
+Emacs: A directory holding the Emacs Lisp file fortress-mode.el,
+which defines a Fortress mode for Emacs.  To use this file, load
 it from your .emacs file with the following command:
 
-  (load (concat (getenv "FORTRESS_HOME")                                                                                                  
-                "/Fortify/fortify.el"))    
+  (load (concat (getenv "FORTRESS_HOME")
+                "/Fortify/fortify.el"))
 
 SpecData: Machine-readable files used by the Fortress Language
-Specification (e.g., a list of all reserved words).  Editors and other 
-tools may also benefit from using these files. Moreover, all examples 
+Specification (e.g., a list of all reserved words).  Editors and other
+tools may also benefit from using these files.  Moreover, all examples
 included in the language specification are included in the directory
-SpecData/examples. 
+SpecData/examples.
 
 Library: The home for all of the Fortress standard libraries.
 
-bin: Shell scripts for our various projects. These are bash scripts; 
+bin: Shell scripts for our various projects.  These are bash scripts;
 you will need an installation of Bash on your system to run them.
 
 You will also see the following files:
 
-ant: A small bash script used for invoking the build.xml with 
-specific Ant options. (This script defers to the script with the
+ant: A small bash script used for invoking the build.xml with
+specific Ant options.  (This script defers to the script with the
 same name in directory ProjectFortress.)
 
-build.xml: The interpreter build script, written in Ant. (This
-script defers to the script with the same name in directory
+build.xml: The interpreter build script, written in Ant.  (This
+script defers to the script with the same name in the directory
 ProjectFortress.)
 
 fortress.properties: This file defines several environment variables
-used by the internals of the Fortress interpreter. (Normally, there is 
+used by the internals of the Fortress interpreter.  (Normally, there is
 no reason to override the settings in this file.)
+
 
 SETTING UP YOUR ENVIRONMENT
 
 We assume you are using an operating system with a Unix-style shell
-(for example, Solaris, Linux, Mac OS X, or Cygwin on Windows). You
+(for example, Solaris, Linux, Mac OS X, or Cygwin on Windows).  You
 will need to have access to the following:
 
-* J2SDK 1.5 or later. See http://java.sun.com/javase/downloads/index.jsp
-* Ant 1.6.5 or later. See http://ant.apache.org/bindownload.cgi
-* JUnit 3.8.1 or later. See http://prdownloads.sourceforge.net/junit
+* J2SDK 1.5 or later.  See http://java.sun.com/javase/downloads/index.jsp
+* Ant 1.6.5 or later.  See http://ant.apache.org/bindownload.cgi
+* JUnit 3.8.1 or later.  See http://prdownloads.sourceforge.net/junit
 * Bash version 2.5 or later, installed at /bin/bash.
   See http://www.gnu.org/software/bash/
 
 In your shell startup script, define environment variable
-FORTRESS_HOME to point to the PFC directory you checked
-out. It is very important to set this environment variable correctly; 
+FORTRESS_HOME to point to the PFC directory you checked out.
+It is very important to set this environment variable correctly;
 it is used by several scripts and build files.
 
-In your shell startup script, add $FORTRESS_HOME/bin to your path. 
-The shell scripts in this directory are Bash scripts. To run them, 
-you must have Bash accessible in /bin/bash. 
+In your shell startup script, add $FORTRESS_HOME/bin to your path.
+The shell scripts in this directory are Bash scripts.  To run them,
+you must have Bash accessible in /bin/bash.
 
-Make sure the following environment variables are set in your startup 
+Make sure the following environment variables are set in your startup
 script:
 
-JAVA_HOME
-ANT_HOME
+  JAVA_HOME
+  ANT_HOME
 
-(Although our scripts are sometimes able to guess the locations of 
+(Although our scripts are sometimes able to guess the locations of
 JAVA_HOME and ANT_HOME, it is preferred that you set them manually.)
 
-Once all of these environment variables are set, build the
-interpreter by going to directory $FORTRESS_HOME and typing the command:
+Once all of these environment variables are set, build the interpreter
+by going to the directory $FORTRESS_HOME and typing the command:
 
-	./ant clean test
+  ./ant clean test
 
 If that doesn't work, there's a bug in the interpreter; please issue a
 bug report.
 
-Once you have built the interpreter,, you can call it from any directory, 
+Once you have built the interpreter, you can call it from any directory,
 on any Fortress file, simply by typing one of the following commands at a
 command line:
 
-fortress compile somefile.fs{s,i} 
-fortress [run] [-test] [-debug] somefile.fss arg...
-fortress help
+  fortress compile somefile.fs{s,i}
+  fortress [run] [-test] [-debug] somefile.fss arg...
+  fortress help
 
-A command of the form "fortress compile somefile.fss" or 
-"fortress compile somefile.fsi" calls the static checker on the given 
-file and stores the result in a hidden "cache" directory. No user-visible 
-object file is generated. (At present, the static checker has limited
-functionality. Most significantly, static type errors are not yet 
-signaled.) A file with suffix .fsi should contain a single API definition. 
-The name of the API should match the name of the file. Similarly, a file 
-with the suffix .fss should contain a single component definition. The name
+A command of the form "fortress compile somefile.fss" or
+"fortress compile somefile.fsi" calls the static checker on the given
+file and stores the result in a hidden "cache" directory.  No user-visible
+object file is generated.  (At present, the static checker has limited
+functionality.  Most significantly, static type errors are not yet
+signaled.)  A file with suffix .fsi should contain a single API definition.
+The name of the API should match the name of the file.  Similarly, a file
+with the suffix .fss should contain a single component definition.  The name
 of the component should match the name of the file.
 
 A command of the form "fortress run somefile.fss" checks whether a cached
-and up to date result of compiling the given file exists. If so, it runs 
-the cached file. Otherwise, it compiles the given file and runs the result. 
-This command can be abbreviated as "fortress somefile.fss". If the optional 
-flag -test is given, the "run" function is not executed; instead, all tests 
-defined in the given file are run. If the optional flag -debug is given, 
-stack traces from the underlying interpreter are displayed when errors are 
-signaled. 
+and up to date result of compiling the given file exists.  If so, it runs
+the cached file.  Otherwise, it compiles the given file and runs the result.
+This command can be abbreviated as "fortress somefile.fss".  If the optional
+flag -test is given, all test functions defined in the given file are run.
+If the optional flag -debug is given, stack traces from the underlying
+interpreter are displayed when errors are signaled.
 
 If all else fails, look at the script bin/fortress to see if your system
 has peculiarities (for example cygwin requires ; separators in the
 classpath).
 
+
 DEMO PROGRAMS
 
-The directory ProjectFortress/demos/ contains some demonstration Fortress 
-programs. Among them are:
+The directory ProjectFortress/demos/ contains some demonstration Fortress
+programs.  Among them are:
 
 buffons.fss: Buffon's needle.  Estimates pi using a Monte Carlo
 simulation.
-
-fingerTree.fss: Finger trees.  This demo parses but does not currently
-work.
 
 lutx.fss: Naive dense LU decomposition.  Demonstrates how to define
 new subclasses of Array2.
@@ -150,36 +148,31 @@ similar cache-oblivious multiplication routine.
 sudoku.fss: Solve a simple sudoku by elimination.  Includes a
 tree-based set implementation.
 
-tree.fss: Tree-based wavelet functions, inspired by ORNL Madness
-library.  This was used to prototype our matrix and vector
-implementations, but that code has been moved to the libraries and
-this demo doesn't quite work.
-
 
 COMPONENTS
 
 Fortress currently lacks a full-blown component system.  All the code
-in your Fortress program should reside in api and compponent file pairs.
-If you take a look at the Fortress programs in ProjectFortress/tests/ 
-or ProjectFortress/demos/ SpecData, you'll see that they have the same 
-overall structure:
+in your Fortress program should reside in API and compponent file pairs.
+If you take a look at the Fortress programs in ProjectFortress/tests/
+or ProjectFortress/demos/ SpecData/examples, you'll see that they have
+the same overall structure:
 
 
 component MyComponent
-exports Executable
+  exports Executable
 
-...  Your program here ...
+  ...  Your program here ...
 
-run(args:String...):() = ...
-
+  run(args:String...):() = ...
 
 end
+
 
 LANGUAGE FEATURES THAT ARE IMPLEMENTED
 
 * Object and trait declarations, including polymorphic traits.
-  Polymorphic singletons are not yet accepted.  Constructor
-  invocations must *always* provide the type arguments explicitly.
+  Constructor invocations must *always* provide the static arguments
+  explicitly.
 
 * Overloaded functions and ordinary methods.  Top-level overloaded
   functions can be polymorphic.  Nested functions and methods must be
@@ -190,10 +183,10 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
 
 * Checking and inference of argument types to functions, methods, and
   operators.  These checks use the dynamic types of the arguments.
-  Return types are NOT checked.  Inference of type parameters is not
-  complete yet; it is often necessary to provide type arguments
+  Return types are NOT checked.  Inference of static parameters is not
+  complete yet; it is often necessary to provide static arguments
   explicitly.  It is *always* necessary to do so in a constructor call
-  and in any situation where a type parameter occurs only in the result
+  and in any situation where a static parameter occurs only in the result
   and not in the arguments to a function.  For example, you must always
   provide the array element type E and size n when invoking the
   factory array1[\E,n\]().
@@ -231,6 +224,17 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
   free algorithm with a simple backoff contention manager.  Reductions
   are not yet implemented, so perform an explicit atomic update instead.
 
+* throw and catch.  Because of this lack we do not yet perform
+  arithmetic range checks.
+
+* Generators
+
+* at and other data placement
+
+* spawn
+
+* also (multiple parallel blocks)
+
 LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 * Numerals with radix specifiers (which implies that some numerals may be
@@ -256,16 +260,7 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 * Constraint solving for nat parameters
 
-* throw and catch.  Because of this lack we do not yet perform
-  arithmetic range checks.
-
-* Generators and reduction variables
-
-* at and other data placement
-
-* spawn
-
-* also (multiple parallel *blocks*; use tuples of blocks instead.)
+* Reduction variables
 
 * Any of the types which classify operator properties
 
@@ -280,77 +275,63 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 * Use of ZZ64 for indexing
 
 
-SYNTAX CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 ALPHA
+CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 BETA
 
-* A file may contain a single component or API.  The enclosing component
-  or API declaration may be omitted.
+* This release of the Fortress language specification is the first to be
+released in tandem with a compliant interpreter, available as open source
+and online at:
 
-* At least one export statement is required for a component.
+http://projectfortress.sun.com
 
-* Top-level variable declarations and field declarations should have
-  initial-value expressions.
+Each example in the specification is automatically generated from
+a corresponding working Fortress program which is run by every test run
+of the interpreter.
 
-* A single declaration may declare multiple top-level variables, local
-  variables, or fields depending on the context.  Immutable variables
-  cannot be declared using the ":=" token.
+* To synchronize the specification with the implementation, it was
+necessary to temporarily drop the following features from the specification:
 
-* A default unit for a dimension must be an identifier.
+ - Static checks (including static overloading checks)
+ - Static type inference
+ - Qualified names (including aliases of imported APIs)
+ - Getters and setters
+ - Array comprehensions
+ - Keyword parameters and keyword expressions
+ - Most modifiers
+ - Dimensions and units
+ - Type aliases
+ - Where clauses
+ - Coercions
+ - Distributions
+ - Parallel nested transactions
+ - Abstract function declarations
+ - Tests and properties
+ - Syntactic abstraction
 
-* No more abstract declarations of dimensions, units, and type aliases
+* Libraries have significantly changed.
 
-* Trait headers can have the excludes, comprises, and where clauses in
-  any order.
+* Syntax and semantics of the following features have changed:
+ - Tuple and functional arguments
+ - Operator rules: associativity, precedence, fixity, and juxtaposition
+ - Operator declaration
+ - Extremum expression
+ - Import statement
+ - Multiple variable declaration
+ - Typecase expression
 
-* No more empty comprises clauses.  A comprises clause of a trait T may
-  include "..." to hide some of T's subtraits.  A type listed in the
-  comprises clause must be defined within the same component (or possibly
-  an API imported by the component, if there is a cycle in the API import
-  chain).
+* The following features have been added to the language:
+ - "native" modifier
+ - Operator associativity
+ - Explicit static arguments to big operator applications
 
-* More where-clause constraints and bool static arguments are added.
+* The following features have been eliminated from the language:
+ - Identifier parameters
+ - Explicit self parameters of dotted methods
+ - Empty extends clauses
+ - Local operator declarations
+ - Shorthands for Set, List, and Map types
+ - Tuple type encompassing all tuple types
 
-* Each contract clause (requires clause, ensures clause, and invariant
-  clause) requires its subclauses or subexpressions to be separated by
-  commas and enclosed by curly braces.
-
-* Each modifier must not appear multiple times.
-
-* method declarations occur syntactically after field declarations and
-  getter and setter declarations.  Property declarations can be freely
-  commingled with the field and method declarations.  A getter or setter
-  modifier should be the last modifier of a method declaration.
-
-* Local function declarations have the same syntax with top-level
-  function declarations except that local function declarations must not
-  have the modifiers "private" and "test".
-
-* A second value parameter of a subscripted assignment operator method
-  declaration must contain exactly one non-keyword value parameter.
-
-* Left-hand-sides of assignment expressions are (possibly multiple of)
-  array indexing, field accesses, the '_' token, or identifiers.
-
-* Object expressions may include property declarations.
-
-* Else clauses of case and typecase expressions have the "=>" token
-  right after "else".
-
-* A typecase expression uses "of" instead of "in" after its bindings.
-
-* A parallel block expression syntax is enriched.
-
-* The '_' token can be used in any place where a binding can occur.
-
-* An index in left-hand sides of array comprehensions is either
-  an identifier or an integer numeral.
-
-* Matrix and vector types can be abbreviated using superscripts.
-
-* Alternative mathematical notations for arrow types are not supported
-  any more.
-
-* DimRef, unitRef, NatRef, IntRef, and BoolRef are merged with
-  StaticArg.
+* Significantly more examples have been added.
 
 
 BUILT-IN TYPES
@@ -417,7 +398,7 @@ println(Any)
 THE LIBRARY
 
 The components FortressBuiltin.fss and FortressLibrary.fss are imported
-implicitly, whenever any Fortress program is run. 
+implicitly, whenever any Fortress program is run.
 
 Note that portions of the library code are commented out; these are
 opened and closed by tear lines (***********  and **********).  Much
@@ -427,7 +408,7 @@ prototyping and testing purposes.  We intend to make it work one day.
 
 LIBRARY TYPES
 
-Your best guide to library functionality is the library code itself.  
+Your best guide to library functionality is the library code itself.
 This section provides an overview and describes the much of the
 non-trivial functionality.
 
@@ -623,4 +604,3 @@ the interpreter requires that you declare appropriate argument and
 return types for your native functions as shown above.  If you give an
 incorrect type declaration on the Fortress side, you'll get
 non-user-friendly error messages when the Java code is run.
-
