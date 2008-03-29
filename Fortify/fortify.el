@@ -1424,14 +1424,20 @@ extension '.tex'."
     (fortify-if-not-blank-space)))
 
 (defun fortex ()
-  "Fortify the whole buffer except for stylized comments, delimited by
-  (** and *) as the first non-whitespace characters on the first and last
-  line. Strip stylized comments of leading * characters. Write the
-  result to a file in the same location as the read file, but with extension
-  .tex. Using this function, it is possible to write a legal Fortress
-  file with doc comments (possibly containing embedded LaTeX commands)
-  and produce a LaTeX file where all Fortress code is fortified and
-  all doc comments are written as LaTeX prose describing the code."
+  "Fortify the whole buffer except for stylized documentation
+  comments, delimited by (** and *) as the first non-whitespace
+  characters on the first and last line.  Extra asterisks in the
+  opening and closing comments are permitted.  Whitespace and *
+  are stripped from the start of each line of a documentation
+  comment.  If any line except the closing line begins with %
+  after stripping * and whitespace, fortify it (exception: %% are
+  passed through).  Write the result to a file in the same
+  location as the read file, but with extension .tex. Using this
+  function, it is possible to write a legal Fortress file with
+  doc comments (possibly containing embedded LaTeX commands) and
+  produce a LaTeX file where all Fortress code is fortified and
+  all doc comments are written as LaTeX prose describing the
+  code."
   (interactive)
   (remove-copyright)
   (print-header "TOOL FORTEX")

@@ -37,7 +37,7 @@ api FortressLibrary
 builtinPrimitive[\T\](javaClass:String):T
 
 (************************************************************
-* Simple Combinators
+* \subsection*{Simple Combinators}
 ************************************************************)
 
 (** Casting *)
@@ -61,7 +61,7 @@ opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C
 fail(s:String)
 
 (************************************************************
-* Control over locality and location
+* \subsection*{Control over locality and location}
 ************************************************************)
 
 (* At the moment all Fortress objects are immediately shared by default. *)
@@ -88,7 +88,7 @@ region(a:Any): Region
 here(): Region
 
 (************************************************************
-* Equality and ordering
+* \subsection*{Equality and ordering}
 ************************************************************)
 
 opr =(a:Any, b:Any):Boolean
@@ -207,51 +207,52 @@ assert(flag: Boolean, failMsg: String): ()
 assert(x:Any, y:Any, failMsg: Any...): ()
 
 (************************************************************
-* Generator support
+* \subsection*{Generator support}
 ************************************************************)
 
 (** Generator
  *
- * We say an object which extends Generator[\T\] "generates objects of
- * type T."
+ * We say an object which extends
+ * \EXP{\TYP{Generator}\llbracket{}T\rrbracket} "generates objects of
+ * type \VAR{T}."
  *
- * Generators are used to express iteration in Fortress.  Every
- * generated expression in Fortress (eg for loop, comprehension) is
- * desugared into calls to methods of Generator, chiefly the generate
- * method.
+ * Generators are used to express iteration in Fortress.  Every generated
+ * expression in Fortress (eg for loop, comprehension) is desugared into
+ * calls to methods of Generator, chiefly the generate method.
  *
  * Every generator has a notion of a "natural order" (which by default is
  * unspecified), which describes the ordering of reduction operations,
  * and also describes the order in which elements are produced by the
- * sequential version of the same generator (given by the seq(self)
- * method).  The default implementation of seq(self) guarantees that these
- * orders will match.
+ * sequential version of the same generator (given by the
+ * \EXP{\VAR{seq}(\KWD{self})} method).  The default implementation of
+ * \EXP{\VAR{seq}(\KWD{self})} guarantees that these orders will match.
  *
  * Note in particular that the natural order of a Generator must be
- * consistent; that is, if a SEQV b then a and b must yield SEQV
- * elements in the same natural order.  However, note that unless a type
- * specifically documents otherwise, no particular element ordering is
- * guaranteed, nor is it necessary to guarantee that a=b have the same
- * natural order when equality is defined.
+ * consistent; that is, if \EXP{a \OPR{SEQV}\:b} then \VAR{a} and \VAR{b}
+ * must yield \OPR{SEQV} elements in the same natural order.  However,
+ * note that unless a type specifically documents otherwise, no
+ * particular element ordering is guaranteed, nor is it necessary to
+ * guarantee that a=b have the same natural order when equality is
+ * defined.
  *
- * Note that more complex derived generators are specified further
- * down in the definition of Generator.  These have the same notions
- * of natural order and by default are defined in terms of the
- * generate() method.
+ * Note that more complex derived generators are specified further down
+ * in the definition of Generator.  These have the same notions of
+ * natural order and by default are defined in terms of the
+ * \VAR{generate} method.
  *
- * Minimal complete definition of a Generator is the generate(...) method.
- *)
+ * Minimal complete definition of a \TYP{Generator} is the \VAR{generate}
+ * method.  *)
 trait Generator[\E\]
     excludes { Number }
-    (** generate is the core of Generator.  It generates elements of
-        type E and passes them to the body function.  This generation
+    (** \VAR{generate} is the core of \TYP{Generator}.  It generates elements of
+        type \VAR{E} and passes them to the \VAR{body} function.  This generation
         can occur using any mixture of serial and parallel execution
         desired by the author of the generator; by default uses of a
-        generator must assume every call to the body occurs in
+        generator must assume every call to \VAR{body} occurs in
         parallel.
 
         The results of generation are combined using the reduction
-        object R, which specifies a monoidal operation (associative
+        object \VAR{R}, which specifies a monoidal operation (associative
         and with an identity).  Body results must be combined together
         following the natural order of the generator.  The author of
         the generator is free to use the identity element anywhere
@@ -261,12 +262,13 @@ trait Generator[\E\]
     abstract generate[\R\](r: Reduction[\R\], body: E->R): R
 
     (** Transforming generators into new generators *)
-    (** map applies a function f to each element generated and yields
+
+    (** \VAR{map} applies a function \VAR{f} to each element generated and yields
         the result.  The resulting generator must have the same
         ordering and cross product properties as the generator from
         which it is derived. *)
     map[\G\](f: E->G): Generator[\G\]
-    (** seq produces a sequential version of the same generator, in
+    (** \VAR{seq} produces a sequential version of the same generator, in
         which elements are produced in the generator's natural order. *)
     seq(self): SequentialGenerator[\E\]
 
@@ -277,7 +279,7 @@ trait Generator[\E\]
         the natural order of the nesting is the natural order of the
         inner generators, in the natural order the outer nesting
         produces them.  So for example, if we write:
-          (0#3).nest[\ZZ32\](\(n:ZZ32):Generator[\ZZ32\] => (n*100#4))
+          %(0#3).nest[\ZZ32\](fn (n:ZZ32):Generator[\ZZ32\] => (n*100#4))
         then the natural order is 0,1,2,3,100,101,102,103,200,201,202,203
      **)
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\]
@@ -286,7 +288,8 @@ trait Generator[\E\]
         designed to be overloaded, such that pairs of independent
         generators can be combined to produce a generator which
         possibly interleaves the iteration spaces of the two
-        generators.  For example, we might combine (0#16).cross(0#32)
+        generators.  For example, we might combine
+        % (0#16).cross(0#32)
         such that it first splits the second range in half, then the
         first range in half, then the second, and so forth.
 
@@ -294,18 +297,19 @@ trait Generator[\E\]
         bottom with the elements of a in natural order, and the
         columns are labeled from left to right with the elements of g
         in natural order.  Each point in the grid corresponds to a
-        pair (a,b) that must be generated by self.cross(g).  In the
-        natural order of the cross product, an element must occur
-        after those that lie above and to the left of it in the grid.
-        By default the natural order of the cross product is
-        left-to-right, top to bottom.  Programmers must not rely on
-        the default order, except that cross products involving one or
-        more sequential generators are always performed in the default
-        order.  Note that this means that the following have the same
-        natural order:
-           seq(a).cross(b)
-           a.cross(seq(b))
-           seq(a).cross(seq(b))
+        pair \EXP{(a,b)} that must be generated by
+        \EXP{\mathord{\KWD{self}}.\VAR{cross}(g)}.  In the natural
+        order of the cross product, an element must occur after those
+        that lie above and to the left of it in the grid.  By default
+        the natural order of the cross product is left-to-right, top
+        to bottom.  Programmers must not rely on the default order,
+        except that cross products involving one or more sequential
+        generators are always performed in the default order.  Note
+        that this means that the following have the same natural
+        order:
+          %seq(a).cross(b)
+          %a.cross(seq(b))
+          %seq(a).cross(seq(b))
         But seq(a.cross(b)) may have a different natural order. *)
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\]
 
@@ -326,7 +330,7 @@ trait Generator[\E\]
     opr IN(x:E, self): Boolean
 end
 
-(* The following stubs exist as a temporary workaround to shortcomings
+(** The following stubs exist as a temporary workaround to shortcomings
    in interpreter type inference, and are intended for use by
    reduction desugaring. *)
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R
@@ -342,24 +346,20 @@ trait SequentialGenerator[\E\] extends { Generator[\E\] }
     cross[\F\](g:Generator[\F\]): Generator[\(E,F)\]
 end
 
-(** Operations which use generation internally.  Should be functional
-    methods of Generator, but that didn't work when last tested. **)
-
 (** IN returns true if any element generated by its second argument is
     = to its first argument.  x NOTIN g is simply NOT (x IN g).
     Unless documented otherwise, this is O(n) for an n-element
     Generator (it simply performs naive matching).  **)
 opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean
 
-(* seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq() *)
 sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\]
 
 
 (************************************************************
-* The Maybe type, used instead of null
+* \subsection{The Maybe type}
 ************************************************************)
 
-(* This makes excludes work without where clauses, and allows opr =()
+(** This trait makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
 value trait MaybeType extends Equality[\MaybeType\] excludes Number
         (* comprises Maybe[\T\] where [\T\] *)
@@ -425,7 +425,7 @@ value object Nothing[\T\] extends Maybe[\T\]
 end
 
 (************************************************************
-* Exception hierarchy
+* \subsection*{Exception hierarchy}
 ************************************************************)
 
 trait Exception comprises { UncheckedException, CheckedException }
@@ -524,7 +524,7 @@ object AtomicSpawnSynchronization extends {UncheckedException}
 end
 
 (************************************************************
-* Array support
+* \subsection*{Array support}
 ************************************************************)
 
 trait HasRank extends Equality[\HasRank\] excludes { Number, MaybeType }
@@ -835,7 +835,7 @@ trait StandardMutableArrayType[\T extends StandardMutableArrayType[\T,E,I\],E,I\
     assign(f:I->E):T
 end
 
-(* Canonical partitioning of a positive number x into two pieces.  If
+(** Canonical partitioning of a positive number x into two pieces.  If
      (a,b) = partition(n)
    and n > 0 then 0 < a <= b,  n = a + b.
    As it turns out we choose a to be the largest power of 2 < n.
@@ -856,8 +856,8 @@ trait ReadableArray1[\T, nat b0, nat s0\]
 
     subarray[\nat b, nat s, nat o\]():ReadableArray1[\T, b, s\]
 
-    (* Offset converts from b0 indexing to 0 indexing,
-       bounds checking en route *)
+    (** Offset converts from b0 indexing to 0 indexing,
+        bounds checking en route *)
     offset(i:ZZ32):ZZ32
     toIndex(i:ZZ32):ZZ32
 
@@ -877,8 +877,8 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\]
-    (* the replica method returns a replica of the array (similar layout
-       etc.) but with a different element type. *)
+    (** the replica method returns a replica of the array (similar layout
+        etc.) but with a different element type. *)
     replica[\U\]():ImmutableArray1[\U,b0,s0\]
 
     copy():ImmutableArray1[\T,b0,s0\]
@@ -1153,7 +1153,7 @@ __builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
 array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\]
 
 (************************************************************
-* Reductions
+* \subsection*{Reductions}
 ************************************************************)
 
 trait Reduction[\ R \]
@@ -1233,7 +1233,7 @@ end
 opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String
 
 (************************************************************
-* Ranges
+* \subsection*{Ranges}
 ************************************************************)
 
 (** Ranges in general represent uses of the # and : operators.
@@ -1360,7 +1360,7 @@ opr #(): OpenRange[\Any\]
 opr :(): OpenRange[\Any\]
 
 (***********************************************************
-* Numeric primitives
+* \subsection{Top-level primitives}
 ************************************************************)
 
 opr |[\ N extends Integral \]x:N|
