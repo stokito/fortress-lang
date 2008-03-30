@@ -18,41 +18,39 @@
 api Heap
 
 (************************************************************
- * Mergeable, pure priority queues (heaps).                 *)
+ * Mergeable, pure priority queues (heaps).                 *
 
-(** At the moment we're baking off several potential priority queue
+** At the moment we're baking off several potential priority queue
   implementations, based on part on some advice from "Purely
   Functional Data Structures" by Okasaki.
-
-  * Pairing Heaps, the current default:
-    O(1) merge
-    O(lg n) amortized extractMin, with O(n) worst case.  The worst
+\begin{itemize}
+  \item Pairing Heaps, the current default:
+    $O(1)$ merge; $O(lg n)$ amortized %extractMin%, with $O(n)$ worst case.  The worst
     case is proportional to the number of deferred merge operations
-    performed with the min; if you merge n entries tree-fashion rather
-    than 1 at a time you should obtain O(lg n) worst case performance
-    as well.  The heap(gen) function will follow the merge structure
+    performed with the min; if you merge $n$ entries tree-fashion rather
+    than one at a time you should obtain $O(lg n)$ worst case performance
+    as well.  The %heap(gen)% function will follow the merge structure
     of the underlying generator; for a well-written generator this
     will be sufficient to give good performance.
 
-  * Lazy-esque pairing heaps (supposedly slower but actually easier in
+  \item Lazy-esque pairing heaps (supposedly slower but actually easier in
   some ways to implement than pairing heaps, and avoiding a potential
   stack overflow in the latter).  These don't seem to be quite as
-  whizzy in this setting as ordinary Pairing Heaps.
-    O(lg n) merge
-    O(lg n) worst-case extractMin
+  whizzy in this setting as ordinary Pairing Heaps: $O(lg n)$ merge,
+    $O(lg n)$ worst-case extractMin
 
-  * Splay heaps (noted as "fastest in practice", borne out by other
-    experiments).  Problem: O(n) merge operation, vs O(lg n) for
+  \item Splay heaps (noted as "fastest in practice", borne out by other
+    experiments).  Problem: $O(n)$ merge operation, vs $O(lg n)$ for
     everything else.  If we build heaps by performing reductions over
     a generator, with each iteration generating a few elements, this
     will be a problem.  This is not yet implemented.
-
-   Minimum complete implementation of Heap[\K,V\]:
-     empty
-     singleton
-     isEmpty
-     extractMin
-     merge(Heap[\K,V\])
+\end{itemize}
+   Minimum complete implementation of %Heap[\K,V\]%:
+   %  empty
+   %  singleton
+   %  isEmpty
+   %  extractMin
+   %  merge(Heap[\K,V\])
  **)
 trait Heap[\K,V\] extends Generator[\(K,V)\]
     getter isEmpty(): Boolean
@@ -89,7 +87,6 @@ pairing[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\]
  * Not actually lazy pairing heaps; these are actuallly more
  * eager in that they merge siblings incrementally on insertion.
  *)
-
 trait LazyPairing[\K,V\] extends Heap[\K,V\]
         comprises { ... }
     dump(): String
@@ -101,10 +98,9 @@ singletonLazy[\K,V\](k:K, v:V): LazyPairing[\K,V\]
 lazy[\K,V\](g:Generator[\(K,V)\]): Heap[\K,V\]
 
 (************************************************************
- * And the winner is...
- * Non-lazy pairing heaps!
+ * Use these default factories unless you're experimenting.
+ * Right now they yield non-lazy pairing heaps.
  ************************************************************)
-
 emptyHeap[\K,V\](): Pairing[\K,V\]
 singletonHeap[\K,V\](k:K, v:V): Pairing[\K,V\]
 heap[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\]

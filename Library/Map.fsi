@@ -55,11 +55,12 @@ trait Map[\Key,Val\]
     update(k:Key, v:Val):Map[\Key,Val\]
     (** Eliminate any mapping for key k. **)
     delete(k:Key):Map[\Key,Val\]
-    (** Process mapping for key k with function f:
-        * If no mapping exists, f is passed Nothing[\Val\]
-        * If k maps to value v, f is passed Just[\Val\](v)
-        If f returns nothing, the mapping for k is deleted; otherwise
-        it is updated with the value contained in the result.
+    (** Process mapping for key %k% with function %f%:
+        \begin{itemize}
+        \item If no mapping exists, %f% is passed %Nothing[\Val\]%
+        \item If %k% maps to value %v%, %f% is passed %Just[\Val\](v)%
+        If %f% returns %nothing%, any mapping for %k% is deleted; otherwise
+        %k% is mapped to the value contained in the result.
      **)
     updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\]
     (** UNION favors the leftmost value when a key occurs in both maps. **)
@@ -70,21 +71,21 @@ trait Map[\Key,Val\]
     (** the union method takes a function f used to combine the values
         of keys that overlap.  **)
     union(f:(Key,Val,Val)->Val, other: Map[\Key,Val\]): Map[\Key,Val\]
-    (** combine is the "swiss army knife" combinator on pairs of maps.
-        We call f() on keys present in both input maps;
-        We call doThis on keys present in self but not in that;
-        We call doThat on keys present in that but not in self.
-        When any of these functions returns r=Just[\Result\], the key is mapped
-            to r.unJust() in the result.
-        When any of these functions returns Nothing[\Result\] there is no
+    (** %combine% is the "swiss army knife" combinator on pairs of maps.
+        We call %f()% on keys present in both input maps;
+        We call %doThis% on keys present in %self% but not in %that%;
+        We call %doThat% on keys present in %that% but not in %self%.
+        When any of these functions returns %r=Just[\Result\]%, the key is mapped
+            to %r.unJust()% in the result.
+        When any of these functions returns %Nothing[\Result\]% there is no
             mapping for the key in the result.
 
-        mapThis must be equivalent to mapFilter(doThis) and mapThat must
-            be equivalent to mapFilter(doThat); they are included
-            because often they can do their jobs without traversing
-            their argument (eg for union and interesection operations we
-            can pass through or discard whole submaps without traversing
-            them).
+        %mapThis% must be equivalent to %mapFilter(doThis)% and
+        %mapThat% must be equivalent to %mapFilter(doThat)%; they are
+        included because often they can do their jobs without
+        traversing their argument (eg for union and interesection
+        operations we can pass through or discard whole submaps
+        without traversing them).
      **)
     combine[\That,Result\](f:(Key,Val,That)->Maybe[\Result\],
                            doThis:(Key,Val)->Maybe[\Result\],

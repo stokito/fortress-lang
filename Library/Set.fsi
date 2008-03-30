@@ -22,7 +22,7 @@ import List.{SomeList}
 object EmptyIntersection extends UncheckedException end
 
 (**
- * Sets represented using a tree structure.  The underlying type E
+ * Sets represented using a (size-balanced) tree structure.  The underlying type $E$
  * must support comparison using < and =.  When generated these sets
  * produce their elements in sorted order.
  **)
