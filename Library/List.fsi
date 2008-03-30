@@ -19,53 +19,57 @@ api List
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).
 
-    An ArrayList is an immutable segment of a mutable array.  The rest
-    of the mutable array may contain elements of purelists in which
-    this list is contained, or may be free for future use.  Every
-    PureList includes a pointer to a flag canExtend; if this flag is
-    true we are permitted to add additional elements to the PureList
-    in place by writing into the mutable array.  At most one instance
-    sharing the same backing array will obtain permission to extend
-    the array in this way; we atomically check and update the flag to
-    guarantee this.  Having obtained permission to extend the list,
-    that permission may be extended to future attempts to extend.
+    A %List% is an immutable segment of an immutable (really
+    write-once) array.  The rest of the mutable array may contain
+    elements of lists in which this list is contained, or may be free
+    for future use.  Every List includes two internal flags
+    %canExtendLeft% and %canExtendRight%; if a flag is true we are
+    permitted to add additional elements to the %List% in place by
+    initializing additional elements of the array.  At most one
+    instance sharing the same backing array will obtain permission to
+    extend the array in this way; we atomically check and update the
+    flag to guarantee this.  Having obtained permission to extend the
+    list, that permission may be extended to future attempts to
+    extend.
 
     Eventually the backing array fills and we must allocate a new
     backing array to accept new elements.  At the moment we're not
     particularly careful to avoid stealing permission to extend for
     overflowing append operations.
 
-    Note that because of this implementation, an ArrayList can be
-    efficiently extended on the right (addRight) and appended to
-    (append), but cannot be efficiently extended on the left
-    (addLeft).
+    Note that because of this implementation, a %List% can be
+    efficiently extended on either side, but only in a non-persistent
+    way; if a single list is extended by two different calls to
+    %addRight% or %append% then one of them must pay the cost of
+    copying the list elements.
 
     Note also that the implementation hasn't yet been carefully
     checked for amortization, so it is quite likely there are a number
-    of asymptotic infelicities in the implementation.
+    of asymptotic infelicities.
 
-    Finally, note that this is an efficient *amortized* structure.  An
+    Finally, note that this is an efficient \emph{amortized} structure.  An
     individual operation may be quite slow due to copying work.
 
-    Baking these off vs PureLists, they look very good in practice.
+    Baking these off vs PureLists (which have good persistent behavior
+    and non-amortized worst case behavior), they look very good in
+    practice.
  **)
 
 (** Lists of some item type.  Used to collect elements of unknown type
-    into a list whose element type is as specific as possible. **)
+    into a list whose element type is as specific as possible.  This
+    should not be necessary in the presence of true type
+    inference. **)
 trait SomeList excludes { Number, HasRank }
         (* comprises List[\E\] where [\E\] *)
     append(f:SomeList): SomeList
-(*
     addLeft(e:Any): SomeList
     addRight(e:Any): SomeList
-*)
 end
 
-(** Generic list trait.
-    We return a Generator for non-List-specific operations for which
-    reuse of the Generator won't increase asymptotic complexity, but
-    return a List in cases (such as map and filter) where it will.
-*)
+(** %List%.  We return a %Generator% for non-list-specific operations
+    for which reuse of the Generator won't increase asymptotic
+    complexity, but return a List in cases (such as %map% and
+    %filter%) where it will.  *)
 trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
         excludes { Number, HasRank }
   getter left():Maybe[\E\]
@@ -86,12 +90,12 @@ trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
   concatMap[\G\](f: E->List[\G\]): List[\G\]
 end
 
-(** Vararg factory for lists; provides aggregate list constants *)
+(** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
+(** List comprehensions: *)
 opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\U\]
 
-(** Convert generator into list; can be used to desugar list
-    comprehensions *)
+(** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]
 
 (** Flatten a list of lists *)
@@ -99,8 +103,8 @@ concat[\E\](x:List[\List[\E\]\]):List[\E\]
 
 emptyList[\E\](): List[\E\]
 
-(** emptyList[\E\](n) allocates an empty list that can accept n
-    addRight operations without reallocating the underlying storage. **)
+(** %emptyList[\E\](n)% allocates an empty list that can accept %n%
+    %addRight% operations without reallocating the underlying storage. **)
 emptyList[\E\](n:ZZ32): List[\E\]
 
 singleton[\E\](e:E): List[\E\]
@@ -111,10 +115,10 @@ object Concat[\E\] extends Reduction[\ List[\E\] \]
   join(a:List[\E\], b:List[\E\]): List[\E\]
 end
 
-(** Covariant Singleton function, for use with CVConcat. **)
+(** Covariant Singleton function, for use with %CVConcat%: **)
 cvSingleton(e:Any): SomeList
 
-(** A reduction object for concatenating lists covariantly. *)
+(** A reduction object for concatenating %SomeList%s covariantly. *)
 object CVConcat extends Reduction[\SomeList\]
   empty(): SomeList
   join(a:SomeList, b:SomeList): SomeList
