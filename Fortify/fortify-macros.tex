@@ -18,7 +18,11 @@
 %% Stuff for the EMACS "fortify" command (M-&) %%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\def\Fortress{\list{}{\leftmargin 1em
+\newlength{\FortressCodeIndent}
+\setlength{\FortressCodeIndent}{1em}
+\newlength{\FortressParSkip}
+\setlength{\FortressParSkip}{\parskip}
+\def\Fortress{\list{}{\leftmargin \FortressCodeIndent
                       \itemindent\listparindent
                       \parsep 0pt plus 1pt}\item
                       \begingroup\FortressInnerMacros\tabbing}
@@ -46,5 +50,17 @@
 \newcommand\ASSIGN{\mathrel{\mathtt{:}}=}
 \newcommand\COLON{\mathpunct{\mathtt{:}}}
 \newcommand\COLONOP{\mathinner{\mathtt{:}}}
+
+\newenvironment{FortressDoc}[1]{\vspace{0.5ex}%
+\begin{list}{}{%
+  \setlength{\parskip}{\FortressParSkip}
+  \settowidth{\leftmargin}{{\tt {#1}}}%
+  \addtolength{\leftmargin}{\FortressCodeIndent}}%
+     \item[]\raggedright%
+}{\unskip\end{list}\vspace{-3ex}}
+
+\newcommand\FortexSettings{%
+\setlength{\FortressCodeIndent}{0em}%
+}
 
 \medmuskip=4mu plus 2mu minus 1mu\relax      %Normal LaTeX has 4mu plus 2mu minus 4mu

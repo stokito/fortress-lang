@@ -54,11 +54,11 @@ api Heap
  **)
 trait Heap[\K,V\] extends Generator[\(K,V)\]
     getter isEmpty(): Boolean
-    (** Given an instance of Heap[\K,V\], get the empty Heap[\K,V\] **)
+    (** Given an instance of %Heap[\K,V\]%, get the empty %Heap[\K,V\]% **)
     getter empty(): Heap[\K,V\]
     (** Get the (key,value) pair with minimal associated key **)
     getter minimum(): (K,V) throws NotFound
-    (** Given an instance of Heap[\K,V\], generate a singleton Heap[\K,V\] **)
+    (** Given an instance of %Heap[\K,V\]%, generate a singleton %Heap[\K,V\]% **)
     singleton(k:K, v:V): Heap[\K,V\]
     (** Return a heap that contains the key-value pairings in both of
         the heaps passed in. **)

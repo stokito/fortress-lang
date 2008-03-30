@@ -20,17 +20,16 @@ api List
 (** Array Lists, immutable style (not the mutable Java ArrayList style).
 
     A %List% is an immutable segment of an immutable (really
-    write-once) array.  The rest of the mutable array may contain
-    elements of lists in which this list is contained, or may be free
-    for future use.  Every List includes two internal flags
-    %canExtendLeft% and %canExtendRight%; if a flag is true we are
-    permitted to add additional elements to the %List% in place by
-    initializing additional elements of the array.  At most one
-    instance sharing the same backing array will obtain permission to
-    extend the array in this way; we atomically check and update the
-    flag to guarantee this.  Having obtained permission to extend the
-    list, that permission may be extended to future attempts to
-    extend.
+    write-once) array.  The rest of the array may contain elements of
+    lists which overlap this list, or may be free for future use.
+    Every List includes two internal flags %canExtendLeft% and
+    %canExtendRight%; if a flag is true we are permitted to add
+    additional elements to the %List% in place by initializing
+    additional elements of the array.  At most one instance sharing
+    the same backing array will obtain permission to extend the array
+    in this way; we atomically check and update the flag to guarantee
+    this.  Having obtained permission to extend the list, that
+    permission may be extended to future attempts to extend.
 
     Eventually the backing array fills and we must allocate a new
     backing array to accept new elements.  At the moment we're not
@@ -54,13 +53,13 @@ api List
     and non-amortized worst case behavior), they look very good in
     practice.
  **)
-
+(******************** *)
 (** Lists of some item type.  Used to collect elements of unknown type
     into a list whose element type is as specific as possible.  This
     should not be necessary in the presence of true type
     inference. **)
 trait SomeList excludes { Number, HasRank }
-        (* comprises List[\E\] where [\E\] *)
+        (** \vspace{-4ex} Not yet: %comprises List[\E\] where [\E\]% *)
     append(f:SomeList): SomeList
     addLeft(e:Any): SomeList
     addRight(e:Any): SomeList

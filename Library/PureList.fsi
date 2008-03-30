@@ -38,7 +38,7 @@ import List.{SomeList}
     curious about the details of type-based invariants, the source
     code may prove instructive.
   *)
-
+(******************** *)
 (** %List%.  We return a %Generator% for non-list-specific operations
     for which reuse of the Generator won't increase asymptotic
     complexity, but return a List in cases (such as %map% and

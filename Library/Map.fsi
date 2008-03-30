@@ -35,7 +35,7 @@ trait Map[\Key,Val\]
     getter showTree():String
     getter toString():String
     dom(self):Set[\Key\]
-    opr | self |: ZZ32
+    opr | self | : ZZ32
     opr[k:Key]: Val throws NotFound
     member(x:Key): Maybe[\Val\]
     (** The two-argument version of member returns the default value v
@@ -59,6 +59,7 @@ trait Map[\Key,Val\]
         \begin{itemize}
         \item If no mapping exists, %f% is passed %Nothing[\Val\]%
         \item If %k% maps to value %v%, %f% is passed %Just[\Val\](v)%
+        \end{itemize}
         If %f% returns %nothing%, any mapping for %k% is deleted; otherwise
         %k% is mapped to the value contained in the result.
      **)

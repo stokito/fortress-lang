@@ -36,17 +36,17 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
     close():()
 
     (** \VAR{readLine} returns the next available line from the stream, discarding
-        line termination characters.  Returns "" on eof.
+        line termination characters.  Returns %""% on eof.
      **)
     readLine():String
 
-    (** Returns the next available character from the stream, or "" on eof.
+    (** Returns the next available character from the stream, or %""% on eof.
      **)
     readChar():Char
 
     (** \VAR{read} returns the next \VAR{k} characters from the stream.  It will block
         until at least one character is available, and will then
-        return as many characters as are ready.  Will return "" on end
+        return as many characters as are ready.  Will return %""% on end
         of file.  If k<=0 or absent a default value is chosen.
      **)
     read(k:ZZ32):String
