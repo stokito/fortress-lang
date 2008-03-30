@@ -935,7 +935,7 @@ trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
     dot(v: Vector[\T,s0\]): T
 end
 
-(** %builtinFactory1% must be a non-overloaded 0-parameter factory for
+(** %__builtinFactory1% must be a non-overloaded 0-parameter factory for
    1-D arrays.  The type parameters are enshrined in \texttt{LHSEvaluator.java}
    and \texttt{NonPrimitive.java}; the factory name is enshrined in
    \texttt{WellKnownNames.java}.  There must be some factory, named in this
@@ -943,8 +943,8 @@ end
    $k$-dimensional array types. *)
 __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\]
 
-(** %immutableFactory1% is a non-overloaded 0-parameter factory for
-   0-indexed 1-D arrays.  It is also mentioned in \texttt{WellKnownNames} as it
+(** %__immutableFactory1% is a non-overloaded 0-parameter factory for
+   0-indexed 1-D write-once arrays.  It is also mentioned in \texttt{WellKnownNames} as it
    is used to allocate storage for varargs. *)
 __immutableFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\]
 

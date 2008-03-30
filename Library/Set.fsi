@@ -23,7 +23,7 @@ object EmptyIntersection extends UncheckedException end
 
 (**
  * Sets represented using a (size-balanced) tree structure.  The underlying type $E$
- * must support comparison using < and =.  When generated these sets
+ * must support comparison using $<$ and $=$.  When generated these sets
  * produce their elements in sorted order.
  **)
 trait Set[\E\]
@@ -42,6 +42,7 @@ trait Set[\E\]
    opr UNION(self,t2:Set[\E\]):Set[\E\]
    opr INTERSECTION(self,t2:Set[\E\]):Set[\E\]
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\]
+   (** Symmetric difference: all elements in exactly one of the two sets. *)
    opr SYMDIFF(self,t2:Set[\E\]):Set[\E\]
    splitAt(e:E):(Set[\E\],Boolean,Set[\E\])
    opr SUBSET(self, other:Set[\E\]): Boolean

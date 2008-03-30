@@ -477,7 +477,7 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 (* This makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
 value trait MaybeType extends Equality[\MaybeType\] excludes Number
-        (* comprises Maybe[\T\] where [\T\] *)
+        (** \vspace{-4ex} NOT YET: %comprises Maybe[\T\] where [\T\]% *)
     getter isJust() : Boolean
     opr =(self, other:MaybeType): Boolean = false
 end
@@ -659,7 +659,7 @@ oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
 end
 
 trait HasRank extends Equality[\HasRank\] excludes { Number, MaybeType }
-  (* comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] } *)
+  (** \vspace{-4ex} NOT YET: %comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] }% *)
   rank():ZZ32
   opr =(self, other:HasRank): Boolean = false
 end
