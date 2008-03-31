@@ -141,20 +141,28 @@ simulation.
 lutx.fss: Naive dense LU decomposition.  Demonstrates how to define
 new subclasses of Array2.
 
-mm.fss, mm64.fss, mm64x.fss: Matrix multiplication by recursive
-decomposition.  The library routine for matrix multiplication uses a
-similar cache-oblivious multiplication routine.
+conjGrad.fss: Conjugate gradient, including the snapshot from the NAS
+CG benchmark that you've seen in many Fortress talks.  Uses the Sparse
+library for sparse matrices and vectors.
 
 sudoku.fss: Solve a simple sudoku by elimination.  Includes a
 tree-based set implementation.
+
+aStar.fss: Generic A* search, accompanied by a specific instance for
+solving sudoku that cannot be solved by elimination alone.
+
+Lambda.fss: A simple interpreter for the lambda calculus that permits
+top-level binding and reduces to both WNHF and NF.  If you're curious
+how to parse text using the Fortress libraries, you should look here
+(it's presently far more painful than we'd like).
 
 
 COMPONENTS
 
 Fortress currently lacks a full-blown component system.  All the code
-in your Fortress program should reside in API and compponent file pairs.
-If you take a look at the Fortress programs in ProjectFortress/tests/
-or ProjectFortress/demos/ SpecData/examples, you'll see that they have
+in your Fortress program should reside in API and component file pairs.
+If you take a look at the Fortress programs in ProjectFortress/tests/,
+ProjectFortress/demos/, or SpecData/examples, you'll see that they have
 the same overall structure:
 
 
@@ -262,21 +270,19 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 * Any of the types which classify operator properties
 
-* Non-println I/O
-
 * Any of the bits and storage types
 
 * Non-RR64 floats
 
 * Integers other than ZZ32 and ZZ64
 
-* Use of ZZ64 for indexing
+* Use of ZZ64 for indexing (the JVM uses 32-bit indices)
 
 
 CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 BETA
 
-* This release of the Fortress language specification is the first to be
-released in tandem with a compliant interpreter, available as open source
+* This release of the Fortress language interpreter is the first to be
+released in tandem with the language specification, available as open source
 and online at:
 
 http://projectfortress.sun.com
@@ -332,257 +338,146 @@ necessary to temporarily drop the following features from the specification:
 * Significantly more examples have been added.
 
 
+THE DEFAULT LIBRARIES
+
+The components ProjectFortress/LibraryBuiltin/FortressBuiltin.fsi,
+ProjectFortress/LibraryBiltin/NativeSimpleTypes.fss and
+Library/FortressLibrary.fss are imported implicitly whenever any
+Fortress program is run.
+
 BUILT-IN TYPES
 
-There are a bunch of types that are defined internally by the
-Fortress interpreter.  With the exception of Any these cannot be
-overridden.  Most built-in types do not have any methods.  The
-built-in types are:
+There are a bunch of types that are defined internally by the Fortress
+interpreter.  With the exception of Any these cannot be overridden.
+The built-in types are found in
+ProjectFortress/LibraryBuiltin/FortressBuiltin.fsi and
+NativeSimpleTypes.fsi; documentation for the released version of these
+libraries can be found in the accompanying specification release.
+Most built-in types do not have any methods.  Note that the types
+found in FortressBuiltin do not have methods.
 
-trait  Number        extends { Any }         excludes { String, Boolean }
-trait  Integral      extends { Number }      excludes { String, Boolean, RR64, FloatLiteral }
-object ZZ32          extends { Integral }    excludes { String, Boolean, RR64, FloatLiteral }
-object ZZ32Range     extends { Any }
-object ZZ64          extends { Integral }    excludes { String, Boolean, RR64, FloatLiteral }
-object RR64          extends { Number }      excludes { String, Boolean }
-object String        extends { Any }         excludes { IntLiteral, FloatLiteral, Boolean }
-object Char          extends { Any }
-object IntLiteral    extends { ZZ32, ZZ64, RR64 }
-object FloatLiteral  extends { RR64 }
-object Boolean       extends { Any }
+Tuple and arrow types are always built in, and cannot be overridden in
+any way.
 
-Tuple and arrow types (that are always built-in)
+Note that there isn't (yet) a trait Object!  Eventually user-written
+trait and object declarations will extend Object by default; right now
+they instead extend Any by default.  We plan to migrate to a new
+infrastructure for primitive objects (based on the one used for
+Boolean in NativeSimpleTypes) at which point we will remedy this
+situation.
 
-object FlatStorageMaker[\T, n\]
-  built-in flat indexed storage of size n containing objects of type
-  T.  This type defines get and put methods, but only checks bounds at
-  the java level.  It is not intended for programmer consumption, but
-  is used to bootstrap support for arrays.
+Meanwhile, operations on the primitive types in FortressBuiltin can be
+found in Library/FortressLibrary.fsi; again these primitive are
+documented in the specification as well.  Note in particular that in
+the absence of coercion you may occasionally need to make use of widen
+and narrow to convert between ZZ32 and ZZ64.
 
-trait  Any           extends {}
-  Note that everything is considered to extend the type Any.
+LIBRARY HIGH POINTS
 
-Note also that there isn't (yet) a trait Object!  Eventually
-user-written trait and object declarations will extend Object by
-default; right now they instead extend Any by default.
+Your best guide to library functionality is the library code itself;
+this can be found in Library/ and in ProjectFortress/LibraryBuiltin.
+The apis for these libraries can also be found in the language
+specification (note, though, that if you downloaded the latest version
+of the Fortress implementation then the two may differ).  This section
+provides an overview of things you may not immediately realize are
+there.
 
-The library defines primitive functions on the primitive Numbers:
-+ -(unary and binary) *(juxtaposition) DOT = <= ^
-MIN MAX |x| > < >= =/= are derived from these
+Juxtaposition of strings means string append.  You may also
+find the BIG STRING operation (that concatenates strings) useful.
 
-For integral types:
-DIV REM MOD GCD LCM CHOOSE BITAND BITOR BITXOR LSHIFT RSHIFT BITNOT
-widen for ZZ32
-narrow for ZZ64
+Several functions attempt to convert data of type Any to a string.
+These include print(), println(), assert(), and juxtaposition of Any
+with a string.  Right now the FortressBuiltin types are printed using
+internal magic, and object types are printed using the toString
+getter.  The consequence of this is that you will see a run time error
+if you attempt to print an object without first defining a toString
+method.
 
-For ZZ64:
-> < >= =/= MIN MAX |\x/| |/x\| truncate
-sqrt sin cos tanasin acos atan atan2 floor ceiling random |x|
-Plus the constants pi and infinity.
+In the absence of array comprehensions, there are several ways to
+create and initialize an array (in these examples a 1-D array, but the
+2- and 3-D arrays work the same way):
 
-For String:
-= =/= < <= > >=
-juxtaposition means string append, and can include non-string left or
-right arguments.  This is presently the only way to convert numbers to
-strings for output.
+The simplest is to use an aggregate expression (this seems to fail at
+top level in your program, which is a known bug):
+    z : ZZ32[3] = [1 2 3]
 
-For Boolean (all derived):
-AND OR NOT = =/=
+If you know the size statically (it is a static parameter to your
+function, or is fixed at compile time):
 
-For output:
-print(Any)
-println(Any)
+    a : T[size] = array1[\T,size\]()  (* lower bound 0 *)
+    a[i] := f(i),  i <- a.bounds()
 
-THE LIBRARY
+or:
+    a : T[size] = array1[\T,size\](initialValue)
 
-The components FortressBuiltin.fss and FortressLibrary.fss are imported
-implicitly, whenever any Fortress program is run.
+or:
+    a : T[size] = array1[\T,size\](fn (index:ZZ32) => ...)
 
-Note that portions of the library code are commented out; these are
-opened and closed by tear lines (***********  and **********).  Much
-of this is code transcribed from the language specification for
-prototyping and testing purposes.  We intend to make it work one day.
+If you are computing the size at run time:
+    a = array[\T\](size)
+    a[i] := f(i),  i <- a.bounds()
 
+or:
+    a = array[\T\](size).fill(initialValue)
 
-LIBRARY TYPES
+or:
+    a = array[\T\](size).fill(fn (index:ZZ32) => ...)
 
-Your best guide to library functionality is the library code itself.
-This section provides an overview and describes the much of the
-non-trivial functionality.
+At the moment to create a non-0-indexed array you need to create a
+correctly-sized 0-indexed array as described above, then use the
+shift(newlower) method to shift the lower index.  Thus, to create an
+nxn 1-indexed array you can do something like this:
 
-trait Maybe[\T\] comprises { Nothing[\T\], Just[\T\] }
-object Nothing[\T\]() extends { Maybe[\T\] }
-object Just[\T\](x:T) extends { Maybe[\T\] }
+    a = array2[\T,n,n\]().shift(1,1)
 
-Note that the type Nothing should actually be a singleton without a
-type parameter; the absence of where clauses prevents us from writing
-it monomorphically, and the absence of polymorphic singletons forces
-us to construct a fresh one.
+The replicate[\T\]() method on arrays is a little unintuitive at
+first.  It creates a fresh array whose element type is T but whose
+bounds are the same as the bounds of the array being replicated.  When
+data distribution is fully implemented is should respect that as well.
+It is a bit like saying array[\T\](a.bounds().upper()) for 0-indexed
+arrays but is slightly more graceful and deals well with non-0-indexed
+arrays.
 
-trait Exception comprises { UncheckedException, CheckedException }
-trait UncheckedException extends Exception excludes { CheckedException }
-trait CheckedException extends Exception excludes { UncheckedException }
+You can convert any array to use 0 indexing simply by indexing it with
+an empty range:
+a[:] or a[#]  ==>  a, only 0-indexed.
 
-These are stubs for a time when exceptions are implemented.
+Any operation that yields a subarray of an underlying array shares
+structure.  If you want a fresh copy of the data, use the copy() method.
 
-trait Rank[\ nat n \]
+To assign the contents of array a to array b, you can use:
 
-There are separate types Rank1, Rank2, and Rank3 which give
-appropriate exclusions (since the absence of where clauses prevents us
-from giving these exclusions directly).
+a.assign(b)
 
-trait Indexed1[\ nat n \] end
-trait Indexed2[\ nat n \] end
-trait Indexed3[\ nat n \] end
+If a is freshly allocated.  The following should work all the time:
 
-These indicate that an object has an i^th dimension of size n.
+a[:] := b[:]
 
-trait Indexed[\T extends Indexed[\T, E, I\], E, I\]
-  opr[i:I] : E
-  opr[i:I]:=(v:E) : ()
-  assign(v:T):T = fill(fn (i:I):E => v[i])
-  fill(f:I->E):T
-  fill(v:E):T = fill(fn (i:I):E => v)
-  copy():T
-  mapReduce[\R\](f:(I,E)->R, j:(R,R)->R, z:R):R
-  reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (i:I,e:E)=>e, j, z)
-end
-
-This defines most of the core array functionality; due to
-implementation shortcomings it is not yet fully implemented for the
-entire array type hierarchy, though the corresponding methods exist
-for every array type.  We read Indexed[\T,E,I\] as "objects of type T
-have elements of type E indexed by type I."  This contains indexing
-operations.  It also contains functions which compensate for the
-absence of array comprehensions and reductions:
-    fill fills an array either using a function from index to value, or
-        with a fixed value.
-    A.reduce(j,z) is equivalent to BIG j [i <- A.indices] A[i], where j
-        has zero z.  But note that j is a function, not an operator.
-    A.mapReduce(f,j,z) is equivalent to BIG j [i <- A.indices] f(i,A[i])
-        with the same caveats as above.
-
-Note that these functions actually use generator-style iteration
-internally, so it is possible to define new array layouts and
-experiment with generators by using these functions rather than
-looping.
-
-trait Array1[\T, nat b0, nat s0\]
-    extends { Indexed1 [\s0\], Rank1, Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
-    excludes { Number, String }
-
-1-D arrays.  Note the use of nat types for base b0 and size s0.
-Note also that indices are ZZ32 rather than ZZ64; this is because
-we're running inside java, which uses 32-bit array indices.  Internal
-methods (which you shouldn't use) include get, put, and offset.  The
-most interesting methods beyond those in Indexed are:
+Right now type-level ranges don't really exist, so if you want to
+operate on subarrays with statically type-checked bounds you'll need
+to work with the subarray method:
 
   subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\]
 
 This returns a structure-sharing subarray with base b and size s
-starting from offset o in the current array.  Structure sharing means
-updates to one array will be reflected in the other.  To avoid the
-structure sharing just call the copy() method.
+starting from offset o in the current array.
 
-  replica[\U\]():Array1[\U,b0,s0\]
-
-This returns a "replica" of the array with a different element type.
-By "replica" we intend "an array similar in structure to this one, but
-with a different element type and fresh storage."
-
-Note that Array1 is a trait; its subclasses are unimportant (unless
-you want to define your own, in which case they are instructive) and
-they're subject to change anyway.
-
-To create an Array1 you must either write a 1-D aggregate in your
-program:
-
-z : ZZ32[3] = [1 2 3]
-
-Or you must replicate an existing array:
-
-v : RR64[3] = z.replica[\RR64\]()
-
-Or you must call a factory function:
-
-w : ZZ64[1000] = array1[\ZZ64,1000\]()
-x : ZZ64[1000] = array1[\ZZ64,1000\](17)
-y : ZZ64[1000] = array1[\ZZ64,1000\](fn i => 2 i + 1)
-
-The special factory function vector is restricted to numeric argument
-types:
+The special factory functions vector and matrix are restricted to numeric argument
+types and static dimensionality:
 
 x' : ZZ64[1000] = vector[\ZZ64,1000\](17)
 
-At the moment, any Array1 whose element type extends Number is
-considered to be a valid vector (this will eventually be accomplished
-by coercion, and vectors will be a distinct type).  The pmul
-operation is elementwise multiplication; DOT is dot product, as is
-juxtaposition; DOT, CROSS, or juxtaposition with a scalar is scalar
-multiplication.  ||v|| returns the 2-norm (pythagorean length) of a
-vector.
+At the moment, any Array1 or Array2 whose element type extends Number
+is considered to be a valid vector or matrix repsectively (this will
+eventually be accomplished by coercion, and vectors will be a distinct
+type).  Note that the t() method on matrices is transposition, and
+will eventually be replaced by opr ()^T.
 
-trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
-    extends { Indexed1 [\ s0 \], Indexed2 [\ s1 \] , Rank2 (* ,
-              Indexed[\Array2[\T,b0,s0,b1,s1\],T, (ZZ32,ZZ32)\] *) }
-    excludes { Number, String }
+GENERATORS, REDUCTIONS, and COMPREHENSIONS
 
-This trait is structured much like Array1, and also provides:
-  replica[\U\]():Array2[\U,b0,s0,b1,s1\]
-  t():Array2[\T,b1,s1,b0,s0\]
-
-The latter operation is transposition, and should properly be opr ()^T
-when functional methods exist.  Subarray operations aren't defined yet
-for two-dimensional arrays.
-
-The factories are also similar to the 1-D case:
-
-array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\]
-array2[\T, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\]
-array2[\T, nat s0, nat s1\](f:(ZZ32,ZZ32)->T):Array2[\T,0,s0,0,s1\]
-
-We consider any Array2 whose element type extends Number to be a
-matrix (again this will eventually use coercion).  Matrix arithmetic
-defines much the same operators as vector arithmetic; all
-multiplication operators are treated the same way.  When both
-arguments are matrices, this is matrix multiplication.  When one
-argument is a vector, it's matrix/vector or vector/matrix
-multiplication.  When one argument is a scalar, it's scalar
-multiplication.
-
-Finally Array3 is similar to Array1 and Array2.  It does not yet offer
-factories with arguments, nor subarrays, and we do not treat numeric
-3-D arrays specially.
-
-
-OTHER FUNCTIONS
-
-A number of simple functions from the spec are provided:
-
-cast[\T\](x:Any):T
-instanceOf[\T\](x:Any):Boolean
-ignore(x:Any):() = ()
-identity[\T\](x:T):T = x
-tuple[\T\](x:T):T = x
-
-
-SOME POSSIBLY USEFUL UTILITY FUNCTIONS AND CLASSES
-
-These classes aren't strictly intended for external use, but may be
-handy as guides to how to write recursively-decomposed computations or
-otherwise get things done in the current version of Fortress:
-
-partition(x:ZZ32):(ZZ32,ZZ32)
-  canonically partition positive number n into two pieces (a,b) such
-  that 0 < a <= b, n = a+b.
-
-trait ReductionBase[\T\]
-trait Reduction1[\T, nat s\] extends ReductionBase[\T\]
-trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
-trait Reduction3[\R,nat s0,nat s1,nat s2\] extends ReductionBase[\R\]
-
-Reductions over 1-, 2-, and 3-D 0-based index spaces.  Used for
-defining most of the array methods.
+Defining new generators is discussed in detail in the Fortress
+language specification, but if you're trying it yourself for the first
+time you may find it instructive to browse the source code of the libraries.
 
 DEFINING NEW PRIMITIVE FUNCTIONS
 
@@ -602,3 +497,46 @@ the interpreter requires that you declare appropriate argument and
 return types for your native functions as shown above.  If you give an
 incorrect type declaration on the Fortress side, you'll get
 non-user-friendly error messages when the Java code is run.
+
+DEFINING NEW PRIMITIVE CLASSES
+
+To define a new primitive class, you will need to write a native
+component.  Examples of these can be found in Library; anything that
+starts with "native component" is a native component.  Here's the
+first few lines of File.fss:
+
+native component File
+import FileSupport.{...}
+export File
+
+language="java"
+package="com.sun.fortress.interpreter.glue.prim"
+
+object FileReadStream(transient filename:String)
+        extends { ReadStream, FileStream}
+    getter fileName():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$fileName")
+    ....
+
+
+Note that we import a non-native component that define traits
+mentioned in the extends clause.  The first two bindings must be
+language and package in that order; right now only language="java" is
+supported, and the package is where the backing class will be found.
+In com.sun.fortress.interpreter.glue.prim.FileReadStream defines the
+corresponding backing data type.  Note that FileReadStream extends
+Constructor, and defines an inner class that extends FOrdinaryObject
+that represents the actual values that get passed around at run time.
+
+The methods must extend NativeMethod, but are otherwise referenced
+using builtinPrimitive just as for top-level functions.
+
+A native class can contain a mix of native and non-native method
+code.  Note, however, that the namespace in which a native object is
+defined is slightly odd from the perspective of library name
+visibility.  For this reason, some primitive classes extend a parent
+trait (defined in a non-native component) that contains most of their
+non-native functionality and that has full access to the libraries.
+For example, FileStream provides a number of generator definitions
+that are inherited by FileReadStream.
