@@ -1,7 +1,7 @@
 PROJECT FORTRESS SUBVERSION REPOSITORY
 
 This README exists in the top-level directory of the Fortress project.
-Information about Fortress can be found at the following website:
+Information about Fortress can be found at the following web site:
 
   http://projectfortress.sun.com
 
@@ -223,10 +223,11 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
   typecase isn't nearly as useful as you might think, since it cannot
   bind type variables; we are working to address this shortcoming.
 
-* The "atomic" construct uses code basedn on the DSTM2 library.
-  Nested transactions are flattened.  We use their obstruction
-  free algorithm with a simple backoff contention manager.  Reductions
-  are not yet implemented, so perform an explicit atomic update instead.
+* The "atomic" construct uses code based on the DSTM2 library.  Nested
+  transactions are flattened.  We use their obstruction free algorithm
+  with a simple lowest-thread-wins contention manager.  Reduction
+  variables in for loops are not yet implemented, so perform an
+  explicit atomic update or just use a reduction expression instead.
 
 * throw and catch expressions.
 
@@ -468,7 +469,7 @@ types and static dimensionality:
 x' : ZZ64[1000] = vector[\ZZ64,1000\](17)
 
 At the moment, any Array1 or Array2 whose element type extends Number
-is considered to be a valid vector or matrix repsectively (this will
+is considered to be a valid vector or matrix respectively (this will
 eventually be accomplished by coercion, and vectors will be a distinct
 type).  Note that the t() method on matrices is transposition, and
 will eventually be replaced by opr ()^T.
