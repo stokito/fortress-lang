@@ -1,19 +1,27 @@
 #!/bin/bash
 
+if [ $# -lt 1 ] ; then
+  echo forzip directory-and-zipfile-name
+  exit 1
+fi
+
+ourname="$1"
+
 ver=`svnversion`
 
 if ( echo $ver | egrep -q '^[0-9]+$' ) ; then
 echo "Cleaning"
 ./ant clean
 echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
-zip -9 fortress_${ver}.zip \
-`find . \( -name .svn -o \
+ln -s `pwd` ../${ourname}
+( cd .. ; zip -9 fortress_${ver}.zip \
+ `find -L ${ourname} \( -name .svn -o \
            -name "fortress_*.zip" -o \
            -name .hg -o \
            -name "*.log" -o \
            -name "*~" -o \
            -name .dependencies -o \
-           -name "TEST-RESULTS" \) -prune -o -print` > zip_${ver}.log
+           -name "TEST-RESULTS" \) -prune -o -print` > zip_${ver}.log )
 
 else
   reason="none"
