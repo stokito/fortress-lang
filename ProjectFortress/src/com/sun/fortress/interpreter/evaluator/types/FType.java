@@ -268,7 +268,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     protected final boolean commonSubtypeOf(FType other) {
-        return (this == other || other == FTypeDynamic.ONLY || other==FTypeTop.ONLY);
+        return (this == other || other==FTypeTop.ONLY);
     }
 
     /**
@@ -276,7 +276,7 @@ abstract public class FType implements Comparable<FType> {
      */
     @SuppressWarnings("unchecked")
     public boolean subtypeOf(FType other) {
-        if (other == FTypeDynamic.ONLY || other == FTypeTop.ONLY)
+        if (other == FTypeTop.ONLY)
             return true;
         Class us = getClass();
         Class them = other.getClass();
@@ -396,7 +396,7 @@ abstract public class FType implements Comparable<FType> {
             }
         } else {
             // Empty set, best we can do
-            a = FTypeDynamic.SingleT; // why isn't this a real empty set?
+            a = FTypeTop.SingleSet; // why isn't this a real empty set?
         }
         return a;
     }

@@ -30,9 +30,9 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicWhereType;
@@ -996,7 +996,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                                              ft, ")"));
                         }
                     } else {
-                        ft = FTypeDynamic.ONLY; // top?
+                        ft = FTypeTop.ONLY;
                     }
                     /* Finally, can finish this initialiation. */
                     bindInto.storeType(x, sname, ft);

@@ -182,7 +182,7 @@ public class FTypeTuple extends FType {
 
     public Set<FType> meet(FType other) {
         TreeSet<FType> result = new TreeSet<FType>();
-        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
+        if (other instanceof FTypeTop) {
             result.add(this);
         } else if (other instanceof BottomType) {
             result.add(other);
@@ -199,7 +199,7 @@ public class FTypeTuple extends FType {
 
     public Set<FType> join(FType other) {
         TreeSet<FType> result = new TreeSet<FType>();
-        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
+        if (other instanceof FTypeTop) {
             result.add(other);
         } else if (other instanceof BottomType) {
             result.add(this);
