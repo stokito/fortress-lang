@@ -28,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.types.Bool;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
@@ -167,9 +166,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             else { // in_p instanceof VarargsParam
                 ptype = e.getFType(((VarargsParam)in_p).getVarargsType());
             }
-            // TOP?  or Dynamic?
-            if (ptype instanceof FTypeDynamic)
-                throw new Error("We think this code is dead"); // ptype = FTypeTop.ONLY;
             Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p));
             fparams.add(i++, fp);
         }

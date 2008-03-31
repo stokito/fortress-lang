@@ -29,7 +29,6 @@ import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
@@ -249,9 +248,6 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
         BetterEnv env = getEvalEnv(); // should need this for types,
                                     // below.
         FType ft = EvalType.getFTypeFromOption(rt, env, BottomType.ONLY);
-        if (ft instanceof FTypeDynamic)
-            throw new Error("We think this code is dead"); // ft = BottomType.ONLY;
-
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
         setParamsAndReturnType(fparams, ft);

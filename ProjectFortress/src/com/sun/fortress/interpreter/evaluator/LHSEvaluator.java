@@ -26,8 +26,8 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
-import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVector;
 import com.sun.fortress.interpreter.evaluator.values.FArray;
 import com.sun.fortress.interpreter.evaluator.values.FMatrix;
@@ -193,7 +193,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         // Here we have an LHS context
         if (value instanceof IUOTuple) {
             IUOTuple iuo_tuple = (IUOTuple) value;
-            FType bestGuess = FTypeDynamic.ONLY;
+            FType bestGuess = FTypeTop.ONLY;
             FType outerType = null;
             // Perhaps the LHS has a type?
             if (type.isSome()) {

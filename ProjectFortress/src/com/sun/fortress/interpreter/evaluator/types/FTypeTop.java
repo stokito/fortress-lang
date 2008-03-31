@@ -31,7 +31,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 public class FTypeTop extends FTypeTrait {
     public final static FTypeTop ONLY = new FTypeTop();
     private final static List<FType> SingleT = Useful.<FType>list(ONLY);
-    private final static Set<FType> SingleSet = Useful.<FType>set(ONLY);
+    public final static Set<FType> SingleSet = Useful.<FType>set(ONLY);
 
     private FTypeTop() {
         super("Any",BetterEnv.blessedEmpty(),new HasAt.FromString("Built in"),

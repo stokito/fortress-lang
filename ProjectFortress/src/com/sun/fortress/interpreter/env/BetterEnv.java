@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
@@ -686,7 +686,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
      }
 
     public void putVariable(String str, FValue f2) {
-        putValue(str, new ReferenceCell(FTypeDynamic.ONLY, f2)); // Top?
+        putValue(str, new ReferenceCell(FTypeTop.ONLY, f2));
      }
 
     public void putVariablePlaceholder(String str) {

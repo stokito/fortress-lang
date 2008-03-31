@@ -122,7 +122,7 @@ public class FTypeArrow extends FType {
      */
     @Override
     public Set<FType> join(FType other) {
-        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
+        if (other instanceof FTypeTop) {
             return Useful.<FType>set(other);
         } else if (other instanceof BottomType) {
             return Useful.<FType>set(this);
@@ -138,7 +138,7 @@ public class FTypeArrow extends FType {
      */
     @Override
     public Set<FType> meet(FType other) {
-        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
+        if (other instanceof FTypeTop) {
             return Useful.<FType>set(this);
         } else if (other instanceof BottomType) {
             return Useful.<FType>set(other);
