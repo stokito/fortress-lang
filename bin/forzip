@@ -11,7 +11,7 @@ ver=`svnversion`
 
 if ( echo $ver | egrep -q '^[0-9]+$' ) ; then
 echo "Cleaning"
-./ant clean
+./ant clean compile
 echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
 ln -s `pwd` ../${ourname}
 ( cd .. ; zip -9 fortress_${ver}.zip \
