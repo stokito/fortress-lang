@@ -3,8 +3,8 @@
 ver=`svnversion`
 
 if ( echo $ver | egrep -q '^[0-9]+$' ) ; then
-echo "Cleaning and testing, just in case"
-./ant clean test
+echo "Cleaning"
+./ant clean
 echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
 zip -9 fortress_${ver}.zip \
 `find . \( -name .svn -o \
