@@ -3,13 +3,13 @@ PROJECT FORTRESS SUBVERSION REPOSITORY
 This README exists in the top-level directory of the Fortress project.
 Information about Fortress can be found at the following web site:
 
-  http://projectfortress.sun.com
+    http://projectfortress.sun.com
 
 If you have Subversion installed, you can check out the Fortress
 repository by going to the directory in which you want to check it out
 and issuing the following command:
 
-  svn checkout https://projectfortress.sun.com/svn/Community/trunk PFC
+    svn checkout https://projectfortress.sun.com/svn/Community/trunk PFC
 
 (The name "PFC" merely specifies the name of the directory you want
 to check the code into.  Feel free to substitute another directory
@@ -32,8 +32,8 @@ Emacs: A directory holding the Emacs Lisp file fortress-mode.el,
 which defines a Fortress mode for Emacs.  To use this file, load
 it from your .emacs file with the following command:
 
-  (load (concat (getenv "FORTRESS_HOME")
-                "/Fortify/fortify.el"))
+    (load (concat (getenv "FORTRESS_HOME")
+                  "/Fortify/fortify.el"))
 
 SpecData: Machine-readable files used by the Fortress Language
 Specification (e.g., a list of all reserved words).  Editors and other
@@ -85,8 +85,8 @@ you must have Bash accessible in /bin/bash.
 Make sure the following environment variables are set in your startup
 script:
 
-  JAVA_HOME
-  ANT_HOME
+    JAVA_HOME
+    ANT_HOME
 
 (Although our scripts are sometimes able to guess the locations of
 JAVA_HOME and ANT_HOME, it is preferred that you set them manually.)
@@ -94,7 +94,7 @@ JAVA_HOME and ANT_HOME, it is preferred that you set them manually.)
 Once all of these environment variables are set, build the interpreter
 by going to the directory $FORTRESS_HOME and typing the command:
 
-  ./ant clean test
+    ./ant clean test
 
 If that doesn't work, there's a bug in the interpreter; please issue a
 bug report.
@@ -103,9 +103,9 @@ Once you have built the interpreter, you can call it from any directory,
 on any Fortress file, simply by typing one of the following commands at a
 command line:
 
-  fortress compile somefile.fs{s,i}
-  fortress [run] [-test] [-debug] somefile.fss arg...
-  fortress help
+    fortress compile somefile.fs{s,i}
+    fortress [run] [-test] [-debug] somefile.fss arg...
+    fortress help
 
 A command of the form "fortress compile somefile.fss" or
 "fortress compile somefile.fsi" calls the static checker on the given
@@ -286,7 +286,7 @@ CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 BETA
 released in tandem with the language specification, available as open source
 and online at:
 
-http://projectfortress.sun.com
+    http://projectfortress.sun.com
 
 Each example in the specification is automatically generated from
 a corresponding working Fortress program which is run by every test run
@@ -346,10 +346,11 @@ ProjectFortress/LibraryBiltin/NativeSimpleTypes.fss and
 Library/FortressLibrary.fss are imported implicitly whenever any
 Fortress program is run.
 
+
 BUILT-IN TYPES
 
 There are a bunch of types that are defined internally by the Fortress
-interpreter.  With the exception of Any these cannot be overridden.
+interpreter.  With the exception of Any, these cannot be overridden.
 The built-in types are found in
 ProjectFortress/LibraryBuiltin/FortressBuiltin.fsi and
 NativeSimpleTypes.fsi; documentation for the released version of these
@@ -361,7 +362,7 @@ Tuple and arrow types are always built in, and cannot be overridden in
 any way.
 
 Note that there isn't (yet) a trait Object!  Eventually user-written
-trait and object declarations will extend Object by default; right now
+trait and object declarations will extend Object by default; right now,
 they instead extend Any by default.  We plan to migrate to a new
 infrastructure for primitive objects (based on the one used for
 Boolean in NativeSimpleTypes) at which point we will remedy this
@@ -370,14 +371,15 @@ situation.
 Meanwhile, operations on the primitive types in FortressBuiltin can be
 found in Library/FortressLibrary.fsi; again these primitive are
 documented in the specification as well.  Note in particular that in
-the absence of coercion you may occasionally need to make use of widen
+the absence of coercion, you may occasionally need to make use of widen
 and narrow to convert between ZZ32 and ZZ64.
+
 
 LIBRARY HIGH POINTS
 
 Your best guide to library functionality is the library code itself;
 this can be found in Library/ and in ProjectFortress/LibraryBuiltin.
-The apis for these libraries can also be found in the language
+The APIs for these libraries can also be found in the language
 specification (note, though, that if you downloaded the latest version
 of the Fortress implementation then the two may differ).  This section
 provides an overview of things you may not immediately realize are
@@ -388,9 +390,9 @@ find the BIG STRING operation (that concatenates strings) useful.
 
 Several functions attempt to convert data of type Any to a string.
 These include print(), println(), assert(), and juxtaposition of Any
-with a string.  Right now the FortressBuiltin types are printed using
+with a string.  Right now, the FortressBuiltin types are printed using
 internal magic, and object types are printed using the toString
-getter.  The consequence of this is that you will see a run time error
+method.  The consequence of this is that you will see a runtime error
 if you attempt to print an object without first defining a toString
 method.
 
@@ -424,7 +426,7 @@ or:
 or:
     a = array[\T\](size).fill(fn (index:ZZ32) => ...)
 
-At the moment to create a non-0-indexed array you need to create a
+At the moment, to create a non-0-indexed array you need to create a
 correctly-sized 0-indexed array as described above, then use the
 shift(newlower) method to shift the lower index.  Thus, to create an
 nxn 1-indexed array you can do something like this:
@@ -434,39 +436,39 @@ nxn 1-indexed array you can do something like this:
 The replicate[\T\]() method on arrays is a little unintuitive at
 first.  It creates a fresh array whose element type is T but whose
 bounds are the same as the bounds of the array being replicated.  When
-data distribution is fully implemented is should respect that as well.
+data distribution is fully implemented, it should respect that as well.
 It is a bit like saying array[\T\](a.bounds().upper()) for 0-indexed
 arrays but is slightly more graceful and deals well with non-0-indexed
 arrays.
 
 You can convert any array to use 0 indexing simply by indexing it with
 an empty range:
-a[:] or a[#]  ==>  a, only 0-indexed.
+    a[:] or a[#]  ==>  a, only 0-indexed.
 
 Any operation that yields a subarray of an underlying array shares
 structure.  If you want a fresh copy of the data, use the copy() method.
 
 To assign the contents of array a to array b, you can use:
 
-a.assign(b)
+    a.assign(b)
 
-If a is freshly allocated.  The following should work all the time:
+if a is freshly allocated.  The following should work all the time:
 
-a[:] := b[:]
+    a[:] := b[:]
 
 Right now type-level ranges don't really exist, so if you want to
-operate on subarrays with statically type-checked bounds you'll need
+operate on subarrays with statically type-checked bounds, you'll need
 to work with the subarray method:
 
-  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\]
+    subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\]
 
 This returns a structure-sharing subarray with base b and size s
 starting from offset o in the current array.
 
-The special factory functions vector and matrix are restricted to numeric argument
-types and static dimensionality:
+The special factory functions vector and matrix are restricted to numeric
+argument types and static dimensionality:
 
-x' : ZZ64[1000] = vector[\ZZ64,1000\](17)
+    x' : ZZ64[1000] = vector[\ZZ64,1000\](17)
 
 At the moment, any Array1 or Array2 whose element type extends Number
 is considered to be a valid vector or matrix respectively (this will
@@ -474,11 +476,13 @@ eventually be accomplished by coercion, and vectors will be a distinct
 type).  Note that the t() method on matrices is transposition, and
 will eventually be replaced by opr ()^T.
 
+
 GENERATORS, REDUCTIONS, and COMPREHENSIONS
 
 Defining new generators is discussed in detail in the Fortress
 language specification, but if you're trying it yourself for the first
-time you may find it instructive to browse the source code of the libraries.
+time, you may find it instructive to browse the source code of the libraries.
+
 
 DEFINING NEW PRIMITIVE FUNCTIONS
 
@@ -490,7 +494,7 @@ glue.prim (particularly the classes in glue.prim.Util).  Here's a
 sample native binding, which defines the floor operator which returns
 an integer:
 
-opr |\a:RR64/|:ZZ64 = builtinPrimitive("glue.prim.Float$IFloor")
+    opr |\a:RR64/|:ZZ64 = builtinPrimitive("glue.prim.Float$IFloor")
 
 You should *not* mention the type parameter to builtinPrimitive when
 invoking it; doing so will confuse the interpreter.  Note also that
@@ -498,6 +502,7 @@ the interpreter requires that you declare appropriate argument and
 return types for your native functions as shown above.  If you give an
 incorrect type declaration on the Fortress side, you'll get
 non-user-friendly error messages when the Java code is run.
+
 
 DEFINING NEW PRIMITIVE CLASSES
 
@@ -521,7 +526,7 @@ object FileReadStream(transient filename:String)
     ....
 
 
-Note that we import a non-native component that define traits
+Note that we import a non-native component that defines traits
 mentioned in the extends clause.  The first two bindings must be
 language and package in that order; right now only language="java" is
 supported, and the package is where the backing class will be found.

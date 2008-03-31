@@ -21,7 +21,6 @@ import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
 import com.sun.fortress.interpreter.evaluator.types.FTypeChar;
-import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -53,7 +52,7 @@ public class Init {
 
     // For leak detection.
     static int countdown=4;
-    
+
     public static void initializeEverything() {
         FTypeArrow.reset();
         FTypeTuple.reset();
@@ -66,7 +65,6 @@ public class Init {
 
         FTypeVoid.ONLY.resetState();
         FTypeTop.ONLY.resetState();
-        FTypeDynamic.ONLY.resetState();
 
         FTypeBufferedWriter.ONLY.resetState();
         FTypeChar.ONLY.resetState();
@@ -81,14 +79,14 @@ public class Init {
         FTypeIntegral.ONLY.resetState();
         FTypeString.ONLY.resetState();
         FTypeStringLiteral.ONLY.resetState();
-        
+
         BottomType.ONLY.resetState();
         FTypeRange.ONLY.resetState();
 
         FTypeIntLiteral.ONLY.resetState();
         FTypeFloatLiteral.ONLY.resetState();
         FTypeStringLiteral.ONLY.resetState();
-        
+
         NativeApp.reset();
 
         // For leak detection; runs 4 tests, then cleans the heap, and hangs.
@@ -98,10 +96,10 @@ public class Init {
             try {
                 Thread.sleep(1000000000);
             } catch (InterruptedException ex) {
-                
+
             }
         }
-        
+
     }
 
 }
