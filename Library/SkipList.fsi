@@ -18,9 +18,10 @@
 api SkipList
 import PureList.{...}
 
-(* A SkipList type consists of a root node and pInverse = 1/p, where the fraction
-   p is used in the negative binomial distribution to select random levels for insertion.
-*)
+(** A %SkipList% type consists of a root node and %pInverse = 1/p%,
+    where the fraction %p% is used in the negative binomial distribution
+    to select random levels for insertion.
+**)
 trait SkipList[\Key,Val,nat pInverse\]
     comprises { ... }
 
@@ -29,20 +30,20 @@ trait SkipList[\Key,Val,nat pInverse\]
   (** The number of values stored in this tree. *)
   size():ZZ32
 
-  (** given a search key, try to return a value that matches that key *)
+  (** Given a search key, try to return a value that matches that key. *)
   search(k:Key):Maybe[\Val\]
 
-  (** add a (key, value) pair to this tree *)
+  (** Add a (key, value) pair to this tree. *)
   add(k:Key, v:Val):SkipList[\Key,Val,pInverse\]
 
-  (** remove one (key, value) pair from this tree *)
+  (** Remove one (key, value) pair from this tree. *)
   remove(k:Key):SkipList[\Key,Val,pInverse\]
 
-  (** merge two skip trees *)
+  (** Merge two skip trees. *)
   merge(other:SkipList[\Key,Val,pInverse\]):SkipList[\Key,Val,pInverse\]
 end
 
-(* Construct an empty skip list *)
+(* Construct an empty skip list. *)
 NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\]
 
 end

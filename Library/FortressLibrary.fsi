@@ -22,11 +22,11 @@ api FortressLibrary
     argument names a Java Class which is a subclass of
     \texttt{com.sun.fortress.interpreter.glue.NativeApp}, which provides code
     for the closure which is used in place of the call to
-    builtinPrimitive.  Meanwhile all the necessary type information,
+    %builtinPrimitive%.  Meanwhile all the necessary type information,
     argument names, etc. must be declared here in Fortress-land.  For
-    examples see the end of this file.
+    examples, see the end of this file.
 
-    In practice if you're extending the interpreter you will probably
+    In practice, if you are extending the interpreter you will probably
     want to extend \texttt{com.sun.fortress.interpreter.glue.NativeFn0,1,2,3,4}
     or one of their subclasses defined in
     \texttt{com.sun.fortress.interpreter.glue.primitive}.  These types are
@@ -63,7 +63,7 @@ fail(s:String)
 * \subsection*{Control over locality and location}
 ************************************************************
 
-At the moment all Fortress objects are immediately shared by default. *)
+At the moment, all Fortress objects are immediately shared by default. *)
 
 shared[\T extends Any\](x:T): T
 
@@ -95,7 +95,7 @@ opr =(a:Any, b:Any):Boolean
 opr =/=(a:Any, b:Any):Boolean
 
 trait Equality[\Self extends Equality[\Self\]\]
-        excludes { Number } (** Until Number is an actual type. **)
+        excludes { Number } (* Until Number is an actual type. *)
     abstract opr =(self, other:Self): Boolean
 end
 
@@ -189,7 +189,7 @@ end
 
 (** StandardTotalOrder is the usual total order using %<%,%>%,%<=%,%>=%,%=%, and %CMP%.
     Most values that define a comparison should do so using this.
-    Minimal complete definition: either %CMP% or %<% (it's advisable to
+    Minimal complete definition: either %CMP% or %<% (it is advisable to
     define %=% in the latter case). **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
         extends StandardPartialOrder[\Self\]
@@ -206,7 +206,7 @@ assert(flag:Boolean): ()
 assert(flag: Boolean, failMsg: String): ()
 
 (** This version of %assert% checks the equality of its first two arguments;
-    If unequal it includes the remaining arguments in its error indication. *)
+    if unequal it includes the remaining arguments in its error indication. *)
 assert(x:Any, y:Any, failMsg: Any...): ()
 
 (************************************************************
@@ -214,14 +214,14 @@ assert(x:Any, y:Any, failMsg: Any...): ()
 ************************************************************
 
 **
- * We say an object which extends %Generator[\T\]% "generates objects of
- * type %T%."
+ * We say an object which extends %Generator[\T\]% ``generates objects of
+ * type %T%.''
  *
  * Generators are used to express iteration in Fortress.  Every generated
- * expression in Fortress (eg for loop, comprehension) is desugared into
- * calls to methods of Generator, chiefly the generate method.
+ * expression in Fortress (eg. for loop and comprehension) is desugared into
+ * calls to methods of Generator, chiefly the %generate% method.
  *
- * Every generator has a notion of a "natural order" (which by default is
+ * Every generator has a notion of a ``natural order'' (which by default is
  * unspecified), which describes the ordering of reduction operations,
  * and also describes the order in which elements are produced by the
  * sequential version of the same generator (given by the
@@ -258,7 +258,7 @@ trait Generator[\E\]
         following the natural order of the generator.  The author of
         the generator is free to use the identity element anywhere
         desired in this computation, and to group reductions in any
-        way desired; if no elements are generated the identity must be
+        way desired; if no elements are generated, the identity must be
         returned. *)
     abstract generate[\R\](r: Reduction[\R\], body: E->R): R
 
@@ -276,12 +276,12 @@ trait Generator[\E\]
     (** Nesting of two generators; the innermost is data-dependent
         upon the outer one.  This is specifically designed to be
         overloaded so that the combined generators have properties
-        appropriate to the pairing.  Because of the data dependency
+        appropriate to the pairing.  Because of the data dependency,
         the natural order of the nesting is the natural order of the
         inner generators, in the natural order the outer nesting
-        produces them.  So for example, if we write:
-          %(0#3).nest[\ZZ32\](fn (n:ZZ32):Generator[\ZZ32\] => (n*100#4))
-        then the natural order is 0,1,2,3,100,101,102,103,200,201,202,203
+        produces them.  So, for example, if we write:
+          %(0#3).nest[\ZZ32\](fn (n:ZZ32):Generator[\ZZ32\] => ((n 100)#4))
+        then the natural order is 0,1,2,3,100,101,102,103,200,201,202,203.
      **)
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\]
 
@@ -295,8 +295,8 @@ trait Generator[\E\]
         first range in half, then the second, and so forth.
 
         Consider a grid for which the rows are labeled from top to
-        bottom with the elements of a in natural order, and the
-        columns are labeled from left to right with the elements of g
+        bottom with the elements of %a% in natural order, and the
+        columns are labeled from left to right with the elements of %g%
         in natural order.  Each point in the grid corresponds to a
         pair %(a,b)% that must be generated by
         %self.cross(g)%.  In the natural
@@ -311,17 +311,17 @@ trait Generator[\E\]
           %seq(a).cross(b)
           %a.cross(seq(b))
           %seq(a).cross(seq(b))
-        But seq(a.cross(b)) may have a different natural order. *)
+        But %seq(a.cross(b))% may have a different natural order. *)
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\]
 
     (** \textbf{Derived generation operations} *)
 
-    (** %mapReduce% is equivalent to %generate%, but takes an explicit join
-        and zero which can have any type.  It still assumes join is
-        associative and that zero is the identity of join. **)
+    (** %mapReduce% is equivalent to %generate%, but takes an explicit %join%
+        and %zero% which can have any type.  It still assumes %join% is
+        associative and that %zero% is the identity of %join%. **)
     mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R
     (** %reduce% works much like %generate% or %mapReduce%,
-        but has no body expression **)
+        but has no body expression. **)
     reduce(j:(E,E)->E, z:E):E
     reduce(r: Reduction[\E\]):E
     (** %loop% is a version of %generate% which discards the %()% results
@@ -361,10 +361,10 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\]
 * \subsection{The Maybe type}
 ************************************************************
 
-** This trait makes excludes work without where clauses, and allows opr =()
+** This trait makes excludes work without where clauses, and allows opr =
    to remain non-parametric. *)
 value trait MaybeType extends Equality[\MaybeType\] excludes Number
-        (** not yet: %comprises Maybe[\T\] where [\T\]%*)
+        (** not yet: ``%comprises Maybe[\T\] where [\T\]%'' *)
     abstract getter isJust() : Boolean
     opr =(self, other:MaybeType): Boolean
 end
@@ -377,7 +377,7 @@ end
     element yielded by %unJust%, so there is no issue of canonical
     order or parallelism.
 
-    Thus %Just[\T\]% can be used as a
+    Thus, %Just[\T\]% can be used as a
     single-element generator, and %Nothing% can be used as an
     empty generator. *)
 value trait Maybe[\T\]
@@ -472,7 +472,7 @@ end
 object ForbiddenException(chain : Exception) extends UncheckedException
 end
 
-(* Should this be called "IndexNotFound" instead? *)
+(* Should this be called ``IndexNotFound'' instead? *)
 object NotFound extends UncheckedException
 end
 
@@ -533,7 +533,7 @@ end
 ************************************************************)
 
 trait HasRank extends Equality[\HasRank\] excludes { Number, MaybeType }
-  (** not yet: % comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] }% *)
+  (** not yet: ``% comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] }%'' *)
   abstract rank():ZZ32
   opr =(self, other:HasRank): Boolean
 end
@@ -543,8 +543,8 @@ trait Rank[\ nat n \] extends HasRank
   rank():ZZ32
 end
 
-(* Potemkin exclusion traits.  Really we just want to say that
- * Rank[\n\] excludes Rank[\m\] where { m =/= n }, but we can't yet. *)
+(** Potemkin exclusion traits.  Really we just want to say that
+    ``%Rank[\n\] excludes Rank[\m\] where { m =/= n }%'', but we cannot yet. *)
 
 trait Rank1 extends { Rank[\1\]} excludes { Rank2, Rank3, Number, String }
 end
@@ -557,7 +557,7 @@ end
 
 (** The trait %Indexed_i[\n\]%
    indicates that something has an $i^{th}$ dimension of size $n$.  In
-   general anything which extends %Indexed_i% must also
+   general, anything which extends %Indexed_i% must also
    extend %Indexed_j% for $j < i$. *)
 
 trait Indexed1[\ nat n \] end
@@ -566,50 +566,51 @@ trait Indexed2[\ nat n \] end
 
 trait Indexed3[\ nat n \] end
 
-(** The indexed trait indicates that an object of type T can be
-indexed using type I to obtain elements with type E.
-X
-An object i that's an instance of Indexed defines three basic things:
+(** The indexed trait indicates that an object of type %T% can be
+indexed using type %I% to obtain elements with type %E%.
+
+An object %i% that is an instance of %Indexed% defines three basic things:
+
   The indexing operator %opr []%, which must be defined for every instance of
     the type.
 
-  A suite of generators: i.indices generates the index space of the
-    array.  i itself generates the values contained at those indices.
-    i.indexValuePairs yields pairs of (index,value).  All of these
+  A suite of generators: %i.indices% generates the index space of the
+    array.  %i% itself generates the values contained at those indices.
+    %i.indexValuePairs% yields pairs of %(index,val)%.  All of these
     share the same natural order.  It is necessary to define one of
-    indices() and indexValuePairs(), in addition to generate() (but
+    %indices()% and %indexValuePairs()%, in addition to %generate()% (but
     the latter requirement can be dispensed by instead extending
-    DelegatedIndexed).
+    %DelegatedIndexed%).
 
-  A set of utility functions, assign, fill, and copy.  Only fill and
-    copy need to be defined.
+  A set of utility functions, %assign%, %fill%, and %copy%.  Only %fill% and
+    %copy% need to be defined.
 **)
 trait Indexed[\E, I\] extends Generator[\E\]
-    (** isEmpty indicates whether there are any valid indices.  It is
-        defined as size=0 *)
+    (** %isEmpty()% indicates whether there are any valid indices.  It is
+        defined as %size()=0%. *)
     getter isEmpty(): Boolean
-    (** size indicates the number of distinct valid indices that may
+    (** %size()% indicates the number of distinct valid indices that may
         be passed to indexing operations. *)
     abstract getter size(): ZZ32
-    (** bounds() yields a range of indices that are valid for the
+    (** %bounds()% yields a range of indices that are valid for the
         indexed generator. *)
     abstract getter bounds(): FullRange[\I\]
-    (** indexValuePairs() generates the elements of the indexed object
+    (** %indexValuePairs()% generates the elements of the indexed object
         (exactly those elements that are generated by the object itself),
         but each element is paired with its index.  When we obtain
-        (i,v) from indexValuePairs we know that:
+        %(i,v)% from %indexValuePairs()% we know that:
         \begin{itemize}
-           \item %self_i = v%
-           \item the i are distinct and %i IN bounds()%
-           \item stripping away the i yields exactly the results of %v <- self%
+           \item %self[i] = v%
+           \item the %i% are distinct and %i IN bounds()%
+           \item stripping away the %i% yields exactly the results of %v <- self%
         \end{itemize}
         This generator attempts to follow the structure of the
         underlying object as closely as possible.  *)
     getter indexValuePairs(): Indexed[\(I,E),I\]
-    (** indices() yields the indices corresponding to the elements of
+    (** %indices()% yields the indices corresponding to the elements of
         the indexed object---it corresponds to the index component of
-        indexValuePairs().  This may in general be a subset of all the
-        valid indices represented by bounds().  This generator
+        %indexValuePairs()%.  This may in general be a subset of all the
+        valid indices represented by %bounds()%.  This generator
         attempts to follow the structure of the underlying object as
         closely as possible. *)
     getter indices(): Indexed[\I,I\]
@@ -619,23 +620,23 @@ trait Indexed[\E, I\] extends Generator[\E\]
     (** Indexing by ranges.  The results are 0-based when the
         underlying index type has a notion of 0.  This ensures
         consistency of behavior between types such as vectors that
-        *only* support 0 indexing and types such as arrays that permit
+        ``only'' support 0-indexing and types such as arrays that permit
         other choices of lower bounds.  The easiest way to write the
-        index by ranges operation for an instance of Indexed is to
+        index by ranges operation for an instance of %Indexed% is to
         take advantage of indexing on the ranges themselves by writing
-        %(bounds())[r]% in order to narrow and bounds check the range r
+        %(bounds())[r]% in order to narrow and bounds check the range %r%
         and obtain a closed range of indices on the underlying
         data. **)
     abstract opr[r:Range[\I\]] : Indexed[\E,I\]
     opr[_:OpenRange[\Any\]] : Indexed[\E,I\]
 
     (** Roughly speaking, %ivmap(f)% is equivalent to
-        %indexValuePairs.map(f)%.  However ivmap isn't
-        merely a convenient shortcut.  It's actually intended to
+        %indexValuePairs.map(f)%.  However %ivmap% is not
+        merely a convenient shortcut.  It is actually intended to
         create a copy of the underlying indexed structure when that is
         appropriate.
 
-        The usual map function in Generator should do the same (and
+        The usual %map% function in %Generator% should do the same (and
         does for the instances in this library).  Copying can be bad
         for space, but is complexity-preserving if the mapped
         generator is used more than once. **)
@@ -659,20 +660,20 @@ end
 trait LexicographicOrder[\T extends LexicographicOrder[\T,E\],E\]
         extends { StandardTotalOrder[\T\], ZeroIndexed[\E\] }
     opr CMP(self, other:T): TotalComparison
-    (** We give a specialized version of = because it can fail faster
-        than CMP by checking sizes early. **)
+    (** We give a specialized version of %=% because it can fail faster
+        than %CMP% by checking sizes early. **)
     opr =(self,other:T): Boolean
 end
 
 toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\]
 
-(** DelegatedIndexed is an Indexed generator that has recourse to
-    another Indexed generator() internally.  By default this in turn
-    is defined in terms of indexValuePairs().  Thus it's only
-    necessary to define either indexValuePairs() or indices().
+(** %DelegatedIndexed% is an indexed generator that has recourse to
+    another indexed generator internally.  By default, this in turn
+    is defined in terms of %indexValuePairs()%.  Thus, it is only
+    necessary to define either %indexValuePairs()% or %indices()%.
 
-    This class is designed for convenience; it shouldn't be used as a
-    type in runing code, but only as a supertype in lieu of Indexed.
+    This class is designed for convenience; it should not be used as a
+    type in running code, but only as a supertype in lieu of %Indexed%.
 **)
 trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     getter generator(): Generator[\E\]
@@ -686,9 +687,9 @@ trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     loop(f:E->()): ()
 end
 
-(** The MutableIndexed trait is an indexed trait whose elements can be
-    mutated using indexed assignment.  Right now we're using this type
-    in a somewhat dangerous way, since eg
+(** The %MutableIndexed% trait is an indexed trait whose elements can be
+    mutated using indexed assignment.  Right now, we are using this type
+    in a somewhat dangerous way, since, for example,
     %Array1[\E,b0,s0\]% extends both
     %Indexed[\Array1[\E,b0,s0\],E,ZZ32\]%
     and
@@ -698,43 +699,43 @@ trait MutableIndexed[\E, I\]
         extends { Indexed[\E,I\] }
     abstract opr[i:I]:=(v:E) : ()
 
-    (** For Ranged assignment, the extents of r and v.bounds() must
+    (** For %Ranged% assignment, the extents of %r% and %v.bounds()% must
         match, but the lower bounds need not. **)
     abstract opr[r:Range[\I\]]:=(v:Indexed[\E,I\]) : ()
     opr[_:OpenRange[\Any\]]:=(v:Indexed[\E,I\]) : ()
 end
 
-(* Array whose bounds are implicit rather than static, and which may
-   be either mutable or immutable. *)
+(** Array whose bounds are implicit rather than static, and which may
+    be either mutable or immutable. *)
 trait ReadableArray[\E,I\]
         extends { HasRank, Indexed[\E,I\] }
         comprises { Array[\E,I\], ImmutableArray[\E,I\] }
 
-    (** Indexed functionality with more specific type information **)
+    (** Indexed functionality with more specific type information. **)
     abstract opr[r:Range[\I\]] : ReadableArray[\E,I\]
     abstract opr[_:OpenRange[\Any\]] : ReadableArray[\E,I\]
     abstract ivmap[\R\](f:(I,E)->R): ReadableArray[\R, I\]
     abstract map[\R\](f:E->R): ReadableArray[\R, I\]
 
     (** Shift the origin of an array.  This should yield a new view of
-        the same array; ie initialization and/or update to either will
+        the same array; that is, initialization and/or update to either will
         be reflected in the other. **)
     abstract shift(newOrigin:I):ReadableArray[\E,I\]
 
-    (** Initialize element at index i with value v.  This should occur
+    (** Initialize element at index %i% with value %v%.  This should occur
         once, before any other access or assignment occurs to element
-        i.  An error will be signaled if an uninitialized element is
+        %i%.  An error will be signaled if an uninitialized element is
         read or an initialized element is re-initialized. **)
     abstract init(i:I, v:E): ()
 
-    (** Bulk initialization of an array using a given function or value **)
+    (** Bulk initialization of an array using a given function or value. **)
     abstract fill(f:I->E):ReadableArray[\E,I\]
     abstract fill(v:E):ReadableArray[\E,I\]
 
     abstract copy():ReadableArray[\E,I\]
 
     (** Create a fresh array structurally identical to the present
-        one, but holding elements of type U. **)
+        one, but holding elements of type %U%. **)
     abstract replica[\U\]():ReadableArray[\U,I\]
 
     opr =(self, other:HasRank): Boolean
@@ -753,7 +754,7 @@ trait ImmutableArray[\E,I\] extends { ReadableArray[\E,I\] }
     abstract copy():ImmutableArray[\E,I\]
     abstract replica[\U\]():ImmutableArray[\U,I\]
 
-    (** Thaw array (return mutable copy) **)
+    (** Thaw array (return mutable copy). **)
     abstract thaw():Array[\E,I\]
 end
 
@@ -770,7 +771,7 @@ trait Array[\E,I\] extends { ReadableArray[\E,I\], MutableIndexed[\E,I\] }
     abstract copy():Array[\E,I\]
     abstract replica[\U\]():Array[\U,I\]
 
-    (** Freeze array (return mutable copy) **)
+    (** Freeze array (return mutable copy). **)
     abstract freeze(): ImmutableArray[\E,I\]
 end
 
@@ -794,33 +795,33 @@ primitiveImmutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\]
     Useful for the internals of all the array functionality. **)
 trait ArrayTypeWith0[\E,I\]
       extends { ReadableArray[\E,I\], DelegatedIndexed[\E,I\] }
-    (** 0-based non-bounds-checked indexing **)
+    (** 0-based non-bounds-checked indexing. **)
     abstract get(i:I): E
     abstract init0(i:I, e:E): ()
     abstract zeroIndices(): FullRange[\I\]
-    (** Convert from base()-based indexing to 0-based indexing,
+    (** Convert from %base%-based indexing to 0-based indexing,
         performing bounds checking. **)
     abstract offset(i:I): I
-    (** Convert from 0-based indexing to base()-based indexing **)
+    (** Convert from 0-based indexing to %base%-based indexing. **)
     abstract toIndex(i:I): I
 end
 
-(** NOTE: StandardImmutableArrayType is a parent of
-    StandardMutableArrayType.  It therefore doesn't extend
-    ImmutableArrayType as you might expect.  Other types that extend
-    it should also extend ImmutableArrayType explicitly. **)
+(** NOTE: %StandardImmutableArrayType% is a parent of
+    %StandardMutableArrayType%.  It therefore does not extend
+    %ImmutableArrayType% as you might expect.  Other types that extend
+    it should also extend %ImmutableArrayType% explicitly. **)
 trait StandardImmutableArrayType[\T extends StandardImmutableArrayType[\T,E,I\],E,I\]
         extends { ArrayTypeWith0[\E,I\] }
-    (** CONCRETE GETTERS
+    (** CONCRETE GETTERS:
         Default implementations of getters based on abstract methods
-        in StandardArrayType. **)
+        in %StandardArrayType%. **)
     getter indices(): Indexed[\I,I\]
     getter indexValuePairs(): Indexed[\(I,E),I\]
     getter generator(): Indexed[\E,I\]
 
-    (** CONCRETE METHODS
+    (** CONCRETE METHODS:
         Default implementations of most array stuff based on the above.
-        The things we can't provide are anything involving replica. **)
+        The things we cannot provide are anything involving replica. **)
     opr[i:I]:E
     init(i:I, v:E)
 
@@ -835,7 +836,7 @@ end
 
 trait StandardMutableArrayType[\T extends StandardMutableArrayType[\T,E,I\],E,I\]
     extends { StandardImmutableArrayType[\T,E,I\], Array[\E,I\] }
-    (** 0-based non-bounds-checked indexing **)
+    (** 0-based non-bounds-checked indexing. **)
     abstract put(i:I, e:E): ()
     opr[i:I]:=(v:E):()
 
@@ -845,8 +846,8 @@ trait StandardMutableArrayType[\T extends StandardMutableArrayType[\T,E,I\],E,I\
     assign(f:I->E):T
 end
 
-(** Canonical partitioning of a positive number x into two pieces.  If
-     %(a,b) = partition(n)
+(** Canonical partitioning of a positive number %x% into two pieces.  If
+   %(a,b) = partition(n)%
    and $n > 0$ then $0 < a <= b$, $n = a + b$.
    As it turns out we choose $a$ to be the largest power of $2 < n$.
 *)
@@ -868,8 +869,8 @@ trait ReadableArray1[\T, nat b0, nat s0\]
 
     subarray[\nat b, nat s, nat o\]():ReadableArray1[\T, b, s\]
 
-    (** Offset converts from %b0% indexing to 0 indexing,
-        bounds checking en route *)
+    (** Offset converts from %b0%-indexing to 0-indexing,
+        bounds checking en route. *)
     offset(i:ZZ32):ZZ32
     toIndex(i:ZZ32):ZZ32
 
@@ -890,7 +891,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\]
 
-    (** the replica method returns a replica of the array (similar layout
+    (** The %replica% method returns a replica of the array (similar layout
         etc.) but with a different element type. *)
     replica[\U\]():ImmutableArray1[\U,b0,s0\]
 
@@ -954,7 +955,7 @@ array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\]
 
 immutableArray1[\T, nat s0\](): ImmutableArray1[\T,0,s0\]
 
-(** %vector% is the same as %array1%, but specialized to numeric type arguments *)
+(** %vector% is the same as %array1%, but specialized to numeric type arguments. *)
 vector[\T extends Number, nat s0\]():Vector[\T,s0\]
 vector[\T extends Number, nat s0\](v:T):Vector[\T,s0\]
 vector[\T extends Number, nat s0\](f:ZZ32->T):Vector[\T,s0\]
@@ -996,7 +997,7 @@ opr ||[\ T extends Number, nat k \]me : Vector[\T,k\]|| : RR64
 
 (** %Array2[\T,b0,s0,b1,s1\]%
     is the type of 2-dimensional arrays of element type %T%, with
-    size %s0% in the first dimension and s1 in the second
+    size %s0% in the first dimension and %s1% in the second
     dimension and lowest index %(b0,b1)%.  Natural order for
     all generators in each dimension is from $b$ to $b+s-1$; the
     overall order of elements need only be consistent with the cross
@@ -1008,7 +1009,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   getter size():ZZ32
   getter bounds():FullRange[\(ZZ32,ZZ32)\]
   getter toString()
-  (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
+  (** Translate from %b0%, %b1%-indexing to 0-indexing, checking bounds. **)
   offset(t:(ZZ32,ZZ32)):(ZZ32,ZZ32)
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32)
   opr[x:ZZ32,y:ZZ32]:=(v:T):()
@@ -1071,22 +1072,21 @@ opr -[\ T extends Number, nat n, nat m \]
 opr -[\ T extends Number, nat n, nat m \]
      (me:Matrix[\T,n,m\]): Matrix[\T,n,m\]
 
-(** Matrix multiplication *)
+(** Matrix multiplication. *)
 opr DOT[\ T extends Number, nat n, nat m, nat p\]
        (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\]
 
 opr juxtaposition[\ T extends Number, nat n, nat m, nat p\]
      (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\]
 
-
-(** matrix-vector multiplication *)
+(** Matrix-vector multiplication. *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\]
 
 opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\]
 
-(** vector-matrix multiplication *)
+(** Vector-matrix multiplication. *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\]
 
@@ -1106,7 +1106,7 @@ opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\]
 
 (** %Array3[\T,b0,s0,b1,s1,b2,s2\]% is the type of 3-dimensional arrays
-    of element type T, with size %s_i% in the $i^{th}$ dimension and lowest
+    of element type %T%, with size %s_i% in the $i^{th}$ dimension and lowest
     index %(b0,b1,b2)%.  Natural order for all generators in each
     dimension is from %b% to %b+s-1%; the overall order of elements need
     only be consistent with the cross product of these orderings (see
@@ -1122,11 +1122,11 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
 
     getter toString():String
 
-    (** Again, offset performs bounds checking and shifts to 0 indexing. *)
+    (** Again, %offset% performs bounds checking and shifts to 0-indexing. *)
     offset(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32)
     toIndex(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32)
 
-    (** And get and put are 0-indexed without bounds checks. *)
+    (** And %get% and %put% are 0-indexed without bounds checks. *)
     abstract put(t:(ZZ32,ZZ32,ZZ32), v:T) : ()
     abstract get(t:(ZZ32,ZZ32,ZZ32)):T
 
@@ -1175,7 +1175,7 @@ object VoidReduction extends Reduction[\()\]
     join(a: (), b: ()): ()
 end
 
-(* Hack to permit any Number to work non-parametrically. *)
+(** Hack to permit any %Number% to work non-parametrically. **)
 object SumReduction extends Reduction[\Number\]
     getter toString()
     empty(): Number
@@ -1192,20 +1192,20 @@ end
 
 opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
 
-(* Hack to permit both Numbers and TotalOrders to work. *)
+(** Hack to permit both %Number% and %TotalOrder% to work. **)
 object MinReduction extends Reduction[\Any\]
     getter toString()
     empty(): Any
     join(a: Any, b: Any): Any
 end
 
-(* Again, type information is notoriously non-specific to permit
-   either TotalOrder or Number types. *)
+(** Again, type information is notoriously non-specific to permit
+   either %TotalOrder% or %Number% types. **)
 opr BIG MIN[\T\](g:(Reduction[\Any\],T->Any)->Any): Any
 
 object NoMax extends UncheckedException end
 
-(* Hack to permit both Numbers and TotalOrders to work. *)
+(** Hack to permit both %Number% and %TotalOrder% to work. **)
 object MaxReduction extends Reduction[\Any\]
     getter toString()
     empty(): Any
@@ -1214,7 +1214,7 @@ end
 
 opr BIG MAX[\T\](g:(Reduction[\Any\],T->Any)->Any): Any
 
-(** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
+(** %AndReduction% and %OrReduction% take advantage of natural zeroes for early exit. **)
 object AndReduction extends Reduction[\Boolean\]
     getter toString()
     empty(): Boolean
@@ -1244,10 +1244,10 @@ opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String
 ************************************************************
 
 ** Ranges in general represent uses of the %#% and %:% operators.
-    It's mostly subtypes of Range that are interesting.
+    It is mostly subtypes of %Range% that are interesting.
 
     The partial order on ranges describes containment:
-      %a < b% iff all points in %a% are strictly contained in %b%.
+      %a < b% if and only if all points in %a% are strictly contained in %b%.
  **)
 trait Range[\T\]
     extends StandardPartialOrder[\Range[\T\]\]
@@ -1316,7 +1316,7 @@ trait FullRange[\T\]
 
     opr[r:Range[\T\]]: FullRange[\T\]
     opr[_:OpenRange[\T\]]: FullRange[\T\]
-    (** Square-bracket indexing on a FullRange restricts that range to
+    (** Square-bracket indexing on a %FullRange% restricts that range to
          the range provided.  Restriction should behave as follows:
         \begin{itemize}
             \item Restriction to an %OpenRange% is the identity.
@@ -1325,7 +1325,7 @@ trait FullRange[\T\]
             \item A %LowerRange% restricts the lower bound and extent of the range.
         \end{itemize}
         Note that this makes it compatible with the square-bracket
-        indexing of the Indexed trait. **)
+        indexing of the %Indexed% trait. **)
     opr[r:LowerRange[\T\]]: FullRange[\T\]
     opr[r:UpperRange[\T\]]: FullRange[\T\]
     opr[r:ExtentRange[\T\]]: FullRange[\T\]
@@ -1351,7 +1351,7 @@ opr :[\I extends Integral, J extends Integral\]
 opr :[\I extends Integral, J extends Integral, K extends Integral\]
      (lo:(I,J,K), hi:(I,J,K)): Range[\(I,J,K)\]
 
-(** Factories for incomplete ranges **)
+(** Factories for incomplete ranges. **)
 opr (x:T)#[\T\] : LowerRange[\T\]
 opr (x:T):[\T\] : LowerRange[\T\]
 opr #[\T\](x:T) : ExtentRange[\T\]
@@ -1393,7 +1393,7 @@ widen(a:ZZ32):ZZ64
     partition iteration spaces for arrays and ranges. **)
 partitionL(a:ZZ32):ZZ32
 
-(** %nanoTime% returns the current time in nanoseconds.  Currently
+(** %nanoTime% returns the current time in nanoseconds.  Currently,
     this only supports taking differences of results of %nanoTime%
     to produce an elapsed time interval. **)
 nanoTime():ZZ64
@@ -1558,7 +1558,7 @@ print():()
 println():()
 
 (** The following three functions are useful temporary hacks for
-    debugging multi-threaded programs **)
+    debugging multi-threaded programs. **)
 printThreadInfo(a:String):()
 printThreadInfo(a:Number):()
 throwError(a:String):()

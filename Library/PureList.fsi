@@ -19,29 +19,29 @@ api PureList
 import List.{SomeList}
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article,
-    Journal of Funtional Programming 16:2 2006.
+    Journal of Funtional Programming 16:2 2006 \cite{fingerTree}.
 
-    These are api-compatible with the %List% library, except that they
-    don't support covariant construction.  In most cases you should be
+    These are API-compatible with the %List% library, except that they
+    do not support covariant construction.  In most cases, you should be
     able to replace an import of %List% by %PureList% or vice versa
     and see only performance differences between the two.
 
-    Why finger trees?  They're balanced and support nearly any
+    Why finger trees?  They are balanced and support nearly any
     operation we care to think of in optimal asymptotic time and
     space.  The code is niggly due to lots of cases, but fast in
     practice.
 
-    It's also a trial for encoding type-based invariants in Fortress.
-    Can we represent "array of size at most n"?  Not yet, but we ought
+    It is also a trial for encoding type-based invariants in Fortress.
+    Can we represent ``array of size at most %n%''?  Not yet, but we ought
     to be able to do so.  This involves questions about the encoding
-    of existentials, especially constrained existentials.  If you're
+    of existentials, especially constrained existentials.  If you are
     curious about the details of type-based invariants, the source
     code may prove instructive.
   *)
 (******************** *)
 (** %List%.  We return a %Generator% for non-list-specific operations
-    for which reuse of the Generator won't increase asymptotic
-    complexity, but return a List in cases (such as %map% and
+    for which reuse of the %Generator% will not increase asymptotic
+    complexity, but return a %List% in cases (such as %map% and
     %filter%) where it will.  *)
 trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
         excludes { Number, HasRank }
@@ -63,7 +63,7 @@ trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
   concatMap[\G\](f: E->List[\G\]): List[\G\]
 end
 
-(** Vararg factory for lists; provides aggregate list constants *)
+(** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
 opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList|>: List[\U\]
@@ -71,7 +71,7 @@ opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList|>: List[\
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]
 
-(** Flatten a list of lists *)
+(** Flatten a list of lists. *)
 concat[\E\](x:List[\List[\E\]\]):List[\E\]
 
 emptyList[\E\](): List[\E\]
