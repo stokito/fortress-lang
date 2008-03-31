@@ -17,7 +17,7 @@
 
 api Constants
 
-(** Useful floating-point constants *)
+(** Useful floating-point constants. *)
 
 pi : FloatLiteral
 e : FloatLiteral

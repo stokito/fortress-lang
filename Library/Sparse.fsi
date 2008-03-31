@@ -17,7 +17,7 @@
 
 api Sparse
 
-(** Trim array %v% to length %l% **)
+(** Trim array %v% to length %l%. **)
 trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\]
 
 object SparseVector[\T, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
@@ -27,13 +27,13 @@ end
 (** %sparse% constructs a sparse vector from dense vector. *)
 sparse[\T extends Number,nat n\](me:Array1[\RR64,0,n\]):SparseVector[\RR64,n\]
 
-(** Compressed sparse row matrix **)
+(** Compressed sparse row matrix. **)
 object Csr[\N extends Number, nat n, nat m\]
                  (rows:Array1[\SparseVector[\N,m\],0,n\])
   extends Matrix[\N,n,m\]
 end
 
-(** Compressed sparse column matrix **)
+(** Compressed sparse column matrix. **)
 object Csc[\N extends Number, nat n, nat m\]
                  (cols:Array1[\SparseVector[\N,n\],0,m\])
   extends Matrix[\N,n,m\]

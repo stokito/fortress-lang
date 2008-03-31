@@ -17,12 +17,12 @@
 
 api List
 
-(** Array Lists, immutable style (not the mutable Java ArrayList style).
+(** Array lists, immutable style (not the mutable Java \texttt{ArrayList} style).
 
     A %List% is an immutable segment of an immutable (really
     write-once) array.  The rest of the array may contain elements of
     lists which overlap this list, or may be free for future use.
-    Every List includes two internal flags %canExtendLeft% and
+    Every %List% includes two internal flags %canExtendLeft% and
     %canExtendRight%; if a flag is true we are permitted to add
     additional elements to the %List% in place by initializing
     additional elements of the array.  At most one instance sharing
@@ -32,9 +32,9 @@ api List
     permission may be extended to future attempts to extend.
 
     Eventually the backing array fills and we must allocate a new
-    backing array to accept new elements.  At the moment we're not
+    backing array to accept new elements.  At the moment, we are not
     particularly careful to avoid stealing permission to extend for
-    overflowing append operations.
+    overflowing %append% operations.
 
     Note that because of this implementation, a %List% can be
     efficiently extended on either side, but only in a non-persistent
@@ -42,14 +42,14 @@ api List
     %addRight% or %append% then one of them must pay the cost of
     copying the list elements.
 
-    Note also that the implementation hasn't yet been carefully
+    Note also that the implementation has not yet been carefully
     checked for amortization, so it is quite likely there are a number
     of asymptotic infelicities.
 
     Finally, note that this is an efficient \emph{amortized} structure.  An
     individual operation may be quite slow due to copying work.
 
-    Baking these off vs PureLists (which have good persistent behavior
+    Baking these off vs %PureList%s (which have good persistent behavior
     and non-amortized worst case behavior), they look very good in
     practice.
  **)
@@ -59,15 +59,15 @@ api List
     should not be necessary in the presence of true type
     inference. **)
 trait SomeList excludes { Number, HasRank }
-        (** \vspace{-4ex} Not yet: %comprises List[\E\] where [\E\]% *)
+        (** \vspace{-4ex} Not yet: ``%comprises List[\E\] where [\E\]%'' *)
     append(f:SomeList): SomeList
     addLeft(e:Any): SomeList
     addRight(e:Any): SomeList
 end
 
 (** %List%.  We return a %Generator% for non-list-specific operations
-    for which reuse of the Generator won't increase asymptotic
-    complexity, but return a List in cases (such as %map% and
+    for which reuse of the %Generator% will not increase asymptotic
+    complexity, but return a %List% in cases (such as %map% and
     %filter%) where it will.  *)
 trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
         excludes { Number, HasRank }

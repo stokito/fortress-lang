@@ -23,7 +23,7 @@ object EmptyIntersection extends UncheckedException end
 
 (**
  * Sets represented using a (size-balanced) tree structure.  The underlying type $E$
- * must support comparison using $<$ and $=$.  When generated these sets
+ * must support comparison using $<$ and $=$.  When generated, these sets
  * produce their elements in sorted order.
  **)
 trait Set[\E\]
@@ -50,7 +50,7 @@ trait Set[\E\]
    opr SUPSET(self, other:Set[\E\]): Boolean
    opr SUPSETEQ(self, other:Set[\E\]): Boolean
    opr SETCMP(self, other:Set[\E\]): Comparison
-   (** Ordered concatenation; use only if you know what you're doing. **)
+   (** Ordered concatenation; use only if you know what you are doing. **)
    concat(t2:Set[\E\]):Set[\E\]
    concat3(v:E, t2:Set[\E\])
 end
