@@ -14,14 +14,15 @@ echo "Cleaning"
 ./ant clean compile
 echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
 ln -s `pwd` ../${ourname}
-( cd .. ; zip -9 fortress_${ver}.zip \
- `find -L ${ourname} \( -name .svn -o \
+( cd .. ; find -L ${ourname} \( -name .svn -o \
            -name "fortress_*.zip" -o \
            -name .hg -o \
            -name "*.log" -o \
            -name "*~" -o \
            -name .dependencies -o \
-           -name "TEST-RESULTS" \) -prune -o -print` > zip_${ver}.log )
+           -name "TEST-RESULTS" \) -prune -o -print | \
+           zip -9 fortress_${ver}.zip '-@' \
+  > zip_${ver}.log )
 
 else
   reason="none"
