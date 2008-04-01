@@ -140,7 +140,7 @@ end
     meaningless values of upper <= 0 are replaced by the default value
     of 1024.
  **)
-object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
+object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
                           readOne:ReadStream -> S)
         extends { Consumable, Generator[\String\] }
     consumed : Boolean = false
