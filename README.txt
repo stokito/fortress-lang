@@ -41,6 +41,9 @@ tools may also benefit from using these files.  Moreover, all examples
 included in the language specification are included in the directory
 SpecData/examples.
 
+Specification: A directory containing a PDF of the Fortress Language
+Specification, Version 1.0.
+
 Library: The home for all of the Fortress standard libraries.
 
 bin: Shell scripts for our various projects.  These are bash scripts;
