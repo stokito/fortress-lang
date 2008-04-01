@@ -18,7 +18,7 @@
 api File
 import FileSupport.{...}
 
-object FileReadStream(filename:String) extends { FileStream, ReadStream }
+object FileReadStream(transient filename:String) extends { FileStream, ReadStream }
     getter fileName():String
     getter toString():String
 
