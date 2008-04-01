@@ -86,7 +86,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forBoolParam(BoolParam node) {
-        return "int " + NodeUtil.nameString(node.getName());
+        return "bool " + NodeUtil.nameString(node.getName());
     }
 
     public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
@@ -109,13 +109,45 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forIdType(IdType node) {
         return node.getName().accept(this);
     }
+    
+    public String forIdArg(IdArg node) {
+        return NodeUtil.nameString(node.getName());
+    }
 
     public String forIntArg(IntArg node) {
         return node.getVal().toString();
     }
 
+    public String forBoolArg(BoolArg node) {
+        return node.getBool().toString();
+    }
+    
+    public String forDimArg(DimArg node) {
+        return node.getDim().accept(this);
+    }
+    
+    public String forUnitArg(UnitArg node) {
+        return node.getUnit().accept(this);
+    }
+    
+    public String forOprArg(OprArg node) {
+        return node.getName().accept(this);
+    }
+    
+    public String forDimRef(DimRef node) {
+        return NodeUtil.nameString(node.getName());
+    }
+
     public String forIntRef(IntRef node) {
-        return node.getName().toString();
+        return NodeUtil.nameString(node.getName());
+    }
+    
+    public String forBoolRef(BoolRef node) {
+        return NodeUtil.nameString(node.getName());
+    }
+    
+    public String forVarRef(VarRef node) {
+        return NodeUtil.nameString(node.getVar());
     }
 
     public String forIntLiteralExpr(IntLiteralExpr node) {
@@ -211,7 +243,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forBottomType(BottomType node) {
-        return "bottom";
+        return "BottomType";
     }
 
     private static final int FOUR_DIGITS = 36 * 36 * 36 * 36;
@@ -225,11 +257,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forOrType(OrType node) {
-        return node.getFirst().accept(this) + " | " + node.getSecond().accept(this);
+        return node.getFirst().accept(this) + " OR " + node.getSecond().accept(this);
     }
 
     public String forAndType(AndType node) {
-        return node.getFirst().accept(this) + " & " + node.getSecond().accept(this);
+        return node.getFirst().accept(this) + " AND " + node.getSecond().accept(this);
     }
 
 }

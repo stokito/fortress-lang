@@ -15,18 +15,22 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SimpleFunctionCall
+component GenericFunctionCall
 export Executable
-  
-f(s:String):String = s
-g[\T extends Any\](x:T):T = x
 
+object A[\T, int n\]() end
+object B[\T, U, V\]() end
+
+f[\T\](x:T):T = x
+g[\T, int n\](a:A[\T, n+1\]):A[\T,n\] = a
+h[\T, U, V\](b:B[\V, U, T\]):() = ()
+  
 run(args:String...):() = do
-  f("asdad")
-  g[\String\]("asdad")
-  ()
+  a = A[\String, 5\]()
+  b = B[\Boolean, ZZ32, String\]()
+  f[\String\]("asd")
+  g[\String, 5\](a)
+  h[\String, ZZ32, Boolean\](b)
 end
 
 end
-
-  

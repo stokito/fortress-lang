@@ -22,8 +22,8 @@ export Executable
  * enclosing Block. *)
   
 run(args:String...):() = do
-  f(x: RR64): ZZ32 = 23
-  g(x: Any, y: Any): ZZ32 = 42
+  f(x:RR64):ZZ32 = 23
+  g(x:Any, y:Any):ZZ32 = 42
   g(f, g)
   ()
 end

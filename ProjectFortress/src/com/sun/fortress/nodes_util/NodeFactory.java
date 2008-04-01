@@ -187,6 +187,14 @@ public class NodeFactory {
     public static DimArg makeDimArg(DimArg t, DimExpr s) {
         return new DimArg(t.getSpan(), t.isParenthesized(), s);
     }
+    
+    public static DimArg makeDimArg(DimExpr s) {
+        return new DimArg(s.getSpan(), s);
+    }
+    
+    public static DimRef makeDimRef(String name) {
+        return new DimRef(makeQualifiedIdName(name));
+    }
 
     public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
         return new FixedPointType(t.getSpan(), t.isParenthesized(), t.getName(),
@@ -1101,5 +1109,9 @@ public class NodeFactory {
                         }
             });
         }
+    }
+    
+    public static IdArg makeIdArg(String name) {
+        return new IdArg(makeQualifiedIdName(name));
     }
 }
