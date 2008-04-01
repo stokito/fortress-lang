@@ -19,13 +19,13 @@ component GenericSingleton
 export Executable
 
 object A end
-object B[\T\]() end
+object B[\T\](t:T) end
 object C[\T\] end
   
 run(args:String...):() = do
   v1 = A
   v2a = B[\ZZ32\]
-  v2b = B[\ZZ32\]()
+  v2b = B[\ZZ32\](0)
   v3 = C[\Boolean\]
 end
 

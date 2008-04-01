@@ -30,52 +30,9 @@ import com.sun.fortress.compiler.index.*;
 import static java.lang.Boolean.TRUE;
 import static java.lang.Boolean.FALSE;
 import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.compiler.typechecker.TypeCheckerTestCase.*;
 
-public class SubtypeCheckerJUTest extends TestCase {
-
-    private static Boolean sub(SubtypeChecker ta, String s, String t) {
-        return ta.subtype(parseType(s), parseType(t));
-    }
-
-    private static Boolean sub(SubtypeChecker ta, String s, Type t) {
-        return ta.subtype(parseType(s), t);
-    }
-
-    private static Boolean sub(SubtypeChecker ta, Type s, String t) {
-        return ta.subtype(s, parseType(t));
-    }
-
-    private static Boolean sub(SubtypeChecker ta, Type s, Type t) {
-        return ta.subtype(s, t);
-    }
-
-    private static ProperTraitIndex makeTrait(String name,
-                                              List<StaticParam> sparams,
-                                              String... supers) {
-        List<TraitTypeWhere> extendsClause =
-            new ArrayList<TraitTypeWhere>(supers.length);
-        for (String sup : supers) {
-            TraitType supT = (TraitType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(supT, new WhereClause()));
-        }
-        TraitAbsDeclOrDecl ast = new TraitDecl(NodeFactory.makeId(name), sparams,
-                                               extendsClause,
-                                               Collections.<Decl>emptyList());
-        return new ProperTraitIndex(ast,
-                                    Collections.<Id, Method>emptyMap(),
-                                    Collections.<Id, Method>emptyMap(),
-                                    Collections.<Function>emptySet(),
-                                    CollectUtil.<SimpleName, Method>emptyRelation(),
-                                    CollectUtil.<SimpleName, FunctionalMethod>emptyRelation());
-    }
-
-    private static List<StaticParam> makeSparams(StaticParam... params) {
-        List<StaticParam> sparams = new ArrayList<StaticParam>(params.length);
-        for (StaticParam p : params) {
-            sparams.add(p);
-        }
-        return sparams;
-    }
+public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
 
     Type alpha = NodeFactory.makeIdType("ALPHA");
     Type beta  = NodeFactory.makeIdType("BETA");
@@ -89,14 +46,6 @@ public class SubtypeCheckerJUTest extends TestCase {
                               NodeFactory.makeNatParam("n"),
                               NodeFactory.makeOperatorParam("ODOT")),
                   "D");
-
-    private static List<StaticArg> makeSargs(StaticArg... args) {
-        List<StaticArg> sargs = new ArrayList<StaticArg>(args.length);
-        for (StaticArg p : args) {
-            sargs.add(p);
-        }
-        return sargs;
-    }
 
     InstantiatedType instE =
         NodeFactory.makeInstantiatedType("E",
@@ -455,31 +404,6 @@ public class SubtypeCheckerJUTest extends TestCase {
                                     Collections.<Function>emptySet(),
                                     CollectUtil.<SimpleName, Method>emptyRelation(),
                                     CollectUtil.<SimpleName, FunctionalMethod>emptyRelation());
-    }
-
-    private static Type parseType(String s) {
-        s = s.trim();
-        if (s.contains("->")) {
-            int arrowIndex = s.indexOf("->");
-            Type left = parseType(s.substring(0, arrowIndex));
-            Type right = parseType(s.substring(arrowIndex+2));
-            List<Type> thrown = Collections.singletonList(BOTTOM);
-            return new ArrowType(left, right, Option.some(thrown), false);
-        }
-        if (s.startsWith("(")) {
-            List<Type> types = new ArrayList<Type>();
-            s = s.substring(1, s.length()-1);
-            while(s.contains(",")) {
-                int commaIndex = s.indexOf(",");
-                types.add(parseType(s.substring(0, commaIndex)));
-                s = s.substring(commaIndex+1);
-            }
-            types.add(parseType(s));
-            return NodeFactory.makeTupleType(types);
-        }
-        else {
-            return NodeFactory.makeIdType(s);
-        }
     }
 
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */

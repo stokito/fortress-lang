@@ -162,11 +162,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return checkSubtype(subtype,
                             supertype,
                             ast,
-                            TypeError.make(errorMsg("Expected expression of type ", supertype, " ",
-                                                    "but was type ", subtype),
-                                           ast));
+                            errorMsg("Expected expression of type ", supertype, " ",
+                                     "but was type ", subtype));
     }
-    
+
+    /**
+     * Check the subtype relation for the given types.  If subtype <: supertype, then a TypeCheckerResult
+     * for the given node and corresponding type constraints will be returned.  Otherwise, a TypeCheckerResult
+     * for the given node with the a TypeError and the given error message will be returned.
+     */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, String error) {
         if (!subtypeChecker.subtype(subtype, supertype)) {
             return new TypeCheckerResult(ast, TypeError.make(error, ast));
@@ -174,34 +178,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return new TypeCheckerResult(ast);
         }
     }
-    
+
+
+    /**
+     * Check the subtype relation for the given types.  If subtype <: supertype, then a TypeCheckerResult
+     * for the given node and corresponding type constraints will be returned, and the type of this node
+     * will be the given type resultType.  Otherwise, a TypeCheckerResult
+     * for the given node with the a TypeError and the given error message will be returned.
+     */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, Type resultType, String error) {
         if (!subtypeChecker.subtype(subtype, supertype)) {
             return new TypeCheckerResult(ast, resultType, TypeError.make(error, ast));
         } else {
             return new TypeCheckerResult(ast, resultType);
-        }
-    }
-
-    /**
-     * Check the subtype relation for the given types.  If subtype <: supertype, then a TypeCheckerResult
-     * for the given node and corresponding type constraints will be returned.  Otherwise, a TypeCheckerResult
-     * for the given node with the given TypeError will be returned.
-     */
-    private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, StaticError error) {
-        /*
-        System.err.printf("checkSubtype: %s <: %s", subtype, supertype);
-        */
-        if (!subtypeChecker.subtype(subtype, supertype)) {
-            /*
-            System.err.println(" = FALSE");
-            */
-            return new TypeCheckerResult(ast, error);
-        } else {
-            /*
-            System.err.println(" = TRUE");
-            */
-            return new TypeCheckerResult(ast);
         }
     }
 
@@ -225,11 +214,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
 
             result = checkSubtype(bodyType,
-                                unwrap(returnType),
-                                that,
-                                TypeError.make(errorMsg("Function body has type ", bodyType, ", but ",
-                                                        "declared return type is ", unwrap(returnType)),
-                                               that));
+                                  unwrap(returnType),
+                                  that,
+                                  errorMsg("Function body has type ", bodyType, ", but ",
+                                           "declared return type is ", unwrap(returnType)));
         }
 
         return TypeCheckerResult.compose(new FnDef(that.getSpan(),
@@ -272,9 +260,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return checkSubtype(unwrap(initResult.type()),
                                     unwrap(varType),
                                     that,
-                                    TypeError.make(errorMsg("Attempt to define variable ", var, " ",
-                                                            "with an expression of type ", unwrap(initResult.type())),
-                                                   that));
+                                    errorMsg("Attempt to define variable ", var, " ",
+                                             "with an expression of type ", unwrap(initResult.type())));
             } else { // Eventually, this case will involve type inference
                 // System.err.println("varType.isNone()");
                 return NI.nyi();
@@ -293,9 +280,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return checkSubtype(unwrap(initResult.type()),
                                 varType,
                                 that,
-                                TypeError.make(errorMsg("Attempt to define variables ", lhs, " ",
-                                                        "with an expression of type ", unwrap(initResult.type())),
-                                               that));
+                                errorMsg("Attempt to define variables ", lhs, " ",
+                                         "with an expression of type ", unwrap(initResult.type())));
         }
     }
 
@@ -501,9 +487,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         checkSubtype(clauseType,
                                      Types.VOID,
                                      that,
-                                     TypeError.make(errorMsg("An 'if' clause without corresponding 'else' has type ",
-                                                             clauseType, " instead of type ()"),
-                                                    clauseResult.ast())));
+                                     errorMsg("An 'if' clause without corresponding 'else' has type ",
+                                              clauseType, " instead of type ()")));
                 }
             }
             return TypeCheckerResult.compose(that,
@@ -527,9 +512,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 checkSubtype(testType,
                              Types.BOOLEAN,
                              that,
-                             TypeError.make(errorMsg("Attempt to use expression of type ", testType, " ",
-                                                     "as a test condition"),
-                                            that)),
+                             errorMsg("Attempt to use expression of type ", testType, " ",
+                                      "as a test condition")),
                 result);
         }
 
@@ -642,34 +626,56 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              TypeCheckerResult.compose(that, keywords_result));
         }
     }
-
-    public TypeCheckerResult forAsExprOnly(AsExpr that,
-                                           TypeCheckerResult expr_result,
-                                           TypeCheckerResult type_result) {
-
-        // Check that expression type <: ascripted type.
-        Type ascriptedType = (Type) type_result.ast();
+    
+    private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,
+                                                       TypeCheckerResult expr_result,
+                                                       TypeCheckerResult type_result,
+                                                       String errorMsg) {
+        // Check that expression type <: annotated type.
+        Type annotatedType = (Type) type_result.ast();
         if (expr_result.type().isSome()) {
             Type exprType = unwrap(expr_result.type());
             return TypeCheckerResult.compose(
                 that,
-                ascriptedType,
+                annotatedType,
                 expr_result,
                 type_result,
                 checkSubtype(exprType,
-                             ascriptedType,
+                             annotatedType,
                              expr_result.ast(),
-                             TypeError.make(errorMsg("Attempt to ascript expression of type ",
-                                                     exprType, " to non-supertype ", ascriptedType),
-                                            expr_result.ast())));
+                             errorMsg));
         } else {
             return TypeCheckerResult.compose(that,
-                                             ascriptedType,
+                                             annotatedType,
                                              expr_result,
                                              type_result);
         }
     }
 
+    public TypeCheckerResult forAsExprOnly(AsExpr that,
+                                           TypeCheckerResult expr_result,
+                                           TypeCheckerResult type_result) {
+        Type ascriptedType = (Type) type_result.ast();
+        Type exprType = expr_result.type().isSome() ? unwrap(expr_result.type()) : Types.BOTTOM;
+        return forTypeAnnotatedExprOnly(that,
+                                        expr_result,
+                                        type_result,
+                                        errorMsg("Attempt to ascript expression of type ",
+                                                 exprType, " to non-supertype ", ascriptedType));
+    }
+
+    public TypeCheckerResult forAsIfExprOnly(AsIfExpr that,
+                                             TypeCheckerResult expr_result,
+                                             TypeCheckerResult type_result) {
+        Type assumedType = (Type) type_result.ast();
+        Type exprType = expr_result.type().isSome() ? unwrap(expr_result.type()) : Types.BOTTOM;
+        return forTypeAnnotatedExprOnly(that,
+                                        expr_result,
+                                        type_result,
+                                        errorMsg("Attempt to assume type ", assumedType,
+                                                 " from non-subtype ", exprType));
+    }
+    
     public TypeCheckerResult forTupleExprOnly(TupleExpr that,
                                               List<TypeCheckerResult> exprs_result) {
         List<Type> types = new ArrayList<Type>(exprs_result.size());
@@ -699,9 +705,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         checkSubtype(exprType,
                                 Types.BOOLEAN,
                                 r.ast(),
-                                TypeError.make(errorMsg("Attempt to use expression of type ", exprType,
-                                                        " in a 'requires' clause, instead of ",Types.BOOLEAN),
-                                               r.ast())));
+                                errorMsg("Attempt to use expression of type ", exprType,
+                                         " in a 'requires' clause, instead of ",Types.BOOLEAN)));
             }
         }
 
@@ -710,6 +715,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypeCheckerResult.compose(that, ensures_result),
                 TypeCheckerResult.compose(that, invariants_result),
                                          result);
+    }
+    
+    @Override
+    public TypeCheckerResult forCaseExprOnly(CaseExpr that,
+            Option<TypeCheckerResult> param_result,
+            Option<TypeCheckerResult> compare_result,
+            List<TypeCheckerResult> clauses_result,
+            Option<TypeCheckerResult> elseClause_result) {
+        // TODO Auto-generated method stub
+        return super.forCaseExprOnly(that, param_result, compare_result,
+                clauses_result, elseClause_result);
     }
 
 //    public TypeCheckerResult forChainExpr(ChainExpr that) {
@@ -829,7 +845,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         final TypeCheckerResult r = TypeCheckerResult.compose(that, exprs_result);
         final Type lhsType = unwrap(exprs_result.get(0).type());
         final Type rhsType = unwrap(exprs_result.get(1).type());
-//        System.err.printf("tightJuxt::: lhs, rhs = %s, %s\n", lhsType, rhsType);
+        System.err.printf("tightJuxt::: lhsType = %s\n", lhsType);
+        System.err.printf("             rhsType = %s\n", rhsType);
         
         return lhsType.accept(new NodeAbstractVisitor<TypeCheckerResult>() {
                     
@@ -849,6 +866,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              "Got ", rhsType, ", expected ", _that.getDomain()));
             }
             
+            @Override
+            public TypeCheckerResult for_RewriteGenericArrowType(_RewriteGenericArrowType _that) {
+                System.err.printf("             lhsType generic: %s%s->%s\n",
+                        _that.getStaticParams(), _that.getDomain(), _that.getRange());
+                return new TypeCheckerResult(that, _that.getRange());
+            }
             
         });
     }
