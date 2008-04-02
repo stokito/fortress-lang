@@ -117,15 +117,22 @@ public class FileTests {
                         else {
                             // oldOut.print(" RUNNING"); oldOut.flush();
                             if (!unexpectedOnly) System.out.println();
+                            // A demo file requiring arguments
                             if (name.equals("tennisRanking")) {
                                 ArrayList<String> args = new ArrayList<String>();
                                 args.add(dir + "/tennis050307");
                                 args.add(dir + "/tennis051707");
                                 args.add(dir + "/tennisGames");
-                                Driver.runProgram(fr, p, true, false, args);
+                                Driver.runProgram(fr, p, false, false, args);
+                            }
+                            // Test files requiring "-test" flag
+                            else if (name.equals("XXXTestTest") ||
+                                     name.equals("natInference0") ||
+                                     name.equals("testTest2")) {
+                                Driver.runProgram(fr, p, true, false, new ArrayList<String>());
                             }
                             else {
-                                Driver.runProgram(fr, p, true, false, new ArrayList<String>());
+                                Driver.runProgram(fr, p, false, false, new ArrayList<String>());
                             }
                         }
                     }
