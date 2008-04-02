@@ -39,6 +39,7 @@
 ;;  - ...
 ;;
 
+(defgroup fortress nil "Fortress" :group 'languages)
 
 (defvar fortress-mode-map (make-sparse-keymap))
 
@@ -141,17 +142,17 @@
       "\\<\\("
       (regexp-opt
        (list
-	"BIG" "SI_unit" "absorbs" "abstract also" "api" "as" "asif"
-	"at" "atomic" "bool" "case" "catch" "coerces" "coercion"
-	"component" "comprises" "default" "dim" "do" "elif" "else"
-	"end" "ensures" "except" "excludes" "exit" "export" "extends"
-	"finally" "fn" "for" "forbid" "from" "getter" "hidden" "ident"
-	"idiom" "if" "import" "in" "int" "invariant" "io" "juxtaposition"
-	"label" "largest" "nat" "object" "of" "or" "opr" "private"
-	"property" "provided" "requires" "self" "settable" "setter"
-	"smallest" "spawn" "syntax" "test" "then" "throw" "throws"
-	"trait" "transient" "try" "tryatomic" "type" "typecase" "unit"
-	"value" "var" "where" "while" "widening" "widens" "with" "wrapped"))
+        "BIG" "SI_unit" "absorbs" "abstract also" "api" "as" "asif"
+        "at" "atomic" "bool" "case" "catch" "coerces" "coercion"
+        "component" "comprises" "default" "dim" "do" "elif" "else"
+        "end" "ensures" "except" "excludes" "exit" "export" "extends"
+        "finally" "fn" "for" "forbid" "from" "getter" "hidden" "ident"
+        "idiom" "if" "import" "in" "int" "invariant" "io" "juxtaposition"
+        "label" "largest" "nat" "object" "of" "or" "opr" "private"
+        "property" "provided" "requires" "self" "settable" "setter"
+        "smallest" "spawn" "syntax" "test" "then" "throw" "throws"
+        "trait" "transient" "try" "tryatomic" "type" "typecase" "unit"
+        "value" "var" "where" "while" "widening" "widens" "with" "wrapped"))
       "\\)\\>")
      'font-lock-keyword-face)
 
@@ -177,29 +178,66 @@
       1 'font-lock-builtin-face)
 
     ;; experimental code for pretty mathematical type-name rendering
-    `("\\<\\(RR\\)64\\>"
+    `("\\<\\(RR\\)\\(64\\|32\\)?\\>"
       1 (progn (compose-region (match-beginning 1) (match-end 1)
-			       (fortress-with-unicode-char MATHBB-R))
-	       'font-lock-fortress-type-face))
-    `("\\<\\(ZZ\\)\\(64\\|32\\)\\>"
+                               (fortress-with-unicode-char MATHBB-R))
+               'font-lock-fortress-type-face))
+    `("\\<\\(ZZ\\)\\(64\\|32\\)?\\>"
       1 (progn (compose-region (match-beginning 1) (match-end 1)
-			       (fortress-with-unicode-char MATHBB-Z))
-	       'font-lock-fortress-type-face))
+                               (fortress-with-unicode-char MATHBB-Z))
+               'font-lock-fortress-type-face))
 
     ;; builtin type name
     `(,(concat "\\<\\(" (regexp-opt fortress-builtin-types) "\\)\\>")
       1 'font-lock-fortress-type-face)
 
-    ;; leftward arrow
+    ;; leftwards arrow
     `("\\(<-\\)"
       1 (progn (compose-region (match-beginning 1) (match-end 1)
-			       (fortress-with-unicode-char LEFTWARDS-ARROW))
-	       nil))
+                               (fortress-with-unicode-char LEFTWARDS-ARROW))
+               nil))
+
+    ;; NOTE: The following look really bad in Aquamacs under the wrong font.
+    ;; In particular, the monaco fontsets can't get the arrow spacing right
+    ;; and obliterate the right arrow (see Library/FortressLibrary.fsi at the bottom
+    ;; to get the general idea).
+    ;; The font -apple-monaco-medium-r-normal--10-100-72-72-m-100-iso10646-1
+    ;; seems to work well.  You can get it using Command-T and selecting Monaco
+    ;; (it won't look like anything changed, but it has, ever so slightly).
+    ;; My hypothesis is that this hands font choice off to Apple's routines.
+    ;; I've set this font in initial-frame-alist and default-frame-alist.
+    ;;   Get a cut-and-pasteable font name, M-x eval-expression the following:
+    ;;   (insert (cdr (assoc 'font (frame-parameters))))
+
+    ;; rightwards arrow
+    `("\\(->\\)"
+      1 (progn (compose-region (match-beginning 1) (match-end 1)
+                               "→")
+               nil))
+
+    ;; double arrow
+    `("\\(<->\\)"
+      1 (progn (compose-region (match-beginning 1) (match-end 1)
+                               (fortress-with-unicode-char LEFT-RIGHT-ARROW))
+               nil))
+
+    ;; left type bracket
+    `("\\([[]\\\\\\)"
+      1 (progn (compose-region (match-beginning 1) (match-end 1)
+                               (fortress-with-unicode-char MATHEMATICAL-LEFT-WHITE-SQUARE-BRACKET))
+               nil))
+
+    ;; right type bracket
+    `("\\(\\\\[]]\\)"
+      1 (progn (compose-region (match-beginning 1) (match-end 1)
+                               (fortress-with-unicode-char MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET))
+               nil))
+
     ))
 
   (defun fortress-set-font-lock-keywords ()
     (setq font-lock-defaults
-	  (list 'fortress-font-lock-keywords nil nil nil nil)))
+          (list 'fortress-font-lock-keywords nil nil nil nil)))
 
   (add-hook 'fortress-mode-hook 'fortress-set-font-lock-keywords)
   t)
@@ -232,10 +270,10 @@
     (back-to-indentation)
     (setq top (current-column))
     (if (< shift top)
-	(setq shift 0)
+        (setq shift 0)
       (setq shift (- shift top)))
     (if (and (bolp) (= 0 col))
-	(move-to-column shift)
+        (move-to-column shift)
       (delete-region bol-mark (point))
       (indent-to col)
       (move-to-column (+ shift col)))))
@@ -257,8 +295,8 @@
        (line-end-position 1))))
   
   (let ((nb-rel -1) ;; relative point of nearest non-blank line before current line
-	(nb-str nil) ;; string of nb-rel line
-	(nb-indent nil)) ;; indentation of nb-rel line
+        (nb-str nil) ;; string of nb-rel line
+        (nb-indent nil)) ;; indentation of nb-rel line
 
     ;; find the nearest non-blank line before current line
     (while (string-match "^\\s-*$" (get-line-relative nb-rel))
@@ -285,33 +323,55 @@
   (interactive)
   filename)
 
+;; Note that you can also map symbols to strings
+;; in case the char numbers listed don't work on
+;; your system.
+(defcustom fortress-unicode-char-map
+  '((MATHBB-C . #x2102)
+    (MATHBB-H . #x210d)
+    (MATHBB-N . #x2115)
+    (MATHBB-P . #x2119)
+    (MATHBB-Q . #x211A)
+    (MATHBB-R . #x211D)
+    (MATHBB-Z . #x2124)
+    (HORIZONTAL-ELLIPSIS . #x2026)
+    (RIGHTWARDS-ARROW-FROM-BAR . #x21A6)
+    (FOR-ALL . #x2200)
+    (THERE-EXISTS . #x2203)
+    (COLON-EQUALS . #x2254)
+    (RIGHTWARDS-ARROW . #x2192)
+    (LEFTWARDS-ARROW . #x2190)
+    (LEFT-RIGHT-ARROW . #x2194)
+    (RIGHTWARDS-DOUBLE-ARROW . #x21D2)
+    (MATHEMATICAL-LEFT-WHITE-SQUARE-BRACKET . #x27e6)
+    (MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET . #x27e7)
+    (INFINITY . #x221E)
+    (DOWN-TACK . #x22A4)
+    (UP-TACK . #x22A5)
+    )
+  "mapping from fortress name to ucs character number or replacement string"
+  :group 'fortress :type 'alist)
+
+(defun fortress-pair-to-char-or-string (pair)
+  (let ((val (cdr pair)))
+    (if (numberp val)
+      (decode-char 'ucs val)
+      val)))
+
+(defun fortress-get-unicode-char (name &optional alternative)
+  "Given name, looks up in fortress-unicode-char-map and turns result into string.\nIf missing, uses alternative instead, (symbol-name name) if absent."
+  (let ((pair (assq name fortress-unicode-char-map)))
+    (if pair
+      (fortress-pair-to-char-or-string pair)
+      (or alternative (symbol-name name)))))
+
 (defmacro fortress-with-unicode-char (body &rest bodies)
   (let ((ucs-str-pairs
-	 (mapcar
-	  (lambda (pair)
-	    `(,(car pair) ,(decode-char 'ucs (cadr pair))))
-	  '((MATHBB-C #x2102)
-	    (MATHBB-H #x210d)
-	    (MATHBB-N #x2115)
-	    (MATHBB-P #x2119)
-	    (MATHBB-Q #x211A)
-	    (MATHBB-R #x211D)
-	    (MATHBB-Z #x2124)
-	    (HORIZONTAL-ELLIPSIS #x2026)
-	    (RIGHTWARDS-ARROW-FROM-BAR #x21A6)
-	    (FOR-ALL #x2200)
-	    (THERE-EXISTS #x2203)
-	    (COLON-EQUALS #x2254)
-	    (RIGHTWARDS-ARROW #x2192)
-	    (LEFTWARDS-ARROW #x2190)
-	    (RIGHTWARDS-DOUBLE-ARROW #x21D2)
-	    (MATHEMATICAL-LEFT-WHITE-SQUARE-BRACKET #x27e6)
-	    (MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET #x27e7)
-	    (INFINITY #x221E)
-	    (DOWN-TACK #x22A4)
-	    (UP-TACK #x22A5)
-	    ))
-	 ))
+         (mapcar
+          (lambda (pair)
+            `(,(car pair) ,(fortress-pair-to-char-or-string pair)))
+          fortress-unicode-char-map)
+         ))
     `(let ,ucs-str-pairs ,body ,@bodies)))
 
 ; (macroexpand '(fortress-with-unicode-char 'hoge 'fuga))
