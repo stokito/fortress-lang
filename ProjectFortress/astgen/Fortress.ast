@@ -1344,14 +1344,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             DimArg(DimExpr dim);
             /**
              * unit used as static argument
-             * StaticArg ::= Expr
+             * StaticArg ::= UnitExpr
              * e.g.) dimensionless
              */
-            UnitArg(Expr unit);
+            UnitArg(UnitExpr unit);
     /**
      * static expression
      */
-    abstract StaticExpr(boolean parenthesized = false);
+    abstract StaticExpr(ignoreForEquals boolean parenthesized = false);
         /**
          * integer expression
          * StaticExpr ::= IntExpr
@@ -1465,6 +1465,41 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * e.g.) ninf AND pinf = true
                      */
                     BEConstraint();
+        /**
+         * unit expression
+         * StaticExpr ::= UnitExpr
+         */
+        abstract UnitExpr();
+            /**
+             * unit identifier
+             * UnitExpr ::= dimensionless
+             *            | QualifiedName
+             * e.g.) m
+             */
+            UnitRef(QualifiedIdName name);
+            /**
+             * unit expression with an operator
+             */
+            abstract UnitOpExpr(UnitExpr left, UnitExpr right);
+                /**
+                 * unit multiplication
+                 * UnitExpr ::= UnitExpr UnitExpr
+                 *            | UnitExpr DOT UnitExpr
+                 * e.g.) m DOT n
+                 */
+                ProductUnit();
+                /* unit division
+                 * UnitExpr ::= UnitExpr / UnitExpr
+                 *            | UnitExpr per UnitExpr
+                 * e.g.) meter / second
+                 */
+                QuotientUnit();
+                /**
+                 * unit exponentiation
+                 * UnitExpr ::= UnitExpr caret UnitExpr
+                 * e.g.) meter^2
+                 */
+                ExponentUnit();
     /**
      * where clause used in trait, object, and functional declarations
      * Where ::= where [\ WhereBindingList \] ({ WhereConstraintList })?

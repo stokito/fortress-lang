@@ -190,7 +190,7 @@ public abstract class SubtypeChecker {
         final Map<QualifiedIdName, IntExpr> intSubs = new HashMap<QualifiedIdName, IntExpr>();
         final Map<QualifiedIdName, BoolExpr> boolSubs = new HashMap<QualifiedIdName, BoolExpr>();
         final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
-        final Map<QualifiedIdName, Expr> unitSubs = new HashMap<QualifiedIdName, Expr>();
+        final Map<QualifiedIdName, UnitExpr> unitSubs = new HashMap<QualifiedIdName, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
@@ -289,6 +289,14 @@ public abstract class SubtypeChecker {
                         }
                         else { return n; }
                     }
+
+                    /** Handle names in UnitExprs */
+                    @Override public UnitExpr forUnitRef(UnitRef n) {
+                        if (unitSubs.containsKey(n.getName())) {
+                            return unitSubs.get(n.getName());
+                        }
+                        else { return n; }
+                    }
                 });
             }
         };
@@ -359,7 +367,7 @@ public abstract class SubtypeChecker {
     private boolean isArgType(Type t) {
         return (t instanceof ArgType);
     }
-    
+
     private boolean isIdArg(StaticArg t) {
         return (t instanceof IdArg);
     }

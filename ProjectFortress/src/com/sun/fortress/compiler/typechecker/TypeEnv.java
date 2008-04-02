@@ -148,7 +148,7 @@ public abstract class TypeEnv {
                     return new IdArg(new Span(), makeQualifiedIdName(that.getName()));
                 }
                 public StaticArg forUnitParam(UnitParam that) {
-                    return new UnitArg(new Span(), new VarRef(new Span(), makeQualifiedIdName(that.getName())));
+                    return new UnitArg(new Span(), new UnitRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
             }));
         }
@@ -228,7 +228,7 @@ public abstract class TypeEnv {
     public final Option<Boolean> mutable(String var) {
         return mutable(makeId(var));
     }
-    
+
     public abstract List<BindingLookup> contents();
     public final String description() {
         StringBuffer sb = new StringBuffer();
@@ -286,7 +286,7 @@ public abstract class TypeEnv {
         if (params.size() == 0) { return this; }
         else { return new ParamTypeEnv(params, this); }
     }
-    
+
     public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
         if (typeConses.isEmpty()) {
             return this;
@@ -303,7 +303,7 @@ public abstract class TypeEnv {
     public final TypeEnv extend(Param param) {
         return new ParamTypeEnv(Arrays.asList(param), this);
     }
-    
+
     /**
      * A wrapper around the binding found in the TypeEnv.  Since some bindings
      * do not have an Id to be indexed, there is no way to create the LValueBind
@@ -389,7 +389,7 @@ public abstract class TypeEnv {
         public Option<Type> getType() { return type; }
         public List<Modifier> getMods() { return mods; }
         public boolean isMutable() { return mutable; }
-        
+
         @Override
         public String toString() {
             return String.format("%s:%s", var, type);

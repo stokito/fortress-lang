@@ -316,6 +316,63 @@ private constant inline Action<BoolExpr> EqualsBoolExpr =
            }};
      };
 
+/* UnitExpr ::=
+     dimensionless
+   | QualifiedName
+   | UnitExpr sr UnitExpr
+   | UnitExpr w DOT w UnitExpr
+   | UnitExpr / UnitExpr
+   | UnitExpr per UnitExpr
+   | UnitExpr ^ UnitExpr
+   | ( w UnitExpr w )
+ */
+UnitExpr UnitExpr =
+     seed:UnitExprFront list:UnitExprTail*
+     { yyValue = (UnitExpr)apply(list, seed); };
+
+private UnitExpr UnitExprFront =
+     a1:"dimensionless"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new UnitRef(span, NodeFactory.makeQualifiedIdName(span, a1));
+     }
+   / a1:QualifiedName
+     { yyValue = new UnitRef(createSpan(yyStart,yyCount), a1); }
+   / openparen w a1:UnitExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); };
+
+private constant transient Action<UnitExpr> UnitExprTail =
+     ProductUnitExpr
+   / QuotientUnitExpr
+   / ExponentUnitExpr
+   ;
+
+private constant inline Action<UnitExpr> ProductUnitExpr =
+     (w DOT w / sr) a1:UnitExpr
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               return new ProductUnit(createSpan(yyStart,yyCount),
+                                      (UnitExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<UnitExpr> QuotientUnitExpr =
+     (slash / per) a1:UnitExpr
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               return new QuotientUnit(createSpan(yyStart,yyCount),
+                                      (UnitExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<UnitExpr> ExponentUnitExpr =
+     caret a1:UnitExpr
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               return new ExponentUnit(createSpan(yyStart,yyCount),
+                                      (UnitExpr)base, a1);
+           }};
+     };
+
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
 Contract Contract =
      a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
@@ -373,7 +430,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | BoolExpr
    | Type
    | DimExpr
-   | Expr
+   | UnitExpr
  */
 StaticArg StaticArg =
      a1:Op
@@ -384,7 +441,8 @@ StaticArg StaticArg =
      }
    / a1:"dimensionless"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new UnitArg(span, ExprFactory.makeVarRef(new Id(span, a1)));
+       UnitRef unit = new UnitRef(span,NodeFactory.makeQualifiedIdName(span,a1));
+       yyValue = new UnitArg(span, unit);
      }
    / a1:"true"
      { Span span = createSpan(yyStart,yyCount);
@@ -427,6 +485,6 @@ StaticArg StaticArg =
    / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp))
      a1:Type
      { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
-   / a1:Expr
+   / a1:UnitExpr
      { yyValue = new UnitArg(createSpan(yyStart,yyCount), a1); }
    ;

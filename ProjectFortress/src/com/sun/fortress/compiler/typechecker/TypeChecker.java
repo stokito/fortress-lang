@@ -205,7 +205,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
         TypeCheckerResult result = new TypeCheckerResult(that);
-        
+
         Option<Type> returnType = that.getReturnType();
         if (bodyResult.type().isSome()) {
             Type bodyType = unwrap(bodyResult.type());
@@ -626,7 +626,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              TypeCheckerResult.compose(that, keywords_result));
         }
     }
-    
+
     private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,
                                                        TypeCheckerResult expr_result,
                                                        TypeCheckerResult type_result,
@@ -675,7 +675,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                         errorMsg("Attempt to assume type ", assumedType,
                                                  " from non-subtype ", exprType));
     }
-    
+
     public TypeCheckerResult forTupleExprOnly(TupleExpr that,
                                               List<TypeCheckerResult> exprs_result) {
         List<Type> types = new ArrayList<Type>(exprs_result.size());
@@ -716,7 +716,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypeCheckerResult.compose(that, invariants_result),
                                          result);
     }
-    
+
     @Override
     public TypeCheckerResult forCaseExprOnly(CaseExpr that,
             Option<TypeCheckerResult> param_result,
@@ -823,13 +823,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // No checks needed to be performed on a BigFixity.
         return new TypeCheckerResult(that);
     }
-    
+
     public TypeCheckerResult forTraitTypeWhereOnly(TraitTypeWhere that,
                                                    TypeCheckerResult type_result,
                                                    TypeCheckerResult where_result) {
         return TypeCheckerResult.compose(that, type_result, where_result);
     }
-    
+
     // STUBS -----------------------------
 
 //    public TypeCheckerResult forTightJuxt(TightJuxt that) {
@@ -841,20 +841,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               final List<TypeCheckerResult> exprs_result) {
         // The expressions list contains at least two elements.
         assert (exprs_result.size() >= 2);
-        
+
         final TypeCheckerResult r = TypeCheckerResult.compose(that, exprs_result);
         final Type lhsType = unwrap(exprs_result.get(0).type());
         final Type rhsType = unwrap(exprs_result.get(1).type());
-        System.err.printf("tightJuxt::: lhsType = %s\n", lhsType);
-        System.err.printf("             rhsType = %s\n", rhsType);
-        
+        //        System.err.printf("tightJuxt::: lhsType = %s\n", lhsType);
+        //        System.err.printf("             rhsType = %s\n", rhsType);
+
         return lhsType.accept(new NodeAbstractVisitor<TypeCheckerResult>() {
-                    
+
             @Override
             public TypeCheckerResult forBottomType(BottomType _that) {
                 return TypeCheckerResult.compose(that, Types.BOTTOM, exprs_result);
             }
-                    
+
             @Override
             public TypeCheckerResult forArrowType(ArrowType _that) {
 //                System.err.printf(" -- forArrowType: domain=%s\n", _that.getDomain().getClass());
@@ -865,14 +865,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                     errorMsg("Wrong argument type for application. ",
                                              "Got ", rhsType, ", expected ", _that.getDomain()));
             }
-            
+
             @Override
             public TypeCheckerResult for_RewriteGenericArrowType(_RewriteGenericArrowType _that) {
-                System.err.printf("             lhsType generic: %s%s->%s\n",
-                        _that.getStaticParams(), _that.getDomain(), _that.getRange());
+                //                System.err.printf("             lhsType generic: %s%s->%s\n",
+                //                        _that.getStaticParams(), _that.getDomain(), _that.getRange());
                 return new TypeCheckerResult(that, _that.getRange());
             }
-            
+
         });
     }
 

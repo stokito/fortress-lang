@@ -25,6 +25,7 @@ import java.util.Map;
 import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
+import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdArg;
 import com.sun.fortress.nodes.IdStaticParam;
@@ -59,7 +60,7 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * some static parameters and corresponding static arguments. Each type P_i in
  * the parameters will be replaced with the corresponding type A_i in the
  * arguments, for every occurrence of P_i in some outer type T.
- * 
+ *
  * For example, for static parameters [\U, V\], static arguments
  * [\ZZ32, String\], and outer type Pair<V,U>, the type replacer will return
  * type Pair<String, ZZ32>.
@@ -68,7 +69,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 
     /** Map parameter name to the static argument bound to it. */
     private final Map<SimpleName, StaticArg> parameterMap;
-    
+
     /** Assume params.size() == args.size() */
     public StaticTypeReplacer(List<StaticParam> params, List<StaticArg> args) {
         assert(params.size() == args.size());
@@ -79,18 +80,18 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
             StaticParam p = params.get(i);
             if (p instanceof OperatorParam) {
                 name = ((OperatorParam)p).getName();
-                System.err.printf("put op: %s\n", name);
+                //                System.err.printf("put op: %s\n", name);
             } else {
                 name = ((IdStaticParam)p).getName();
             }
             parameterMap.put(name, args.get(i));
         }
     }
-    
+
     public Type replaceIn(Type t) {
         return (Type)t.accept(this); // TODO safe?
     }
-    
+
     private Node updateNode(Node that, QualifiedIdName name) {
         if (name.getApi().isSome()) { return that; }
         StaticArg arg = parameterMap.get(name.getName());
@@ -98,7 +99,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     }
 
     // ----------- VISITOR METHODS ---------------
-    
+
     @Override
     public Node forIdType(IdType that) {
         return updateNode(that, that.getName());
@@ -108,29 +109,34 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     public Node forIdArg(IdArg that) {
         return updateNode(that, that.getName());
     }
-    
+
     @Override
     public Node forOprArg(OprArg that) {
         StaticArg arg = parameterMap.get(that.getName());
-        System.err.printf("forOprArg lookup: %s\n", arg);
+        //        System.err.printf("forOprArg lookup: %s\n", arg);
         return arg == null ? that : arg;
     }
-    
+
     @Override
     public Node forIntRef(IntRef that) {
         return updateNode(that, that.getName());
     }
-    
+
     @Override
     public Node forBoolRef(BoolRef that) {
         return updateNode(that, that.getName());
     }
-    
+
     @Override
     public Node forDimRef(DimRef that) {
         return updateNode(that, that.getName());
     }
-    
+
+    @Override
+    public Node forUnitRef(UnitRef that) {
+        return updateNode(that, that.getName());
+    }
+
     @Override
     public Node forVarRef(VarRef that) {
         return updateNode(that, that.getVar());
