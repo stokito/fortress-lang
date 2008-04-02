@@ -33,7 +33,7 @@ import static com.sun.fortress.compiler.typechecker.Types.*;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 
 public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
-    
+
     private StaticTypeReplacer replacer;
 
     public void testLeafNodes() {
@@ -44,24 +44,25 @@ public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
                                                makeStaticParam("opr +"),
                                                makeStaticParam("dim d"),
                                                makeStaticParam("unit u"));
+        Span span = new Span();
         List<StaticArg> args = makeSargs(makeTypeArg("ZZ32"),
                                          makeIntArg("-5"),
                                          makeIdArg("m"),
                                          makeBoolArg("true"),
                                          makeOprArg("-"),
                                          makeDimArg(makeDimRef("Length")),
-                                         new UnitArg(makeVarRef(new Span(), makeQualifiedIdName("ft_"))));
-                                         
+                                         makeUnitArg(makeUnitRef("ft_")));
+
         replacer = new StaticTypeReplacer(params, args);
-        
+
         assertEqualTypes("ZZ32 -> ZZ32", "K -> K");
         //assertEqualTypes("List[\\ZZ32\\] -> Foo[\\ZZ32, -5\\]", "List[\\K\\] -> Foo[\\K, n\\]");
         assertEqualTypes("(ZZ32, String, ZZ32)", "(K, String, ZZ32)");
         assertEqualTypes("(true, -, -5, m, Length, ft_, ZZ32)", "(b, +, n, m, d, u, K)");
     }
-    
+
     private void assertEqualTypes(String s, String t) {
         assertEquals(parseType(s).toString(), replacer.replaceIn(parseType(t)).toString());
     }
-    
+
 }

@@ -44,7 +44,7 @@ public class TypeAnalyzerUtil {
         final Map<QualifiedIdName, IntExpr> intSubs = new HashMap<QualifiedIdName, IntExpr>();
         final Map<QualifiedIdName, BoolExpr> boolSubs = new HashMap<QualifiedIdName, BoolExpr>();
         final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
-        final Map<QualifiedIdName, Expr> unitSubs = new HashMap<QualifiedIdName, Expr>();
+        final Map<QualifiedIdName, UnitExpr> unitSubs = new HashMap<QualifiedIdName, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
@@ -127,11 +127,19 @@ public class TypeAnalyzerUtil {
                         }
                         else { return n; }
                     }
+
+                    /** Handle names in UnitExprs */
+                    @Override public UnitExpr forUnitRef(UnitRef n) {
+                        if (unitSubs.containsKey(n.getName())) {
+                            return unitSubs.get(n.getName());
+                        }
+                        else { return n; }
+                    }
                 });
             }
         };
     }
-    
+
     public static ArrowType makeArrow(Type domain, Type range, Type throwsT, boolean io) {
         return new ArrowType(domain, range,
                              Option.some(Collections.singletonList(throwsT)), io);
@@ -149,7 +157,7 @@ public class TypeAnalyzerUtil {
         new Lambda<KeywordType, Type>() {
         public Type value(KeywordType k) { return k.getType(); }
     };
-    
+
 
     /** Test whether the given tuples have the same arity and matching varargs/keyword entries */
     /*
@@ -168,6 +176,6 @@ public class TypeAnalyzerUtil {
         else { return false; }
     }
     */
-    
-    
+
+
 }

@@ -187,13 +187,21 @@ public class NodeFactory {
     public static DimArg makeDimArg(DimArg t, DimExpr s) {
         return new DimArg(t.getSpan(), t.isParenthesized(), s);
     }
-    
+
     public static DimArg makeDimArg(DimExpr s) {
         return new DimArg(s.getSpan(), s);
     }
-    
+
     public static DimRef makeDimRef(String name) {
         return new DimRef(makeQualifiedIdName(name));
+    }
+
+    public static UnitArg makeUnitArg(UnitExpr s) {
+        return new UnitArg(s.getSpan(), s);
+    }
+
+    public static UnitRef makeUnitRef(String name) {
+        return new UnitRef(makeQualifiedIdName(name));
     }
 
     public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
@@ -288,7 +296,7 @@ public class NodeFactory {
         if (staticParams.isEmpty()) {
             return makeArrowType(span, domain, range, Option.<List<TraitType>>none());
         }
-        return new _RewriteGenericArrowType(span, inArrowType(domain), range, 
+        return new _RewriteGenericArrowType(span, inArrowType(domain), range,
                 Option.<List<Type>>none(), staticParams, new WhereClause());
     }
 
@@ -944,6 +952,30 @@ public class NodeFactory {
         });
     }
 
+    public static UnitExpr makeInParentheses(UnitExpr be) {
+        return be.accept(new NodeAbstractVisitor<UnitExpr>() {
+            public UnitExpr forUnitRef(UnitRef b) {
+                return new UnitRef(b.getSpan(), true, b.getName());
+            }
+            public UnitExpr forProductUnit(ProductUnit i) {
+                return new ProductUnit(i.getSpan(), true, i.getLeft(),
+                                       i.getRight());
+            }
+            public UnitExpr forQuotientUnit(QuotientUnit t) {
+                return new QuotientUnit(t.getSpan(), true, t.getLeft(),
+                                        t.getRight());
+            }
+            public UnitExpr forExponentUnit(ExponentUnit i) {
+                return new ExponentUnit(i.getSpan(), true, i.getLeft(),
+                                        i.getRight());
+            }
+            public UnitExpr defaultCase(Node x) {
+                return bug(x, "makeInParentheses: " + x.getClass() +
+                           " is not a subtype of UnitExpr.");
+            }
+        });
+    }
+
     public static StaticArg makeInParentheses(StaticArg ty) {
         return ty.accept(new NodeAbstractVisitor<StaticArg>() {
             public StaticArg forBoolArg(BoolArg t) {
@@ -1093,7 +1125,7 @@ public class NodeFactory {
     public static _RewriteGenericSingletonType makeGenericSingletonType(Id name, List<StaticParam> params) {
         return new _RewriteGenericSingletonType(name.getSpan(), new QualifiedIdName(name), params);
     }
-    
+
 
 
     public static Type makeAndType(List<Type> types) {
@@ -1110,7 +1142,7 @@ public class NodeFactory {
             });
         }
     }
-    
+
     public static IdArg makeIdArg(String name) {
         return new IdArg(makeQualifiedIdName(name));
     }

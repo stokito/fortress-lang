@@ -109,7 +109,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forIdType(IdType node) {
         return node.getName().accept(this);
     }
-    
+
     public String forIdArg(IdArg node) {
         return NodeUtil.nameString(node.getName());
     }
@@ -121,31 +121,35 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forBoolArg(BoolArg node) {
         return node.getBool().toString();
     }
-    
+
     public String forDimArg(DimArg node) {
         return node.getDim().accept(this);
     }
-    
+
     public String forUnitArg(UnitArg node) {
         return node.getUnit().accept(this);
     }
-    
+
     public String forOprArg(OprArg node) {
         return node.getName().accept(this);
     }
-    
+
     public String forDimRef(DimRef node) {
+        return NodeUtil.nameString(node.getName());
+    }
+
+    public String forUnitRef(UnitRef node) {
         return NodeUtil.nameString(node.getName());
     }
 
     public String forIntRef(IntRef node) {
         return NodeUtil.nameString(node.getName());
     }
-    
+
     public String forBoolRef(BoolRef node) {
         return NodeUtil.nameString(node.getName());
     }
-    
+
     public String forVarRef(VarRef node) {
         return NodeUtil.nameString(node.getVar());
     }
