@@ -344,6 +344,9 @@ emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f batc
 The result is that a formatted file is created, with the same name and
 at the same location as the input file, but with extension .tex.
 
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it! 
+
 As a convenience, a bash script "fortify" is provided in
 FORTRESS_HOME/bin. This script executes the fortify command on a given file.
 
@@ -392,6 +395,9 @@ version of the file.
 Again, a formatted file is created  with the same name and location as the
 input file, but with extension .tex.
 
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it! 
+
 This command can be called as follows:
 
 emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f fortex
@@ -413,8 +419,12 @@ delimiters:
 
 Lines in between (but not including) example delimiters are
 fortified. The result is stored in a file with the same name and
-location as the input file, but with suffix '.tex'. For example, the
-following file:
+location as the input file, but with suffix '.tex'. 
+
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it! 
+
+For example, the following file:
 
 ----
 component tmp
@@ -438,3 +448,38 @@ emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f fore
 
 A convenience script 'foreg' for this command is provided in
 FORTRESS_HOME/bin.
+
+fortick
+-------
+fortick takes a file name and fortifies all occurrences of text in
+that file delimited by ticks. It writes the result to a new file in
+the same location, with suffix ".tex". 
+
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it! 
+
+For example, given a file example.fss, with the following contents:
+
+(**
+`f(x) = x^2 + y^2`
+**)
+
+The fortick tool will write a file example.tex, with the following
+contents: 
+
+(**
+\EXP{f(x) = x^{2} + y^{2}}
+**)
+
+If the opening tick and closing tick are adjacent, then fortick
+simply replaces the pair with a single tick.  This provides an escape 
+for those who need to use ticks in LaTeX document.
+
+For example:
+
+(** This is what we call, in polite company, a ````misfeature.'' **)
+
+becomes:
+
+(** This is what we call, in polite company, a ``misfeature.'' **)
+
