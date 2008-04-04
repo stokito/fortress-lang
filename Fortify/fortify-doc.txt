@@ -16,8 +16,13 @@
  ******************************************************************************)
 
 This directory contains Emacs commands for converting Fortress code into LaTeX
-commands for the purposes of formatting.
+commands for the purposes of formatting. In order for LaTeX to understand the
+formatted code, you need to import Fortify/fortify-macros.tex in your LaTeX file:
 
+\input{$FORTRESS_HOME/Fortify/fortify-macros.tex}
+
+Emacs Formatting Commands
+-------------------------
 The main command "fortify", also bound to the key M-& (meta-ampersand).
 formats a portion of the text in the buffer as Fortress code by inserting TeX
 commands and performing certain transformations, which include replacing all-caps
