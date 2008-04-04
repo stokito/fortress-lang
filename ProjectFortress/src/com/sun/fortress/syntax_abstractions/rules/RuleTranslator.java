@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
-import com.sun.fortress.syntax_abstractions.rats.util.ModuleEnum;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
 import xtc.parser.GrammarVisitor;
@@ -38,22 +37,22 @@ import xtc.parser.Module;
  */
 public class RuleTranslator {
 	
-	private Map<ModuleEnum, Module> moduleCache = new HashMap<ModuleEnum, Module>();
-	
-	public void applyRule(Rule rule) {
-		Module module = moduleCache.get(rule.getModule());
-		if (module == null) {
-			module = RatsUtil.getRatsModule(rule.getModule());
-			moduleCache.put(rule.getModule(), module);
-		}
-		rule.getRuleRewriter().dispatch(module);
-	}
-	
-	public void applyRules(Collection<Rule> rules) {
-		for (Rule rule: rules) {
-			this.applyRule(rule);
-		}
-	}
+//	private Map<ModuleEnum, Module> moduleCache = new HashMap<ModuleEnum, Module>();
+//	
+//	public void applyRule(Rule rule) {
+//		Module module = moduleCache.get(rule.getModule());
+//		if (module == null) {
+////			module = RatsUtil.getRatsModule(rule.getModule());
+//			moduleCache.put(rule.getModule(), module);
+//		}
+//		rule.getRuleRewriter().dispatch(module);
+//	}
+//	
+//	public void applyRules(Collection<Rule> rules) {
+//		for (Rule rule: rules) {
+//			this.applyRule(rule);
+//		}
+//	}
 
 
 //	private void copyFortressGrammarFiles() {

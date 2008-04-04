@@ -76,24 +76,28 @@ public class RatsParserGenerator {
 		List<ParserGeneratorError> errors = new LinkedList<ParserGeneratorError>();
 		Class<?> parser = null;
 
-		String baseDir = RatsUtil.getTempDir();
-		String destinationDir = baseDir + RatsUtil.COMSUNFORTRESSPARSER;
-		String fortressName = "Fortress";
-		String freshFortressName = FreshName.getFreshName(fortressName);
+		String grammarTempDir = RatsUtil.getTempDir();
+		String destinationDir = grammarTempDir + RatsUtil.COMSUNFORTRESSPARSER;
+		String freshFortressName = FreshName.getFreshName("Fortress");
 	
-		copyGrammar(modules, fortressName, freshFortressName, baseDir);
-
+		FortressRatsGrammar fortressGrammar = new FortressRatsGrammar();
+		fortressGrammar.initialize(RatsUtil.getParserPath());
+		fortressGrammar.setName(freshFortressName);
+		fortressGrammar.replace(modules);
+		fortressGrammar.injectAlternative(new GapAlternative());
+		fortressGrammar.clone(grammarTempDir);
+		
 		String fortressRats = destinationDir + "Fortress" +".rats";
-		String[] args = {"-no-exit", "-in", baseDir, "-out", destinationDir, fortressRats};
+		String[] args = {"-no-exit", "-in", grammarTempDir, "-out", destinationDir, fortressRats};
 		xtc.parser.Rats.main(args);
 
 		String fortressJava = RatsUtil.COMSUNFORTRESSPARSER + freshFortressName +".java";
-		int parserResult = JavaC.compile(baseDir, baseDir, baseDir + fortressJava);
+		int parserResult = JavaC.compile(grammarTempDir, grammarTempDir, grammarTempDir + fortressJava);
 		if (parserResult != 0) {
 			throw new RuntimeException("A compiler error occured while compiling a temporary parser");
 		}
 
-		ParserLoader parserLoader = new ParserLoader(baseDir);
+		ParserLoader parserLoader = new ParserLoader(grammarTempDir);
 		try {
 			parser = parserLoader.findClass("com.sun.fortress.parser."+freshFortressName);
 		} catch (ClassNotFoundException e) {
@@ -102,30 +106,6 @@ public class RatsParserGenerator {
 		}
 		
 		return new RatsParserGenerator().new Result(parser, errors);
-	}
-
-	public static void copyGrammar(Collection<Module> modules, 
-							String fortressName, String freshFortressName,
-							String baseDir) {
-
-		RatsUtil.copyFortressGrammar();
-
-		for (Module m: modules) {
-			/* Rename the name of the generated java file */
-			if (m.name.name.equals("com.sun.fortress.parser."+fortressName)) {
-				List<Attribute> attrs = new LinkedList<Attribute>();
-				for (Attribute attribute: m.attributes) {
-					if (attribute.getName().equals("parser")) {
-						attrs.add(new Attribute("parser", "com.sun.fortress.parser."+freshFortressName));
-					}
-					else {
-						attrs.add(attribute);
-					}
-				}
-				m.attributes = attrs;
-			}
-			RatsUtil.writeRatsModule(m, baseDir);
-		}
 	}
 	
 	public static class ParserLoader extends ClassLoader {

@@ -136,17 +136,7 @@ public class GrammarTranslator {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+"Fortress.rats");
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) { 
 			if (module instanceof FortressModule) {
-				for (ModuleDependency md: m.dependencies) {
-					if (md instanceof ModuleInstantiation) {
-						if (md.module.name.equals(RatsUtil.getModuleNamePrefix()+module.getName().toString())) {
-							List<ModuleName> deps = new LinkedList<ModuleName>();
-							ModuleInstantiation mi = (ModuleInstantiation) md;
-							deps.addAll(mi.arguments.names);
-							deps.addAll(module.getParameters());
-							mi.arguments = new ModuleList(deps);
-						}
-					}
-				}
+				RatsUtil.addParametersToInstantiation(m,module.getName().toString(), module.getParameters());
 			}
 			if (module instanceof UserModule) {
 				ModuleName name = new ModuleName(RatsUtil.getModuleNamePrefix()+module.getName().toString());

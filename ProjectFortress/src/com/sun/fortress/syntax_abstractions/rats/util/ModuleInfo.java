@@ -22,12 +22,8 @@
 
 package com.sun.fortress.syntax_abstractions.rats.util;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-
-import xtc.parser.ModuleName;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -35,8 +31,7 @@ import com.sun.fortress.nodes.QualifiedIdName;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ModuleInfo {
-
-	public static final String MODULE_NAME_EXTENSION = "Ext";
+	
 	public static final String MODULE_NAME_PREFIX = "com.sun.fortress.parser.";
 	
 	/**
@@ -89,48 +84,4 @@ public class ModuleInfo {
 		return fortressModules;
 	}
 	
-	/**
-	 * 
-	 * @param e
-	 * @return
-	 * @deprecated
-	 */
-	public static ModuleName getModuleName(ModuleEnum e) {
-		Map<ModuleEnum, String> moduleToModuleName = new HashMap<ModuleEnum, String>();
-		moduleToModuleName.put(ModuleEnum.ABSFIELD, 	 "AbsField");
-		moduleToModuleName.put(ModuleEnum.COMPILATION, 	 "Compilation");
-		moduleToModuleName.put(ModuleEnum.DECLARATION ,  "Declaration");
-		moduleToModuleName.put(ModuleEnum.DELIMITEDEXPR, "DelimitedExpr");
-		moduleToModuleName.put(ModuleEnum.EXPRESSION, 	 "Expression");
-		moduleToModuleName.put(ModuleEnum.FIELD, 	     "Field");
-		moduleToModuleName.put(ModuleEnum.FORTRESS, 	 "Fortress");
-		moduleToModuleName.put(ModuleEnum.FUNCTION, 	 "Function");
-		moduleToModuleName.put(ModuleEnum.IDENTIFIER,    "Identifier");
-		moduleToModuleName.put(ModuleEnum.KEYWORD, 	     "Keyword");
-		moduleToModuleName.put(ModuleEnum.LITERAL, 	     "Literal");
-		moduleToModuleName.put(ModuleEnum.LOCALDECL, 	 "LocalDecl");
-		moduleToModuleName.put(ModuleEnum.METHOD, 	     "Method");
-		moduleToModuleName.put(ModuleEnum.METHODPARAM, 	 "MethodParam");
-		moduleToModuleName.put(ModuleEnum.MAYNEWLINEHEADER,"MayNewlineHeader");
-		moduleToModuleName.put(ModuleEnum.NONEWLINEEXPR, "NoNewlineExpr");
-		moduleToModuleName.put(ModuleEnum.NONEWLINEHEADER,"NoNewlineHeader");
-		moduleToModuleName.put(ModuleEnum.NONEWLINETYPE,"NoNewlineType");
-		moduleToModuleName.put(ModuleEnum.NOSPACEEXPR, 	 "NoSpaceExpr");		
-		moduleToModuleName.put(ModuleEnum.OTHERDECL, 	 "OtherDecl");
-		moduleToModuleName.put(ModuleEnum.PARAMETER, 	 "Parameter");
-		moduleToModuleName.put(ModuleEnum.SPACING, 	     "Spacing");
-		moduleToModuleName.put(ModuleEnum.SYMBOL, 	     "Symbol");
-		moduleToModuleName.put(ModuleEnum.SYNTAX, 	     "Syntax");
-		moduleToModuleName.put(ModuleEnum.TRAITOBJECT, 	 "TraitObject");
-		moduleToModuleName.put(ModuleEnum.TYPE, 	     "Type");		
-		moduleToModuleName.put(ModuleEnum.UNICODE, 	     "Unicode");
-		moduleToModuleName.put(ModuleEnum.VARIABLE, 	 "Variable");
-		
-		ModuleName result =  new ModuleName(ModuleInfo.MODULE_NAME_PREFIX+moduleToModuleName.get(e));
-		if (result == null) {
-			throw new RuntimeException("NYI: "+e);
-		}
-		return result;
-	}
-
 }
