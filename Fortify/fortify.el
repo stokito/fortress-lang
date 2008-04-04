@@ -1383,26 +1383,30 @@ extension '.tex'."
   (remove-copyright)
   (print-header "TOOL FORTICK")
   (let ((pos (point-min))
-	(at-end nil))
+	(at-end nil)
+        (file-length (point-max)))
     (while (not at-end)
-      (let ((next-opening (find-next-tick pos)))
-	     (if (equal next-opening (point-max))
-		 (setq at-end t)
-	       (progn
-		 (let ((next-closing (find-next-tick (+ 1 next-opening))))
-		   (cond ((equal next-closing (point-max))
-			  (signal-error "Mismatched tick"))
-			 ((equal next-closing (+ 1 next-opening))
-			  ;; Two adjacent ticks denotes an escaped tick.
-			  (delete-char-at next-opening)
-			  (setq pos next-closing))
-			 (t (delete-char-at next-opening)
-			    ;; The left tick has been deleted, so the right tick
-			    ;; has moved to the left.
-			    (setq next-closing (- next-closing 1))
-			    (delete-char-at next-closing)
-			    (fortify-region next-opening next-closing)
-			    (setq pos next-closing)))))))))
+      (progn
+        (let ((next-opening (find-next-tick pos)))
+          (if (equal next-opening (point-max))
+              (setq at-end t)
+            (progn
+              (let ((next-closing (find-next-tick (+ 1 next-opening))))
+                (cond ((equal next-closing (point-max))
+                       (signal-error "Mismatched tick"))
+                      ((equal next-closing (+ 1 next-opening))
+                       ;; Two adjacent ticks denotes an escaped tick.
+                       (delete-char-at next-opening)
+                       (setq pos next-closing))
+                      (t (delete-char-at next-opening)
+                         ;; The left tick has been deleted, so the right tick
+                         ;; has moved to the left.
+                         (setq next-closing (- next-closing 1))
+                         (delete-char-at next-closing)
+                         (setq pos next-closing)
+                         (fortify-region next-opening next-closing)
+                         (setq pos (+ pos (- (point-max) file-length)))))))))
+        (setq file-length (point-max)))))
   (write-as-tex-file))
 
 (defun delete-char-at (pos)
@@ -1412,8 +1416,11 @@ extension '.tex'."
 
 (defun find-next-tick (pos)
   (while (and (< pos (point-max))
-	      (not (equal (char-to-string (char-after pos)) "`")))
+	      (not (string-equal (char-to-string (char-after pos)) "`")))
+    (print (char-to-string (char-after pos)))
     (setq pos (+ 1 pos)))
+  (if (not (equal pos (point-max))) (print (char-to-string (char-after pos))))
+  (print pos)
   pos)
 
 (defun fortify-region (left right)
