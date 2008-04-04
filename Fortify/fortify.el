@@ -1417,10 +1417,10 @@ extension '.tex'."
 (defun find-next-tick (pos)
   (while (and (< pos (point-max))
 	      (not (string-equal (char-to-string (char-after pos)) "`")))
-    (print (char-to-string (char-after pos)))
+    ; (print (char-to-string (char-after pos)))
     (setq pos (+ 1 pos)))
-  (if (not (equal pos (point-max))) (print (char-to-string (char-after pos))))
-  (print pos)
+  ; (if (not (equal pos (point-max))) (print (char-to-string (char-after pos))))
+  ; (print pos)
   pos)
 
 (defun fortify-region (left right)
