@@ -389,10 +389,11 @@ value trait Maybe[\T\]
 end
 
 value object Just[\T\](x:T) extends Maybe[\T\]
-    getter size()
+    getter size(): ZZ32
     getter toString():String
-    getter isJust()
-    getter unJust()
+    getter isJust(): Boolean
+    getter unJust(): T
+    opr |self| : ZZ32
     unJust(_:T): T
     generate[\R\](_:Reduction[\R\],m:T->R): R
     opr[i:ZZ32]:T
@@ -410,10 +411,11 @@ end
 (** %Nothing% will become a non-parametric singleton when we get where
     clauses working. *)
 value object Nothing[\T\] extends Maybe[\T\]
-    getter size()
-    getter isJust()
-    getter unJust()
+    getter size(): ZZ32
+    getter isJust(): Boolean
+    getter unJust(): T
     getter toString():String
+    opr |self| : ZZ32
     unJust(t:T):T
     generate[\R\](r:Reduction[\R\],_:T->R): R
     opr[_:ZZ32]: T
@@ -587,10 +589,9 @@ An object %i% that is an instance of %Indexed% defines three basic things:
 **)
 trait Indexed[\E, I\] extends Generator[\E\]
     (** %isEmpty()% indicates whether there are any valid indices.  It is
-        defined as %size()=0%. *)
+        defined as %|self| = 0%. *)
     getter isEmpty(): Boolean
-    (** %size()% indicates the number of distinct valid indices that may
-        be passed to indexing operations. *)
+    (** %size()% is depracted; use %|self|% instead. *)
     abstract getter size(): ZZ32
     (** %bounds()% yields a range of indices that are valid for the
         indexed generator. *)
@@ -614,6 +615,9 @@ trait Indexed[\E, I\] extends Generator[\E\]
         attempts to follow the structure of the underlying object as
         closely as possible. *)
     getter indices(): Indexed[\I,I\]
+    (** %|self|% indicates the number of distinct valid indices that may
+        be passed to indexing operations. *)
+    abstract opr |self| : ZZ32
     (** Indexing.  %i IN bounds()% must hold. *)
     abstract opr[i:I] : E
 
@@ -653,6 +657,7 @@ object DefaultZip[\E,F\](e:ZeroIndexed[\E\],f:ZeroIndexed[\F\])
         extends { ZeroIndexed[\(E,F)\], DelegatedIndexed[\(E,F),ZZ32\] }
     getter size(): ZZ32
     getter indices(): Generator[\ZZ32\]
+    opr |self| : ZZ32
     opr[i:ZZ32]:(E,F)
     opr[r:Range[\ZZ32\]] : ZeroIndexed[\(E,F)\]
 end
@@ -678,6 +683,7 @@ toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\]
 trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     getter generator(): Generator[\E\]
     getter size(): ZZ32
+    opr |self| : ZZ32
     generate[\R\](r: Reduction[\R\], body: E->R): R
     seq(self): SequentialGenerator[\E\]
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\]
@@ -866,6 +872,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     getter bounds():FullRange[\ZZ32\]
     abstract getter mutability():String
     getter toString()
+    opr |self| : ZZ32
 
     subarray[\nat b, nat s, nat o\]():ReadableArray1[\T, b, s\]
 
@@ -1009,6 +1016,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   getter size():ZZ32
   getter bounds():FullRange[\(ZZ32,ZZ32)\]
   getter toString()
+  opr |self| : ZZ32
   (** Translate from %b0%, %b1%-indexing to 0-indexing, checking bounds. **)
   offset(t:(ZZ32,ZZ32)):(ZZ32,ZZ32)
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32)
@@ -1121,6 +1129,8 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     getter bounds():FullRange[\(ZZ32,ZZ32,ZZ32)\]
 
     getter toString():String
+
+    opr |self| : ZZ32
 
     (** Again, %offset% performs bounds checking and shifts to 0-indexing. *)
     offset(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32)
@@ -1489,9 +1499,9 @@ atan2(y:Number,x:Number):RR64
 log(a:Number):RR64
 exp(a:Number):RR64
 floor(a:Number):RR64
-opr |\a:Number/|:ZZ64
+opr |\a:Number/| : ZZ64
 ceiling(a:Number):RR64
-opr |/a:Number\|:ZZ64
+opr |/a:Number\| : ZZ64
 truncate(a:Number):ZZ64
 random(a:Number):RR64
 

@@ -123,6 +123,7 @@ value object SeqSetGenerator[\E\](s: Set[\E\])
       extends SequentialGenerator[\E\]
    getter size(): ZZ32 = |s|
    getter isEmpty(): Boolean = s.isEmpty()
+   opr |self| : ZZ32 = |s|
    generate[\R\](r: Reduction[\R\], body: E->R): R =
       s.seqgen[\R\](r,body)
 end
@@ -132,6 +133,7 @@ value object IndexValueSetGenerator[\E\](s: Set[\E\])
    getter size(): ZZ32 = |s|
    getter indices(): ZZ32 = s.indices()
    getter isEmpty(): Boolean = s.isEmpty()
+   opr |self| : ZZ32 = |s|
    generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
       s.ivgen[\R\](0,r,body)
    opr[ x: ZZ32 ]: (ZZ32,E) = (x,s[x])
@@ -143,6 +145,7 @@ object EmptySet[\E\] extends Set[\E\]
    getter size():ZZ32 = 0
    getter bounds():Range[\ZZ32\] = 0#0
    getter isEmpty():Boolean = true
+   opr |self| : ZZ32 = 0
    opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
    opr[r:Range[\ZZ32\]] : Set[\E\] = do
       rr = (bounds())[r]
@@ -166,7 +169,6 @@ object EmptySet[\E\] extends Set[\E\]
    delete(z:E):Set[\E\] = self
    balancedAdd(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = NodeSet[\E\](val,self,self)
    balancedDelete(r:Set[\E\]):Set[\E\] = r
-   opr | self |: ZZ32 = 0
    opr UNION(self, t2:Set[\E\]):Set[\E\] = t2
    opr INTERSECTION(self,t2:Set[\E\]):Set[\E\] = self
    opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\] = self
@@ -186,6 +188,7 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
    sz:ZZ32 = 1 + |left| + |right|
    getter size():ZZ32 = sz
    getter isEmpty():Boolean = false
+   opr |self| : ZZ32 = sz
    subscript(i:ZZ32):E = if i < |left| then left.subscript(i)
       elif i = |left| then val
       else right.subscript(i - |left| - 1) end
@@ -194,13 +197,13 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
    opr[r:Range[\ZZ32\]] : Set[\E\] = do
       r' = (bounds())[r]
       (lside,rside) = splitIndex( r'.lower() )
-      (lside',rside') = rside.splitIndex( r'.size() )
+      (lside',rside') = rside.splitIndex( |r'| )
       lside'
    end
    indexOfI(i:ZZ32, e:E): ZZ32 =
        typecase _ = e CMP val of
            LessThan => left.indexOfI(i,e)
-           EqualTo => i+|left|
+           EqualTo => i + |left|
            GreaterThan => right.indexOfI(i + |left| + 1,e)
        end
    generate[\R\](r: Reduction[\R\], body: E->R): R =
@@ -278,8 +281,6 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
        (max, delmax) = right.removeMaximum()
        (max, balancedAdd(val,left,delmax))
      end
-
-   opr | self | : ZZ32 = sz
 
    (* TODO: union, intersection, and difference should use hedge
       algorithms, which avoid splitting and the allocation it entails

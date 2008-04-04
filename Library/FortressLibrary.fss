@@ -503,6 +503,7 @@ value object Just[\T\](x:T) extends Maybe[\T\]
     getter toString():String = "Just(" x ")"
     getter isJust() = true
     getter unJust() = x
+    opr |self| : ZZ32 = 1
     unJust(_:T): T = x
     generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
     opr[i:ZZ32]:T = if i=0 then x else fail("Maybe[" i "] nonzero index") end
@@ -531,6 +532,7 @@ value object Nothing[\T\] extends Maybe[\T\]
     getter isJust() = false
     getter unJust() = throw NotFound
     getter toString():String = "Nothing"
+    opr |self| : ZZ32 = 0
     unJust(t:T):T = t
     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
     opr[_:ZZ32]: T = fail("Cannot index Nothing")
@@ -712,9 +714,8 @@ An object i that's an instance of Indexed defines three basic things:
 trait Indexed[\E, I\] extends Generator[\E\]
     (** isEmpty indicates whether there are any valid indices.  It is
         defined as size=0 *)
-    getter isEmpty(): Boolean = size()=0
-    (** size indicates the number of distinct valid indices that may
-        be passed to indexing operations. *)
+    getter isEmpty(): Boolean = |self| = 0
+    (** %size()% is depracated; use %|self|%. *)
     getter size(): ZZ32
     (** bounds() yields a range of indices that are valid for the
         indexed generator. *)
@@ -738,6 +739,10 @@ trait Indexed[\E, I\] extends Generator[\E\]
         closely as possible. *)
     getter indices(): Indexed[\I,I\] =
         indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
+
+    (** %|self|% indicates the number of distinct valid indices that may
+        be passed to indexing operations. *)
+    opr |self| : ZZ32
 
     (** Indexing.  i IN bounds() must hold. *)
     opr[i:I] : E
@@ -772,7 +777,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
 end
 
 trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
-    bounds(): FullRange[\ZZ32\] = 0#size()
+    bounds(): FullRange[\ZZ32\] = 0 # |self|
     zip[\F\](g:ZeroIndexed[\F\]):ZeroIndexed[\(E,F)\] =
         DefaultZip[\E,F\](self,g)
     (** indexOf(e) returns an index at which e can be found,
@@ -788,10 +793,10 @@ end
 
 object DefaultZip[\E,F\](e:ZeroIndexed[\E\],f:ZeroIndexed[\F\])
         extends { ZeroIndexed[\(E,F)\], DelegatedIndexed[\(E,F),ZZ32\] }
-    sz : ZZ32 = e.size() MIN f.size()
-    getter size(): ZZ32 = sz
+    getter size(): ZZ32 = |self|
     getter indices(): Generator[\ZZ32\] =
-        if e.size() <= f.size() then e.indices() else f.indices() end
+        if |e| <= |f| then e.indices() else f.indices() end
+    opr |self| : ZZ32 = |e| MIN |f|
     opr[i:ZZ32]:(E,F) = (e[i],f[i])
     opr[r:Range[\ZZ32\]] : ZeroIndexed[\(E,F)\] =
         DefaultZip[\E,F\](e[r],f[r])
@@ -803,17 +808,17 @@ trait LexicographicOrder[\T extends LexicographicOrder[\T,E\],E\]
         self.zip[\E\](other).generate[\TotalComparison\](
             LexicographicReduction,
             fn(a:E,b:E): TotalComparison => a CMP b) LEXICO
-          (self.size() CMP other.size())
+        (|self| CMP |other|)
     (** We give a specialized version of = because it can fail faster
         than CMP by checking sizes early. **)
     opr =(self,other:T): Boolean =
-        (self.size() = other.size()) AND:
+        (|self| = |other|) AND:
           (BIG AND [(a,b)<-self.zip[\E\](other)] a=b)
 end
 
 toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
     bnds = g.bounds()
-    r = array[\E\](bnds.size()).shift(bnds.lower())
+    r = array[\E\](|bnds|).shift(bnds.lower())
     for (i,v) <- g.indexValuePairs() do
         r.init(i,v)
     end
@@ -831,7 +836,8 @@ toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
 trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     getter generator(): Generator[\E\] =
         indexValuePairs().map[\E\](fn (i:I, e:E): E => e)
-    getter size(): ZZ32 = generator().size()
+    getter size(): ZZ32 = |generator()|
+    opr |self| : ZZ32 = |generator()|
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         generator().generate[\R\](r,body)
     seq(self): SequentialGenerator[\E\] = seq(generator())
@@ -1099,6 +1105,8 @@ trait ReadableArray1[\T, nat b0, nat s0\]
         end
       end
 
+    opr |self| : ZZ32 = s0
+
     subarray[\nat b, nat s, nat o\]():ReadableArray1[\T, b, s\]
 
     (* Offset converts from b0 indexing to 0 indexing,
@@ -1127,7 +1135,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
     opr[r: Range[\ZZ32\]] : ImmutableArray[\T,ZZ32\] = do
         r' = (bounds())[r]
         z = N[\0\]
-        s = reflect(r'.size())
+        s = reflect( |r'| )
         l = reflect(r'.lower())
         __subarrayI(self,z,s,l)
       end
@@ -1179,7 +1187,7 @@ trait Array1[\T, nat b0, nat s0\]
     opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
         r' = (bounds())[r]
         z = N[\0\]
-        s = reflect(r'.size())
+        s = reflect( |r'| )
         l = reflect(r'.lower())
         __subarray(self,z,s,l)
       end
@@ -1393,6 +1401,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
       r " ]"
     end
   end
+  opr |self| : ZZ32 = s0 s1
   (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
   offset(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do
     (a0,a1) = t
@@ -1716,6 +1725,8 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
       end
     end
 
+    opr |self| : ZZ32 = s0 s1 s2
+
     (* Again, offset performs bounds checking and shifts to 0 indexing. *)
     offset(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
       (a0,a1,a2)=t
@@ -1735,7 +1746,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
     opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
         r' = (bounds())[r]
-        (z0,z1,z2) = r'.size()
+        (z0,z1,z2) = r'.extent()
         (l0,l1,l2) = r'.lower()
         __subarray(N[\0\],reflect(z0), N[\0\],reflect(z1),
                    N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2))
@@ -1987,13 +1998,14 @@ end
 
 object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
         extends { MappedGenerator[\E,F\], Indexed[\F,I\] }
-    getter size(): ZZ32 = g().size()
+    getter size(): ZZ32 = |g()|
     getter g() = g0
     getter f() = f0
     getter bounds(): Range[\I\] = g().bounds()
     getter indexValuePairs(): Indexed[\(I,F),I\] =
         g().indexValuePairs().map[\(I,F)\](fn (i:I, e:E): F => (i,(f())(e)))
     getter indices(): Indexed[\I,I\] = g().indices()
+    opr |self| : ZZ32 = |g()|
     opr[i:I] : F = (f())(g()[i])
     opr[r:Range[\I\]] : Indexed[\F,I\] =
         SimpleMappedIndexed[\E,F,I\](g()[r],f())
@@ -2062,7 +2074,8 @@ trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
     getter e(): Generator[\E\]
     getter f(): Generator[\F\]
     getter toString(): String
-    getter size() = e().size() f().size()
+    getter size():ZZ32 = |self|
+    opr |self| : ZZ32 = |e()| |f()|
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
         e().generate[\R\](r, fn (a: E): R =>
                               f().generate[\R\](r, fn (b: F): R => m(a,b)))
@@ -2086,7 +2099,7 @@ end
 (** Helper for serializing generators naively.  This code should make
  *  obvious that naive seq is *VERY INEFFICIENT*.  It
  *  constructs a function closure whose size is proportional to
- *  g.size(), and then executes that closure.  This trick is old hat
+ *  %|g|%, and then executes that closure.  This trick is old hat
  *  to lambda-calculus wonks, but pretty unfamiliar to the common man.
  *
  *  Basically each element takes in the accumulated value a from the element
@@ -2100,8 +2113,9 @@ end
  *  composition, and flipping around the join at the leaves). *)
 object NaiveSeqGenerator[\E\](g: Generator[\E\])
         extends SequentialGenerator[\E\]
-    size() = g.size()
-    toString() = "naive seq(" g.toString() ")"
+    getter size() = |g|
+    getter toString():String = "naive seq(" g.toString() ")"
+    opr |self| : ZZ32 = |g|
     generate[\R\](r: Reduction[\R\], m:E->R): R = do
       rcompose(f:R->R, g:R->R): R->R = fn (x:R):R => g(f(x))
       id(x:R):R = x
@@ -2383,7 +2397,7 @@ trait FullRange[\T\]
     toString():String = lower() "#" extent()
 
     opr =(self, other:FullRange[\T\]): Boolean =
-        lower()=other.lower() AND size()=other.size()
+        lower()=other.lower() AND |self| = |other|
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             FullRange[\T\] =>
@@ -2406,13 +2420,14 @@ rangeIndexFailure[\T\](r:FullRange[\T\],i:T): () =
     fail(r "[" i "] out of range.")
 
 (** ParRanges and SeqRanges, the simplest and most basic of all
-generators.  They generate size() numbers, incrementing by 1, starting
+generators.  They generate |self| numbers, incrementing by 1, starting
 with lower() (that's the canonical ordering). *)
 trait ScalarRange[\N extends Integral\]
         extends { FullRange[\N\] }
     getter bounds():FullRange[\N\] = 0#extent()
     getter upper():N = lower() + extent() - 1
-    getter size():ZZ32 = narrow(|\extent()/|)
+    getter size():ZZ32 = |self|
+    opr |self| : ZZ32 = narrow(|\extent()/|)
     opr[i:N]: N =
         if 0 <= i < extent() then
             i + lower()
@@ -2421,7 +2436,7 @@ trait ScalarRange[\N extends Integral\]
         end
     opr IN(a:N, self): Boolean = do
         t = a - lower()
-        0 <= t < size()
+        0 <= t < |self|
       end
 end
 
@@ -2434,7 +2449,7 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
 
     seq(self) = SeqRange[\N\](lo,ex)
     generate[\R\](r: Reduction[\R\], m: N->R): R =
-        if size() < 1 then
+        if |self| < 1 then
             r.empty()
         else
             gen(l,s) = if s>=2 then
@@ -2443,10 +2458,10 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
                        else
                            m(l)
                        end
-            gen(lo,size())
+            gen(lo,|self|)
         end
     mapReduce[\R\](m: N->R, j:(R,R)->R, z:R): R =
-        if size() < 1 then
+        if |self| < 1 then
             z
         else
             gen(l,s) = if s>=2 then
@@ -2455,10 +2470,10 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
                        else
                            m(l)
                        end
-            gen(lo,size())
+            gen(lo,|self|)
         end
     reduce(j:(N,N)->N, z:N):N =
-        if size() < 1 then
+        if |self| < 1 then
             z
         else
             gen(l,s) = if s>=2 then
@@ -2467,10 +2482,10 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
                        else
                            l
                        end
-            gen(lo,size())
+            gen(lo,|self|)
         end
     reduce(r: Reduction[\N\]):N =
-        if size() < 1 then
+        if |self| < 1 then
             r.empty()
         else
             gen(l,s) = if s>=2 then
@@ -2479,10 +2494,10 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
                        else
                            l
                        end
-            gen(lo,size())
+            gen(lo,|self|)
         end
     loop(f:N->()): () =
-        if size() < 1 then
+        if |self| < 1 then
             ()
         else
             gen(l,s) = if s>=2 then
@@ -2492,7 +2507,7 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
                        else
                            f(l)
                        end
-            gen(lo,size())
+            gen(lo,|self|)
         end
 end
 value object SeqRange[\N extends Integral\](lo:N, ex:N)
@@ -2508,7 +2523,8 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
         acc : R = r.empty()
         (* DO NOT DEFINE THIS USING RECURSION!!! *)
         while l < h do
-            acc := r.join(acc, m(l))
+            b = m(l)
+            acc := r.join(acc, b)
             l += 1
         end
         acc
@@ -2534,12 +2550,13 @@ object Tuple2Range[\N extends Integral, M extends Integral\]
     getter extent():(N,M) = (x1,x2)
     getter lower():(N,M) = (l1,l2)
     getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper())
-    getter size():(N,M) = (l1#x1).size() (l2#x2).size()
+    getter size():(N,M) = |self|
     getter generator():Generator[\(N,M)\] = (l1#x1).cross[\M\](l2#x2)
     getter toString(): String = "(" l1 "," l2 ")#(" x1 "," x2 ")"
     getter indexValuePairs() =
         Tuple2Range[\N\](0,0,x1,x2).map[\((N,M),(N,M))\](
             fn (n:N,m:M):((N,M),(N,M)) => ((n,m),(n+l1,m+l2)))
+    opr |self| : ZZ32 = |l1#x1| |l2#x2|
     opr[i:(N,M)]: (N,M) = do
         (i1,i2) = i
         if 0 <= i1 < x1 AND 0 <= i2 < x2 then
@@ -2565,7 +2582,7 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
     getter lower():(N1,N2,N3) = (l1,l2,l3)
     getter upper():(N1,N2,N3) =
         ((l1#x1).upper(), (l2#x2).upper(), (l3#x3).upper())
-    getter size():(N1,N2,N3) = (l1#x1).size() (l2#x2).size() (l3#x3).size()
+    getter size():(N1,N2,N3) = |self|
     getter generator():Generator[\(N1,N2,N3)\] =
         (l1#x1).cross[\N2\](l2#x2).cross[\N3\](l3#x3).map[\(N1,N2,N3)\](
             fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
@@ -2574,6 +2591,7 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
         (0#x1).cross(0#x2).cross(0#x3).map[\((N1,N2,N3),(N1,N2,N3))\](
             fn (t:(N1,N2),n3:N3):((N1,N2,N3),(N1,N2,N3)) =>
                 do (n1,n2)=t; ((n1,n2,n3),(n1+l1,n2+l2,n3+l3)) end)
+    opr |self| : (N1,N2,N3) = |l1#x1| |l2#x2| |l3#x3|
     opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
         (i1,i2,i3) = i
         if 0 <= i1 < x1 AND 0 <= i2 < x2 AND 0 <= i3 < x3 then
@@ -2619,16 +2637,16 @@ opr (x:T):[\T\] : LowerRange[\T\] = LowerRange[\T\](x)
 opr #[\T\](x:T) : ExtentRange[\T\] = ExtentRange[\T\](x)
 opr :[\T\](x:T) : UpperRange[\T\] = UpperRange[\T\](x)
 
-opr #(): OpenRange[\Any\] = OpenRange[\Any\]
-opr :(): OpenRange[\Any\] = OpenRange[\Any\]
+opr #() : OpenRange[\Any\] = OpenRange[\Any\]
+opr :() : OpenRange[\Any\] = OpenRange[\Any\]
 
 (***********************************************************
 * Numeric primitives
 ************************************************************)
 
-opr |x:ZZ32|: ZZ32 = if x>=0 then x else -x end
-opr |x:ZZ64|: ZZ64 = if x>=0 then x else -x end
-opr |x:IntLiteral|: IntLiteral = if x>=0 then x else -x end
+opr |x:ZZ32| : ZZ32 = if x>=0 then x else -x end
+opr |x:ZZ64| : ZZ64 = if x>=0 then x else -x end
+opr |x:IntLiteral| : IntLiteral = if x>=0 then x else -x end
 
 opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
 opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
@@ -2745,7 +2763,7 @@ opr CMP(a:Number, b:Number):Comparison =
     end
 opr MIN(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
 opr MAX(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
-opr |a:RR64|:RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
+opr |a:RR64| : RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
 opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
 opr SQRT(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
 sin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
@@ -2758,9 +2776,9 @@ atan2(y:Number,x:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.g
 log(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Log")
 exp(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Exp")
 floor(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Floor")
-opr |\a:Number/|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$IFloor")
+opr |\a:Number/| : ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$IFloor")
 ceiling(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Ceiling")
-opr |/a:Number\|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
+opr |/a:Number\| : ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
 truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
 random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
 

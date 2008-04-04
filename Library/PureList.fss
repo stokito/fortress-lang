@@ -113,7 +113,7 @@ end
    each sublist) systematically. *)
 value object PureList[\E\]( it: FingerTree[\E\] )
       extends { List[\E\] }
-  getter size(): ZZ32 = leafSize(it)
+  getter size(): ZZ32 = |self|
   getter isEmpty(): Boolean = it.isEmpty()
   getter left():Maybe[\E\] = left1(it)
   getter right():Maybe[\E\] = right1(it)
@@ -121,6 +121,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
   getter extractRight(): Maybe[\(PureList[\E\],E)\] = extractRight1(it)
   getter indexValuePairs(): Generator[\(ZZ32,E)\] =
       IndexValuePairs[\E\](it)
+  opr |self| : ZZ32 = leafSize(it)
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
   seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
@@ -139,7 +140,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
           PureList[\E\](it.take(n))
       end
   drop(n:ZZ32): PureList[\E\] =
-      if n >= size() then
+      if n >= |self| then
           emptyList[\E\]()
       else
           PureList[\E\](it.drop(n))
@@ -147,8 +148,8 @@ value object PureList[\E\]( it: FingerTree[\E\] )
   opr [n:ZZ32]: E =
       if n < 0 then
           fail("PureList[" n "] index negative")
-      elif n >= size() then
-          fail("PureList[" n "] of size " size() " index too large")
+      elif n >= |self| then
+          fail("PureList[" n "] of size " |self| " index too large")
       else
           (_,res) = it.index(n)
           res
@@ -156,7 +157,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
   split(n:ZZ32): (PureList[\E\], PureList[\E\]) =
       if n <= 0 then
           (emptyList[\E\](),self)
-      elif n >= size() then
+      elif n >= |self| then
           (self,emptyList[\E\]())
       else
         (l,r) = it.split(n)
@@ -192,7 +193,8 @@ end
 
 value object SeqListGenerator[\E\]( it: FingerTree[\E\] )
         extends { SequentialGenerator[\E\] }
-    getter size(): ZZ32 = leafSize(it)
+    getter size(): ZZ32 = |self|
+    opr |self| : ZZ32 = leafSize(it)
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         it.seqgen[\R\](r,fn (x: E): R => body(x))
 end
@@ -222,7 +224,8 @@ trait FTStructure[\E\] extends Sized
 end
 
 object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]
-    getter size(): ZZ32 = it.size()
+    getter size(): ZZ32 = |it|
+    opr |self| : ZZ32 = |it|
     generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
         it.ivgen[\R\](0,r,body)
     seq(self): SequentialGenerator[\E\] = SequentialIndexValuePairs[\E\](it)
@@ -230,7 +233,8 @@ end
 
 object SequentialIndexValuePairs[\E\](it: FingerTree[\E\])
         extends SequentialGenerator[\(ZZ32,E)\]
-    getter size(): ZZ32 = it.size()
+    getter size(): ZZ32 = |it|
+    opr |self| : ZZ32 = |it|
     generate[\R\](r: Reduction[\R\], body: E->R): R = it.sivgen[\R\](0,r,body)
 end
 

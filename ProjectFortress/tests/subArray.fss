@@ -19,7 +19,7 @@ component subArray
 export Executable
 
 eqToRange(a:Array[\ZZ32,ZZ32\], b:Range[\ZZ32\]):() = do
-    assert(a.size(), b.size(), "Size mismatch")
+    assert(|a|, |b|, "Size mismatch")
     lo = b.lower() - a.bounds().lower()
     for (i,v) <- a.indexValuePairs() do
         assert(i+lo, v, "a[", i, "]")

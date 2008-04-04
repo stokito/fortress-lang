@@ -47,10 +47,13 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
 
   p:RR64 = 1.0 / pInverse
 
-  toString():String = root.toString()
+  getter toString():String = root.toString()
+
+  (* Depracated.  Use |self| instead. *)
+  getter size():ZZ32 = |root|
 
   (* The number of values stores in this tree. *)
-  size():ZZ32 = root.size()
+  opr |self| : ZZ32 = |root|
 
   (* given a search key, try to return a value that matches that key *)
   search(k:Key):Maybe[\Val\] = root.search(k)
@@ -72,7 +75,7 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
 
   (* merge two skip trees *)
   merge(other:SkipList[\Key,Val,pInverse\]):SkipList[\Key,Val,pInverse\] = do
-    (larger, smaller) = if self.size() > other.size() then (self, other) else (other, self) end
+    (larger, smaller) = if |self| > |other| then (self, other) else (other, self) end
     smallList = singleton[\Node[\Key,Val\]\](smaller.root)
     SkipList[\Key,Val,pInverse\](larger.root.merge(smallList))
   end
@@ -106,10 +109,13 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   (* The height of the current node.  Height = 0 must be a leaf *)
   getter height():ZZ32
 
+  (* Depracated.  Use |size| *)
+  getter size():ZZ32
+
   (* The number of values stores in this subtree.  The number of
      values is greater than or equal to the number of keys,
      as duplicates are allowed in this implementation. *)
-  getter size():ZZ32
+  opr |self| : ZZ32
 
   (* given a search key, try to return a value that matches that key *)
   search(k:Key):Maybe[\Val\]
@@ -154,8 +160,10 @@ trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\] extends Node[
   comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
 
   getter child():ChildType
-  getter size():ZZ32 = child.size()
+  getter size():ZZ32 = |child|
   getter height():ZZ32 = child.height() + 1
+
+  opr |self| : ZZ32 = |child|
 
   search(k:Key):Maybe[\Val\] = child.search(k)
 
@@ -178,9 +186,11 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   getter keys():Array[\Key,ZZ32\]
   getter children():Array[\ChildType,ZZ32\]
 
-  getter size():ZZ32 = SUM [node <- children] node.size()
+  getter size():ZZ32 = |self|
 
   getter height():ZZ32 = children[0].height() + 1
+
+  opr |self| : ZZ32 = SUM [node <- children] |node|
 
   (* given an instance of SelfType, generate a singleton SelfType *)
   singleton(keys':Array[\Key,ZZ32\], children':Array[\ChildType,ZZ32\]) : SelfType
@@ -188,7 +198,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   (* given a key k, return the largest offset with a value less than or equal to k *)
   find_index(k:Key):ZZ32 = do
     index:ZZ32 := 0
-    while (index < keys.size() AND: k >= keys[index]) do
+    while (index < |keys| AND: k >= keys[index]) do
       index += 1
     end
     index
@@ -215,9 +225,9 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
      Returns the two halves along with an key array of size quantity used for splitting.
      The values array is of size quantitiy - 1. *)
   break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) =
-  if keys.size() = quantity then
+  if |keys| = quantity then
     onekey_break(quantity)
-  elif keys.size() - 1 = quantity then
+  elif |keys| - 1 = quantity then
     twokeys_break(quantity)
   else
     nkeys_break(quantity)
@@ -226,12 +236,12 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   (* perform the break operation when we have a key count of quantity *)
   onekey_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
     keys':Array[\Key,ZZ32\] = keys.copy()
-    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](keys.size() - 1)
-    for i <- 0 # children'.size() do
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|keys| - 1)
+    for i <- 0 # |children'| do
       children'[i] := generate_tail[\Key,Val\](children[i + 1], 1)
     end
     smaller:Node[\Key,Val\] = children[0]
-    larger:Node[\Key,Val\] = children[children.size() - 1]
+    larger:Node[\Key,Val\] = children[|children| - 1]
     left:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
     right:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](larger, 1)
     (left, right, keys', children')
@@ -240,15 +250,15 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   (* perform the break operation when we have a key count of (quantity + 1) *)
   twokeys_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
     smaller:Node[\Key,Val\] = children[0]
-    keys':Array[\Key,ZZ32\] = keys[0 # (keys.size() - 1)]
-    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](keys.size() - 2)
-    for i <- 0 # children'.size() do
+    keys':Array[\Key,ZZ32\] = keys[0 # (|keys| - 1)]
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|keys| - 2)
+    for i <- 0 # |children'| do
       children'[i] := generate_tail[\Key,Val\](children[i + 1], 1)
     end
     rkeys:Array[\Key,ZZ32\] = array[\Key\](1)
     rchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](2)
-    rkeys[0] := keys[keys.size() - 1]
-    rchildren[0#2] := children[(keys.size() - 1) # 2]
+    rkeys[0] := keys[|keys| - 1]
+    rchildren[0#2] := children[(|keys| - 1) # 2]
     left:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
     right:NonLeafNode[\Key,Val\] = singleton(rkeys,rchildren)
     (left, right, keys', children')
@@ -256,7 +266,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
 
   (* perform the break operation when we have a key count > (quantity + 1) *)
   nkeys_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
-    leftovers:ZZ32 = keys.size() - quantity
+    leftovers:ZZ32 = |keys| - quantity
     lsize:ZZ32 = leftovers DIV 2
     rsize:ZZ32 = leftovers - lsize
     (* make the left child *)
@@ -268,13 +278,13 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
     (* make the right child *)
     rkeys:Array[\Key,ZZ32\] = array[\Key\](rsize)
     rchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](rsize + 1)
-    rkeys[0 # rsize] := keys[(keys.size() - rsize) # rsize]
-    rchildren[0 # (rsize + 1)] := children[(keys.size() - rsize) # (rsize + 1)]
+    rkeys[0 # rsize] := keys[(|keys| - rsize) # rsize]
+    rchildren[0 # (rsize + 1)] := children[(|keys| - rsize) # (rsize + 1)]
     right:NonLeafNode[\Key,Val\] = singleton(rkeys,rchildren)
     (* make the center child *)
     keys':Array[\Key,ZZ32\] = keys[lsize # quantity]
     children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](quantity - 1)
-    for i <- 0 # children'.size() do
+    for i <- 0 # |children'| do
       children'[i] := generate_tail[\Key,Val\](children[i + lsize + 1], 1)
     end
     (left, right, keys', children')
@@ -282,13 +292,13 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
 
   (* return a new internal node that has children[index] and keys[index - 1] missing *)
   index_remove(index:ZZ32): SelfType = do
-    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() - 1)
-    children':Array[\ChildType,ZZ32\] = array[\ChildType\](children.size() - 1)
+    keys':Array[\Key,ZZ32\] = array[\Key\](|keys| - 1)
+    children':Array[\ChildType,ZZ32\] = array[\ChildType\](|children| - 1)
     replace:ZZ32 = 0 MAX (index - 1)
     keys'[0 # replace] := keys[0 # replace]
-    keys'[replace # (keys'.size() - replace)] := keys[(replace + 1) # (keys'.size() - replace)]
+    keys'[replace # (|keys'| - replace)] := keys[(replace + 1) # (|keys'| - replace)]
     children'[0 # index] := children[0 # index]
-    children'[index # (children'.size() - index)] := children[(index + 1) # (children'.size() - index)]
+    children'[index # (|children'| - index)] := children[(index + 1) # (|children'| - index)]
     singleton(keys', children')
   end
 
@@ -321,9 +331,9 @@ object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key
     k:Key = leaf.key
     k':Key = child.key
     if k = k' then
-      values:Array[\Val,ZZ32\] = array[\Val\](leaf.values.size() + child.values.size())
-      values[0 # leaf.values.size()] := leaf.values[0 # leaf.values.size()]
-      values[leaf.values.size() # child.values.size()] := child.values[0 # child.values.size()]
+      values:Array[\Val,ZZ32\] = array[\Val\](|leaf.values| + |child.values|)
+      values[0 # |leaf.values|] := leaf.values[0 # |leaf.values|]
+      values[|leaf.values| # |child.values|] := child.values[0 # |child.values|]
       newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values)
       (WhiteLevel1[\Key,Val\](newleaf), false)
     else
@@ -339,13 +349,13 @@ object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key
 
   remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
     if child.getKey() = k then
-      if child.values.size() = 1 then
+      if |child.values| = 1 then
         (EmptyNode[\Key,Val\], Just[\Val\](child.values[0]))
       else
-        values:Array[\Val,ZZ32\] = array[\Val\](child.values.size() - 1)
-        values[0 # values.size()] := child.values[0 # values.size()]
+        values:Array[\Val,ZZ32\] = array[\Val\](|child.values| - 1)
+        values[0 # |values|] := child.values[0 # |values|]
         newLeaf = LeafNode[\Key,Val\](k, values)
-        (WhiteLevel1[\Key,Val\](newLeaf), Just[\Val\](child.values[values.size()]))
+        (WhiteLevel1[\Key,Val\](newLeaf), Just[\Val\](child.values[|values|]))
       end
     else
       (self, Nothing[\Val\])
@@ -403,8 +413,8 @@ object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\]) extends {WhiteNode[\
     children:Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](quantity + 1)
     (left, right, keys, children') = heir.break(quantity)
     children[0] := left
-    children[1 # (children'.size())] := children'[0 # (children'.size())]
-    children[children.size() - 1] := right
+    children[1 # (|children'|)] := children'[0 # (|children'|)]
+    children[|children| - 1] := right
     InternalLevelN[\Key,Val\](keys,children)
   end
 
@@ -424,17 +434,17 @@ object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
   add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\],Boolean) = do
     index:ZZ32 = find_index(leaf.getKey())
     if children[index].getKey() = leaf.getKey() then
-      values:Array[\Val,ZZ32\] = array[\Val\](leaf.values.size() + children[index].values.size())
-      values[0 # leaf.values.size()] := leaf.values[0 # leaf.values.size()]
-      values[leaf.values.size() # children[index].values.size()] := children[index].values[0 # children[index].values.size()]
+      values:Array[\Val,ZZ32\] = array[\Val\](|leaf.values| + |children[index].values|)
+      values[0 # |leaf.values|] := leaf.values[0 # |leaf.values|]
+      values[|leaf.values| # |children[index].values|] := children[index].values[0 # |children[index].values|]
       newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](leaf.getKey(), values)
       children':Array[\LeafNode[\Key,Val\],ZZ32\] = children.copy()
       children'[index] := newleaf
       (InternalLevel1[\Key,Val\](keys,children'), false)
     else
-      keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
-      children':Array[\LeafNode[\Key,Val\],ZZ32\] = array[\LeafNode[\Key,Val\]\](children.size() + 1)
-      keysplit:ZZ32 = keys.size() - index
+      keys':Array[\Key,ZZ32\] = array[\Key\](|keys| + 1)
+      children':Array[\LeafNode[\Key,Val\],ZZ32\] = array[\LeafNode[\Key,Val\]\](|children| + 1)
+      keysplit:ZZ32 = |keys| - index
       (smaller,larger) = if leaf.getKey() > children[index].getKey() then (children[index], leaf) else (leaf, children[index]) end
       children'[index] := smaller
       children'[index + 1] := larger
@@ -458,15 +468,15 @@ object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   height1_remove_helper(k:Key, index:ZZ32):(Node[\Key,Val\], Maybe[\Val\]) = do
     values:Array[\Val,ZZ32\] = children[index].values
-    val:Val = values[values.size() - 1]
-    if values.size() > 1 then
-      values':Array[\Val,ZZ32\] = array[\Val\](values.size() - 1)
-      values'[0 # values'.size()] := values[0 # values'.size()]
+    val:Val = values[|values| - 1]
+    if |values| > 1 then
+      values':Array[\Val,ZZ32\] = array[\Val\](|values| - 1)
+      values'[0 # |values'|] := values[0 # |values'|]
       newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values')
       children':Array[\LeafNode[\Key,Val\],ZZ32\] = children.copy()
       children'[index] := newleaf
       InternalLevel1[\Key,Val\](keys,children')
-    elif keys.size() = 1 then
+    elif |keys| = 1 then
       (WhiteLevel1[\Key,Val\](children[(index + 1) MOD 2]), Just[\Val\](val))
     else
       (index_remove(index), Just[\Val\](val))
@@ -506,8 +516,8 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
     index:ZZ32 = find_index(leaf.getKey())
     (child':Node[\Key,Val\], newKey:Boolean) = children[index].add_helper(leaf, level)
     if level < height() OR newKey = false then
-      children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](children.size())
-      children'[0 # (children.size())] := children[0 # (children.size())]
+      children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
+      children'[0 # (|children|)] := children[0 # (|children|)]
       children'[index] := child'
       (InternalLevelN[\Key,Val\](keys,children'), newKey)
     else
@@ -518,7 +528,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
   remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
     index:ZZ32 = find_index(k)
     (child':Node[\Key,Val\], maybe:Maybe[\Val\]) = children[index].remove(k)
-    if keys.size() = 1 then
+    if |keys| = 1 then
       (heightn_remove_1key(index,child'), maybe)
     else
       (heightn_remove_nkeys(index,child'), maybe)
@@ -527,18 +537,18 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   (* breaks the new child and sucks the split keys to this level *)
   split(index:ZZ32, quantity:ZZ32, heir:InternalNode[\Key,Val\]):InternalLevelN[\Key,Val\] = do
-    keysplit:ZZ32 = keys.size() - index
-    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + quantity)
-    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](children.size() + quantity)
+    keysplit:ZZ32 = |keys| - index
+    keys':Array[\Key,ZZ32\] = array[\Key\](|keys| + quantity)
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children| + quantity)
     (left, right, newkeys, newchildren) = heir.break(quantity)
     keys'[0 # index] := keys[0 # index]
-    keys'[index # newkeys.size()] := newkeys[0 # newkeys.size()]
-    keys'[(index + newkeys.size()) # keysplit] := keys[index # keysplit]
+    keys'[index # |newkeys|] := newkeys[0 # |newkeys|]
+    keys'[(index + |newkeys|) # keysplit] := keys[index # keysplit]
     children'[0 # index] := children[0 # index]
     children'[index] := left
-    children'[(index + 1) # newchildren.size()] := newchildren[0 # newchildren.size()]
-    children'[index + newchildren.size() + 1] := right
-    children'[(index + newchildren.size() + 2) # keysplit] := children[(index + 1) # keysplit]
+    children'[(index + 1) # |newchildren|] := newchildren[0 # |newchildren|]
+    children'[index + |newchildren| + 1] := right
+    children'[(index + |newchildren| + 2) # keysplit] := children[(index + 1) # keysplit]
     InternalLevelN[\Key,Val\](keys',children')
   end
 
@@ -564,10 +574,10 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
     if instanceOf[\EmptyNode[\Key,Val\]\](child') then
       index_remove(index)
     else
-      keys':Array[\Key,ZZ32\] = array[\Key\](keys.size())
-      children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](children.size())
-      keys'[0 # keys.size()] := keys[0 # keys.size()]
-      children'[0 # children.size()] := children[0 # children.size()]
+      keys':Array[\Key,ZZ32\] = array[\Key\](|keys|)
+      children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
+      keys'[0 # |keys|] := keys[0 # |keys|]
+      children'[0 # |children|] := children[0 # |children|]
       children'[index] := child'
       InternalLevelN[\Key,Val\](keys', children')
     end
@@ -575,15 +585,15 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   (* perform the merge operation when the height is greater than one *)
   heightn_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = do
-    destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\] = array[\List[\Node[\Key,Val\]\]\](children.size())
+    destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\] = array[\List[\Node[\Key,Val\]\]\](|children|)
     empty:List[\Node[\Key,Val\]\] = emptyList[\Node[\Key,Val\]\]()
     destinations.fill(empty)
     for node <- nodes do
       merge_destination_insert(node, destinations)
     end
     keys':Array[\Key,ZZ32\] = keys.copy()
-    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](children.size())
-    for index <- 0 # children.size() do
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
+    for index <- 0 # |children| do
       if destinations[index].isEmpty() then
         children'[index] := children[index]
       else
@@ -616,7 +626,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   (* helper function for heightn_merge on InternalNodes *)
   merge_destination_insert(node:InternalNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
-    for index <- 0 # (node.children.size()) do
+    for index <- 0 # (|node.children|) do
       merge_destination_insert_helper(node, index, destinations)
     end
   end
@@ -625,7 +635,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
   merge_destination_insert_helper(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
   if index = 0 then
     merge_destination_lower(node, index, destinations)
-  elif index = node.keys.size() then
+  elif index = |node.keys| then
     merge_destination_upper(node, index, destinations)
   else
     merge_destination_middle(node, index, destinations)
@@ -643,9 +653,9 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   (* take care of intervals of the form [x, INFINITY) *)
   merge_destination_upper(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
-  if node.keys[index - 1] >= keys[keys.size() - 1] then
+  if node.keys[index - 1] >= keys[|keys| - 1] then
     atomic do
-      destinations[keys.size()] := destinations[keys.size()].addLeft(node.children[index])
+      destinations[|keys|] := destinations[|keys|].addLeft(node.children[index])
     end
   else
     merge_destination_insert(node.children[index], destinations)
@@ -668,7 +678,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
     index':ZZ32 := -1
     lower:Key = node.keys[index - 1]
     upper:Key = node.keys[index]
-    for i <- 0 # (keys.size() - 1) do
+    for i <- 0 # (|keys| - 1) do
       if (keys[i] <= lower AND keys[i + 1] >= upper) then
         index' := (i + 1)
       end
@@ -684,6 +694,8 @@ object EmptyNode[\Key,Val\] extends Node[\Key,Val\]
 
   getter height():ZZ32 = fail("Cannot get height of an empty tree")
   getter size():ZZ32 = 0
+
+  opr |self| : ZZ32 = 0
 
   search(k:Key):Maybe[\Val\] = Nothing[\Val\]
 
@@ -711,10 +723,12 @@ end
    nodes live at the bottom of the tree, and they all have height 0. *)
 object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\]) extends Node[\Key,Val\]
 
+  getter size():ZZ32 = |values|
   getKey():Key = key
   getValues():Array[\Val,ZZ32\] = values
   height():ZZ32 = 0
-  size():ZZ32 = values.size()
+
+  opr |self| : ZZ32 = |values|
 
   search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](values[0]) else Nothing[\Val\] end
 

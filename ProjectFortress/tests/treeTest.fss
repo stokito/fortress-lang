@@ -23,14 +23,14 @@ trait Tree
    getLeftChild():Tree
    getRightChild():Tree
    printTree():()
-   size():ZZ32
+   opr |self| : ZZ32
    member(x:ZZ32):Boolean
    add(z:ZZ32):Tree
    balancedAdd(val:ZZ32, left:Tree, right:Tree):Tree
    getWeight():ZZ32 = 4
    union(t1:Tree, t2:Tree):Tree = do
-      if t1.size() = 0 then t2
-      elif t2.size() = 0 then t1
+      if |t1| = 0 then t2
+      elif |t2| = 0 then t1
       else
          newl = split_lt(t1, t2.getVal())
          newr = split_gt(t1, t2.getVal())
@@ -39,8 +39,8 @@ trait Tree
    end
 
    intersection(t1:Tree, t2:Tree):Tree = do
-      if t1.size() = 0 then t1
-      elif t2.size() = 0 then t2
+      if |t1| = 0 then t1
+      elif |t2| = 0 then t2
       else
          s = t1
          v = t2.getVal()
@@ -55,13 +55,13 @@ trait Tree
    end
 
    concat(t1:Tree, t2:Tree):Tree = do
-      if t2.size() = 0 then t1
+      if |t2| = 0 then t1
       else concat3(t2.minimum(), t1, t2.deleteMinimum())
       end
    end
 
    split_lt(t:Tree, x:ZZ32):Tree = do
-      if t.size() = 0 then t
+      if |t| = 0 then t
       else
          v = t.getVal()
          l = t.getLeftChild()
@@ -74,7 +74,7 @@ trait Tree
    end
 
    split_gt(t:Tree, x:ZZ32):Tree = do
-      if t.size() = 0 then t
+      if |t| = 0 then t
       else
          v = t.getVal()
          l = t.getLeftChild()
@@ -87,15 +87,15 @@ trait Tree
    end
 
    concat3(v:ZZ32, t1:Tree, t2:Tree) = do
-      if t1.size() = 0 then t2.add(v)
-      elif t2.size() = 0 then t1.add(v)
+      if |t1| = 0 then t2.add(v)
+      elif |t2| = 0 then t1.add(v)
       else
          v1 = t1.getVal()
-         n1 = t1.size()
+         n1 = |t1|
          l1 = t1.getLeftChild()
          r1 = t1.getRightChild()
          v2 = t2.getVal()
-         n2 = t2.size()
+         n2 = |t2|
          l2 = t2.getLeftChild()
          r2 = t2.getRightChild()
      if getWeight() n1 < n2 then balancedAdd(v2,concat3(v,t1,l2),r2)
@@ -110,7 +110,7 @@ object emptyNode() extends Tree
     getLeftChild():Tree = emptyNode()
     getRightChild():Tree = emptyNode()
     printTree():() = print(" emptyNode")
-    size():ZZ32 = 0
+    opr |self| : ZZ32 = 0
     member(x:ZZ32):Boolean = false
     minimum():ZZ32 = 1/0
     add(z:ZZ32):Tree = Node(z,emptyNode(),emptyNode())
@@ -121,7 +121,7 @@ object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
    getVal():ZZ32 = val
    getLeftChild():Tree = left
    getRightChild():Tree = right
-   size():ZZ32 = 1 + left.size() + right.size()
+   opr |self| : ZZ32 = 1 + |left| + |right|
 
    printTree():() = do
       print("(")
@@ -148,21 +148,21 @@ object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
    end
 
    balancedAdd(val:ZZ32,  left:Tree, right:Tree):Node = do
-      ln = left.size()
-      rn = right.size()
+      ln = |left|
+      rn = |right|
       if ln + rn < getWeight() then Node(val, left, right)
       elif rn > getWeight() ln then do
          rl = right.getRightChild().getLeftChild()
          rr = right.getRightChild().getRightChild()
-         rln = rl.size()
-         rrn = rr.size()
+         rln = |rl|
+         rrn = |rr|
          if rln < rrn then single_L(val, left, right) else double_L(val, left, right) end
          end
       elif ln > getWeight() rn then do
          ll = left.getLeftChild().getLeftChild()
          lr = left.getLeftChild().getRightChild()
-         lln = ll.size()
-         lrn = lr.size()
+         lln = |ll|
+         lrn = |lr|
          if (lrn < lln) then single_R(val, left, right) else double_R(val,left,right) end
          end
       else Node(val,left,right) end
@@ -218,14 +218,14 @@ object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
    end
 
    balancedDelete(l:Tree, r:Tree):Tree = do
-      if l.size() = 0 then r elif r.size() = 0 then l else
+      if |l| = 0 then r elif |r| = 0 then l else
             min_elt = r.minimum()
             balancedAdd(min_elt, l, r.delete(min_elt))
       end
    end
 
    minimum():ZZ32 = do
-      if left.size() = 0 then val else left.minimum() end
+      if |left| = 0 then val else left.minimum() end
    end
 
    deleteMinimum():Tree = delete(minimum())

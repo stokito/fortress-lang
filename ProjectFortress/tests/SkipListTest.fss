@@ -37,7 +37,7 @@ run(args:String...):() = do
   database1 := add(database1, "Paul", 7)
 
   println(database1.toString())
-  println(database1.size())
+  println(|database1|)
 
   database2 := add(database2, "Michael", 0)
   database2 := add(database2, "Aaron", 13)
@@ -47,7 +47,7 @@ run(args:String...):() = do
   database2 := add(database2, "Smeagol", 73)
 
   println(database2.toString())
-  println(database2.size())
+  println(|database2|)
 
   println(database1.merge(database2).toString())
 
@@ -65,7 +65,7 @@ run(args:String...):() = do
   println(database1.toString())
   database1 := remove(database1, "Cathy")
   println(database1.toString())
-  println(database1.size())
+  println(|database1|)
 
 
   (* Test duplicates

@@ -48,10 +48,11 @@ fromArray[\E, nat n\](f: ReadableArray1[\E,0,n\]): Alr[\E,n\] =
 value object Alr[\E,nat maxUn\]( underlying : ReadableArray1[\E,0,maxUn\],
                                  firstUsed:ZZ32, firstUnused:ZZ32)
       extends { List[\E\], DelegatedIndexed[\E, ZZ32\]}
-  getter size(): ZZ32 = firstUnused - firstUsed
+  getter size(): ZZ32 = |self|
   getter isEmpty(): Boolean = firstUnused <= firstUsed
   getter generator(): Generator[\E\] =
-      (firstUsed#size()).map[\E\](fn (i:ZZ32):E => underlying.get(i))
+      (firstUsed # |self|).map[\E\](fn (i:ZZ32):E => underlying.get(i))
+  opr |self| : ZZ32 = firstUnused - firstUsed
 
   opr[_:ZZ32]: E = fail("[] irrelevant")
   opr[_:Range[\ZZ32\]]: List[\E\] = fail("[..#..] irrelevant")

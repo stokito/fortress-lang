@@ -38,11 +38,11 @@ chkPop[\T\](l:List[\T\],fro:ZZ32,sz:ZZ32,by:ZZ32): () =
   typecase l of
     List[\ZZ32\] => chkPopZ(l,fro,sz,by)
     else =>
-      assertStr(sz=0 AND: l.size()=0," special case for empty comprehension",l)
+      assertStr(sz = 0 AND: |l| = 0," special case for empty comprehension",l)
   end
 
 chkPopZ(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
-  assertStr(sz,l.size()," .size() mismatch in ",l)
+  assertStr(sz,|l|," size mismatch in ",l)
   n : ZZ32 := fro
   for e <- seq(l) do
       assertStr(e,n,"Element wrong in ",l)
@@ -143,7 +143,7 @@ run(args:String...):() = do
           chkPop(li.append(lj),i+j)
           print(".")
           gz = li.zip[\ZZ32\](lj)
-          assert(gz.size(),li.size() MIN lj.size(), "zip size wrong")
+          assert(|gz|,|li| MIN |lj|, "zip size wrong")
           assertStr(BIG AND [(x,y)<-gz] x+i=y,"zip mismatch ",li,lj)
           print(".")
           assertStr(j=0 OR: li < lj, " NOT < ", lj)

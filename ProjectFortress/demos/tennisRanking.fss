@@ -598,7 +598,7 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
         (y1, _) = y
         x1 < y1
       end
-    quicksort[\(ZZ32,String)\](lt, toSortResult, 0, toSortResult.size()-1)
+    quicksort[\(ZZ32,String)\](lt, toSortResult, 0, |toSortResult| - 1)
 
     (* print the new ranking result *)
     printTable(fout, toSortResult)
@@ -619,7 +619,7 @@ printUsage() =
   end
 
 run(args:String...) = do
-  if args.size() =/= 3
+  if |args| =/= 3
   then printUsage()
   else (* initialize *)
        previous = args[0]
@@ -629,7 +629,7 @@ run(args:String...) = do
        fout: BufferedWriter = outFileOpen today
        initialize(fin)
        fin.close()
-       numPlayers := database.size()
+       numPlayers := |database|
 
        (* add this term's games *)
        fin := FileReadStream games
