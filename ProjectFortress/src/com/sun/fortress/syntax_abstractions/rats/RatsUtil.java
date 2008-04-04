@@ -23,13 +23,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import xtc.parser.Action;
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
+import xtc.parser.ModuleInstantiation;
 import xtc.parser.ModuleList;
 import xtc.parser.ModuleName;
 import xtc.parser.PParser;
@@ -43,7 +48,6 @@ import xtc.tree.Printer;
 import xtc.type.JavaAST;
 
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.fortress.syntax_abstractions.rats.util.ModuleEnum;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.useful.Useful;
 
@@ -53,10 +57,6 @@ public abstract class RatsUtil {
 
 	public static final String COMSUNFORTRESSPARSER = "com"+File.separatorChar+"sun"+File.separatorChar+"fortress"+File.separatorChar+"parser"+File.separatorChar;
 
-	public static Module getRatsModule(ModuleEnum module) {
-		return RatsUtil.getRatsModule(RatsUtil.getFortressSrcDir()+RatsUtil.getModulePath(ModuleInfo.getModuleName(module).name)+".rats");
-	}
-
 	public static Module getRatsModule(String filename) {
 		Option<Module> result = parseRatsModule(filename);
 		if (result.isNone()) {
@@ -65,7 +65,6 @@ public abstract class RatsUtil {
 			return null;
 		}
 		else {
-			System.out.println("No Syntax errors");
 			return Option.unwrap(result);
 		}
 	}
@@ -123,88 +122,6 @@ public abstract class RatsUtil {
 		}
 	}
 
-	public static void copyFortressGrammar() {
-		for (ModuleEnum moduleEnum: ModuleEnum.values()) {
-			copyFortressGrammarFile(moduleEnum);
-		}
-	}
-
-	public static void copyFortressGrammarFile(ModuleEnum moduleEnum) {
-		try {
-			String modulePathName = RatsUtil.getModulePath(ModuleInfo.getModuleName(moduleEnum).name)+".rats";
-			copy(RatsUtil.getFortressSrcDir()+modulePathName , RatsUtil.getTempDir()+modulePathName);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private static void copy(String fromFileName, String toFileName) throws IOException {
-		File fromFile = new File(fromFileName);
-		File toFile = new File(toFileName);
-
-		if (!fromFile.exists())
-			throw new IOException("FileCopy: " + "no such source file: "
-					+ fromFileName);
-		if (!fromFile.isFile())
-			throw new IOException("FileCopy: " + "can't copy directory: "
-					+ fromFileName);
-		if (!fromFile.canRead())
-			throw new IOException("FileCopy: " + "source file is unreadable: "
-					+ fromFileName);
-
-		if (toFile.isDirectory())
-			toFile = new File(toFile, fromFile.getName());
-
-		if (toFile.exists() && !toFile.canWrite()) {
-			throw new IOException("FileCopy: "
-					+ "destination file is unwriteable: " + toFileName);
-		} else {
-			String parent = toFile.getParent();
-			if (parent == null)
-				parent = System.getProperty("user.dir");
-			File dir = new File(parent);
-			if (!dir.exists()) {
-				boolean success = (dir).mkdirs();
-				if (!success) {
-					throw new IOException("FileCopy: "
-							+ "destination directory doesn't exist: " + parent);
-				}
-			}
-			if (dir.isFile())
-				throw new IOException("FileCopy: "
-						+ "destination is not a directory: " + parent);
-			if (!dir.canWrite())
-				throw new IOException("FileCopy: "
-						+ "destination directory is unwriteable: " + parent);
-		}
-
-		FileInputStream from = null;
-		FileOutputStream to = null;
-		try {
-			from = new FileInputStream(fromFile);
-			to = new FileOutputStream(toFile);
-			byte[] buffer = new byte[4096];
-			int bytesRead;
-
-			while ((bytesRead = from.read(buffer)) != -1)
-				to.write(buffer, 0, bytesRead); // write
-		} finally {
-			if (from != null)
-				try {
-					from.close();
-				} catch (IOException e) {
-					;
-				}
-				if (to != null)
-					try {
-						to.close();
-					} catch (IOException e) {
-						;
-					}
-		}
-	}
-
 	public static Module makeExtendingRatsModule(com.sun.fortress.syntax_abstractions.intermediate.Module module) {
 		Module m = new Module();
 		m.name = new ModuleName(RatsUtil.getModuleNamePrefix()+module.getName());
@@ -247,11 +164,6 @@ public abstract class RatsUtil {
 		return new Comment(Comment.Kind.SINGLE_LINE, lines);
 	}
 
-	//TODO remove along with rats.FortressModule and KeywordModule
-	public static String getModulePath() {
-		return ModuleInfo.MODULE_NAME_PREFIX.replaceAll("\\.", ""+File.separatorChar);
-	}
-
 	public static String getModuleNamePrefix() {
 		return ModuleInfo.MODULE_NAME_PREFIX;
 	}
@@ -270,5 +182,36 @@ public abstract class RatsUtil {
 
 	public static String getFortressSrcDir() {
 		return ProjectProperties.FORTRESS_HOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"src"+File.separatorChar;
+	}
+
+	public static void addParametersToInstantiation(Module m, String moduleName, Set<ModuleName> parameters) {
+		for (ModuleDependency md: m.dependencies) {
+			if (md instanceof ModuleInstantiation) {
+				if (md.module.name.equals(RatsUtil.getModuleNamePrefix()+moduleName)) {
+					List<ModuleName> deps = new LinkedList<ModuleName>();
+					ModuleInstantiation mi = (ModuleInstantiation) md;
+					deps.addAll(mi.arguments.names);
+					deps.addAll(parameters);
+					mi.arguments = new ModuleList(deps);
+				}
+			}
+		}
+	}
+
+	public static void addParameterToInstantiation(Module fortress,
+			String moduleName, ModuleName name) {
+		for (ModuleDependency md: fortress.dependencies) {
+			if (md instanceof ModuleInstantiation) {
+				if (md.module.name.equals(moduleName)) {
+					Set<ModuleName> deps = new LinkedHashSet<ModuleName>();
+					ModuleInstantiation mi = (ModuleInstantiation) md;
+					deps.addAll(mi.arguments.names);
+					deps.add(name);
+					List<ModuleName> depsls = new LinkedList<ModuleName>();
+					depsls.addAll(deps);
+					mi.arguments = new ModuleList(depsls);
+				}
+			}
+		}
 	}
 }

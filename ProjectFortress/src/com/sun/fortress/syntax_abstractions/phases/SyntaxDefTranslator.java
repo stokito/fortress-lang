@@ -137,7 +137,6 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		return sequences;
 	}
 	
-	
 	private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs,
 			String name, TraitType type) {
 		List<Sequence> sequence = new LinkedList<Sequence>();
@@ -146,7 +145,6 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		}
 		return sequence;
 	}
-
 	
 	private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, TraitType type) {
 		List<Element> elms = new LinkedList<Element>();
@@ -162,7 +160,6 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		elms.add(acr.action());
 		return new Sequence(new SequenceName(newName), elms);
 	}
-	
 	
 	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
 

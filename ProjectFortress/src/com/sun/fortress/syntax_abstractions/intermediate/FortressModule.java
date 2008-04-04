@@ -37,7 +37,7 @@ public class FortressModule extends Module {
 	}
 
 	private void initialize() {
-		Option<xtc.parser.Module> om = RatsUtil.parseRatsModule(RatsUtil.getFortressSrcDir()+RatsUtil.getModulePath()+name+".rats");
+		Option<xtc.parser.Module> om = RatsUtil.parseRatsModule(RatsUtil.getParserPath()+name+".rats");
 		if (om.isSome()) {
 			xtc.parser.Module m = Option.unwrap(om);
 		}
