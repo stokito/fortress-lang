@@ -28,19 +28,19 @@ id[\T\](t:T):T = t
 
 trait Set[\T\]
   add(x:T):Set[\T\]
-  size():ZZ32
+  opr |self| : ZZ32
   opr IN(x:T,self):Boolean
 end
 
 object emptySet[\T\]() extends Set[\T\]
   add(x:T):Set[\T\] = aSet[\T\](x, self)
-  size():ZZ32 = 0
+  opr |self| : ZZ32 = 0
   opr IN(x:T,self):Boolean = false
 end
 
 object aSet[\T\](x:T, s:Set[\T\]) extends Set[\T\]
   add(y:T):Set[\T\] = if y IN self then self else aSet[\T\](y, self) end
-  size():ZZ32 = 1 + s.size()
+  opr |self| : ZZ32 = 1 + |s|
   opr IN(y:T,self):Boolean = x = y OR: y IN s
 end
 
@@ -87,7 +87,7 @@ run(args:String...):()=do
         d e ] = a; *)
 
 
-   if args.size() > id(0) then
+   if |args| > id(0) then
       println(args[0])
    end
    i:ZZ32 = 1 + 2 + 3 + 4

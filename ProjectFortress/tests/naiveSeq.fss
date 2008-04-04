@@ -26,7 +26,8 @@ tst(a:Number, b:Number, c:String): () =
     end
 
 object NewRange(lo:ZZ32,sz:ZZ32) extends Generator[\ZZ32\]
-  size() = sz
+  getter size() = sz
+  opr |self| : ZZ32 = sz
   toString() = "[" lo "#" sz "]"
   generate[\R\](r:Reduction[\R\], m:ZZ32->R): R =
     if sz < 1 then

@@ -26,7 +26,7 @@ run(args:String...):() = do
     list'  = emptyList[\ZZ32\]().addLeft(7).addLeft(5).addLeft(3)
     list'' = emptyList[\ZZ32\]().addRight(8).addRight(6).addRight(4)
 
-    assert(list'.size(),3," list'.size()")
+    assert(|list'|,3," |list'|")
     assert(list'.left().unJust(),3," list'.left()")
     assert(list'.drop(1),<|5 asif ZZ32,7|>," list'.drop(1)")
     assert((list'.drop(1))[1], 7," list'.drop(1)[1]")

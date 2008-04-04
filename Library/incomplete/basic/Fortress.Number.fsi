@@ -55,15 +55,15 @@ trait QQ
   numerator(self): ZZ
   denominator(self): ZZ
   floor(self): ZZ
-  opr |\ self /|: ZZ
+  opr |\ self /| : ZZ
   ceiling(self): ZZ
-  opr |/ self \|: ZZ
+  opr |/ self \| : ZZ
   round(self): ZZ
   truncate(self): ZZ
-  opr ||\ self /||: NN
-  opr ||/ self \||: NN
-  opr |||\ self /|||: NN
-  opr |||/ self \|||: NN
+  opr ||\ self /|| : NN
+  opr ||/ self \|| : NN
+  opr |||\ self /||| : NN
+  opr |||/ self \||| : NN
   realpart(self): QQ
   imagpart(self): QQ
   check(self): QQ throws CastException
@@ -156,15 +156,15 @@ trait ZZ
   numerator(self): ZZ
   denominator(self): ZZ
   floor(self): ZZ
-  opr |\ self /|: ZZ
+  opr |\ self /| : ZZ
   ceiling(self): ZZ
-  opr |/ self \|: ZZ
+  opr |/ self \| : ZZ
   round(self): ZZ
   truncate(self): ZZ
-  opr ||\ self /||: NN
-  opr ||/ self \||: NN
-  opr |||\ self /|||: NN
-  opr |||/ self \|||: NN
+  opr ||\ self /|| : NN
+  opr ||/ self \|| : NN
+  opr |||\ self /||| : NN
+  opr |||/ self \||| : NN
   shift(self, k: IndexInt): ZZ
   bit(self, k: IndexInt): Bit
   opr BITNOT(self): ZZ

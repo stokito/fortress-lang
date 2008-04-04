@@ -25,10 +25,13 @@ import PureList.{...}
 trait SkipList[\Key,Val,nat pInverse\]
     comprises { ... }
 
-  toString():String
+  getter toString():String
+
+  (** Depracated.  Use %|self|% instead. *)
+  getter size():ZZ32
 
   (** The number of values stored in this tree. *)
-  size():ZZ32
+  opr |self| : ZZ32
 
   (** Given a search key, try to return a value that matches that key. *)
   search(k:Key):Maybe[\Val\]

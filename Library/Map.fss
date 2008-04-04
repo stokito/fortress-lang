@@ -42,7 +42,7 @@ trait Map[\Key,Val\]
     seq(self): SequentialGenerator[\(Key,Val)\] =
         SeqMapGenerator[\Key,Val\](self)
     dom(self):Set[\Key\]
-    opr | self |: ZZ32
+    opr |self| : ZZ32
     getPair():(Key, Val) throws NotFound
     getKey():Key throws NotFound
     getVal():Val throws NotFound
@@ -199,10 +199,10 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     getter isEmpty():Boolean = true
     getter showTree():String = "ε"
     getter toString():String = "{}"
+    opr |self| : ZZ32 = 0
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
     dom(self):Set[\Key\] = set[\Key\]()
-    opr | self |: ZZ32 = 0
     getPair():(Key, Val) = throw NotFound
     getKey():Key = throw NotFound
     getVal():Val = throw NotFound
@@ -259,6 +259,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
            (BIG STRING[(k,v)<-delmin] ", " k "|->" v) "}")
     end
 
+    opr |self| : ZZ32 = sz
 
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R =
       r.join(r.join(left.generate[\R\](r,body),body(key,val)),
@@ -277,7 +278,6 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
       end
 
     dom(self): Set[\Key\] = dom(left).concat3(key,dom(right))
-    opr | self |: ZZ32 = sz
 
     getPair():(Key, Val) = pair
     getKey():Key = key
@@ -456,8 +456,8 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
       elif rn > weight ln then
         rl = right.getLeftChild()
         rr = right.getRightChild()
-        rln = rl.size()
-        rrn = rr.size()
+        rln = |rl|
+        rrn = |rr|
         if rln < rrn
         then single_L(x, left, right)
         else double_L(x, left, right)
@@ -465,8 +465,8 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
       elif ln > weight rn then
         ll = left.getLeftChild()
         lr = left.getRightChild()
-        lln = ll.size()
-        lrn = lr.size()
+        lln = |ll|
+        lrn = |lr|
         if lrn < lln
         then single_R(x, left, right)
         else double_R(x, left, right)

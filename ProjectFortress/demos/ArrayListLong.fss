@@ -35,7 +35,7 @@ assertStr(a:Boolean, s:String, l: List[\ZZ32\], r: List[\ZZ32\]) =
   end
 
 chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
-  assertStr(sz,l.size()," .size() mismatch in ",l)
+  assertStr(sz,|l|," size mismatch in ",l)
   n : ZZ32 := fro
   for e <- seq(l) do
       assertStr(e,n,"Element wrong in ",l)
@@ -115,7 +115,7 @@ run(args:String...):() = do
           lj = list(i#j)
           chkPop(li.append(lj),i+j)
           gz = li.zip[\ZZ32\](lj)
-          assert(gz.size(),li.size() MIN lj.size(), "zip size wrong")
+          assert(|gz|,|li| MIN |lj|, "zip size wrong")
           assertStr(BIG AND [(x,y)<-gz] x+i=y,"zip mismatch ",li,lj)
       end
   end

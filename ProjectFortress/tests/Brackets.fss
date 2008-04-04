@@ -20,8 +20,8 @@ export Executable
 
 opr <| x:RR64 |>:String = "<|" x "|>"
 opr <<| x:RR64 |>>:String = "<<|" x "|>>"
-(* opr |/ x:RR64 \|:String = "|/" x "\\|" *)
-(* opr |\ x:RR64 /|:String = "|\\" x  "/|" *)
+(* opr |/ x:RR64 \| : String = "|/" x "\\|" *)
+(* opr |\ x:RR64 /| : String = "|\\" x  "/|" *)
 opr {\ x:RR64 \}:String = "{\\" x "\\}"
 opr {/ x:RR64 /}:String = "{/" x "/}"
 opr [/ x:RR64 /]:String = "[/" x "/]"

@@ -68,7 +68,7 @@ propagate(board:Set[\ZZ32\][9,9]):() = do
       prevUnsolved := unsolved
       unsolved := 0
       for i <- 0#9, j<- 0#9 do
-         if board[i,j].size() = 1 then
+         if |board[i,j]| = 1 then
             elem = board[i,j].minimum()
             propagateSingleton(board, i, j, elem)
          else

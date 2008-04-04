@@ -86,7 +86,7 @@ aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
                 exit succeed with Just(best)
             end
             (kids, kidTime) = timing( fn () => best.children())
-            println("Generated " kids.size() " children")
+            println("Generated " |kids| " children")
             println("Children generation time: " kidTime)
             (_, updTime) = timing( fn () =>
                 q := q'.merge(heap(kids.map[\(C,T)\](aStarPair[\T,C\]))))

@@ -27,7 +27,7 @@ object O
 (** EXAMPLE **)
 object extends Tree
   printTree():() = println "leaf"
-  size(): ZZ32 = 0
+  opr |self| : ZZ32 = 0
 end
 (** END EXAMPLE **)
         end

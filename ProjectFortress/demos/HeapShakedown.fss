@@ -24,9 +24,9 @@ appending[\T\](xs: List[\T\]...): List[\T\] =
     xs.generate[\List[\T\]\](Concat[\T\], identity[\List[\T\]\])
 
 showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
-    n = headers.size()
+    n = |headers|
     for one <- data do
-        sz = one.size()
+        sz = |one|
         if (sz < n) then
             fail("FAIL: only " sz " data points, expected " n)
         elif (n < sz) then
