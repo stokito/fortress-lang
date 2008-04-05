@@ -33,6 +33,14 @@ which defines a Fortress mode for Emacs.  To use this file, load
 it from your .emacs file with the following command:
 
     (load (concat (getenv "FORTRESS_HOME")
+                  "/Emacs/fortress-mode.el"))
+    (push '("\\.fs[si]$" . fortress-mode) auto-mode-alist)
+
+If you wish to use the Fortify package to format Fortress source code
+into LaTeX, you should also add the following to your .emacs (for more
+information about fortify, see Fortify/fortify-doc.txt):
+
+    (load (concat (getenv "FORTRESS_HOME")
                   "/Fortify/fortify.el"))
 
 SpecData: Machine-readable files used by the Fortress Language
