@@ -156,23 +156,20 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
   (* Has played a singles game with this player? *)
   playedSingle(against: String) =
     do
-      maybeAgainstGames = played.member(against)
-      if maybeAgainstGames.isJust()
-      then maybeAgainstGames.unJust().member("").isJust()
-      else false end
+      againstGames = played.member(against)
+      againstGames.isJust() AND: againstGames.unJust().member("").isJust()
     end
 
   (* Has played a doubles game with these players? *)
   playedDouble(team: String, against1: String, against2: String) =
     do
       maybeWithGames = played.member(team)
-      if maybeWithGames.isJust()
+      if maybeWithGames
       then withGames = maybeWithGames.unJust()
-           if withGames.member(against1).isJust()
+           if withGames.member(against1)
            then withGames.member(against1).unJust() = against2
-           else if withGames.member(against2).isJust()
-                then withGames.member(against2).unJust() = against1
-                else false end
+           else withGames.member(against2).isJust() AND:
+                (withGames.member(against2).unJust() = against1)
            end
       else false end
     end
@@ -182,7 +179,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
     do
       maybeAgainstGames = played.member(against)
       againstGames:Map[\String,String\] :=
-        if maybeAgainstGames.isJust()
+        if maybeAgainstGames
         then maybeAgainstGames.unJust()
         else mapping[\String,String\]() end
       againstGames := againstGames.add("","")
@@ -194,7 +191,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
     do
       maybeWithGames = played.member(team)
       withGames:Map[\String,String\] :=
-        if maybeWithGames.isJust()
+        if maybeWithGames
         then maybeWithGames.unJust()
         else mapping[\String,String\]() end
       withGames := withGames.add(against1,against2)
@@ -365,9 +362,9 @@ addGame(fout: BufferedWriter,
        then add the player first *)
     maybeWinner = database.member(winnerName)
     maybeLoser  = database.member(loserName)
-    winner = if maybeWinner.isJust() then maybeWinner.unJust()
+    winner = if maybeWinner then maybeWinner.unJust()
              else new(winnerName, winnerOld) end
-    loser  = if maybeLoser.isJust() then maybeLoser.unJust()
+    loser  = if maybeLoser then maybeLoser.unJust()
              else new(loserName,  loserOld) end
     (* if any player has never played any game before this term,
        then ranking differences are ignored *)
@@ -388,8 +385,8 @@ addGame(fout: BufferedWriter,
     end
   end
 addGame(fout: BufferedWriter, winnerName: String, loserName: String) =
-  if database.member(winnerName).isJust()
-  then if database.member(loserName).isJust()
+  if database.member(winnerName)
+  then if database.member(loserName)
        then addGame(fout, winnerName, true, loserName, true)
        else println loserName " is a new member!"; die end
   else println winnerName " is a new member!"; die end
@@ -437,13 +434,13 @@ addGame(fout: BufferedWriter,
     maybeWinner2 = database.member(winnerName2)
     maybeLoser1  = database.member(loserName1)
     maybeLoser2  = database.member(loserName2)
-    winner1 = if maybeWinner1.isJust() then maybeWinner1.unJust()
+    winner1 = if maybeWinner1 then maybeWinner1.unJust()
               else new(winnerName1, winnerOld1) end
-    winner2 = if maybeWinner2.isJust() then maybeWinner2.unJust()
+    winner2 = if maybeWinner2 then maybeWinner2.unJust()
               else new(winnerName2, winnerOld2) end
-    loser1  = if maybeLoser1.isJust() then maybeLoser1.unJust()
+    loser1  = if maybeLoser1  then maybeLoser1.unJust()
               else new(loserName1,  loserOld1) end
-    loser2  = if maybeLoser2.isJust() then maybeLoser2.unJust()
+    loser2  = if maybeLoser2  then maybeLoser2.unJust()
               else new(loserName2,  loserOld2) end
     (* if any player has never played any game before this term,
        then ranking differences are ignored *)
@@ -475,10 +472,10 @@ addGame(fout: BufferedWriter,
 addGame(fout: BufferedWriter,
         winnerName1: String, winnerName2: String,
         loserName1 : String, loserName2 : String) =
-  if database.member(winnerName1).isJust()
-  then if database.member(winnerName2).isJust()
-       then if database.member(loserName1).isJust()
-            then if database.member(loserName2).isJust()
+  if database.member(winnerName1)
+  then if database.member(winnerName2)
+       then if database.member(loserName1)
+            then if database.member(loserName2)
                  then addGame(fout, winnerName1, true, winnerName2, true,
                                     loserName1 , true, loserName2 , true)
                  else println loserName2 " is a new member!"; die end

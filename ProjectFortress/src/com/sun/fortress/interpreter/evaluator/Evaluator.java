@@ -37,6 +37,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedExc
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FAsIf;
@@ -913,14 +914,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
         for (Iterator<IfClause> i = clause.iterator(); i.hasNext();) {
             IfClause ifclause = i.next();
             FValue clauseVal = ifclause.getTest().accept(this);
-            if (!(clauseVal instanceof FBool)) {
-                return error(ifclause,
-                             errorMsg("If clause did not return boolean, but ",
-                                      clauseVal));
-            }
-            FBool fbool = (FBool) clauseVal;
-            if (fbool.getBool()) {
-                return ifclause.getBody().accept(this);
+            if (clauseVal instanceof FBool) {
+                if (((FBool) clauseVal).getBool()) {
+                    return ifclause.getBody().accept(this);
+                }
+            } else {
+                if (clauseVal.type() instanceof FTraitOrObject) {
+                    if (((FTraitOrObject)clauseVal.type()).getName().equals("Just"))
+                        return ifclause.getBody().accept(this);
+                } else {
+                    return error(ifclause,
+                                 errorMsg("If clause did not return boolean, " +
+                                          "but ", clauseVal));
+                }
             }
         }
         Option<Block> else_ = x.getElseClause();
