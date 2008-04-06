@@ -65,7 +65,7 @@ public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
         Set<Api> staleA = newStaleApis();
         Set<Component> staleC = newStaleComponents();
 
-        // The typechecker is insufficienbtly lazy, and works too hard in the zero case.
+        // The typechecker is insufficiently lazy, and works too hard in the zero case.
         if (staleA.size() == 0 && staleC.size() == 0)
             return;
 
