@@ -74,6 +74,16 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
     abstract protected void finishInitializing();
     abstract public BetterEnv getMembers();
     
+    public BetterEnv getSuppliedMembers() {
+        initializeRequiredAndSupplied();
+        return suppliedMembers;
+    }
+    
+    public BetterEnv getRequiredMembers() {
+        initializeRequiredAndSupplied();
+        return requiredMembers;
+    }
+    
     /**
      * Set extends, excludes, and replace the environment.
      *
@@ -300,8 +310,15 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
     }
     
     public void initializeRequiredAndSupplied() {
-        BetterEnv m = getMembers();
-        List<FType> exts = getExtends();
-    }
+        if (requiredMembers == null) {
+            synchronized (this) {
+                if (requiredMembers == null) {
+                    BetterEnv m = getMembers();
+                    List<FType> exts = getExtends();               
+                }
+            }
+        }
+        
+     }
 
 }

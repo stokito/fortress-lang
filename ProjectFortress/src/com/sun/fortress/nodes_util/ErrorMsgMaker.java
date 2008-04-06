@@ -24,6 +24,7 @@ import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
+import com.sun.java_cup.internal.runtime.Symbol;
 
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
@@ -266,6 +267,20 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forAndType(AndType node) {
         return node.getFirst().accept(this) + " AND " + node.getSecond().accept(this);
+    }
+    
+    public String forItemSymbol(ItemSymbol item) {
+        return item.getItem();
+    }
+
+    public String forPrefixedSymbol(PrefixedSymbol item) {
+        Option oid = item.getId();
+        SyntaxSymbol sym = item.getSymbol();
+        if (oid.isSome()) {
+            return Option.unwrap(oid).toString() + "!FIXME!" + sym.toString();
+        } else {
+            return sym.toString();
+        }
     }
 
 }

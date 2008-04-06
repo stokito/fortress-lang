@@ -35,6 +35,8 @@
 	 <property name="cache5" location="${basedir}/.syntax_cache"/>
 	 <property name="cache6" location="${basedir}/../.analyzed_cache"/>
 	 <property name="cache7" location="${basedir}/.analyzed_cache"/>
+	 <property name="cache8" location="${basedir}/../.presyntax_cache"/>
+	 <property name="cache9" location="${basedir}/.presyntax_cache"/>
 <property name="astgen" location="${basedir}/astgen"/>
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
@@ -199,6 +201,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     	<delete dir="${cache5}"/>
     	<delete dir="${cache6}"/>
     	<delete dir="${cache7}"/>
+    	<delete dir="${cache8}"/>
+    	<delete dir="${cache9}"/>
     	    	       
     </target>
 

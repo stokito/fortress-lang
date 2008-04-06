@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.RepositoryUpdater;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
@@ -70,8 +71,13 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
    public BatchCachingRepository(boolean doLink, Path p,
             FortressRepository cache) {
         // TODO is this a fix?
-        this.source = new PathBasedSyntaxTransformingRepository(p); // WAS , this
-        this.derived = cache;
+        // this.source = new PathBasedSyntaxTransformingRepository(p); // WAS , this
+       BatchCachingRepository sourceForSyntaxTransformer = 
+           new BatchCachingRepository( p );
+       
+       this.source =  new PathBasedSyntaxTransformingRepository(p, sourceForSyntaxTransformer);
+       
+       this.derived = cache;
         MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
         this.ru = new RepositoryUpdater(source, derived, linker);
     }
@@ -79,6 +85,20 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
    public BatchCachingRepository(Path p,
            FortressRepository cache) {
        this(false, p, cache);
+   }
+
+   /**
+    * It's necessary to cache inputs to the syntax transformer, but it cannot use
+    * the static analysis cache.
+    * 
+    * @param p
+    */
+   public BatchCachingRepository(Path p) {
+       this.source =  new PathBasedRepository(p, this);
+       this.derived = new CacheBasedRepository(ProjectProperties.PRESYNTAX_CACHE_DIR);
+       MinimalMap<APIName, Set<APIName>> linker = linker(false);
+       this.ru = new RepositoryUpdater(source, derived, linker);
+       addRootApis();
    }
 
     public BatchCachingRepository(boolean doLink, FortressRepository source,

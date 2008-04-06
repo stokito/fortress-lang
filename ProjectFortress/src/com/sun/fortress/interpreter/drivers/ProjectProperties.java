@@ -195,6 +195,7 @@ public class ProjectProperties {
     // public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
 
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}.interpreter_cache");
+    public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${BASEDIR}.presyntax_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}.analyzed_cache");
     public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${BASEDIR}.syntax_cache");
 
@@ -202,6 +203,7 @@ public class ProjectProperties {
 
 
     static {
+        ensureDirectoryExists(PRESYNTAX_CACHE_DIR);
         ensureDirectoryExists(INTERPRETER_CACHE_DIR);
         ensureDirectoryExists(ANALYZED_CACHE_DIR);
         ensureDirectoryExists(SYNTAX_CACHE_DIR);
