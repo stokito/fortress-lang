@@ -33,8 +33,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeOpr;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
-import com.sun.fortress.interpreter.evaluator.types.FTypeString;
-import com.sun.fortress.interpreter.evaluator.types.FTypeStringLiteral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
@@ -77,15 +75,12 @@ public class Init {
         FTypeLong.ONLY.resetState();
         FTypeNumber.ONLY.resetState();
         FTypeIntegral.ONLY.resetState();
-        FTypeString.ONLY.resetState();
-        FTypeStringLiteral.ONLY.resetState();
 
         BottomType.ONLY.resetState();
         FTypeRange.ONLY.resetState();
 
         FTypeIntLiteral.ONLY.resetState();
         FTypeFloatLiteral.ONLY.resetState();
-        FTypeStringLiteral.ONLY.resetState();
 
         NativeApp.reset();
 
