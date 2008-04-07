@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -33,12 +33,12 @@ import xtc.parser.Module;
 
 /**
  * Class which applies a rule to a module
- * 
+ *
  */
 public class RuleTranslator {
-	
+
 //	private Map<ModuleEnum, Module> moduleCache = new HashMap<ModuleEnum, Module>();
-//	
+//
 //	public void applyRule(Rule rule) {
 //		Module module = moduleCache.get(rule.getModule());
 //		if (module == null) {
@@ -47,7 +47,7 @@ public class RuleTranslator {
 //		}
 //		rule.getRuleRewriter().dispatch(module);
 //	}
-//	
+//
 //	public void applyRules(Collection<Rule> rules) {
 //		for (Rule rule: rules) {
 //			this.applyRule(rule);

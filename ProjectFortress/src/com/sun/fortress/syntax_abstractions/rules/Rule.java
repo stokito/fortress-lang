@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,9 +27,9 @@ public abstract class Rule {
 
 //	protected ModuleEnum module;
 //	protected GrammarVisitor ruleRewriter;
-//	
+//
 //	protected Rule() {}
-//	
+//
 //	public Rule(ModuleEnum localdecl,
 //			GrammarVisitor visitor) {
 //		this.module = localdecl;
@@ -39,15 +39,15 @@ public abstract class Rule {
 //	public ModuleEnum getModule() {
 //		return module;
 //	}
-//	
+//
 //	public void setModule(ModuleEnum module) {
 //		this.module = module;
 //	}
-//	
+//
 //	public GrammarVisitor getRuleRewriter() {
 //		return ruleRewriter;
 //	}
-//	
+//
 //	public void setRuleRewriter(GrammarVisitor ruleRewriter) {
 //		this.ruleRewriter = ruleRewriter;
 //	}
