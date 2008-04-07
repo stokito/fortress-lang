@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.glue.prim;
 
 import java.util.List;
+import java.lang.String;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Evaluator;

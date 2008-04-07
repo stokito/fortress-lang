@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import java.lang.String;
+
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -31,17 +33,6 @@ public class StringPrim {
 
 public static final class App extends Util.SS2S {
     protected String f(String x, String y) { return x + y; }
-}
-
-public static final class Cmp extends Util.SS2Z{
-    protected int f(String x, String y) { return x.compareTo(y); }
-}
-
-public static final class Substring extends Util.SZZ2S {
-    protected String f(String x, int y, int z) { return x.substring(y, z); }
-}
-public static final class Length extends Util.S2Z {
-    protected int f(String x) { return x.length(); }
 }
 
 public static final class Print extends Util.S2V {

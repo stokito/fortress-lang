@@ -92,14 +92,14 @@ readWord(line: String, n: ZZ32) =
 readWord(line: String) =
   if line = "" then ("", "")
   else
-    s: String := substring(line, 0, 1)
+    s: String := line[0#1]
     i: ZZ32 := 0
-    while(s   = " ") do i += 1; s := substring(line, i, i+1) end
+    while(s   = " ") do i += 1; s := line[i#1] end
     j: ZZ32 := i
-    while(s =/= " ") do j += 1; s := if j >= length(line) then " "
-                                     else substring(line, j, j+1) end
+    while(s =/= " ") do j += 1; s := if j >= |line| then " "
+                                     else line[j#1] end
     end
-    (substring(line, i, j), substring(line, j, length(line)))
+    (line[i#(j-i)], line[j:])
   end
 
 twoToStr(rank) = if rank < 10 then " " rank else rank end
@@ -121,8 +121,8 @@ oneStr2int(s: String) = do
   end
 
 str2int(s: String) = do
-    ls = length(s)
-    SUM [i<-1#ls] 10^(ls-i) oneStr2int(substring(s, i-1, i))
+    ls = |s|
+    SUM [i<-1#ls] 10^(ls-i) oneStr2int(s[(i-1)#1])
   end
 
 (* Tennis players *************************************************************)
@@ -234,7 +234,7 @@ initialize(fin: FileReadStream) =
     while (line =/= "") do
       var s: String
       (s, line) := readWord line
-      if isDigit(substring(s, 0, 1))
+      if isDigit(s[0#1])
       then order := str2int s; (s, line) := readWord line end
       (ranking, name) = (order, s) (* if there's a tie, get the previous rank *)
       (s, line) := readWord line; wonGames  = str2int s

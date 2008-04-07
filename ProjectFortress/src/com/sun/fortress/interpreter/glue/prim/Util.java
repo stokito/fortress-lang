@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import java.lang.String;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.values.FBool;

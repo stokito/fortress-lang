@@ -23,10 +23,6 @@ package="com.sun.fortress.interpreter.glue.prim"
 
 trait Any end
 
-trait String extends { Any }
-    (* excludes { IntLiteral, FloatLiteral, Boolean } *)
-end
-
 object Char extends { Any }
 end
 

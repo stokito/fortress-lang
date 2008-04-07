@@ -47,87 +47,87 @@ import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 /*
- * Rewrite occurrences of Keyword symbols and token symbols to 
- * nonterminal references to terminal definitions 
+ * Rewrite occurrences of Keyword symbols and token symbols to
+ * nonterminal references to terminal definitions
  */
 public class TerminalRewriter extends NodeUpdateVisitor {
 
-	private static final String FORTRESSAST = "FortressAst";
-	private static final String STRINGLITERALEXPR = "StringLiteralExpr";
-	private Collection<_TerminalDef> _terminalDefs;
-	private List<Id> _apiName;
-	private String var;
+    private static final String FORTRESSAST = "FortressAst";
+    private static final String STRINGLITERALEXPR = "StringLiteralExpr";
+    private Collection<_TerminalDef> _terminalDefs;
+    private List<Id> _apiName;
+    private String var;
 
-	@Override
-	public Node forGrammarDef(GrammarDef that) {
-		this._terminalDefs = new LinkedList<_TerminalDef>();
-		this._apiName = new LinkedList<Id>(); 
-		this._apiName.addAll(Option.unwrap(that.getName().getApi()).getIds());
-		this._apiName.add(that.getName().getName());
-		return super.forGrammarDef(that);
-	}
-	
-	@Override
-	public Node forGrammarDefOnly(GrammarDef that, QualifiedIdName name_result,
-			List<QualifiedIdName> extends_result,
-			List<GrammarMemberDecl> members_result) {
-		members_result.addAll(this._terminalDefs);
-		return super.forGrammarDefOnly(that, name_result, extends_result,
-				members_result);
-	}
+    @Override
+    public Node forGrammarDef(GrammarDef that) {
+        this._terminalDefs = new LinkedList<_TerminalDef>();
+        this._apiName = new LinkedList<Id>();
+        this._apiName.addAll(Option.unwrap(that.getName().getApi()).getIds());
+        this._apiName.add(that.getName().getName());
+        return super.forGrammarDef(that);
+    }
 
-	@Override
-	public Node forPrefixedSymbol(PrefixedSymbol that) {
-		this.var = Option.unwrap(that.getId()).getText();
-		return super.forPrefixedSymbol(that);
-	}
+    @Override
+    public Node forGrammarDefOnly(GrammarDef that, QualifiedIdName name_result,
+            List<QualifiedIdName> extends_result,
+            List<GrammarMemberDecl> members_result) {
+        members_result.addAll(this._terminalDefs);
+        return super.forGrammarDefOnly(that, name_result, extends_result,
+                members_result);
+    }
 
-	@Override
-	public Node forKeywordSymbol(KeywordSymbol that) {
-		return handleTerminal(that, that.getToken());
-	}
+    @Override
+    public Node forPrefixedSymbol(PrefixedSymbol that) {
+        this.var = Option.unwrap(that.getId()).getText();
+        return super.forPrefixedSymbol(that);
+    }
 
-	@Override
-	public Node forTokenSymbol(TokenSymbol that) {
-		return handleTerminal(that, that.getToken());
-	}
-	
-	/**
-	 * TODO: Check to see if we already have created terminal definition 
-	 * with the same token and reuse it.
-	 * @param that
-	 * @return
-	 */
-	private Node handleTerminal(SyntaxSymbol that, String token) {
-		// Create a new name for the terminal definition
-		String var = "";
-		if (null != this.var) {
-			var = FreshName.getFreshName("T"+this.var.toUpperCase());
-		}
-		else {
-			var = FreshName.getFreshName("T");
-		}
-		APIName apiName = NodeFactory.makeAPIName(this._apiName);
-		Id id = NodeFactory.makeId(var);
-		QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName,id);
+    @Override
+    public Node forKeywordSymbol(KeywordSymbol that) {
+        return handleTerminal(that, that.getToken());
+    }
 
-		// Create a the return type - A String
-		Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", "String")));
-		
-		// Create the syntax symbol inside the terminal definition
-		List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
-		syntaxSymbols.add(that); 
-		syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeQualifiedIdName("FortressSyntax", "Identifier", "idrest"))));
-		
-		// Create the transformation expression
-		Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);
+    @Override
+    public Node forTokenSymbol(TokenSymbol that) {
+        return handleTerminal(that, that.getToken());
+    }
 
-		// Add the terminal definition to the collection of new terminal definitions
-		SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, transformationExpression);
-		this._terminalDefs.add(new _TerminalDef(name, type, Option.<Modifier>none(), syntaxDef));
-		
-		// Return a new nonterminal reference to the new terminal definition 
-		return new NonterminalSymbol(NodeFactory.makeQualifiedIdName(apiName, id));
-	}
-	
+    /**
+     * TODO: Check to see if we already have created terminal definition
+     * with the same token and reuse it.
+     * @param that
+     * @return
+     */
+    private Node handleTerminal(SyntaxSymbol that, String token) {
+        // Create a new name for the terminal definition
+        String var = "";
+        if (null != this.var) {
+            var = FreshName.getFreshName("T"+this.var.toUpperCase());
+        }
+        else {
+            var = FreshName.getFreshName("T");
+        }
+        APIName apiName = NodeFactory.makeAPIName(this._apiName);
+        Id id = NodeFactory.makeId(var);
+        QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName,id);
+
+        // Create a the return type - A String
+        Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName("NativeSimpleTypes", "String")));
+
+        // Create the syntax symbol inside the terminal definition
+        List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
+        syntaxSymbols.add(that);
+        syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeQualifiedIdName("FortressSyntax", "Identifier", "idrest"))));
+
+        // Create the transformation expression
+        Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);
+
+        // Add the terminal definition to the collection of new terminal definitions
+        SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, transformationExpression);
+        this._terminalDefs.add(new _TerminalDef(name, type, Option.<Modifier>none(), syntaxDef));
+
+        // Return a new nonterminal reference to the new terminal definition
+        return new NonterminalSymbol(NodeFactory.makeQualifiedIdName(apiName, id));
+    }
+
 }

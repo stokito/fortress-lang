@@ -35,7 +35,7 @@ public class Types {
     public static final Type INT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "IntLiteral");
     public static final Type BOOLEAN = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "Boolean");
     public static final Type CHAR = NodeFactory.makeInstantiatedType("FortressBuiltin", "Char");
-    public static final Type STRING = NodeFactory.makeInstantiatedType("FortressBuiltin", "String");
+    public static final Type STRING = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "String");
     public static final Type REGION = NodeFactory.makeInstantiatedType("FortressBuiltin", "Region");
 
     public static final Type fromVarargsType(VarargsType varargsType) {

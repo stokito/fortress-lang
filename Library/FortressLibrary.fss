@@ -2819,27 +2819,9 @@ opr juxtaposition(a:Any, b:String):String = ("" a) b
 opr DOT(a:String, b:Any):String = a b.toString()
 opr juxtaposition(a:String, b:Any):String = a b.toString()
 
-__stringCmp(a:String, b:String):ZZ32 =
-    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Cmp")
-opr =(a:String, b:String):Boolean = __stringCmp(a,b)=0
-opr <(a:String, b:String):Boolean = __stringCmp(a,b)<0
-opr <=(a:String, b:String):Boolean = __stringCmp(a,b)<=0
-opr >(a:String, b:String):Boolean = __stringCmp(a,b)>0
-opr >=(a:String, b:String):Boolean = __stringCmp(a,b)>=0
-opr CMP(a:String, b:String):TotalComparison = do
-    c = __stringCmp(a,b)
-    if c<0 then LessThan
-    elif c=0 then EqualTo
-    else GreaterThan
-    end
-  end
-
 outFileOpen(name:String):BufferedWriter = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.File$OutFileOpen")
 outFileWrite(file: BufferedWriter, str: String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.File$OutFileWrite")
 outFileClose(file: BufferedWriter):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.File$OutFileClose")
-
-substring(str: String, beginIndex: ZZ32, endIndex: ZZ32):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Substring")
-length(str: String):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Length")
 
 print(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
