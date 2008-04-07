@@ -359,6 +359,7 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\]
 
 (************************************************************
 * \subsection{The Maybe type}
+* \seclabel{maybe-type}
 ************************************************************
 
 ** This trait makes excludes work without where clauses, and allows opr =
