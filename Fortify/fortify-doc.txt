@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -49,7 +49,7 @@ The formatting relies on TeX macros called \VAR, \OPR, \KWD, \TYP, and \EXP:
 	\KWD		keywords
 	\TYP		types
 	\EXP		general expressions
-	  
+
 In general, each formats its argument in math mode, but with some extra
 processing: \VAR applies \mathit, \OPR and \KWD apply \mathtt, and \TYP applies
 \mathrm; \OPR uses \mathbin spacing and \KWD uses \mathrel spacing (but
@@ -207,6 +207,12 @@ and get
 For prefix arguments 2, 3, 5, and 6, the text to be formatted must
 lie within a single line.
 
+A parameterized type of the form T[\S\] is rendered by replacing
+the brackets [\ and \] with the white square brackets
+U+27E6 (MATHEMATICAL LEFT WHITE SQUARE BRACKET) and
+U+27E7 (MATHEMATICAL RIGHT WHITE SQUARE BRACKET), respectively.
+
+
 Here are some subtleties to watch out for.  Bracket-subscripts are turned into
 actual subscripts when the subscript expressions are sufficiently simple.  If more
 than one subscript is present, then each subscript must be a single-letter name or
@@ -350,7 +356,7 @@ The result is that a formatted file is created, with the same name and
 at the same location as the input file, but with extension .tex.
 
 WARNING: Make sure your original file does not have suffix .tex or
-this command will overwrite it! 
+this command will overwrite it!
 
 As a convenience, a bash script "fortify" is provided in
 FORTRESS_HOME/bin. This script executes the fortify command on a given file.
@@ -362,7 +368,7 @@ Fortress doc comment consists of a series of lines, where the first
 line begins with "(**", the last line consists of "**)" and lines in
 between begin with "*", with optional leading spaces and tabs at the
 beginning of each line. For example, the following function definition
-"factorial" is preceded by a doc comment:  
+"factorial" is preceded by a doc comment:
 
 (**
  * Takes a non-negative integer n and returns n!
@@ -371,8 +377,8 @@ factorial(n) =
     if n = 0 then 1
     else n factorial(n-1) end
 
-The fortex command strips the leading comment characters from 
-doc comment lines, but leaves them otherwise unprocessed. All 
+The fortex command strips the leading comment characters from
+doc comment lines, but leaves them otherwise unprocessed. All
 text other than doc comments is fortified. So, it's possible to embed LaTeX
 in a doc comment of a valid Fortress file, and then run 'fortex' on it
 to "uncomment" the doc comments and fortify the Fortress code.
@@ -401,7 +407,7 @@ Again, a formatted file is created  with the same name and location as the
 input file, but with extension .tex.
 
 WARNING: Make sure your original file does not have suffix .tex or
-this command will overwrite it! 
+this command will overwrite it!
 
 This command can be called as follows:
 
@@ -424,10 +430,10 @@ delimiters:
 
 Lines in between (but not including) example delimiters are
 fortified. The result is stored in a file with the same name and
-location as the input file, but with suffix '.tex'. 
+location as the input file, but with suffix '.tex'.
 
 WARNING: Make sure your original file does not have suffix .tex or
-this command will overwrite it! 
+this command will overwrite it!
 
 For example, the following file:
 
@@ -458,10 +464,10 @@ fortick
 -------
 fortick takes a file name and fortifies all occurrences of text in
 that file delimited by ticks. It writes the result to a new file in
-the same location, with suffix ".tex". 
+the same location, with suffix ".tex".
 
 WARNING: Make sure your original file does not have suffix .tex or
-this command will overwrite it! 
+this command will overwrite it!
 
 For example, given a file example.fss, with the following contents:
 
@@ -470,14 +476,14 @@ For example, given a file example.fss, with the following contents:
 **)
 
 The fortick tool will write a file example.tex, with the following
-contents: 
+contents:
 
 (**
 \EXP{f(x) = x^{2} + y^{2}}
 **)
 
 If the opening tick and closing tick are adjacent, then fortick
-simply replaces the pair with a single tick.  This provides an escape 
+simply replaces the pair with a single tick.  This provides an escape
 for those who need to use ticks in LaTeX document.
 
 For example:
@@ -487,4 +493,3 @@ For example:
 becomes:
 
 (** This is what we call, in polite company, a ``misfeature.'' **)
-
