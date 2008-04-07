@@ -17,16 +17,12 @@
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -38,9 +34,11 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * Originally based on Christine's AtomicArray, in turn based on
  * Maurice's code.  Now modified beyond all recognition.
  */
-public class AtomicFTypeArray extends FOrdinaryObject {
+public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
     // We always synchronize with any writer of the following array:
     private final FValue[] array;
+    // The native constructor, containing type and method information:
+    private final NativeConstructor con;
 
     // The following is used lock-free and should eventually be sparse:
     private final AtomicReferenceArray<TransactorRecord> trans;
@@ -49,12 +47,23 @@ public class AtomicFTypeArray extends FOrdinaryObject {
     private static final String FORMAT2 = "Unexpected TransactorRecord: %s";
     public static final boolean TRACE_ARRAY = false;
 
-    public AtomicFTypeArray
-            (FTypeObject selfType, BetterEnv self_dot_env) {
-        super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
-        int capacity = self_dot_env.getValue("s0").getInt();
+    public AtomicFTypeArray(NativeConstructor con, int capacity) {
+        super(con);
+        this.con = con;
         array        = new FValue[capacity];
         trans        = new AtomicReferenceArray<TransactorRecord>(capacity);
+    }
+
+    protected void setConstructor(NativeConstructor con) {
+        // Don't set the final field here.  Do it in the constructor.
+    }
+
+    public NativeConstructor getConstructor() {
+        return this.con;
+    }
+
+    public boolean seqv(FValue v) {
+        return v==this;
     }
 
     public FValue get(int i) {

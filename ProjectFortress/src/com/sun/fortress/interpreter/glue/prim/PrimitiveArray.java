@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
@@ -39,15 +40,16 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class PrimitiveArray extends Constructor {
+public class PrimitiveArray extends NativeConstructor {
 
     public PrimitiveArray(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }
 
-    protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        return new AtomicFTypeArray(selfType, self_env);
+    protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
+        int s0 = getSelfEnv().getValue("s0").getInt();
+        return new AtomicFTypeArray(con,s0);
     }
 
     public static final class get extends NativeMeth1 {

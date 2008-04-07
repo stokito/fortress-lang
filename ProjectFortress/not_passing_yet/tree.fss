@@ -647,7 +647,7 @@ function[\nat k\]
 
 
     (d0,d1) = split[\k\](c.hg merge[\k\](s0,s1))  (* in original, s * hgT *)
-    if (level >= initial_level AND (||d1||) < thresh) OR
+    if (level >= initial_level AND ||d1|| < thresh) OR
        level >= (max_level - 1) then
       lnode2(lleaf2(s0), lleaf2(s1))
     else
