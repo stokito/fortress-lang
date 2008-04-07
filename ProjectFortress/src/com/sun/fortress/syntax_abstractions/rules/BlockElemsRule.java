@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -44,7 +44,7 @@ public class BlockElemsRule extends Rule {
 //		private boolean insideBlockElems;
 //		private boolean insideChoice;
 //		private String nonTerminal;
-//		
+//
 //		public BlockElemsRuleVisitor(Runtime runtime, Analyzer analyzer, String nonTerminal) {
 //			super(runtime, analyzer);
 //			this.insideBlockElems = false;
@@ -55,7 +55,7 @@ public class BlockElemsRule extends Rule {
 //		@Override
 //		public Element visit(OrderedChoice orderedChoice) {
 //			boolean insideChoice = this.insideChoice;
-//			
+//
 //			if (this.insideBlockElems && this.insideChoice) {
 //				System.err.println("Before: "+orderedChoice.alternatives);
 //				for (Sequence s: orderedChoice.alternatives) {
@@ -71,13 +71,13 @@ public class BlockElemsRule extends Rule {
 //				orderedChoice.alternatives.add(sequence);
 //				System.err.println("After: "+orderedChoice.alternatives);
 //			}
-//			
+//
 //			if (this.insideBlockElems && !insideChoice) {
 //				this.insideChoice = true;
 //			}
-//			
-//			Element result = super.visit(orderedChoice);	
-//			
+//
+//			Element result = super.visit(orderedChoice);
+//
 //			if (this.insideBlockElems && !insideChoice) {
 //				this.insideChoice = false;
 //			}
@@ -89,7 +89,7 @@ public class BlockElemsRule extends Rule {
 //			if (production.name.name.equals("BlockElems")) {
 //				this.insideBlockElems = true;
 //			}
-//			Production result = super.visit(production); 
+//			Production result = super.visit(production);
 //			this.insideBlockElems = false;
 //			return result;
 //		}
