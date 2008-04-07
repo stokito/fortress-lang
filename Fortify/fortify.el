@@ -1,5 +1,4 @@
-;;;
-;;    Copyright 2007 Sun Microsystems, Inc.,
+;;    Copyright 2008 Sun Microsystems, Inc.,
 ;;    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 ;;    All rights reserved.
 ;;
@@ -1218,6 +1217,10 @@ Fortress source code)."
 	("\\\\mathop{\\\\uplus}" "\\\\biguplus")
 	;; Fixup for defining opr |self|
 	("\\\\KWD{opr} \\\\left|\\\\mathord{\\\\KWD{self}}|" "\\\\KWD{opr} \\\\left|\\\\mathord{\\\\KWD{self}}\\\\right|")
+	;; Fixup for defining opr :
+	("\\\\KWD{opr} \\\\mathrel{\\\\mathtt{:}}" "\\\\KWD{opr} \\\\mathinner{\\\\mathtt{:}}")
+	;; Fixup for |self|
+	("\\\\left|\\\\mathord{\\\\KWD{self}}\\\\lfloor)" "\\\\left|\\\\mathord{\\\\KWD{self}}\\\\right|}")
 	;; Fixup for defining opr ^(self, other)
 	("\\\\KWD{opr} \\^(" "\\\\KWD{opr} \\\\mathord{\\\\hbox{\\\\tt\\\\char'136}}(")
 	;; # operator
