@@ -44,16 +44,7 @@ public abstract class NativeConstructor extends Constructor {
 
     public static abstract class FNativeObject extends FObject {
         public FNativeObject(NativeConstructor con) {
-            setConstructor(con);
         }
-
-        /**
-         * Every native object must define setConstructor, which
-         * ought to stash the provided constructor in a static field
-         * (if the type is non-generic) or otherwise cache it in the
-         * constructed object itself.
-         */
-        protected abstract void setConstructor(NativeConstructor con);
 
         /**
          * getConstructor retrieves the constructor stored away by
@@ -121,9 +112,16 @@ public abstract class NativeConstructor extends Constructor {
 
         synchronized (this) {
             if (selfEnv != null) return;
-
+            oneTimeInit(self_env);
             selfEnv = self_env;
         }
+    }
+
+    /**
+     * Code to run once, just before self_env is initialized.
+     * At that point we have locked this.
+     */
+    protected void oneTimeInit(BetterEnv self_env) {
     }
 
     protected abstract FNativeObject makeNativeObject(List<FValue> args,

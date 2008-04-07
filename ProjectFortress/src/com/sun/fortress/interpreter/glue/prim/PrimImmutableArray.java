@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
@@ -38,26 +39,40 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class PrimImmutableArray extends Constructor {
+public class PrimImmutableArray extends NativeConstructor {
+    int s0;
 
-    public PrimImmutableArray(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public PrimImmutableArray(BetterEnv env,
+                              FTypeObject selfType,
+                              GenericWithParams def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }
 
-    protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        // return new Vec(selfType, lex_env, self_env);
-        return new PrimImmutableArrayObject(selfType, self_env);
+    protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
+        return new PrimImmutableArrayObject(con,s0);
     }
 
-    public static final class PrimImmutableArrayObject extends FOrdinaryObject {
-        protected final FValue[] contents;
+    protected void oneTimeInit(BetterEnv self_env) {
+        s0 = self_env.getValue("s0").getInt();
+    }
 
-        public PrimImmutableArrayObject(FTypeObject selfType,
-                                        BetterEnv self_dot_env) {
-            super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
-            int capacity = self_dot_env.getValue("s0").getInt();
+    public static final class PrimImmutableArrayObject extends FNativeObject {
+        protected final FValue[] contents;
+        protected final NativeConstructor con;
+
+        public PrimImmutableArrayObject(NativeConstructor con, int capacity) {
+            super(con);
+            this.con = con;
             this.contents = new FValue[capacity];
+        }
+
+        public NativeConstructor getConstructor() {
+            return con;
+        }
+
+        public boolean seqv(FValue other) {
+            return this==other;
         }
 
         public FValue get(int i) {
