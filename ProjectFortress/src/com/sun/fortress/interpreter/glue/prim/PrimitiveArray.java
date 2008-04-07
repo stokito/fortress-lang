@@ -41,6 +41,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class PrimitiveArray extends NativeConstructor {
+    int s0;
 
     public PrimitiveArray(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
@@ -48,8 +49,11 @@ public class PrimitiveArray extends NativeConstructor {
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
-        int s0 = getSelfEnv().getValue("s0").getInt();
         return new AtomicFTypeArray(con,s0);
+    }
+
+    protected void oneTimeInit(BetterEnv self_env) {
+        s0 = self_env.getValue("s0").getInt();
     }
 
     public static final class get extends NativeMeth1 {

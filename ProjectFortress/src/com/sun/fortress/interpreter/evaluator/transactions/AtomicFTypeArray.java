@@ -49,13 +49,9 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
 
     public AtomicFTypeArray(NativeConstructor con, int capacity) {
         super(con);
-        this.con = con;
+        this.con     = con;
         array        = new FValue[capacity];
         trans        = new AtomicReferenceArray<TransactorRecord>(capacity);
-    }
-
-    protected void setConstructor(NativeConstructor con) {
-        // Don't set the final field here.  Do it in the constructor.
     }
 
     public NativeConstructor getConstructor() {

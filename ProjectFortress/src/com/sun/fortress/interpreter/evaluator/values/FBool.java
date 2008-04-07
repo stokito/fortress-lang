@@ -33,6 +33,7 @@ public class FBool extends NativeConstructor.FNativeObject {
 
     public FBool(NativeConstructor con) {
         super(con);
+        setConstructor(con);
         val = false;
     }
 
