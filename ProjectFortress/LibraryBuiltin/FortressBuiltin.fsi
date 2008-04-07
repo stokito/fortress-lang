@@ -20,10 +20,6 @@ api FortressBuiltin
 
 trait Any end
 
-trait String extends { Any }
-    (* excludes { IntLiteral, FloatLiteral, Boolean } *)
-end
-
 trait Char extends { Any }
 end
 

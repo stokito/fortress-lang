@@ -21,6 +21,9 @@ object Boolean
     extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
 end
 
+object String
+end
+
 object Thread[\T\](fcn:()->T)
     getter val():T
     getter ready():Boolean

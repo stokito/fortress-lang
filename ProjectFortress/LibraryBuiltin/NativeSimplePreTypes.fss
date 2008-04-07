@@ -38,12 +38,51 @@ trait PreBoolean
         if self then other else NOT other end
     opr <(self, other:Boolean): Boolean =
         if self then false else other end
-    opr CMP(self, other:Boolean): Boolean =
+    opr CMP(self, other:Boolean): TotalComparison =
         if self then
             if other then EqualTo else GreaterThan end
         else
             if other then LessThan else EqualTo end
         end
+end
+
+trait PreString comprises { String }
+    getter size() : ZZ32
+    getter bounds() : FullRange[\ZZ32\] = 0 # |self|
+    getter indices() : FullRange[\ZZ32\] = bounds()
+    opr |self| : ZZ32 = self.size()
+    opr =(self, other:String): Boolean = self.eq(other)
+    opr <(self, other:String): Boolean = self.cmp(other) < 0
+    opr <=(self, other:String): Boolean = self.cmp(other) <= 0
+    opr >(self, other:String): Boolean = self.cmp(other) > 0
+    opr >=(self, other:String): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other:String): TotalComparison = self.cmp(other) CMP 0
+    (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
+        of the string, returning the empty string, in order to permit some convenient
+        string-trimming idioms. **)
+    (*
+    opr[r0:LowerRange[\ZZ32\]]: String = do
+        l = r0.lower()
+        if l = |self| then ""
+        else self[l#(|self| - l)]
+        end
+      end
+    *)
+    opr[r0:Range[\ZZ32\]] : String =
+        typecase r0 of
+            LowerRange[\ZZ32\] =>
+                l = r0.lower()
+                if l = |self| then ""
+                else self[l#(|self| - l)]
+                end
+            else =>
+                r1 = (bounds())[r0]
+                l = r1.lower()
+                self.substr(l, l + |r1|)
+      end
+    eq(other:String): Boolean
+    cmp(other:String): ZZ32
+    substr(lo:ZZ32,hi:ZZ32): String
 end
 
 end

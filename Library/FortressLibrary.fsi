@@ -1541,19 +1541,9 @@ opr juxtaposition(a:Any, b:String):String
 opr DOT(a:String, b:Any):String
 opr juxtaposition(a:String, b:Any):String
 
-opr =(a:String, b:String):Boolean
-opr <(a:String, b:String):Boolean
-opr <=(a:String, b:String):Boolean
-opr >(a:String, b:String):Boolean
-opr >=(a:String, b:String):Boolean
-opr CMP(a:String, b:String):TotalComparison
-
 outFileOpen(name:String):BufferedWriter
 outFileWrite(file: BufferedWriter, str: String):()
 outFileClose(file: BufferedWriter):()
-
-substring(str: String, beginIndex: ZZ32, endIndex: ZZ32):String
-length(str: String):ZZ32
 
 print(a:String):()
 println(a:String):()

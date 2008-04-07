@@ -28,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
 import com.sun.fortress.interpreter.evaluator.types.FTypeIntegral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNumber;
-import com.sun.fortress.interpreter.evaluator.types.FTypeString;
 import com.sun.fortress.interpreter.evaluator.values.DummyValue;
 import com.sun.fortress.interpreter.evaluator.values.Dummy_fcn;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -91,7 +90,6 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
     static final FType Int = FTypeInt.ONLY;
     static final FType Integral = FTypeIntegral.ONLY;
     static final FType Float = FTypeFloat.ONLY;
-    static final FType String = FTypeString.ONLY;
     static final FType Number = FTypeNumber.ONLY;
 
     /* (non-Javadoc)

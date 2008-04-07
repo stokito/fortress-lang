@@ -20,8 +20,8 @@ import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeStringLiteral;
 
 public class FStringLiteral extends FString {
-  public FStringLiteral(String s) {
-    super(s);
-  }
-  public FBuiltinType type() { return FTypeStringLiteral.ONLY; }
+    public FStringLiteral(String s) {
+        super(s);
+    }
+    // public FBuiltinType type() { return FTypeStringLiteral.ONLY; }
 }

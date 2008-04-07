@@ -45,7 +45,7 @@ public class Boolean extends NativeConstructor {
 
     protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
-        FBool.TRUE.setConstructor(this);
+        FBool.setConstructor(this);
         return FBool.TRUE;
     }
 

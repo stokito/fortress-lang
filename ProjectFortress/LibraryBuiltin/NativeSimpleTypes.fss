@@ -27,6 +27,17 @@ object Boolean
                   SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
 end
 
+object String extends { PreString, StandardTotalOrder[\String\] }
+    getter size() : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Size")
+    eq(other:String): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Eq")
+    cmp(other:String): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Cmp")
+    substr(lo:ZZ32,hi:ZZ32): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Substr")
+end
+
 object Thread[\T\] (fcn:()->T)
   val():T         = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$val")
   wait():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$wait")

@@ -55,7 +55,7 @@ public class FBool extends NativeConstructor.FNativeObject {
     }
 
     // Stuff for nativizing FBool.
-    public void setConstructor(NativeConstructor con) {
+    public static void setConstructor(NativeConstructor con) {
         // WARNING!  In order to run the tests we must reset con for
         // each new test, so it's not OK to ignore setConstructor
         // attempts after the first one.

@@ -315,11 +315,11 @@ sudoku(givens:(ZZ32,ZZ32,ZZ32)...): Sudoku = do
 
 sudoku(compact:String): Sudoku = do
     st0 = emptySudoku()
-    for n<-0#length(compact) do
+    for n<-compact.bounds() do
         i=n DIV 9
         j=n REM 9
         if i<9 AND j<9 then
-            case substring(compact,n,n+1) of
+            case compact[n#1] of
                 "1" => st0.fillState(i,j,0)
                 "2" => st0.fillState(i,j,1)
                 "3" => st0.fillState(i,j,2)
