@@ -49,7 +49,6 @@ import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FStringLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
@@ -1179,7 +1178,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forStringLiteralExpr(StringLiteralExpr x) {
-        return new FStringLiteral(x.getText());
+        return FString.make(x.getText());
     }
 
     /*
