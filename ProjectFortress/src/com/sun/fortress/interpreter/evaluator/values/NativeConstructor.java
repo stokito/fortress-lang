@@ -38,18 +38,22 @@ public abstract class NativeConstructor extends Constructor {
         super(env,selfType,def);
     }
 
+    public BetterEnv getSelfEnv() {
+        return selfEnv;
+    }
+
     public static abstract class FNativeObject extends FObject {
         public FNativeObject(NativeConstructor con) {
             setConstructor(con);
         }
 
         /**
-         * Every native object must defined setConstructor, which
+         * Every native object must define setConstructor, which
          * ought to stash the provided constructor in a static field
          * (if the type is non-generic) or otherwise cache it in the
          * constructed object itself.
          */
-        public abstract void setConstructor(NativeConstructor con);
+        protected abstract void setConstructor(NativeConstructor con);
 
         /**
          * getConstructor retrieves the constructor stored away by

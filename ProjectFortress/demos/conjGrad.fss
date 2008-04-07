@@ -32,7 +32,7 @@ mkMatrix[\nat n\]() : RR64[n,n] = do
     while (j < n) do
       mem0[o] := (j,random(rt2))
       (* Approximate Bernoulli interarrival with Poisson *)
-      ii = 1 + narrow (|\lambda_inv log random(1.0)/|)
+      ii = 1 + narrow |\lambda_inv log random(1.0)/|
       j += ii
       o += 1
     end
