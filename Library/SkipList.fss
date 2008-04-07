@@ -52,13 +52,13 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
   (* Depracated.  Use |self| instead. *)
   getter size():ZZ32 = |root|
 
-  (* The number of values stores in this tree. *)
+  (* The number of values stores. *)
   opr |self| : ZZ32 = |root|
 
-  (* given a search key, try to return a value that matches that key *)
+  (* Given a key, try to return a value that matches that key. *)
   search(k:Key):Maybe[\Val\] = root.search(k)
 
-  (* add a (key, value) pair to this tree *)
+  (* Add a (key, value) pair. *)
   add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
     level:ZZ32 = randomLevel()
     values:Array[\Val,ZZ32\] = array[\Val\](1)
@@ -67,20 +67,20 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
     SkipList[\Key,Val,pInverse\](root.add(leaf, level))
   end
 
-  (* remove one (key, value) pair from this tree *)
+  (* Remove a (key, value) pair. *)
   remove(k:Key):SkipList[\Key,Val,pInverse\] = do
     (root', maybe) = root.remove(k)
     SkipList[\Key,Val,pInverse\](root')
   end
 
-  (* merge two skip trees *)
+  (* Merge two Skip Lists. *)
   merge(other:SkipList[\Key,Val,pInverse\]):SkipList[\Key,Val,pInverse\] = do
     (larger, smaller) = if |self| > |other| then (self, other) else (other, self) end
     smallList = singleton[\Node[\Key,Val\]\](smaller.root)
     SkipList[\Key,Val,pInverse\](larger.root.merge(smallList))
   end
 
-  (* return a random level >= 1 with a negative binomial distribution *)
+  (* Return a random level >= 1 with a negative binomial distribution. *)
   randomLevel():ZZ32 = do
     level':ZZ32 := 1
     while random(1.0) < p do
@@ -91,7 +91,7 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
 
 end
 
-(* Construct an empty skip list *)
+(* Construct an empty Skip List. *)
 NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
   SkipList[\Key,Val,pInverse\](EmptyNode[\Key,Val\])
 
