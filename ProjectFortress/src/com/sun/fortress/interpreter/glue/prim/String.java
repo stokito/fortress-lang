@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
+
 public class String extends NativeConstructor {
 
     public String(BetterEnv env,
