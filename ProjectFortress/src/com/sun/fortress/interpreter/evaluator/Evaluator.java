@@ -912,7 +912,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<IfClause> clause = x.getClauses();
         for (Iterator<IfClause> i = clause.iterator(); i.hasNext();) {
             IfClause ifclause = i.next();
-            FValue clauseVal = ifclause.getTest().accept(this);
+            GeneratorClause cond = ifclause.getTest();
+            Expr testExpr;
+            if (cond.getBind().isEmpty())
+                testExpr = cond.getInit();
+            else
+                testExpr = error(ifclause,
+                                 "Generalized if expressions are not yet implemented.");
+            FValue clauseVal = testExpr.accept(this);
             if (clauseVal instanceof FBool) {
                 if (((FBool) clauseVal).getBool()) {
                     return ifclause.getBody().accept(this);

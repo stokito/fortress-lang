@@ -525,6 +525,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
+    public TypeCheckerResult forGeneratorClauseOnly(GeneratorClause that,
+                                                    List<TypeCheckerResult> bind_result,
+                                                    TypeCheckerResult init_result) {
+        TypeCheckerResult result = new TypeCheckerResult(that);
+        return TypeCheckerResult.compose(that, init_result, result);
+    }
+
     public TypeCheckerResult forDoOnly(Do that, List<TypeCheckerResult> fronts_result) {
         // Get union of all clauses' types
         Type frontType = Types.BOTTOM;
