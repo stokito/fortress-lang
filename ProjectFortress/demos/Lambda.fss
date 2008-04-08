@@ -125,7 +125,7 @@ object FreeVar(nm:String) extends Var
         if d <- globalEnv.member(nm) then
             changed(d,d.nf())
         else
-            fn () => self
+            self
         end
 end
 
@@ -172,9 +172,11 @@ uglyGlobals():() =
     end
 
 lookup(global:String):Term =
-    globalEnv.member(global).cond[\Term\](
-        fn (t:Term) => t,
-        fn () => freeVar(global))
+    if t <- globalEnv.member(global) then
+        t
+    else
+        freeVar(global)
+    end
 
 forms(t:Term): () = do
     println(t " -->>")
