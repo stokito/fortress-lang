@@ -82,6 +82,14 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             + (node.isIo()? " io" : "");
     }
 
+    public String forVoidLiteralExpr(VoidLiteralExpr e) {
+        return "()";
+    }
+
+    public String forVoidType(VoidType t) {
+        return "()";
+    }
+
     public String forNumberConstraint(NumberConstraint node) {
         return "" + node.getVal().toString();
     }

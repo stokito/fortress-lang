@@ -426,6 +426,9 @@ __singleton[\E\](body:E): Generator[\E\] = Just[\E\](body)
 
 __loop[\E,R\](g:Generator[\E\], body:E->R): () = g.loop(body)
 
+__cond[\E,R\](c:Condition[\E\], t:E->R, e:()->R): R = c.cond[\R\](t,e)
+__cond[\E\](c:Condition[\E\], t:E->()): () = c.cond[\()\](t, fn () => ())
+
 (** Unlike the user-visible dotted map method, this method is used for
     the internals of comprehension desugaring.  As a result we know
     that its result will immediately be consumed, and we should *not*
@@ -457,6 +460,48 @@ trait SequentialGenerator[\E\] extends { Generator[\E\] }
         end
 end
 
+(** A Condition is a Generator that generates 0 or 1 element.
+    Conditions can be used as nullary comprehension generators or
+    as predicates in an if expression. **)
+trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
+    getter isEmpty(): Boolean = NOT holds()
+    getter holds(): Boolean = cond[\Boolean\](fn (_:E):Boolean => true, fn () => false)
+    getter size(): ZZ32 = if self then 1 else 0 end
+    getter get(): ZZ32 throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
+    getter bounds(): FullRange[\ZZ32\] = 0 # |self|
+    getter indices(): FullRange[\ZZ32\] = bounds()
+    getter indexValuePairs(): Condition[\(ZZ32,E)\] =
+        cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
+    opr |self|: ZZ32 = if self then 1 else 0 end
+    opr [i:ZZ32]:E throws NotFound = if i=0 then get() else throw NotFound end
+    opr [r:Range[\ZZ32\]]: Condition[\E\] =
+        cond[\E\](fn (e:E): Condition[\E\] => do
+                    r1 = (0#1)[r]
+                    if r1.isEmpty() then Nothing[\E\] else self end
+                  end,
+                fn (): Condition[\E\] => do r1 = (0#0)[r]; self end)
+    getDefault(e:E): E = cond[\E\](identity[\E\], fn () => e)
+    cond[\G\](t: E -> G, e: () -> G): G
+    generate[\G\](r:Reduction[\G\], body: E -> G): G = cond[\G\](t,fn () => r.empty())
+
+    (** For a Condition, these methods run eagerly. **)
+    map[\G\](f: E->G): Condition[\G\] =
+        cond[\G\](fn (e:E) => Just[\G\](f(e)), fn () => Nothing[\G\])
+    ivmap[\G\](f: (ZZ32,E)->G): Condition[\G\] =
+        cond[\G\](fn (e:E) => Just[\G\](f(0,e)), fn () => Nothing[\G\])
+    nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
+        cond[\G\](f, fn () => Nothing[\G\])
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        cond[\G\](fn (e:E):Generator[\(E,G)\] => g.map[\(E,G)\](fn (g:G):(E,G) => (e,g)),
+               fn () => Nothing[\(E,G)\])
+    mapReduce[\R\](body: E->R, _:(R,R)->R, zero:R): R =
+        cond[\G\](body, fn () => zero)
+    reduce(_:(E,E)->E, z:E):E = cond[\E\](identity[\E\], fn ():E => z)
+    reduce(r: Reduction[\E\]):E = cond[\E\](identity[\E\], fn ():E => r.empty())
+    loop(f:E->()): () = cond[\G\](f,fn ():() => ())
+    opr IN(x:E, self):Boolean = cond[\Boolean\](fn (e:E):Boolean => x=e, fn () => false)
+end
+
 (** Operations which use generation internally.  Should be functional
     methods of Generator, but that didn't work when last tested. **)
 
@@ -478,39 +523,33 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
    to remain non-parametric. *)
 value trait MaybeType extends Equality[\MaybeType\] excludes Number
         (** \vspace{-4ex} NOT YET: %comprises Maybe[\T\] where [\T\]% *)
-    getter isJust() : Boolean
+    getter holds() : Boolean
     opr =(self, other:MaybeType): Boolean = false
 end
 
-(** Maybe[\T\] represents either Nothing or a single element of type T
-    (Just[\T\]), which may be retrieved by calling unJust().  An
-    object of type Maybe[\T\] can be used as a generator; it is either
-    empty (Nothing) or generates the single element yielded by unJust,
-    so there is no issue of canonical order.
+(** %Maybe% represents either %Nothing% or a single element of type
+    %T% (%Just[\T\]%), which may be retrieved by calling %get%.  An
+    object of type %Maybe[\T\]% can be used as a generator; it is either
+    empty (%Nothing%) or generates the single element yielded by
+    %get%, so there is no issue of canonical order or parallelism.
 
-    Thus Just[\T\] can be used as a single-element generator, and
-    Nothing can be used as an empty generator. *)
+    Thus, %Just[\T\]% can be used as a single-element generator, and
+    %Nothing% can be used as an empty generator. *)
 value trait Maybe[\T\]
-        extends { MaybeType, SequentialGenerator[\T\], ZeroIndexed[\T\] }
+        extends { MaybeType, Condition[\T\] }
         comprises { Nothing[\T\], Just[\T\] }
-    getter unJust() : T throws NotFound
-    unJust(t:T): T
-    maybe[\R\](nothingAction: ()->R, justAction: T->R): R
 end
 
 value object Just[\T\](x:T) extends Maybe[\T\]
     getter size()=1
     getter toString():String = "Just(" x ")"
-    getter isJust() = true
-    getter unJust() = x
+    getter holds() = true
+    getter get() = x
     opr |self| : ZZ32 = 1
-    unJust(_:T): T = x
+    getDefault(_:T): T = x
+    cond[\R\](t:T->R, _:()->R): R = t(x)
     generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
     opr[i:ZZ32]:T = if i=0 then x else fail("Maybe[" i "] nonzero index") end
-    opr[r:Range[\ZZ32\]]:Maybe[\T\] = do
-        r' = (0#1)[r]
-        if r'.extent()=0 then Nothing[\T\] else self end
-      end
 
     map[\G\](f: T->G): Just[\G\] = Just[\G\](f(x))
     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] =
@@ -520,26 +559,22 @@ value object Just[\T\](x:T) extends Maybe[\T\]
     reduce(_:(T,T)->T, _:T):T = x
     reduce(_: Reduction[\T\]):T = x
     loop(f:T->()): () = f(x)
-    maybe[\R\](_: ()->R, justAction: T->R): R = justAction(x)
     opr IN(y:T, self): Boolean = x=y
-    opr =(self,o:Just[\T\]): Boolean = x=o.unJust()
+    opr =(self,o:Just[\T\]): Boolean = x=o.get()
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
    clauses working. *)
 value object Nothing[\T\] extends Maybe[\T\]
     getter size()=0
-    getter isJust() = false
-    getter unJust() = throw NotFound
+    getter holds() = false
+    getter get() = throw NotFound
     getter toString():String = "Nothing"
     opr |self| : ZZ32 = 0
-    unJust(t:T):T = t
+    getDefault(t:T):T = t
+    cond[\R\](_:T->R, e:()->R): R = e()
     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
     opr[_:ZZ32]: T = fail("Cannot index Nothing")
-    opr[r:Range[\ZZ32\]]: Nothing[\T\] = do
-        r' = (0#0)[r]   (* Bounds check; 0-based/empty ranges only *)
-        self
-      end
 
     map[\G\](f: T->G): Nothing[\G\] = Nothing[\G\]
     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]
@@ -548,7 +583,6 @@ value object Nothing[\T\] extends Maybe[\T\]
     reduce(_:(T,T)->T, z:T):T = z
     reduce(r: Reduction[\T\]):T = r.empty()
     loop(f:T->()): () = ()
-    maybe[\R\](nothingAction: ()->R, _: T->R): R = nothingAction()
     opr IN(x:T, self): Boolean = false
     opr =(self,_:Nothing[\T\]) = true
 end

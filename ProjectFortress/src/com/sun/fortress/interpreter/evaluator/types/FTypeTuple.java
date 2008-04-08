@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.AbstractTupleType;
 import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.ListComparer;
@@ -356,15 +357,23 @@ public class FTypeTuple extends FType {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
-        if (!(val instanceof AbstractTupleType)) return false;
-        if (val instanceof ArgType) {
+        Option<VarargsType> vargs;
+        List<Type> elements;
+        if (!(val instanceof AbstractTupleType)) {
+            if (!(val instanceof VoidType)) return false;
+            elements = Collections.<Type>emptyList();
+            vargs = Option.<VarargsType>none();
+        } else if (val instanceof ArgType) {
             ArgType tup = (ArgType) val;
             if (!(tup.getKeywords().isEmpty())) return false;
+            elements = tup.getElements();
+            vargs = tup.getVarargs();
             return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
         } else { // (val instanceof TupleType)
-            return unifyTuple(env, tp_set, abm, ((TupleType)val).getElements(),
-                              Option.<VarargsType>none());
+            elements = ((TupleType)val).getElements();
+            vargs = Option.<VarargsType>none();
         }
+        return unifyTuple(env, tp_set, abm, elements, vargs);
     }
 
     @Override

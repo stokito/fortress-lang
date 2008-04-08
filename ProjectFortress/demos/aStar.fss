@@ -368,8 +368,8 @@ run(args:String...):()=do
         println("initTime = " initTime)
         (res,searchTime) = timing (fn ():Maybe[\Sudoku\] => aStar[\Sudoku,ZZ32\](init))
         println("searchTime = " searchTime)
-        if res.isJust() then
-            println("Final result:\n" res.unJust())
+        if r <- res then
+            println("Final result:\n" r)
         else
             spuriousInconsistency := true
             println("FAIL: INCONSISTENT:\n" init)

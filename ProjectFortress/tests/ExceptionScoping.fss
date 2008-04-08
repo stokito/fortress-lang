@@ -34,7 +34,7 @@ run(args:String...):() = do
     finallyCount : ZZ32 := 0
     try
         try
-            Nothing[\ZZ32\].unJust()
+            Nothing[\ZZ32\].get()
         catch x
             FailCalled => fail("Caught FailCalled!!")
         finally

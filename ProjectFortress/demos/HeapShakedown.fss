@@ -85,7 +85,7 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
 tre = Nothing[\(ZZ32,ZZ32,ZZ32)\]
 
 unj(_:Nothing[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = (0,0,0)
-unj(j:Just[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = j.unJust()
+unj(j:Just[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = j.get()
 
 object TestReduction extends Reduction[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\]
     empty() = tre
@@ -94,8 +94,8 @@ object TestReduction extends Reduction[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\]
     join(a:Nothing[\(ZZ32,ZZ32,ZZ32)\], b:Maybe[\(ZZ32,ZZ32,ZZ32)\]) = b
     join(a:Just[\(ZZ32,ZZ32,ZZ32)\], b:Nothing[\(ZZ32,ZZ32,ZZ32)\]) = a
     join(a:Just[\(ZZ32,ZZ32,ZZ32)\], b:Just[\(ZZ32,ZZ32,ZZ32)\]) = do
-        (mn_a,sz_a,mx_a) = a.unJust()
-        (mn_b,sz_b,mx_b) = b.unJust()
+        (mn_a,sz_a,mx_a) = a.get()
+        (mn_b,sz_b,mx_b) = b.get()
         assert(mx_a <= mn_b, "Left max " mx_a " larger than right min " mn_b)
         Just[\(ZZ32,ZZ32,ZZ32)\](mn_a,sz_a+sz_b,mx_a)
       end

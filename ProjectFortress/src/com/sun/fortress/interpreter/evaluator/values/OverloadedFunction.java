@@ -757,6 +757,10 @@ public class  OverloadedFunction extends Fcn
         int best = -1;
         SingleFcn best_sfn = null;
 
+        if (debugMatch) {
+            System.err.println("Seeking best match for "+args);
+        }
+
         for (int i = 0; i < someOverloads.size(); i++) {
             Overload o = someOverloads.get(i);
             if (o.getParams() == null) {
@@ -773,6 +777,8 @@ public class  OverloadedFunction extends Fcn
                     if (debugMatch)
                         System.err.println("Inferred from " + gsfn + " to " + sfn);
                 } catch (FortressError pe) {
+                    if (debugMatch)
+                        System.err.println("No match for " + gsfn);
                     continue; // No match, means no dice.
                 }
 

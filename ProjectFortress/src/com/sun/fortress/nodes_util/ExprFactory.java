@@ -433,85 +433,101 @@ public class ExprFactory {
     }
 
     public static If makeIf(IfClause _if, Expr _else) {
-	List<IfClause> ifclauses = new ArrayList<IfClause>();
-	ifclauses.add(_if);
-	List<Expr> elseBlock = new ArrayList<Expr>();
-	elseBlock.add(_else);
-	Block _elseClause = new Block( elseBlock);
-	return new If(ifclauses, Option.some(_elseClause));
+        List<IfClause> ifclauses = new ArrayList<IfClause>();
+        ifclauses.add(_if);
+        List<Expr> elseBlock = new ArrayList<Expr>();
+        elseBlock.add(_else);
+        Block _elseClause = new Block( elseBlock);
+        return new If(ifclauses, Option.some(_elseClause));
     }
 
     public static If makeIf(Span sp, IfClause _if, Expr _else) {
-	List<IfClause> ifclauses = new ArrayList<IfClause>();
-	ifclauses.add(_if);
-	List<Expr> elseBlock = new ArrayList<Expr>();
-	elseBlock.add(_else);
-	Block _elseClause = new Block(sp, elseBlock);
-	return new If(sp, ifclauses, Option.some(_elseClause));
+        List<IfClause> ifclauses = new ArrayList<IfClause>();
+        ifclauses.add(_if);
+        List<Expr> elseBlock = new ArrayList<Expr>();
+        elseBlock.add(_else);
+        Block _elseClause = new Block(sp, elseBlock);
+        return new If(sp, ifclauses, Option.some(_elseClause));
     }
 
     public static If makeIf(IfClause _if) {
-	List<IfClause> ifclauses = new ArrayList<IfClause>();
-	ifclauses.add(_if);
-	return new If(ifclauses, Option.<Block>none());
+        List<IfClause> ifclauses = new ArrayList<IfClause>();
+        ifclauses.add(_if);
+        return new If(ifclauses, Option.<Block>none());
     }
 
     public static If makeIf(Span sp, IfClause _if) {
-	List<IfClause> ifclauses = new ArrayList<IfClause>();
-	ifclauses.add(_if);
-	return new If(sp, ifclauses, Option.<Block>none());
+        List<IfClause> ifclauses = new ArrayList<IfClause>();
+        ifclauses.add(_if);
+        return new If(sp, ifclauses, Option.<Block>none());
+    }
+
+    public static If makeIf(Span sp, Expr cond, Block _then, Block _else) {
+        return
+            makeIf(sp,
+                new IfClause(
+                    new GeneratorClause(Collections.<Id>emptyList(), cond),
+                    _then), _else);
+    }
+
+    public static If makeIf(Span sp, Expr cond, Block _then) {
+        return
+            makeIf(sp,
+                new IfClause(
+                    new GeneratorClause(Collections.<Id>emptyList(), cond),
+                    _then));
     }
 
     public static Block makeBlock(Expr e) {
-	List<Expr> b = new ArrayList<Expr>();
-	b.add(e);
-	return new Block(b);
+        List<Expr> b = new ArrayList<Expr>();
+        b.add(e);
+        return new Block(b);
     }
 
     public static Block makeBlock(Span sp, Expr e) {
-	List<Expr> b = new ArrayList<Expr>();
-	b.add(e);
-	return new Block(sp, b);
+        List<Expr> b = new ArrayList<Expr>();
+        b.add(e);
+        return new Block(sp, b);
     }
 
     public static LocalVarDecl makeLocalVarDecl(Id p, Expr _r, Expr _body_expr) {
-	List<Expr> _body = new ArrayList<Expr>();
-	List<LValue> _lhs = new ArrayList<LValue>();
-	Option<Expr> _rhs = Option.some(_r);
-	_body.add(_body_expr);
-	_lhs.add(new LValueBind(p,false));
-	return new LocalVarDecl(_body, _lhs, _rhs);
+        List<Expr> _body = new ArrayList<Expr>();
+        List<LValue> _lhs = new ArrayList<LValue>();
+        Option<Expr> _rhs = Option.some(_r);
+        _body.add(_body_expr);
+        _lhs.add(new LValueBind(p,false));
+        return new LocalVarDecl(_body, _lhs, _rhs);
     }
 
     public static LocalVarDecl makeLocalVarDecl(Span sp, Id p, Expr _r, Expr _body_expr) {
-	List<Expr> _body = new ArrayList<Expr>();
-	List<LValue> _lhs = new ArrayList<LValue>();
-	Option<Expr> _rhs = Option.some(_r);
-	_body.add(_body_expr);
-	_lhs.add(new LValueBind(sp, p,false));
-	return new LocalVarDecl(sp, _body, _lhs, _rhs);
+        List<Expr> _body = new ArrayList<Expr>();
+        List<LValue> _lhs = new ArrayList<LValue>();
+        Option<Expr> _rhs = Option.some(_r);
+        _body.add(_body_expr);
+        _lhs.add(new LValueBind(sp, p,false));
+        return new LocalVarDecl(sp, _body, _lhs, _rhs);
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
-	List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
-	Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
-	links.add(link);
-	return new ChainExpr(e, links);
+        List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
+        Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
+        links.add(link);
+        return new ChainExpr(e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-	List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
-	Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
-	links.add(link);
-	return new ChainExpr(sp, e, links);
+        List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
+        Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
+        links.add(link);
+        return new ChainExpr(sp, e, links);
     }
 
     public static Throw makeThrow(String st) {
-	return new Throw(makeVarRef(st));
+        return new Throw(makeVarRef(st));
     }
 
     public static Throw makeThrow(Span sp, String st) {
-	return new Throw(sp, makeVarRef(sp, st));
+        return new Throw(sp, makeVarRef(sp, st));
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
@@ -707,7 +723,7 @@ public class ExprFactory {
             }
             public Expr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-			      " is not a subtype of Expr.");
+                              " is not a subtype of Expr.");
             }
         });
     }

@@ -241,7 +241,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
                 if (!typeCons.staticParameters().isEmpty()) {
                     error("Type requires static arguments: " + NodeUtil.nameString(n),
-                            n);
+                          that);
                     return that;
                 }
                 return new InstantiatedType(n, Collections.<StaticArg>emptyList());
@@ -267,7 +267,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 if (params.size() != args.size()) {
                     error("Incorrect number of static arguments for type '" +
                             NodeUtil.nameString(n) + "': provided " + args.size() +
-                            ", expected " + params.size(), n);
+                            ", expected " + params.size(), that);
                     return that;
                 }
                 boolean changed = false;

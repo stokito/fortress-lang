@@ -26,7 +26,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class TypeLatticeOps implements LatticeOps<FType> {
-
+    public boolean isForward() { return true; }
 
     public LatticeOps<FType> dual() {
         return dualLattice;

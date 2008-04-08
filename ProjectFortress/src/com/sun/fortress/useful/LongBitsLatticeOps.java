@@ -18,6 +18,7 @@
 package com.sun.fortress.useful;
 
 public class LongBitsLatticeOps implements LatticeOps<Long> {
+    public boolean isForward() { return true; }
 
     public LatticeOps<Long> dual() {
         return VD;

@@ -22,9 +22,13 @@ run(args:String...):() = do
   a = Nothing[\ZZ32\]
   b = Just[\Boolean\](true)
   println(b)
-  assert(NOT a.isJust(), "Nothing isJust()")
-  assert(b.isJust(),"NOT b.isJust()")
-  assert(b.unJust(),"NOT b.unJust()")
+  assert(NOT a.holds(), "Nothing holds()")
+  assert(b.holds(),"NOT b.holds()")
+  if a then fail("Nothing holds() in if") end
+  if b then () else fail("b holds in if") end
+  if r <- b then assert(r,"NOT r <- b (single clause)") end
+  if r <- b then assert(r,"NOT r <- b") else fail("r<-b does not hold") end
+  assert(b.get(),"NOT b.get()")
   assert(a, Nothing[\ZZ32\], "nothing =/= nothing")
   assert(a=/=b, "nothing = just")
   assert(a=/=Just[\ZZ32\](0), "nothing = just'")

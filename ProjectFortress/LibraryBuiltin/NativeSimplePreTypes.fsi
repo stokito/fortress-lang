@@ -20,6 +20,9 @@ api NativeSimplePreTypes
 trait PreBoolean
         comprises { Boolean }
     getter toString(): Boolean
+    getter size(): ZZ32
+    opr |self| : ZZ32
+    cond[\R\](t:()->R, e:()->R) : R
     generate[\R\](r:Reduction[\R\],b:()->R): R
     map[\G\](f: ()->G): Maybe[\G\]
     cross[\G\](g: Generator[\G\]): Generator[\((),G)\]

@@ -32,8 +32,8 @@ api SyntaxTest
           name: QualifiedIdName = QualifiedIdName(Just[\APIName\](apiName), printName)
           exprs: List[\Expr\] = emptyList[\Expr\](2)
           exprs1: List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()))
-          es:List[\Expr\] = if (very.isJust()) then
-                                       exprs1.addRight(StringLiteralExpr(Fortress " " is " " very.unJust() " " a b " " indeed " " Verys " " c))
+          es:List[\Expr\] = if v <- very then
+                                       exprs1.addRight(StringLiteralExpr(Fortress " " is " " v " " a b " " indeed " " Verys " " c))
                                      else
                                        exprs1.addRight(StringLiteralExpr(Fortress " " is " " a b " " indeed " " Verys " " c " "))
                                      end

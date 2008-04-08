@@ -26,28 +26,30 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
     LatticeOps<U> lattice;
     protected volatile LatticeIntervalMapBase<T, U, L> dualMap;
     // Must be volatile due to lazy initialization / double-checked locking.
-    
+
+    public boolean isForward() { return lattice.isForward(); }
+
     public LatticeIntervalMapBase(BATree2<T, U, U> table2, LatticeOps<U> lattice_operations,
             LatticeIntervalMapBase<T, U, L> supplied_dual) {
         table = table2;
         lattice = lattice_operations;
         dualMap = supplied_dual;
     }
-    
+
     public boolean leq(U lower, U upper) {
         U lmu = lattice.meet(lower, upper);
         return lmu.equals(lower);
     }
-    
+
     abstract protected U lower(BATree2Node<T,U,U> node);
-    
+
     abstract protected U upper(BATree2Node<T,U,U> node);
-    
+
     abstract protected void putPair(T k, U lower, U upper);
-    
+
     /** puts min/intersection of v and old.
      *  returns the new (potentially lower) upper bound.
-     * 
+     *
      *  @throws EmptyLatticeIntervalError
      */
     public U meetPut(T k, U v) {
@@ -75,7 +77,7 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
     }
     /** puts max/union of v and old.
      *  returns the new (potentially higher) lower bound.
-     *  
+     *
      *  @throws EmptyLatticeIntervalError
      */
     public U joinPut(T k, U v) {
@@ -112,7 +114,7 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
             return null;
         }
    }
-    
+
     /**
      * Returns the lower (bottom) end of an interval.
      */
@@ -142,13 +144,13 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
     public Set<java.util.Map.Entry<T, U>> entrySet() {
         throw new Error("unimplemented");
     }
-      
+
       public String toString() {
           return table.toString();
       }
-      
+
       /** Used for backtracking during unification */
       abstract public void assign(BoundingMap<T,U,L> replacement);
-   
+
 
 }

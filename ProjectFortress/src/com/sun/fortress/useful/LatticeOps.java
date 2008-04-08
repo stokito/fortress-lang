@@ -18,6 +18,11 @@
 package com.sun.fortress.useful;
 
 public interface LatticeOps<U> {
+    /**
+     * Returns true if the lattice is used in its usual forward sense,
+     * rather than its dual sense.
+     **/
+    boolean isForward();
     
     /**
      * Returns bottom element of lattice.

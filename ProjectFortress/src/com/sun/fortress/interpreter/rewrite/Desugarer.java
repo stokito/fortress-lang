@@ -125,6 +125,12 @@ public class Desugarer extends Rewrite {
     public final static VarRef NEST_NAME =
         ExprFactory.makeVarRef(WellKnownNames.nest);
 
+    public final static Id HOLDS_NAME =
+        NodeFactory.makeId(WellKnownNames.holds);
+
+    public final static VarRef COND_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.cond);
+
     private boolean isLibrary;
     private final static boolean debug = false;
 
@@ -662,30 +668,30 @@ public class Desugarer extends Rewrite {
                     paramsToLocals(params);
                     immediateDef = tparamsToLocals(tparams, immediateDef);
 
-		    Contract _contract = fndef.getContract();
-		    Option<List<Expr>> _requires = _contract.getRequires();
-		    Option<List<EnsuresClause>> _ensures = _contract.getEnsures();
-		    Option<List<Expr>> _invariants = _contract.getInvariants();
-		    List<Expr> _exprs = new ArrayList<Expr>();
-		    AbstractNode n = visitNode(node);
+                    Contract _contract = fndef.getContract();
+                    Option<List<Expr>> _requires = _contract.getRequires();
+                    Option<List<EnsuresClause>> _ensures = _contract.getEnsures();
+                    Option<List<Expr>> _invariants = _contract.getInvariants();
+                    List<Expr> _exprs = new ArrayList<Expr>();
+                    AbstractNode n = visitNode(node);
 
-		    if (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) {
-			List<Expr> exprs = new ArrayList<Expr>();
-			exprs.add(fndef.getBody());
-			Block b = new Block(exprs);
-			if (_invariants.isSome()) b = translateInvariants(_invariants, b);
-			if (_ensures.isSome())    b = translateEnsures(_ensures, b);
-			if (_requires.isSome())   b = translateRequires(_requires, b);
+                    if (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) {
+                        List<Expr> exprs = new ArrayList<Expr>();
+                        exprs.add(fndef.getBody());
+                        Block b = new Block(exprs);
+                        if (_invariants.isSome()) b = translateInvariants(_invariants, b);
+                        if (_ensures.isSome())    b = translateEnsures(_ensures, b);
+                        if (_requires.isSome())   b = translateRequires(_requires, b);
 
-			FnDef f = new FnDef(fndef.getSpan(), fndef.getMods(),
-					    fndef.getName(),
-					    fndef.getStaticParams(), fndef.getParams(),
-					    fndef.getReturnType(), fndef.getThrowsClause(),
-					    fndef.getWhere(), fndef.getContract(),
-					    WellKnownNames.defaultSelfName, b);
+                        FnDef f = new FnDef(fndef.getSpan(), fndef.getMods(),
+                                            fndef.getName(),
+                                            fndef.getStaticParams(), fndef.getParams(),
+                                            fndef.getReturnType(), fndef.getThrowsClause(),
+                                            fndef.getWhere(), fndef.getContract(),
+                                            WellKnownNames.defaultSelfName, b);
 
-			n = visitNode(f);
-		    }
+                        n = visitNode(f);
+                    }
 
                     dumpIfChange(node, n);
                     return n;
@@ -789,6 +795,9 @@ public class Desugarer extends Rewrite {
                     AbstractNode n = visitNode(node);
                     inTrait = false;
                     return n;
+                } else if (node instanceof If) {
+                    If i = (If)node;
+                    return visitIf(i);
                 } else if (node instanceof For) {
                     For f = (For)node;
                     DoFront df = f.getBody();
@@ -887,6 +896,53 @@ public class Desugarer extends Rewrite {
                 new Span(binds.get(0).getSpan(),
                          binds.get(binds.size()-1).getSpan()),
                 refs);
+    }
+
+    /**
+     *  Given generalized if expression, desugar into mix of holds()
+     *  method calls (no binding) and __cond calls (binding)
+     */
+    private Expr visitIf(If i) {
+        Expr result = null;
+        if (i.getElseClause().isSome()) {
+            result = Option.unwrap(i.getElseClause());
+        }
+        List<IfClause> clauses = i.getClauses();
+        int n = clauses.size();
+        if (n <= 0) bug(i,"if with no clauses!");
+        for (--n; n >= 0; --n) {
+            result = addIfClause(clauses.get(n), result);
+        }
+        return (Expr)visitNode(result);
+    }
+
+    /**
+     * Add an if clause to a (potentially) pre-existing else clause.
+     * The else clase can be null, or can be an if expression.
+     **/
+    private Expr addIfClause(IfClause c, Expr elsePart) {
+        GeneratorClause g = c.getTest();
+        if (g.getBind().size() > 0) {
+            // __cond(init, fn (binds) => body, elsePart)
+            ArrayList<Expr> args = new ArrayList<Expr>(3);
+            args.add(g.getInit());
+            args.add(bindsAndBody(g,c.getBody()));
+            if (elsePart != null) args.add(thunk(elsePart));
+            return new TightJuxt(c.getSpan(), false,
+                                 Useful.list(COND_NAME,
+                                             ExprFactory.makeTuple(c.getSpan(),args)));
+        }
+        Expr oldInit = g.getInit();
+        Expr test =
+            new MethodInvocation(oldInit.getSpan(), false,
+                                 oldInit, HOLDS_NAME,
+                                 ExprFactory.makeVoidLiteralExpr(oldInit.getSpan()));
+        if (elsePart==null) {
+            return ExprFactory.makeIf(c.getSpan(), test, c.getBody());
+        } else {
+            return ExprFactory.makeIf(c.getSpan(), test, c.getBody(),
+                                      ExprFactory.makeBlock(elsePart));
+        }
     }
 
     /**
@@ -1304,81 +1360,81 @@ public class Desugarer extends Rewrite {
     }
 
     private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
-	List<Expr> r = Option.unwrap(_requires);
-	for (Expr e : r) {
-	    Span sp = e.getSpan();
+        List<Expr> r = Option.unwrap(_requires);
+        for (Expr e : r) {
+            Span sp = e.getSpan();
             GeneratorClause cond =
                 ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(), e);
-	    If _if = ExprFactory.makeIf(sp, new IfClause(sp,cond,b),
-					ExprFactory.makeThrow(sp,"CallerViolation"));
-	    b = ExprFactory.makeBlock(sp, _if);
-	}
+            If _if = ExprFactory.makeIf(sp, new IfClause(sp,cond,b),
+                                        ExprFactory.makeThrow(sp,"CallerViolation"));
+            b = ExprFactory.makeBlock(sp, _if);
+        }
         return b;
     }
 
     private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
-	List<EnsuresClause> es = Option.unwrap(_ensures);
-	for (EnsuresClause e : es) {
-	    Span sp = e.getSpan();
-	    Id t1 = gensymId("t1");
-	    Block inner_block =
-		ExprFactory.makeBlock(sp,
-				      ExprFactory.makeVarRef(sp, "result"));
+        List<EnsuresClause> es = Option.unwrap(_ensures);
+        for (EnsuresClause e : es) {
+            Span sp = e.getSpan();
+            Id t1 = gensymId("t1");
+            Block inner_block =
+                ExprFactory.makeBlock(sp,
+                                      ExprFactory.makeVarRef(sp, "result"));
             GeneratorClause cond;
             cond = ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(),
                                                    e.getPost());
-	    If _inner_if =
-		ExprFactory.makeIf(sp,
-				   new IfClause(sp, cond, inner_block),
-				   ExprFactory.makeThrow(sp, "CalleeViolation"));
+            If _inner_if =
+                ExprFactory.makeIf(sp,
+                                   new IfClause(sp, cond, inner_block),
+                                   ExprFactory.makeThrow(sp, "CalleeViolation"));
 
             cond = ExprFactory.makeGeneratorClause(sp,
                                                    Useful.<Id>list(), (Expr) ExprFactory.makeVarRef(sp,t1));
-	    If _if = ExprFactory.makeIf(sp, new IfClause(sp, cond,
-							 ExprFactory.makeBlock(sp,_inner_if)),
-					ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"result")));
-	    LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"result"), b, _if);
-	    Option<Expr> _pre = e.getPre();
- 	    LocalVarDecl provided_lvd;
-	    if (_pre.isSome()) {
-		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, Option.unwrap(_pre),
-							    ExprFactory.makeBlock(sp, r));
-	    } else {
-		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, ExprFactory.makeVarRef("true"),
-							    ExprFactory.makeBlock(sp, r));
-	    }
+            If _if = ExprFactory.makeIf(sp, new IfClause(sp, cond,
+                                                         ExprFactory.makeBlock(sp,_inner_if)),
+                                        ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"result")));
+            LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"result"), b, _if);
+            Option<Expr> _pre = e.getPre();
+            LocalVarDecl provided_lvd;
+            if (_pre.isSome()) {
+                provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, Option.unwrap(_pre),
+                                                            ExprFactory.makeBlock(sp, r));
+            } else {
+                provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, ExprFactory.makeVarRef("true"),
+                                                            ExprFactory.makeBlock(sp, r));
+            }
 
-	    b = ExprFactory.makeBlock(sp, provided_lvd);
-	}
-	return b;
+            b = ExprFactory.makeBlock(sp, provided_lvd);
+        }
+        return b;
     }
 
     private Block translateInvariants(Option<List<Expr>> _invariants, Block b) {
- 	List<Expr> invariants = Option.unwrap(_invariants);
- 	for (Expr e : invariants) {
-	    Span sp = e.getSpan();
- 	    Id t1 = gensymId("t1");
-	    Id t_result = gensymId("result");
-	    Id t2 = gensymId("t2");
+        List<Expr> invariants = Option.unwrap(_invariants);
+        for (Expr e : invariants) {
+            Span sp = e.getSpan();
+            Id t1 = gensymId("t1");
+            Id t_result = gensymId("result");
+            Id t2 = gensymId("t2");
 
-	    Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
-							  new Op("="),
-							  (Expr) ExprFactory.makeVarRef(sp, t2));
+            Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
+                                                          new Op("="),
+                                                          (Expr) ExprFactory.makeVarRef(sp, t2));
             GeneratorClause gen_chain = ExprFactory.makeGeneratorClause(sp,
                                                                         Useful.<Id>list(), chain);
-	    If _post =
-		ExprFactory.makeIf(sp, new IfClause(sp,gen_chain,
-						    ExprFactory.makeBlock(sp,
-									  ExprFactory.makeVarRef(sp,
-												 "result"))),
-					  ExprFactory.makeThrow(sp, "CalleeViolation"));
-	    LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(sp, t2, e, _post);
-	    LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId(sp, "result"), b, r2);
+            If _post =
+                ExprFactory.makeIf(sp, new IfClause(sp,gen_chain,
+                                                    ExprFactory.makeBlock(sp,
+                                                                          ExprFactory.makeVarRef(sp,
+                                                                                                 "result"))),
+                                          ExprFactory.makeThrow(sp, "CalleeViolation"));
+            LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(sp, t2, e, _post);
+            LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId(sp, "result"), b, r2);
 
-	    b = ExprFactory.makeBlock(sp, ExprFactory.makeLocalVarDecl(sp, t1,e,r1));
-	}
+            b = ExprFactory.makeBlock(sp, ExprFactory.makeLocalVarDecl(sp, t1,e,r1));
+        }
 
-	return b;
+        return b;
     }
 
     private boolean looksLikeMethodInvocation(Juxt node) {

@@ -23,8 +23,9 @@ language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
 object Boolean
-        extends { PreBoolean,
-                  SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
+        extends { PreBoolean, Condition[\()\], StandardTotalOrder[\Boolean\] }
+    getter holds(): Boolean = self
+    getter get(): () = ()
 end
 
 object String extends { PreString, StandardTotalOrder[\String\] }

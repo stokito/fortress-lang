@@ -21,6 +21,9 @@ export NativeSimplePreTypes
 trait PreBoolean
         comprises { Boolean }
     getter toString(): Boolean = if self then "true" else "false" end
+    getter size(): ZZ32 = |self|
+    opr |self| : ZZ32 = if self then 1 else 0 end
+    cond[\R\](t:()->R, e:()->R) : R = if self then t() else e() end
     generate[\R\](r:Reduction[\R\],b:()->R): R =
         if self then b() else r.empty() end
     map[\G\](f: ()->G): Maybe[\G\] =
