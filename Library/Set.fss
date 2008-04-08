@@ -109,12 +109,13 @@ object Intersection[\E\] extends Reduction[\Maybe[\Set[\E\]\]\]
     ee = Nothing[\Set[\E\]\]
     empty():Maybe[\Set[\E\]\] = ee
     join(a:Maybe[\Set[\E\]\], b:Maybe[\Set[\E\]\]): Maybe[\Set[\E\]\] =
-        if NOT a.isJust() then b
-        elif NOT b.isJust() then a
-        else Just[\Set[\E\]\](a.unJust() INTERSECTION b.unJust)
-        end
+        if aa <- a then
+            if bb <- b then
+                Just[\Set[\E\]\](aa INTERSECTION bb)
+            else a end
+        else b end
     unwrap(w:Maybe[\Set[\E\]\]): Set[\E\] =
-        if w.isJust() then w.unJust()
+        if u <- w then u
         else throw EmptyIntersection
         end
 end

@@ -94,7 +94,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
     /**
      * Given args, infers the appropriate instantiation of a generic function.
-     * 
+     *
      * @throws ProgramError
      */
     public static Simple_fcn inferAndInstantiateGenericFunction(
@@ -105,13 +105,13 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             System.err.println("IAIGF " + appliedThing + " with " + args);
 
         GenericTypeInstance selfType = null; // initialized if generic functional method
-        
+
         if (appliedThing instanceof GenericFunctionalMethod) {
             GenericFunctionalMethod gfm = (GenericFunctionalMethod)  appliedThing;
             int spi = gfm.getSelfParameterIndex();
             FTypeGeneric declaredSelfType = gfm.getSelfParameterTypeAsGeneric();
             FValue selfArg = args.get(spi);
-            
+
             if (selfArg.type() instanceof GenericTypeInstance) {
                 selfType = (GenericTypeInstance) selfArg.type();
                 // Find the supertype that exactly matches "self"
@@ -161,29 +161,33 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             }
         }
         /* FIX FOR #62 */
-         if (params.size()==1 && args.size() != 1) {
-             Iterator<Param> pit = params.iterator();
-             Param pa = pit.next();
-             
-             if ( ! (pa instanceof VarargsParam)) {
-                 /* Tuple (or even re-tuple) arguments when inferring type
-                  * if passing different # of args to 1-arg function. */
-                 if (DUMP_INFERENCE) {
-                     System.err.println("Tupling args to match single-arg context.");
-                 }
-                 args = Useful.<FValue>list(FTuple.make(args));
-             }
-         }
+        if (params.size()==1 && args.size() != 1) {
+            Iterator<Param> pit = params.iterator();
+            Param pa = pit.next();
+
+            if ( ! (pa instanceof VarargsParam)) {
+                /* Tuple (or even re-tuple) arguments when inferring type
+                 * if passing different # of args to 1-arg function. */
+                if (DUMP_INFERENCE) {
+                    System.err.println("Tupling args to match single-arg context.");
+                }
+                args = Useful.<FValue>list(FTuple.make(args));
+            }
+        }
         Iterator<Param> pit = params.iterator();
         for (FValue a : args) {
             FType at = a.type();
             if (at == null) {
+                if (DUMP_INFERENCE)
+                    System.err.println("Argument "+a+" without type info.");
                 return error(loc, errorMsg("Argument ", a,
                         " has no type information"));
             }
             if (pit.hasNext()) {
                 p = pit.next();
             } else if (p == null) {
+                if (DUMP_INFERENCE)
+                    System.err.println("Arguments "+args+" to 0-arg function.");
                 error(loc, errorMsg(" Arguments ", args,
                         " given to 0-argument generic function ", appliedThing));
             }
@@ -198,7 +202,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                          */
                         if (p.getName().toString().equals("self")
                                 && bar instanceof GenericFunctionalMethod) {
-                            // Use precomputed selfType that will match declared 
+                            // Use precomputed selfType that will match declared
                             GenericTypeInstance gi = (GenericTypeInstance) selfType;
 
                             at.unify(e,
@@ -207,15 +211,22 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                                      gi.getGeneric()
                                      .getInstantiationForFunctionalMethodInference());// instantiationAST());
                         } else {
+                            if (DUMP_INFERENCE)
+                                System.err.println("Parameter lacks type.");
                             error(loc,
                                     "Parameter needs type for generic resolution");
                         }
                     } else {
-                        at.unify(e, tp_set, abm, Option.unwrap(t));
+                        Type ty = Option.unwrap(t);
+                        if (DUMP_INFERENCE)
+                            System.err.println("Unifying "+at+" and "+ty);
+                        at.unify(e, tp_set, abm, ty);
                     }
                 } else { // p instanceof VarargsParam
-                    at.unify(e, tp_set, abm, ((VarargsParam) p)
-                            .getVarargsType());
+                    VarargsType ty = ((VarargsParam) p).getVarargsType();
+                    if (DUMP_INFERENCE)
+                        System.err.println("Unifying "+at+" and vararg type "+ty);
+                    at.unify(e, tp_set, abm, ty);
                 }
             } catch (FortressError ex) {
                 /* Give decent feedback when unification fails. */

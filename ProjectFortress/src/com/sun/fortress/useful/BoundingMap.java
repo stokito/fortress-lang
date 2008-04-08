@@ -21,6 +21,9 @@ import java.util.Map;
 
 public interface BoundingMap<T, U, L extends LatticeOps<U>> extends Map<T,U>
 {
+    /** Indicate whether we have a forward map or its dual. */
+    boolean isForward();
+
     /** Creates an aliased lattice-dual of this map */
     BoundingMap<T, U, L> dual();
     

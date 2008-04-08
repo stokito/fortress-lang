@@ -24,7 +24,7 @@ import java.util.Comparator;
 
 public class LatticeIntervalMap <T, U, L extends LatticeOps<U>> extends
      LatticeIntervalMapBase<T, U, L> implements BoundingMap<T, U, L> {
-    
+
     public LatticeIntervalMap(BATree2<T, U, U> table2, LatticeOps<U> lattice_operations,
             LatticeIntervalMapDual<T, U, L> supplied_dual) {
         super(table2, lattice_operations, supplied_dual);

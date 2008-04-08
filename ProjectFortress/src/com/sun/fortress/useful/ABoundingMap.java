@@ -28,6 +28,8 @@ public class ABoundingMap<T, U, L extends LatticeOps<U>> extends AbstractMap<T, 
     BATree<T, U> table;
     LatticeOps<U> lattice;
 
+    public boolean isForward() { return lattice.isForward(); }
+
     public ABoundingMap(BATree<T, U> table2, LatticeOps<U> lattice_operations,
                         ABoundingMap<T, U, L> supplied_dual) {
         table = table2;

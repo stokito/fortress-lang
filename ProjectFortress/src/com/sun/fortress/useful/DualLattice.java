@@ -18,6 +18,7 @@
 package com.sun.fortress.useful;
 
 public class DualLattice<U> implements LatticeOps<U> {
+    public boolean isForward() { return !original.isForward(); }
 
     LatticeOps<U> original;
 

@@ -110,17 +110,23 @@ object FreeVar(nm:String) extends Var
             final
         end
     apply(rand:Term, post: Term -> Term): Term =
-        globalEnv.member(nm).maybe[\Term\](
-            fn () => app(self,rand),
-            fn (d:Term) => d.apply(rand, post))
+        if d <- globalEnv.member(nm) then
+            d.apply(rand, post)
+        else
+            app(self,rand)
+        end
     whnf(): Term =
-        globalEnv.member(nm).maybe[\Term\](
-            fn () => self,
-            fn (d:Term) => changed(d,d.whnf()))
+        if d <- globalEnv.member(nm) then
+            changed(d,d.whnf())
+        else
+            self
+        end
     nf2(): Term =
-        globalEnv.member(nm).maybe[\Term\](
-            fn () => self,
-            fn (d:Term) => changed(d,d.nf()))
+        if d <- globalEnv.member(nm) then
+            changed(d,d.nf())
+        else
+            fn () => self
+        end
 end
 
 fv(n: String): FreeVar = FreeVar(n)
@@ -166,9 +172,9 @@ uglyGlobals():() =
     end
 
 lookup(global:String):Term =
-    globalEnv.member(global).maybe[\Term\](
-        fn () => freeVar(global),
-        fn (t:Term) => t)
+    globalEnv.member(global).cond[\Term\](
+        fn (t:Term) => t,
+        fn () => freeVar(global))
 
 forms(t:Term): () = do
     println(t " -->>")

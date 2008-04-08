@@ -111,6 +111,7 @@ import com.sun.fortress.nodes.ArrayElements;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.MathItem;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.ParenthesisDelimitedMI;
 import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
@@ -224,6 +225,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue NI(String s, AbstractNode n) {
         return bug(n, this.getClass().getName() + "." + s
                 + " not implemented, input \n" + NodeUtil.dump(n));
+    }
+
+    public FValue defaultCase(Node n) {
+        return bug(n, errorMsg("Cannot evaluate the node ",n," of type ",n.getClass()));
     }
 
     public FValue forAsExpr(AsExpr x) {

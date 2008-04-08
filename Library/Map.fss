@@ -124,7 +124,7 @@ trait Map[\Key,Val\]
         We call doThis on keys present in self but not in that;
         We call doThat on keys present in that but not in self.
         When any of these functions returns r=Just[\Result\], the key is mapped
-            to r.unJust() in the result.
+            to r.get() in the result.
         When any of these functions returns Nothing[\Result\] there is no
             mapping for the key in the result.
 
@@ -217,7 +217,7 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     delete(k:Key):Map[\Key,Val\] = self
     updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\] =
         typecase r = f(Nothing[\Val\]) of
-            Just[\Val\] => add(k,r.unJust())
+            Just[\Val\] => add(k,r.get())
             else => self
         end
     opr UNION(self, other: Map[\Key,Val\]): Map[\Key,Val\] = other
@@ -349,7 +349,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
           GreaterThan => balancedAdd(pair, left, right.updateWith(f,k))
           else =>
               typecase r = f(val) of
-                  Just[\Val\] => NodeMap[\Key,Val\]((k,r.unJust()), left, right)
+                  Just[\Val\] => NodeMap[\Key,Val\]((k,r.get()), left, right)
                   else        => left.balancedDelete(right)
               end
       end
@@ -360,8 +360,8 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
       end
     opr UPLUS(self, other: Map[\Key,Val\]): Map[\Key,Val\] = do
         (newl, mv, newr) = other.splitAt(key)
-        if mv.isJust() then
-            throw KeyOverlap[\Key,Val\](key,val,mv.unJust())
+        if m <- mv then
+            throw KeyOverlap[\Key,Val\](key,val,m)
         else
             (left UPLUS newl).concat3(key,val,right UPLUS newr)
         end
@@ -369,7 +369,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     union(f:(Key,Val,Val)->Val, other: Map[\Key,Val\]): Map[\Key,Val\] = do
         (newl, mv, newr) = other.splitAt(key)
         val' = typecase mv of
-                   Just[\Val\] => f(key,val,mv.unJust())
+                   Just[\Val\] => f(key,val,mv.get())
                    else        => val
                end
         left.union(f,newl).concat3(key,val',right.union(f,newr))
@@ -415,11 +415,11 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
             (l,mv,r) = that.splitAt(key)
             (lc,mc,rc) = (left.combine(f,doThis,doThat,mapThis,mapThat,l),
                           typecase mv of
-                              Just[\That\] => f(key,val,mv.unJust())
+                              Just[\That\] => f(key,val,mv.get())
                               else         => doThis(key,val) end,
                           right.combine(f,doThis,doThat,mapThis,mapThat,r))
             typecase mc of
-                Just[\Result\] => lc.concat3(key,mc.unJust(),rc)
+                Just[\Result\] => lc.concat3(key,mc.get(),rc)
                 else           => rc.concat(key,rc)
             end
         end
@@ -427,7 +427,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
         (lf,nv,rf) = (left.mapFilter[\Result\](f), f(key,val),
                       right.mapFilter[\Result\](f))
         typecase nv of
-            Just[\Result\] => lf.concat3(key,nv.unJust(),rf)
+            Just[\Result\] => lf.concat3(key,nv.get(),rf)
             else           => lf.concat(rf)
         end
       end
@@ -438,7 +438,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
         else
             (l,m,r) = other.splitAt(key)
             typecase m of
-                Just[\Val\] => val=m.unJust() AND: (left=l AND right=r)
+                Just[\Val\] => val=m.get() AND: (left=l AND right=r)
                 else => false
             end
         end

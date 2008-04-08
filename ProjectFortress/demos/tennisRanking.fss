@@ -157,7 +157,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
   playedSingle(against: String) =
     do
       againstGames = played.member(against)
-      againstGames.isJust() AND: againstGames.unJust().member("").isJust()
+      againstGames.holds() AND: againstGames.get().member("").holds()
     end
 
   (* Has played a doubles game with these players? *)
@@ -165,11 +165,11 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
     do
       maybeWithGames = played.member(team)
       if maybeWithGames
-      then withGames = maybeWithGames.unJust()
+      then withGames = maybeWithGames.get()
            if withGames.member(against1)
-           then withGames.member(against1).unJust() = against2
-           else withGames.member(against2).isJust() AND:
-                (withGames.member(against2).unJust() = against1)
+           then withGames.member(against1).get() = against2
+           else withGames.member(against2).holds() AND:
+                (withGames.member(against2).get() = against1)
            end
       else false end
     end
@@ -180,7 +180,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
       maybeAgainstGames = played.member(against)
       againstGames:Map[\String,String\] :=
         if maybeAgainstGames
-        then maybeAgainstGames.unJust()
+        then maybeAgainstGames.get()
         else mapping[\String,String\]() end
       againstGames := againstGames.add("","")
       played := played.update(against, againstGames)
@@ -192,7 +192,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
       maybeWithGames = played.member(team)
       withGames:Map[\String,String\] :=
         if maybeWithGames
-        then maybeWithGames.unJust()
+        then maybeWithGames.get()
         else mapping[\String,String\]() end
       withGames := withGames.add(against1,against2)
       played := played.update(team, withGames)
@@ -308,7 +308,7 @@ new(name:String, old:Boolean) =
   do
     init(name, 0, 0, 0, if old then oldPoints else 1000 end)
     numPlayers += 1
-    database.member(name).unJust()
+    database.member(name).get()
   end
 
 wonGame(player: Player, points: ZZ32) =
@@ -362,9 +362,9 @@ addGame(fout: BufferedWriter,
        then add the player first *)
     maybeWinner = database.member(winnerName)
     maybeLoser  = database.member(loserName)
-    winner = if maybeWinner then maybeWinner.unJust()
+    winner = if maybeWinner then maybeWinner.get()
              else new(winnerName, winnerOld) end
-    loser  = if maybeLoser then maybeLoser.unJust()
+    loser  = if maybeLoser then maybeLoser.get()
              else new(loserName,  loserOld) end
     (* if any player has never played any game before this term,
        then ranking differences are ignored *)
@@ -434,13 +434,13 @@ addGame(fout: BufferedWriter,
     maybeWinner2 = database.member(winnerName2)
     maybeLoser1  = database.member(loserName1)
     maybeLoser2  = database.member(loserName2)
-    winner1 = if maybeWinner1 then maybeWinner1.unJust()
+    winner1 = if maybeWinner1 then maybeWinner1.get()
               else new(winnerName1, winnerOld1) end
-    winner2 = if maybeWinner2 then maybeWinner2.unJust()
+    winner2 = if maybeWinner2 then maybeWinner2.get()
               else new(winnerName2, winnerOld2) end
-    loser1  = if maybeLoser1  then maybeLoser1.unJust()
+    loser1  = if maybeLoser1  then maybeLoser1.get()
               else new(loserName1,  loserOld1) end
-    loser2  = if maybeLoser2  then maybeLoser2.unJust()
+    loser2  = if maybeLoser2  then maybeLoser2.get()
               else new(loserName2,  loserOld2) end
     (* if any player has never played any game before this term,
        then ranking differences are ignored *)
@@ -503,10 +503,10 @@ printTable(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
     (* the current ranking *)
     ranking: ZZ32 := 1
     (* the points of the previous player *)
-    points : ZZ32 := database.member(top).unJust().totalPoints + 10
+    points : ZZ32 := database.member(top).get().totalPoints + 10
     for i <- seq(0#numPlayers) do
       (_,v) = arr[i]
-      player = database.member(v).unJust()
+      player = database.member(v).get()
       (* print a player with the new ranking result *)
       if player.totalPoints = points
       then player.ranking := ranking
@@ -533,7 +533,7 @@ printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
     (* find MIP players *)
     for i <- seq(0#numPlayers) do
       (_,v) = arr[i]
-      player = database.member(v).unJust()
+      player = database.member(v).get()
       if player.preRanking - player.ranking = mip
       then mipPlayers := mipPlayers.addLeft(player.name) end
     end
@@ -548,7 +548,7 @@ printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
 
     (* print MIP players and their old and new rankings *)
     mipRec(p:String): String = do
-        player = database.member(p).unJust()
+        player = database.member(p).get()
         (" " player.name
          " (ranking " player.preRanking " => " player.ranking ")")
       end

@@ -58,17 +58,17 @@ chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPopZ(l,0,sz,1)
 chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
   ll : List[\ZZ32\] := l
   for i <- seq(0#sz) do
-      (e,ll0) = ll.extractLeft().unJust()
+      (e,ll0) = ll.extractLeft().get()
       assertStr(e,i,"extractLeft wrong in ",ll)
-      assertStr(ll.left().unJust(),i,"left wrong in ",ll)
+      assertStr(ll.left().get(),i,"left wrong in ",ll)
       ll := ll0
   end
   assertStr(ll.isEmpty()," not empty after extractLeft(); it's ",ll)
   ll := l
   for i <- seq(1#sz) do
-      (ll0,e) = ll.extractRight().unJust()
+      (ll0,e) = ll.extractRight().get()
       assertStr(e,sz-i,"extractRight wrong in ",ll)
-      assertStr(ll.right().unJust(),sz-i,"right wrong in ",ll)
+      assertStr(ll.right().get(),sz-i,"right wrong in ",ll)
       ll := ll0
   end
   assertStr(ll.isEmpty()," not empty after extractRight(); it's ",ll)

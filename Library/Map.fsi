@@ -77,7 +77,7 @@ trait Map[\Key,Val\]
         We call %doThis% on keys present in %self% but not in %that%.
         We call %doThat% on keys present in %that% but not in %self%.
         When any of these functions returns %r=Just[\Result\]%, the key is mapped
-            to %r.unJust()% in the result.
+            to %r.get()% in the result.
         When any of these functions returns %Nothing[\Result\]%, there is no
             mapping for the key in the result.
 

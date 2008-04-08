@@ -18,6 +18,7 @@
 package com.sun.fortress.useful;
 
 public class LongLatticeOps implements LatticeOps<Long> {
+    public boolean isForward() { return true; }
 
     public LatticeOps<Long> dual() {
         return new DualLattice<Long>(this);

@@ -24,8 +24,8 @@ api SyntaxOption
       LiteralExpr |Expr:=
          Hello? world
          do
-           if (Hello.isJust()) then
-             StringLiteralExpr(Hello.unJust().val " " world)
+           if h <- Hello then
+             StringLiteralExpr(h.val " " world)
            else
              StringLiteralExpr(world)
            end

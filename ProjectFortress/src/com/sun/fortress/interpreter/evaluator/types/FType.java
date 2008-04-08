@@ -31,6 +31,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.VarargsType;
+import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BASet;
@@ -418,19 +419,28 @@ abstract public class FType implements Comparable<FType> {
 
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        boolean rc;
+        boolean rc = false;
+        FType other = null;
         if (! (val instanceof IdType)) {
-            rc = false;
+            if (DUMP_UNIFY) System.out.print("builtin ");
+            if (val instanceof VoidType) {
+                other = FTypeVoid.ONLY;
+            }
         } else if (name.equals(NodeUtil.nameString(((IdType)val).getName()))) {
+            if (DUMP_UNIFY) System.out.print("iso ");
             rc = true;
         } else {
-            FType other = env.getTypeNull(((IdType)val).getName());
-
-            if (other == null) {
-                rc = false;
-            } else {
+            other = env.getTypeNull(((IdType)val).getName());
+            if (DUMP_UNIFY && other==null) System.out.print("null ");
+        }
+        if (other != null) {
+            if (abm.isForward()) {
                 // Let the unification succeed if there's a subtype relationship.
                 rc = this.subtypeOf(other);
+            } else {
+                // Let the unification succeed for a reverse subtype relationship.
+                if (DUMP_UNIFY) System.out.print("contra ");
+                rc = other.subtypeOf(this);
             }
         }
         if (DUMP_UNIFY) {
@@ -487,6 +497,8 @@ abstract public class FType implements Comparable<FType> {
             if (DUMP_UNIFY) System.out.println("            "+t+" !=  "+val+", abm=" + abm);
             abm.assign(savedAbm);
         }
+        if (DUMP_UNIFY)
+            System.out.println("    Can't unify "+this+" with "+val);
         error(val,env,
               errorMsg("Cannot unify ",
                        this,
