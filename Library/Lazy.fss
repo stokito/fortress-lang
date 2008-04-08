@@ -24,15 +24,15 @@ export Lazy
 value object Lazy[\T\](var s : State[\T\])
   (** value obtains the value of the lazy object, evaluating it (or
    blocking until it has been evaluated) as necessary. *)
-  getter value(): T = do
+  getter val(): T = do
       (old,eval) = attempt()
       if eval then
           assert(s.isPending(),"Lazy.value: not pending!")
-          s := Done[\T\](old.value())
-          s.value()
+          s := Done[\T\](old.val())
+          s.val()
       else
           assert(old.isDone(),"Lazy.value: must be done by this point.")
-          old.value()
+          old.val()
       end
     end
   (** run attempts to run the thunk in parallel in its own spawned
@@ -43,11 +43,11 @@ value object Lazy[\T\](var s : State[\T\])
       if eval then
           assert(s.isPending(),"Lazy.run: not pending!")
           spawn do
-              s := Done[\T\](old.value())
+              s := Done[\T\](old.val())
           end
       else
           assert(old.isDone(),"Lazy.run: must be done by this point.")
-          old.value()
+          old.val()
       end
     end
   (* attempt is used internally and encapsulates the thunk locking
@@ -84,21 +84,21 @@ noDelay[\T\](t:T):Thunk[\T\] = Lazy[\T\](Done[\T\](t))
 trait State[\T\] comprises { Thunk[\T\], Pending[\T\], Done[\T\] }
   getter isDone():Boolean = false
   getter isPending():Boolean = false
-  getter value():T
+  getter val():T
 end
 
 object Thunk[\T\](f: ()->T) extends State[\T\]
-  getter value():T = f()
+  getter val():T = f()
 end
 
 object Pending[\T\] extends State[\T\]
   getter isPending():Boolean = true
-  getter value():T = abort()
+  getter val():T = abort()
 end
 
 object Done[\T\](v:T) extends State[\T\]
   getter isDone():Boolean = true
-  getter value():T = v
+  getter val():T = v
 end
 
 end
