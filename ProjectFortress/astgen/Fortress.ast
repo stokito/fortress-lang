@@ -717,10 +717,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             For(List<GeneratorClause> gens, DoFront body);
             /**
              * if expression
-             * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end
-             *                 | ( if Expr then BlockElems Elifs? Else end? )
-             * Elif ::= elif Expr then BlockElems
+             * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
+             *                 | ( if CondExpr then BlockElems Elifs? Else end? )
+             * Elif ::= elif CondExpr then BlockElems
              * Else ::= else BlockElems
+             * CondExpr ::= BindId <- Expr
+             *            | Expr
              * e.g.) if x IN {0, 1, 2} then 0
              *       elif x IN {3, 4, 5} then 3
              *       else 6 end
@@ -1922,7 +1924,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * Elif ::= elif Expr then BlockElems
      * e.g.) if x IN { 0, 1, 2 } then 0
      */
-    IfClause(Expr test, Block body);
+    IfClause(GeneratorClause test, Block body);
     /**
      * typecase clause used in typecase expressions
      * TypecaseClause ::= TypecaseTypes => BlockElems

@@ -42,8 +42,8 @@ import Spacing;
    | label w Id w BlockElems w end w Id
    | while w Expr w Do
    | for w GeneratorClauseList w DoFront w end
-   | if w Expr w then w BlockElems (w Elifs)? (w Else)? w end
-   | ( w if w Expr w then w BlockElems (w Elifs)? w Else (w end)? w )
+   | if w CondExpr w then w BlockElems (w Elifs)? (w Else)? w end
+   | ( w if w CondExpr w then w BlockElems (w Elifs)? w Else (w end)? w )
    | case w Expr (w Op)? w of w CaseClauses (w CaseElse)? w end
    | case w most w Op w of w CaseClauses w end
    | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
@@ -68,14 +68,14 @@ Expr DelimitedExpr =
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
    / for w a1:GeneratorClauseList w a2:DoFront w end
      { yyValue = new For(createSpan(yyStart,yyCount), false, a1, a2); }
-   / if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
+   / if w a1:CondExpr w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
      { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        Option<Block> elseC = Option.wrap(a4);
        yyValue = new If(createSpan(yyStart,yyCount), false, clauses, elseC);
      }
-   / openparen w if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? w a4:Else
+   / openparen w if w a1:CondExpr w then w a2:BlockElems a3:(w Elifs)? w a4:Else
        (w end)? w closeparen
      { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
@@ -172,12 +172,26 @@ Expr Parenthesized =
      openparen w a1:Expr w closeparen
      { yyValue = ExprFactory.makeInParentheses(a1); };
 
+/* CondExpr ::=
+     BindId <- Expr
+   | Expr
+ */
+GeneratorClause CondExpr =
+     a1:BindId w leftarrow w a2:Expr
+     { yyValue = ExprFactory.makeGeneratorClause(createSpan(yyStart,yyCount),
+                                                 Useful.list(a1),a2);
+     }
+   / a1:Expr
+     { yyValue = ExprFactory.makeGeneratorClause(createSpan(yyStart,yyCount),
+                                                 Useful.<Id>list(), a1);
+     };
+
 /* Elifs ::= Elif (w Elif)* */
 List<IfClause> Elifs = a1:Elif a2s:(w Elif)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* Elif ::= elif w Expr w then w BlockElems */
-private IfClause Elif = elif w a1:Expr w then w a2:BlockElems
+/* Elif ::= elif w CondExpr w then w BlockElems */
+private IfClause Elif = elif w a1:CondExpr w then w a2:BlockElems
      { yyValue = new IfClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Else ::= else w BlockElems */

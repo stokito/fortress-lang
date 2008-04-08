@@ -1,5 +1,7 @@
 FORTRESS ABSTRACT SYNTAX TREE
 -----------------------------
+* Every non-leaf node should be an abstract class.
+
 * Where each concrete AST node is evaluated or not yet implemented (NYI)
  - Component                    : BuildEnvironments
  - Api                          : BuildEnvironments
@@ -141,8 +143,8 @@ FORTRESS ABSTRACT SYNTAX TREE
  - GTConstraint                 : NYI
  - IEConstraint                 : NYI
  - BoolConstraintExpr           : NYI
- - Contract                     : NYI
- - EnsuresClause                : NYI
+ - Contract                     : Desugarer
+ - EnsuresClause                : Desugarer
  - ModifierAbstract     	: NYI
  - ModifierAtomic       	: NYI
  - ModifierGetter       	: NYI
@@ -154,8 +156,8 @@ FORTRESS ABSTRACT SYNTAX TREE
  - ModifierSetter       	: NYI
  - ModifierTest         	: NYI
  - ModifierTransient    	: NYI
- - ModifierValue        	: NYI
- - ModifierVar          	: NYI
+ - ModifierValue        	: FTraitOrObjectOrGeneric
+ - ModifierVar          	: EvalType
  - ModifierWidens       	: NYI
  - ModifierWrapped      	: NYI
  - OperatorParam                : EvalType (bindGenericParameters)
@@ -518,18 +520,7 @@ trait T comprises {...} end
 
  2) What are the purposes of the interfaces?
 
- 3) What does the FnName hierarchy mean?
-    FnName (abstract)      : name representing a functional
-        DottedId           : qualified name
-        AnonymousFnName    : internal name for anonymous function expression
-        ConstructorFnName  : internal name for anonymous constructor expression
-        OprName (abstract) : name representing an operator
-            Enclosing      : a pair of enclosing operators
-            PostFix        : a postfix operator
-            SubscriptOp    : subscripting or subscripted assignment operator
-            Opr            : all the other operator
-
- 4) What is the root of the node hierarchy, UIDObject?
+ 3) What is the root of the node hierarchy, UIDObject?
    - It provides a unique identification for each node.
    - It should not include things that are applicable only to nodes.
    - It should include things that are shared by nodes and the other parts

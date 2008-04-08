@@ -811,7 +811,7 @@ public class Desugarer extends Rewrite {
                     if (oe.isNone()) {
                         node = ExprFactory.makeTypecase(tc, lid, (Expr) tupleForIdList(lid));
                     }
-                    
+
                 } else {
                     atTopLevelInsideTraitOrObject = false;
                 }
@@ -870,19 +870,19 @@ public class Desugarer extends Rewrite {
         Expr res = ExprFactory.makeFnExpr(g.getSpan(),params,body);
         return res;
     }
-    
+
     /**
      * Given List<Id>, generate tuple of corresponding VarRef
      */
     Expr tupleForIdList(List<Id> binds) {
         if (binds.size() == 1)
             return ExprFactory.makeVarRef(binds.get(0));
-        
+
         List<Expr> refs = new ArrayList<Expr>(binds.size());
-       
+
         for (Id b : binds)
             refs.add(ExprFactory.makeVarRef(b));
-        
+
         return ExprFactory.makeTuple(
                 new Span(binds.get(0).getSpan(),
                          binds.get(binds.size()-1).getSpan()),
@@ -1307,7 +1307,9 @@ public class Desugarer extends Rewrite {
 	List<Expr> r = Option.unwrap(_requires);
 	for (Expr e : r) {
 	    Span sp = e.getSpan();
-	    If _if = ExprFactory.makeIf(sp, new IfClause(sp,e,b), 
+            GeneratorClause cond =
+                ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(), e);
+	    If _if = ExprFactory.makeIf(sp, new IfClause(sp,cond,b),
 					ExprFactory.makeThrow(sp,"CallerViolation"));
 	    b = ExprFactory.makeBlock(sp, _if);
 	}
@@ -1318,26 +1320,31 @@ public class Desugarer extends Rewrite {
 	List<EnsuresClause> es = Option.unwrap(_ensures);
 	for (EnsuresClause e : es) {
 	    Span sp = e.getSpan();
-	    Id t1 = gensymId("t1");	   
-	    Block inner_block = 
-		ExprFactory.makeBlock(sp, 
+	    Id t1 = gensymId("t1");
+	    Block inner_block =
+		ExprFactory.makeBlock(sp,
 				      ExprFactory.makeVarRef(sp, "result"));
-	    If _inner_if = 
-		ExprFactory.makeIf(sp, 
-				   new IfClause(sp, e.getPost(), inner_block),
+            GeneratorClause cond;
+            cond = ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(),
+                                                   e.getPost());
+	    If _inner_if =
+		ExprFactory.makeIf(sp,
+				   new IfClause(sp, cond, inner_block),
 				   ExprFactory.makeThrow(sp, "CalleeViolation"));
 
-	    If _if = ExprFactory.makeIf(sp, new IfClause(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
+            cond = ExprFactory.makeGeneratorClause(sp,
+                                                   Useful.<Id>list(), (Expr) ExprFactory.makeVarRef(sp,t1));
+	    If _if = ExprFactory.makeIf(sp, new IfClause(sp, cond,
 							 ExprFactory.makeBlock(sp,_inner_if)),
 					ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"result")));
 	    LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"result"), b, _if);
 	    Option<Expr> _pre = e.getPre();
  	    LocalVarDecl provided_lvd;
 	    if (_pre.isSome()) {
-		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, Option.unwrap(_pre), 
+		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, Option.unwrap(_pre),
 							    ExprFactory.makeBlock(sp, r));
 	    } else {
-		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, ExprFactory.makeVarRef("true"), 
+		provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, ExprFactory.makeVarRef("true"),
 							    ExprFactory.makeBlock(sp, r));
 	    }
 
@@ -1357,9 +1364,11 @@ public class Desugarer extends Rewrite {
 	    Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
 							  new Op("="),
 							  (Expr) ExprFactory.makeVarRef(sp, t2));
-	    If _post = 
-		ExprFactory.makeIf(sp, new IfClause(sp,chain, 
-						    ExprFactory.makeBlock(sp, 
+            GeneratorClause gen_chain = ExprFactory.makeGeneratorClause(sp,
+                                                                        Useful.<Id>list(), chain);
+	    If _post =
+		ExprFactory.makeIf(sp, new IfClause(sp,gen_chain,
+						    ExprFactory.makeBlock(sp,
 									  ExprFactory.makeVarRef(sp,
 												 "result"))),
 					  ExprFactory.makeThrow(sp, "CalleeViolation"));
