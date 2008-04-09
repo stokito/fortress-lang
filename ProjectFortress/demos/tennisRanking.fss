@@ -164,10 +164,9 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
   playedDouble(team: String, against1: String, against2: String) =
     do
       maybeWithGames = played.member(team)
-      if maybeWithGames
-      then withGames = maybeWithGames.get()
-           if withGames.member(against1)
-           then withGames.member(against1).get() = against2
+      if withGames <- maybeWithGames
+      then if against1' <- withGames.member(against1)
+           then (against1' = against2)
            else withGames.member(against2).holds() AND:
                 (withGames.member(against2).get() = against1)
            end
@@ -179,8 +178,8 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
     do
       maybeAgainstGames = played.member(against)
       againstGames:Map[\String,String\] :=
-        if maybeAgainstGames
-        then maybeAgainstGames.get()
+        if againstGames' <- maybeAgainstGames
+        then againstGames'
         else mapping[\String,String\]() end
       againstGames := againstGames.add("","")
       played := played.update(against, againstGames)
@@ -191,8 +190,8 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
     do
       maybeWithGames = played.member(team)
       withGames:Map[\String,String\] :=
-        if maybeWithGames
-        then maybeWithGames.get()
+        if withGames' <- maybeWithGames
+        then withGames'
         else mapping[\String,String\]() end
       withGames := withGames.add(against1,against2)
       played := played.update(team, withGames)
@@ -362,9 +361,9 @@ addGame(fout: BufferedWriter,
        then add the player first *)
     maybeWinner = database.member(winnerName)
     maybeLoser  = database.member(loserName)
-    winner = if maybeWinner then maybeWinner.get()
+    winner = if winner' <- maybeWinner then winner'
              else new(winnerName, winnerOld) end
-    loser  = if maybeLoser then maybeLoser.get()
+    loser  = if loser' <- maybeLoser then loser'
              else new(loserName,  loserOld) end
     (* if any player has never played any game before this term,
        then ranking differences are ignored *)
@@ -434,13 +433,13 @@ addGame(fout: BufferedWriter,
     maybeWinner2 = database.member(winnerName2)
     maybeLoser1  = database.member(loserName1)
     maybeLoser2  = database.member(loserName2)
-    winner1 = if maybeWinner1 then maybeWinner1.get()
+    winner1 = if winner1' <- maybeWinner1 then winner1'
               else new(winnerName1, winnerOld1) end
-    winner2 = if maybeWinner2 then maybeWinner2.get()
+    winner2 = if winner2' <- maybeWinner2 then winner2'
               else new(winnerName2, winnerOld2) end
-    loser1  = if maybeLoser1  then maybeLoser1.get()
+    loser1  = if loser1' <- maybeLoser1  then loser1'
               else new(loserName1,  loserOld1) end
-    loser2  = if maybeLoser2  then maybeLoser2.get()
+    loser2  = if loser2' <- maybeLoser2  then loser2'
               else new(loserName2,  loserOld2) end
     (* if any player has never played any game before this term,
        then ranking differences are ignored *)
