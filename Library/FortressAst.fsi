@@ -97,7 +97,7 @@ api FortressAst
       params:List[\Param\]
       returnType:Maybe[\Type\]
       throwsClause:Maybe[\List[\TraitType\]\]
-      whereClauses:List[\WhereClause\]
+      whereClause:WhereClause
       acontract:Contract
       selfName:String
    end
@@ -125,7 +125,7 @@ api FortressAst
       params:List[\Param\],
       returnType:Maybe[\Type\],
       throwsClause:Maybe[\List[\TraitType\]\],
-      whereClauses:List[\WhereClause\],
+      whereClause:WhereClause,
       acontract:Contract,
       selfName:String) extends {FnAbsDeclOrDecl, AbsDecl } end
    (**
@@ -140,7 +140,7 @@ api FortressAst
       params:List[\Param\],
       returnType:Maybe[\Type\],
       throwsClause:Maybe[\List[\TraitType\]\],
-      whereClauses:List[\WhereClause\],
+      whereClause:WhereClause,
       acontract:Contract,
       selfName:String,
       body:Expr) extends FnDecl end
@@ -327,7 +327,11 @@ api FortressAst
       *)
    trait DimExpr extends StaticExpr end
 
-   trait WhereClause extends AbstractNode end
+   object WhereClause(bindings:List[\WhereBinding\], constraints:List[\WhereConstraint\]) extends AbstractNode end
+   trait WhereBinding extends AbstractNode end
+   trait WhereConstraint extends AbstractNode end
+
+(*
    object WhereExtends(name:Id, supers:List[\TraitType\]) extends WhereClause end
    object TypeAlias(name:Id, staticParams:List[\StaticParam\], atype:Type)  extends { WhereClause, Decl, AbsDecl } end
    object WhereNat(name:Id) extends WhereClause end
@@ -347,6 +351,7 @@ api FortressAst
    object GTConstraint(left:IntExpr, right:IntExpr) extends IntConstraint end
    object IEConstraint(left:IntExpr, right:IntExpr) extends IntConstraint end
    object BoolConstraintExpr(constraint:BoolConstraint) extends WhereClause end
+*)
    (**
      * contracts used in functional declarations and object declarations
      * Contract ::= Requires? Ensures? Invariant?
@@ -525,7 +530,7 @@ api FortressAst
      * TraitTypeWhere ::= TraitType Where?
      *)
    object TraitTypeWhere(traitType:TraitType, whereLs:List[\WhereClause\]) extends AbstractNode end
-   (**
+  (**
      * array indices
      *)
    trait Indices extends AbstractNode end

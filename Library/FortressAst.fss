@@ -101,7 +101,7 @@ component FortressAst
       params:List[\Param\]
       returnType:Maybe[\Type\]
       throwsClause:Maybe[\List[\TraitType\]\]
-      whereClauses:List[\WhereClause\]
+      whereClause:WhereClause
       acontract:Contract
       selfName:String
    end
@@ -129,7 +129,7 @@ component FortressAst
       params:List[\Param\],
       returnType:Maybe[\Type\],
       throwsClause:Maybe[\List[\TraitType\]\],
-      whereClauses:List[\WhereClause\],
+      whereClause:WhereClause,
       acontract:Contract,
       selfName:String) extends {FnAbsDeclOrDecl, AbsDecl } end
    (**
@@ -144,7 +144,7 @@ component FortressAst
       params:List[\Param\],
       returnType:Maybe[\Type\],
       throwsClause:Maybe[\List[\TraitType\]\],
-      whereClauses:List[\WhereClause\],
+      whereClause:WhereClause,
       acontract:Contract,
       selfName:String,
       body:Expr) extends FnDecl end
@@ -332,8 +332,11 @@ component FortressAst
       *)
    trait DimExpr extends StaticExpr end
 
-   trait WhereClause extends AbstractNode end
-   object WhereExtends(name:Id, supers:List[\TraitType\]) extends WhereClause end
+   object WhereClause(bindings:List[\WhereBinding\], constraints:List[\WhereConstraint\]) extends AbstractNode end
+   trait WhereBinding extends AbstractNode end
+   trait WhereConstraint extends AbstractNode end
+
+(*
    object TypeAlias(name:Id, staticParams:List[\StaticParam\], atype:Type)  extends { WhereClause, Decl, AbsDecl } end
    object WhereNat(name:Id) extends WhereClause end
    object WhereInt(name:Id) extends WhereClause end
@@ -352,6 +355,7 @@ component FortressAst
    object GTConstraint(left:IntExpr, right:IntExpr) extends IntConstraint end
    object IEConstraint(left:IntExpr, right:IntExpr) extends IntConstraint end
    object BoolConstraintExpr(constraint:BoolConstraint) extends WhereClause end
+*)
    (**
      * contracts used in functional declarations and object declarations
      * Contract ::= Requires? Ensures? Invariant?
@@ -408,7 +412,7 @@ component FortressAst
    (**
      * unqualified id name
      *)
-   object Id(text:String) extends Name end
+   object Id(text:String) extends SimpleName end
    (**
      * unqualified operator name
      *)
