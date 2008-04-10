@@ -78,7 +78,6 @@ abstract public class Fcn extends FValue {
     final public FValue apply(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         args = conditionallyUnwrapTupledArgs(args);
         return applyInner(args, loc, envForInference);
-
     }
 
     public boolean isMethod() {

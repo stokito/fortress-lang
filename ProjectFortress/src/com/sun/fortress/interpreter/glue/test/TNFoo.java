@@ -22,7 +22,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.Constructor;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
@@ -32,25 +32,26 @@ import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.GenericWithParams;
 
-public class TNFoo extends Constructor {
-
+public class TNFoo extends NativeConstructor {
     public TNFoo(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }
 
-    protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        return new Obj(selfType, lex_env, self_env);
+    protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
+        System.out.println("Constructing instance for "+
+                           getSelfEnv().getValue("n").getInt());
+        return new Obj(args.get(0).getString(),getSelfEnv().getValue("n").getInt(),con);
     }
 
-    private static final class Obj extends FOrdinaryObject {
-        public Obj(FTypeObject selfType,
-                   BetterEnv lexical_env, BetterEnv self_dot_env) {
-            // might like to discard envs to perhaps save space,
-            // but need self_dot_env for method invocation lookup
-            super(selfType, lexical_env, self_dot_env);
-            int theCount = self_dot_env.getValue("n").getInt();
-            String s = self_dot_env.getValue("s").getString();
+    private static final class Obj extends FNativeObject {
+        final FValue theString;
+
+        final NativeConstructor con;
+
+        private Obj(String s, int theCount, NativeConstructor con) {
+            super(con);
+            this.con = con;
 
             while (theCount > 0) {
                 s = s + " " + s;
@@ -58,11 +59,21 @@ public class TNFoo extends Constructor {
             }
 
             theString = FString.make(s);
+            System.out.println("Constructed "+theString);
 
         }
 
-        FValue theString;
+        public NativeConstructor getConstructor() {
+            return con;
+        }
 
+        public boolean seqv(FValue v) {
+            if (v==this) return true;
+            if (!(v instanceof Obj)) return false;
+            Obj o = (Obj) v;
+            if (con != o.getConstructor()) return false;
+            return theString.equals(o.theString);
+        }
     }
 
     public static final class bar extends NativeMeth0 {
