@@ -2075,7 +2075,7 @@ trait NestedGenerator[\E,F\] extends Generator[\F\]
     loop(body:F->()): () =
         g().loop(fn (e:E) => (f())(e).loop(body))
     map[\G\](h:F->G): Generator[\G\] =
-        g().nest[\G\](fn (e:E): G => (f())(e).map[\G\](h))
+        g().nest[\G\](fn (e:E): Generator[\G\] => (f())(e).map[\G\](h))
     nest[\G\](h:F->Generator[\G\]): Generator[\G\] =
         g().nest[\G\](fn (e:E):Generator[\G\] => (f())(e).nest[\G\](h))
 end
@@ -2091,7 +2091,7 @@ object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
                 SimpleNestedSeqGenerator[\E,F\](seq(g()),ff)
             else =>
                 SimpleNestedSeqGenerator[\E,F\](seq(g()),
-                     fn (e:E): SequentialGenerator[\F\] => seq(f()(e)))
+                     fn (e:E): SequentialGenerator[\F\] => seq(self.f()(e)))
         end
 end
 
