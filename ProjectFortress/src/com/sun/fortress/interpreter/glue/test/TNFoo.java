@@ -39,8 +39,6 @@ public class TNFoo extends NativeConstructor {
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
-        System.out.println("Constructing instance for "+
-                           getSelfEnv().getValue("n").getInt());
         return new Obj(args.get(0).getString(),getSelfEnv().getValue("n").getInt(),con);
     }
 
@@ -59,7 +57,6 @@ public class TNFoo extends NativeConstructor {
             }
 
             theString = FString.make(s);
-            System.out.println("Constructed "+theString);
 
         }
 

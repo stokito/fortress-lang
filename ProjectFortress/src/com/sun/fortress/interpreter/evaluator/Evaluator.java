@@ -1574,8 +1574,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
                              errorMsg("undefined method/field ",
                                       NodeUtil.nameString(fld)));
             else if (cl instanceof Method) {
-                return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
-                        fobject, x, e);
+                try {
+                    return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
+                                                     fobject, x, e);
+                } catch (FortressError fe) {
+                    throw fe.setContext(x,e);
+                }
             } else if (cl instanceof Fcn) {
                 Fcn fcl = (Fcn) cl;
                 // Ordinary closure, assigned to a field.
