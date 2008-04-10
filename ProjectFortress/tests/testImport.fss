@@ -30,9 +30,6 @@ run(args:String...) = do
     println("x = " x)
     println("y = " y)
     println("z = " z)
-    mf = MyFoo[\2\]("PASS!")
-    s : String = mf.bar()
-    println(s)
     assert("PASS! PASS! PASS! PASS!",MyFoo[\2\]("PASS!").bar(),"MyFoo[\\2\\]")
 end
 
