@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component zeno
-
+import ChunkedSparseArray.{...}
 export Executable
 
 (**
@@ -72,14 +72,14 @@ end
 
 init : Frac = Frac(1,0)
 
-bin(f:Frac): ZZ32 = f.numerator() DIV 2
-unbin(i:ZZ32): Frac = Frac(2 i + 1, rounds)
+bin(f:Frac): ZZ32 = f.numerator() (* DIV 2 *)
+unbin(i:ZZ32): Frac = Frac(i (* 2 i + 1 *), rounds)
 
-histogram : Array[\ZZ32,ZZ32\] = array[\ZZ32\](2^(rounds-1)).fill(0)
+histogram : Array[\ZZ32,ZZ32\] = (* array[\ZZ32\](2^(rounds-1)).fill(0) *)
+    chunkedSparseArray(2^rounds,0)
 
 trial(f:Frac): () =
     if f.round() = rounds then
-        print(".")
         b = bin(f)
         atomic histogram[b] += 1
     else
