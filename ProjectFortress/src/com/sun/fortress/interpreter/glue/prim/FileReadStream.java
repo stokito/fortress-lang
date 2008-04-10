@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.glue.prim;
 
 import java.lang.String;
+import java.util.List;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,7 +27,7 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.Constructor;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
@@ -41,35 +42,39 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class FileReadStream extends Constructor {
+public class FileReadStream extends NativeConstructor {
+    private static NativeConstructor con = null;
 
     public FileReadStream(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
-        // TODO Auto-generated constructor stub
     }
 
-    protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        String name = self_env.getValue("filename").getString();
+    protected FNativeObject makeNativeObject(List<FValue> args,
+                                             NativeConstructor con) {
+        this.con = con;
+        String name = args.get(0).getString();
         try {
             BufferedReader r = Useful.utf8BufferedFileReader(name);
-            return new PrimReader(name, r, selfType, lex_env, self_env);
+            return new PrimReader(name, r);
         } catch (FileNotFoundException ex) {
             return error("FileNotFound: "+name);
         }
     }
 
-    private static final class PrimReader extends FOrdinaryObject {
+    private static final class PrimReader extends FNativeObject {
         protected final BufferedReader reader;
         protected final String name;
         protected boolean eof = false;
         protected boolean consumed = false;
 
-        public PrimReader(String name, BufferedReader reader,
-                          FTypeObject selfType,
-                          BetterEnv lexical_env, BetterEnv self_dot_env) {
-            super(selfType, lexical_env, self_dot_env);
+        public PrimReader(String name, BufferedReader reader) {
+            super(FileReadStream.con);
             this.reader = reader;
             this.name = name;
+        }
+
+        public NativeConstructor getConstructor() {
+            return FileReadStream.con;
         }
 
         public String getString() {
@@ -80,6 +85,10 @@ public class FileReadStream extends Constructor {
             if (consumed) {
                 error(errorMsg("Performed operation on consumed FileReadStream ",name));
             }
+        }
+
+        public boolean seqv(FValue v) {
+            return (v==this);
         }
     }
 

@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.values.Constructor;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
@@ -45,7 +45,7 @@ import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class Reflect extends Constructor {
+public class Reflect extends NativeConstructor {
     static GenericConstructor gcon = null;
 
     volatile ReflectedType it;
@@ -55,26 +55,31 @@ public class Reflect extends Constructor {
         gcon = (GenericConstructor)env.getValue("Reflect");
     }
 
-    protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        FType t = self_env.getType("T");
+    protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
         if (it==null) {
             synchronized(this) {
                 if (it==null) {
-                    it = new ReflectedType(selfType, lex_env, self_env);
+                    it = new ReflectedType(con);
                 }
             }
         }
         return it;
     }
 
-    private static final class ReflectedType extends FOrdinaryObject {
-        public ReflectedType(FTypeObject selfType,
-                             BetterEnv lex_env, BetterEnv self_dot_env) {
-            super(selfType, lex_env, self_dot_env);
+    private static final class ReflectedType extends FNativeObject {
+        final NativeConstructor con;
+
+        private ReflectedType(NativeConstructor con) {
+            super(con);
+            this.con = con;
         }
 
         FType getTy() {
             return getSelfEnv().getType("T");
+        }
+
+        public NativeConstructor getConstructor() {
+            return con;
         }
 
         public boolean seqv(FValue other) {

@@ -31,6 +31,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 public abstract class NativeConstructor extends Constructor {
 
     private volatile BetterEnv selfEnv;
+    private volatile BetterEnv lexEnv;
 
     public NativeConstructor(BetterEnv env,
                              FTypeObject selfType,
@@ -40,6 +41,10 @@ public abstract class NativeConstructor extends Constructor {
 
     public BetterEnv getSelfEnv() {
         return selfEnv;
+    }
+
+    public BetterEnv getLexicalEnv() {
+        return lexEnv;
     }
 
     public static abstract class FNativeObject extends FObject {
@@ -56,12 +61,11 @@ public abstract class NativeConstructor extends Constructor {
          * All the getters operate in terms of getConstructor.
          */
         public BetterEnv getSelfEnv() {
-            BetterEnv se = getConstructor().selfEnv;
-            return se;
+            return getConstructor().getSelfEnv();
         }
 
         public BetterEnv getLexicalEnv() {
-            return BetterEnv.blessedEmpty();
+            return getConstructor().getLexicalEnv();
         }
 
         public FType type() {
@@ -83,13 +87,13 @@ public abstract class NativeConstructor extends Constructor {
         }
 
         if (selfEnv == null) {
-            initializeSelfEnv(args, loc);
+            initializeSelfEnv(args, loc, lex_env);
         }
 
         return makeNativeObject(args, this);
     }
 
-    private void initializeSelfEnv(List<FValue> args, HasAt loc) {
+    private void initializeSelfEnv(List<FValue> args, HasAt loc, BetterEnv lex_env) {
         // Problem -- we need to detach self-env from other env.
         if (methodsEnv == null)
             bug("Null methods env for " + this);
@@ -106,13 +110,14 @@ public abstract class NativeConstructor extends Constructor {
         // or objectExpr value.
         if (defs.size() > 0) {
             EvalVarsEnvironment eve =
-                new EvalVarsEnvironment(self_env,self_env);
+                new EvalVarsEnvironment(new BetterEnv(lex_env,self_env), self_env);
             visitDefs(eve); // HACK here's where we add to self_env.
         }
 
         synchronized (this) {
             if (selfEnv != null) return;
             oneTimeInit(self_env);
+            lexEnv = lex_env;
             selfEnv = self_env;
         }
     }

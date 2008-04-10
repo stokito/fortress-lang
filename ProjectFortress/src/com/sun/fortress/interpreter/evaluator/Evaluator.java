@@ -992,9 +992,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // distinction based on the resulting getText.
         // We do not handle functional methods, and overlap therewith, at all.
         List<Expr> exprs = x.getExprs();
-        FValue times = e.getValue("juxtaposition");
+        FValue times;
         if (exprs.size() == 0)
             bug(x,"empty juxtaposition");
+        try {
+            times = e.getValue("juxtaposition");
+        } catch (FortressError fe) {
+            throw fe.setContext(x,e);
+        }
         List<FValue> evaled = evalExprListParallel(exprs);
         Boolean inFunction = true;
         Stack<FValue> stack = new Stack<FValue>();
