@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.Constructor;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
@@ -48,32 +48,39 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class Thread extends Constructor {
+public class Thread extends NativeConstructor {
 
     public Thread(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
     }
 
-    protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        return new Thread_prim(selfType, lex_env, self_env);
+    protected FNativeObject makeNativeObject(List<FValue> args,
+                                             NativeConstructor con) {
+        return new Thread_prim((SingleFcn)args.get(0), con);
     }
 
-    private static final class Thread_prim extends FOrdinaryObject {
+    private static final class Thread_prim extends FNativeObject {
+        private final NativeConstructor con;
         private final FortressTaskRunnerGroup group;
         private final SpawnTask st;
 
-        public Thread_prim(FTypeObject selfType,
-                           BetterEnv lexical_env, BetterEnv self_dot_env) {
-            super(selfType, lexical_env, self_dot_env);
+        public Thread_prim(SingleFcn sf, NativeConstructor con) {
+            super(con);
+            this.con = con;
             int numThreads = Runtime.getRuntime().availableProcessors();
             String numThreadsString = System.getenv("FORTRESS_THREADS");
 
             if (numThreadsString != null)
                 numThreads = Integer.parseInt(numThreadsString);
             group = new FortressTaskRunnerGroup(numThreads);
-            SingleFcn sf = (SingleFcn) self_dot_env.getValue("fcn");
-            st = new SpawnTask(sf,new Evaluator(self_dot_env));
+            st = new SpawnTask(sf,new Evaluator(getSelfEnv()));
 	    group.execute(st);
+        }
+
+        public NativeConstructor getConstructor() { return con; }
+
+        public boolean seqv(FValue v) {
+            return (this==v);
         }
     }
 
