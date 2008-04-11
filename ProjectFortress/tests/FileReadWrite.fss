@@ -63,11 +63,11 @@ run(args:String...) = do
   s1 = "Writing again...\n"
   s2 = "And an unterminated line."
   s = s0 s1 s2
-  fout: BufferedWriter = outFileOpen("testFile.txt")
-  outFileWrite(fout, s0)
-  outFileWrite(fout, s1)
-  outFileWrite(fout, s2)
-  outFileClose(fout)
+  fout: FileWriteStream = FileWriteStream("testFile.txt")
+  fout.print(s0)
+  fout.print(s1)
+  fout.print(s2)
+  fout.close()
 
   (* Note that we can't distinguish the non-terminated final line when
      we use readLine.  We'll always get a final empty line. *)

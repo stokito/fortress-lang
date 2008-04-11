@@ -2853,10 +2853,6 @@ opr juxtaposition(a:Any, b:String):String = ("" a) b
 opr DOT(a:String, b:Any):String = a b.toString()
 opr juxtaposition(a:String, b:Any):String = a b.toString()
 
-outFileOpen(name:String):BufferedWriter = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.File$OutFileOpen")
-outFileWrite(file: BufferedWriter, str: String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.File$OutFileWrite")
-outFileClose(file: BufferedWriter):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.File$OutFileClose")
-
 print(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
 print(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")

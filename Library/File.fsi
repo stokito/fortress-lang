@@ -22,11 +22,11 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
     getter fileName():String
     getter toString():String
 
-    (** \VAR{eof} returns true if an end-of-file (EOF) condition has been
+    (** %eof% returns true if an end-of-file (EOF) condition has been
         encountered on the stream. **)
     getter eof():Boolean
 
-    (** \VAR{ready} returns true if there is currently input from the stream
+    (** %ready% returns %true% if there is currently input from the stream
         available to be consumed.
      **)
     getter ready():Boolean
@@ -35,7 +35,7 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
      **)
     close():()
 
-    (** \VAR{readLine} returns the next available line from the stream, discarding
+    (** %readLine% returns the next available line from the stream, discarding
         line termination characters.  Returns %""% on EOF.
      **)
     readLine():String
@@ -44,7 +44,7 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
      **)
     readChar():Char
 
-    (** \VAR{read} returns the next \VAR{k} characters from the stream.  It will block
+    (** %read% returns the next %k% characters from the stream.  It will block
         until at least one character is available, and will then
         return as many characters as are ready.  Will return %""% on end
         of file.  If $k<=0$ or absent a default value is chosen.
@@ -78,24 +78,60 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
      **)
 
 
-    (** \VAR{lines} yields the lines found in the file a la \VAR{readLine}.
+    (** %lines% yields the lines found in the file a la %readLine%.
      **)
     lines(n:ZZ32):Generator[\String\]
     lines():Generator[\String\]
 
-    (** \VAR{characters} yields the characters found in the file a la \VAR{readChar}.
+    (** %characters% yields the characters found in the file a la %readChar%.
      **)
     characters(n:ZZ32):Generator[\String\]
     characters():Generator[\String\]
 
-    (** \VAR{chunks} returns chunks of characters found in the file, in the
-        sense of \VAR{read}.  The first argument is equivalent to the
-        argument \VAR{k} to read, the second (if present) is the number of
+    (** %chunks% returns chunks of characters found in the file, in the
+        sense of %read%.  The first argument is equivalent to the
+        argument %k% to read, the second (if present) is the number of
         chunks at a time.
      **)
     chunks(n:ZZ32,m:ZZ32):Generator[\String\]
     chunks(n:ZZ32): Generator[\String\]
     chunks(): Generator[\String\]
+end
+
+(** A %FileWriteStream% represents a writeable stream backed by a file
+    named %fileName%. **)
+object FileWriteStream(fileName:String) extends { FileStream }
+    getter fileName(): String
+    getter toString(): String
+
+    (** %write(String)% is the primitive mechanism for writing
+        characters to the end of a %FileWriteStream%. **)
+    write(x:String):()
+    (** %write(Any)% converts its argument to a String using %toString%
+        and appends the result to the stream. **)
+    write(x:Any):()
+
+    (** %writes% converts each of the generated elements to a string
+        using %toString% unless the element is already a %String% in
+        which case it is left alone.  The resulting strings are
+        appended together to the end of the stream.  To avoid
+        interleaving with concurrent output to the same stream, this
+        append step is done monolithically. **)
+    writes(x:Generator[\Any\]):()
+
+    (** %print% is a varargs function that works much like %writes% **)
+    print(x:Any...):()
+
+    (** %println% is a varargs function that works much like %writes%,
+        but in addition appends a final newline character "\n" at the
+        same time. **)
+    println(x:Any...):()
+
+    (** %flush% any output to the stream that is still buffered. **)
+    flush():()
+
+    (** %close% the stream. **)
+    close():()
 end
 
 end

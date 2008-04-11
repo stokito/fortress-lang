@@ -78,7 +78,7 @@ public class FileReadStream extends NativeConstructor {
         }
 
         public String getString() {
-            return "<Handle to \""+name+"\">";
+            return "<Read handle to \""+name+"\">";
         }
 
         public void whenUnconsumed() {

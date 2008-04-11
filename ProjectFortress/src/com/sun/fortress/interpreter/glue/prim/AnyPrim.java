@@ -68,10 +68,6 @@ public static boolean sequiv(FValue x, FValue y) {
     //     if (x instanceof FChar) {
     //         return (y instanceof FChar) && x.getChar()==y.getChar();
     //     }
-    //     if (x instanceof FBufferedWriter) {
-    //         return (y instanceof FBufferedWriter) &&
-    //             x.getBufferedWriter() == y.getBufferedWriter();
-    //     }
     // }
     // if (x.getClass() != y.getClass()) return false;
     // // **** At this point x and y have the same class. ****
