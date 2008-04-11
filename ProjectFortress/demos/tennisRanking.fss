@@ -376,9 +376,9 @@ addGame(fout: BufferedWriter,
     then won(winner, loser, 10 diff + 100)
          lost(loser, winner, -5 diff - 50)
     else if NOT(validDiff)
-         then outFileWrite(fout, "Invalid game: " winnerName " vs " loserName
-                                 " has " |diff| " ranking differences. \n")
-         else outFileWrite(fout, "Invalid game: " winnerName " vs " loserName
+         then fout.print("Invalid game: ", winnerName, " vs ", loserName,
+                                 " has ", |diff|, " ranking differences. \n")
+         else fout.print("Invalid game: ", winnerName, " vs ", loserName,
                                  " has played before. \n")
          end
     end
@@ -459,11 +459,11 @@ addGame(fout: BufferedWriter,
               5 (if diff > 0 OR even(diff) then -(diff DIV 2)
                  else -(diff DIV 2)+1 end) - 50)
     else if NOT(validDiff)
-         then outFileWrite(fout, "Invalid game: " winnerName1 "/" winnerName2
-                                 " vs " loserName1 "/" loserName2 " has " |diff|
+         then fout.print("Invalid game: ", winnerName1, "/", winnerName2,
+                                 " vs ", loserName1, "/", loserName2, " has ", |diff|,
                                  " ranking differences. \n")
-         else outFileWrite(fout, "Invalid game: " winnerName1 "/" winnerName2
-                                 " vs " loserName1 "/" loserName2 " has "
+         else fout.print("Invalid game: ", winnerName1, "/", winnerName2,
+                                 " vs ", loserName1, "/", loserName2, " has ",
                                  "played before. \n")
          end
     end
@@ -509,9 +509,9 @@ printTable(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
       (* print a player with the new ranking result *)
       if player.totalPoints = points
       then player.ranking := ranking
-           outFileWrite(fout, player.toStringTie())
+           fout.print(player.toStringTie())
       else player.ranking := i+1; ranking := i+1; points := player.totalPoints
-           outFileWrite(fout, player.toString())
+           fout.print(player.toString())
       end
       (* find MVP players *)
       if player.thisPoints = mvp
@@ -538,12 +538,12 @@ printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
     end
 
     (* print MVP players and their points earned in this term *)
-    outFileWrite(fout, "MVP: " (BIG STRING [p <- mvpPlayers] p " "))
-    outFileWrite(fout, "(" mvp " points)\n")
+    fout.print("MVP: ", (BIG STRING [p <- mvpPlayers] p " "))
+    fout.print("(", mvp, " points)\n")
 
     (* print MEP players and their games played in this term *)
-    outFileWrite(fout, "MEP: " (BIG STRING [p <- mepPlayers] p " "))
-    outFileWrite(fout, "(" mep " games)\n")
+    fout.print("MEP: ", (BIG STRING [p <- mepPlayers] p " "))
+    fout.print("(", mep, " games)\n")
 
     (* print MIP players and their old and new rankings *)
     mipRec(p:String): String = do
@@ -551,16 +551,16 @@ printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
         (" " player.name
          " (ranking " player.preRanking " => " player.ranking ")")
       end
-    outFileWrite(fout, "MIP:" (BIG STRING [p <- mipPlayers] mipRec(p)))
+    fout.print("MIP:", (BIG STRING [p <- mipPlayers] mipRec(p)))
   end
 
 (* Print the result of this term *)
 printResult(fout: BufferedWriter, previous: String, today: String) =
   do
     (* print a header *)
-    outFileWrite(fout, "\n" previous " ~ " today "\n\n")
-    outFileWrite(fout, "순위  선수         승패            경기수            포인트\n")
-    outFileWrite(fout, tableBegin "\n")
+    fout.print("\n", previous, " ~ ", today, "\n\n")
+    fout.print("순위  선수         승패            경기수            포인트\n")
+    fout.print(tableBegin, "\n")
 
     (* 1. If a player did not play any game in this term, then -50 penalties.
        2. Find the biggest points earned in this term to find MVP players.
@@ -598,11 +598,11 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
 
     (* print the new ranking result *)
     printTable(fout, toSortResult)
-    outFileWrite(fout, "\n\n")
+    fout.print("\n\n")
 
     (* print the MVP, MEP, and MIP players *)
     printMvpMepMip(fout, toSortResult)
-    outFileWrite(fout, "\n\n")
+    fout.print("\n\n")
   end
 
 printUsage() =
@@ -622,7 +622,7 @@ run(args:String...) = do
        today    = args[1]
        games    = args[2]
        fin : FileReadStream := FileReadStream previous
-       fout: BufferedWriter = outFileOpen today
+       fout: FileWriteStream = FileWriteStream today
        initialize(fin)
        fin.close()
        numPlayers := |database|
@@ -634,7 +634,7 @@ run(args:String...) = do
 
        (* finalize *)
        printResult(fout, previous, today)
-       outFileClose(fout)
+       fout.close()
   end
 end
 

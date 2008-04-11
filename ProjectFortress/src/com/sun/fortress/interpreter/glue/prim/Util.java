@@ -26,7 +26,6 @@ import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FBufferedWriter;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeFn1;
@@ -236,30 +235,6 @@ public class Util {
         protected final FValue act(FValue x) {
             f(x);
             return FVoid.V;
-        }
-    }
-
-    static public abstract class Fw2V extends NativeFn1 {
-        protected abstract void f(BufferedWriter x);
-        protected final FValue act(FValue x) {
-            f(x.getBufferedWriter());
-            return FVoid.V;
-        }
-    }
-
-    static public abstract class FwS2V extends NativeFn2 {
-        protected abstract void f(BufferedWriter x, String y);
-        protected final FValue act(FValue x, FValue y) {
-            f(x.getBufferedWriter(), y.getString());
-            return FVoid.V;
-
-        }
-    }
-
-    static public abstract class S2Fw extends NativeFn1 {
-        protected abstract BufferedWriter f(String x);
-        protected final FValue act(FValue x) {
-            return FBufferedWriter.make(f(x.getString()));
         }
     }
 

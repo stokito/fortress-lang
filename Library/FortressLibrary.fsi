@@ -1573,10 +1573,6 @@ opr juxtaposition(a:Any, b:String):String
 opr DOT(a:String, b:Any):String
 opr juxtaposition(a:String, b:Any):String
 
-outFileOpen(name:String):BufferedWriter
-outFileWrite(file: BufferedWriter, str: String):()
-outFileClose(file: BufferedWriter):()
-
 print(a:String):()
 println(a:String):()
 print(a:Number):()
