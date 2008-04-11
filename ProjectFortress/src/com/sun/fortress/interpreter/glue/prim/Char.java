@@ -17,24 +17,84 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import java.util.List;
+
+import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FChar;
+import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.interpreter.evaluator.values.FString;
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.interpreter.glue.NativeFn1;
+import com.sun.fortress.interpreter.glue.NativeMeth0;
+import com.sun.fortress.interpreter.glue.NativeMeth1;
+
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
- * Functions from String.
+ * The Char type.
  */
-public class Char {
-public static final class Eq extends Util.CC2B {
-    protected boolean f(char x, char y) {
-        return (int) x == (int) y;
+public class Char extends NativeConstructor {
+
+    public Char(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+        super(env, selfType, def);
     }
-}
 
-public static final class Print extends Util.C2V {
-    protected void f(char x) { System.out.print(x); }
-}
-public static final class Println extends Util.C2V {
-    protected void f(char x) { System.out.println(x); }
-}
+    protected FNativeObject makeNativeObject(List<FValue> args,
+                                             NativeConstructor con) {
+        FChar.setConstructor(this);
+        return FChar.ZERO;
+    }
 
+    private static abstract class sC2B extends NativeMeth1 {
+        protected abstract boolean f(char self, char other);
+        protected final FValue act(FObject self, FValue other) {
+            return FBool.make(f(self.getChar(), other.getChar()));
+        }
+    }
+
+    private static abstract class s2I extends NativeMeth0 {
+        protected abstract int f(char self);
+        protected final FValue act(FObject self) {
+            return FInt.make(f(self.getChar()));
+        }
+    }
+
+    private static abstract class I2C extends NativeFn1 {
+        abstract protected char f(int i);
+        protected final FValue act(FValue i) {
+            return FChar.make(f(i.getInt()));
+        }
+    }
+
+    public static final class Eq extends sC2B {
+        protected boolean f(char x, char y) {
+            return (int) x == (int) y;
+        }
+    }
+
+    public static final class LessThan extends sC2B {
+        protected boolean f(char x, char y) {
+            return (int) x < (int) y;
+        }
+    }
+
+    public static final class Ord extends s2I {
+        protected int f(char self) { return (int)self; }
+    }
+
+    public static final class Chr extends I2C {
+        protected char f(int i) { return (char)i; }
+    }
+
+    public static final class ToString extends NativeMeth0 {
+        protected FValue act(FObject self) {
+            return FString.make(((FChar)self).toString());
+        }
+    }
 
 }

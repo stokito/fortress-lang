@@ -26,7 +26,7 @@ public class FString extends NativeConstructor.FNativeObject {
     private static volatile NativeConstructor con;
     private final String val;
 
-    protected FString(String x) {
+    private FString(String x) {
         super(null);
         val = x;
     }

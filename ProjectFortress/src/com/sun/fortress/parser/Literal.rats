@@ -79,14 +79,15 @@ CharLiteralExpr CharLiteralExpr = "'" a1:CharLiteralContent "'"
 
 StringLiteralExpr StringLiteralExpr = ["] a1:StringLiteralContent* ["]
      { String str = "";
-       for (String s : (List<String>)a1.list()) {
-           str = str.concat(s);
+       for (String c : (List<String>)a1.list()) {
+           str = str.concat(c);
        }
        yyValue = new StringLiteralExpr(createSpan(yyStart,yyCount), false, str);
      };
 private String StringLiteralContent =
      EscapeSequence
    / a1:(!["\\] _) { yyValue = String.valueOf(a1); };
+
 private String EscapeSequence = '\\' a1:[btnfr"\\]
      { switch (a1) {
            case 'b': { yyValue = "\b"; break; }
@@ -95,9 +96,12 @@ private String EscapeSequence = '\\' a1:[btnfr"\\]
            case 'f': { yyValue = "\f"; break; }
            case 'r': { yyValue = "\r"; break; }
            case '"': { yyValue = "\""; break; }
+           case '\'': { yyValue = "\'"; break; }
            case '\\': { yyValue = "\\"; break; }
            default: { yyValue = ""; }
        }
      };
 
-private transient String CharLiteralContent = '\\' [btnfr"\\] / !"'" _;
+private String CharLiteralContent =
+     EscapeSequence
+   / a1:(!['\\] _) { yyValue = String.valueOf(a1); };

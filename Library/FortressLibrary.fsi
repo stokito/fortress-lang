@@ -1538,7 +1538,10 @@ opr |/a:Number\| : ZZ64
 truncate(a:Number):ZZ64
 random(a:Number):RR64
 
-opr =(a:Char, b:Char):Boolean
+(** %char% converts an integer unicode code point into the
+    corresponding 16-bit %Char%.  Note that we don't presently deal
+    gracefully with %Char%s outside the 16-bit plane. **)
+char(a:ZZ32):Char
 
 opr DOT(a:String, b:String):String
 opr juxtaposition

@@ -20,7 +20,6 @@ import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
-import com.sun.fortress.interpreter.evaluator.types.FTypeChar;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -65,7 +64,6 @@ public class Init {
         FTypeTop.ONLY.resetState();
 
         FTypeBufferedWriter.ONLY.resetState();
-        FTypeChar.ONLY.resetState();
 
         FTypeFloat.ONLY.resetState();
         FTypeFloatLiteral.ONLY.resetState();

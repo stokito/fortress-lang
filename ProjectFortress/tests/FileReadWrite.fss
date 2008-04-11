@@ -41,8 +41,7 @@ streamTest(s:String, inter:String, op: ReadStream -> String, desc:String) = do
     same(s,res,"ReadStream using ",desc)
   end
 
-genTest(s:String, inter:String, gen: ReadStream -> Generator[\String\],
-        desc: String) = do
+genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: String) = do
     println("************************* par " desc)
     rs = FileReadStream("testFile.txt")
     res = BIG STRING [l<-gen(rs)] l inter
@@ -72,14 +71,18 @@ run(args:String...) = do
   (* Note that we can't distinguish the non-terminated final line when
      we use readLine.  We'll always get a final empty line. *)
   streamTest(s "\n", "\n", fn (rs) => rs.readLine(),"readLine")
-  streamTest(s, "", fn (rs) => rs.readChar(),"readChar")
+  rdChar(rs:ReadStream): String = do
+      c = rs.readChar()
+      if c = char(0) then "" else "" c end
+    end
+  streamTest(s, "", rdChar,"readChar")
   streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
   streamTest(s, "", fn (rs) => rs.read(),"read()")
 
-  genTest(s "\n", "\n", fn (rs) => rs.lines(), "lines")
-  genTest(s, "", fn (rs) => rs.characters(), "characters")
-  genTest(s, "", fn (rs) => rs.chunks(16), "chunks(16)")
-  genTest(s, "", fn (rs) => rs.chunks(), "chunks()")
+  genTest[\String\](s "\n", "\n", fn (rs) => rs.lines(), "lines")
+  genTest[\Char\](s, "", fn (rs) => rs.characters(), "characters")
+  genTest[\String\](s, "", fn (rs) => rs.chunks(16), "chunks(16)")
+  genTest[\String\](s, "", fn (rs) => rs.chunks(), "chunks()")
 end
 
 end

@@ -23,9 +23,6 @@ package="com.sun.fortress.interpreter.glue.prim"
 
 trait Any end
 
-object Char extends { Any }
-end
-
 trait  Number extends { Any }
     (* excludes { String, Boolean } *)
 end
@@ -51,7 +48,5 @@ trait IntLiteral extends { ZZ32, ZZ64, RR64 } end
 trait FloatLiteral extends { RR64 } end
 
 trait Region extends { Any } end
-
-trait BufferedWriter extends { Any } end
 
 end

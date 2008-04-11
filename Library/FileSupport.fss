@@ -52,9 +52,9 @@ trait ReadStream extends { Closeable, Consumable }
      **)
     readLine():String = do whenUnconsumed(); uncheckedReadLine() end
 
-    (** Returns the next available character from the stream, or "" on eof.
+    (** Returns the next available character from the stream, or %char(0)% on eof.
      **)
-    readChar():String = do whenUnconsumed(); uncheckedReadChar() end
+    readChar():Char = do whenUnconsumed(); eofCheckedReadChar() end
 
     (** Returns the next k characters from the stream.  It will block
         until at least one character is available, and will then
@@ -67,7 +67,12 @@ trait ReadStream extends { Closeable, Consumable }
 
     uncheckedReadLine():String
 
-    uncheckedReadChar():String
+    uncheckedReadChar():ZZ32
+
+    eofCheckedReadChar():ZZ32 = do
+        r = uncheckedReadChar()
+        if r = -1 then char(0) else char(r) end
+      end
 
     uncheckedRead(k:ZZ32):String
 
@@ -106,14 +111,14 @@ trait ReadStream extends { Closeable, Consumable }
       end
     lines():Generator[\String\] = lines(0)
 
-    (** characters yields the characters found in the file a la readChar().
+    (** characters yields the characters found in the file a la %readChar()%.
      **)
-    characters(n:ZZ32):Generator[\String\] = do
+    characters(n:ZZ32):Generator[\Char\] = do
         consume()
-        FileGenerator[\String\](self, n,
-            fn (r:ReadStream): String => r.uncheckedReadChar())
+        FileGenerator[\Char\](self, n,
+            fn (r:ReadStream): Char => r.eofCheckedReadChar())
       end
-    characters():Generator[\String\] = characters(0)
+    characters():Generator[\Char\] = characters(0)
 
     (** chunks returns chunks of characters found in the file, in the
         sense of read().  The first argument is equivalent to the
@@ -142,7 +147,7 @@ end
  **)
 object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
                           readOne:ReadStream -> S)
-        extends { Consumable, Generator[\String\] }
+        extends { Consumable, Generator[\S\] }
     consumed : Boolean = false
     up : ZZ32 = if upper <= 0 then 1024 else upper end
     consume():() = atomic do whenUnconsumed(); consumed = true end
@@ -150,23 +155,23 @@ object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
         if consumed then
             fail("Using consumed generator of " reader)
         end
-    generate[\R\](r: Reduction[\R\], body: String->R): R = do
+    generate[\R\](r: Reduction[\R\], body: S->R): R = do
         consume()
         go(n:ZZ32): R =
             if reader.eof() then r.empty()
             else
                 (* First read must block, and not check reader.ready() *)
-                bu: Array[\String,ZZ32\] = array[\String\](n)
-                s0 : String = readOne(reader)
+                bu: Array[\S,ZZ32\] = array[\S\](n)
+                s0 : S = readOne(reader)
                 i : ZZ32 := 0
-                if NOT (s0="" AND reader.eof()) then
+                if NOT (reader.eof()) then
                     bu.init(0,s0)
                     i := 1
                 end
                 (* Subsequent reads contingent on reader.ready() *)
                 while (i<n AND: NOT reader.eof() AND: reader.ready()) do
                     s = readOne(reader)
-                    if NOT (s="" AND reader.eof()) then
+                    if NOT (reader.eof()) then
                         bu.init(i,s)
                         i += 1
                     end
@@ -178,27 +183,28 @@ object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
         a
       end
 
-    seq(self): SequentialGenerator[\String\] = do
+    seq(self): SequentialGenerator[\S\] = do
         consume()
-        SeqFileGenerator[\String\](reader, readOne)
+        SeqFileGenerator[\S\](reader, readOne)
       end
 
-    loop(f:String->()): () = do
+    loop(f:S->()): () = do
         consume()
         go(n:ZZ32): () =
             if reader.eof() then ()
             else
                 (* First read must block, and not check reader.ready() *)
-                bu: Array[\String,ZZ32\] = array[\String\](n)
-                s0 : String = readOne(reader)
-                if NOT (s0="" AND reader.eof()) then
+                bu: Array[\S,ZZ32\] = array[\S\](n)
+                s0 = readOne(reader)
+                i : ZZ32 := 0
+                if NOT (reader.eof()) then
                     bu.init(0,s0)
+                    i := 1
                 end
-                i : ZZ32 := 1
                 (* Subsequent reads contingent on reader.ready() *)
                 while (i<n AND: NOT reader.eof() AND: reader.ready()) do
                     s = readOne(reader)
-                    if NOT (s="" AND reader.eof()) then
+                    if NOT (reader.eof()) then
                         bu.init(i,s)
                     end
                     i += 1
@@ -212,19 +218,19 @@ object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
 end
 
 object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S)
-        extends { Consumable, SequentialGenerator[\String\] }
+        extends { Consumable, SequentialGenerator[\S\] }
     consumed : Boolean = false
     consume():() = atomic do whenUnconsumed(); consumed = true end
     whenUnconsumed():() =
         if consumed then
             fail("Using consumed generator of " reader)
         end
-    generate[\R\](r: Reduction[\R\], body: String->R): R = do
+    generate[\R\](r: Reduction[\R\], body: S->R): R = do
         consume()
         a:R = body.empty()
         while (NOT reader.eof()) do
             s = readOne(reader)
-            if NOT (s="" AND reader.eof()) then
+            if NOT (reader.eof()) then
                 v = body(s)
                 a := r.join(a,v)
             end
@@ -235,11 +241,11 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S)
 
     seq(self): SequentialGenerator[\String\] = self
 
-    loop(body:String->()): () = do
+    loop(body:S->()): () = do
         consume()
         while (NOT reader.eof()) do
             s = readOne(reader)
-            if NOT (s="" AND reader.eof()) then
+            if NOT (reader.eof()) then
                 body(s)
             end
         end
