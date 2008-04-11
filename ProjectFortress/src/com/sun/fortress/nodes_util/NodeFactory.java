@@ -1143,7 +1143,28 @@ public class NodeFactory {
         }
     }
 
+    public static Type makeOrType(List<Type> types) {
+        if (types.isEmpty()) {
+            return Types.BOTTOM;
+        } else if (types.size() == 1) {
+            return types.get(0);
+        } else {
+            return IterUtil.fold(IterUtil.skipFirst(types), types.get(0),
+                    new Lambda2<Type, Type, Type>() {
+                        public Type value(Type arg0, Type arg1) {
+                            return new OrType(arg0, arg1);
+                        }
+            });
+        }
+    }
+
     public static IdArg makeIdArg(String name) {
         return new IdArg(makeQualifiedIdName(name));
+    }
+    
+    public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {
+        List<Pair<Op, Expr>> links = new ArrayList<Pair<Op, Expr>>(1);
+        links.add(Pair.make(op, rhs));
+        return new ChainExpr(new Span(lhs.getSpan(), rhs.getSpan()), lhs, links);
     }
 }
