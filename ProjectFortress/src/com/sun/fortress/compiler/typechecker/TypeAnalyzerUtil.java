@@ -22,11 +22,15 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Lambda2;
+import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 
+import static com.sun.fortress.compiler.StaticError.errorMsg;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
+import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeAnalyzerUtil {
 
@@ -158,7 +162,6 @@ public class TypeAnalyzerUtil {
         public Type value(KeywordType k) { return k.getType(); }
     };
 
-
     /** Test whether the given tuples have the same arity and matching varargs/keyword entries */
     /*
     public static boolean compatibleTuples(TupleType s, TupleType t) {
@@ -176,6 +179,97 @@ public class TypeAnalyzerUtil {
         else { return false; }
     }
     */
-
-
+    
+    /**
+     * Figure out the static type of a non-generic function application.
+     * @param checker the SubtypeChecker to use for any type comparisons
+     * @param fn the type of the function, which can be some AbstractArrowType,
+     *           or an intersection of such (in the case of an overloaded
+     *           function)
+     * @param args the arguments to apply to this function
+     * @return the return type of the most applicable arrow type in {@code fn},
+     *         or {@code Option.none()} if no arrow type matched the args
+     */
+    public static Option<Type> applicationType(final SubtypeChecker checker,
+                                               Type fn,
+                                               Iterable<Type> args) {
+        
+        // Form an ArgType from the given args to use as the domain type
+        final ArgType domain = NodeFactory.makeArgType(IterUtil.asArrayList(args));
+        
+        // Turn fn into a list of types (i.e. flatten if an intersection)
+        final Iterable<Type> arrows =
+            (fn instanceof AndType) ? conjuncts((AndType)fn)
+                                    : IterUtil.make(fn);
+            
+        // Get a list of the arrow types that match these arguments
+        List<ArrowType> matchingArrows = new ArrayList<ArrowType>();
+        for (Type arrow : arrows) {
+            
+            // Try to form a non-generic ArrowType from this arrow, if it matches the args
+            Option<ArrowType> newArrow = arrow.accept(new NodeAbstractVisitor<Option<ArrowType>>() {
+                @Override public Option<ArrowType> forArrowType(ArrowType that) {
+                    return checker.subtype(domain, that.getDomain())
+                        ? some(that)
+                        : Option.<ArrowType>none(); 
+                }
+                @Override public Option<ArrowType> for_RewriteGenericArrowType(_RewriteGenericArrowType that) {
+                    return none(); // TODO - implement
+                }
+                @Override public Option<ArrowType> defaultCase(Node that) {
+                    return none();
+                }
+            });
+            if (newArrow.isSome()) {
+                matchingArrows.add(unwrap(newArrow));
+            }
+        }
+        if (matchingArrows.isEmpty()) {
+            return none();
+        }
+        
+        // Create a comparator for the domain subtype relation
+        Comparator<ArrowType> domainSubtypeComp = new Comparator<ArrowType>() {
+            public int compare(ArrowType lhs, ArrowType rhs) {
+                // TODO - check lhs <: rhs AND rhs <: lhs?
+                if (lhs.getDomain().equals(rhs.getDomain())) {
+                    return 0;
+                } else if (checker.subtype(lhs.getDomain(), rhs.getDomain())) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+        };
+        
+        // Get the most applicable arrow type accordingly
+        ArrowType mostApplicableArrow = Collections.min(matchingArrows, domainSubtypeComp);
+        return some(mostApplicableArrow.getRange());
+    }
+    
+    public static Option<Type> applicationType(SubtypeChecker checker, 
+                                               Type arrow,
+                                               Iterable<Type> args,
+                                               Iterable<StaticArg> staticArgs) {
+        return Option.<Type>none(); // TODO implement
+    }
+     
+    
+    /** Get all the conjunct types from a nested AndType. */
+    public static Iterable<Type> conjuncts(AndType types) {
+        Type left = types.getFirst();
+        Type right = types.getSecond();
+        return IterUtil.compose(
+                (left instanceof AndType) ? conjuncts((AndType)left) : IterUtil.make(left),
+                (right instanceof AndType) ? conjuncts((AndType)right) : IterUtil.make(right));
+    }
+    
+    /** Get all the disjunct types from a nested OrType. */
+    public static Iterable<Type> disjuncts(OrType types) {
+        Type left = types.getFirst();
+        Type right = types.getSecond();
+        return IterUtil.compose(
+                (left instanceof OrType) ? disjuncts((OrType)left) : IterUtil.make(left),
+                (right instanceof OrType) ? disjuncts((OrType)right) : IterUtil.make(right));
+    }
 }
