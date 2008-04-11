@@ -20,9 +20,6 @@ api FortressBuiltin
 
 trait Any end
 
-trait Char extends { Any }
-end
-
 trait  Number extends { Any }
     (* excludes { String, Boolean } *)
 end
@@ -30,8 +27,6 @@ end
 trait  Integral extends { Number }
     (* excludes { String, Boolean, RR64, FloatLiteral } *)
 end
-
-trait BufferedWriter extends { Any } end
 
 trait ZZ32 extends { Integral }
     (* excludes { String, Boolean, RR64, FloatLiteral } *)

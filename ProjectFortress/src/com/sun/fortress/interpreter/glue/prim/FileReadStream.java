@@ -31,6 +31,8 @@ import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
+import com.sun.fortress.interpreter.evaluator.values.FChar;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
@@ -103,6 +105,17 @@ public class FileReadStream extends NativeConstructor {
         }
     }
 
+    private static abstract class r2I extends NativeMeth0 {
+        protected abstract int f(PrimReader r) throws IOException;
+        protected final FValue act(FObject self) {
+            try {
+                return FInt.make(f((PrimReader)self));
+            } catch (IOException e) {
+                return error("Read IOException on "+self.getString());
+            }
+        }
+    }
+
     private static abstract class r2B extends NativeMeth0 {
         protected abstract boolean f(PrimReader r) throws IOException;
         protected final FValue act(FObject self) {
@@ -137,14 +150,13 @@ public class FileReadStream extends NativeConstructor {
         }
     }
 
-    public static final class readChar extends r2S {
-        protected final String f(PrimReader r) throws IOException {
+    public static final class readChar extends r2I {
+        protected final int f(PrimReader r) throws IOException {
             int c = r.reader.read();
             if (c==-1) {
                 r.eof = true;
-                return "";
             }
-            return (String.valueOf((char)c));
+            return c;
         }
     }
 

@@ -20,7 +20,6 @@ package com.sun.fortress.interpreter.evaluator;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.Bool;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeChar;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
@@ -59,7 +58,6 @@ public class Primitives {
         install_type(env, "ZZ32", FTypeInt.ONLY);
         install_type(env, "ZZ64", FTypeLong.ONLY);
         install_type(env, "Integral", FTypeIntegral.ONLY);
-        install_type(env, "Char", FTypeChar.ONLY);
         install_type(env, "RR64", FTypeFloat.ONLY);
         install_type(env, "Number", FTypeNumber.ONLY);
         install_type(env, "BufferedWriter", FTypeBufferedWriter.ONLY);
@@ -77,7 +75,6 @@ public class Primitives {
         install_type(env, "FortressBuiltin.ZZ32", FTypeInt.ONLY);
         install_type(env, "FortressBuiltin.ZZ64", FTypeLong.ONLY);
         install_type(env, "FortressBuiltin.Integral", FTypeIntegral.ONLY);
-        install_type(env, "FortressBuiltin.Char", FTypeChar.ONLY);
         install_type(env, "FortressBuiltin.RR64", FTypeFloat.ONLY);
         install_type(env, "FortressBuiltin.Number", FTypeNumber.ONLY);
         install_type(env, "FortressBuiltin.BufferedWriter", FTypeBufferedWriter.ONLY);
@@ -92,20 +89,13 @@ public class Primitives {
         install_type(env, "FortressBuiltin.Any", FTypeTop.ONLY);
 
 
-        FTypeNumber.ONLY.addExclude(FTypeChar.ONLY);
-        FTypeInt.ONLY.addExclude(FTypeChar.ONLY);
         FTypeInt.ONLY.addExclude(FTypeFloat.ONLY);
         FTypeInt.ONLY.addExclude(FTypeFloatLiteral.ONLY);
         FTypeInt.ONLY.addExclude(FTypeLong.ONLY);
         FTypeLong.ONLY.addExclude(FTypeFloat.ONLY);
         FTypeLong.ONLY.addExclude(FTypeFloatLiteral.ONLY);
-        FTypeLong.ONLY.addExclude(FTypeChar.ONLY);
         FTypeIntegral.ONLY.addExclude(FTypeFloat.ONLY);
         FTypeIntegral.ONLY.addExclude(FTypeFloatLiteral.ONLY);
-        FTypeIntegral.ONLY.addExclude(FTypeChar.ONLY);
-        FTypeFloat.ONLY.addExclude(FTypeChar.ONLY);
-        FTypeChar.ONLY.addExclude(FTypeNumber.ONLY);
-        FTypeChar.ONLY.addExclude(FTypeNumber.ONLY);
 
 
 

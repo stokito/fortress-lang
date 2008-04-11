@@ -21,7 +21,21 @@ object Boolean
     extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
 end
 
-object String
+object Char extends { StandardTotalOrder[\Char\] }
+    (** %char.ord% converts %char% to the equivalent integer code point.
+        It is always the case that %c = char(c.ord())% for %c : Char%. **)
+    getter ord(): ZZ32
+
+    (** %|c|% means the same as %c.chr()%; it's unclear if this is
+        actually a good idea, and we solicit feedback on the subject. **)
+    opr |self| : ZZ32
+
+    (** Ordering resepects %ord%. **)
+    opr =(self, other:Char): Boolean
+    opr <(self, other:Char): Boolean
+end
+
+object String extends { StandardTotalOrder[\String\] }
 end
 
 object Thread[\T\](fcn:()->T)

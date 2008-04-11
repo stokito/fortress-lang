@@ -238,19 +238,4 @@ public class Util {
         }
     }
 
-    static public abstract class CC2B extends NativeFn2 {
-        protected abstract boolean f(char x, char y);
-        protected final FValue act(FValue x, FValue y) {
-            return FBool.make(f(x.getChar(),y.getChar()));
-        }
-    }
-
-    static public abstract class C2V extends NativeFn1 {
-        protected abstract void f(char x);
-        protected final FValue act(FValue x) {
-            f(x.getChar());
-            return FVoid.V;
-        }
-    }
-
 }

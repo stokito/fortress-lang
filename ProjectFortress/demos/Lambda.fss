@@ -18,6 +18,7 @@ component Lambda
 import OneShotFlag.{...}
 import Map.{...}
 import List.{...}
+import Set.{...}
 import File.{...}
 export Executable
 
@@ -187,25 +188,24 @@ forms(t:Term): () = do
 
 _ = noShot (* cheap hack to break a dependence *)
 
-digits : List[\String\] =
-    <| "" "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" |>
+digits : Set[\Char\] = { '0','1','2','3','4','5','6','7','8','9' }
 
-spaces : List[\String\] = <| "" " ", "\t", "\n" |>
-terminators : List[\String\] = spaces.append( <| "" "", "(", ")", ".", "=" |> )
-separators : List[\String\] = <| "" "", ")", "\n", "." |>
+spaces : Set[\Char\] = { ' ', '\t', '\n' }
+terminators : Set[\Char\] = spaces UNION { char(0), '(', ')', '.', '=' }
+separators : Set[\Char\] = { char(0), ')', '\n', '.' }
 object Parser(f:FileReadStream)
-    curr : String := " "
-    next(): String = do
+    curr : Char := ' '
+    next(): Char = do
         curr := f.readChar()
         curr
       end
-    getNonSpace(newlineOK: Boolean): String = do
-        while curr=" " OR curr="\t" OR (newlineOK AND curr="\n") do
+    getNonSpace(newlineOK: Boolean): Char = do
+        while curr=' ' OR curr='\t' OR (newlineOK AND curr='\n') do
             next()
         end
         curr
       end
-    skip(newlineOK: Boolean): String = do
+    skip(newlineOK: Boolean): Char = do
         next()
         getNonSpace(newlineOK)
       end
@@ -214,15 +214,15 @@ object Parser(f:FileReadStream)
         while curr IN digits do
             res := 10 res
             case curr of
-                "1" => res += 1
-                "2" => res += 2
-                "3" => res += 3
-                "4" => res += 4
-                "5" => res += 5
-                "6" => res += 6
-                "7" => res += 7
-                "8" => res += 8
-                "9" => res += 9
+                '1' => res += 1
+                '2' => res += 2
+                '3' => res += 3
+                '4' => res += 4
+                '5' => res += 5
+                '6' => res += 6
+                '7' => res += 7
+                '8' => res += 8
+                '9' => res += 9
                 else => ()
             end
             next()
@@ -235,7 +235,7 @@ object Parser(f:FileReadStream)
         r
       end
     parseId(): String = do
-        res : String := curr
+        res : String := "" curr
         while next() NOTIN terminators do
             res DOT= curr
         end
@@ -254,11 +254,11 @@ object Parser(f:FileReadStream)
         id = parseId()
         getNonSpace(true)
         case curr of
-            "." => mkLambda(id, parseReqTerm(newlineOK))
-            "" => fail ("unexpected eof in arg list, last arg " id)
-            ")" => fail ("unexpected ')' in arg list, last arg " id)
+            '.'  => mkLambda(id, parseReqTerm(newlineOK))
+            char(0) => fail ("unexpected eof in arg list, last arg " id)
+            ')'  => fail ("unexpected ')' in arg list, last arg " id)
             else => if curr IN digits then
-                        fail ("unexpected digit '" c2 "' in arg list")
+                        fail ("unexpected digit " c2.toString() " in arg list")
                     else
                         mkLambda(id,parseLambdaF(newlineOK))
                     end
@@ -271,16 +271,16 @@ object Parser(f:FileReadStream)
       end
     parseParens(newlineOK:Boolean): Term = do
         r = parseReqTerm(true)
-        if curr=/=")" then
-            fail("unexpected terminator '" curr "', expected ')'")
+        if curr=/=')' then
+            fail("unexpected terminator " curr.toString() ", expected ')'")
         end
         skip(newlineOK)
         r
       end
     parseOrApp(t:Term, newlineOK: Boolean): Term = do
-        if curr="\\" then
+        if curr='\\' then
             app(t,parseLambda(newlineOK))
-        elif curr="(" then
+        elif curr='(' then
             r = parseParens(newlineOK)
             parseOrApp(app(t,r), newlineOK)
         elif curr IN digits then
@@ -307,15 +307,15 @@ object Parser(f:FileReadStream)
       end
     parseReqTerm(newlineOK: Boolean): Term = do
         skip(true)
-        if curr="" then
+        if f.eof() then
             fail "unexpected eof in term"
-        elif curr="." then
+        elif curr='.' then
             fail "unexpected '.' in term"
-        elif curr=")" then
+        elif curr=')' then
             fail "unexpected ')' in term"
-        elif curr="\\" then
+        elif curr='\\' then
             parseLambda(newlineOK)
-        elif curr="(" then
+        elif curr='(' then
             parseParensOrApp(newlineOK)
         elif curr IN digits then
             parseNumberOrApp(newlineOK)
@@ -326,7 +326,7 @@ object Parser(f:FileReadStream)
     parseIdOrBindingOrApp(): () = do
         id = parseId()
         getNonSpace(false)
-        if curr = "=" then
+        if curr = '=' then
             t = parseReqTerm(false)
             freeDef(id,t)
             println("Defining " id " = " t)
@@ -336,11 +336,11 @@ object Parser(f:FileReadStream)
       end
     parseTop(): () =
         case getNonSpace(true) of
-            "\\" => forms(parseLambda(false))
-            "(" => forms(parseParensOrApp(false))
-            "" => ()
-            "." => fail("Error: misplaced '.' at top level.")
-            ")" => fail("Error: misplaced ')' at top level.")
+            '\\' => forms(parseLambda(false))
+            '(' => forms(parseParensOrApp(false))
+            char(0) => ()
+            '.' => fail("Error: misplaced '.' at top level.")
+            ')' => fail("Error: misplaced ')' at top level.")
             else =>
                 if curr IN digits then
                     forms(parseNumberOrApp(false))

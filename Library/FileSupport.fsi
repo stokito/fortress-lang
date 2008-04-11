@@ -51,9 +51,9 @@ trait ReadStream extends { Closeable, Consumable }
      **)
     readLine():String
 
-    (** Returns the next available character from the stream, or "" on eof.
+    (** Returns the next available character from the stream, or %char(0)% on eof.
      **)
-    readChar():String
+    readChar():Char
 
     (** Returns the next k characters from the stream.  It will block
         until at least one character is available, and will then
@@ -66,7 +66,7 @@ trait ReadStream extends { Closeable, Consumable }
 
     uncheckedReadLine():String
 
-    uncheckedReadChar():String
+    uncheckedReadChar():ZZ32
 
     uncheckedRead(k:ZZ32):String
 
@@ -101,9 +101,9 @@ trait ReadStream extends { Closeable, Consumable }
     lines(n:ZZ32):Generator[\String\]
     lines():Generator[\String\]
 
-    (** characters yields the characters found in the file a la readChar().
+    (** %characters% yields the characters found in the file a la %readChar()%.
      **)
-    characters(n:ZZ32):Generator[\String\]
+    characters(n:ZZ32):Generator[\Char\]
     characters():Generator[\String\]
 
     (** chunks returns chunks of characters found in the file, in the

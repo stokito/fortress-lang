@@ -40,7 +40,7 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
      **)
     readLine():String
 
-    (** Returns the next available character from the stream, or %""% on EOF.
+    (** Returns the next available character from the stream, or %'\0'% on EOF.
      **)
     readChar():Char
 
@@ -85,8 +85,8 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
 
     (** %characters% yields the characters found in the file a la %readChar%.
      **)
-    characters(n:ZZ32):Generator[\String\]
-    characters():Generator[\String\]
+    characters(n:ZZ32):Generator[\Char\]
+    characters():Generator[\Char\]
 
     (** %chunks% returns chunks of characters found in the file, in the
         sense of %read%.  The first argument is equivalent to the
