@@ -24,6 +24,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.NI;
 
 /**
  * Environment for mapping APINames to ApiIndices.
@@ -111,4 +112,62 @@ abstract public class GlobalEnvironment {
         }
         
     }
+    
+    public static class FromRepositoryPair extends GlobalEnvironment {
+
+        final private FortressRepository r1, r2;
+        
+        /**
+         * Tries to use the result form the first repository, but does not try hard.
+         * If missing, tries (harder) to use the second repository.
+         * @param fr1
+         * @param fr2
+         */
+        public FromRepositoryPair(FortressRepository fr1, FortressRepository fr2) {
+            r1 = fr1;
+            r2 = fr2;
+        }
+        
+        @Override
+        public ApiIndex api(APIName name) {
+            
+            try {
+                ApiIndex ai = r1.apis().get(name);
+                if (ai != null)
+                    return ai;
+                return r2.getApi(name);
+            } catch (FileNotFoundException e) {
+                throw new Fortress.WrappedException(e);
+            } catch (IOException e) {
+                throw new Fortress.WrappedException(e);
+            }
+        }
+
+        @Override
+        public Map<APIName, ApiIndex> apis() {
+            // TODO Auto-generated method stub
+            return NI.nyi("Thought this was not called.");
+        }
+
+        @Override
+        public boolean definesApi(APIName name) {
+            try {
+                ApiIndex ai = r1.apis().get(name);
+            if (ai != null)
+                 return true;
+              return null != r2.getApi(name);
+            } catch (FileNotFoundException e) {
+                return false;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        @Override
+        public void print() {
+            System.out.println("GlobalEnvironmentFromRepositoryPair " + r1 + ", " + r2);            
+        }
+        
+    }
+
 }

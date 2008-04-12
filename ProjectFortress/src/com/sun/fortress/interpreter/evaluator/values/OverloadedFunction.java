@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -333,7 +334,7 @@ public class  OverloadedFunction extends Fcn
             
         }
 
-        public void completeOverloadingCheck(Overload o1, Overload o2, List<Overload> new_overloads, BetterEnv within) {
+        public void completeOverloadingCheck(Overload o1, Overload o2, Collection<Overload> new_overloads, BetterEnv within) {
 
             OverloadComparisonResult ocr = this;
 
@@ -596,7 +597,7 @@ public class  OverloadedFunction extends Fcn
      * @param overloads2
      * @return
      */
-    static private boolean meetExistsIn(Overload o1, Overload o2, List<Overload> overloads2) {
+    static private boolean meetExistsIn(Overload o1, Overload o2, Collection<Overload> overloads2) {
         List<FType> pl1 = o1.getParams();
         List<FType> pl2 = o2.getParams();
 
@@ -642,7 +643,7 @@ public class  OverloadedFunction extends Fcn
     public void addOverload(SingleFcn fn) {
 //      if (finishedFirst && !fn.getFinished())
 //          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
-      addOverload(new Overload(fn, this));
+      addOverload(new Overload(fn));
   }
 
     public void addOverload(SingleFcn fn, boolean guaranteedOK) {

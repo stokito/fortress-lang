@@ -54,7 +54,8 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
      * 
      */
 
-    final FortressRepository source;
+    final FortressRepository apiSource;
+    final FortressRepository componentSource;
 
     final FortressRepository derived;
     
@@ -89,7 +90,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
         @Override
         boolean isStale(APIName name) {
             try {
-                long s = source.getModifiedDateForApi(name);
+                long s = apiSource.getModifiedDateForApi(name);
                 long c = derived.getModifiedDateForApi(name);
                 return c <= s;
             } catch (FileNotFoundException ex) {
@@ -105,7 +106,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
         @Override
         boolean isStale(APIName name) {
             try {
-                long s = source.getModifiedDateForComponent(name);
+                long s = componentSource.getModifiedDateForComponent(name);
                 long c = derived.getModifiedDateForComponent(name);
                 return c <= s;
             } catch (FileNotFoundException ex) {
@@ -118,7 +119,13 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
 
     public RepositoryUpdater(FortressRepository source,
             FortressRepository derived, MinimalMap<APIName, Set<APIName>> linker) {
-        this.source = source;
+        this(source, source, derived, linker);
+    }
+    
+    public RepositoryUpdater(FortressRepository apiSource,FortressRepository componentSource,
+            FortressRepository derived, MinimalMap<APIName, Set<APIName>> linker) {
+        this.apiSource = apiSource;
+        this.componentSource = componentSource;
         this.derived = derived;
         this.linker = linker;
     }
@@ -126,7 +133,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
     public void addComponent(APIName c)  {
          try {
             ComponentIndex ci =
-                isStaleComponent.isStale(c) ? source.getComponent(c) : derived.getComponent(c);
+                isStaleComponent.isStale(c) ? componentSource.getComponent(c) : derived.getComponent(c);
             CompilationUnit cu = ci.ast();
             if (!c.equals(cu.getName())) {
                 throw new RepositoryError("File " + c + " actually contains component " + cu.getName());
@@ -140,7 +147,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
      public void addApi(APIName c)  {
          try {
              ApiIndex ci = 
-             isStaleApi.isStale(c) ? source.getApi(c) : derived.getApi(c);
+             isStaleApi.isStale(c) ? apiSource.getApi(c) : derived.getApi(c);
 
              CompilationUnit cu = ci.ast();
              if (!c.equals(cu.getName())) {
@@ -223,7 +230,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
     private boolean checkComponent(APIName c) {
         try {
             ComponentIndex ci =
-                isStaleComponent.isStale(c) ? source.getComponent(c) : derived.getComponent(c);
+                isStaleComponent.isStale(c) ? componentSource.getComponent(c) : derived.getComponent(c);
             return ci.ast().accept(this);
         } catch (Throwable ex) {
             componentExceptions.put(c , ex);
@@ -234,7 +241,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
     private boolean checkApi(APIName n) {
         try {
            ApiIndex ai = 
-                isStaleApi.isStale(n) ? source.getApi(n) : derived.getApi(n);
+                isStaleApi.isStale(n) ? apiSource.getApi(n) : derived.getApi(n);
 
             return ai.ast().accept(this);
         } catch (Throwable ex) {

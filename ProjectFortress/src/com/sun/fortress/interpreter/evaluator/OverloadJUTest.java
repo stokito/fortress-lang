@@ -42,7 +42,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
         super("OverloadJUTest");
     }
     private Overload simple_overload(List<FType> types, OverloadedFunction olf) {
-        return new Overload(new Dummy_fcn(types), olf);
+        return new Overload(new Dummy_fcn(types));
     }
 
     private void makeDispatchTest(List<FType> dynamic_types, List<List<FType>> clauses, List<FType> result) {
