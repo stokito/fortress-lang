@@ -35,11 +35,11 @@ import com.sun.fortress.useful.ReversedList;
 
 public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
 
-    public BatchCachingAnalyzingRepository(FortressRepository source,
-            FortressRepository cache) {
-        super(source, cache);
-        // TODO Auto-generated constructor stub
-    }
+//    public BatchCachingAnalyzingRepository(FortressRepository source,
+//            FortressRepository cache) {
+//        super(source, cache);
+//        // TODO Auto-generated constructor stub
+//    }
 
     public BatchCachingAnalyzingRepository(boolean doLink, Path p,
             FortressRepository cache) {
@@ -47,16 +47,16 @@ public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
         // TODO Auto-generated constructor stub
     }
 
-    public BatchCachingAnalyzingRepository(Path p, FortressRepository cache) {
-        super(p, cache);
-        // TODO Auto-generated constructor stub
-    }
+//    public BatchCachingAnalyzingRepository(Path p, FortressRepository cache) {
+//        super(p, cache);
+//        // TODO Auto-generated constructor stub
+//    }
 
-    public BatchCachingAnalyzingRepository(boolean doLink,
-            FortressRepository source, FortressRepository cache) {
-        super(doLink, source, cache);
-        // TODO Auto-generated constructor stub
-    }
+//    public BatchCachingAnalyzingRepository(boolean doLink,
+//            FortressRepository source, FortressRepository cache) {
+//        super(doLink, source, cache);
+//        // TODO Auto-generated constructor stub
+//    }
 
     protected void refreshCache() {
 

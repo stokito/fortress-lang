@@ -27,8 +27,18 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
+import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
+import com.sun.fortress.interpreter.evaluator.values.Overload;
+import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
+import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
+import com.sun.fortress.interpreter.evaluator.values.Overload.MethodOverload;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -39,6 +49,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
@@ -70,6 +81,12 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
      * 
      */
     volatile BetterEnv requiredMembers;
+    
+    /**
+     * Generics defined by this type and supertypes.
+     */
+    volatile MultiMap<String, GenericMethod> generics =
+        new MultiMap<String, GenericMethod>();
 
     abstract protected void finishInitializing();
     abstract public BetterEnv getMembers();
@@ -313,12 +330,124 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         if (requiredMembers == null) {
             synchronized (this) {
                 if (requiredMembers == null) {
+                    /* Begin with data about this type */
+                    
+                    MultiMap<String, Overload> thisRequires = new MultiMap<String, Overload> ();
+                    MultiMap<String, Overload> thisSupplies = new MultiMap<String, Overload> ();
+                    MultiMap<String, Overload> overrides = new MultiMap<String, Overload> ();
+                    
+                    MultiMap<String, Overload> allMethods = new MultiMap<String, Overload> ();
+                    
                     BetterEnv m = getMembers();
-                    List<FType> exts = getExtends();               
+                    
+                    for (String s : m) {
+                        FValue fv = m.getValue(s);
+                        
+                        if (fv instanceof OverloadedFunction) {
+                            // Treat the overloaded function as a bag of separate
+                            // definitions.
+                            List<Overload> overloads = ((OverloadedFunction) fv)
+                                    .getOverloads();
+                            for (Overload ov : overloads) {
+                                MethodClosure sfcn = (MethodClosure) (ov.getFn());
+                                methodClosureIntoRandS(s, sfcn, thisRequires, thisSupplies, overrides);
+                            }
+                        } else if (fv instanceof MethodClosure)
+                            methodClosureIntoRandS(s, (MethodClosure) fv, thisRequires, thisSupplies, overrides);
+                    }
+                    
+                    MultiMap<String, Overload> parentRequires = new MultiMap<String, Overload> ();
+                    MultiMap<String, Overload> parentSupplies = new MultiMap<String, Overload> ();
+                    
+                    // Supplied = union[exts] supplied + own supplied
+                    // Required = union[exts] required + own required - Supplied
+                    
+                    List<FType> parents = getExtends();
+                    for (FType parent : parents) {
+                        if (parent instanceof FTraitOrObject) {
+                            FTraitOrObject toparent = (FTraitOrObject) parent;
+                            BetterEnv ps = toparent.getSuppliedMembers();
+                            BetterEnv pr = toparent.getRequiredMembers();
+                            addEnvToMultiMap(ps, parentSupplies);
+                            addEnvToMultiMap(pr, parentRequires);
+                            addEnvToMultiMap(ps, allMethods);
+                            addEnvToMultiMap(pr, allMethods);
+                        } else {
+                            // Some other sort of type.
+                        }
+                    }
+                    
+                    OverloadedFunction.OverloadComparisonResult ocr = new OverloadedFunction.OverloadComparisonResult();
+                    
+                    // Thin allMethods by removing anything covered by an overriding function.
+                    for (String s : overrides.keySet()) {
+                        Set<Overload> overs = overrides.get(s);
+                        Set<Overload> alls = allMethods.get(s);
+                        if (alls == null)
+                            continue;
+                        for (Overload omc : overs) {
+                            Iterator<Overload> imc = alls.iterator();
+                            while (imc.hasNext()) {
+                                Overload amc = imc.next();
+                                
+                            }
+                        }
+                        
+                    }
+                    // Add everything from this type, too.
+                    addEnvToMultiMap(m, allMethods);
+                    
+                    // Consistency check: for each key in allMethods, the set of methods (overloadings) must be well-formed.
+                    
+                    
+                    
                 }
             }
         }
-        
      }
+    private void addEnvToMultiMap(BetterEnv ps,
+            MultiMap<String, Overload> mmap) {
+        for (String s : ps) {
+            FValue fv = ps.getValue(s);
+            
+            if (fv instanceof OverloadedFunction) {
+                // Treat the overloaded function as a bag of separate
+                // definitions.
+                List<Overload> overloads = ((OverloadedFunction) fv)
+                        .getOverloads();
+                for (Overload ov : overloads) {
+                    MethodClosure mc = (MethodClosure) (ov.getFn());
+                    Overload mo = wrapInOverload(mc);
+                    mmap.putItem(s, mo);
+                }
+            } else if (fv instanceof MethodClosure) {
+                MethodClosure mc = (MethodClosure) fv;
+                Overload mo = wrapInOverload(mc);
+                mmap.putItem(s, mo);
+            }
+        }
+    }
+    
+    private Overload wrapInOverload(MethodClosure mc) {
+        return new Overload.MethodOverload(mc);
+    }
+    
+    private void methodClosureIntoRandS(String s, MethodClosure mc,
+            MultiMap<String, Overload> thisRequires,
+            MultiMap<String, Overload> thisSupplies,
+            MultiMap<String, Overload> overrides) {
+
+        Overload mo = wrapInOverload(mc);
+
+        if (mc.isOverride()) {
+            overrides.putItem(s, mo);
+        }
+        Applicable a = mc.getDef();
+        if (a instanceof FnDef) {
+            thisSupplies.putItem(s, mo);
+        } else {
+            thisRequires.putItem(s, mo);
+        }
+    }
 
 }

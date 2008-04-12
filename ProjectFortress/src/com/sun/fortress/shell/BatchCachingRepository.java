@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.RepositoryUpdater;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -46,7 +47,8 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
 
     private static final String[] roots = {"FortressBuiltin","FortressLibrary","NativeSimpleTypes"};
 
-    private final FortressRepository source;
+    private final FortressRepository apiSource;
+    private final FortressRepository componentSource;
 
     private final FortressRepository derived;
 
@@ -55,11 +57,6 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
     private final Set<APIName> alreadyCachedApi = new HashSet<APIName>();
 
     private final List<APIName> alreadyCachedApiList = new ArrayList<APIName>();
-
-    public BatchCachingRepository(FortressRepository source,
-            FortressRepository cache) {
-        this(false, source, cache);
-    }
 
     /**
      * This constructor helps us evade a circularity.
@@ -70,16 +67,15 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
      */
    public BatchCachingRepository(boolean doLink, Path p,
             FortressRepository cache) {
-        // TODO is this a fix?
-        // this.source = new PathBasedSyntaxTransformingRepository(p); // WAS , this
-       BatchCachingRepository sourceForSyntaxTransformer = 
-           new BatchCachingRepository( p );
-       
-       this.source =  new PathBasedSyntaxTransformingRepository(p, sourceForSyntaxTransformer);
+        
+       // No syntax transformations for APIs
+       this.apiSource = new PathBasedRepository(p, this);
+       this.componentSource =  new PathBasedSyntaxTransformingRepository(p,
+               new GlobalEnvironment.FromRepository(this));
        
        this.derived = cache;
         MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
-        this.ru = new RepositoryUpdater(source, derived, linker);
+        this.ru = new RepositoryUpdater(apiSource, componentSource, derived, linker);
     }
 
    public BatchCachingRepository(Path p,
@@ -87,32 +83,9 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
        this(false, p, cache);
    }
 
-   /**
-    * It's necessary to cache inputs to the syntax transformer, but it cannot use
-    * the static analysis cache.
-    * 
-    * @param p
-    */
-   public BatchCachingRepository(Path p) {
-       this.source =  new PathBasedRepository(p, this);
-       this.derived = new CacheBasedRepository(ProjectProperties.PRESYNTAX_CACHE_DIR);
-       MinimalMap<APIName, Set<APIName>> linker = linker(false);
-       this.ru = new RepositoryUpdater(source, derived, linker);
-       addRootApis();
-   }
-
-    public BatchCachingRepository(boolean doLink, FortressRepository source,
-            FortressRepository cache) {
-        this.source = source;
-        this.derived = cache;
-
-        MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
-
-        this.ru = new RepositoryUpdater(source, derived, linker);
-    }
-
     public boolean setVerbose(boolean new_verbose) {
-        source.setVerbose(new_verbose);
+        apiSource.setVerbose(new_verbose);
+        componentSource.setVerbose(new_verbose);
         derived.setVerbose(new_verbose);
         return super.setVerbose(new_verbose);
     }
@@ -174,12 +147,12 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         try {
             for (APIName name : ru.staleApis) {
                 if (!alreadyCachedApi.contains(name)) {
-                    addApi(name, source.getApi(name));
+                    addApi(name, apiSource.getApi(name));
                 }
             }
             for (APIName name : ru.staleComponents) {
                 if (!alreadyCachedComponent.contains(name)) {
-                    addComponent(name, source.getComponent(name));
+                    addComponent(name, componentSource.getComponent(name));
                 }
             }
         } catch (IOException ex) {
@@ -193,7 +166,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         @Override
         public Api apply(APIName x) {
             try {
-                ApiIndex xi = source.getApi(x);
+                ApiIndex xi = apiSource.getApi(x);
                 return (Api) xi.ast();
             } catch (FileNotFoundException e) {
                 throw new Error(e);
@@ -210,7 +183,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         @Override
         public Component apply(APIName x) {
             try {
-                ComponentIndex xi = source.getComponent(x);
+                ComponentIndex xi = componentSource.getComponent(x);
                 return (Component) xi.ast();
             } catch (FileNotFoundException e) {
                 throw new Error(e);

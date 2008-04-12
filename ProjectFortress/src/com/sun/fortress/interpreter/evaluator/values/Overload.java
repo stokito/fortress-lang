@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Useful;
 
 
 // Note: implements Comparable, but only for equivalence classes of
@@ -30,6 +31,28 @@ import com.sun.fortress.useful.HasAt;
 // the equivalence class.
 
 public class Overload implements Comparable, HasAt {
+    
+    /**
+     * This overload is slightly tweaked to implement the symmetric test for
+     * dotted methods.
+     * 
+     * @author chase
+     */
+    static public class MethodOverload extends Overload {
+        List<FType> params;
+        
+        public MethodOverload(MethodClosure mc) {
+            super(mc);
+            params = Useful.prepend(mc.getDefiner(), super.getParams());
+        }
+        public int getSelfParameterIndex() {
+            return -1;
+        }
+        public List<FType> getParams() {
+            return params;
+        }
+    }
+    
     public String at() {
         return fn.at();
     }
@@ -42,7 +65,7 @@ public class Overload implements Comparable, HasAt {
         return fn.toString();
     }
 
-    public Overload(SingleFcn fn, OverloadedFunction olf) {
+    public Overload(SingleFcn fn) {
         this.fn = fn;
     }
 

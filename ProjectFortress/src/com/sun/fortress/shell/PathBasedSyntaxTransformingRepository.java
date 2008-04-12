@@ -38,9 +38,9 @@ public class PathBasedSyntaxTransformingRepository extends PathBasedRepository {
 
 	final GlobalEnvironment env;
 
-	public PathBasedSyntaxTransformingRepository(Path p, FortressRepository repoForGlobalEnv) {
+	public PathBasedSyntaxTransformingRepository(Path p, GlobalEnvironment specificEnv) {
 		super(p);
-		this.env = new GlobalEnvironment.FromRepository(repoForGlobalEnv); // this is legal????
+		this.env = specificEnv;
 	}
 
 	public PathBasedSyntaxTransformingRepository(Path p) {
