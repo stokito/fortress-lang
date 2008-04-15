@@ -25,46 +25,46 @@ import com.sun.fortress.nodes.TypeArg;
 
 /**
  * Translate a Fortress type to a corresponding Java type
- * under the assumption that the Fortress type is either a 
+ * under the assumption that the Fortress type is either a
  * FortressBuiltin.String or defined in the FortressAst API,
- * or a Maybe or List of these. 
+ * or a Maybe or List of these.
  */
 public class FortressTypeToJavaType {
 
-	public String analyze(TraitType t) {
-		return t.accept(new NodeDepthFirstVisitor<String>() {
+    public String analyze(TraitType t) {
+        return t.accept(new NodeDepthFirstVisitor<String>() {
 
-			@Override
-			public String forIdType(IdType that) {
-				return that.getName().getName().getText();
-			}
+            @Override
+            public String forIdType(IdType that) {
+                return that.getName().getName().getText();
+            }
 
-			@Override
-			public String forInstantiatedType(InstantiatedType that) {
-				if (that.getArgs().size() != 1) {
-					throw new RuntimeException("One type argument was expected");
-				}
-				String arg = that.getArgs().get(0).accept(this);
-				if (that.getName().getName().getText().equals("List")) {
-					return "List<"+arg+ ">";
-				}
-				if (that.getName().getName().getText().equals("Maybe")) {
-					return "Option<"+arg+">";
-				}
-				if (that.getName().getName().getText().equals("Just")) {
-					return "Option<"+arg+">";
-				}
-				if (that.getName().getName().getText().equals("Nothing")) {
-					return "Option<"+arg+">";
-				}
-				return "";
-			}
+            @Override
+            public String forInstantiatedType(InstantiatedType that) {
+                if (that.getArgs().size() != 1) {
+                    throw new RuntimeException("One type argument was expected");
+                }
+                String arg = that.getArgs().get(0).accept(this);
+                if (that.getName().getName().getText().equals("List")) {
+                    return "List<"+arg+ ">";
+                }
+                if (that.getName().getName().getText().equals("Maybe")) {
+                    return "Option<"+arg+">";
+                }
+                if (that.getName().getName().getText().equals("Just")) {
+                    return "Option<"+arg+">";
+                }
+                if (that.getName().getName().getText().equals("Nothing")) {
+                    return "Option<"+arg+">";
+                }
+                return "";
+            }
 
-			@Override
-			public String forTypeArg(TypeArg that) {
-				return that.getType().accept(this);
-			}
+            @Override
+            public String forTypeArg(TypeArg that) {
+                return that.getType().accept(this);
+            }
 
-		});
-	}
+        });
+    }
 }
