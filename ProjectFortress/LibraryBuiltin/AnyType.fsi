@@ -1,4 +1,3 @@
-(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -15,20 +14,9 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-(** END COPYRIGHT **)
 
-component ConditionalOps
-import FortressBuiltin.{Boolean}
+api AnyType
 
-export Executable
-
-(** EXAMPLE **)
-opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
-opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
-opr  OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
-opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
-(** END EXAMPLE **)
-
-run() = ()
+trait Any end
 
 end

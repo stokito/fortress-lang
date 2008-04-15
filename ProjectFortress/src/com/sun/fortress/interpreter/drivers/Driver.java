@@ -148,8 +148,8 @@ public class Driver {
     public static BatchCachingRepository CURRENT_INTERPRETER_REPOSITORY = null;
 
     public static String libraryName = "FortressLibrary";
-    public static String builtinsName = "FortressBuiltin";
-    public static String nativesName = "NativeSimpleTypes";
+    public static String builtinsName = "AnyType";
+    public static String nativesName = "FortressBuiltin";
 
     private Driver() {};
 

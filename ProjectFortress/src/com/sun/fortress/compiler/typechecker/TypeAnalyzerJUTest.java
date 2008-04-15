@@ -229,14 +229,14 @@ public class TypeAnalyzerJUTest extends TestCase {
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
         
         ApiIndex builtin =
-            api("FortressBuiltin",
+            api("AnyType",
                 absTrait("Any"),
-                absTrait("Tuple", "FortressBuiltin.Any"));
+                absTrait("Tuple", "AnyType.Any"));
         apis.put(builtin.ast().getName(), builtin);
         
         ApiIndex library =
             api("FortressLibrary",
-                absTrait("Object", "FortressBuiltin.Any"));
+                absTrait("Object", "AnyType.Any"));
         apis.put(library.ast().getName(), library);
 
         GLOBAL_ENV = new GlobalEnvironment.FromMap(apis);

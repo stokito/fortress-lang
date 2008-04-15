@@ -34,7 +34,7 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
 
     private FortressTypeToJavaType tt = new FortressTypeToJavaType();
 
-    private IdType stringType = new IdType(NodeFactory.makeQualifiedIdName("NativeSimpleTypes", "String"));
+    private IdType stringType = new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", "String"));
     private String stringTypeResult = "String";
     private IdType fortressASTType = new IdType(NodeFactory.makeQualifiedIdName("FortressAst", "Decl"));
     private String fortressASTTypeResult = "Decl";

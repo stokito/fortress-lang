@@ -22,13 +22,12 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-public class FAsIf extends FValue {
+public class FAsIf extends FConstructedValue {
     private final FValue fvalue;
-    private final FType ftype;
 
     public FAsIf(FValue val, FType ty) {
+        super(ty);
         this.fvalue = val;
-        this.ftype = ty;
     }
 
     public FValue getValue() {
@@ -36,15 +35,11 @@ public class FAsIf extends FValue {
     }
 
     public String toString() {
-        return "(" + fvalue.toString() + " asif " + ftype.toString() + ")";
+        return "(" + fvalue.toString() + " asif " + type().toString() + ")";
     }
 
     public String getString() {
-        return "(" + fvalue.getString() + " asif " + ftype.getName() + ")";
-    }
-
-    public FType type() {
-        return ftype;
+        return "(" + fvalue.getString() + " asif " + type().getName() + ")";
     }
 
     public BufferedWriter getBufferedWriter() {

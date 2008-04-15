@@ -45,7 +45,7 @@ import com.sun.fortress.useful.Useful;
 
 public class BatchCachingRepository extends StubRepository implements FortressRepository {
 
-    private static final String[] roots = {"FortressBuiltin","FortressLibrary","NativeSimpleTypes"};
+    private static final String[] roots = {"AnyType","FortressBuiltin","FortressLibrary"};
 
     private final FortressRepository apiSource;
     private final FortressRepository componentSource;

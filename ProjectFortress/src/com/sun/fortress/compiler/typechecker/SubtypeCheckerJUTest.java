@@ -294,18 +294,18 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
 
         ApiIndex builtin =
-            api("FortressBuiltin",
+            api("AnyType",
                 absTrait("Any"),
-                absTrait("Tuple", "FortressBuiltin.Any"));
+                absTrait("Tuple", "AnyType.Any"));
         apis.put(builtin.ast().getName(), builtin);
 
         ApiIndex library =
             api("FortressLibrary",
-                absTrait("Object", "FortressBuiltin.Any"),
-                absTrait("Array1", "FortressBuiltin.Any"),
-                absTrait("Array2", "FortressBuiltin.Any"),
-                absTrait("Array3", "FortressBuiltin.Any"),
-                absTrait("Matrix", "FortressBuiltin.Any"));
+                absTrait("Object", "AnyType.Any"),
+                absTrait("Array1", "AnyType.Any"),
+                absTrait("Array2", "AnyType.Any"),
+                absTrait("Array3", "AnyType.Any"),
+                absTrait("Matrix", "AnyType.Any"));
         apis.put(library.ast().getName(), library);
 
         GLOBAL_ENV = new GlobalEnvironment.FromMap(apis);
