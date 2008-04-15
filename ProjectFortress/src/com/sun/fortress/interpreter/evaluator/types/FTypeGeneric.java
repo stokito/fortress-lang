@@ -79,13 +79,27 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         }
     };
 
+    static ThreadLocal<Integer> instantiationDepth = new ThreadLocal<Integer>() {
+        protected Integer initialValue() {
+            return 0;
+        }
+    };
+
+    static public void startPendingTraitFMs() {
+        int d = instantiationDepth.get();
+        instantiationDepth.set(d+1);
+    }
+
     static public void flushPendingTraitFMs() {
+        int d = instantiationDepth.get();
+        instantiationDepth.set(d-1);
+        if (d > 1) return;
         List<FTraitOrObjectOrGeneric> al = pendingFunctionalMethodFinishes.get();
         for (int i = 0; i < al.size(); i++) {
             FTraitOrObjectOrGeneric tt = al.get(i);
             al.set(i, null);
             tt.finishFunctionalMethods();
-            
+
         }
         pendingFunctionalMethodFinishes.get().clear();
     }
@@ -129,24 +143,24 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         return inst_type;
     }
 
-     private List<StaticArg> paramsToArgs() {
-         List<StaticArg> args = new ArrayList<StaticArg>(params.size());
-         for (StaticParam p : params) {
-             args.add(paramToArg(p));
-         }
+    private List<StaticArg> paramsToArgs() {
+        List<StaticArg> args = new ArrayList<StaticArg>(params.size());
+        for (StaticParam p : params) {
+            args.add(paramToArg(p));
+        }
         // TODO Auto-generated method stub
         return args;
     }
 
-     static class ParamToArg extends NodeAbstractVisitor<StaticArg> {
+    static class ParamToArg extends NodeAbstractVisitor<StaticArg> {
 
-         private TypeArg idNameToTypeArg(Id idn) {
-             return new TypeArg(idn.getSpan(),
+        private TypeArg idNameToTypeArg(Id idn) {
+            return new TypeArg(idn.getSpan(),
                      new IdType(idn.getSpan(),
                              NodeFactory.makeQualifiedIdName(idn)));
-         }
+        }
 
-         @Override
+        @Override
         public StaticArg forBoolParam(BoolParam that) {
             return idNameToTypeArg(that.getName());
         }
@@ -160,7 +174,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         @Override
         public StaticArg forIntParam(IntParam that) {
             return idNameToTypeArg(that.getName());
-       }
+        }
 
         @Override
         public StaticArg forNatParam(NatParam that) {
@@ -170,26 +184,26 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         @Override
         public StaticArg forOperatorParam(OperatorParam that) {
             return new OprArg(that.getName());
-       }
+        }
 
         @Override
         public StaticArg forSimpleTypeParam(SimpleTypeParam that) {
             return idNameToTypeArg(that.getName());
-         }
+        }
 
         @Override
         public StaticArg forUnitParam(UnitParam that) {
             return idNameToTypeArg(that.getName());
-       }
-     }
+        }
+    }
 
-     private final static ParamToArg paramToArg = new ParamToArg();
+    private final static ParamToArg paramToArg = new ParamToArg();
 
-   private StaticArg paramToArg(StaticParam p) {
-       return p.accept(paramToArg);
-    }   
+    private StaticArg paramToArg(StaticParam p) {
+        return p.accept(paramToArg);
+    }
 
- List<StaticParam> params;
+    List<StaticParam> params;
 
     HasAt genericAt;
 
@@ -242,8 +256,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 return FTypeGeneric.make(args, args, within, map, FTypeGeneric.this);
             }
         }
-
-     }
+    }
 
     static  FTraitOrObject make(List<FType> bind_args, List<FType> key_args, HasAt within,
             Map<List<FType>, FTraitOrObject> map, FTypeGeneric gen) {
@@ -255,78 +268,77 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         FTraitOrObject rval;
 
-        if (gen.def instanceof AbsDeclOrDecl) {
-            AbsDeclOrDecl dod = (AbsDeclOrDecl) gen.def;
-            if (dod instanceof TraitAbsDeclOrDecl) {
-                TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
-                FTypeTrait ftt = new FTypeTraitInstance(td.getName().getText(),
-                                                        clenv, gen, bind_args, key_args, gen.members);
-                FTraitOrObject old = map.put(key_args, ftt); // Must put
-                                                            // early to
-                                                            // expose for
-                                                            // second pass.
-
-                // Perhaps make this conditional on nothing being symbolic here?
-                ftt.initializeFunctionalMethods();
-                //be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
-                be.secondPass();
-                be.finishTrait(td, ftt, clenv);
-                be.thirdPass();
-                // Perhaps this is ok now that we have self-param double-overload fix in.
-                // be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
-
-                pendingFunctionalMethodFinishes.get().add(ftt);
-
-                rval = ftt;
-            } else if (dod instanceof ObjectDecl) {
-                ObjectDecl td = (ObjectDecl) dod;
-                FTypeObject fto = new FTypeObjectInstance(td.getName().getText(),
-                                       clenv, gen, bind_args, key_args,
-                                                          td.getParams(),
-                                                          gen.members);
-                map.put(key_args, fto); // Must put early to expose for second
-                                    // pass.
-
-                fto.initializeFunctionalMethods();
-                //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-                be.secondPass();
-                be.finishObjectTrait(td, fto);
-                be.thirdPass();
-                //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-                fto.finishFunctionalMethods();
-                for (FType fte : fto.getExtends()) {
-                    ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
-                }
-                rval = fto;
-            } else if (dod instanceof _RewriteObjectExpr) {
-                _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
-                FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
-                                                          clenv, gen, bind_args,
-                                                          key_args,
-                                                          Option.<List<Param>>none(), gen.members);
-                map.put(key_args, fto); // Must put early to expose for second
-                                    // pass.
-
-                fto.initializeFunctionalMethods();
-                // be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-                be.secondPass();
-                be.finishObjectTrait(td, fto);
-                be.thirdPass();
-                //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-                fto.finishFunctionalMethods();
-                for (FType fte : fto.getExtends()) {
-                    ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
-                }
-                rval = fto;
-            } else {
-                rval = bug(within, errorMsg("Generic def-or-declaration surprise ", dod));
-            }
-
-            return rval;
-
-        } else {
+        if (!(gen.def instanceof AbsDeclOrDecl)) {
             return bug(within, errorMsg("Generic surprise ", gen.def));
         }
+        AbsDeclOrDecl dod = (AbsDeclOrDecl) gen.def;
+        if (dod instanceof TraitAbsDeclOrDecl) {
+            TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
+            FTypeTrait ftt = new FTypeTraitInstance(td.getName().getText(),
+                                                    clenv, gen, bind_args, key_args, gen.members);
+            FTraitOrObject old = map.put(key_args, ftt); // Must put
+                                                         // early to
+                                                         // expose for
+                                                         // second pass.
+
+            // Perhaps make this conditional on nothing being symbolic here?
+            ftt.initializeFunctionalMethods();
+            //be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
+            be.secondPass();
+            be.finishTrait(td, ftt, clenv);
+            be.thirdPass();
+            // Perhaps this is ok now that we have self-param double-overload fix in.
+            // be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
+
+            pendingFunctionalMethodFinishes.get().add(ftt);
+
+            rval = ftt;
+        } else if (dod instanceof ObjectDecl) {
+            ObjectDecl td = (ObjectDecl) dod;
+            FTypeObject fto = new FTypeObjectInstance(td.getName().getText(),
+                                       clenv, gen, bind_args, key_args,
+                                                      td.getParams(),
+                                                      gen.members);
+            map.put(key_args, fto); // Must put early to expose for second
+                                    // pass.
+
+            fto.initializeFunctionalMethods();
+            //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+            be.secondPass();
+            be.finishObjectTrait(td, fto);
+            be.thirdPass();
+            //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+            pendingFunctionalMethodFinishes.get().add(fto);
+            // fto.finishFunctionalMethods();
+            // for (FType fte : fto.getExtends()) {
+            //     ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
+            // }
+            rval = fto;
+        } else if (dod instanceof _RewriteObjectExpr) {
+            _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
+            FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
+                                                      clenv, gen, bind_args,
+                                                      key_args,
+                                                      Option.<List<Param>>none(), gen.members);
+            map.put(key_args, fto); // Must put early to expose for second
+                                    // pass.
+
+            fto.initializeFunctionalMethods();
+            // be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+            be.secondPass();
+            be.finishObjectTrait(td, fto);
+            be.thirdPass();
+            //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+            pendingFunctionalMethodFinishes.get().add(fto);
+            // fto.finishFunctionalMethods();
+            // for (FType fte : fto.getExtends()) {
+            //     ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
+            // }
+            rval = fto;
+        } else {
+            rval = bug(within, errorMsg("Generic def-or-declaration surprise ", dod));
+        }
+        return rval;
     }
 
 

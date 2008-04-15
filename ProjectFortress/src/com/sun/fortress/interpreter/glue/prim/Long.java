@@ -17,9 +17,15 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import java.util.List;
+
+import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeFn2;
 
@@ -27,7 +33,17 @@ import com.sun.fortress.interpreter.glue.NativeFn2;
 /**
  * Functions from ZZ64.
  */
-public class Long {
+public class Long extends NativeConstructor {
+
+public Long(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    super(env, selfType, def);
+}
+
+protected FNativeObject makeNativeObject(List<FValue> args,
+                                         NativeConstructor con) {
+    FLong.setConstructor(this);
+    return FLong.ZERO;
+}
 
 public static final class Negate extends Util.L2L {
     protected long f(long x) { return -x; }
@@ -49,23 +65,23 @@ public static final class Rem extends Util.LL2L {
 }
 public static final class Gcd extends Util.LL2L {
     protected long f(long u, long v) {
-        return Int.gcd(u,v);
+        return ZZ32.gcd(u,v);
     }
 }
 public static final class Lcm extends Util.LL2L {
     protected long f(long u, long v) {
-        long g = Int.gcd(u,v);
+        long g = ZZ32.gcd(u,v);
         return (u/g)*v;
     }
 }
 public static final class Choose extends Util.LL2L {
     protected long f(long u, long v) {
-        return Int.choose(u,v);
+        return ZZ32.choose(u,v);
     }
 }
 public static final class Mod extends Util.LL2L {
     protected long f(long u, long v) {
-        return Int.mod(u,v);
+        return ZZ32.mod(u,v);
     }
 }
 public static final class BitAnd extends Util.LL2L {
@@ -107,9 +123,9 @@ public static final class Pow extends NativeFn2 {
         long base = x.getLong();
         long exp = y.getLong();
         if (exp < 0) {
-            return FFloat.make(1.0 / (double)Int.pow(base,-exp));
+            return FFloat.make(1.0 / (double)ZZ32.pow(base,-exp));
         } else {
-            return FLong.make(Int.pow(base,exp));
+            return FLong.make(ZZ32.pow(base,exp));
         }
     }
 }

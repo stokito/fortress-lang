@@ -20,50 +20,32 @@ package com.sun.fortress.interpreter.evaluator;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.Bool;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
-import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
-import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
-import com.sun.fortress.interpreter.evaluator.types.FTypeIntegral;
-import com.sun.fortress.interpreter.evaluator.types.FTypeLong;
-import com.sun.fortress.interpreter.evaluator.types.FTypeNumber;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class Primitives {
     static boolean debug = false;
 
-    public static void debugPrint(String debugString) {
+    private static void debugPrint(String debugString) {
         if (debug)
             System.out.print(debugString);
     }
 
-    public static void debugPrintln(String debugString) {
+    private static void debugPrintln(String debugString) {
         if (debug)
             System.out.println(debugString);
     }
 
-    public static void install_type(BetterEnv env, String name, FType t) {
+    private static void install_type(BetterEnv env, String name, FType t) {
         env.putType(name, t);
     }
 
-    public static void install_value(BetterEnv env, String name, FValue v) {
+    private static void install_value(BetterEnv env, String name, FValue v) {
         env.putValue(name, v);
     }
 
     public static void installPrimitives(BetterEnv env) {
-        install_type(env, "ZZ32", FTypeInt.ONLY);
-        install_type(env, "ZZ64", FTypeLong.ONLY);
-        install_type(env, "Integral", FTypeIntegral.ONLY);
-        install_type(env, "RR64", FTypeFloat.ONLY);
-        install_type(env, "Number", FTypeNumber.ONLY);
-        install_type(env, "BufferedWriter", FTypeBufferedWriter.ONLY);
-
-        install_type(env, "IntLiteral", FTypeIntLiteral.ONLY);
-        install_type(env, "FloatLiteral", FTypeFloatLiteral.ONLY);
 
         // Dual identity of true/false
         install_type(env, "true", Bool.make(true));
@@ -71,35 +53,11 @@ public class Primitives {
 
         install_type(env, "Any", FTypeTop.ONLY);
 
-
-        install_type(env, "FortressBuiltin.ZZ32", FTypeInt.ONLY);
-        install_type(env, "FortressBuiltin.ZZ64", FTypeLong.ONLY);
-        install_type(env, "FortressBuiltin.Integral", FTypeIntegral.ONLY);
-        install_type(env, "FortressBuiltin.RR64", FTypeFloat.ONLY);
-        install_type(env, "FortressBuiltin.Number", FTypeNumber.ONLY);
-        install_type(env, "FortressBuiltin.BufferedWriter", FTypeBufferedWriter.ONLY);
-
-        install_type(env, "FortressBuiltin.IntLiteral", FTypeIntLiteral.ONLY);
-        install_type(env, "FortressBuiltin.FloatLiteral", FTypeFloatLiteral.ONLY);
-
         // Dual identity of true/false
         install_type(env, "FortressBuiltin.true", Bool.make(true));
         install_type(env, "FortressBuiltin.false", Bool.make(false));
 
         install_type(env, "FortressBuiltin.Any", FTypeTop.ONLY);
-
-
-        FTypeInt.ONLY.addExclude(FTypeFloat.ONLY);
-        FTypeInt.ONLY.addExclude(FTypeFloatLiteral.ONLY);
-        FTypeInt.ONLY.addExclude(FTypeLong.ONLY);
-        FTypeLong.ONLY.addExclude(FTypeFloat.ONLY);
-        FTypeLong.ONLY.addExclude(FTypeFloatLiteral.ONLY);
-        FTypeIntegral.ONLY.addExclude(FTypeFloat.ONLY);
-        FTypeIntegral.ONLY.addExclude(FTypeFloatLiteral.ONLY);
-
-
-
-
 
     }
 }

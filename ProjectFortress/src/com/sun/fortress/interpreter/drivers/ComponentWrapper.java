@@ -158,7 +158,7 @@ public class ComponentWrapper {
 
         CompilationUnit cu = p;
 
-       cu = (CompilationUnit) desugarer.visit(cu); // Rewrites p!
+        cu = (CompilationUnit) desugarer.visit(cu); // Rewrites p!
                                       // Caches information in dis!
         be.visit(cu);
         // Reset the non-function names from the disambiguator.

@@ -28,15 +28,15 @@ public class Types {
     public static final Type BOTTOM = new BottomType();
     public static final Type ANY = NodeFactory.makeInstantiatedType("FortressBuiltin", "Any");
     public static final Type OBJECT = NodeFactory.makeInstantiatedType("FortressLibrary", "Object");
-    public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
+    // public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
 
     public static final Type VOID = new VoidType();
-    public static final Type FLOAT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "FloatLiteral");
-    public static final Type INT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "IntLiteral");
+    public static final Type FLOAT_LITERAL = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "FloatLiteral");
+    public static final Type INT_LITERAL = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "IntLiteral");
     public static final Type BOOLEAN = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "Boolean");
     public static final Type CHAR = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "Char");
     public static final Type STRING = NodeFactory.makeInstantiatedType("NativeSimpleTypes", "String");
-    public static final Type REGION = NodeFactory.makeInstantiatedType("FortressBuiltin", "Region");
+    public static final Type REGION = NodeFactory.makeInstantiatedType("FortressLibrary", "Region");
 
     public static final Type fromVarargsType(VarargsType varargsType) {
         return NodeFactory.makeInstantiatedType(varargsType.getSpan(),

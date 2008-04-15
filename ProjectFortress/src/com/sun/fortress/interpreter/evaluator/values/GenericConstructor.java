@@ -66,6 +66,8 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
     public Constructor make(List<FType> args, HasAt within) {
         // Use the generic type to make the specific type
         String name = odefOrDecl.stringName();
+
+        FTypeGeneric.startPendingTraitFMs();
         FTypeGeneric gt = (FTypeGeneric) env.getType(name);
 
         /*
@@ -84,6 +86,7 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
         //                EvalType.paramsToParameters(clenv, Option.unwrap(params));
 
         Constructor cl = makeAConstructor(clenv, ft,  odefOrDecl.getParams());
+        FTypeGeneric.flushPendingTraitFMs();
         return cl;
     }
 
@@ -129,7 +132,6 @@ protected Constructor constructAConstructor(BetterEnv clenv,
 private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, Option<List<Param>> objectParams) {
     Constructor cl = constructAConstructor(clenv, objectType, objectParams);
     cl.finishInitializing();
-    FTypeGeneric.flushPendingTraitFMs();
     return cl;
 }
 

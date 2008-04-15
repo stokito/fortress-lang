@@ -17,6 +17,21 @@
 
 api NativeSimpleTypes
 
+object Float extends RR64
+end
+
+object FloatLiteral extends RR64
+end
+
+object ZZ32 extends ZZ64
+end
+
+object Long extends ZZ64
+end
+
+object IntLiteral extends Integral
+end
+
 object Boolean
     extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
 end

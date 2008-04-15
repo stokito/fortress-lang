@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
@@ -1073,13 +1074,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         if (!staticParams.isEmpty()) {
 
         } else {
-           {
-                FTypeTrait ftt = (FTypeTrait) containing
-                        .getType(NodeUtil.nameString(name));
-                BetterEnv interior = ftt.getWithin();
-                finishTrait(x, ftt, interior);
-
-            }
+            FTypeTrait ftt =
+                (FTypeTrait)containing.getType(NodeUtil.nameString(name));
+            BetterEnv interior = ftt.getWithin();
+            finishTrait(x, ftt, interior);
         }
     }
     private void forAbsTraitDecl3(AbsTraitDecl x) {
@@ -1140,21 +1138,16 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // TODO Auto-generated method stub
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
-        Id name = x.getName();
         // List<Type> excludes;
         // Option<List<Type>> bounds;
         // List<WhereClause> where;
 
-        if (!staticParams.isEmpty()) {
-
-        } else {
-           {
-                FTypeTrait ftt = (FTypeTrait) containing
-                        .getType(NodeUtil.nameString(name));
-                BetterEnv interior = ftt.getWithin();
-                finishTrait(x, ftt, interior);
-
-            }
+        if (staticParams.isEmpty()) {
+            Id name = x.getName();
+            FTypeTrait ftt =
+                (FTypeTrait) containing.getType(NodeUtil.nameString(name));
+            BetterEnv interior = ftt.getWithin();
+            finishTrait(x, ftt, interior);
         }
     }
     private void forTraitDecl3(TraitDecl x) {
@@ -1181,6 +1174,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<FType> extl = et.getFTypeListFromList(extends_);
         List<FType> excl = et.getFTypeListFromList(x.getExcludes());
         ftt.setExtendsAndExcludes(extl, excl, interior);
+        Option<List<TraitType>> comprs = x.getComprises();
+        if (!comprs.isNone()) {
+            List<FType> c = et.getFTypeListFromList(Option.unwrap(comprs));
+            ftt.setComprises(Useful.<FType>set(c));
+        }
         List<? extends AbsDeclOrDecl> fns = x.getDecls();
 
         // doTraitMethodDefs(ftt, null); /* NOTICE THE DIFFERENT ENVIRONMENT! */

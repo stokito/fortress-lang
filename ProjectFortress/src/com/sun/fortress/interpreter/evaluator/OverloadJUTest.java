@@ -24,10 +24,7 @@ import junit.framework.TestCase;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
-import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
-import com.sun.fortress.interpreter.evaluator.types.FTypeIntegral;
-import com.sun.fortress.interpreter.evaluator.types.FTypeNumber;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.DummyValue;
 import com.sun.fortress.interpreter.evaluator.values.Dummy_fcn;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -84,13 +81,50 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
         return fcn.bestMatchIndex(vals, null, null, fcn.getOverloads());
     }
 
-    private <T> List<T> l(T... args) { return Arrays.asList(args); }
+    private static <T> List<T> l(T... args) { return Arrays.asList(args); }
 
-    // some convenience bindings
-    static final FType Int = FTypeInt.ONLY;
-    static final FType Integral = FTypeIntegral.ONLY;
-    static final FType Float = FTypeFloat.ONLY;
-    static final FType Number = FTypeNumber.ONLY;
+    // some convenience bindings; need to invent some superclass relationships
+    // since they're not baked in anymore.
+    private static final class TInt extends FType {
+        private TInt() { super("TInt"); cannotBeExtended = true; }
+        protected List<FType> computeTransitiveExtends() {
+            return l(this, Integral, Float, Number);
+        }
+        public boolean subtypeOf(FType other) {
+            return (this==other || Integral.subtypeOf(other));
+        }
+    }
+    private static final class TIntegral extends FType {
+        private TIntegral() { super("TIntegral"); }
+        protected List<FType> computeTransitiveExtends() {
+            return l(this, Float, Number);
+        }
+        public boolean subtypeOf(FType other) {
+            return (this==other || Float.subtypeOf(other));
+        }
+    }
+    private static final class TFloat extends FType {
+        private TFloat() { super("TFloat"); cannotBeExtended = true; }
+        protected List<FType> computeTransitiveExtends() {
+            return l(this, Number);
+        }
+        public boolean subtypeOf(FType other) {
+            return (this==other || Number.subtypeOf(other));
+        }
+    }
+    private static final class TNumber extends FType {
+        private TNumber() { super("TNumber"); }
+        protected List<FType> computeTransitiveExtends() {
+            return l((FType)this);
+        }
+        public boolean subtypeOf(FType other) {
+            return (this==other || other==FTypeTop.ONLY);
+        }
+    }
+    static final FType Int = new TInt();
+    static final FType Integral = new TIntegral();
+    static final FType Float = new TFloat();
+    static final FType Number = new TNumber();
 
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()

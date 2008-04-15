@@ -17,11 +17,29 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import java.util.List;
+
+import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.evaluator.values.FFloat;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.nodes.GenericWithParams;
 
 /**
  * Functions from RR64.
  */
-public class Float {
+public class Float extends NativeConstructor {
+
+public Float(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    super(env, selfType, def);
+}
+
+protected FNativeObject makeNativeObject(List<FValue> args,
+                                         NativeConstructor con) {
+    FFloat.setConstructor(this);
+    return FFloat.ZERO;
+}
 
 public static final class Negate extends Util.R2R {
     protected double f(double x) { return -x; }

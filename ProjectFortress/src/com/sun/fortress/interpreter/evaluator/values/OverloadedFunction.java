@@ -76,8 +76,8 @@ public class  OverloadedFunction extends Fcn
     protected volatile boolean finishedSecond = true;
     protected SimpleName fnName;
 
-    static final boolean DUMP_EXCLUSION = false;
-    static int excl_skip = 65536*8+16384+8192+4096+512;
+    static final boolean DUMP_EXCLUSION = true;
+    static int excl_skip = 100000000;
 
     public static void exclDump(Object... os) {
         if (DUMP_EXCLUSION && excl_skip <= 0) {
@@ -97,6 +97,12 @@ public class  OverloadedFunction extends Fcn
             excl_skip--;
         }
 
+    }
+
+    public static void exclDumpSkip() {
+        if (DUMP_EXCLUSION && excl_skip > 0) {
+            System.out.print("excl_skip = "+excl_skip+"; ");
+        }
     }
 
     BATreeEC<List<FValue>, List<FType>, SingleFcn> cache =
@@ -244,8 +250,8 @@ public class  OverloadedFunction extends Fcn
         ArrayList<FType> ftalist = new ArrayList<FType> (new_overloads.size());
 
         OverloadComparisonResult ocr = new OverloadComparisonResult();
-        
-        
+
+
         for (int i = 0; i< new_overloads.size(); i++) {
             Overload o1 = new_overloads.get(i);
             ftalist.add(o1.getFn().type());
@@ -262,7 +268,7 @@ public class  OverloadedFunction extends Fcn
 
                     if (genericFMAndInstance(f1, f2) || genericFMAndInstance(f2, f1))
                         continue;
-                    
+
                     ocr.reset();
                     ocr.completeOverloadingCheck(o1, o2, new_overloads, within);
 
@@ -307,7 +313,7 @@ public class  OverloadedFunction extends Fcn
 
         private boolean rest1;
         private boolean rest2;
-        
+
         public OverloadComparisonResult() {
             reset();
         }
@@ -331,7 +337,7 @@ public class  OverloadedFunction extends Fcn
             rest1 = false;
             rest2 = false;
             meetOk = false;
-            
+
         }
 
         public void completeOverloadingCheck(Overload o1, Overload o2, Collection<Overload> new_overloads, BetterEnv within) {
@@ -479,39 +485,41 @@ public class  OverloadedFunction extends Fcn
                 meetOk = meetExistsIn(o1, o2, new_overloads);
             }
 
-                describeOverloadingFailure(o1, o2, within, pl1,
-                        pl2);
-           
+            describeOverloadingFailure(o1, o2, within, pl1,
+                                       pl2);
+
             return;
         }
-        
+
         public boolean overloadOk() {
-            
+
             // exclusion is good.
             if (distinct)
                 return true;
-            
+
             // non-ground types need exclusion
             if ( sawSymbolic1 || sawSymbolic2 || unrelated != -1) {
                 return false;
             }
-            
+
             // meet rule
-            if (p1better >= 0 && p2better >= 0 &&  !meetOk) 
+            if (p1better >= 0 && p2better >= 0 &&  !meetOk)
                 return false;
-            
+
             // neither is better, not a functional method
             if (p1better < 0 && p2better < 0 && selfIndex < 0)
                 return false;
-            
+
             return true;
         }
 
         private void describeOverloadingFailure(Overload o1, Overload o2,
                 BetterEnv within,
                 List<FType> pl1, List<FType> pl2) {
+            if (distinct) return;
             OverloadComparisonResult ocr = this;
-            if (!distinct && (sawSymbolic1 || sawSymbolic2)) {
+            if (sawSymbolic1 || sawSymbolic2) {
+                exclDumpSkip();
                 String explanation;
                 if (sawSymbolic1 && sawSymbolic2)
                     explanation = errorMsg("\nBecause ", o1, " and ", o2, " have parameters\n");
@@ -523,7 +531,8 @@ public class  OverloadedFunction extends Fcn
                 error(o1, o2, within, explanation);
             }
 
-            if (!distinct && unrelated != -1) {
+            if (unrelated != -1) {
+                exclDumpSkip();
                 String s1 = parameterName(unrelated, o1);
                 String s2 = parameterName(unrelated, o2);
 
@@ -531,13 +540,15 @@ public class  OverloadedFunction extends Fcn
                 error(o1, o2, within, explanation);
             }
 
-            if (!distinct && p1better >= 0 && p2better >= 0 &&  !meetOk) {
+            if (p1better >= 0 && p2better >= 0 &&  !meetOk) {
+                exclDumpSkip();
                 error(o1, o2, within,
                         errorMsg("Overloading of\n\t(first) ", o1, " and\n\t(second) ", o2, " fails because\n\t",
                                 formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
                                 formatParameterComparison(p2better, o1, o2, "less")));
             }
-            if (!distinct && p1better < 0 && p2better < 0 && selfIndex < 0) {
+            if (p1better < 0 && p2better < 0 && selfIndex < 0) {
+                exclDumpSkip();
                 String explanation = null;
                 if (l1 == l2 && rest1 == rest2) {
                     if (unequal)
@@ -551,7 +562,7 @@ public class  OverloadedFunction extends Fcn
                     " fails because of ambiguity in overlapping rest (...) parameters");
                 error(o1, o2, within, explanation);
             }
-            
+
         }
     }
 

@@ -17,25 +17,25 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
 
-public class FFloatLiteral extends FBuiltinValue {
+public class FFloatLiteral extends NativeConstructor.FNativeObject {
     private final String value;
+    private static volatile NativeConstructor con;
+    public static final FFloatLiteral ZERO = new FFloatLiteral("0.0");
 
-    public FBuiltinType type() { return FTypeFloatLiteral.ONLY; }
+    public FFloatLiteral(String s) {
+        super(null);
+        value = s;
+    }
 
     public String getString() { return value; } // TODO Sam left this undone, not sure if intentional
 
     public double getFloat() { return Double.valueOf(value); }
 
-    public FFloatLiteral(String s) {
-        value = s;
-    }
-
     public boolean seqv(FValue v) {
         // HACK that's only sort-of correct.  If we care about all the digits,
         // there must be some sort of normalization.
-        if (!(v instanceof FBuiltinValue)) return false;
+        if (!(v instanceof NativeConstructor.FNativeObject)) return false;
         if (v instanceof FFloat || v instanceof FFloatLiteral ||
             v instanceof FInt   || v instanceof FIntLiteral   ||
             v instanceof FLong) {
@@ -43,4 +43,17 @@ public class FFloatLiteral extends FBuiltinValue {
         }
         return false;
     }
+
+    public static void setConstructor(NativeConstructor con) {
+        // WARNING!  In order to run the tests we must reset con for
+        // each new test, so it's not OK to ignore setConstructor
+        // attempts after the first one.
+        if (con==null) return;
+        FFloatLiteral.con = con;
+    }
+
+    public NativeConstructor getConstructor() {
+        return FFloatLiteral.con;
+    }
+
 }
