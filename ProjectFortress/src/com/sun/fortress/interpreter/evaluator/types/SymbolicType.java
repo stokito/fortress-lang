@@ -25,10 +25,13 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
-import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.HasAt;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpSkip;
 
 abstract public class SymbolicType extends FTypeTrait {
 
@@ -44,6 +47,10 @@ abstract public class SymbolicType extends FTypeTrait {
     public SymbolicType(String name, BetterEnv interior, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
         super(name, interior, interior.getAt(), members, decl);
         membersInitialized = true;
+    }
+
+    public String toString() {
+        return getName()+"@"+getAt().at();
     }
 
     public void addExtend(FType t) {
@@ -62,4 +69,29 @@ abstract public class SymbolicType extends FTypeTrait {
         extends_.addAll(t);
     }
 
+    protected boolean excludesOtherInner(FType other) {
+        if (other instanceof SymbolicType) {
+            for (FType t1 : getExtends()) {
+                for (FType t2 : other.getExtends()) {
+                    exclDump("Checking exclusion of upper bounds; ");
+                    if (t1.excludesOther(t2)) {
+                        exclDumpln("upper bounds ",t1," and ",t2," exclude.");
+                        addExclude(other);
+                        return true;
+                    }
+                }
+            }
+        } else {
+            for (FType t1 : getExtends()) {
+                exclDump("Checking exclusion of upper bound; ");
+                if (t1.excludesOther(other)) {
+                    exclDumpln("upper bound ",t1," excludes.");
+                    addExclude(other);
+                    return true;
+                }
+            }
+        }
+        exclDumpln("No upper bound exclusion.");
+        return false;
+    }
 }

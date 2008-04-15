@@ -18,12 +18,17 @@
 package com.sun.fortress.interpreter.glue.prim;
 
 import java.math.BigInteger;
+import java.util.List;
 
+import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
 
@@ -32,7 +37,17 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 /**
  * Functions from ZZ32.
  */
-public class Int {
+public class ZZ32 extends NativeConstructor {
+
+public ZZ32(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    super(env,selfType,def);
+}
+
+protected FNativeObject makeNativeObject(List<FValue> args,
+                                         NativeConstructor con) {
+    FInt.setConstructor(this);
+    return FInt.ZERO;
+}
 
 public static final class Negate extends Util.Z2Z {
     protected int f(int x) { return -x; }
@@ -130,7 +145,7 @@ public static final class Pow extends NativeFn2 {
     }
 }
 public static final class FromLong extends Util.L2Z {
-    protected int f(long x) { return Int.rc(x); }
+    protected int f(long x) { return ZZ32.rc(x); }
 }
 
 public static int rc(long i) {

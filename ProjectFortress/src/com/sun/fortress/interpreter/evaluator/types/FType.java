@@ -45,8 +45,10 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpSkip;
 
 abstract public class FType implements Comparable<FType> {
 
@@ -75,6 +77,7 @@ abstract public class FType implements Comparable<FType> {
     private final int serial;
     private final int hash;
     private BASet<FType> excludes = new BASet<FType>(comparator);
+    private volatile boolean excludesClosed = false;
     private static int counter;
     protected volatile List<FType> transitiveExtends;
    // Must be volatile due to lazy initialization / double-checked locking.
@@ -85,6 +88,10 @@ abstract public class FType implements Comparable<FType> {
 
     protected boolean isSymbolic;
     protected boolean cannotBeExtended;
+
+    protected int getSerial() {
+        return serial;
+    }
 
     public synchronized void resetState() {
         transitiveExtends = null;
@@ -164,58 +171,92 @@ abstract public class FType implements Comparable<FType> {
         return transitiveExtends;
     }
 
+    private void computeTransitiveExcludes() {
+        for (FType t : getExtends()) {
+            for (FType x : t.getExcludes()) {
+                addExclude(x);
+            }
+        }
+        excludesClosed = true;
+    }
+
     public Set<FType> getExcludes() {
+        if (!excludesClosed) computeTransitiveExcludes();
         return excludes.copy();
     }
 
+    public Set<FType> getTransitiveComprises() {
+        BASet<FType> res = new BASet<FType>(comparator);
+        res.add(this);
+        return res;
+    }
+
+    public Set<FType> getComprises() {
+        return null;
+    }
+
     public void addExclude(FType t) {
+        if (t == this) {
+            exclDumpSkip();
+            if (t instanceof FTraitOrObject) {
+                bug(((FTraitOrObject)this).getAt(),
+                    errorMsg("Type cannot exclude itself: ", t));
+            } else {
+                bug(errorMsg("Type cannot exclude itself: ", t));
+            }
+        }
+        if (t instanceof SymbolicType || this instanceof SymbolicType) {
+            // exclDumpSkip();
+            // System.out.println("Added symbolic excl "+t+" and "+this);
+        }
         this.addExcludesInner(t);
         t.addExcludesInner(this);
     }
 
     private void addExcludesInner(FType t) {
-        if (t == this)
-            error(errorMsg("Type cannot exclude itself: ", t));
         excludes.syncPut(t);
     }
 
     public boolean excludesOther(FType other) {
-        if (other instanceof FTypeArrow) // FTypeArrow handles other case
-            return true;
-        if (other instanceof FTypeTuple) // FTypeTuple handles other case
-            return true;
-        else return excludesOtherInner(other);
-    }
-
-    private boolean excludesOtherInner(FType other) {
         if (this == other) {
             exclDumpln("No.  Equal.");
             return false;
         }
+        if (other instanceof FTypeArrow) // FTypeArrow handles other case
+            return true;
+        if (other instanceof FTypeTuple) // FTypeTuple handles other case
+            return true;
+        if (excludesOtherSimply(other)) {
+            exclDump("Ought to return true now.");
+            return true;
+        }
+        return excludesOtherInner(other);
+    }
 
+    protected boolean excludesOtherSimply(FType other) {
         // If neither type can be extended, then they exclude.
-
-        // If one cannot be extended, and the other is not an
-        // actual super, then they exclude.
-
-        // Otherwise, look for exclusion in the supertypes.
         if (cannotBeExtended() && other.cannotBeExtended()) {
             exclDumpln("Excludes.  Neither can be extended.");
             return true;
         }
-
-        // This is part of the definition, but it also probes memoized results.
-        if (excludes.contains(other)) {
+        if (this.getExcludes().contains(other)) {
             exclDumpln("Excludes (cached).");
             return true;
         }
-
         if (other.getExcludes().contains(this)) {
-            exclDumpln("Excludes (other declared).");
-            this.addExclude(other);
+            exclDumpln("Other excludes (transitive closure just happened).");
             return true;
         }
+        return false;
+    }
 
+    protected boolean excludesOtherInner(FType other) {
+        // If other is Symbolic, use it instead.
+        if (other instanceof SymbolicType) {
+            exclDump("\nFlipping;");
+            return other.excludesOtherInner(this);
+        }
+        // Look in the supertypes of non-extensible type.
         if (cannotBeExtended()) {
             if (getTransitiveExtends().contains(other)) {
                 exclDumpln("No.  Transitive extend contains.");
@@ -237,31 +278,35 @@ abstract public class FType implements Comparable<FType> {
             // Memoize
             this.addExclude(other);
             return true;
-
         }
-
-        for (FType t : getTransitiveExtends()) {
-            if (t==FTypeTop.ONLY) continue;
-            for (FType o : other.getTransitiveExtends()) {
-                if (o==FTypeTop.ONLY) continue;
-                if (this==t && other==o) continue;
-                Boolean excl_t = t.getExcludes().contains(o);
-                Boolean excl_o = o.getExcludes().contains(t);
-                if (excl_t || excl_o) {
-                    if (!excl_o) o.addExclude(t);
-                    if (!excl_t) t.addExclude(o);
-                    this.addExclude(other);
-                    other.addExclude(this);
-                    if (t != this) other.addExclude(t);
-                    if (o != other) this.addExclude(o);
-                    exclDumpln("Excludes due to ",t," and ",o);
-                    return true;
+        // Next, check that a supertype of other isn't excluded by us.
+        for (FType t1 : other.getTransitiveExtends()) {
+            if (excludes.contains(t1)) {
+                exclDumpln("Excludes supertype ", t1, ".");
+                addExclude(other);
+                return true;
+            }
+        }
+        // We shouldn't need to check the other way 'round by reflexivity.
+        // Now check transitive comprises for exclusion.
+        // If any does not exclude, we don't exclude.  If all pairs
+        // exclude, we exclude.
+        if (getComprises()==null && other.getComprises()==null) {
+            exclDumpln("No comprises clauses, no exclusion.");
+            return false;
+        }
+        exclDump("\n");
+        for (FType t1 : getTransitiveComprises()) {
+            for (FType t2 : other.getTransitiveComprises()) {
+                exclDump("Checking extends of comprised ",t1," and ",t2);
+                if (!t1.excludesOther(t2)) {
+                    return false;
                 }
             }
         }
-        exclDumpln("No.");
-        return false;
-
+        exclDumpln("Comprises all exclude.");
+        addExclude(other);
+        return true;
     }
 
     public BetterEnv getWithin() {

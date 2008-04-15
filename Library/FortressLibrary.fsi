@@ -210,6 +210,22 @@ assert(flag: Boolean, failMsg: String): ()
 assert(x:Any, y:Any, failMsg: Any...): ()
 
 (************************************************************
+* \subsection*{Numeric hierarchy}
+************************************************************)
+
+trait  Number comprises { RR64 }
+end
+
+trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
+end
+
+trait  Integral extends RR64 comprises { ZZ64, IntLiteral }
+end
+
+trait ZZ64 extends Integral comprises { Long, ZZ32 }
+end
+
+(************************************************************
 * \subsection*{Generator support}
 ************************************************************
 

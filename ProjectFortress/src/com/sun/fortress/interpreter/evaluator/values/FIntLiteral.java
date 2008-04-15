@@ -18,12 +18,12 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-public class FIntLiteral extends FBuiltinValue implements HasIntValue {
+public class FIntLiteral extends NativeConstructor.FNativeObject
+        implements HasIntValue {
 
     public static final BigInteger INT_MIN =
         BigInteger.valueOf(java.lang.Integer.MIN_VALUE);
@@ -37,9 +37,14 @@ public class FIntLiteral extends FBuiltinValue implements HasIntValue {
     public static final BigInteger LONG_MAX =
         BigInteger.valueOf(java.lang.Long.MAX_VALUE);
 
+    private static volatile NativeConstructor con;
+
+    public static final FIntLiteral ZERO = new FIntLiteral(BigInteger.valueOf(0));
+
     private final BigInteger value;
 
     private FIntLiteral(BigInteger i) {
+        super(null);
         value = i;
     }
 
@@ -61,8 +66,6 @@ public class FIntLiteral extends FBuiltinValue implements HasIntValue {
         }
     }
 
-    public FBuiltinType type() { return FTypeIntLiteral.ONLY; }
-
     public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
 
     public int getInt() {
@@ -76,11 +79,24 @@ public class FIntLiteral extends FBuiltinValue implements HasIntValue {
     public BigInteger getLit() { return value; }
     public double getFloat() { return value.doubleValue(); }
     public boolean seqv(FValue v) {
-        if (!(v instanceof FBuiltinValue)) return false;
+        if (!(v instanceof NativeConstructor.FNativeObject)) return false;
         if (v instanceof FIntLiteral)
             return value.equals(((FIntLiteral)v).value);
         if (v instanceof FFloat || v instanceof FFloatLiteral)
             return getFloat()==v.getFloat();
         return false;
+    }
+
+
+    public static void setConstructor(NativeConstructor con) {
+        // WARNING!  In order to run the tests we must reset con for
+        // each new test, so it's not OK to ignore setConstructor
+        // attempts after the first one.
+        if (con==null) return;
+        FIntLiteral.con = con;
+    }
+
+    public NativeConstructor getConstructor() {
+        return FIntLiteral.con;
     }
 }

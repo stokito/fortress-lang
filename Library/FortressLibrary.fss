@@ -41,33 +41,6 @@ export Executable
 builtinPrimitive[\T\](javaClass:String):T =
   fail ("Implementation should not invoke builtinPrimitive " javaClass)
 
-(** Builtin types from evaluator.Primitives.java:
-
-Here "object" really implies non-extensibility.
-
-trait  Number        extends { Any }         excludes { String, Boolean }
-trait  Integral      extends { Number }      excludes { String, Boolean, RR64, FloatLiteral }
-object ZZ32          extends { Integral }    excludes { String, Boolean, RR64, FloatLiteral }
-object ZZ64          extends { Integral }    excludes { String, Boolean, RR64, FloatLiteral }
-object RR64          extends { Number }      excludes { String, Boolean }
-object String        extends { Any }         excludes { IntLiteral, FloatLiteral, Boolean }
-object IntLiteral    extends { ZZ32, ZZ64, RR64 }
-object FloatLiteral  extends { RR64 }
-
-trait  Any           extends {}
-  Note that everything is considered to extend the type Any.
-
-Note also that there isn't (yet) a trait Object!  Eventually
-user-written trait and object declarations will extend Object by
-default; right now they instead extend Any by default.
-
-Note also that most of these types should not form a hierarchy, but
-instead a flat type space with coercions between constituents.  Due to
-the absence of coercion we have the rather unfortunate situation you
-see here.
-
-*)
-
 (************************************************************
 * Simple Combinators
 ************************************************************)
@@ -286,6 +259,22 @@ assert(x:Any, y:Any, failMsg: Any...): () =
         msg = x " =/= " y "; " (BIG STRING failMsg)
         fail(msg)
     end
+
+(************************************************************
+* Numeric hierarchy
+************************************************************)
+
+trait  Number comprises { RR64 }
+end
+
+trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
+end
+
+trait  Integral extends RR64 comprises { ZZ64, IntLiteral }
+end
+
+trait ZZ64 extends Integral comprises { Long, ZZ32 }
+end
 
 (************************************************************
 * Generator support
@@ -2682,29 +2671,29 @@ opr |x:ZZ32| : ZZ32 = if x>=0 then x else -x end
 opr |x:ZZ64| : ZZ64 = if x>=0 then x else -x end
 opr |x:IntLiteral| : IntLiteral = if x>=0 then x else -x end
 
-opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
-opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
-opr -(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
-opr DOT(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Negate")
+opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Add")
+opr -(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Sub")
+opr DOT(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
 opr juxtaposition
-     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
-opr DIV(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Div")
-opr REM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Rem")
-opr MOD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mod")
-opr GCD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Gcd")
-opr LCM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Lcm")
-opr CHOOSE(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Choose")
-opr BITAND(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitAnd")
-opr BITOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitOr")
-opr BITXOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitXor")
-opr LSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LShift")
-opr RSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RShift")
-opr BITNOT(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitNot")
-opr =(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Eq")
-opr <=(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LessEq")
-opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow")
+     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
+opr DIV(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Div")
+opr REM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Rem")
+opr MOD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mod")
+opr GCD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Gcd")
+opr LCM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Lcm")
+opr CHOOSE(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Choose")
+opr BITAND(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitAnd")
+opr BITOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitOr")
+opr BITXOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitXor")
+opr LSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$LShift")
+opr RSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$RShift")
+opr BITNOT(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitNot")
+opr =(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Eq")
+opr <=(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$LessEq")
+opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Pow")
 widen(a:ZZ32):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToLong")
-partitionL(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Partition")
+partitionL(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Partition")
 
 nanoTime():ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$NanoTime")
 printTaskTrace():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintTaskTrace")
@@ -2766,7 +2755,7 @@ opr BITNOT(a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glu
 opr =(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
 opr <=(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LessEq")
 opr ^(a:ZZ64, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
-narrow(a:ZZ64):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$FromLong")
+narrow(a:ZZ64):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$FromLong")
 
 opr   <(a:Integral, b:Integral):Boolean = NOT (b <= a)
 opr   >(a:Integral, b:Integral):Boolean = NOT (a <= b)

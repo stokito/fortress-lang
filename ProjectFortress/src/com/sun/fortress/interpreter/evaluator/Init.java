@@ -19,15 +19,7 @@ package com.sun.fortress.interpreter.evaluator;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
-import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
-import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
-import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
-import com.sun.fortress.interpreter.evaluator.types.FTypeIntegral;
-import com.sun.fortress.interpreter.evaluator.types.FTypeLong;
-import com.sun.fortress.interpreter.evaluator.types.FTypeNumber;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOpr;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
@@ -63,22 +55,8 @@ public class Init {
         FTypeVoid.ONLY.resetState();
         FTypeTop.ONLY.resetState();
 
-        FTypeBufferedWriter.ONLY.resetState();
-
-        FTypeFloat.ONLY.resetState();
-        FTypeFloatLiteral.ONLY.resetState();
-        FTypeInt.ONLY.resetState();
-        FTypeIntegral.ONLY.resetState();
-        FTypeIntLiteral.ONLY.resetState();
-        FTypeLong.ONLY.resetState();
-        FTypeNumber.ONLY.resetState();
-        FTypeIntegral.ONLY.resetState();
-
         BottomType.ONLY.resetState();
         FTypeRange.ONLY.resetState();
-
-        FTypeIntLiteral.ONLY.resetState();
-        FTypeFloatLiteral.ONLY.resetState();
 
         NativeApp.reset();
 

@@ -16,32 +16,8 @@
  ******************************************************************************)
 
 api FortressBuiltin
-(* import NativeSimpleTypes.{Boolean} *)
+import NativeSimpleTypes.{...}
 
 trait Any end
-
-trait  Number extends { Any }
-    (* excludes { String, Boolean } *)
-end
-
-trait  Integral extends { Number }
-    (* excludes { String, Boolean, RR64, FloatLiteral } *)
-end
-
-trait ZZ32 extends { Integral }
-    (* excludes { String, Boolean, RR64, FloatLiteral } *)
-end
-
-trait ZZ64 extends { Integral }
-    (* excludes { String, Boolean, RR64, FloatLiteral } *)
-end
-
-trait RR64 extends { Number }
-    (* excludes { String, Boolean } *)
-end
-
-trait IntLiteral extends { ZZ32, ZZ64, RR64 } end
-
-trait FloatLiteral extends { RR64 } end
 
 end

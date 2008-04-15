@@ -17,7 +17,10 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 import java.util.List;
+import java.util.Set;
 
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.BASet;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
@@ -40,12 +43,46 @@ public class FTypeTrait extends FTraitOrObject {
      * which is defined as part of method invocation.
      */
     BetterEnv methodEnv;
+    Set<FType> comprises;
     volatile BetterEnv declaredMembersOf;
     volatile protected boolean membersInitialized; // initially false
+    protected volatile Set<FType> transitiveComprises;
 
     public FTypeTrait(String name, BetterEnv interior, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
         super(name, interior, at, members, decl);
         this.declaredMembersOf = new BetterEnv(at);
+    }
+
+    public Set<FType> getComprises() {
+        return comprises;
+    }
+
+    public void setComprises(Set<FType> c) {
+        comprises = c;
+    }
+
+    public Set<FType> getTransitiveComprises() {
+        if (transitiveComprises == null) {
+            Set<FType> tmp = computeTransitiveComprises();
+            synchronized(this) {
+                if (transitiveComprises == null) {
+                    transitiveComprises = tmp;
+                }
+            }
+        }
+        return transitiveComprises;
+    }
+
+    protected Set<FType> computeTransitiveComprises() {
+        Set<FType> res = new BASet<FType>(FType.comparator);
+        if (comprises==null) {
+            res.add(this);
+        } else {
+            for (FType c : comprises) {
+                res.addAll(c.getTransitiveComprises());
+            }
+        }
+        return res;
     }
 
     protected void finishInitializing() {
