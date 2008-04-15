@@ -83,6 +83,8 @@ run(args:String...) = do
   genTest[\Char\](s, "", fn (rs) => rs.characters(), "characters")
   genTest[\String\](s, "", fn (rs) => rs.chunks(16), "chunks(16)")
   genTest[\String\](s, "", fn (rs) => rs.chunks(), "chunks()")
+  genTest[\Char\](s, "", fn (rs) => rs.chunks().nest[\Char\](identity[\String\]),
+               "exploded characters")
 end
 
 end

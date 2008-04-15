@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FString;
+import com.sun.fortress.interpreter.evaluator.values.FChar;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
@@ -91,6 +92,14 @@ public class String extends NativeConstructor {
         }
     }
 
+    protected static abstract class sI2C extends NativeMeth1 {
+        protected abstract char f(java.lang.String s, int i);
+        protected final FChar act(FObject self, FValue i) {
+            return FChar.make(f(((FString)self).getString(),
+                                ((FInt)i).getInt()));
+        }
+    }
+
     public static final class Size extends s2I {
         protected int f(java.lang.String s) {
             return s.length();
@@ -118,6 +127,12 @@ public class String extends NativeConstructor {
     public static final class ToString extends s2s {
         protected java.lang.String f(FString self) {
             return self.toString();
+        }
+    }
+
+    public static final class Index extends sI2C {
+        protected char f(java.lang.String self, int i) {
+            return self.charAt(i);
         }
     }
 }
