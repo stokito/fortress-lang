@@ -21,6 +21,123 @@ export FortressBuiltin
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
-trait Any end
+value object Float extends RR64
+end
+
+object FloatLiteral extends RR64
+end
+
+value object ZZ32 extends ZZ64
+end
+
+value object Long extends ZZ64
+end
+
+object IntLiteral extends Integral
+end
+
+object Boolean
+        extends { Condition[\()\], StandardTotalOrder[\Boolean\] }
+    getter holds(): Boolean = self
+    getter get(): () = ()
+    getter toString(): Boolean = if self then "true" else "false" end
+    getter size(): ZZ32 = |self|
+    opr |self| : ZZ32 = if self then 1 else 0 end
+    cond[\R\](t:()->R, e:()->R) : R = if self then t() else e() end
+    generate[\R\](r:Reduction[\R\],b:()->R): R =
+        if self then b() else r.empty() end
+    map[\G\](f: ()->G): Maybe[\G\] =
+        if self then Just[\G\](f()) else Nothing[\G\] end
+    cross[\G\](g: Generator[\G\]): Generator[\((),G)\] =
+        if self
+        then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
+        else Nothing[\((),G)\] end
+
+    mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R =
+        if self then b() else z end
+    loop(f:()->()): () = if self then f() end
+
+    opr =(self, other:Boolean): Boolean =
+        if self then other else NOT other end
+    opr <(self, other:Boolean): Boolean =
+        if self then false else other end
+    opr CMP(self, other:Boolean): TotalComparison =
+        if self then
+            if other then EqualTo else GreaterThan end
+        else
+            if other then LessThan else EqualTo end
+        end
+end
+
+object Char extends { StandardTotalOrder[\Char\] }
+    getter toString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
+    getter ord(): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Ord")
+    opr |self| : ZZ32 = self.ord()
+    opr =(self, other:Char): Boolean = self.eq(other)
+    opr <(self, other:Char): Boolean = self.lt(other)
+    eq(other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Eq")
+    lt(other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessThan")
+end
+
+object String
+        extends { StandardTotalOrder[\String\],
+                  ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
+    getter size() : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Size")
+    getter toString() : String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$ToString")
+    getter indices() : FullRange[\ZZ32\] = bounds()
+    getter generator() : Generator[\Char\] =
+        indices().map[\Char\](fn (i:ZZ32):Char => self[i])
+    opr |self| : ZZ32 = self.size()
+    opr =(self, other:String): Boolean = self.eq(other)
+    opr <(self, other:String): Boolean = self.cmp(other) < 0
+    opr <=(self, other:String): Boolean = self.cmp(other) <= 0
+    opr >(self, other:String): Boolean = self.cmp(other) > 0
+    opr >=(self, other:String): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other:String): TotalComparison = self.cmp(other) CMP 0
+    opr [i:ZZ32]: Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Index")
+    (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
+        of the string, returning the empty string, in order to permit some convenient
+        string-trimming idioms. **)
+    opr[r0:LowerRange[\ZZ32\]]: String = do
+        l = r0.lower()
+        if l = |self| then ""
+        else self[l#(|self| - l)]
+        end
+      end
+    opr[r0:Range[\ZZ32\]] : String =
+        typecase r0 of
+            LowerRange[\ZZ32\] =>
+                l = r0.lower()
+                if l = |self| then ""
+                else self[l#(|self| - l)]
+                end
+            else =>
+                r1 = (bounds())[r0]
+                l = r1.lower()
+                self.substr(l, l + |r1|)
+      end
+    eq(other:String): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Eq")
+    cmp(other:String): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Cmp")
+    substr(lo:ZZ32,hi:ZZ32): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Substr")
+end
+
+object Thread[\T\] (fcn:()->T)
+  val():T         = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$val")
+  wait():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$wait")
+  ready():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$ready")
+  stop():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$stop")
+end
+
+abort():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$abort")
 
 end

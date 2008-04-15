@@ -54,10 +54,10 @@ public class Primitives {
         install_type(env, "Any", FTypeTop.ONLY);
 
         // Dual identity of true/false
-        install_type(env, "FortressBuiltin.true", Bool.make(true));
-        install_type(env, "FortressBuiltin.false", Bool.make(false));
+        install_type(env, "AnyType.true", Bool.make(true));
+        install_type(env, "AnyType.false", Bool.make(false));
 
-        install_type(env, "FortressBuiltin.Any", FTypeTop.ONLY);
+        install_type(env, "AnyType.Any", FTypeTop.ONLY);
 
     }
 }

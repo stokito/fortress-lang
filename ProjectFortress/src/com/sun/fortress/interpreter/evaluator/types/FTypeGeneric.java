@@ -69,39 +69,40 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
     /**
      * This is a HACK, to let other people make progress.
-     * Traits should not be scanned for functional methods until the last possible moment,
-     * and that is not known until, say, a generic constructor is returned.
+     * Do not scan for functional methods until the last possible moment;
+     * we kick off generic instantiation work by instantiating a generic
+     * trait or object type, and we need to keep track of this outermost
+     * point and process the functional methods once we've completed type
+     * instantiation for the entire type hierarchy reachable from that point.
      *
+     * This used to store all the data in a pair of ThreadLocals.
+     * However, we single-thread instantiation work using the
+     * InstantiationLock, so it is safe to store this as static data.
+     * This prevents anyone else from observing a
+     * partially-instantiated type.  The type and constructor caches
+     * are clever enough to ensure that we can continue to look at
+     * fully-constructed stuff while another thread is instantiating.
      */
-    static ThreadLocal<List<FTraitOrObjectOrGeneric>> pendingFunctionalMethodFinishes = new ThreadLocal<List<FTraitOrObjectOrGeneric>>() {
-        protected synchronized List<FTraitOrObjectOrGeneric> initialValue() {
-            return new ArrayList<FTraitOrObjectOrGeneric>();
-        }
-    };
-
-    static ThreadLocal<Integer> instantiationDepth = new ThreadLocal<Integer>() {
-        protected Integer initialValue() {
-            return 0;
-        }
-    };
+    static int instantiationDepth = 0;
+    static List<FTraitOrObjectOrGeneric> pendingFunctionalMethodFinishes =
+        new ArrayList<FTraitOrObjectOrGeneric>();
 
     static public void startPendingTraitFMs() {
-        int d = instantiationDepth.get();
-        instantiationDepth.set(d+1);
+        if (!InstantiationLock.L.isHeldByCurrentThread()) {
+            bug("startPendingTraitFMs without holding instantiation lock.");
+        }
+        instantiationDepth++;
     }
 
     static public void flushPendingTraitFMs() {
-        int d = instantiationDepth.get();
-        instantiationDepth.set(d-1);
-        if (d > 1) return;
-        List<FTraitOrObjectOrGeneric> al = pendingFunctionalMethodFinishes.get();
-        for (int i = 0; i < al.size(); i++) {
-            FTraitOrObjectOrGeneric tt = al.get(i);
-            al.set(i, null);
+        if (--instantiationDepth > 0) return;
+        for (int i = 0; i < pendingFunctionalMethodFinishes.size(); i++) {
+            FTraitOrObjectOrGeneric tt = pendingFunctionalMethodFinishes.get(i);
+            pendingFunctionalMethodFinishes.set(i, null);
             tt.finishFunctionalMethods();
 
         }
-        pendingFunctionalMethodFinishes.get().clear();
+        pendingFunctionalMethodFinishes.clear();
     }
 
     public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
@@ -290,7 +291,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             // Perhaps this is ok now that we have self-param double-overload fix in.
             // be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
 
-            pendingFunctionalMethodFinishes.get().add(ftt);
+            pendingFunctionalMethodFinishes.add(ftt);
 
             rval = ftt;
         } else if (dod instanceof ObjectDecl) {
@@ -308,7 +309,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             be.finishObjectTrait(td, fto);
             be.thirdPass();
             //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-            pendingFunctionalMethodFinishes.get().add(fto);
+            pendingFunctionalMethodFinishes.add(fto);
             // fto.finishFunctionalMethods();
             // for (FType fte : fto.getExtends()) {
             //     ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
@@ -329,7 +330,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             be.finishObjectTrait(td, fto);
             be.thirdPass();
             //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-            pendingFunctionalMethodFinishes.get().add(fto);
+            pendingFunctionalMethodFinishes.add(fto);
             // fto.finishFunctionalMethods();
             // for (FType fte : fto.getExtends()) {
             //     ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
