@@ -36,6 +36,22 @@ object Char extends { StandardTotalOrder[\Char\] }
 end
 
 object String extends { StandardTotalOrder[\String\] }
+    getter size() : ZZ32
+    getter toString() : String
+    getter indices() : FullRange[\ZZ32\]
+    getter generator() : Generator[\Char\]
+    opr |self| : ZZ32
+    opr =(self, other:String): Boolean
+    opr <(self, other:String): Boolean
+    opr <=(self, other:String): Boolean
+    opr >(self, other:String): Boolean
+    opr >=(self, other:String): Boolean
+    opr CMP(self, other:String): TotalComparison
+    opr [i:ZZ32]: Char
+    (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
+        of the string, returning the empty string, in order to permit some convenient
+        string-trimming idioms. **)
+    opr[r0:Range[\ZZ32\]] : String
 end
 
 object Thread[\T\](fcn:()->T)
