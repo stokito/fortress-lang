@@ -22,6 +22,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * A lazy memo function with one parameter in addition to the index.
+ * Also includes a poor-man's-transaction; a mutating thread excludes others
+ * during value creation (which may recursively access lazy memo functions)
+ * and uses a private copy of the memo function to shield mutators from
+ * half-initialized data.
+ * 
+ * @author chase
+ */
 public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value, Param>
 {
 
@@ -85,15 +94,19 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
              */
             lock.lock();
             try {
-                /*
-                 * To create our own world, we must make a copy of the map,
-                 * and recur, because it is possible that the item was created
-                 * while we were locked.  Recursion is only one deep, since
-                 * we hold the lock now.
-                 */
-                shadow_map = map.copy();
-                result = make(probe, param);
-                map = shadow_map;
+                // double-checked locking
+                result = map.get(probe);
+                if (result == null) {
+                    /*
+                     * To create our own world, we must make a copy of the map,
+                     * and recur, because it is possible that the item was created
+                     * while we were locked.  Recursion is only one deep, since
+                     * we hold the lock now.
+                     */
+                    shadow_map = map.copy();
+                    result = make(probe, param);
+                    map = shadow_map;
+                }
             } finally {
                 /*
                  * In all cases, reset the lock and shadow_map

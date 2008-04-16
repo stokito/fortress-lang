@@ -37,5 +37,6 @@ build/
 .fortress_cache_checked/
 .interpreter_cache
 .analyzed_cache
+.presyntax_cache
 ProjectFortress/testFile.txt
 testFile.txt
