@@ -263,7 +263,7 @@ initialize(fin: FileReadStream) =
 
 (* Add games ******************************************************************)
 (* Read games in this term *)
-addGames(fin: FileReadStream, fout: BufferedWriter) =
+addGames(fin: FileReadStream, fout: FileWriteStream) =
   do
     line: String := fin.readLine()
     while (line =/= gamesBegin) do
@@ -353,7 +353,7 @@ lost(player: Player, against: Player, points: ZZ32) =
 validGame(winner: Player, loser: Player, diff: ZZ32) =
   (|diff| <= 10, NOT(winner.playedSingle(loser.name)))
 
-addGame(fout: BufferedWriter,
+addGame(fout: FileWriteStream,
         winnerName: String, winnerOld: Boolean,
         loserName : String, loserOld : Boolean) =
   do
@@ -383,7 +383,7 @@ addGame(fout: BufferedWriter,
          end
     end
   end
-addGame(fout: BufferedWriter, winnerName: String, loserName: String) =
+addGame(fout: FileWriteStream, winnerName: String, loserName: String) =
   if database.member(winnerName)
   then if database.member(loserName)
        then addGame(fout, winnerName, true, loserName, true)
@@ -421,7 +421,7 @@ validGame(winner1: Player, winner2: Player, loser1: Player, loser2: Player,
   (|diff| <= 20,
    NOT(winner1.playedDouble(winner2.name, loser1.name, loser2.name)))
 
-addGame(fout: BufferedWriter,
+addGame(fout: FileWriteStream,
         winnerName1: String, winnerOld1: Boolean,
         winnerName2: String, winnerOld2: Boolean,
         loserName1 : String, loserOld1 : Boolean,
@@ -468,7 +468,7 @@ addGame(fout: BufferedWriter,
          end
     end
   end
-addGame(fout: BufferedWriter,
+addGame(fout: FileWriteStream,
         winnerName1: String, winnerName2: String,
         loserName1 : String, loserName2 : String) =
   if database.member(winnerName1)
@@ -496,7 +496,7 @@ mip: ZZ32 := 0          (* old ranking minus new ranking *)
 mipPlayers: List[\String\] := emptyList[\String\]()
 
 (* Print the new ranking result while finding MVP and MEP players. *)
-printTable(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
+printTable(fout:FileWriteStream, arr:Array[\(ZZ32,String),ZZ32\]) =
   do
     (_,top) = arr[0]
     (* the current ranking *)
@@ -527,7 +527,7 @@ printTable(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
   end
 
 (* Print the MVP, MEP, and MIP players *)
-printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
+printMvpMepMip(fout:FileWriteStream, arr:Array[\(ZZ32,String),ZZ32\]) =
   do
     (* find MIP players *)
     for i <- seq(0#numPlayers) do
@@ -555,7 +555,7 @@ printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
   end
 
 (* Print the result of this term *)
-printResult(fout: BufferedWriter, previous: String, today: String) =
+printResult(fout: FileWriteStream, previous: String, today: String) =
   do
     (* print a header *)
     fout.print("\n", previous, " ~ ", today, "\n\n")
@@ -607,11 +607,11 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
 
 printUsage() =
   do
-    println "Usage: ./fortress demos/tennisRanking.fss inFile outFile gamesFile"
+    println "Usage: fortress demos/tennisRanking.fss inFile outFile gamesFile"
     println "   inFile:  input file to read  the ranking result of the previous term"
     println "  outFile: output file to print the ranking result of this term"
     println " gameFile:  input file to read  the games   played in this term"
-    println "Example: ./fortress demos/tennisRanking.fss demos/tennis050307 demos/tennis051707 demos/tennisGames"
+    println "Example: fortress demos/tennisRanking.fss demos/tennis050307 demos/tennis051707 demos/tennisGames && cat demos/tennis051707"
   end
 
 run(args:String...) = do
