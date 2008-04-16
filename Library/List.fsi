@@ -92,7 +92,7 @@ end
 (** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
-opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\U\]
+opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\T\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]
@@ -114,13 +114,8 @@ object Concat[\E\] extends Reduction[\ List[\E\] \]
   join(a:List[\E\], b:List[\E\]): List[\E\]
 end
 
-(** Covariant Singleton function, for use with %CVConcat%: **)
-cvSingleton(e:Any): SomeList
-
-(** A reduction object for concatenating %SomeList%s covariantly. *)
-object CVConcat extends Reduction[\SomeList\]
-  empty(): SomeList
-  join(a:SomeList, b:SomeList): SomeList
-end
+(** Utility for cooking up covariant comprehensions of other
+    (non-covariant) types. **)
+covariantComprehension[\T\]( g: (Reduction[\SomeList\], T->SomeList) -> SomeList): List[\T\]
 
 end

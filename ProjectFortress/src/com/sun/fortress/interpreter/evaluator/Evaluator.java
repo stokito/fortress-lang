@@ -1127,6 +1127,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         OpName name = op.getName();
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
+        fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);
         // Evaluate actual parameters.
         int s = args.size();
         FValue res = FVoid.V;
@@ -1821,25 +1822,24 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forFnRef(FnRef x) {
         QualifiedIdName name = x.getFns().get(0);
         FValue g = forVarRef(new VarRef(name.getSpan(), name));
-        List<StaticArg> args = x.getStaticArgs();
-        if (g instanceof FGenericFunction) {
-            return ((FGenericFunction) g).typeApply(args, e, x);
-        } else if (g instanceof GenericConstructor) {
-            return ((GenericConstructor) g).typeApply(args, e, x);
-        } else if (g instanceof OverloadedFunction) {
-            return((OverloadedFunction) g).typeApply(args, e, x);
-        } else {
-            return error(x, e, errorMsg("Unexpected FnRef value, ",g));
-        }
+        return applyToActualStaticArgs(g,x.getStaticArgs(),x);
     }
 
     @Override
     public FValue for_RewriteFnRef(_RewriteFnRef x) {
         Expr name = x.getFn();
         FValue g = name.accept(this);
-        List<StaticArg> args = x.getStaticArgs();
+        return applyToStaticArgs(g,x.getStaticArgs(),x);
+    }
+
+    public FValue applyToStaticArgs(FValue g, List<StaticArg> args, HasAt x) {
         if (args.size() == 0)
             return g;
+        else
+            return applyToActualStaticArgs(g,args,x);
+    }
+
+    public FValue applyToActualStaticArgs(FValue g, List<StaticArg> args, HasAt x) {
         if (g instanceof FGenericFunction) {
             return ((FGenericFunction) g).typeApply(args, e, x);
         } else if (g instanceof GenericConstructor) {

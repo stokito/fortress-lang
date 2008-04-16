@@ -809,7 +809,8 @@ public class Desugarer extends Rewrite {
                 } else if (node instanceof Accumulator) {
                     Accumulator ac = (Accumulator)node;
                     return visitAccumulator(ac.getSpan(), ac.getGens(),
-                                            ac.getOpr(), ac.getBody());
+                                            ac.getOpr(), ac.getBody(),
+                                            ac.getStaticArgs());
                 } else if (node instanceof Spawn) {
                     return translateSpawn((Spawn)node);
                 } else if (node instanceof Typecase) {
@@ -1007,9 +1008,9 @@ public class Desugarer extends Rewrite {
     }
 
     Expr visitAccumulator(Span span, List<GeneratorClause> gens,
-                          OpName op, Expr body) {
+                          OpName op, Expr body, List<StaticArg> staticArgs) {
         body = visitGenerators(span, gens, body);
-        Expr res = ExprFactory.makeOprExpr(span,op,body);
+        Expr res = ExprFactory.makeOprExpr(span,op,body,staticArgs);
         // System.out.println("Desugared to "+res.toStringVerbose());
         return (Expr)visitNode(res);
     }
