@@ -139,7 +139,7 @@ timeHdr(desc:String): List[\String\] = do
 
 timeDump(s,slgs,t): List[\RR64\] = do
     print(".")
-    <| t, t/s, t/slgs |>
+    <| t asif RR64, t/s, t/slgs |>
   end
 
 testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
