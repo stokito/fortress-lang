@@ -42,6 +42,9 @@ public class WellKnownNames {
 
     public static String generatorCross = "cross";
 
+    public static String generatorTypeName = "Generator";
+    public static String generatorMatchName = "MATCH";
+
     public static String forbiddenException = "ForbiddenException";
     public static String tryatomicFailureException = "TryAtomicFailure";
     public static String matchFailureException = "MatchFailure";

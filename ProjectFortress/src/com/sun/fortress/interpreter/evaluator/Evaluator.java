@@ -568,8 +568,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 List<FValue> vargs = new ArrayList<FValue>();
                 vargs.add(paramValue);
                 vargs.add(match);
-                if (Glue.extendsGenericTrait(match.type(), "Generator")) {
-                    fcn = (Fcn) e.getValue("IN");
+                if (Glue.extendsGenericTrait(match.type(),
+                                             WellKnownNames.generatorTypeName)) {
+                    fcn = (Fcn) e.getValue(WellKnownNames.generatorMatchName);
                 }
                 FBool success = (FBool) functionInvocation(vargs, fcn, c);
                 if (success.getBool())
