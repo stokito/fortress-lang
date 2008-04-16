@@ -151,8 +151,11 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\U\] =
-    g(CVConcat,cvSingleton)
+opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\T\] =
+    covariantComprehension[\T\](g)
+
+covariantComprehension[\T\]( g: (Reduction[\SomeList\], T->SomeList) -> SomeList): List[\T\] =
+    g(CVConcat[\T\],cvSingleton).append(emptyList[\T\]())
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -204,8 +207,8 @@ object Concat[\E\] extends Reduction[\ List[\E\] \]
 end
 
 (** A reduction object for concatenating lists covariantly. *)
-object CVConcat extends Reduction[\SomeList\]
-  empty(): SomeList = emptyList()
+object CVConcat[\T\] extends Reduction[\SomeList\]
+  empty(): SomeList = emptyList[\T\]()
   join(a:SomeList, b:SomeList): SomeList = a.append(b)
 end
 
@@ -464,7 +467,7 @@ value object SeqZipGenerator[\A,B\](xs:ArrayList[\A\], ys:ArrayList[\B\])
 end
 
 emptyList[\E\](): List[\E\] =
-    ArrayList(PrimImmutableArray[\E,0\](),0,noShot,0,noShot)
+    ArrayList[\E\](PrimImmutableArray[\E,0\](),0,noShot,0,noShot)
 
 (** emptyList[\E\](n) allocates an empty list that can accept n
     addRight operations without reallocating the underlying storage. **)

@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component Set
-import List.{SomeList,CVConcat,cvSingleton}
+import List.{SomeList,covariantComprehension}
 export Set
 
 (** Thrown when taking big intersection of no sets. **)
@@ -86,8 +86,8 @@ set[\E\](g: Generator[\E\]): Set[\E\] =
 opr {[\E\] es: E... }: Set[\E\] =
     es.generate[\Set[\E\]\](Union[\E\],
                                 fn (e:E): Set[\E\] => singleton[\E\](e))
-opr BIG {[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList } : Set[\U\] =
-    set(g(CVConcat,cvSingleton))
+opr BIG {[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList } : Set[\T\] =
+    set(covariantComprehension[\T\](g))
 
 opr BIG UNION[\R\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
                     Set[\R\] = g(Union[\R\], identity[\R\])

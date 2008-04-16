@@ -163,7 +163,7 @@ opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\] =
 
 opr BIG {|->[\Key,Val\] g: ( Reduction[\SomeList\], (Key,Val) -> SomeList) ->
                            SomeList } : Map[\Key,Val\] =
-    mapping(g(CVConcat,cvSingleton))
+    mapping(covariantComprehension[\(Key,Val)\](g))
 
 opr BIG UNION[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
                               Map[\Key,Val\] -> Map[\Key,Val\]) ->

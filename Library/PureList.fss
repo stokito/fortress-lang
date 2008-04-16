@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component PureList
-import List.{SomeList,CVConcat,cvSingleton}
+import List.{SomeList,covariantComprehension}
 export PureList
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
@@ -79,8 +79,8 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList|>: List[\U\] =
-    list(g(CVConcat,cvSingleton))
+opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList|>: List[\T\] =
+    list(covariantComprehension[\T\](g))
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)

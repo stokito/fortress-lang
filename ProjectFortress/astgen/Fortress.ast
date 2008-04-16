@@ -15,6 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
+// REMINDER: If you modify this file, you probably ought to be
+// changing ExprFactory.makeInParentheses as well.
+
 generateEmptyConstructor yes;   // for reflective object creation
 visitMethod accept;
 visitorMethodPrefix for;

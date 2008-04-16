@@ -293,6 +293,10 @@ public class ExprFactory {
         return new OpRef(op.getSpan(), Collections.singletonList(op));
     }
 
+    private static OpRef makeOpRef(QualifiedOpName op, List<StaticArg> staticArgs) {
+        return new OpRef(op.getSpan(), Collections.singletonList(op), staticArgs);
+    }
+
     public static OprExpr makeOprExpr(Span span, QualifiedOpName op) {
         return new OprExpr(span, false, makeOpRef(op));
     }
@@ -327,6 +331,12 @@ public class ExprFactory {
                            Arrays.asList(first, second));
     }
 
+    public static OprExpr makeOprExpr(Span span, OpName op, Expr arg,
+                                      List<StaticArg> staticArgs) {
+        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
+        return new OprExpr(span, false, makeOpRef(name, staticArgs),
+                           Collections.singletonList(arg));
+    }
 
     public static FnRef makeFnRef(Span span, QualifiedIdName name, List<StaticArg> sargs) {
         List<QualifiedIdName> names = Collections.singletonList(name);
@@ -620,8 +630,8 @@ public class ExprFactory {
                 return new While(e.getSpan(), true, e.getTest(), e.getBody());
             }
             public Expr forAccumulator(Accumulator e) {
-                return new Accumulator(e.getSpan(), true, e.getOpr(), e.getGens(),
-                                       e.getBody());
+                return new Accumulator(e.getSpan(), true, e.getStaticArgs(),
+                                       e.getOpr(), e.getGens(), e.getBody());
             }
             public Expr forAtomicExpr(AtomicExpr e) {
                 return new AtomicExpr(e.getSpan(), true, e.getExpr());
