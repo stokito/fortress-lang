@@ -448,24 +448,6 @@ end
 fromImmutableArray[\E\](under: ImmutableArray[\E,ZZ32\]) =
     ArrayList[\E\](under, 0, noShot, |under|, noShot)
 
-value object ZipGenerator[\A,B\](xs: ArrayList[\A\],
-                                 ys: ArrayList[\B\])
-        extends { Generator[\(A,B)\] }
-    getter size():ZZ32 = |self|
-    opr |self| : ZZ32 = |xs| MIN |ys|
-    seq(self): SequentialGenerator[\(A,B)\] = SeqZipGenerator(xs,ys)
-    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R =
-        (0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs.get(i),ys.get(i)))
-end
-
-value object SeqZipGenerator[\A,B\](xs:ArrayList[\A\], ys:ArrayList[\B\])
-        extends { SequentialGenerator[\(A,B)\] }
-    getter size():ZZ32 = |self|
-    opr |self| : ZZ32 = |xs| MIN |ys|
-    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R =
-        sequential(0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs.get(i),ys.get(i)))
-end
-
 emptyList[\E\](): List[\E\] =
     ArrayList[\E\](PrimImmutableArray[\E,0\](),0,noShot,0,noShot)
 
