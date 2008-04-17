@@ -290,11 +290,24 @@ PureList<PrecedenceOpExpr> LooseInfix =
    / <Left> a1:Op wr a2:OpExprLeftEncloser
      { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
-/* Primary ::=
+/* Primary ::= PrimaryItem (w , w PrimaryItem)* */
+constant PureList<Expr> Primary =
+     a1:PrimaryItem a2s:(w comma w PrimaryItem)+ &(w Encloser)
+     { List<PureList<Expr>> elists = FortressUtil.mkList(a1, a2s.list());
+       List<Expr> es = new ArrayList<Expr>();
+       for (PureList<Expr> elist : elists) {
+           es.add(FortressUtil.buildPrimary(elist));
+       }
+       yyValue = PureList.make((Expr)new TupleExpr(createSpan(yyStart,yyCount),
+                                                   false, es));
+     }
+   / PrimaryItem ;
+
+/* PrimaryItem ::=
      LeftAssociatedPrimary
    | MathPrimary
  */
-constant PureList<Expr> Primary =
+constant PureList<Expr> PrimaryItem =
      a1:(LeftAssociatedPrimary / MathPrimary)
      { yyValue = PureList.make(a1); };
 
