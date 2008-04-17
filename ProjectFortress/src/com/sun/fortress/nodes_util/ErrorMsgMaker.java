@@ -73,13 +73,13 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forArrowType(ArrowType node) {
         return
-            node.getDomain().accept(this)
+            (node.isIo()? " io" : "")
+            + node.getDomain().accept(this)
             + "->"
             + node.getRange().accept(this)
             + (node.getThrowsClause().isSome() ?
                    (" throws " + Useful.listInCurlies(mapSelf(Option.unwrap(node.getThrowsClause())))) :
-                   "")
-            + (node.isIo()? " io" : "");
+                   "");
     }
 
     public String forVoidLiteralExpr(VoidLiteralExpr e) {
@@ -119,8 +119,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getName().accept(this);
     }
 
-    public String forIdArg(IdArg node) {
-        return NodeUtil.nameString(node.getName());
+    public String forIdArg(IdArg node) {        
+        return node.getName().accept(this);
     }
 
     public String forIntArg(IntArg node) {

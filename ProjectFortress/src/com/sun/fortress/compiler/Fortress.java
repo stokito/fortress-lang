@@ -55,6 +55,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
+import com.sun.fortress.shell.RepositoryError;
 import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.syntax_abstractions.phases.EscapeRewriter;
@@ -144,6 +145,8 @@ public class Fortress {
                     result = new Parser.Result(result, new Parser.Result(new WrappedException(pe)));
                 else
                     result = new Parser.Result(result, new Parser.Result(se));
+            } catch (RepositoryError ex) {
+                throw ex;
             } catch (Exception ex) {
                 result = addExceptionToResult(result, ex);
             }
@@ -324,13 +327,15 @@ public class Fortress {
                     FortressError pe = (FortressError) th;
                     if (pe.getStaticErrors() != null)
                         return pe.getStaticErrors();
-                }
-
-                if (th instanceof RuntimeException)
+                } else if (th instanceof RepositoryError) {
+                    throw (RepositoryError)th;
+                } else if (th instanceof RuntimeException) {
                     throw (RuntimeException) th;
-                if (th instanceof Error)
+                } else if (th instanceof Error) {
                     throw (Error) th;
-                throw new WrappedException(th);
+                } else {
+                    throw new WrappedException(th);
+                }
             }
 
         return IterUtil.empty();
