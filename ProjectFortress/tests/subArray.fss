@@ -19,12 +19,29 @@ component subArray
 export Executable
 
 eqToRange(a:Array[\ZZ32,ZZ32\], b:Range[\ZZ32\]):() = do
-    assert(|a|, |b|, "Size mismatch")
+    assert(|a|, |b|, "Size mismatch",a,b)
     lo = b.lower() - a.bounds().lower()
     for (i,v) <- a.indexValuePairs() do
         assert(i+lo, v, "a[", i, "]")
     end
-    println("OK")
+  end
+
+eqToRange2(a:Array[\ZZ32,(ZZ32,ZZ32)\], b:Range[\(ZZ32,ZZ32)\]): () = do
+    assert(|a|, |b|, "Size mismatch",a,b)
+    (lo1, lo2) = b.lower()
+    for (i,v) <- a.indexValuePairs() do
+      (x,y) = i
+      assert(v, 3 (x + lo1) + y + lo2, "a[",x,",",y,"]")
+    end
+  end
+
+eqToRange3(a:Array[\ZZ32,(ZZ32,ZZ32,ZZ32)\], b:Range[\(ZZ32,ZZ32,ZZ32)\]): () = do
+    assert(|a|, |b|, "Size mismatch",a,b)
+    (lo1, lo2, lo3) = b.lower()
+    for (i,v) <- a.indexValuePairs() do
+      (x,y,z) = i
+      assert(v, 2 (2 (z + lo3) + x + lo1) + y + lo2, "a[",x,",",y,",",z,"]",a,b)
+    end
   end
 
 run(args:String...):()=do
@@ -39,7 +56,9 @@ run(args:String...):()=do
     eqToRange(a[2:7], 2:7)
     eqToRange(a[#], 0:10)
     eqToRange(a[3:], 3:10)
+    eqToRange(a[3#], 3:10)
     eqToRange(a[#3], 0#3)
+    eqToRange(a[:3], 0:3)
     ash = a.shift(5)
     assert(ash.bounds().lower(), 5, "a.shift(5) = ", ash)
     eqToRange(ash, 0:10)
@@ -51,21 +70,23 @@ run(args:String...):()=do
     eqToRange(ash[5#5], 6#5)
     eqToRange(ash[10#6], 5#6)
 
-(*
     a2 : ZZ32[3,3] = [0 1 2 ; 3 4 5; 6 7 8]
-    println("OK1")
-    r : FullRange[\(ZZ32,ZZ32)\] = (0,1)#(2,2)
-    println("OKK")
-    b2 = a2[r]
-    println("OK2")
-    println(a2)
-    println("OK3")
-    println(b2)
-    println("OK4")
-    println(a2[#(2,3)])
-    println("OK5")
-    println(a2[(2,1):])
-*)
+    eqToRange2(a2,a2.indices())
+    eqToRange2(a2[#],a2.indices())
+    eqToRange2(a2[(0,1)#(2,2)],(0,1)#(2,2))
+    eqToRange2(a2[#(2,3)],(0,0)#(2,3))
+    eqToRange2(a2[:(1,2)],(0,0):(1,2))
+    eqToRange2(a2[(2,1):],(2,1):(2,2))
+    eqToRange2(a2[(2,1)#],(2,1):(2,2))
+
+    a3 : ZZ32[2,2,2] = [0 1; 2 3;; 4 5 ; 6 7]
+    eqToRange3(a3,a3.indices())
+    eqToRange3(a3[:],a3.indices())
+    eqToRange3(a3[(0,0,1)#(2,1,1)],(0,0,1)#(2,1,1))
+    eqToRange3(a3[#(2,1,2)],(0,0,0)#(2,1,2))
+    eqToRange3(a3[:(1,0,1)],(0,0,0):(1,0,1))
+    eqToRange3(a3[(1,0,1):],(1,0,1):(1,1,1))
+    eqToRange3(a3[(1,0,1)#],(1,0,1):(1,1,1))
   end
 
 end
