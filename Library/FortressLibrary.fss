@@ -1450,11 +1450,28 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t; (a0+b0,a1+b1) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
+      println("Indexing by range " r)
       r' = (bounds())[r]
+      println("Normalized to range " r')
       (z0,z1) = r'.extent()
       (l0,l1) = r'.lower()
-      __subarray(N[\0\],reflect(z0), N[\0\],reflect(z1),
+      println("Calling __subarray")
+      rz0 = reflect(z0)
+      println("rz0 = " rz0)
+      rz1 = reflect(z1)
+      println("rz1 = " rz1)
+      rl0 = reflect(l0)
+      println("rl0 = " rl0)
+      rl1 = reflect(l1)
+      println("rl1 = " rl1)
+      n0 = N[\0\]
+      println("n0 = " n0)
+      __subarray(n0,rz0,n0,rz1,rl0,rl1)
+      println("Second call to __subarray")
+      r = __subarray(N[\0\],reflect(z0), N[\0\], reflect(z1),
                  reflect(l0),reflect(l1))
+      println("Returning " r)
+      r
     end
   opr[_:OpenRange[\ZZ32\]] : Array2[\T,0,s0,0,s1\] =
       subarray[\0,s0,0,s1,0,0\]()
@@ -1475,14 +1492,21 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
    **)
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
           (): Array2[\T,bo0,so0,bo1,so1\] = do
+      println("subarray[\\" bo0 "," so0 "," bo1 "," so1 "," o0 "," o1 "\\]()")
       boundsCheck = (bounds())[ (o0,o1)#(so0,so1) ]
-      SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
+      println("boundCheck = " boundsCheck)
+      r = SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
+      println("SubArray2 = " r)
+      r
     end
 
   __subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
           (_:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],
-           _:N[\o0\],_:N[\o1\]): Array2[\T,bo0,so0,bo1,so1\] =
-      subarray[\bo0,so0,bo1,so1,o0,o1\]()
+           _:N[\o0\],_:N[\o1\]): Array2[\T,bo0,so0,bo1,so1\] = do
+      println("__subarray[\\" bo0 "," so0 "," bo1 "," so1 "," o0 "," o1 "\\]()")
+      r = subarray[\bo0,so0,bo1,so1,o0,o1\]()
+      println("__subarray = " r)
+    end
 
   zeroIndices():Tuple2Range[\ZZ32,ZZ32\] = (0,0)#(s0,s1)
 
