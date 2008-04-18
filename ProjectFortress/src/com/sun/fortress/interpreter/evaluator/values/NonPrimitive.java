@@ -156,12 +156,12 @@ public abstract class NonPrimitive extends Simple_fcn {
                     if (arg instanceof FAsIf) asif = true;
                     if (!restType.typeMatch(arg)) {
                         error(loc, within,
-                              errorMsg("Call to ",
+                              errorMsg("Closure/Constructor for ",
                                        getAt().stringName(),
-                                       ": parameter ", 
+                                       " rest parameter ", i, " (",
                                        param.getName(),
                                        ":", restType,
-                                       "... given ", arg, ":", arg.type()));
+                                       "...) got type ", arg.type()));
                     }
                 }
             } else {
@@ -170,11 +170,11 @@ public abstract class NonPrimitive extends Simple_fcn {
                 if (arg instanceof FAsIf) asif = true;
                 if (!paramType.typeMatch(arg)) {
                     error(loc, within,
-                          errorMsg("Call to ",
+                          errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
-                                   ": parameter ", 
+                                   " parameter ", i, " (",
                                    param.getName(), ":",
-                                   param.getType(), " given ", arg, ":",
+                                   param.getType(), ") got type ",
                                    arg.type()));
                 }
             }
@@ -244,12 +244,12 @@ public abstract class NonPrimitive extends Simple_fcn {
                 i++;
                 if (!paramType.typeMatch(arg)) {
                     error(loc, env,
-                          errorMsg("Call to ",
+                          errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
-                                   ": parameter ", 
+                                   " param ", i, " (",
                                    param.getName(), ":",
-                                   paramType, " given ", arg, ":",
-                                   arg.type()));
+                                   paramType, ") got type ",
+                                   arg.type(), " with arg ", arg));
                 }
                 arg = arg.getValue(); // Strip asif
                 try {

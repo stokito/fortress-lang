@@ -76,15 +76,8 @@ public class CommandInterpreter {
             }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }
-        catch (RepositoryError e) {
-            System.err.println("Error: " + e.getMessage());
-            
-            if (debug) {
-                System.err.println("Java Context:");
-                e.printStackTrace();
-            } else {
-                System.err.println("Turn on -debug for Java-level error dump.");
-            }                
+        catch (RepositoryError error) {
+            System.err.println(error); 
         }
     }
     
@@ -123,8 +116,8 @@ public class CommandInterpreter {
         
         if (s.startsWith("-")) {
             if (s.equals("-debug")) debug = true;
-            if (s.equals("-test")) test = true;
-            if (s.equals("-nolib")) nolib = true;
+            if (s.equals("-test")) test= true;
+            if (s.equals("-nolib")) nolib= true;
             run(rest);
         } else {
             run(s, rest);
@@ -154,26 +147,20 @@ public class CommandInterpreter {
         
             for (StaticError error: errors) { 
                 System.err.println(error);
-            }
+                }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }
-        catch (RepositoryError e) {
-          System.err.println(e.getMessage());
-
-          if (debug) {
-              System.err.println("Java Context:");
-              e.printStackTrace();
-          } else {
-              System.err.println("Turn on -debug for Java-level error dump.");
-          }                
+        catch (RepositoryError error) {
+            System.err.println(error); 
         }
         catch (FortressError e) {
-          System.err.println(e.getMessage());
-
+          System.err.println("\n--------Fortress error appears below--------\n");
           if (debug) {
-              System.err.println("Java Context:");
               e.printStackTrace();
           } else {
+              e.printInterpreterStackTrace(System.err);
+              System.err.println();
+              System.err.println(e.getMessage());
               System.err.println("Turn on -debug for Java-level error dump.");
           }
           System.exit(1);
