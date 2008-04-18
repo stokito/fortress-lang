@@ -1450,28 +1450,11 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t; (a0+b0,a1+b1) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
-      println("Indexing by range " r)
       r' = (bounds())[r]
-      println("Normalized to range " r')
       (z0,z1) = r'.extent()
       (l0,l1) = r'.lower()
-      println("Calling __subarray")
-      rz0 = reflect(z0)
-      println("rz0 = " rz0)
-      rz1 = reflect(z1)
-      println("rz1 = " rz1)
-      rl0 = reflect(l0)
-      println("rl0 = " rl0)
-      rl1 = reflect(l1)
-      println("rl1 = " rl1)
-      n0 = N[\0\]
-      println("n0 = " n0)
-      __subarray(n0,rz0,n0,rz1,rl0,rl1)
-      println("Second call to __subarray")
-      r = __subarray(N[\0\],reflect(z0), N[\0\], reflect(z1),
+      __subarray(self, N[\0\],reflect(z0), N[\0\], reflect(z1),
                  reflect(l0),reflect(l1))
-      println("Returning " r)
-      r
     end
   opr[_:OpenRange[\ZZ32\]] : Array2[\T,0,s0,0,s1\] =
       subarray[\0,s0,0,s1,0,0\]()
@@ -1482,7 +1465,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
       if o0=0 AND o1=0 then
           self
       else
-          __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\])
+          __subarray(self,reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\])
       end
     end
 
@@ -1492,20 +1475,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
    **)
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
           (): Array2[\T,bo0,so0,bo1,so1\] = do
-      println("subarray[\\" bo0 "," so0 "," bo1 "," so1 "," o0 "," o1 "\\]()")
       boundsCheck = (bounds())[ (o0,o1)#(so0,so1) ]
-      println("boundCheck = " boundsCheck)
-      r = SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
-      println("SubArray2 = " r)
-      r
-    end
-
-  __subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
-          (_:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],
-           _:N[\o0\],_:N[\o1\]): Array2[\T,bo0,so0,bo1,so1\] = do
-      println("__subarray[\\" bo0 "," so0 "," bo1 "," so1 "," o0 "," o1 "\\]()")
-      r = subarray[\bo0,so0,bo1,so1,o0,o1\]()
-      println("__subarray = " r)
+      SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
     end
 
   zeroIndices():Tuple2Range[\ZZ32,ZZ32\] = (0,0)#(s0,s1)
@@ -1525,6 +1496,19 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
 
   freeze():ImmutableArray[\T,(ZZ32,ZZ32)\] = fail("Freeze not defined yet!")
 end
+
+(** Hoisted out here to work around the lack of method type inference. **)
+__subarray[\T, nat b0, nat s0, nat b1, nat s1,
+           nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
+        (this:Array2[\T,b0,s0,b1,s1\],
+         _:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],
+         _:N[\o0\],_:N[\o1\]): Array2[\T,bo0,so0,bo1,so1\] = do
+(*
+    println("__subarray[\\" b0 "," s0 "," b1 "," s1 ", "
+            bo0 "," so0 "," bo1 "," so1 ", " o0 "," o1 "\\]()")
+*)
+    this.subarray[\bo0,so0,bo1,so1,o0,o1\]()
+  end
 
 (** Default array is column-major, but we could switch it. **)
 object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
@@ -1804,7 +1788,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
         r' = (bounds())[r]
         (z0,z1,z2) = r'.extent()
         (l0,l1,l2) = r'.lower()
-        __subarray(N[\0\],reflect(z0), N[\0\],reflect(z1),
+        __subarray(self, N[\0\],reflect(z0), N[\0\],reflect(z1),
                    N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2))
       end
     opr[_:OpenRange[\ZZ32\]] : Array3[\T,0,s0,0,s1,0,s2\] =
@@ -1816,12 +1800,13 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
         if o0=0 AND o1=0 AND o2=0 then
             self
         else
-            __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\],
+            __subarray(self,
+                       reflect(o0),N[\s0\], reflect(o1),N[\s1\],
                        reflect(o2),N[\s2\], N[\b0\],N[\b1\],N[\b2\])
         end
       end
 
-    (** 2-D subarray given static subarray parameters.
+    (** 3-D subarray given static subarray parameters.
         (bo1,bo2)#(so1,so2) are output bounds.
         The result is the subarray starting at (o0,o1) in the original array.
      **)
@@ -1829,15 +1814,8 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
               nat o0, nat o1, nat o2\]
             (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
         boundsCheck = (bounds())[ (o0,o1,o2)#(so0,so1,so2) ]
-        SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\]
-                 (self,1,o0,1,o1,1,o2)
+        SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\](self,1,o0,1,o1,1,o2)
       end
-
-    __subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
-                nat o0, nat o1, nat o2\]
-          (_:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],_:N[\bo2\],_:N[\so2\],
-           _:N[\o0\],_:N[\o1\],_:N[\o2\]): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] =
-        subarray[\bo0,so0,bo1,so1,bo2,so2,o0,o1,o2\]()
 
     zeroIndices():Tuple3Range[\ZZ32,ZZ32,ZZ32\] = (0,0,0)#(s0,s1,s2)
 
@@ -1856,6 +1834,15 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     freeze():ImmutableArray[\T,(ZZ32,ZZ32,ZZ32)\] =
         fail("Freeze not defined yet!")
 end
+
+(** hoisted out here to work around absence of type inference for methods. **)
+__subarray[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2,
+            nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
+            nat o0, nat o1, nat o2\]
+      (this:Array3[\T,b0,s0,b1,s1,b2,s2\],
+       _:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],_:N[\bo2\],_:N[\so2\],
+       _:N[\o0\],_:N[\o1\],_:N[\o2\]): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] =
+    this.subarray[\bo0,so0,bo1,so1,bo2,so2,o0,o1,o2\]()
 
 object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
                                         Array3[\T, b0, s0, b1, s1, b2, s2\]
@@ -2480,6 +2467,7 @@ generators.  They generate |self| numbers, incrementing by 1, starting
 with lower() (that's the canonical ordering). *)
 trait ScalarRange[\N extends Integral\]
         extends { FullRange[\N\] }
+        comprises { ParRange[\N\], SeqRange[\N\] }
     getter bounds():FullRange[\N\] = 0#extent()
     getter upper():N = lower() + extent() - 1
     getter size():ZZ32 = |self|
