@@ -56,6 +56,7 @@ import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
+import com.sun.fortress.shell.RepositoryError;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.syntax_abstractions.phases.EscapeRewriter;
 import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
@@ -144,6 +145,8 @@ public class Fortress {
                     result = new Parser.Result(result, new Parser.Result(new WrappedException(pe)));
                 else
                     result = new Parser.Result(result, new Parser.Result(se));
+            } catch (RepositoryError ex) {
+                throw ex;
             } catch (Exception ex) {
                 result = addExceptionToResult(result, ex);
             }

@@ -150,17 +150,17 @@ public class CommandInterpreter {
                 }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }
-        catch (RepositoryError error) {
-            System.err.println(error); 
+        catch (RepositoryError e) {
+            System.err.println(e.getMessage()); 
         }
         catch (FortressError e) {
-          System.err.println("\n--------Fortress error appears below--------\n");
+          System.err.print("\n--------Fortress error appears below--------\n");
+          System.err.println(e.getMessage());
+          e.printInterpreterStackTrace(System.err);
+
           if (debug) {
               e.printStackTrace();
           } else {
-              e.printInterpreterStackTrace(System.err);
-              System.err.println();
-              System.err.println(e.getMessage());
               System.err.println("Turn on -debug for Java-level error dump.");
           }
           System.exit(1);
