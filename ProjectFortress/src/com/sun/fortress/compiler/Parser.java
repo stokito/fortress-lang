@@ -122,8 +122,8 @@ public class Parser {
             String result = _parseError.msg;
             int size = result.length();
             if (size > 8 && result.substring(size-8,size).equals("expected"))
-                 result = "syntax error";
-            else result = "syntax error: " + result;
+                 result = "Syntax Error";
+            else result = "Syntax Error: " + result;
             // TODO: I don't know for sure whether this is allowed to be null
             if (result == null || result.equals("")) { result = "Unspecified cause"; }
             return result;
