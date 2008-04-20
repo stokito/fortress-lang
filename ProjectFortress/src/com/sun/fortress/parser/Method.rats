@@ -18,8 +18,9 @@
 /*
  * Definition of Fortress method declarations.
  */
-module com.sun.fortress.parser.Method(Param, NoNewlineHeader, MayNewlineHeader, Type, NoNewlineExpr,
-                                      Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Method(Param, NoNewlineHeader, MayNewlineHeader,
+                                      Type, NoNewlineExpr, Identifier, Keyword,
+                                      Symbol, Spacing);
 
 import Param;
 import NoNewlineHeader;
@@ -33,11 +34,11 @@ import Spacing;
 
 /* MdDecl ::=
      MdDef
-   | (abstract w)? MdMods? MdHeaderFront FnHeaderClause
+   | (abstract w)? MdMods? AbsMdHeaderFront FnHeaderClause
  */
 FnAbsDeclOrDecl MdDecl =
      MdDef
-   / a1:(abstract w)? a2:MdMods? a3:MdHeaderFront a4:FnHeaderClause
+   / a1:(abstract w)? a2:MdMods? a3:AbsMdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
@@ -54,9 +55,9 @@ FnDecl MdDef =
                                        a2.getReceiver(), a2, a3, a4);
      };
 
-/* AbsMdDecl ::= (abstract w)? AbsMdMods? MdHeaderFront FnHeaderClause */
+/* AbsMdDecl ::= (abstract w)? AbsMdMods? AbsMdHeaderFront FnHeaderClause */
 AbsFnDecl AbsMdDecl =
-     a1:(abstract w)? a2:AbsMdMods? a3:MdHeaderFront a4:FnHeaderClause
+     a1:(abstract w)? a2:AbsMdMods? a3:AbsMdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
@@ -73,6 +74,14 @@ private FnHeaderFront MdHeaderFront =
      NamedMdHeaderFront
    / OpHeaderFront ;
 
+/* AbsMdHeaderFront ::=
+     AbsNamedMdHeaderFront
+   | AbsOpMdHeaderFront
+ */
+private FnHeaderFront AbsMdHeaderFront =
+     AbsNamedMdHeaderFront
+   / AbsOpHeaderFront ;
+
 /* NamedMdHeaderFront ::= Id (w StaticParams)? w MdValParam */
 FnHeaderFront NamedMdHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
@@ -80,13 +89,20 @@ FnHeaderFront NamedMdHeaderFront =
        yyValue = new FnHeaderFront(a1, a2, a3);
      };
 
+/* AbsNamedMdHeaderFront ::= Id (w StaticParams)? w AbsMdValParam */
+FnHeaderFront AbsNamedMdHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:AbsValParam
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
+
 /* GetterSetterDecl ::=
      GetterSetterDef
-   | (abstract w) FnMods? GetterSetterMod MdHeaderFront FnHeaderClause
+   | (abstract w) FnMods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
  */
 FnAbsDeclOrDecl GetterSetterDecl =
      GetterSetterDef
-   / a1:(abstract w)? a2:FnMods? a3:GetterSetterMod a4:MdHeaderFront
+   / a1:(abstract w)? a2:FnMods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
@@ -115,10 +131,10 @@ private Modifier GetterSetterMod =
    / a1:setter w { yyValue = new ModifierSetter(createSpan(yyStart,yyCount));};
 
 /* AbsGetterSetterDecl ::=
-     (abstract w) AbsFnMods? GetterSetterMod MdHeaderFront FnHeaderClause
+     (abstract w) AbsFnMods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
  */
 AbsFnDecl AbsGetterSetterDecl =
-     a1:(abstract w)? a2:AbsFnMods? a3:GetterSetterMod a4:MdHeaderFront
+     a1:(abstract w)? a2:AbsFnMods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)

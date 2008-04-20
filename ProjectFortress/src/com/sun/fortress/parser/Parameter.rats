@@ -40,6 +40,15 @@ List<Param> ValParam =
        else            yyValue = a1;
      };
 
+/* AbsValParam ::= ( (w AbsParams)? w ) | Type */
+List<Param> AbsValParam =
+     openparen a1:(w AbsParams)? w closeparen
+     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+       else            yyValue = a1;
+     }
+   / a1:Type
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(NodeFactory.makeAbsParam(a1)); };
+
 /* Params ::=
      (Param w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
    | (Param w , w)*  Varargs
@@ -58,6 +67,24 @@ List<Param> Params =
    / a1:Param a2s:(w comma w Param)*
      { yyValue = FortressUtil.<Param, NormalParam>mkList(a1, a2s.list()); };
 
+/* AbsParams ::=
+     (AbsParam w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
+   | (AbsParam w , w)*  Varargs
+   |  AbsParam (w , w AbsParam)*
+ */
+List<Param> AbsParams =
+     a1s:(AbsParam w comma w)* a2:(Varargs w comma w)? a3:Keyword
+       a4s:(w comma w Keyword)*
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list());
+       if (a2 != null) yyValue.add(a2);
+       yyValue.add(a3);
+       yyValue.addAll(a4s.list());
+     }
+   / a1s:(AbsParam w comma w)* a2:Varargs
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list(), a2); }
+   / a1:AbsParam a2s:(w comma w AbsParam)*
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1, a2s.list()); };
+
 /* Varargs ::= BindId w : w Type w ... */
 VarargsParam VarargsParam = a1:BindId w colon w a2:Type w ellipses
      { VarargsType ty = new VarargsType(a2.getSpan(), a2);
@@ -69,18 +96,21 @@ VarargsParam Varargs = VarargsParam ;
 Param Keyword = a1:Param w equals w a2:Expr
      { yyValue = NodeFactory.makeParam(a1, a2); };
 
-/* Param ::= BindId (w IsType)? | Type */
+/* Param ::= BindId (w IsType)? */
 NormalParam PlainParam =
+     a1:BindId a2:(w IsType)?
+     { if (a2 != null) yyValue = NodeFactory.makeParam(a1, a2);
+       else            yyValue = NodeFactory.makeParam(a1);
+     };
+NormalParam Param = PlainParam ;
+
+/* AbsParam ::= BindId w IsType | Type */
+NormalParam AbsPlainParam =
      a1:BindId w a2:IsType
      { yyValue = NodeFactory.makeParam(a1, a2); }
-   / !(BindId (w closedoublesquare / w closesquare /
-               w opendoublesquare / w opensquare / w rightarrow))
-     a1:BindId
-     { yyValue = NodeFactory.makeParam(a1); }
    / a1:Type
-     { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount), "_"),
-                                       a1); };
-NormalParam Param = PlainParam ;
+     { yyValue = NodeFactory.makeAbsParam(a1); };
+NormalParam AbsParam = AbsPlainParam ;
 
 /* OpHeaderFront ::=
      opr (w BIG)? w ({ w |-> | LeftEncloser | Encloser) (w StaticParams)? w
@@ -131,6 +161,77 @@ FnHeaderFront OpHeaderFront =
         / PROD {yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
                                               "BIG juxtaposition");})
      a2:(w StaticParams)? w a3:ValParam
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = (Op)a1;
+       if (big != null)
+           op = NodeFactory.makeOpBig(op.getSpan(), "BIG " + op.getText());
+       else if (op.getText().equals("BIG +") ||
+                op.getText().equals("BIG juxtaposition")) {
+           op = op;
+       } else if (a3.size() == 0) { // nofix
+           op = NodeFactory.makeOpNofix(op);
+       } else if (NodeUtil.isMultifix(a3)) { // multifix
+           op = NodeFactory.makeOpMultifix(op);
+       } else if (a3.size() == 1) { // prefix
+           op = NodeFactory.makeOpPrefix(op);
+       } else if (a3.size() == 2) { // infix
+           op = NodeFactory.makeOpInfix(op);
+       } else { // error
+           op = error(op, "Operator fix is invalid in its dclaration.");
+       }
+       if (a2 == null) yyValue = new FnHeaderFront(op, a3);
+       else            yyValue = new FnHeaderFront(op, a2, a3);
+     };
+
+/* AbsOpHeaderFront ::=
+     opr (w BIG)? w ({ w |-> | LeftEncloser | Encloser) (w StaticParams)? w
+     AbsParams w (RightEncloser | Encloser)
+   | opr w AbsValParam w (Op | ExponentOp) (w StaticParams)?
+   | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
+ */
+FnHeaderFront AbsOpHeaderFront =
+     <Enclosing> opr big:(w BIG)? w
+     opa1:("{" w "|->"
+           {yyValue=NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
+                                                "{|->");}
+         / LeftEncloser
+         / Encloser)
+     opa2:(w StaticParams)? w opa3:AbsParams w opa4:(RightEncloser / Encloser)
+     { SimpleName name;
+       Span span = createSpan(yyStart,yyCount);
+       Op leftOp = (Op)opa1;
+       String left  = leftOp.getText();
+       String right = opa4.getText();
+       if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
+           left.equals("{|->") && right.equals("}")) {
+           if (big != null) {
+               leftOp = NodeFactory.makeOpBig(leftOp.getSpan(), "BIG " + left);
+               opa4 = NodeFactory.makeOpBig(opa4.getSpan(), "BIG " + right);
+           }
+           name = new Enclosing(span, leftOp, opa4);
+       } else
+           name = error(leftOp, "Mismatched enclosing operator definition: "
+                                + left + " and " + right);
+       if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(name, opa2, opa3);
+     }
+   / opr w a1:AbsValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a3 == null)
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a1);
+       else
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a3, a1);
+     }
+   / opr big:(w BIG)? w
+     a1:(Op
+        / caret {yyValue=NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount),
+                                                   "^");}
+        / Encloser
+        / SUM  {yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                              "BIG +");}
+        / PROD {yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                              "BIG juxtaposition");})
+     a2:(w StaticParams)? w a3:AbsValParam
      { Span span = createSpan(yyStart,yyCount);
        Op op = (Op)a1;
        if (big != null)
