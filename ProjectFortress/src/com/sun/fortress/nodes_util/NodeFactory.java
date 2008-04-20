@@ -704,6 +704,12 @@ public class NodeFactory {
         return new VarargsParam(span, mods, name, type);
     }
 
+    public static NormalParam makeAbsParam(Type type) {
+        Id id = new Id(type.getSpan(), "_");
+        return new NormalParam(type.getSpan(), Collections.<Modifier>emptyList(),
+                               id, Option.some(type), Option.<Expr>none());
+    }
+
     public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
             Type type) {
         return new NormalParam(span, mods, name, Option.some(type), Option.<Expr>none());
@@ -1161,7 +1167,7 @@ public class NodeFactory {
     public static IdArg makeIdArg(String name) {
         return new IdArg(makeQualifiedIdName(name));
     }
-    
+
     public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {
         List<Pair<Op, Expr>> links = new ArrayList<Pair<Op, Expr>>(1);
         links.add(Pair.make(op, rhs));

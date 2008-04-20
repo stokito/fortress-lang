@@ -32,16 +32,18 @@ import Symbol;
 import Spacing;
 
 /* FnDecl ::=
-     FnMods? FnHeaderFront FnHeaderClause (w = w NoNewlineExpr)?
+     FnMods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+   | FnMods? AbsFnHeaderFront FnHeaderClause
    | FnSig
  */
 Decl FnDecl =
-     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause
-     a4:(w void:equals w NoNewlineExpr)?
+     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       Span span = createSpan(yyStart,yyCount);
-       if (a4 == null) yyValue = FortressUtil.mkAbsFnDecl(span, a1, a2, a3);
-       else            yyValue = FortressUtil.mkFnDecl(span, a1, a2, a3, a4);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
+     }
+   / a1:FnMods? a2:AbsFnHeaderFront a3:FnHeaderClause
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;
 
@@ -85,11 +87,11 @@ AbsFnDecl FnSig =
      };
 
 /* AbsFnDecl ::=
-     AbsFnMods? FnHeaderFront FnHeaderClause
+     AbsFnMods? AbsFnHeaderFront FnHeaderClause
    | FnSig
  */
 AbsFnDecl AbsFnDecl =
-     a1:AbsFnMods? a2:FnHeaderFront a3:FnHeaderClause
+     a1:AbsFnMods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
@@ -103,9 +105,24 @@ FnHeaderFront FnHeaderFront =
      NamedFnHeaderFront
    / OpHeaderFront ;
 
+/* AbsFnHeaderFront ::=
+     AbsNamedFnHeaderFront
+   | AbsOpHeaderFront
+ */
+FnHeaderFront AbsFnHeaderFront =
+     AbsNamedFnHeaderFront
+   / AbsOpHeaderFront ;
+
 /* NamedFnHeaderFront ::= Id (w StaticParams)? w ValParam */
 FnHeaderFront NamedFnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
+
+/* AbsNamedFnHeaderFront ::= Id (w StaticParams)? w AbsValParam */
+FnHeaderFront AbsNamedFnHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:AbsValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new FnHeaderFront(a1, a2, a3);
      };
