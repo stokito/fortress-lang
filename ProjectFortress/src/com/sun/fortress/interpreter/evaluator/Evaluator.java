@@ -595,26 +595,35 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr first = x.getFirst();
         List<Pair<Op, Expr>> links = x.getLinks();
         FValue idVal = first.accept(this);
-        FBool boolres = FBool.TRUE;
         Iterator<Pair<Op, Expr>> i = links.iterator();
         List<FValue> vargs = new ArrayList<FValue>(2);
-        vargs.add(idVal);
-        vargs.add(idVal);
-        while (boolres.getBool() && i.hasNext()) {
+        if (links.size() == 1) {
             Pair<Op, Expr> link = i.next();
             Fcn fcn = (Fcn) link.getA().accept(this);
             FValue exprVal = link.getB().accept(this);
-            vargs.set(0, idVal);
-            vargs.set(1, exprVal);
-            FValue invoke = functionInvocation(vargs, fcn, x);
-            if (!(invoke instanceof FBool)) {
-                return error(x,errorMsg("Non-boolean result ",invoke,
-                                        " in chain, args ", vargs));
+            vargs.add(idVal);
+            vargs.add(exprVal);
+            return functionInvocation(vargs, fcn, x);
+        } else {
+            FBool boolres = FBool.TRUE;
+            vargs.add(idVal);
+            vargs.add(idVal);
+            while (boolres.getBool() && i.hasNext()) {
+                Pair<Op, Expr> link = i.next();
+                Fcn fcn = (Fcn) link.getA().accept(this);
+                FValue exprVal = link.getB().accept(this);
+                vargs.set(0, idVal);
+                vargs.set(1, exprVal);
+                FValue invoke = functionInvocation(vargs, fcn, x);
+                if (!(invoke instanceof FBool)) {
+                    return error(x,errorMsg("Non-boolean result ",invoke,
+                                            " in chain, args ", vargs));
+                }
+                boolres = (FBool)invoke;
+                idVal = exprVal;
             }
-            boolres = (FBool)invoke;
-            idVal = exprVal;
+            return boolres;
         }
-        return boolres;
     }
 
     private boolean isShadow(Expr expr, String name) {
