@@ -38,6 +38,7 @@ check(db: Map[\String,ZZ32\]): () = do
 
 
 run(args:String...):() = do
+    db00 : Map[\String,ZZ32\] = { "Nathi" |-> 3 }
     perm : ZZ32[5] = [ 3 4 1 0 2 ]
     expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
     for (v,k) <- seq(expect.indexValuePairs()) do

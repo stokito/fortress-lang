@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.UnificationError;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -76,8 +77,19 @@ abstract public class Fcn extends FValue {
     }
 
     final public FValue apply(List<FValue> args, HasAt loc, BetterEnv envForInference) {
-        args = conditionallyUnwrapTupledArgs(args);
-        return applyInner(args, loc, envForInference);
+        List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
+        try {
+            return applyInner(unwrapped, loc, envForInference);
+        } catch (UnificationError u) {
+            if (unwrapped != args) {
+                try {
+                    return applyInner(args, loc, envForInference);
+                } catch (UnificationError u1) {
+                    throw u;
+                }
+            }
+            throw u;
+        }
     }
 
     public boolean isMethod() {

@@ -24,7 +24,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 /**
@@ -48,7 +48,7 @@ abstract public class FTypeNat extends FBuiltinType {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         /* Unification has failed due to a fundamental kind error.
            Report that and fail. */
-        error(val,env, errorMsg("Can't unify nat parameter ", this,
+        unificationError(val,env, errorMsg("Can't unify nat parameter ", this,
                                 " and  type argument ", val));
         return false;
     }

@@ -45,6 +45,7 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
@@ -520,8 +521,8 @@ abstract public class FType implements Comparable<FType> {
                        abm.joinPut(nm, this);
                     } catch (EmptyLatticeIntervalError el) {
                         if (DUMP_UNIFY) System.out.println("Out of bounds");
-                        error(errorMsg("Actual type ",this,
-                                       " out of bounds for variable ",nm));
+                        unificationError(val, errorMsg("Actual type ",this,
+                                                       " out of bounds for variable ",nm));
                         return;
                     } catch (Error th) {
                         if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
@@ -544,7 +545,7 @@ abstract public class FType implements Comparable<FType> {
         }
         if (DUMP_UNIFY)
             System.out.println("    Can't unify "+this+" with "+val);
-        error(val,env,
+        unificationError(val,env,
               errorMsg("Cannot unify ",
                        this,
                        "(",
