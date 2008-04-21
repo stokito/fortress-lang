@@ -26,7 +26,7 @@ import java.util.TreeSet;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.UnificationError;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.AbstractTupleType;
@@ -342,7 +342,7 @@ public class FTypeTuple extends FType {
                 tr = trIterator.next();
                 ft.unify(env,tp_set,abm,tr);
             }
-        } catch (FortressError p) {
+        } catch (UnificationError p) {
             return false;
         }
         return true;

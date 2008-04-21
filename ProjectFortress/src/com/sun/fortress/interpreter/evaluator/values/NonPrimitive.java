@@ -37,6 +37,7 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public abstract class NonPrimitive extends Simple_fcn {
@@ -243,7 +244,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 arg = argsIter.next();
                 i++;
                 if (!paramType.typeMatch(arg)) {
-                    error(loc, env,
+                    unificationError(loc, env,
                           errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
                                    " param ", i, " (",
