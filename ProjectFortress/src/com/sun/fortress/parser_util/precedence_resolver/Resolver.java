@@ -208,7 +208,7 @@ public class Resolver {
           Op op1 = ((JuxtInfix)prefix[1]).getOp();
           Op op3 = ((JuxtInfix)prefix[3]).getOp();
 
-          if (isNonAssociative(op1) && isNonAssociative(op3)) {
+          if (isNonAssociative(op1) && isNonAssociative(op3) && op1.getText().equals(op3.getText())) {
               throw new ReadError(FortressUtil.spanTwo(op1,op3), op1.getText() +
                                   " does not associate.");
           }
