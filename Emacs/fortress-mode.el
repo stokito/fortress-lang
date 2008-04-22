@@ -142,7 +142,7 @@
       "\\<\\("
       (regexp-opt
        (list
-        "BIG" "SI_unit" "absorbs" "abstract also" "api" "as" "asif"
+        "BIG" "SI_unit" "absorbs" "abstract" "also" "api" "as" "asif"
         "at" "atomic" "bool" "case" "catch" "coerces" "coercion"
         "component" "comprises" "default" "dim" "do" "elif" "else"
         "end" "ensures" "except" "excludes" "exit" "export" "extends"
