@@ -114,6 +114,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forOp(Op node) {
         return node.getText();
     }
+    
+    public String forEnclosing(Enclosing node) {
+        return node.getOpen().getText() + node.getClose().getText();
+    }
 
     public String forIdType(IdType node) {
         return node.getName().accept(this);

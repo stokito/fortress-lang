@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Function;
@@ -48,7 +49,7 @@ public abstract class TypeEnv {
         TypeEnv typeEnv = TypeEnv.make();
 
         // Add all top-level function names to the component-level environment.
-        //typeEnv.extend(component.functions());
+        typeEnv = typeEnv.extendWithFunctions(cu.functions());
 
         // Iterate over top-level variables, adding each to the component-level environment.
         typeEnv = typeEnv.extend(cu.variables());
@@ -160,7 +161,7 @@ public abstract class TypeEnv {
      * (if the given SimpleName is in this type environment).
      */
     public abstract Option<BindingLookup> binding(SimpleName var);
-
+    
     /**
      * Return the type of the given SimpleName (if the given SimpleName is in
      * this type environment).

@@ -17,10 +17,17 @@
 
 package com.sun.fortress.nodes_util;
 
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.BigFixity;
 import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.EnclosingFixity;
+import com.sun.fortress.nodes.Fixity;
+import com.sun.fortress.nodes.MultiFixity;
+import com.sun.fortress.nodes.NoFixity;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
@@ -179,6 +186,52 @@ public final class OprUtil {
             return new QualifiedOpName(q.getSpan(), q.getApi(), n);
         }
         return q;
+    }
+    
+    public static String fixityDecorator(final Option<Fixity> of, final String s) {
+        if (of.isNone()) {
+            return s;
+        }
+        return Option.<Fixity>unwrap(of).accept(new NodeAbstractVisitor<String>() {
+//            @Override public String forInFixity(InFixity that) {
+//                return "infix "+s;
+//            }
+            @Override public String forPreFixity(PreFixity that) {
+                return "prefix "+s;
+            }
+            @Override public String forPostFixity(PostFixity that) {
+                return "postfix "+s;
+            }
+//            @Override public String forNoFixity(NoFixity that) {
+//                return "nofix "+s;
+//            }
+//            @Override public String forMultiFixity(MultiFixity that) {
+//                return "multifix "+s;
+//            }
+//            @Override public String forBigFixity(BigFixity that) {
+//                return "big "+s;
+//            }
+//            @Override public String forEnclosingFixity(EnclosingFixity that) {
+//                return "enclosing "+s;
+//            }
+            @Override public String defaultCase(Node that) {
+                return s;
+            }
+        });
+    }
+    
+    /** Return a new operator with the fixity prepended to the text. */
+    public static Op decorateOperator(Op o) {
+        return new Op(o.getSpan(), fixityDecorator(o.getFixity(), o.getText()), o.getFixity());
+    }
+    
+    /** Return a new operator with the fixity stripped from the text. */
+    public static Op undecorateOperator(Op o) {
+        int i = o.getText().indexOf(" ");
+        if (i < 0) {
+            return o;
+        }
+        return new Op(o.getSpan(), o.getText().substring(i+1), o.getFixity());
     }
 
 }

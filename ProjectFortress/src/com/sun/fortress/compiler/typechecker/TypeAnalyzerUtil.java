@@ -228,23 +228,15 @@ public class TypeAnalyzerUtil {
             return none();
         }
         
-        // Create a comparator for the domain subtype relation
-        Comparator<ArrowType> domainSubtypeComp = new Comparator<ArrowType>() {
-            public int compare(ArrowType lhs, ArrowType rhs) {
-                // TODO - check lhs <: rhs AND rhs <: lhs?
-                if (lhs.getDomain().equals(rhs.getDomain())) {
-                    return 0;
-                } else if (checker.subtype(lhs.getDomain(), rhs.getDomain())) {
-                    return -1;
-                } else {
-                    return 1;
-                }
+        // Find the most applicable arrow type
+        ArrowType minType = matchingArrows.get(0);
+        for (int i=1; i<matchingArrows.size(); ++i) {
+            ArrowType t = matchingArrows.get(i);
+            if (checker.subtype(t, minType)) {
+                minType = t;
             }
-        };
-        
-        // Get the most applicable arrow type accordingly
-        ArrowType mostApplicableArrow = Collections.min(matchingArrows, domainSubtypeComp);
-        return some(mostApplicableArrow.getRange());
+        }
+        return some(minType.getRange());
     }
     
     public static Option<Type> applicationType(SubtypeChecker checker, 

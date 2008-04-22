@@ -44,6 +44,7 @@ import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
@@ -63,6 +64,11 @@ public abstract class TypeCheckerTestCase extends TestCase {
             int arrowIndex = s.indexOf("->");
             Type left = parseType(s.substring(0, arrowIndex));
             Type right = parseType(s.substring(arrowIndex+2));
+            if (left instanceof TupleType) {
+                left = NodeFactory.makeArgType(((TupleType)left).getElements());
+            } else {
+                left = NodeFactory.makeArgType(Collections.singletonList(left));
+            }
             List<Type> thrown = Collections.singletonList(BOTTOM);
             return new ArrowType(left, right, Option.some(thrown), false);
         }
