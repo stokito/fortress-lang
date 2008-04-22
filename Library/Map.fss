@@ -115,7 +115,7 @@ trait Map[\Key,Val\]
     splitAt(k:Key):(Map[\Key,Val\],Maybe[\Val\],Map[\Key,Val\])
 
     balancedDelete(r:Map[\Key,Val\]):Map[\Key,Val\]
-    balancedAdd(x:(Key,Val), left:Map[\Key,Val\], right:Map[\Key,Val\]):
+    balancedAdd(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):
         NodeMap[\Key,Val\]
     concat(t2:Map[\Key,Val\]): Map[\Key,Val\]
     concat3(k:Key, v:Val, t2:Map[\Key,Val\]): Map[\Key,Val\]
@@ -150,7 +150,7 @@ end
 
 singleton[\Key,Val\](k:Key,v:Val): Map[\Key,Val\] = do
     e = EmptyMap[\Key,Val\]
-    NodeMap[\Key,Val\]((k,v),e,e)
+    NodeMap[\Key,Val\](k,v,e,e)
   end
 
 mapping[\Key,Val\](): Map[\Key,Val\] = EmptyMap[\Key,Val\]
@@ -212,14 +212,13 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     removeMinimum():((Key,Val), Map[\Key,Val\]) = throw NotFound
     maximum(): (Key,Val) = throw NotFound
     removeMaximum():((Key,Val), Map[\Key,Val\]) = throw NotFound
-    add(k:Key, v:Val):Map[\Key,Val\] = NodeMap[\Key,Val\]((k,v), self, self)
+    add(k:Key, v:Val):Map[\Key,Val\] = NodeMap[\Key,Val\](k,v, self, self)
     update(k:Key, v:Val):Map[\Key,Val\] = add(k, v)
     delete(k:Key):Map[\Key,Val\] = self
     updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\] =
-        typecase r = f(Nothing[\Val\]) of
-            Just[\Val\] => add(k,r.get())
-            else => self
-        end
+        if r <- f(Nothing[\Val\])
+        then add(k,r)
+        else self end
     opr UNION(self, other: Map[\Key,Val\]): Map[\Key,Val\] = other
     opr UPLUS(self, other: Map[\Key,Val\]): Map[\Key,Val\] = other
     union(f:(Key,Val,Val)->Val, other: Map[\Key,Val\]): Map[\Key,Val\] =
@@ -228,8 +227,8 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
         (self,Nothing[\Val\],self)
 
     balancedDelete(r:Map[\Key,Val\]):Map[\Key,Val\] = r
-    balancedAdd(x:(Key,Val), left:Map[\Key,Val\], right:Map[\Key,Val\]):
-        NodeMap[\Key,Val\] = NodeMap[\Key,Val\](x,self,self)
+    balancedAdd(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):
+        NodeMap[\Key,Val\] = NodeMap[\Key,Val\](k,v,self,self)
     concat(t2:Map[\Key,Val\]): Map[\Key,Val\] = t2
     concat3(k:Key, v:Val, t2:Map[\Key,Val\]): Map[\Key,Val\] = t2.add(k,v)
     combine[\That,Result\](f:(Key,Val,That)->Maybe[\Result\],
@@ -244,17 +243,15 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     opr =(self,other:Map[\Key,Val\]):Boolean = other.isEmpty()
 end
 
-object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
-                          right:Map[\Key,Val\]) extends Map[\Key,Val\]
+object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,Val\])
+        extends Map[\Key,Val\]
     sz:ZZ32 = 1 + |left| + |right|
-    (key, val) = pair
     getter isEmpty():Boolean = false
     getter size():ZZ32 = sz
     getter showTree():String =
       "[" left.showTree() " (" key "," val ") " right.showTree() "]"
     getter toString():String = do
-      (two, delmin) = removeMinimum()
-      (km, vm) = two
+      (km, vm, delmin) = removeMinimum()
       ("{" km "|->" vm
            (BIG STRING[(k,v)<-delmin] ", " k "|->" v) "}")
     end
@@ -279,7 +276,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
 
     dom(self): Set[\Key\] = dom(left).concat3(key,dom(right))
 
-    getPair():(Key, Val) = pair
+    getPair():(Key, Val) = (key,val)
     getKey():Key = key
     getVal():Val = val
     getLeftChild():Map[\Key,Val\] = left
@@ -299,9 +296,9 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     removeMinimum() =
         typecase left of
             NodeMap[\Key,Val\] =>
-                (min, delmin) = left.removeMinimum()
-                (min, balancedAdd(pair,delmin,right))
-            else => (pair, right)
+                (k,v, delmin) = left.removeMinimum()
+                (k,v, balancedAdd(key,val,delmin,right))
+            else => (key,val, right)
         end
     maximum():(Key,Val) = do
         t : NodeMap[\Key,Val\] := self
@@ -317,41 +314,40 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     removeMaximum() =
         typecase right of
             NodeMap[\Key,Val\] =>
-                (max, delmax) = left.removeMaximum()
-                (max, balancedAdd(pair,left,delmax))
-            else => (pair, left)
+                (k,v, delmax) = left.removeMaximum()
+                (k,v, balancedAdd(key,val,left,delmax))
+            else => (key,val, left)
         end
 
     add(k:Key, v:Val):Map[\Key,Val\] =
       typecase _ = k CMP key of
           EqualTo  => self
-          LessThan => balancedAdd(pair,left.add(k,v),right)
-          else     => balancedAdd(pair,left,right.add(k,v))
+          LessThan => balancedAdd(key,val,left.add(k,v),right)
+          else     => balancedAdd(key,val,left,right.add(k,v))
       end
 
     update(k:Key, v:Val):Map[\Key,Val\] =
       typecase _ = k CMP key of
-          EqualTo  => NodeMap[\Key,Val\]((k,v), left, right)
-          LessThan => NodeMap[\Key,Val\](pair, left.update(k,v), right)
-          else     => NodeMap[\Key,Val\](pair, left, right.update(k,v))
+          EqualTo  => NodeMap[\Key,Val\](k,v, left, right)
+          LessThan => NodeMap[\Key,Val\](key, val, left.update(k,v), right)
+          else     => NodeMap[\Key,Val\](key, val, left, right.update(k,v))
       end
 
     delete(k:Key):Map[\Key,Val\] =
       typecase _ = k CMP key of
-          LessThan    => balancedAdd(pair,left.delete(k),right)
-          GreaterThan => balancedAdd(pair,left,right.delete(k))
+          LessThan    => balancedAdd(key,val,left.delete(k),right)
+          GreaterThan => balancedAdd(key,val,left,right.delete(k))
           else        => left.balancedDelete(right)
       end
 
     updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\] =
       typecase _ = k CMP key of
-          LessThan    => balancedAdd(pair, left.updateWith(f,k), right)
-          GreaterThan => balancedAdd(pair, left, right.updateWith(f,k))
+          LessThan    => balancedAdd(key,val, left.updateWith(f,k), right)
+          GreaterThan => balancedAdd(key,val, left, right.updateWith(f,k))
           else =>
-              typecase r = f(val) of
-                  Just[\Val\] => NodeMap[\Key,Val\]((k,r.get()), left, right)
-                  else        => left.balancedDelete(right)
-              end
+              if r <- f(val)
+              then NodeMap[\Key,Val\](k,r, left, right)
+              else left.balancedDelete(right) end
       end
 
     opr UNION(self, other: Map[\Key,Val\]): Map[\Key,Val\] = do
@@ -368,10 +364,9 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
       end
     union(f:(Key,Val,Val)->Val, other: Map[\Key,Val\]): Map[\Key,Val\] = do
         (newl, mv, newr) = other.splitAt(key)
-        val' = typecase mv of
-                   Just[\Val\] => f(key,val,mv.get())
-                   else        => val
-               end
+        val' = if v <- mv
+               then f(key,val,mv.get())
+               else val end
         left.union(f,newl).concat3(key,val',right.union(f,newr))
       end
     splitAt(k:Key):(Map[\Key,Val\],Maybe[\Val\],Map[\Key,Val\]) =
@@ -397,11 +392,11 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     concat3(k:Key, v:Val, t2:NodeMap[\Key,Val\]): Map[\Key,Val\] =
         typecase _ = sz CMP |t2| of
             LessThan =>
-                balancedAdd((t2.key,t2.val),concat3(k,v,t2.left),t2.right)
+                balancedAdd(t2.key,t2.val,concat3(k,v,t2.left),t2.right)
             GreaterThan =>
-                balancedAdd((key,val),left,right.concat3(k,v,t2))
+                balancedAdd(key,val,left,right.concat3(k,v,t2))
             else =>
-                NodeMap[\Key,Val\]((k,v),self,t2)
+                NodeMap[\Key,Val\](k,v,self,t2)
         end
 
     combine[\That,Result\](f:(Key,Val,That)->Maybe[\Result\],
@@ -414,22 +409,20 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
         else
             (l,mv,r) = that.splitAt(key)
             (lc,mc,rc) = (left.combine(f,doThis,doThat,mapThis,mapThat,l),
-                          typecase mv of
-                              Just[\That\] => f(key,val,mv.get())
-                              else         => doThis(key,val) end,
+                          if v <- mv
+                          then f(key,val,v)
+                          else doThis(key,val) end,
                           right.combine(f,doThis,doThat,mapThis,mapThat,r))
-            typecase mc of
-                Just[\Result\] => lc.concat3(key,mc.get(),rc)
-                else           => rc.concat(key,rc)
-            end
+            if c <- mc
+            then lc.concat3(key,c,rc)
+            else rc.concat(key,rc) end
         end
     mapFilter[\Result\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] = do
         (lf,nv,rf) = (left.mapFilter[\Result\](f), f(key,val),
                       right.mapFilter[\Result\](f))
-        typecase nv of
-            Just[\Result\] => lf.concat3(key,nv.get(),rf)
-            else           => lf.concat(rf)
-        end
+        if v <- nv
+        then lf.concat3(key,v,rf)
+        else lf.concat(rf) end
       end
 
     opr =(self,other:Map[\Key,Val\]): Boolean =
@@ -437,10 +430,9 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
         elif other.isEmpty() then false
         else
             (l,m,r) = other.splitAt(key)
-            typecase m of
-                Just[\Val\] => val=m.get() AND: (left=l AND right=r)
-                else => false
-            end
+            if v <- m
+            then val=v AND: (left=l AND right=r)
+            else false end
         end
 
     balancedDelete(r:NodeMap[\Key,Val\]):Map[\Key,Val\] = do
@@ -449,18 +441,18 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
     end
     balancedDelete(r:Map[\Key,Val\]):Map[\Key,Val\] = self
 
-    balancedAdd(x:(Key,Val), left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
+    balancedAdd(k:Key, v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
       ln = |left|
       rn = |right|
-      if ln + rn < weight then NodeMap[\Key,Val\](x, left, right)
+      if ln + rn < weight then NodeMap[\Key,Val\](k,v, left, right)
       elif rn > weight ln then
         rl = right.getLeftChild()
         rr = right.getRightChild()
         rln = |rl|
         rrn = |rr|
         if rln < rrn
-        then single_L(x, left, right)
-        else double_L(x, left, right)
+        then single_L(k,v, left, right)
+        else double_L(k,v, left, right)
         end
       elif ln > weight rn then
         ll = left.getLeftChild()
@@ -468,43 +460,43 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
         lln = |ll|
         lrn = |lr|
         if lrn < lln
-        then single_R(x, left, right)
-        else double_R(x, left, right)
+        then single_R(k,v, left, right)
+        else double_R(k,v, left, right)
         end
-      else NodeMap[\Key,Val\](x, left, right) end
+      else NodeMap[\Key,Val\](k,v, left, right) end
     end
 
-    single_L(x:(Key,Val), left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
-      NodeMap[\Key,Val\](right.getPair(),
-                         NodeMap[\Key,Val\](x, left, right.getLeftChild()),
+    single_L(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
+      NodeMap[\Key,Val\](right.getKey(), right.getVal(),
+                         NodeMap[\Key,Val\](k,v, left, right.getLeftChild()),
                          right.getRightChild())
 
-    single_R(x:(Key,Val), left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
-      NodeMap[\Key,Val\](left.getPair(),
+    single_R(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
+      NodeMap[\Key,Val\](left.getKey(), left.getVal(),
                          left.getLeftChild(),
-                         NodeMap[\Key,Val\](x,left.getRightChild(),right))
+                         NodeMap[\Key,Val\](k,v,left.getRightChild(),right))
 
-    double_L(a:(Key,Val), left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
+    double_L(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
         x = left
-        c = right.getPair()
-        b = right.getLeftChild().getPair()
+        (ck,cv) = right.getPair()
+        (bk,bv) = right.getLeftChild().getPair()
         (* println("double_L " a ">" b "\\" c) *)
         y1 = right.getLeftChild().getLeftChild()
         y2 = right.getLeftChild().getRightChild()
         z = right.getRightChild()
-        NodeMap[\Key,Val\](b, NodeMap[\Key,Val\](a,x,y1),NodeMap[\Key,Val\](c,y2,z))
+        NodeMap[\Key,Val\](bk,bv, NodeMap[\Key,Val\](k,v,x,y1),NodeMap[\Key,Val\](ck,cv,y2,z))
      end
 
-    double_R(c:(Key,Val), left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
+    double_R(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
         println("double_R " NodeMap[\Key,Val\](c,left,right).showTree())
-        a = left.getPair()
+        (ak,av) = left.getPair()
         x = left.getLeftChild()
-        b = left.getRightChild().getPair()
-        println("double_R " a "/" b "<" c)
+        (bk,bv) = left.getRightChild().getPair()
+        (* println("double_R " a "/" b "<" c) *)
         y1 = left.getRightChild().getLeftChild()
         y2 = left.getRightChild().getRightChild()
         z = right
-        NodeMap[\Key,Val\](b, NodeMap[\Key,Val\](a, x,y1), NodeMap[\Key,Val\](c,y2,z))
+        NodeMap[\Key,Val\](bk,bv, NodeMap[\Key,Val\](ak,av,x,y1), NodeMap[\Key,Val\](k,v,y2,z))
       end
 end
 

@@ -109,13 +109,20 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
 
                 FTuple rTuple = (FTuple) val;
                 Iterator<LValue> i = lhs.iterator();
-                for (Iterator<FValue> j = rTuple.getVals().iterator();
-                        j.hasNext();) {
+                Iterator<FValue> j = rTuple.getVals().iterator();
+                while (i.hasNext() && j.hasNext()) {
                     LValue lval = i.next();
                     FValue rval = j.next();
 
                     LHSEvaluator lhs_eval = new LHSEvaluator(new_eval, rval);
                     lval.accept(lhs_eval);
+                }
+                if (i.hasNext()) {
+                    LValue lval = i.next();
+                    error(lval, containing, errorMsg("Extra lvalue"));
+                } else if (j.hasNext()) {
+                    FValue rval = j.next();
+                    error(Option.unwrap(rhs), containing, errorMsg("Extra rvalue"));
                 }
             }
         } else {

@@ -39,7 +39,7 @@ factorial(n: ZZ32) = do    (* factorial *)
 end
 
 run(args:String...) = do
-  (a, b, c) = h()
+  h()
 end
 
 end
