@@ -415,5 +415,16 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         sparams.add(NodeFactory.makeSimpleTypeParam("BETA",  "A"));
         return sc.extend(sparams, FortressUtil.emptyWhereClause());
     }
+    
+    /** Test the application type checking. */
+    public void testApplication() {   
+        Type arrow1 = parseType("(A, B) -> C");
+        Type lhs1 = parseType("A");
+        Type rhs1 = parseType("B");
+        assertEquals(parseType("C"),
+                     Option.unwrap(TypeAnalyzerUtil.applicationType(checker,
+                                                                    arrow1,
+                                                                    Arrays.asList(lhs1, rhs1)), Types.BOTTOM));
+    }
 
 }

@@ -22,10 +22,15 @@ import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.OprUtil;
+
+import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
+
 import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
@@ -36,12 +41,19 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * to Variables.
  */
 class FnTypeEnv extends TypeEnv {
-    private Relation<SimpleName, ? extends Function> entries;
+    private Relation<SimpleName, Function> entries;
     private TypeEnv parent;
 
     FnTypeEnv(Relation<SimpleName, ? extends Function> _entries, TypeEnv _parent) {
-        entries = _entries;
         parent = _parent;
+        entries = new HashRelation<SimpleName, Function>(true, false);
+        for (Pair<SimpleName, ? extends Function> p : _entries) {
+            if (p.first() instanceof Op) {
+                entries.add(OprUtil.decorateOperator((Op)p.first()), p.second());
+            } else { // Normal function name, so just copy the entry
+                entries.add(p.first(), p.second());
+            }
+        }
     }
 
     /**
@@ -49,6 +61,12 @@ class FnTypeEnv extends TypeEnv {
      * (if the given Id is in this type environment).
      */
     public Option<BindingLookup> binding(SimpleName var) {
+        
+        // If operator, change name to match internal stored name (which indicates fixity)
+        if (var instanceof Op) {
+            var = OprUtil.decorateOperator((Op)var);
+        }
+        
         Set<? extends Function> fns = entries.getSeconds(var);
         if (fns.isEmpty()) { return parent.binding(var); }
         

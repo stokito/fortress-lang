@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.typechecker;
 import junit.framework.TestCase;
 import java.util.*;
 import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
@@ -54,15 +55,25 @@ public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
                                          makeUnitArg(makeUnitRef("ft_")));
 
         replacer = new StaticTypeReplacer(params, args);
+//        Lambda<Type, Type> subst = TypeAnalyzerUtil.makeSubstitution(params, args); 
 
         assertEqualTypes("ZZ32 -> ZZ32", "K -> K");
+//        assertEqualTypes("ZZ32 -> ZZ32", "K -> K", subst);
         //assertEqualTypes("List[\\ZZ32\\] -> Foo[\\ZZ32, -5\\]", "List[\\K\\] -> Foo[\\K, n\\]");
         assertEqualTypes("(ZZ32, String, ZZ32)", "(K, String, ZZ32)");
+//        assertEqualTypes("(ZZ32, String, ZZ32)", "(K, String, ZZ32)", subst);
         assertEqualTypes("(true, -, -5, m, Length, ft_, ZZ32)", "(b, +, n, m, d, u, K)");
+//        assertEqualTypes("(true, -, -5, m, Length, ft_, ZZ32)", "(b, +, n, m, d, u, K)", subst);
     }
 
+    // TODO: Do better equality check than String comparison
     private void assertEqualTypes(String s, String t) {
         assertEquals(parseType(s).toString(), replacer.replaceIn(parseType(t)).toString());
+    }
+
+    // TODO: Do better equality check than String comparison
+    private void assertEqualTypes(String s, String t, Lambda<Type, Type> subst) {
+        assertEquals(parseType(s).toString(), subst.value(parseType(t)).toString());
     }
 
 }

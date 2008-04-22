@@ -35,6 +35,7 @@ import static com.sun.fortress.nodes_util.NodeUtil.getName;
 import static com.sun.fortress.nodes_util.NodeUtil.nameString;
 import static com.sun.fortress.compiler.typechecker.Types.*;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static edu.rice.cs.plt.tuple.Option.*;
 
 public abstract class SubtypeChecker {
 
@@ -503,6 +504,11 @@ public abstract class SubtypeChecker {
     private boolean equivalent(Indices s, Indices t, SubtypeHistory h) {
         return equivalent(s.getExtents(), t.getExtents(), h);
     }
+    
+    private List<Type> pad(List<Type> types, Type padType, int length) {
+        assert(length >= types.size());
+        return IterUtil.asList(IterUtil.compose(types, IterUtil.copy(padType, length-types.size())));
+    }
 
     /**
      * Returns whether s is a subtype of t.
@@ -625,7 +631,7 @@ public abstract class SubtypeChecker {
                                 subtype(ss.getRange(), tt.getRange(), h) &&
                                 equivalentStaticParams(ss.getStaticParams(),
                                                        tt.getStaticParams(), h));
- }
+                    }
                 }
             }
             // [S-Tuple] p; Delta |- si <: ti
@@ -633,7 +639,43 @@ public abstract class SubtypeChecker {
             //          -----------------------------------
             //           p; Delta |- (s, ...) <: (t, ...)
             if (isTuple(s) && isTuple(t)) {
-                if (s instanceof ArgType || t instanceof ArgType) {
+                if (s instanceof ArgType && t instanceof ArgType) {
+                    ArgType ss = (ArgType)s;
+                    ArgType tt = (ArgType)t;
+                    // s cannot be a subtype of t if it has a vararg and t doesn't
+                    if (ss.getVarargs().isSome() && tt.getVarargs().isNone()) {
+                        return FALSE;
+                    }
+                    List<Type> stypes = ss.getElements();
+                    List<Type> ttypes = tt.getElements();
+                    int padLength = Math.max(stypes.size(), ttypes.size());
+                    List<Type> spadded = (ss.getVarargs().isSome()) ? pad(stypes, unwrap(ss.getVarargs()).getType(), padLength)
+                                                                    : stypes;
+                    List<Type> tpadded = (tt.getVarargs().isSome()) ? pad(ttypes, unwrap(tt.getVarargs()).getType(), padLength)
+                                                                    : ttypes;
+                    for (Pair<Type, Type> p : IterUtil.zip(spadded, tpadded)) {
+                        if (!subtype(p.first(), p.second(), history)) {
+                            return FALSE;
+                        }
+                    }
+                    // Check that varargs are subtypes
+                    if (ss.getVarargs().isSome() && tt.getVarargs().isSome()) {
+                        if (!subtype(unwrap(ss.getVarargs()).getType(), unwrap(tt.getVarargs()).getType())) {
+                            return FALSE;
+                        }
+                    }
+                    Map<Id, Type> tKeywords = new HashMap<Id, Type>();
+                    for (KeywordType tk : tt.getKeywords()) {
+                        tKeywords.put(tk.getName(), tk.getType());
+                    }
+                    for (KeywordType sk : ss.getKeywords()) {
+                        Type tKeywordType = tKeywords.get(sk.getName());
+                        if (tKeywordType == null || !subtype(sk.getType(), tKeywordType)) {
+                            return FALSE;
+                        }
+                    }
+                    return TRUE;
+                } else if (s instanceof ArgType || t instanceof ArgType) { // Only one is ArgType
                     return FALSE;
                 } else { // s instanceof TupleType && s instanceof TupleType
                     TupleType ss = (TupleType)s;

@@ -25,8 +25,10 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Pair;
@@ -304,9 +306,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forExportOnly(Export that, List<TypeCheckerResult> apis_result) {
         return new TypeCheckerResult(that);
     }
-
+    
     public TypeCheckerResult forQualifiedIdName(QualifiedIdName that) {
-        Id name = that.getName();
+        return forQualifiedName(that);
+    }
+    
+    public TypeCheckerResult forQualifiedOpName(QualifiedOpName that) {
+        return forQualifiedName(that);
+    }
+
+    private TypeCheckerResult forQualifiedName(QualifiedName that) {
+        SimpleName name = that.getName();
         Option<APIName> apiName = that.getApi();
         if (apiName.isSome()) {
             APIName api = unwrap(apiName);
@@ -331,19 +341,30 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 }
                 return new TypeCheckerResult(that, _type);
             } else {
-                StaticError error =
-                    TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
-                                   that);
+                // Operators are never qualified in source code, so if 'that' is qualified and not
+                // found, it must be a QualifiedIdName, not a QualifiedOpName.
+                StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
+                                                   that);
                 return new TypeCheckerResult(that, error);
             }
         }
         Option<Type> type = typeEnv.type(name);
+        System.err.println("typeEnv = "+typeEnv.description());
         if (type.isSome()) {
             return new TypeCheckerResult(that, unwrap(type));
         } else {
-            StaticError error =
-                TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
-                               that);
+            StaticError error;
+            if (name instanceof Id) {
+                error = TypeError.make(errorMsg("Variable '", that, "' not found."),
+                                       that);
+            } else if (name instanceof Op) {
+                error = TypeError.make(errorMsg("Operator '", OprUtil.decorateOperator((Op)name),
+                                                "' not found."),
+                                       that);
+            } else { // must be Enclosing
+                error = TypeError.make(errorMsg("Enclosing operator '", (Enclosing)name, "' not found."),
+                                       that);
+            }
             return new TypeCheckerResult(that, error);
         }
     }
@@ -573,9 +594,30 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
               overloadedTypes.add(unwrap(fn_result.type()));
             }
         }
+        Option<Type> type = (overloadedTypes.isEmpty()) ? Option.<Type>none()
+                                                        : wrap(NodeFactory.makeAndType(overloadedTypes)); 
         return TypeCheckerResult.compose(that,
-                                         NodeFactory.makeAndType(overloadedTypes),
+                                         type,
                                          TypeCheckerResult.compose(that, fns_result),
+                                         TypeCheckerResult.compose(that, staticArgs_result));
+    }
+
+    public TypeCheckerResult forOpRefOnly(OpRef that,
+                                          List<TypeCheckerResult> ops_result,
+                                          List<TypeCheckerResult> staticArgs_result) {
+
+        // Get intersection of overloaded operator types.
+        LinkedList<Type> overloadedTypes = new LinkedList<Type>();
+        for (TypeCheckerResult op_result : ops_result) {
+            if (op_result.type().isSome()) {
+              overloadedTypes.add(unwrap(op_result.type()));
+            }
+        }
+        Option<Type> type = (overloadedTypes.isEmpty()) ? Option.<Type>none()
+                                                        : wrap(NodeFactory.makeAndType(overloadedTypes)); 
+        return TypeCheckerResult.compose(that,
+                                         type,
+                                         TypeCheckerResult.compose(that, ops_result),
                                          TypeCheckerResult.compose(that, staticArgs_result));
     }
 
@@ -741,101 +783,193 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     
     private TypeCheckerResult forCaseExprNormal(CaseExpr that, Expr param) {
         TypeCheckerResult result = new TypeCheckerResult(that);
+        
+        // Try to type check everything before giving up on an error.
         TypeCheckerResult paramResult = param.accept(this);
         result = TypeCheckerResult.compose(that, result, paramResult);
+
+        // Maps a distinct guard types to the first guard expr with said type
+        Relation<Type, Expr> guards = new HashRelation<Type, Expr>(true, false);
+        List<Type> clauseTypes = new ArrayList<Type>(that.getClauses().size()+1);
+        int numClauses = 0;
         
-        // Make sure it has been typed
-        if (paramResult.type().isSome()) {
-            
-            // Init some types
-            Type paramType = unwrap(paramResult.type());
-            Type paramGeneratorType =
-                new InstantiatedType(NodeFactory.makeQualifiedIdName("Generator"),
-                                     Arrays.asList((StaticArg)NodeFactory.makeTypeArg(paramType)));
-            List<Type> clauseTypes = new ArrayList<Type>(that.getClauses().size()+1);
-            
-            // Maps a distinct guard types to the first guard expr with said type
-            Map<Type, Expr> guards = new HashMap<Type, Expr>(that.getClauses().size());
-                
-            // Type check each guard and block
-            for (CaseClause clause : that.getClauses()) {
-                TypeCheckerResult guardResult = clause.getMatch().accept(this);
-                result = TypeCheckerResult.compose(that, result, guardResult);
-                if (guardResult.type().isSome()) {
-                    guards.put(unwrap(guardResult.type()), clause.getMatch());
-                }
-                TypeCheckerResult blockResult = clause.getBody().accept(this);
-                result = TypeCheckerResult.compose(that, result, blockResult);
-                if (blockResult.type().isSome()) {
-                    clauseTypes.add(unwrap(blockResult.type()));
+        // Type check each guard and block
+        for (CaseClause clause : that.getClauses()) {
+            TypeCheckerResult guardResult = clause.getMatch().accept(this);
+            result = TypeCheckerResult.compose(that, result, guardResult);
+            if (guardResult.type().isSome()) {
+                Type guardType = unwrap(guardResult.type());
+                guards.add(unwrap(guardResult.type()), clause.getMatch());
+            }
+            TypeCheckerResult blockResult = clause.getBody().accept(this);
+            result = TypeCheckerResult.compose(that, result, blockResult);
+            if (blockResult.type().isSome()) {
+                clauseTypes.add(unwrap(blockResult.type()));
+            }
+            ++numClauses;
+        }
+        
+        // Type check the else clause
+        if (that.getElseClause().isSome()) {
+            TypeCheckerResult blockResult = unwrap(that.getElseClause()).accept(this);
+            result = TypeCheckerResult.compose(that, result, blockResult);
+            if (blockResult.type().isSome()) {
+                clauseTypes.add(unwrap(blockResult.type()));
+            }
+            ++numClauses;
+        }
+        
+        // Type check compare operator if given, otherwise check IN and EQ
+        Type givenOpType = null;
+        Type inOpType = null;
+        Type eqOpType = null;
+        Op givenOp = unwrap(that.getCompare(), (Op)null);
+        Op inOp = new Op("IN");
+        Op eqOp = new Op("EQ");
+        if (that.getCompare().isSome()) {
+            TypeCheckerResult opResult = givenOp.accept(this);
+            result = TypeCheckerResult.compose(that, result, opResult);
+            givenOpType = unwrap(opResult.type(), (Type)null);
+        } else {
+            inOpType = unwrap(inOp.accept(this).type(), (Type)null);
+            eqOpType = unwrap(eqOp.accept(this).type(), (Type)null);
+        }
+        
+        // Check if failures prevent us from continuing
+        if ((givenOpType == null && inOpType == null && eqOpType == null)
+                || paramResult.type().isNone()) {
+            return result;
+        }
+        
+        // Init some types
+        Type paramType = unwrap(paramResult.type());
+        Type paramGeneratorType =
+            new InstantiatedType(NodeFactory.makeQualifiedIdName("Generator"),
+                                 Arrays.asList((StaticArg)NodeFactory.makeTypeArg(paramType)));
+        
+        // Type check "paramExpr OP guardExpr" for each distinct type
+        for (Type guardType : guards.firstSet()) {
+
+            Op op = givenOp;
+            Type opType = givenOpType;
+            if (opType == null) {
+                if (subtypeChecker.subtype(guardType, paramGeneratorType)) {
+                    op = inOp;
+                    opType = inOpType;
+                } else {
+                    op = eqOp;
+                    opType = eqOpType;
                 }
             }
             
-            // Type check the else clause
-            if (that.getElseClause().isSome()) {
-                TypeCheckerResult blockResult = unwrap(that.getElseClause()).accept(this);
-                result = TypeCheckerResult.compose(that, result, blockResult);
-                if (blockResult.type().isSome()) {
-                    clauseTypes.add(unwrap(blockResult.type()));
-                }
-            }
+            Option<Type> applicationType =
+                TypeAnalyzerUtil.applicationType(subtypeChecker, opType, IterUtil.make(paramType, guardType));
             
-            // Type check compare operator if given, otherwise check IN and EQ
-            Type givenOpType = null;
-            Type inOpType = null;
-            Type eqOpType = null;
-            if (that.getCompare().isSome()) {
-                TypeCheckerResult opResult = unwrap(that.getCompare()).accept(this);
-                result = TypeCheckerResult.compose(that, result, opResult);
-                if (opResult.type().isSome()) {
-                    givenOpType = unwrap(opResult.type());
-                } else { // nothing else we can check before we fail
-                    return result;
-                }
-            } else {
-                inOpType = unwrap(new Op("IN").accept(this).type(), Types.BOTTOM);
-                eqOpType = unwrap(new Op("EQ").accept(this).type(), Types.BOTTOM);
-            }
-            
-            // Type check "paramExpr OP guardExpr" for each distinct type
-            for (Map.Entry<Type, Expr> entry : guards.entrySet()) {
-                Type guardType = entry.getKey();
-                Expr guardExpr = entry.getValue();
-                
-                Type opType = givenOpType;
-                if (opType == null) {
-                    opType = subtypeChecker.subtype(guardType, paramGeneratorType) ? inOpType
-                                                                                   : eqOpType;
-                }
-                
-                Option<Type> applicationType =
-                    TypeAnalyzerUtil.applicationType(subtypeChecker,
-                                                     opType,
-                                                     IterUtil.make(paramType, guardType));
-                
-                // Check if "opType paramType guardType" application has type Boolean
-                // TODO: improve the error message
-                if (applicationType.isSome() && subtypeChecker.subtype(unwrap(applicationType), Types.BOOLEAN)) {
+            // Check if "opType paramType guardType" application has type Boolean
+            if (applicationType.isSome() && subtypeChecker.subtype(unwrap(applicationType), Types.BOOLEAN)) {
+                for (Expr guardExpr : guards.getSeconds(guardType)) {
                     result = TypeCheckerResult.compose(that, result,
                             new TypeCheckerResult(guardExpr,
-                                    TypeError.make(errorMsg("Invalid guard expression for ",
-                                                            "'case' parameter."),
+                                    TypeError.make(errorMsg("Guard expression has type ", guardType, ", which is invalid ",
+                                                            "for 'case' parameter type ", paramType, " and operator ",
+                                                            op.getText(), "."),
                                                    guardExpr)));
                 }
             }
-            
-            // Get the type of the whole expression
-            Type caseType = null;
-            if (!clauseTypes.isEmpty()) {
-                caseType = NodeFactory.makeOrType(clauseTypes);
-            }
-            return TypeCheckerResult.compose(that, caseType, result);
         }
-        return result;
+        
+        // Get the type of the whole expression
+        Type caseType = null;
+        if (numClauses == clauseTypes.size()) {
+            // Only set a type for this node if all clauses were typed
+            caseType = NodeFactory.makeOrType(clauseTypes);
+        }
+        return TypeCheckerResult.compose(that, caseType, result);
     }
     
     private TypeCheckerResult forCaseExprMost(CaseExpr that) {
-        return new TypeCheckerResult(that);
+        TypeCheckerResult result = new TypeCheckerResult(that);
+//        
+//        // Try to type check everything before giving up on an error.
+//        assert(that.getCompare().isSome());
+//        TypeCheckerResult opResult = unwrap(that.getCompare()).accept(this);
+//        result = TypeCheckerResult.compose(that, result, opResult);
+//        
+//        // Maps a distinct guard types to the first guard expr with said type
+//        Map<Type, Expr> guards = new HashMap<Type, Expr>(that.getClauses().size());
+//        List<Type> clauseTypes = new ArrayList<Type>(that.getClauses().size()+1);
+//        int numClauses = 0;
+//            
+//        // Type check each guard and block
+//        for (CaseClause clause : that.getClauses()) {
+//            TypeCheckerResult guardResult = clause.getMatch().accept(this);
+//            result = TypeCheckerResult.compose(that, result, guardResult);
+//            if (guardResult.type().isSome()) {
+//                guards.put(unwrap(guardResult.type()), clause.getMatch());
+//            }
+//            TypeCheckerResult blockResult = clause.getBody().accept(this);
+//            result = TypeCheckerResult.compose(that, result, blockResult);
+//            if (blockResult.type().isSome()) {
+//                clauseTypes.add(unwrap(blockResult.type()));
+//            }
+//            numClauses++;
+//        }
+//        
+//        // Type check the else clause
+//        if (that.getElseClause().isSome()) {
+//            TypeCheckerResult blockResult = unwrap(that.getElseClause()).accept(this);
+//            result = TypeCheckerResult.compose(that, result, blockResult);
+//            if (blockResult.type().isSome()) {
+//                clauseTypes.add(unwrap(blockResult.type()));
+//            }
+//        }
+//        
+//        // Check if failures prevent us from continuing
+//        if (opResult.type().isNone()) {
+            return result;
+//        }
+//        
+//        Type opType = unwrap(opResult.type());
+//        
+//        
+//        // Init some types
+//        Type paramType = unwrap(paramResult.type());
+//        Type paramGeneratorType =
+//            new InstantiatedType(NodeFactory.makeQualifiedIdName("Generator"),
+//                                 Arrays.asList((StaticArg)NodeFactory.makeTypeArg(paramType)));
+//        
+//        // Type check "paramExpr OP guardExpr" for each distinct type
+//        for (Map.Entry<Type, Expr> entry : guards.entrySet()) {
+//            Type guardType = entry.getKey();
+//            Expr guardExpr = entry.getValue();
+//            
+//            Type opType = givenOpType;
+//            if (opType == null) {
+//                opType = subtypeChecker.subtype(guardType, paramGeneratorType) ? inOpType : eqOpType;
+//            }
+//            
+//            Option<Type> applicationType =
+//                TypeAnalyzerUtil.applicationType(subtypeChecker,
+//                                                 opType,
+//                                                 IterUtil.make(paramType, guardType));
+//            
+//            // Check if "opType paramType guardType" application has type Boolean
+//            // TODO: improve the error message
+//            if (applicationType.isSome() && subtypeChecker.subtype(unwrap(applicationType), Types.BOOLEAN)) {
+//                result = TypeCheckerResult.compose(that, result,
+//                        new TypeCheckerResult(guardExpr,
+//                                TypeError.make(errorMsg("Invalid guard expression for ",
+//                                                        "'case' parameter."),
+//                                               guardExpr)));
+//            }
+//        }
+//        
+//        // Get the type of the whole expression
+//        Type caseType = null;
+//        if (!clauseTypes.isEmpty()) {
+//            caseType = NodeFactory.makeOrType(clauseTypes);
+//        }
+//        return TypeCheckerResult.compose(that, caseType, result);
     }
 
 //    public TypeCheckerResult forChainExpr(ChainExpr that) {
@@ -857,6 +991,70 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //        return null;
 //    }
+    
+    public TypeCheckerResult forOp(Op that) {
+        Option<BindingLookup> binding = typeEnv.binding(that);
+        if (binding.isSome()) {
+            return new TypeCheckerResult(that, unwrap(binding).getType());
+        } else {
+            return new TypeCheckerResult(that,
+                                         TypeError.make(errorMsg("Operator '",
+                                                                 OprUtil.decorateOperator(that),
+                                                                 "' not found."),
+                                                        that));
+        }
+    }
+    
+    public TypeCheckerResult forEnclosing(Enclosing that) {
+        Option<BindingLookup> binding = typeEnv.binding(that);
+        if (binding.isSome()) {
+            return new TypeCheckerResult(that, unwrap(binding).getType());
+        } else {
+            return new TypeCheckerResult(that,
+                                         TypeError.make(errorMsg("Enclosing operator '",
+                                                                 that, "' not found."),
+                                                        that));
+        }
+    }
+    
+    public TypeCheckerResult forOprExprOnly(OprExpr that,
+                                            TypeCheckerResult op_result,
+                                            List<TypeCheckerResult> args_result) {
+        Option<Type> applicationType = none();
+        if (op_result.type().isSome()) {
+            Type arrowType = unwrap(op_result.type());
+            List<Type> argTypes = new ArrayList<Type>(args_result.size());
+            boolean success = true;
+            for (TypeCheckerResult r : args_result) {
+                if (r.type().isNone()) {
+                    success = false;
+                    break;
+                }
+                argTypes.add(unwrap(r.type()));
+            }
+            if (success) {
+                applicationType = TypeAnalyzerUtil.applicationType(subtypeChecker,
+                                                                   arrowType,
+                                                                   argTypes);
+                if (applicationType.isNone()) {
+                    // Guaranteed at least one operator because all the overloaded operators
+                    // are created by disambiguation, not by the user.
+                    OpName opName = that.getOp().getOps().get(0).getName();
+                    return TypeCheckerResult.compose(that,
+                            op_result,
+                            TypeCheckerResult.compose(that, args_result),
+                            new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator '",
+                                                                                opName,
+                                                                                "' has invalid arguments."),
+                                                                       that)));
+                }
+            }
+        }
+        return TypeCheckerResult.compose(that,
+                                         applicationType,
+                                         op_result,
+                                         TypeCheckerResult.compose(that, args_result));
+    }
 
     // TRIVIAL NODES ---------------------
 
@@ -931,6 +1129,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forBigFixity(BigFixity that) {
         // No checks needed to be performed on a BigFixity.
+        return new TypeCheckerResult(that);
+    }
+    
+    public TypeCheckerResult forImportStar(ImportStar that) {
+        // No checks needed since all imports are handled by the trait table.
         return new TypeCheckerResult(that);
     }
 
@@ -1970,10 +2173,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forOpNameOnly(OpName that) {
 //        return forSimpleNameOnly(that);
-//    }
-//
-//    public RetType forOpOnly(Op that) {
-//        return forOpNameOnly(that);
 //    }
 //
 //    public RetType forEnclosingOnly(Enclosing that, RetType open_result, RetType close_result) {

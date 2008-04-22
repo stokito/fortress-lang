@@ -40,6 +40,7 @@ public class StaticJUTest extends TestCase {
         "LocalFnRef.fss",            // FIX ME
         "GenericSingleton.fss",      // FIX ME
         "GenericFunctionCall.fss",
+        "CaseExpr.fss",
         "SimpleObject.fss",
         "MutualLetFn.fss",
         "TupleAssignment.fss",
