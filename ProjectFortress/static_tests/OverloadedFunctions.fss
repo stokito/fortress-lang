@@ -1,0 +1,41 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component OverloadedFunctions
+export Executable
+
+  run(args: String...):() = do
+    
+    (* has vararg, has keyword *)
+    f(x: ZZ32, y: String, z: Boolean..., t: ZZ32 = 5, u: Boolean = true): IntLiteral = 0
+    (* has vararg, no keyword *)
+    f(x: ZZ32, y: String, z: Boolean, t: Any...): IntLiteral = 1
+    (* no vararg, has keyword *)
+    f(x: ZZ32, y: String, z: Boolean, t: ZZ32 = 3, u: Boolean = false, v: String = ""): IntLiteral = 2
+    (* no vararg, no keyword *)
+    f(x: ZZ32, y: String): IntLiteral = 3
+    
+    f(0, "hello")
+    f(0, "hello", true)
+    f(0, "hello", true, 4)
+    f(0, "hello", true, 1, 2)
+    (*f(0, "hello", true, t=3, u=false)*)
+    f(0, "hello", true, false)
+    
+  end
+
+end

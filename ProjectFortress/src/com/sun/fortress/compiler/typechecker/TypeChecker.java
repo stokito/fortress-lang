@@ -349,7 +349,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
         }
         Option<Type> type = typeEnv.type(name);
-        System.err.println("typeEnv = "+typeEnv.description());
+        // System.err.println("typeEnv = "+typeEnv.description());
         if (type.isSome()) {
             return new TypeCheckerResult(that, unwrap(type));
         } else {
@@ -1161,32 +1161,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         //        System.err.printf("tightJuxt::: lhsType = %s\n", lhsType);
         //        System.err.printf("             rhsType = %s\n", rhsType);
 
-        return lhsType.accept(new NodeAbstractVisitor<TypeCheckerResult>() {
-
-            @Override
-            public TypeCheckerResult forBottomType(BottomType _that) {
-                return TypeCheckerResult.compose(that, Types.BOTTOM, exprs_result);
-            }
-
-            @Override
-            public TypeCheckerResult forArrowType(ArrowType _that) {
-//                System.err.printf(" -- forArrowType: domain=%s\n", _that.getDomain().getClass());
-                return checkSubtype(rhsType,
-                                    _that.getDomain(),
-                                    that,
-                                    _that.getRange(),
-                                    errorMsg("Wrong argument type for application. ",
-                                             "Got ", rhsType, ", expected ", _that.getDomain()));
-            }
-
-            @Override
-            public TypeCheckerResult for_RewriteGenericArrowType(_RewriteGenericArrowType _that) {
-                //                System.err.printf("             lhsType generic: %s%s->%s\n",
-                //                        _that.getStaticParams(), _that.getDomain(), _that.getRange());
-                return new TypeCheckerResult(that, _that.getRange());
-            }
-
-        });
+        return new TypeCheckerResult(that,
+                                     TypeAnalyzerUtil.applicationType(subtypeChecker,
+                                                                      lhsType,
+                                                                      rhsType)); 
     }
 
     public TypeCheckerResult forComponentOnly(Component that,
