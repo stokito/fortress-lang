@@ -191,11 +191,24 @@ public class TypeAnalyzerUtil {
      *         or {@code Option.none()} if no arrow type matched the args
      */
     public static Option<Type> applicationType(final SubtypeChecker checker,
-                                               Type fn,
-                                               Iterable<Type> args) {
+                                               final Type fn,
+                                               final Iterable<Type> args) {
+        return applicationType(checker, fn, NodeFactory.makeArgType(IterUtil.asList(args)));
+    }
+
+    public static Option<Type> applicationType(final SubtypeChecker checker,
+                                               final Type fn,
+                                               final Type arg) {
         
-        // Form an ArgType from the given args to use as the domain type
-        final ArgType domain = NodeFactory.makeArgType(IterUtil.asArrayList(args));
+        // Make sure domain is an ArgType
+        final ArgType domain;
+        if (arg instanceof ArgType) {
+            domain = (ArgType) arg;
+        } else if (arg instanceof TupleType) {
+            domain = NodeFactory.makeArgType(((TupleType)arg).getElements());
+        } else {
+            domain = NodeFactory.makeArgType(Collections.singletonList(arg));
+        }
         
         // Turn fn into a list of types (i.e. flatten if an intersection)
         final Iterable<Type> arrows =
@@ -238,6 +251,7 @@ public class TypeAnalyzerUtil {
         }
         return some(minType.getRange());
     }
+                                               
     
     public static Option<Type> applicationType(SubtypeChecker checker, 
                                                Type arrow,
