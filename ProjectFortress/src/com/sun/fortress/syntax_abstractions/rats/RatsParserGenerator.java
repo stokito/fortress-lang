@@ -82,9 +82,9 @@ public class RatsParserGenerator {
 	
 		FortressRatsGrammar fortressGrammar = new FortressRatsGrammar();
 		fortressGrammar.initialize(RatsUtil.getParserPath());
-		fortressGrammar.setName(freshFortressName);
 		fortressGrammar.replace(modules);
-		fortressGrammar.injectAlternative(new GapAlternative());
+		fortressGrammar.setName(freshFortressName);
+		// fortressGrammar.injectAlternative(new GapAlternative());
 		fortressGrammar.clone(grammarTempDir);
 		
 		String fortressRats = destinationDir + "Fortress" +".rats";

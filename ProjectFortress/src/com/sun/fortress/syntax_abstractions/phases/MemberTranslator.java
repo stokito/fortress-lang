@@ -44,7 +44,7 @@ import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 public class MemberTranslator {
 	private List<Production> productions;
 	private Collection<StaticError> errors;
-	
+
 	public class Result extends StaticPhaseResult {
 
 		public Result(Iterable<? extends StaticError> errors) {
@@ -58,7 +58,7 @@ public class MemberTranslator {
 		public List<Production> productions() { return productions; }
 
 	}
-	
+
 	public MemberTranslator() {
 		this.productions = new LinkedList<Production>();
 		this.errors = new LinkedList<StaticError>();
@@ -73,10 +73,10 @@ public class MemberTranslator {
 	public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {	
 		return new MemberTranslator().doTranslate(members);
 	}
-	
+
 	private Result doTranslate(
 			Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
-		
+
 		for (NonterminalIndex<? extends GrammarMemberDecl> member: members) {
 			this.translate(member);
 		}
@@ -91,37 +91,35 @@ public class MemberTranslator {
 	 */
 	private Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
 		Collection<StaticError> errors = new LinkedList<StaticError>();
-		NonterminalTranslator nt = new NonterminalTranslator(member);
+		NonterminalTranslator nt = new NonterminalTranslator();
 		productions.add(member.getAst().accept(nt));
 		errors.addAll(nt.errors());
 		return new Result(errors);
 	}
 
-	
-	
+
+
 	private static class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
-		private Collection<StaticError> errors;
-		private NonterminalIndex/*<? extends GrammarMemberDecl>*/ pi; // Unsafe to prevent bug in Java 5 on Solaris 
-		
-		public NonterminalTranslator(NonterminalIndex<? extends GrammarMemberDecl> pi) {
+		private Collection<StaticError> errors; 
+
+		public NonterminalTranslator() {
 			this.errors = new LinkedList<StaticError>();
-			this.pi = pi;
 		}
-		
+
 		public Collection<StaticError> errors() {
 			return this.errors;
 		}
-				
+
 		@Override
 		public Production forNonterminalDef(NonterminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
 			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
 			String name = that.getName().getName().toString();
-			
+
 			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
 			List<Sequence> sequence = sdtr.alternatives();
-			
+
 			Production p = new FullProduction(attr, new FortressTypeToJavaType().analyze(type),
 					new NonTerminal(name),
 					new OrderedChoice(sequence));
@@ -139,18 +137,19 @@ public class MemberTranslator {
 			List<Attribute> attr = new LinkedList<Attribute>();
 			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
 			String name = that.getName().getName().toString();
-			
+
 			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
 			List<Sequence> sequence = sdtr.alternatives();
-			
-			Production p = new FullProduction(attr, type.toString(),
-					new NonTerminal(name),
-					new OrderedChoice(sequence));
+
+			Production p = new FullProduction(attr,
+											  type.toString(), 
+											  new NonTerminal(name),
+											  new OrderedChoice(sequence));
 			p.name = new NonTerminal(name);
 			return p;
 		}
-		
+
 	}
 
 }

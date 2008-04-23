@@ -33,14 +33,14 @@ api SyntaxTest
           exprs: List[\Expr\] = emptyList[\Expr\](2)
           exprs1: List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()))
           es:List[\Expr\] = if v <- very then
-                                       exprs1.addRight(StringLiteralExpr(Fortress " " is " " v " " a b " " indeed " " Verys " " c))
+                                       exprs1.addRight(StringLiteralExpr(Fortress.val " " is.val " " v.val " " a.val b.val " " indeed.val " " Verys " " c.val))
                                      else
-                                       exprs1.addRight(StringLiteralExpr(Fortress " " is " " a b " " indeed " " Verys " " c " "))
+                                       exprs1.addRight(StringLiteralExpr(Fortress.val " " is.val " " a.val b.val " " indeed.val " " Verys " " c.val " "))
                                      end
           LooseJuxt(es)
         end
 
-      Verys :StringLiteralExpr:= SPACE a:very do StringLiteralExpr(a) end
+      Verys :StringLiteralExpr:= SPACE a:very do StringLiteralExpr(a.val) end
   end
  
 end

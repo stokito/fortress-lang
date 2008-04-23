@@ -1058,8 +1058,8 @@ public class NodeFactory {
         });
     }
 
-    public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, Expr transformationExpression) {
-        return new SyntaxDef(s, syntaxSymbols, transformationExpression);
+    public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformationDecl transformation) {
+        return new SyntaxDef(s, syntaxSymbols, transformation);
     }
 
     public static IntLiteralExpr makeIntLiteralExpr(int i) {

@@ -43,17 +43,17 @@ api SyntaxExtends
 
   grammar B extends { C1, C2 }
     Thing |StringLiteralExpr:=
-      thingB1 do StringLiteralExpr(thingB1) end
+      thingB1 do StringLiteralExpr(thingB1.val) end
   end
 
   grammar C
     Thing :StringLiteralExpr:=
-      thingC do StringLiteralExpr(thingC) end
+      thingC do StringLiteralExpr(thingC.val) end
   end
 
   grammar D extends { Expression, C }
     Expr |Expr:=
-      Thing do Thing end
+      Thing do Thing.val end
 
     Bar :Expr:=
       Expr do Expr end
@@ -61,25 +61,25 @@ api SyntaxExtends
 
   grammar C1 extends C
     Thing |Expr:=
-      thingC1 do StringLiteralExpr(thingC1) end
+      thingC1 do StringLiteralExpr(thingC1.val) end
 
     Gnu :Expr:= 
-      Thing do Thing end
+      Thing do Thing.val end
   end
 
   grammar C2 extends C
     Thing |Expr:=
-      thingC2 do StringLiteralExpr(thingC2) end
+      thingC2 do StringLiteralExpr(thingC2.val) end
   end
 
   grammar E
     Thing :StringLiteralExpr:=
-      Foo do StringLiteralExpr(Foo) end
+      Foo do StringLiteralExpr(Foo.val) end
   end
 
   grammar F extends C
     Thing |StringLiteralExpr:=
-      thingF do StringLiteralExpr(thingF) end
+      thingF do StringLiteralExpr(thingF.val) end
   end
 
 end

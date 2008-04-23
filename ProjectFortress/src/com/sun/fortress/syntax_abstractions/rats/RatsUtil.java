@@ -106,8 +106,10 @@ public abstract class RatsUtil {
 	public static void writeRatsModule(Module module, String tempDir) {
 		FileOutputStream fo;
 		try {
+			makeSureDirectoryExists(tempDir);
 			String name = RatsUtil.getModulePath(module.name.name);
-			fo = new FileOutputStream(tempDir+name+".rats");		
+			File file = new File(tempDir+name+".rats");
+			fo = new FileOutputStream(file);		
 			PrettyPrinter pp = new PrettyPrinter(new Printer(fo), new JavaAST(), true);
 			pp.visit(module);
 			pp.flush();
@@ -119,6 +121,15 @@ public abstract class RatsUtil {
 		} catch (IOException ee) {
 			// TODO Auto-generated catch block
 			ee.printStackTrace();
+		}
+	}
+
+	private static void makeSureDirectoryExists(String tempDir) {
+		File dir = new File(tempDir+COMSUNFORTRESSPARSER);
+		if (!dir.isDirectory()) {
+			if (!dir.mkdirs()) {
+				throw new RuntimeException("Could not create directories: "+dir.getAbsolutePath());
+			}
 		}
 	}
 

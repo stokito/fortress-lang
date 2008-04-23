@@ -524,23 +524,21 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * syntax definition in syntax declarations
          */
         SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
-                  Expr transformationExpression);
-        /**
-         * syntax definition in syntax declarations
-         */
-/*        SyntaxDefTemplate(List<SyntaxSymbol> syntaxSymbols,
-                  SyntaxTemplate template);
-*/
+                  TransformationDecl transformation);
     /**
-      * template declaration
+      * Transformation declaration
       */
-    abstract TemplateDecl() implements AbsDecl;
+    abstract TransformationDecl() implements AbsDecl;
         /**
          * template definition in template declarations
          */
-        TemplateDef(Expr transformationExpression);
+        TransformationTemplateDef(AbstractNode transformation);
+        /**
+         * template definition in template declarations
+         */
+        TransformationExpressionDef(Expr transformation);
     /**
-      * template declaration
+      * template gap
       */
     TemplateGap(Span span, Id variable);
     /**

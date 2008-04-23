@@ -60,7 +60,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */
-		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules(), env);
+		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
 		if (!gtr.isSuccessful()) { return new Result(null, gtr.errors()); }
 		
 		/*

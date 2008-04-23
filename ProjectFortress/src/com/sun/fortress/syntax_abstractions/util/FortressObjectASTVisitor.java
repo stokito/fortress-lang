@@ -80,6 +80,7 @@ public class FortressObjectASTVisitor<T> {
     }
 
     public T dispatch(FValue value) {
+    	System.err.println("Val: "+value.getClass());
         if (value instanceof FString) {
             return (T) ((FString) value).getString();
         }
