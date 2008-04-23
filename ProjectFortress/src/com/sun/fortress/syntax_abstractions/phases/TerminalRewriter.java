@@ -39,6 +39,8 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TransformationExpressionDef;
+import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
@@ -52,7 +54,6 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class TerminalRewriter extends NodeUpdateVisitor {
 
-    private static final String FORTRESSAST = "FortressAst";
     private static final String STRINGLITERALEXPR = "StringLiteralExpr";
     private Collection<_TerminalDef> _terminalDefs;
     private List<Id> _apiName;
@@ -111,8 +112,8 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         Id id = NodeFactory.makeId(var);
         QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName,id);
 
-        // Create a the return type - A String
-        Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", "String")));
+        // Create a the return type - A StringLiteralExpr
+        Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", STRINGLITERALEXPR)));
 
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
@@ -123,7 +124,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);
 
         // Add the terminal definition to the collection of new terminal definitions
-        SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, transformationExpression);
+        SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, new TransformationTemplateDef(transformationExpression));
         this._terminalDefs.add(new _TerminalDef(name, type, Option.<Modifier>none(), syntaxDef));
 
         // Return a new nonterminal reference to the new terminal definition

@@ -164,7 +164,6 @@ try {
     			VarDecl vd = (VarDecl) d;
     			if (vd.getLhs().size() == 1) {
     				LValueBind vb = vd.getLhs().get(0);
-//    				System.err.println("L: "+ vb.getName().getText()+" "+boundVariables);
     				Object o = boundVariables.get(vb.getName().getText());
     				Expr n = new JavaASTToFortressAST(span).dispatch(o, vb.getType());
     				newDecls.add(new VarDecl(vd.getLhs(), n));

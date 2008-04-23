@@ -162,7 +162,7 @@ public abstract class Module implements Analyzable<Module> {
 		String s = "*** "+this.getName()+" ***\n";
 		
 		s+= indent+"* Toplevel: "+this.isTopLevel+"\n";
-		
+			
 		s+= indent+"* Parameters\n";
 		tmpIndent = indent;
 		indent += indentation;

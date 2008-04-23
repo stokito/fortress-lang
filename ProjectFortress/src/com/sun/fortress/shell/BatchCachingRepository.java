@@ -67,12 +67,10 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
      */
    public BatchCachingRepository(boolean doLink, Path p,
             FortressRepository cache) {
-        
        // No syntax transformations for APIs
        this.apiSource = new PathBasedRepository(p, this);
        this.componentSource =  new PathBasedSyntaxTransformingRepository(p,
-               new GlobalEnvironment.FromRepository(this));
-       
+               new GlobalEnvironment.FromRepository(this));      
        this.derived = cache;
         MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
         this.ru = new RepositoryUpdater(apiSource, componentSource, derived, linker);

@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Export;
@@ -57,6 +58,9 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TransformationDecl;
+import com.sun.fortress.nodes.TransformationExpressionDef;
+import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarDecl;
@@ -90,29 +94,45 @@ public class ActionCreater {
 
     private static final Id ANY = new Id("Any");
 
-    public static Result create(String alternativeName,
-            Expr e,
-            TraitType type,
-            Collection<PrefixedSymbol> boundVariables) {
-        ActionCreater ac = new ActionCreater();
-        Collection<StaticError> errors = new LinkedList<StaticError>();
+	public static Result create(String alternativeName, 
+			TransformationDecl transformation,
+			TraitType type,
+			Collection<PrefixedSymbol> boundVariables) {
+		ActionCreater ac = new ActionCreater();
+		Collection<StaticError> errors = new LinkedList<StaticError>();
+		List<Integer> indents = new LinkedList<Integer>();		
+		List<String> code = new LinkedList<String>();
+		
+		String returnType = new FortressTypeToJavaType().analyze(type);
+		
+		if (transformation instanceof TransformationExpressionDef) {
+			code = createVariabelBinding(indents, boundVariables);
+			
+			Expr e = ((TransformationExpressionDef) transformation).getTransformation();
+			Component component = ac.makeComponent(e, boundVariables);
+			String serializedComponent = ac.writeJavaAST(component);
+			code.addAll(createRatsAction(serializedComponent, indents));
+			
+			addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
+			addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
+		}
+		else if (transformation instanceof TransformationTemplateDef) {
+			AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation(); 
+			JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(boundVariables);
+			String yyValue = n.accept(jpp);
+			for (String s: jpp.getCode()) {
+				addCodeLine(s, code, indents);
+			}			
 
-        Component component = ac.makeComponent(e, boundVariables);
-        String serializedComponent = "";
-        serializedComponent = ac.writeJavaAST(component);
+			addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
+			addCodeLine("yyValue = "+yyValue+";", code, indents);
+		}
 
-        String returnType = new FortressTypeToJavaType().analyze(type);
 
-        List<Integer> indents = new LinkedList<Integer>();
-        List<String> code = createVariabelBinding(indents, boundVariables);
-        code.addAll(createRatsAction(serializedComponent, indents));
-        addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
-        addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
-
-        // System.err.println(code);
-        Action a = new Action(code, indents);
-        return ac.new Result(a, errors);
-    }
+		// System.err.println(code);
+		Action a = new Action(code, indents);
+		return ac.new Result(a, errors);
+	}
 
     private static void addCodeLine(String s, List<String> code,
             List<Integer> indents) {
@@ -148,22 +168,22 @@ public class ActionCreater {
                 return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
             }
 
-            @Override
-            public Option<Type> forNonterminalSymbol(NonterminalSymbol that) {
-                return NonterminalTypeDictionary.getType(that.getNonterminal().getName().getText());
-            }
+			@Override 
+			public Option<Type> forNonterminalSymbol(NonterminalSymbol that) {
+				return NonterminalTypeDictionary.getType(that.getNonterminal().getName().getText());
+			}
 
-            @Override
-            public Option<Type> forKeywordSymbol(KeywordSymbol that) {
-                QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-                return Option.<Type>some(new IdType(string));
-            }
+			@Override
+			public Option<Type> forKeywordSymbol(KeywordSymbol that) {
+				QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+				return Option.<Type>some(new IdType(string));
+			}
 
-            @Override
-            public Option<Type> forTokenSymbol(TokenSymbol that) {
-                QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-                return Option.<Type>some(new IdType(string));
-            }
+			@Override
+			public Option<Type> forTokenSymbol(TokenSymbol that) {
+				QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+				return Option.<Type>some(new IdType(string));
+			}
 
             private Option<Type> handle(SyntaxSymbol symbol, String api, String id) {
                 Option<Type> t = symbol.accept(this);
@@ -241,6 +261,22 @@ public class ActionCreater {
         return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<SimpleName>());
     }
 
+
+	public String writeJavaAST(Component component) {
+		try {
+			StringWriter sw = new StringWriter();
+			BufferedWriter bw = new BufferedWriter(sw);
+			ASTIO.writeJavaAst(component, bw);
+			bw.flush();
+			bw.close();
+			//			System.err.println(sw.getBuffer().toString());
+			return sw.getBuffer().toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Unexpected error: "+e.getMessage());
+		}
+	}
+
     private Decl makeFunction(String functionName, Id typeString, Expr expression) {
         Id fnName = new Id(functionName);
         List<Param> params = new LinkedList<Param>();
@@ -259,18 +295,4 @@ public class ActionCreater {
         return new APIName(ids);
     }
 
-    public String writeJavaAST(Component component) {
-        try {
-            StringWriter sw = new StringWriter();
-            BufferedWriter bw = new BufferedWriter(sw);
-            ASTIO.writeJavaAst(component, bw);
-            bw.flush();
-            bw.close();
-//            System.err.println(sw.getBuffer().toString());
-            return sw.getBuffer().toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unexpected error: "+e.getMessage());
-        }
-    }
 }

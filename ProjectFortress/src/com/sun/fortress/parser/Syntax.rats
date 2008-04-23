@@ -39,7 +39,7 @@ body {
   static {
     add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
         "AND",    "BACKSPACE",    "FORM_FEED",    "do",    "NEWLINE",
-        "NOT",    "RETURN",    "TAB",    "SPACE"
+        "NOT",    "RETURN",    "TAB",    "SPACE",    "<\\["
     });
 
     add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
@@ -100,34 +100,49 @@ private GrammarMemberDecl NonterminalDef =
 private Option<ModifierPrivate> NonTermMod =
         private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
 
-private List<Id> NonterminalArguments =
-        void:openparen w IdList w void:closeparen;
+private List<edu.rice.cs.plt.tuple.Pair<Id,Type>> NonterminalArguments =
+        void:openparen w DeclList w void:closeparen;
 
-private List<Id> IdList = 
-        a1:Id w comma w a2s:IdList
+private List<edu.rice.cs.plt.tuple.Pair<Id,Type>> DeclList = 
+        a1:Decl w comma w a2s:DeclList
         { yyValue = FortressUtil.mkList(a1, a2s); }
-     /  a1:Id
+     /  a1:Decl
         { yyValue = FortressUtil.mkList(a1); };
+
+private edu.rice.cs.plt.tuple.Pair<Id,Type> Decl = 
+        a1:Id colon a2:Type
+        { yyValue = new edu.rice.cs.plt.tuple.Pair(a1,a2); };
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDef SyntaxDef =
-       a1s:SyntaxSymbols w a2:BlockExpr
+       a1s:SyntaxSymbols w a2:TransformationExpr
+       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
+     / a1s:SyntaxSymbols w a2:TransformationTemplate
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 SyntaxDef SyntaxDefOr =
-       void:bar w a1s:SyntaxSymbols w a2:BlockExpr
+       void:bar w a1s:SyntaxSymbols w a2:TransformationExpr
+       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
+     / void:bar w a1s:SyntaxSymbols w a2:TransformationTemplate
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
-/* BlockExpr ::= do BlockElems end */
-Do BlockExpr = do a3:(w BlockElems) w end
+/* TransformationExpr ::= do BlockElems end */
+TransformationExpressionDef TransformationExpr = 
+     do a3:(w BlockElems) w end
      { Span span = createSpan(yyStart, yyCount);
        if (a3 == null) a3 = FortressUtil.doBlock(span);
-       yyValue = new Do(span, false,
+       Do d = new Do(span, false,
                         FortressUtil.mkList(new DoFront(span, Option.<Expr>none(), false, a3)));
+       yyValue = new TransformationExpressionDef(d);
      };
 
+/* TransformationTemplate ::= <[ Expr ]> */
+TransformationTemplateDef TransformationTemplate =
+     leftDelimiter w a1:Expr w rightDelimiter
+     { yyValue = new TransformationTemplateDef(a1); };
+
 List<SyntaxSymbol> SyntaxSymbols =
-      a1:SyntaxSymbol a1s:Symbs* &(w do)
+      a1:SyntaxSymbol a1s:Symbs* &(w (leftDelimiter / do))
       { List<SyntaxSymbol> ls = FortressUtil.mkList(a1);
         for(List<SyntaxSymbol> sl: a1s.list()) {
           ls.addAll(sl);
@@ -200,7 +215,7 @@ SyntaxSymbol Suffix =
      / yyValue:Item;
 
 SyntaxSymbol Item =
-      !(w do) s:ItemText
+      !(w (leftDelimiter / do)) s:ItemText
        { yyValue = new ItemSymbol(s); }
     /  Tab
       { yyValue = new TabSymbol(); }
@@ -259,7 +274,7 @@ String EscapedSpecialSymbols =
 
 String SpecialSymbols =
       Tab / Formfeed / Return / Newline / Space
-    / Backspace / Not / And / do / end;
+    / Backspace / Not / And / leftDelimiter / do;
 
 transient String bar = "|";
 transient String hash = "#";
@@ -270,6 +285,9 @@ transient String questionmark = "?";
 transient String star = "*";
 transient String openSquareBraket = "[";
 transient String closeSquareBraket = "]";
+
+transient String leftDelimiter = "<[";
+transient String rightDelimiter = "]>";
 
 transient String And = "AND";
 transient String Backspace = "BACKSPACE";      // backspace

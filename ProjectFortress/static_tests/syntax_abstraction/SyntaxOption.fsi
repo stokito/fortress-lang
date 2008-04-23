@@ -25,16 +25,16 @@ api SyntaxOption
          Hello? world
          do
            if h <- Hello then
-             StringLiteralExpr(h.val " " world)
+             StringLiteralExpr(h.val " " world.val)
            else
-             StringLiteralExpr(world)
+             StringLiteralExpr(world.val)
            end
          end
   end
  
   grammar A
       Hello :Expr:=
-         hello do StringLiteralExpr(hello) end
+         hello       do StringLiteralExpr(hello.val) end
        | skjfjhfdskh do StringLiteralExpr("hello") end
   end
 

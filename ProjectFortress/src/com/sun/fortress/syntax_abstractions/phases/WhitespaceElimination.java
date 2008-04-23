@@ -48,7 +48,7 @@ public class WhitespaceElimination extends NodeUpdateVisitor {
 				ls.add(symbol);
 			}
 		}
-		return new SyntaxDef(that.getSpan(),ls, that.getTransformationExpression());
+		return new SyntaxDef(that.getSpan(),ls, that.getTransformation());
 	}
 
 }

@@ -57,14 +57,12 @@ public class GrammarTranslator {
 		errors = new LinkedList<StaticError>();
 	}
 
-	public static Result translate(Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules,
-			GlobalEnvironment env) {
-		return (new GrammarTranslator()).doTranslation(modules, env);
+	public static Result translate(Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {
+		return (new GrammarTranslator()).doTranslation(modules);
 	}
 
 	private Result doTranslation(
-			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules,
-			GlobalEnvironment env) {	
+			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {	
 		
 		NonterminalTypeDictionary.addAll(modules);		
 		

@@ -22,10 +22,10 @@ api SyntaxHelloWorld
 
   grammar helloworld extends Literal
     LiteralExpr |Expr:=
-      hello world 
-        do
-          StringLiteralExpr(hello " " world)
-        end
+       hello world
+         do
+           StringLiteralExpr(hello.val " " world.val)
+         end
   end
 
 end
