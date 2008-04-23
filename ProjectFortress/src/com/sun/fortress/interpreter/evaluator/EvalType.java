@@ -338,11 +338,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     }
 
-    public FType forIdArg(IdArg i) {
-        return error(i,errorMsg("EvalType can't cope with IdArg ",i,".\n",
-                                "  Perhaps you are using an out-of-scope type variable."));
-    }
-
     @Override
     public FType forArrowType(ArrowType at) {
         // TODO Keywords, defaults, still TBI
