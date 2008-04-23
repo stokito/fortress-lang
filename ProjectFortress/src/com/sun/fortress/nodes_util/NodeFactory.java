@@ -498,6 +498,10 @@ public class NodeFactory {
         return new IdType(span, makeQualifiedIdName(id));
     }
 
+    public static IdType makeIdType(Span span, QualifiedIdName name) {
+        return new IdType(span, name);
+    }
+
     public static LValueBind makeLValue(String name, String type) {
         return makeLValue(name, makeIdType(type));
     }
@@ -1162,10 +1166,6 @@ public class NodeFactory {
                         }
             });
         }
-    }
-
-    public static IdArg makeIdArg(String name) {
-        return new IdArg(makeQualifiedIdName(name));
     }
 
     public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {

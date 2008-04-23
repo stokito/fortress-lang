@@ -123,10 +123,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getName().accept(this);
     }
 
-    public String forIdArg(IdArg node) {
-        return NodeUtil.nameString(node.getName());
-    }
-
     public String forIntArg(IntArg node) {
         return node.getVal().toString();
     }
@@ -280,7 +276,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forAndType(AndType node) {
         return node.getFirst().accept(this) + " AND " + node.getSecond().accept(this);
     }
-    
+
     public String forItemSymbol(ItemSymbol item) {
         return item.getItem();
     }

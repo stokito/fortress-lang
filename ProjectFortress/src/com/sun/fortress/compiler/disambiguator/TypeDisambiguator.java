@@ -212,9 +212,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     (! _env.onDemandTypeConsNames(id).isEmpty()))
             {
                 return super.forTypeArg(that);
-            }
-            else { // Convert to an IdArg; it'll be checked by the ExprDisambiguator.
-                return new IdArg(that.getSpan(), name);
+            } else {
+                return new TypeArg(that.getSpan(),
+                                   NodeFactory.makeIdType(that.getSpan(), name));
             }
         }
         return super.forTypeArg(that);

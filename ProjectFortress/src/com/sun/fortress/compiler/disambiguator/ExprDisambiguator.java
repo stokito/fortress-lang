@@ -349,12 +349,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
       return result;
     }
 
-    /** IdArgs are static arguments that might be variable references. */
-    @Override public Node forIdArg(IdArg that) {
-        NodeFactory.makeVarRef(that.getSpan(), that.getName()).accept(this);
-        return that;
-    }
-
     /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
         QualifiedIdName qname = that.getVar();

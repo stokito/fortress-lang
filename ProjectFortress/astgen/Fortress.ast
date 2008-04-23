@@ -1328,12 +1328,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract StaticArg();
             /**
-             * identifier used as static argument
-             * StaticArg ::= QualifiedName
-             * e.g.) m
-             */
-            IdArg(QualifiedIdName name);
-            /**
              * type used as static argument
              * StaticArg ::= Type
              * e.g.) List[\ZZ64\]

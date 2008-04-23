@@ -196,7 +196,7 @@ public abstract class SubtypeChecker {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
                 @Override public void forSimpleTypeParam(SimpleTypeParam p) {
-                    if (isTypeArg(a) || isIdArg(a))
+                    if (isTypeArg(a))
                         typeSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
                                      ((TypeArg) a).getType());
                     else error("A type parameter is instantiated with a " +
@@ -369,9 +369,6 @@ public abstract class SubtypeChecker {
         return (t instanceof ArgType);
     }
 
-    private boolean isIdArg(StaticArg t) {
-        return (t instanceof IdArg);
-    }
     private boolean isTypeArg(StaticArg t) {
         return (t instanceof TypeArg);
     }
@@ -441,9 +438,7 @@ public abstract class SubtypeChecker {
     }
 
     private boolean equivalent(StaticArg s, StaticArg t, SubtypeHistory h) {
-        if (isIdArg(s) && isIdArg(t)) {
-            return nameString(((IdArg)s).getName()).equals(((IdArg)t).getName());
-        } else if (isTypeArg(s) && isTypeArg(t)) {
+        if (isTypeArg(s) && isTypeArg(t)) {
             return equivalent(((TypeArg)s).getType(), ((TypeArg)t).getType(), h);
         } else if (isOprArg(s) && isOprArg(t)) {
             return nameString(((OprArg)s).getName()).equals(((OprArg)t).getName());
@@ -544,7 +539,6 @@ public abstract class SubtypeChecker {
      * 3) The following static arguments are partially supported:
      *
      *        abstract StaticArg();
-     *            IdArg(QualifiedIdName name);
      *            TypeArg(Type type);
      *            OprArg(Op name);
      *

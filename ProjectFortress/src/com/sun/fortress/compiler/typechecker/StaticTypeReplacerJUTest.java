@@ -48,7 +48,7 @@ public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
         Span span = new Span();
         List<StaticArg> args = makeSargs(makeTypeArg("ZZ32"),
                                          makeIntArg("-5"),
-                                         makeIdArg("m"),
+                                         makeIntArg("m"),
                                          makeBoolArg("true"),
                                          makeOprArg("-"),
                                          makeDimArg(makeDimRef("Length")),

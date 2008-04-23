@@ -130,9 +130,6 @@ public abstract class TypeEnv {
                 public StaticArg forOperatorParam(OperatorParam that) {
                     return new OprArg(new Span(), that.getName());
                 }
-                public StaticArg forIdStaticParam(IdStaticParam that) {
-                    return new IdArg(new Span(), makeQualifiedIdName(that.getName()));
-                }
                 public StaticArg forBoolParam(BoolParam that) {
                     return new BoolArg(new Span(), new BoolRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
@@ -146,7 +143,9 @@ public abstract class TypeEnv {
                     return new IntArg(new Span(), new IntRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
                 public StaticArg forSimpleTypeParam(SimpleTypeParam that) {
-                    return new IdArg(new Span(), makeQualifiedIdName(that.getName()));
+                    return new TypeArg(new Span(),
+                                       NodeFactory.makeIdType(new Span(),
+                                                              that.getName()));
                 }
                 public StaticArg forUnitParam(UnitParam that) {
                     return new UnitArg(new Span(), new UnitRef(new Span(), makeQualifiedIdName(that.getName())));
@@ -161,7 +160,7 @@ public abstract class TypeEnv {
      * (if the given SimpleName is in this type environment).
      */
     public abstract Option<BindingLookup> binding(SimpleName var);
-    
+
     /**
      * Return the type of the given SimpleName (if the given SimpleName is in
      * this type environment).

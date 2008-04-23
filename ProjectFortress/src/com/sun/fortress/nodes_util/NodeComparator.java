@@ -397,8 +397,6 @@ public class NodeComparator {
             //return compare((BoolArg) left, (BoolArg) right);
         } else if (left instanceof DimArg) {
             //return compare((DimArg) left, (DimArg) right);
-        } else if (left instanceof IdArg) {
-            //return compare((IdArg) left, (IdArg) right);
         } else if (left instanceof IntArg) {
             return compare((IntArg) left, (IntArg) right);
         } else if (left instanceof OprArg) {

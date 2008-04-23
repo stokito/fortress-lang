@@ -45,19 +45,19 @@ public class TypeAnalyzer {
     private static final boolean SIMPLIFIED_SUBTYPING = false;
 
     private static final int MAX_SUBTYPE_DEPTH = 4;
-    
+
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(Types.BOTTOM));
-    
+
     private final TraitTable _table;
     private final StaticParamEnv _staticParamEnv;
     private final SubtypeCache _cache;
     private final SubtypeHistory _emptyHistory;
-    
+
     public TypeAnalyzer(TraitTable table) {
         this(table, StaticParamEnv.make(), RootSubtypeCache.INSTANCE);
     }
-    
+
     public TypeAnalyzer(TraitTable table, TypeAnalyzer enclosing, List<StaticParam> params,
                         WhereClause whereClause) {
         this(table, enclosing._staticParamEnv.extend(params, whereClause), enclosing._cache);
@@ -69,8 +69,8 @@ public class TypeAnalyzer {
         _cache = new ChildSubtypeCache(parentCache);
         _emptyHistory = new SubtypeHistory();
     }
-    
-    
+
+
     /**
      * Convert the type to a normal form.
      * A normalized type has the following properties:
@@ -108,7 +108,7 @@ public class TypeAnalyzer {
 
         });
     }
-    
+
 
     /**
      * Produce a formula that, if satisfied, will support s as a subtype of t.
@@ -122,11 +122,11 @@ public class TypeAnalyzer {
     public Type join(Type s, Type t) {
       return SIMPLIFIED_SUBTYPING ? jn(s, t, _emptyHistory) : join(s, t, _emptyHistory);
     }
-    
+
     public Type meet(Type s, Type t) {
         return SIMPLIFIED_SUBTYPING ? mt(s, t, _emptyHistory) : meet(s, t, _emptyHistory);
     }
-    
+
     private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
@@ -142,7 +142,7 @@ public class TypeAnalyzer {
         else {
             final SubtypeHistory h = history.extend(s, t);
             ConstraintFormula result = ConstraintFormula.FALSE;
-            
+
             // Handle trivial cases
             if (s.equals(BOTTOM)) { debug.logEnd(); return ConstraintFormula.TRUE; }
             if (t.equals(ANY)) { debug.logEnd(); return ConstraintFormula.TRUE; }
@@ -484,7 +484,7 @@ public class TypeAnalyzer {
             return result;
         }
     }
-    
+
     /**
      * Produce a formula that, if satisfied, will support s as a subtype of t.
      * Assumes s and t are normalized.
@@ -509,9 +509,9 @@ public class TypeAnalyzer {
         }
         else {
             final SubtypeHistory h = history.extend(s, t);
-            
+
             ConstraintFormula result = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                
+
                 @Override public ConstraintFormula forType(Type t) {
                     return ConstraintFormula.FALSE;
                 }
@@ -1014,13 +1014,6 @@ public class TypeAnalyzer {
     public ConstraintFormula equivalent(StaticArg a1, final StaticArg a2,
                                         final SubtypeHistory history) {
         return a1.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-            @Override public ConstraintFormula forIdArg(IdArg a1) {
-                if (a2 instanceof IdArg) {
-                    boolean result = a1.getName().equals(((IdArg) a2).getName());
-                    return ConstraintFormula.fromBoolean(result);
-                }
-                else { return ConstraintFormula.FALSE; }
-            }
             @Override public ConstraintFormula forTypeArg(TypeArg a1) {
                 if (a2 instanceof TypeArg) {
                     return equivalent(a1.getType(), ((TypeArg) a2).getType(), history);
@@ -1067,13 +1060,6 @@ public class TypeAnalyzer {
 
     public ConstraintFormula equiv(StaticArg a1, final StaticArg a2, final SubtypeHistory history) {
         return a1.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-            @Override public ConstraintFormula forIdArg(IdArg a1) {
-                if (a2 instanceof IdArg) {
-                    boolean result = a1.getName().equals(((IdArg) a2).getName());
-                    return ConstraintFormula.fromBoolean(result);
-                }
-                else { return ConstraintFormula.FALSE; }
-            }
             @Override public ConstraintFormula forTypeArg(TypeArg a1) {
                 if (a2 instanceof TypeArg) {
                     return equiv(a1.getType(), ((TypeArg) a2).getType(), history);
@@ -1272,8 +1258,8 @@ public class TypeAnalyzer {
         }
         public String toString() { return IterUtil.multilineToString(_entries); }
     }
-    
-    
+
+
     /**
      * A mutable collection of subtyping results from previously-completed invocations
      * of subtyping in a specific type context.
@@ -1283,7 +1269,7 @@ public class TypeAnalyzer {
         public abstract Option<ConstraintFormula> get(Type s, Type t, SubtypeHistory h);
         public abstract int size();
     }
-    
+
     protected static class RootSubtypeCache extends SubtypeCache {
         public static final RootSubtypeCache INSTANCE = new RootSubtypeCache();
         private RootSubtypeCache() {}
@@ -1296,12 +1282,12 @@ public class TypeAnalyzer {
         public int size() { return 0; }
         public String toString() { return "<root cache>"; }
     };
-    
+
     protected static class ChildSubtypeCache extends SubtypeCache {
-        
+
         private final SubtypeCache _parent;
         private final HashMap<Pair<Type,Type>, ConstraintFormula> _results;
-        
+
         public ChildSubtypeCache(SubtypeCache parent) {
             _parent = parent;
             _results = new HashMap<Pair<Type,Type>, ConstraintFormula>();
@@ -1321,9 +1307,9 @@ public class TypeAnalyzer {
             if (result == null) { return _parent.get(s, t, h); }
             else { return Option.some(result.applySubstitution(trans.revertingSubstitution())); }
         }
-            
+
         public int size() { return _results.size() + _parent.size(); }
-        
+
         public String toString() {
             return IterUtil.multilineToString(_results.entrySet()) + "\n=====\n" + _parent.toString();
         }
