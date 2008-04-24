@@ -52,11 +52,11 @@ import com.sun.fortress.compiler.index.ApiIndex;
  *     MethodInvocations.  (Maybe?  Depends on parsing rules for getters.)</li>
  * <li>FnRefs referring to trait members, and that are juxtaposed with Exprs, become
  *     MethodInvocations.</li>
- * <li>StaticArgs of FnRefs, and types nested within them, are disambiguated.</li>
+ * <li>TODO: StaticArgs of FnRefs, and types nested within them, are disambiguated.</li>
  * </ul>
  *
  * Additionally, all name references that are undefined or used incorrectly are
- * treated as static errors.</p>
+ * treated as static errors.  (TODO: check names in non-type static args)</p>
  */
 public class ExprDisambiguator extends NodeUpdateVisitor {
 

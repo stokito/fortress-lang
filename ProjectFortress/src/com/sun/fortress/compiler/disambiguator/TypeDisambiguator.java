@@ -34,6 +34,7 @@ import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.lambda.LambdaUtil;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -47,13 +48,14 @@ import com.sun.fortress.useful.HasAt;
  * <p>Eliminates ambiguities in types:
  * <ul>
  * <li>Type names referring to APIs are made fully qualified.
- * <li>IdTypes referring to type constructors become InstantiatedTypes
+ * <li>IdTypes referring to traits, objects, and aliases become InstantiatedTypes
  *     (with 0 arguments).</li>
- * <li>Disambiguate static arguments of these types.</li>
- * TODO: Do not allow this to recur on types in function static arguments, as these
- * arguments may not actually be types.  Resolving the ambiguity in function static
- * arguments cannot occur in this phase.
+ * <li>TypeArgs wrapping IdTypes corresponding to other kinds of parameters (like UnitParams)
+       are converted to the corresponding kind of arg (like UnitArg).</li>
+ * <li>TODO: UnitArgs corresponding to DimParams are converted to DimArgs.</li>
+ * <li>TODO: TaggedUnitTypes for types that absorb dimensions become TaggedDimTypes.</li>
  * </ul>
+ * (TODO: Verify that the parser prefers producing units over dimensions in ambiguous cases.)
  * </p>
  * <p>All name references in resolved types that are undefined or used incorrectly are
  * treated as static errors.  Similarly, incorrect arity or kinds of static arguments
@@ -198,34 +200,12 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 (Expr) that.getBody().accept(v));
     }
 
-    @Override public Node forTypeArg(final TypeArg that) {
-        Type type = that.getType();
-
-        if (type instanceof IdType) {
-            // Intercept before we recur on the IdType.
-            QualifiedIdName name = ((IdType)type).getName();
-            Id id = name.getName();
-
-            // If our id is a valid type reference, we can simply recur on type.
-            if(_env.hasTypeParam(id) ||
-                    (! _env.explicitTypeConsNames(id).isEmpty()) ||
-                    (! _env.onDemandTypeConsNames(id).isEmpty()))
-            {
-                return super.forTypeArg(that);
-            } else {
-                return new TypeArg(that.getSpan(),
-                                   NodeFactory.makeIdType(that.getSpan(), name));
-            }
-        }
-        return super.forTypeArg(that);
-    }
-
     @Override public Node forArgType(final ArgType that) {
-            if (!((ArgType)that).isInArrow())
-                error("Tuple types are not allowed to " +
-                      "have varargs or keyword types.", that);
-            return that;
-        }
+        if (!((ArgType)that).isInArrow())
+            error("Tuple types are not allowed to " +
+                  "have varargs or keyword types.", that);
+        return that;
+    }
 
     @Override public Node forIdType(final IdType that) {
         Thunk<Type> varHandler = LambdaUtil.<Type>valueLambda(that);
@@ -352,10 +332,116 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             }
         }
     }
+    
+    /**
+     * Prevent recursion on function static args -- delayed until the function references
+     * can be resolved.
+     */
+    @Override public Node forFnRef(FnRef that) {
+        return that;
+    }
+    
 
-    private StaticArg updateStaticArg(StaticArg a, StaticParam p) {
-        // TODO: implement
+    private StaticArg updateStaticArg(final StaticArg a, final StaticParam p) {
         return a;
+        /* Commented out due to assumptions in the interpreter that this *isn't* implemented:
+        StaticArg fixed = a.accept(new NodeAbstractVisitor<StaticArg>() {
+        
+            @Override public StaticArg forTypeArg(final TypeArg a) {
+                final Type t = a.getType();
+                if (t instanceof IdType) {
+                    final Span s = a.getSpan();
+                    final QualifiedIdName name = ((IdType) t).getName();
+                    return p.accept(new NodeAbstractVisitor<StaticArg>() {
+                        @Override public StaticArg forStaticParam(StaticParam p) {
+                            mismatch("an identifier");
+                            return a;
+                        }
+                        @Override public StaticArg forBoolParam(BoolParam p) {
+                            return new BoolArg(s, new BoolRef(s, name));
+                        }
+                        @Override public StaticArg forDimensionParam(DimensionParam p) {
+                            return new DimArg(s, new DimRef(s, name));
+                        }
+                        @Override public StaticArg forIntParam(IntParam p) {
+                            return new IntArg(s, new IntRef(s, name));
+                        }
+                        @Override public StaticArg forNatParam(NatParam p) {
+                            return new IntArg(s, new IntRef(s, name));
+                            // TODO: shouldn't there be a NatArg class?
+                        }
+                        @Override public StaticArg forSimpleTypeParam(SimpleTypeParam p) {
+                            return a;
+                        }
+                        @Override public StaticArg forUnitParam(UnitParam p) {
+                            return new UnitArg(s, new UnitRef(s, name));
+                        }
+                    });
+                }
+                else {
+                    if (!(p instanceof SimpleTypeParam)) { mismatch("a type"); }
+                    return a;
+                }
+            }
+            
+            @Override public StaticArg forIntArg(IntArg a) {
+                if (!(p instanceof IntParam || p instanceof NatParam)) {
+                    mismatch("an int expression");
+                }
+                return a;
+            }
+            
+            @Override public StaticArg forBoolArg(BoolArg a) {
+                if (!(p instanceof BoolParam)) { mismatch("a bool expression"); }
+                return a;
+            }
+            
+            @Override public StaticArg forOprArg(OprArg a) {
+                if (!(p instanceof OperatorParam)) { mismatch("an operator"); }
+                return a;
+            }
+            
+            @Override public StaticArg forDimArg(DimArg a) {
+                if (!(p instanceof DimensionParam)) { mismatch("a dimension"); }
+                return a;
+            }
+            
+            @Override public StaticArg forUnitArg(UnitArg a) {
+                // TODO: convert units to dimensions
+                if (!(p instanceof UnitParam)) { mismatch("a unit"); }
+                return a;
+            }
+            
+            private void mismatch(String given) {
+                String expected = p.accept(new NodeAbstractVisitor<String>() {
+                    @Override public String forOperatorParam(OperatorParam p) {
+                        return "an operator";
+                    }
+                    @Override public String forBoolParam(BoolParam p) {
+                        return "a bool expression";
+                    }
+                    @Override public String forDimensionParam(DimensionParam p) {
+                        return "a dimension";
+                    }
+                    @Override public String forIntParam(IntParam p) {
+                        return "an int expression";
+                    }
+                    @Override public String forNatParam(NatParam p) {
+                        return "a nat expression";
+                    }
+                    @Override public String forSimpleTypeParam(SimpleTypeParam p) {
+                        return "a type";
+                    }
+                    @Override public String forUnitParam(UnitParam p) {
+                        return "a unit";
+                    }
+                });
+                error("Type parameter mismatch: given " + given + ", expected " + expected, a);
+            }
+            
+        });
+        return (StaticArg) fixed.accept(this);
+        */
     }
 
     private Pair<List<QualifiedIdName>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
