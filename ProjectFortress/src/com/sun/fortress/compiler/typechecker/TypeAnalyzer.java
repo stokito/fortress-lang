@@ -44,7 +44,8 @@ import static edu.rice.cs.plt.debug.DebugUtil.debug;
 public class TypeAnalyzer {
     private static final boolean SIMPLIFIED_SUBTYPING = false;
 
-    private static final int MAX_SUBTYPE_DEPTH = 4;
+    private static final int MAX_SUBTYPE_DEPTH = 6;
+    private static final int MAX_SUBTYPE_EXPANSIONS = 2;
 
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(Types.BOTTOM));
@@ -491,13 +492,18 @@ public class TypeAnalyzer {
      */
     private ConstraintFormula subtype(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
-        debug.logValues(new String[]{"cache size", "history size"}, _cache.size(), history.size());
+        debug.logValues(new String[]{"cache size", "history size", "history expansions"},
+                        _cache.size(), history.size(), history.expansions());
         //debug.logStack();
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
         if (cached.isSome()) {
             ConstraintFormula result = Option.unwrap(cached);
             debug.logEnd("cached result", result);
             return result;
+        }
+        else if (history.expansions() > MAX_SUBTYPE_EXPANSIONS) {
+            debug.logEnd("max subtype expansions result", ConstraintFormula.FALSE);
+            return ConstraintFormula.FALSE;
         }
         else if (history.size() > MAX_SUBTYPE_DEPTH) {
             debug.logEnd("max subtype depth result", ConstraintFormula.FALSE);
@@ -555,17 +561,26 @@ public class TypeAnalyzer {
                             TypeConsIndex index = _table.typeCons(s.getName());
                             if (index instanceof TraitIndex) {
                                 TraitIndex traitIndex = (TraitIndex) index;
+                                List<Id> traitHidden = traitIndex.hiddenParameters();
                                 Lambda<Type, Type> subst = makeSubstitution(traitIndex.staticParameters(),
-                                                                            s.getArgs(),
-                                                                            traitIndex.hiddenParameters());
+                                                                            s.getArgs(), traitHidden);
                                 for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
                                     TraitType sup = _sup.getType();
                                     ConstraintFormula f = ConstraintFormula.TRUE;
                                     for (Pair<Type, Type> c : traitIndex.typeConstraints()) {
-                                        f = f.and(subtype(subst.value(c.first()), subst.value(c.second()), h), h);
+                                        SubtypeHistory h2;
+                                        if (containsVariable(c.first(), traitHidden) ||
+                                            containsVariable(c.second(), traitHidden)) {
+                                          h2 = h.expand();
+                                        }
+                                        else { h2 = h; }
+                                        f = f.and(subtype(subst.value(c.first()), subst.value(c.second()), h2), h);
                                         if (f.isFalse()) { break; }
                                     }
-                                    if (!f.isFalse()) { f = f.and(subtype(subst.value(sup), t, h), h); }
+                                    if (!f.isFalse()) {
+                                      SubtypeHistory h2 = containsVariable(sup, traitHidden) ? h.expand() : h;
+                                      f = f.and(subtype(subst.value(sup), t, h2), h);
+                                    }
                                     result = result.or(f, h);
                                     if (result.isTrue()) { break; }
                                 }
@@ -705,11 +720,11 @@ public class TypeAnalyzer {
                             f = f.and(ConstraintFormula.lowerBound(infRange, s.getRange(), h), h);
                             f = f.and(ConstraintFormula.lowerBound(infThrowsType, throwsType, h), h);
                             Type sup = makeArrow(infDomain, infRange, infThrowsType, s.isIo());
-                            ConstraintFormula f1 = f.and(subtype(sup, t, h), h);
+                            ConstraintFormula f1 = f.and(subtype(sup, t, h.expand()), h);
                             result = result.or(f1, h);
                             if (!result.isTrue() && !s.isIo()) {
                                 sup = makeArrow(infDomain, infRange, infThrowsType, true);
-                                ConstraintFormula f2 = f.and(subtype(sup, t, h), h);
+                                ConstraintFormula f2 = f.and(subtype(sup, t, h.expand()), h);
                                 result = result.or(f2, h);
                             }
                         }
@@ -725,11 +740,11 @@ public class TypeAnalyzer {
                             // split Or domain to an And
                             InferenceVarType d1 = makeInferenceVarType();
                             InferenceVarType d2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getDomain(), new OrType(d1, d2), h);
+                            ConstraintFormula f = equivalent(s.getDomain(), new OrType(d1, d2), h.expand());
                             if (!f.isFalse()) {
                                 Type sup = new AndType(makeArrow(d1, s.getRange(), throwsType, s.isIo()),
                                                        makeArrow(d2, s.getRange(), throwsType, s.isIo()));
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -739,14 +754,14 @@ public class TypeAnalyzer {
                             InferenceVarType r2 = makeInferenceVarType();
                             InferenceVarType th1 = makeInferenceVarType();
                             InferenceVarType th2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getRange(), new AndType(r1, r2), h);
+                            ConstraintFormula f = equivalent(s.getRange(), new AndType(r1, r2), h.expand());
                             if (!f.isFalse()) {
-                                f = f.and(equivalent(throwsType, new AndType(th1, th2), h), h);
+                                f = f.and(equivalent(throwsType, new AndType(th1, th2), h.expand()), h);
                             }
                             if (!f.isFalse()) {
                                 Type sup = new AndType(makeArrow(s.getDomain(), r1, th1, s.isIo()),
                                                        makeArrow(s.getDomain(), r2, th2, s.isIo()));
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -773,11 +788,11 @@ public class TypeAnalyzer {
                             // distribution of And
                             InferenceVarType inf1 = makeInferenceVarType();
                             InferenceVarType inf2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h.expand());
                             if (!f.isFalse()) {
                                 Type sup = new AndType(new OrType(inf1, s.getSecond()),
                                                        new OrType(inf2, s.getSecond()));
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -789,10 +804,10 @@ public class TypeAnalyzer {
                             // associativity
                             InferenceVarType inf1 = makeInferenceVarType();
                             InferenceVarType inf2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h.expand());
                             if (!f.isFalse()) {
                                 Type sup = new OrType(inf1, new OrType(inf2, s.getSecond()));
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -878,13 +893,13 @@ public class TypeAnalyzer {
                             InferenceVarType d2 = makeInferenceVarType();
                             InferenceVarType r = makeInferenceVarType();
                             InferenceVarType th = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, false), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, false), h.expand());
                             if (!f.isFalse()) {
-                                f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, false), h), h);
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, false), h.expand()), h);
                             }
                             if (!f.isFalse()) {
                                 ArrowType sup = makeArrow(new AndType(d1, d2), r, th, false);
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -894,13 +909,13 @@ public class TypeAnalyzer {
                             InferenceVarType d2 = makeInferenceVarType();
                             InferenceVarType r = makeInferenceVarType();
                             InferenceVarType th = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, true), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, true), h.expand());
                             if (!f.isFalse()) {
-                                f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, true), h), h);
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, true), h.expand()), h);
                             }
                             if (!f.isFalse()) {
                                 ArrowType sup = makeArrow(new AndType(d1, d2), r, th, true);
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -911,13 +926,13 @@ public class TypeAnalyzer {
                             InferenceVarType r2 = makeInferenceVarType();
                             InferenceVarType th1 = makeInferenceVarType();
                             InferenceVarType th2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, false), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, false), h.expand());
                             if (!f.isFalse()) {
-                                f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, false), h), h);
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, false), h.expand()), h);
                             }
                             if (!f.isFalse()) {
                                 ArrowType sup = makeArrow(d, new AndType(r1, r2), new AndType(th1, th2), false);
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -928,13 +943,13 @@ public class TypeAnalyzer {
                             InferenceVarType r2 = makeInferenceVarType();
                             InferenceVarType th1 = makeInferenceVarType();
                             InferenceVarType th2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, true), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, true), h.expand());
                             if (!f.isFalse()) {
-                                f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, true), h), h);
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, true), h.expand()), h);
                             }
                             if (!f.isFalse()) {
                                 ArrowType sup = makeArrow(d, new AndType(r1, r2), new AndType(th1, th2), true);
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -942,11 +957,11 @@ public class TypeAnalyzer {
                             // distribution of Or
                             InferenceVarType inf1 = makeInferenceVarType();
                             InferenceVarType inf2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h.expand());
                             if (!f.isFalse()) {
                                 Type sup = new OrType(new AndType(inf1, s.getSecond()),
                                                       new AndType(inf2, s.getSecond()));
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -958,10 +973,10 @@ public class TypeAnalyzer {
                             // associativity
                             InferenceVarType inf1 = makeInferenceVarType();
                             InferenceVarType inf2 = makeInferenceVarType();
-                            ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
+                            ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h.expand());
                             if (!f.isFalse()) {
                                 Type sup = new AndType(inf1, new OrType(inf2, s.getSecond()));
-                                f = f.and(subtype(sup, t, h), h);
+                                f = f.and(subtype(sup, t, h.expand()), h);
                             }
                             result = result.or(f, h);
                         }
@@ -975,14 +990,14 @@ public class TypeAnalyzer {
             if (!result.isTrue()) {
                 // expand to intersection
                 InferenceVarType inf = makeInferenceVarType();
-                ConstraintFormula f = subtype(new AndType(s, inf), t, h);
+                ConstraintFormula f = subtype(new AndType(s, inf), t, h.expand());
                 f = f.and(ConstraintFormula.lowerBound(inf, s, h), h);
                 result = result.or(f, h);
             }
             if (!result.isTrue()) {
                 // expand to union
                 InferenceVarType inf = makeInferenceVarType();
-                result = result.or(subtype(new OrType(s, inf), t, h), h);
+                result = result.or(subtype(new OrType(s, inf), t, h.expand()), h);
             }
 
             // match where declarations
@@ -1222,14 +1237,18 @@ public class TypeAnalyzer {
     // Package private -- accessed by ConstraintFormula
     class SubtypeHistory {
         private final Relation<Type, Type> _entries;
+        private final int _expansions;
         public SubtypeHistory() {
             // no need for an index in either direction
             _entries = new HashRelation<Type, Type>(false, false);
+            _expansions = 0;
         }
-        private SubtypeHistory(Relation<Type, Type> entries) {
+        private SubtypeHistory(Relation<Type, Type> entries, int expansions) {
             _entries = entries;
+            _expansions = expansions;
         }
         public int size() { return _entries.size(); }
+        public int expansions() { return _expansions; }
         public boolean contains(Type s, Type t) {
             InferenceVarTranslator trans = new InferenceVarTranslator();
             return _entries.contains(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
@@ -1239,7 +1258,10 @@ public class TypeAnalyzer {
             newEntries.addAll(_entries);
             InferenceVarTranslator trans = new InferenceVarTranslator();
             newEntries.add(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
-            return new SubtypeHistory(newEntries);
+            return new SubtypeHistory(newEntries, _expansions);
+        }
+        public SubtypeHistory expand() {
+          return new SubtypeHistory(_entries, _expansions + 1);
         }
         public ConstraintFormula subtype(Type s, Type t) {
             return SIMPLIFIED_SUBTYPING ?
@@ -1256,7 +1278,9 @@ public class TypeAnalyzer {
                 TypeAnalyzer.this.jn(s, t, this) :
                 TypeAnalyzer.this.join(s, t, this);
         }
-        public String toString() { return IterUtil.multilineToString(_entries); }
+        public String toString() {
+          return IterUtil.multilineToString(_entries) + "\n" + _expansions + " expansions";
+        }
     }
 
 
