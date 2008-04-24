@@ -144,6 +144,39 @@ public class TypeAnalyzerUtil {
         };
     }
 
+    public static boolean containsVariable(Type t, final List<Id> names) {
+        return t.accept(new NodeAbstractVisitor<Boolean>() {
+            @Override public Boolean forArrowType(ArrowType t) {
+                return t.getDomain().accept(this) || t.getRange().accept(this) ||
+                    throwsType(t).accept(this);
+            }
+            @Override public Boolean forBottomType(BottomType t) { return false; }
+            @Override public Boolean forIdType(IdType t) {
+                return t.getName().getApi().isNone() && names.contains(t.getName().getName());
+            }
+            @Override public Boolean forInstantiatedType(InstantiatedType t) {
+                for (StaticArg arg : t.getArgs()) {
+                    if (arg.accept(this)) { return true; }
+                }
+                return false;
+            }
+            @Override public Boolean forVoidType(VoidType t) { return false; }
+            @Override public Boolean forInferenceVarType(InferenceVarType t) { return false; }
+            @Override public Boolean forAndType(AndType t) {
+                return t.getFirst().accept(this) || t.getSecond().accept(this);
+            }
+            @Override public Boolean forOrType(OrType t) {
+                return t.getFirst().accept(this) || t.getSecond().accept(this);
+            }
+            @Override public Boolean forTypeArg(TypeArg t) { return t.getType().accept(this); }
+            @Override public Boolean forIntArg(IntArg t) { return false; }
+            @Override public Boolean forBoolArg(BoolArg t) { return false; }
+            @Override public Boolean forOprArg(OprArg t) { return false; }
+            @Override public Boolean forDimArg(DimArg t) { return false; }
+            @Override public Boolean forUnitArg(UnitArg t) { return false; }
+        });
+    }
+    
     public static ArrowType makeArrow(Type domain, Type range, Type throwsT, boolean io) {
         return new ArrowType(domain, range,
                              Option.some(Collections.singletonList(throwsT)), io);
