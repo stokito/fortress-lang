@@ -22,16 +22,20 @@ public class Parameter {
   String param_name;
   FType param_type;
   boolean is_mutable;
+  boolean is_transient;
 
-  public Parameter(String pname, FType ptype, boolean mutable) {
+  public Parameter(String pname, FType ptype, boolean mutable,
+                   boolean _transient) {
     param_name = pname;
     param_type = ptype;
     is_mutable = mutable;
+    is_transient = _transient;
   }
 
   public String getName() { return param_name;}
   public FType  getType() { return param_type;}
   public boolean getMutable() { return is_mutable;}
+  public boolean isTransient() { return is_transient;}
 
   public String toString() {
       return param_name+":"+param_type;

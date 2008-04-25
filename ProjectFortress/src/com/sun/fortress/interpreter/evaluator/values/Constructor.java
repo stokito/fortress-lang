@@ -251,12 +251,12 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
                 SingleFcn.createSymbolicInstantiation(bte, ap, getAt());
             genericArgs.put(s, instantiationTypes);
         }
-        
+
         final Set<String> overridden = new HashSet<String>();
 //        final NodeVisitor_void overrideFinder = new NodeAbstractVisitor_void() {
 //
 //            FnAbsDeclOrDecl current;
-//            
+//
 //            public void forModifierOverride(ModifierOverride mo) {
 //                overridden.add(current.stringName());
 //                System.err.println("Override of " + current.stringName());
@@ -269,10 +269,10 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
 //                    m.accept(this);
 //                }
 //            }
-//             
+//
 //        };
-         
-        
+
+
         //  Find all the methods in selfType, using the containing environment
         // to give them meaning.
         accumulateEnvMethods(null, overridden,
@@ -289,7 +289,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         for (FType t : extendedTraits) {
             FTypeTrait ft = (FTypeTrait) t;
             BetterEnv e = ft.getMembers();
-            accumulateEnvMethods(overridden, null, 
+            accumulateEnvMethods(overridden, null,
              signaturesToTraitsContainingMethods, generics, genericArgs, ft, e);
         }
 
@@ -475,7 +475,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         for (String s : e) {
             FValue fv = e.getValue(s);
             if (alreadyOverridden == null || ! alreadyOverridden.contains(s)) {
-                
+
            // This has got to be wrong...
             if (fv instanceof OverloadedFunction) {
                 // Treat the overloaded function as a bag of separate
@@ -494,9 +494,9 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
                 GenericMethod gfv = (GenericMethod) fv;
                 if (newOverrides != null && gfv.isOverride())
                     newOverrides.add(s);
-                
+
                 MethodClosure sfcn = gfv.make(genericArgs.get(s), gfv.getAt());
-                
+
                 signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
 
             } else if (fv instanceof MethodClosure) {
@@ -586,7 +586,16 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
             visitDefs(eve); // HACK here's where we add to self_env.
         }
 
-        return theObject;
+        return stripTransient(theObject);
+    }
+
+    private FObject stripTransient(FObject original) {
+        BetterEnv selfEnv = original.getSelfEnv();
+        for (Parameter param : getParameters()) {
+            if (param.isTransient())
+                selfEnv.removeVar(param.getName());
+        }
+        return makeAnObject(original.getLexicalEnv(), selfEnv);
     }
 
     public FValue applyOEConstructor(HasAt loc, BetterEnv lex_env) {

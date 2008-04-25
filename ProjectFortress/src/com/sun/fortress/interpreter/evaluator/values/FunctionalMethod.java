@@ -86,18 +86,18 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
         // TODO Auto-generated constructor stub
     }
 
-    
+
     @Override
     public List<Parameter> getParameters() {
-        Parameter selfParam = new Parameter("self", selfParameterType, false);
+        Parameter selfParam = new Parameter("self", selfParameterType, false, false);
         return new AssignedList<Parameter>(super.getParameters(), selfParameterIndex, selfParam);
      }
-    
+
     public int hashCode() {
         return def.hashCode() + selfParameterType.hashCode() +
         (instArgs == null ? 0 : instArgs.hashCode());
     }
-    
+
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass().equals(this.getClass())) {
@@ -109,7 +109,7 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
         }
         return false;
     }
-    
+
     public int getSelfParameterIndex() {
         return selfParameterIndex;
     }
