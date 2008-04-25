@@ -167,17 +167,32 @@ public class Desugarer extends Rewrite {
     }
 
     private class Member extends Thing {
+        private boolean isTransient = false;
+        Member() { super(); }
+        Member(boolean _transient) {
+            super();
+            if (_transient) isTransient = true;
+        }
         Expr replacement(VarRef original) {
-            _RewriteFieldRef fs = new _RewriteFieldRef(original.getSpan(), false,
-                                               // Use this constructor
-                // here because it is a
-                // com.sun.fortress.interpreter.rewrite.
-                dottedReference(original.getSpan(),
-                                objectNestingDepth - nestedness), filterQID(original.getVar()));
-        return fs;
+            if (isTransient) {
+                return original;
+            } else {
+                return new _RewriteFieldRef(original.getSpan(), false,
+                                            // Use this constructor
+                                            // here because it is a
+                                            // com.sun.fortress.interpreter.rewrite.
+                                            dottedReference(original.getSpan(),
+                                                            objectNestingDepth - nestedness),
+                                            filterQID(original.getVar()));
+            }
         }
 
-        public String toString() { return "Member@"+nestedness; }
+        public String toString() {
+            if (isTransient)
+                return "TransientMember@"+nestedness;
+            else
+                return "Member@"+nestedness;
+        }
     }
 
     private class SelfRewrite extends Member {
@@ -1168,7 +1183,7 @@ public class Desugarer extends Rewrite {
         if (params.isSome())
             for (Param d : Option.unwrap(params)) {
                 String s = d.getName().getText();
-                rewrites.put(s, new Member());
+                rewrites.put(s, new Member(NodeUtil.isTransient(d)));
                 if (d.accept(isAnArrowName))
                     arrows.add(s);
                 else
