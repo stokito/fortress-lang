@@ -769,8 +769,11 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         type_env = type_env.delete(s, comparator);
     }
 
-
-
+    public void removeVar(String s) {
+        if (var_env == null)
+            return;
+        var_env = var_env.delete(s, comparator);
+    }
 
 
 
