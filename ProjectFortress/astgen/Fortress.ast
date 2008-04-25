@@ -1759,7 +1759,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * StaticParam ::= opr Op
          * e.g.) opr ODOT
          */
-        OperatorParam(Op name);
+        OprParam(Op name);
         /**
          * static parameter with a name field of type Id
          */
@@ -1775,7 +1775,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             * StaticParam ::= dim Id
             * e.g.) dim D
             */
-            DimensionParam();
+            DimParam();
            /**
             * int parameter
             * StaticParam ::= int Id
@@ -1793,9 +1793,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             * StaticParam ::= Id Extends? (absorbs unit)?
             * e.g.) EltType extends Number absorbs unit
             */
-            SimpleTypeParam(List<TraitType> extendsClause =
-                                Collections.<TraitType>emptyList(),
-                            boolean absorbs = false);
+            TypeParam(List<TraitType> extendsClause =
+                          Collections.<TraitType>emptyList(),
+                      boolean absorbs = false);
            /**
             * unit parameter
             * StaticParam ::= unit Id (: Type)? (absorbs unit)?

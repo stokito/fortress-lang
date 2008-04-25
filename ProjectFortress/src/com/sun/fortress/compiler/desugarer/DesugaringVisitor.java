@@ -1208,9 +1208,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return that;
 //    }
 //
-//    public Node forOperatorParamOnly(OperatorParam that, Op name_result) {
+//    public Node forOprParamOnly(OprParam that, Op name_result) {
 //        if (that.getName() == name_result) return that;
-//        else return new OperatorParam(that.getSpan(), name_result);
+//        else return new OprParam(that.getSpan(), name_result);
 //    }
 //
 //    public Node forBoolParamOnly(BoolParam that, Id name_result) {
@@ -1218,9 +1218,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new BoolParam(that.getSpan(), name_result);
 //    }
 //
-//    public Node forDimensionParamOnly(DimensionParam that, Id name_result) {
+//    public Node forDimParamOnly(DimParam that, Id name_result) {
 //        if (that.getName() == name_result) return that;
-//        else return new DimensionParam(that.getSpan(), name_result);
+//        else return new DimParam(that.getSpan(), name_result);
 //    }
 //
 //    public Node forIntParamOnly(IntParam that, Id name_result) {
@@ -1233,9 +1233,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new NatParam(that.getSpan(), name_result);
 //    }
 //
-//    public Node forSimpleTypeParamOnly(SimpleTypeParam that, Id name_result, List<TraitType> extendsClause_result) {
+//    public Node forTypeParamOnly(TypeParam that, Id name_result, List<TraitType> extendsClause_result) {
 //        if (that.getName() == name_result && that.getExtendsClause() == extendsClause_result) return that;
-//        else return new SimpleTypeParam(that.getSpan(), name_result, extendsClause_result, that.isAbsorbs());
+//        else return new TypeParam(that.getSpan(), name_result, extendsClause_result, that.isAbsorbs());
 //    }
 //
 //    public Node forUnitParamOnly(UnitParam that, Id name_result, Option<Type> dim_result) {
@@ -2484,9 +2484,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forModifierWrappedOnly(that);
 //    }
 //
-//    public Node forOperatorParam(OperatorParam that) {
+//    public Node forOprParam(OprParam that) {
 //        Op name_result = (Op) that.getName().accept(this);
-//        return forOperatorParamOnly(that, name_result);
+//        return forOprParamOnly(that, name_result);
 //    }
 //
 //    public Node forBoolParam(BoolParam that) {
@@ -2494,9 +2494,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forBoolParamOnly(that, name_result);
 //    }
 //
-//    public Node forDimensionParam(DimensionParam that) {
+//    public Node forDimParam(DimParam that) {
 //        Id name_result = (Id) that.getName().accept(this);
-//        return forDimensionParamOnly(that, name_result);
+//        return forDimParamOnly(that, name_result);
 //    }
 //
 //    public Node forIntParam(IntParam that) {
@@ -2509,10 +2509,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forNatParamOnly(that, name_result);
 //    }
 //
-//    public Node forSimpleTypeParam(SimpleTypeParam that) {
+//    public Node forTypeParam(TypeParam that) {
 //        Id name_result = (Id) that.getName().accept(this);
 //        List<TraitType> extendsClause_result = recurOnListOfTraitType(that.getExtendsClause());
-//        return forSimpleTypeParamOnly(that, name_result, extendsClause_result);
+//        return forTypeParamOnly(that, name_result, extendsClause_result);
 //    }
 //
 //    public Node forUnitParam(UnitParam that) {

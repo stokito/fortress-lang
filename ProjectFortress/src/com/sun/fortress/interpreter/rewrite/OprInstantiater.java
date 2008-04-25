@@ -21,7 +21,7 @@ import java.util.Map;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OperatorParam;
+import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -44,10 +44,10 @@ public class OprInstantiater extends Rewrite {
             if (repl == null)
                 return node;
             return NodeFactory.makeOp(op, repl);
-        } else if (node instanceof OperatorParam) {
+        } else if (node instanceof OprParam) {
             // Nested operator params with same name (e.g., ObjectExpr) -- is that legal?
             // For now, remove it, no matter what.
-            OperatorParam opp = (OperatorParam) node;
+            OprParam opp = (OprParam) node;
             if (subst.containsKey(NodeUtil.nameString(opp.getName()))) {
                 return new RewriteHackList();
             }

@@ -32,11 +32,11 @@ import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.DimensionParam;
+import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
-import com.sun.fortress.nodes.OperatorParam;
-import com.sun.fortress.nodes.SimpleTypeParam;
+import com.sun.fortress.nodes.OprParam;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.TraitType;
@@ -180,8 +180,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, WhereClause wcl, BetterEnv ge) throws Error {
         ArrayList<FType> a = new ArrayList<FType>();
         for (StaticParam tp: tpl) {
-            if (tp instanceof DimensionParam) {
-                DimensionParam dp = (DimensionParam) tp;
+            if (tp instanceof DimParam) {
+                DimParam dp = (DimParam) tp;
                 NI.nyi();
             } else if (tp instanceof NatParam) {
                 NatParam np = (NatParam) tp;
@@ -195,14 +195,14 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 SymbolicNat sn = new SymbolicNat(np_name);
                 ge.putType(np_name, sn);
                 a.add(sn);
-            } else if (tp instanceof OperatorParam) {
-                OperatorParam op = (OperatorParam) tp;
+            } else if (tp instanceof OprParam) {
+                OprParam op = (OprParam) tp;
                 String sot_name = NodeUtil.getName(tp);
                 SymbolicOprType sot = new SymbolicOprType(sot_name, ge, op);
                 ge.putType(sot_name, sot);
                 a.add(sot);
-            } else if (tp instanceof SimpleTypeParam) {
-                SimpleTypeParam stp = (SimpleTypeParam) tp;
+            } else if (tp instanceof TypeParam) {
+                TypeParam stp = (TypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = new SymbolicInstantiatedType(stp_name, ge, tp);
                 ge.putType(stp_name, st);
@@ -233,8 +233,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
         // Process constraints
         for (StaticParam tp: tpl) {
-            if (tp instanceof DimensionParam) {
-                DimensionParam dp = (DimensionParam) tp;
+            if (tp instanceof DimParam) {
+                DimParam dp = (DimParam) tp;
                 NI.nyi();
             } else if (tp instanceof NatParam) {
                 NatParam np = (NatParam) tp;
@@ -244,11 +244,11 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 IntParam np = (IntParam) tp;
                 String np_name = NodeUtil.getName(np);
 
-            } else if (tp instanceof OperatorParam) {
-                OperatorParam op = (OperatorParam) tp;
+            } else if (tp instanceof OprParam) {
+                OprParam op = (OprParam) tp;
 
-            } else if (tp instanceof SimpleTypeParam) {
-                SimpleTypeParam stp = (SimpleTypeParam) tp;
+            } else if (tp instanceof TypeParam) {
+                TypeParam stp = (TypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(stp_name);
                 List<TraitType> oext = stp.getExtendsClause();

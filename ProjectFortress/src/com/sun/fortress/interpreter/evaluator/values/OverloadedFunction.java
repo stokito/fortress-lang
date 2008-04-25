@@ -42,7 +42,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
-import com.sun.fortress.nodes.SimpleTypeParam;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.FnRef;
@@ -923,7 +923,7 @@ public class  OverloadedFunction extends Fcn
            // TODO need to make this check more comprehensive and detailed.
            FType a = args.get(i);
            StaticParam p = val.get(i);
-           if (p instanceof SimpleTypeParam) {
+           if (p instanceof TypeParam) {
                if (a instanceof FTypeNat) return false;
            }
        }

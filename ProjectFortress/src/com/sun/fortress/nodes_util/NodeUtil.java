@@ -176,7 +176,7 @@ public class NodeUtil {
             public String forBoolParam(BoolParam p) {
                 return p.getName().getText();
             }
-            public String forDimensionParam(DimensionParam p) {
+            public String forDimParam(DimParam p) {
                 return p.getName().getText();
             }
             public String forIntParam(IntParam p) {
@@ -185,10 +185,10 @@ public class NodeUtil {
             public String forNatParam(NatParam p) {
                 return p.getName().getText();
             }
-            public String forOperatorParam(OperatorParam p) {
+            public String forOprParam(OprParam p) {
                 return nameString(p.getName());
             }
-            public String forSimpleTypeParam(SimpleTypeParam p) {
+            public String forTypeParam(TypeParam p) {
                 return p.getName().getText();
             }
             public String forUnitParam(UnitParam p) {

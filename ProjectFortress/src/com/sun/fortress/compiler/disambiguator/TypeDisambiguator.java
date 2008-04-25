@@ -332,7 +332,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             }
         }
     }
-    
+
     /**
      * Prevent recursion on function static args -- delayed until the function references
      * can be resolved.
@@ -340,13 +340,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     @Override public Node forFnRef(FnRef that) {
         return that;
     }
-    
+
 
     private StaticArg updateStaticArg(final StaticArg a, final StaticParam p) {
         return a;
         /* Commented out due to assumptions in the interpreter that this *isn't* implemented:
         StaticArg fixed = a.accept(new NodeAbstractVisitor<StaticArg>() {
-        
+
             @Override public StaticArg forTypeArg(final TypeArg a) {
                 final Type t = a.getType();
                 if (t instanceof IdType) {
@@ -360,7 +360,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                         @Override public StaticArg forBoolParam(BoolParam p) {
                             return new BoolArg(s, new BoolRef(s, name));
                         }
-                        @Override public StaticArg forDimensionParam(DimensionParam p) {
+                        @Override public StaticArg forDimParam(DimParam p) {
                             return new DimArg(s, new DimRef(s, name));
                         }
                         @Override public StaticArg forIntParam(IntParam p) {
@@ -370,7 +370,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                             return new IntArg(s, new IntRef(s, name));
                             // TODO: shouldn't there be a NatArg class?
                         }
-                        @Override public StaticArg forSimpleTypeParam(SimpleTypeParam p) {
+                        @Override public StaticArg forTypeParam(TypeParam p) {
                             return a;
                         }
                         @Override public StaticArg forUnitParam(UnitParam p) {
@@ -379,48 +379,48 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     });
                 }
                 else {
-                    if (!(p instanceof SimpleTypeParam)) { mismatch("a type"); }
+                    if (!(p instanceof TypeParam)) { mismatch("a type"); }
                     return a;
                 }
             }
-            
+
             @Override public StaticArg forIntArg(IntArg a) {
                 if (!(p instanceof IntParam || p instanceof NatParam)) {
                     mismatch("an int expression");
                 }
                 return a;
             }
-            
+
             @Override public StaticArg forBoolArg(BoolArg a) {
                 if (!(p instanceof BoolParam)) { mismatch("a bool expression"); }
                 return a;
             }
-            
+
             @Override public StaticArg forOprArg(OprArg a) {
-                if (!(p instanceof OperatorParam)) { mismatch("an operator"); }
+                if (!(p instanceof OprParam)) { mismatch("an operator"); }
                 return a;
             }
-            
+
             @Override public StaticArg forDimArg(DimArg a) {
-                if (!(p instanceof DimensionParam)) { mismatch("a dimension"); }
+                if (!(p instanceof DimParam)) { mismatch("a dimension"); }
                 return a;
             }
-            
+
             @Override public StaticArg forUnitArg(UnitArg a) {
                 // TODO: convert units to dimensions
                 if (!(p instanceof UnitParam)) { mismatch("a unit"); }
                 return a;
             }
-            
+
             private void mismatch(String given) {
                 String expected = p.accept(new NodeAbstractVisitor<String>() {
-                    @Override public String forOperatorParam(OperatorParam p) {
+                    @Override public String forOprParam(OprParam p) {
                         return "an operator";
                     }
                     @Override public String forBoolParam(BoolParam p) {
                         return "a bool expression";
                     }
-                    @Override public String forDimensionParam(DimensionParam p) {
+                    @Override public String forDimParam(DimParam p) {
                         return "a dimension";
                     }
                     @Override public String forIntParam(IntParam p) {
@@ -429,7 +429,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     @Override public String forNatParam(NatParam p) {
                         return "a nat expression";
                     }
-                    @Override public String forSimpleTypeParam(SimpleTypeParam p) {
+                    @Override public String forTypeParam(TypeParam p) {
                         return "a type";
                     }
                     @Override public String forUnitParam(UnitParam p) {
@@ -438,7 +438,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 });
                 error("Type parameter mismatch: given " + given + ", expected " + expected, a);
             }
-            
+
         });
         return (StaticArg) fixed.accept(this);
         */

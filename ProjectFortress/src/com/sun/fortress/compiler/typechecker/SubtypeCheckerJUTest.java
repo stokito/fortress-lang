@@ -40,11 +40,11 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
     // trait E[\T extends Number, bool b, int i, nat n, opr ODOT\] extends B end
     ProperTraitIndex traitE =
         makeTrait("E",
-                  makeSparams(NodeFactory.makeSimpleTypeParam("T", "Number"),
+                  makeSparams(NodeFactory.makeTypeParam("T", "Number"),
                               NodeFactory.makeBoolParam("b"),
                               NodeFactory.makeIntParam("i"),
                               NodeFactory.makeNatParam("n"),
-                              NodeFactory.makeOperatorParam("ODOT")),
+                              NodeFactory.makeOprParam("ODOT")),
                   "D");
 
     InstantiatedType instE =
@@ -411,13 +411,13 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         ComponentIndex c = component("SubtypeCheckerTestComponent", traits);
         SubtypeChecker sc = SubtypeChecker.make(new TraitTable(c, GLOBAL_ENV));
         List<StaticParam> sparams = new ArrayList<StaticParam>();
-        sparams.add(NodeFactory.makeSimpleTypeParam("ALPHA", "Number"));
-        sparams.add(NodeFactory.makeSimpleTypeParam("BETA",  "A"));
+        sparams.add(NodeFactory.makeTypeParam("ALPHA", "Number"));
+        sparams.add(NodeFactory.makeTypeParam("BETA",  "A"));
         return sc.extend(sparams, FortressUtil.emptyWhereClause());
     }
-    
+
     /** Test the application type checking. */
-    public void testApplication() {   
+    public void testApplication() {
         Type arrow1 = parseType("(A, B) -> C");
         Type lhs1 = parseType("A");
         Type rhs1 = parseType("B");

@@ -52,11 +52,11 @@ public class TypeAnalyzerUtil {
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
-                @Override public void forSimpleTypeParam(SimpleTypeParam p) {
+                @Override public void forTypeParam(TypeParam p) {
                     typeSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
                                  ((TypeArg) a).getType());
                 }
-                @Override public void forOperatorParam(OperatorParam p) {
+                @Override public void forOprParam(OprParam p) {
                     opSubs.put(p.getName(), ((OprArg) a).getName());
                 }
                 @Override public void forIntParam(IntParam p) {
@@ -71,7 +71,7 @@ public class TypeAnalyzerUtil {
                     boolSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
                                  ((BoolArg) a).getBool());
                 }
-                @Override public void forDimensionParam(DimensionParam p) {
+                @Override public void forDimParam(DimParam p) {
                     dimSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
                                 ((DimArg) a).getDim());
                 }
@@ -176,7 +176,7 @@ public class TypeAnalyzerUtil {
             @Override public Boolean forUnitArg(UnitArg t) { return false; }
         });
     }
-    
+
     public static ArrowType makeArrow(Type domain, Type range, Type throwsT, boolean io) {
         return new ArrowType(domain, range,
                              Option.some(Collections.singletonList(throwsT)), io);
@@ -212,7 +212,7 @@ public class TypeAnalyzerUtil {
         else { return false; }
     }
     */
-    
+
     /**
      * Figure out the static type of a non-generic function application.
      * @param checker the SubtypeChecker to use for any type comparisons
@@ -232,7 +232,7 @@ public class TypeAnalyzerUtil {
     public static Option<Type> applicationType(final SubtypeChecker checker,
                                                final Type fn,
                                                final Type arg) {
-        
+
         // Make sure domain is an ArgType
         final ArgType domain;
         if (arg instanceof ArgType) {
@@ -242,22 +242,22 @@ public class TypeAnalyzerUtil {
         } else {
             domain = NodeFactory.makeArgType(Collections.singletonList(arg));
         }
-        
+
         // Turn fn into a list of types (i.e. flatten if an intersection)
         final Iterable<Type> arrows =
             (fn instanceof AndType) ? conjuncts((AndType)fn)
                                     : IterUtil.make(fn);
-            
+
         // Get a list of the arrow types that match these arguments
         List<ArrowType> matchingArrows = new ArrayList<ArrowType>();
         for (Type arrow : arrows) {
-            
+
             // Try to form a non-generic ArrowType from this arrow, if it matches the args
             Option<ArrowType> newArrow = arrow.accept(new NodeAbstractVisitor<Option<ArrowType>>() {
                 @Override public Option<ArrowType> forArrowType(ArrowType that) {
                     return checker.subtype(domain, that.getDomain())
                         ? some(that)
-                        : Option.<ArrowType>none(); 
+                        : Option.<ArrowType>none();
                 }
                 @Override public Option<ArrowType> for_RewriteGenericArrowType(_RewriteGenericArrowType that) {
                     return none(); // TODO - implement
@@ -273,7 +273,7 @@ public class TypeAnalyzerUtil {
         if (matchingArrows.isEmpty()) {
             return none();
         }
-        
+
         // Find the most applicable arrow type
         ArrowType minType = matchingArrows.get(0);
         for (int i=1; i<matchingArrows.size(); ++i) {
@@ -284,16 +284,16 @@ public class TypeAnalyzerUtil {
         }
         return some(minType.getRange());
     }
-                                               
-    
-    public static Option<Type> applicationType(SubtypeChecker checker, 
+
+
+    public static Option<Type> applicationType(SubtypeChecker checker,
                                                Type arrow,
                                                Iterable<Type> args,
                                                Iterable<StaticArg> staticArgs) {
         return Option.<Type>none(); // TODO implement
     }
-     
-    
+
+
     /** Get all the conjunct types from a nested AndType. */
     public static Iterable<Type> conjuncts(AndType types) {
         Type left = types.getFirst();
@@ -302,7 +302,7 @@ public class TypeAnalyzerUtil {
                 (left instanceof AndType) ? conjuncts((AndType)left) : IterUtil.make(left),
                 (right instanceof AndType) ? conjuncts((AndType)right) : IterUtil.make(right));
     }
-    
+
     /** Get all the disjunct types from a nested OrType. */
     public static Iterable<Type> disjuncts(OrType types) {
         Type left = types.getFirst();

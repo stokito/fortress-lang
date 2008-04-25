@@ -739,21 +739,21 @@ public class NodeFactory {
                 param.getType(), param.getDefaultExpr());
     }
 
-    public static SimpleTypeParam makeSimpleTypeParam(String name) {
+    public static TypeParam makeTypeParam(String name) {
         Span s = new Span();
-        return new SimpleTypeParam(s, new Id(s, name),
+        return new TypeParam(s, new Id(s, name),
                 Collections.<TraitType>emptyList(), false);
     }
 
-    public static SimpleTypeParam makeSimpleTypeParam(String name, String sup) {
+    public static TypeParam makeTypeParam(String name, String sup) {
         Span s = new Span();
         List<TraitType> supers = new ArrayList<TraitType>(1);
         supers.add(makeIdType(sup));
-        return new SimpleTypeParam(s, new Id(s, name), supers);
+        return new TypeParam(s, new Id(s, name), supers);
     }
 
-    public static OperatorParam makeOperatorParam(String name) {
-        return new OperatorParam(new Span(), makeOp(name));
+    public static OprParam makeOprParam(String name) {
+        return new OprParam(new Span(), makeOp(name));
     }
 
     public static BoolParam makeBoolParam(String name) {
@@ -761,9 +761,9 @@ public class NodeFactory {
         return new BoolParam(s, new Id(s, name));
     }
 
-    public static DimensionParam makeDimensionParam(String name) {
+    public static DimParam makeDimParam(String name) {
         Span s = new Span();
-        return new DimensionParam(s, new Id(s, name));
+        return new DimParam(s, new Id(s, name));
     }
 
     public static UnitParam makeUnitParam(String name) {

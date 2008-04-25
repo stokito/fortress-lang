@@ -339,7 +339,7 @@ public class NodeComparator {
         return compare(left.getType(), right.getType());
     }
 
-    static int compare(SimpleTypeParam left, SimpleTypeParam right) {
+    static int compare(TypeParam left, TypeParam right) {
         int x = NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
         if (x != 0) {
             return x;

@@ -195,14 +195,14 @@ public abstract class SubtypeChecker {
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
-                @Override public void forSimpleTypeParam(SimpleTypeParam p) {
+                @Override public void forTypeParam(TypeParam p) {
                     if (isTypeArg(a))
                         typeSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
                                      ((TypeArg) a).getType());
                     else error("A type parameter is instantiated with a " +
                                "non-type argument.");
                 }
-                @Override public void forOperatorParam(OperatorParam p) {
+                @Override public void forOprParam(OprParam p) {
                     if (isOprArg(a))
                         opSubs.put(p.getName(), ((OprArg)a).getName());
                     else error("An operator parameter is instantiated with a " +
@@ -229,7 +229,7 @@ public abstract class SubtypeChecker {
                     else error("A bool parameter is instantiated with a " +
                                "non-bool argument.");
                 }
-                @Override public void forDimensionParam(DimensionParam p) {
+                @Override public void forDimParam(DimParam p) {
                     if (isDimArg(a))
                         dimSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
                                     ((DimArg)a).getDim());
@@ -319,7 +319,7 @@ public abstract class SubtypeChecker {
             if (result.isSome()) {
                 StaticParam sparam = Option.unwrap(result);
                 if (isTypeParam(sparam)) {
-                    return ((SimpleTypeParam)sparam).getExtendsClause();
+                    return ((TypeParam)sparam).getExtendsClause();
                 } else return _extends;
             } else return _extends;
         } else return _extends;
@@ -389,13 +389,13 @@ public abstract class SubtypeChecker {
     }
 
     private boolean isOprParam(StaticParam t) {
-        return (t instanceof OperatorParam);
+        return (t instanceof OprParam);
     }
     private boolean isBoolParam(StaticParam t) {
         return (t instanceof BoolParam);
     }
     private boolean isDimParam(StaticParam t) {
-        return (t instanceof DimensionParam);
+        return (t instanceof DimParam);
     }
     private boolean isIntParam(StaticParam t) {
         return (t instanceof IntParam);
@@ -404,7 +404,7 @@ public abstract class SubtypeChecker {
         return (t instanceof NatParam);
     }
     private boolean isTypeParam(StaticParam t) {
-        return (t instanceof SimpleTypeParam);
+        return (t instanceof TypeParam);
     }
     private boolean isUnitParam(StaticParam t) {
         return (t instanceof UnitParam);
@@ -499,7 +499,7 @@ public abstract class SubtypeChecker {
     private boolean equivalent(Indices s, Indices t, SubtypeHistory h) {
         return equivalent(s.getExtents(), t.getExtents(), h);
     }
-    
+
     private List<Type> pad(List<Type> types, Type padType, int length) {
         assert(length >= types.size());
         return IterUtil.asList(IterUtil.compose(types, IterUtil.copy(padType, length-types.size())));
@@ -558,17 +558,17 @@ public abstract class SubtypeChecker {
      * 4) The following static parameters are checked for the textual equality:
      *
      *        abstract StaticParam();
-     *            OperatorParam(Op name);
+     *            OprParam(Op name);
      *            abstract IdStaticParam(Id name);
      *                BoolParam();
-     *                DimensionParam();
+     *                DimParam();
      *                IntParam();
      *                NatParam();
      *
      *    The following static parameters are checked for the textual equality
      *    of their names ignoring other fields:
      *
-     *            SimpleTypeParam(List<TraitType> extendsClause =
+     *            TypeParam(List<TraitType> extendsClause =
      *                                Collections.<TraitType>emptyList(),
      *                            boolean absorbs = false);
      *            UnitParam(Option<Type> dim = Option.<Type>none(),
