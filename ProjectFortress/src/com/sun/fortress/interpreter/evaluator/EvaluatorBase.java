@@ -145,8 +145,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         Param p = null;
         Set<StaticParam> tp_set = new HashSet<StaticParam>(tparams);
         for (StaticParam sp : tparams) {
-            if (sp instanceof SimpleTypeParam) {
-                SimpleTypeParam stp = (SimpleTypeParam) sp;
+            if (sp instanceof TypeParam) {
+                TypeParam stp = (TypeParam) sp;
                 String stp_name = stp.getName().getText();
                 for (Type tr : stp.getExtendsClause()) {
                     // Preinstall bounds in the boundingmap

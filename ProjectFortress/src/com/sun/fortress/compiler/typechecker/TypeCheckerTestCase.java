@@ -54,7 +54,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
- * 
+ *
  */
 public abstract class TypeCheckerTestCase extends TestCase {
 
@@ -142,7 +142,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
         }
         return sargs;
     }
-    
+
     public static StaticParam makeStaticParam(String param) {
         param = param.trim();
         if (param.indexOf(" ") >= 0) {
@@ -150,10 +150,10 @@ public abstract class TypeCheckerTestCase extends TestCase {
             if (tokens[0].equals("nat")) return NodeFactory.makeNatParam(tokens[1]);
             else if (tokens[0].equals("int")) return NodeFactory.makeIntParam(tokens[1]);
             else if (tokens[0].equals("bool")) return NodeFactory.makeBoolParam(tokens[1]);
-            else if (tokens[0].equals("opr")) return NodeFactory.makeOperatorParam(tokens[1]);
-            else if (tokens[0].equals("dim")) return NodeFactory.makeDimensionParam(tokens[1]);
+            else if (tokens[0].equals("opr")) return NodeFactory.makeOprParam(tokens[1]);
+            else if (tokens[0].equals("dim")) return NodeFactory.makeDimParam(tokens[1]);
             else if (tokens[0].equals("unit")) return NodeFactory.makeUnitParam(tokens[1]);
         }
-        return NodeFactory.makeSimpleTypeParam(param);
+        return NodeFactory.makeTypeParam(param);
     }
 }

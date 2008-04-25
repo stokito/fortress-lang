@@ -60,11 +60,11 @@ public abstract class StaticParamEnv {
     }
 
 
-//    public abstract Option<OperatorParam> operatorParam(Op name);
+//    public abstract Option<OprParam> oprParam(Op name);
 //    public abstract Option<BoolParam> boolParam(Id name);
-//    public abstract Option<DimensionParam> dimensionParam(Id name);
+//    public abstract Option<DimParam> dimParam(Id name);
 //    public abstract Option<IntParam> intParam(Id name);
 //    public abstract Option<NatParam> natParam(Id name);
-//    public abstract Option<SimpleTypeParam> typeParam(Id name);
+//    public abstract Option<TypeParam> typeParam(Id name);
 //    public abstract Option<UnitParam> unitParam(Id name);
 }

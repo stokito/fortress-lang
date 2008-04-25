@@ -127,13 +127,13 @@ public abstract class TypeEnv {
 
         for (StaticParam param: params) {
             result.add(param.accept(new NodeAbstractVisitor<StaticArg>() {
-                public StaticArg forOperatorParam(OperatorParam that) {
+                public StaticArg forOprParam(OprParam that) {
                     return new OprArg(new Span(), that.getName());
                 }
                 public StaticArg forBoolParam(BoolParam that) {
                     return new BoolArg(new Span(), new BoolRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
-                public StaticArg forDimensionParam(DimensionParam that) {
+                public StaticArg forDimParam(DimParam that) {
                     return new DimArg(new Span(), new DimRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
                 public StaticArg forIntParam(IntParam that) {
@@ -142,7 +142,7 @@ public abstract class TypeEnv {
                 public StaticArg forNatParam(NatParam that) {
                     return new IntArg(new Span(), new IntRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
-                public StaticArg forSimpleTypeParam(SimpleTypeParam that) {
+                public StaticArg forTypeParam(TypeParam that) {
                     return new TypeArg(new Span(),
                                        NodeFactory.makeIdType(new Span(),
                                                               that.getName()));

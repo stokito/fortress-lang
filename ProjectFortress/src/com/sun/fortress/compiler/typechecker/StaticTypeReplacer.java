@@ -34,7 +34,7 @@ import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.OperatorParam;
+import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes.OprArg;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SimpleName;
@@ -77,8 +77,8 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         for (int i=0; i<n; ++i) {
             SimpleName name;
             StaticParam p = params.get(i);
-            if (p instanceof OperatorParam) {
-                name = ((OperatorParam)p).getName();
+            if (p instanceof OprParam) {
+                name = ((OprParam)p).getName();
                 //                System.err.printf("put op: %s\n", name);
             } else {
                 name = ((IdStaticParam)p).getName();

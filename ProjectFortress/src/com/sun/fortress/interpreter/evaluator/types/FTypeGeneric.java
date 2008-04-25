@@ -35,7 +35,7 @@ import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.BoolParam;
-import com.sun.fortress.nodes.DimensionParam;
+import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
@@ -44,11 +44,11 @@ import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.OperatorParam;
+import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes.OprArg;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.SimpleTypeParam;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
@@ -168,7 +168,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
 
         @Override
-        public StaticArg forDimensionParam(DimensionParam that) {
+        public StaticArg forDimParam(DimParam that) {
             return idNameToTypeArg(that.getName());
         }
 
@@ -183,12 +183,12 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         }
 
         @Override
-        public StaticArg forOperatorParam(OperatorParam that) {
+        public StaticArg forOprParam(OprParam that) {
             return new OprArg(that.getName());
         }
 
         @Override
-        public StaticArg forSimpleTypeParam(SimpleTypeParam that) {
+        public StaticArg forTypeParam(TypeParam that) {
             return idNameToTypeArg(that.getName());
         }
 
@@ -218,7 +218,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             int oprParamCount = 0;
 
             for (StaticParam param : params) {
-                if (param instanceof OperatorParam)
+                if (param instanceof OprParam)
                     oprParamCount++;
             }
 
@@ -228,14 +228,14 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 int i = 0;
                 for (StaticParam param : params) {
                     FType arg = args.get(i);
-                    if (param instanceof OperatorParam) {
+                    if (param instanceof OprParam) {
                         if (arg instanceof FTypeOpr) {
                             FTypeOpr fto = (FTypeOpr) arg;
-                            String s = NodeUtil.nameString(((OperatorParam)param).getName());
+                            String s = NodeUtil.nameString(((OprParam)param).getName());
                             substitutions.put(s, fto.getName());
                         } else if (arg instanceof SymbolicOprType) {
                             SymbolicOprType fto = (SymbolicOprType) arg;
-                            String s = NodeUtil.nameString(((OperatorParam)param).getName());
+                            String s = NodeUtil.nameString(((OprParam)param).getName());
                             substitutions.put(s, fto.getName());
                         }
                     } else {

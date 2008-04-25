@@ -33,10 +33,10 @@ public class NonEmptyStaticParamEnv extends StaticParamEnv {
     }
 
     private SimpleName paramName(StaticParam param) {
-        // Both OperatorParams and IdStaticParams have name fields, but they
+        // Both OprParams and IdStaticParams have name fields, but they
         // differ in the types of the fields.
-        if (param instanceof OperatorParam) {
-            return ((OperatorParam)param).getName();
+        if (param instanceof OprParam) {
+            return ((OprParam)param).getName();
         } else { // param instanceof IdStaticParam
             return ((IdStaticParam)param).getName();
         }

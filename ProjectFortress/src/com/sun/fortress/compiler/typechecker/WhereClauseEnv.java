@@ -27,20 +27,20 @@ public class WhereClauseEnv extends StaticParamEnv {
     private List<StaticParam> params;
     private WhereClause whereClause;
     private StaticParamEnv parent;
-    
+
     public WhereClauseEnv(List<StaticParam> _params, WhereClause _whereClause, StaticParamEnv _parent) {
         params = _params;
         whereClause = _whereClause;
         parent = _parent;
     }
-    
+
     private SimpleName paramName(StaticParam param) {
-        // Both OperatorParams and IdStaticParams have name fields, but they
-        // differ in the types of the fields. 
-        if (param instanceof OperatorParam) { 
-            return ((OperatorParam)param).getName(); 
+        // Both OprParams and IdStaticParams have name fields, but they
+        // differ in the types of the fields.
+        if (param instanceof OprParam) {
+            return ((OprParam)param).getName();
         } else { // param instanceof IdStaticParam
-            return ((IdStaticParam)param).getName(); 
+            return ((IdStaticParam)param).getName();
         }
     }
 
@@ -49,9 +49,9 @@ public class WhereClauseEnv extends StaticParamEnv {
             if (name.equals(paramName(param))) { return wrap(param); }
         }
         for (WhereBinding entry : whereClause.getBindings()) {
-            if (entry instanceof WhereType && name.equals(((WhereType)entry).getName())) { 
-                return Option.<StaticParam>wrap(new SimpleTypeParam(entry.getSpan(), 
-                                                                    entry.getName(), 
+            if (entry instanceof WhereType && name.equals(((WhereType)entry).getName())) {
+                return Option.<StaticParam>wrap(new TypeParam(entry.getSpan(),
+                                                                    entry.getName(),
                                                                     ((WhereType)entry).getSupers()));
             }
         }

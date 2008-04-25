@@ -114,7 +114,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forOp(Op node) {
         return node.getText();
     }
-    
+
     public String forEnclosing(Enclosing node) {
         return node.getOpen().getText() + node.getClose().getText();
     }
@@ -191,7 +191,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(n);
     }
 
-    public String forOperatorParam(OperatorParam node) {
+    public String forOprParam(OprParam node) {
         return "opr " + NodeUtil.nameString(node.getName());
     }
 
@@ -227,7 +227,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getType().accept(this) + "...";
     }
 
-    public String forSimpleTypeParam(SimpleTypeParam node) {
+    public String forTypeParam(TypeParam node) {
         return NodeUtil.nameString(node.getName());
     }
 

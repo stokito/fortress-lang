@@ -31,14 +31,14 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.DimensionParam;
+import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.NatParam;
-import com.sun.fortress.nodes.OperatorParam;
+import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.SimpleTypeParam;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -158,14 +158,14 @@ public class GenericMethod extends MethodClosure implements
         // Inject type parameters into environment as symbolics
         List<StaticParam> tparams = getDef().getStaticParams();
         for (StaticParam tp : tparams) {
-            if (tp instanceof DimensionParam) {
-                DimensionParam dp = (DimensionParam) tp;
+            if (tp instanceof DimParam) {
+                DimParam dp = (DimParam) tp;
             } else if (tp instanceof NatParam) {
                 NatParam np = (NatParam) tp;
-            } else if (tp instanceof OperatorParam) {
-                OperatorParam op = (OperatorParam) tp;
-            } else if (tp instanceof SimpleTypeParam) {
-                SimpleTypeParam stp = (SimpleTypeParam) tp;
+            } else if (tp instanceof OprParam) {
+                OprParam op = (OprParam) tp;
+            } else if (tp instanceof TypeParam) {
+                TypeParam stp = (TypeParam) tp;
             } else {
                 bug(tp, errorMsg("Unexpected StaticParam ", tp));
             }

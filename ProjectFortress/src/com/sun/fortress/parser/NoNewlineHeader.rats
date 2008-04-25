@@ -326,7 +326,7 @@ private StaticParam StaticParam =
    / bool w a1:Id
      { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
    / dim  w a1:Id
-     {yyValue = new DimensionParam(createSpan(yyStart,yyCount), a1);}
+     {yyValue = new DimParam(createSpan(yyStart,yyCount), a1);}
    / unit w a1:Id a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
      { Option<Type> derived = Option.wrap(a2);
        boolean absorbs = (a3 == null) ? false : true;
@@ -334,14 +334,13 @@ private StaticParam StaticParam =
                                derived, absorbs);
      }
    / opr  w a1:Op
-     { yyValue = new OperatorParam(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new OprParam(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
      { if (a2 == null) a2 = Collections.<TraitType>emptyList();
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;
-       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),
-                                     a1, a2, absorbs);
+       yyValue = new TypeParam(createSpan(yyStart,yyCount), a1, a2, absorbs);
      }
    / opendoublesquare   // Error production
      { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),

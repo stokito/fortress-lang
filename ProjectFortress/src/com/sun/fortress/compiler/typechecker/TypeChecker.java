@@ -1087,8 +1087,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return new TypeCheckerResult(that);
     }
 
-    public TypeCheckerResult forSimpleTypeParam(SimpleTypeParam that) {
-        // No checks needed to be performed on a SimpleTypeParam.
+    public TypeCheckerResult forTypeParam(TypeParam that) {
+        // No checks needed to be performed on a TypeParam.
         return new TypeCheckerResult(that);
     }
 
@@ -2085,7 +2085,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forAbstractNodeOnly(that);
 //    }
 //
-//    public RetType forOperatorParamOnly(OperatorParam that, RetType name_result) {
+//    public RetType forOprParamOnly(OprParam that, RetType name_result) {
 //        return forStaticParamOnly(that);
 //    }
 //
@@ -2097,7 +2097,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forIdStaticParamOnly(that, name_result);
 //    }
 //
-//    public RetType forDimensionParamOnly(DimensionParam that, RetType name_result) {
+//    public RetType forDimParamOnly(DimParam that, RetType name_result) {
 //        return forIdStaticParamOnly(that, name_result);
 //    }
 //
@@ -2109,7 +2109,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forIdStaticParamOnly(that, name_result);
 //    }
 //
-//    public RetType forSimpleTypeParamOnly(SimpleTypeParam that, RetType name_result, List<RetType> extendsClause_result) {
+//    public RetType forTypeParamOnly(TypeParam that, RetType name_result, List<RetType> extendsClause_result) {
 //        return forIdStaticParamOnly(that, name_result);
 //    }
 //
@@ -3198,9 +3198,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forModifierWrappedOnly(that);
 //    }
 //
-//    public RetType forOperatorParam(OperatorParam that) {
+//    public RetType forOprParam(OprParam that) {
 //        RetType name_result = that.getName().accept(this);
-//        return forOperatorParamOnly(that, name_result);
+//        return forOprParamOnly(that, name_result);
 //    }
 //
 //    public RetType forBoolParam(BoolParam that) {
@@ -3208,9 +3208,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forBoolParamOnly(that, name_result);
 //    }
 //
-//    public RetType forDimensionParam(DimensionParam that) {
+//    public RetType forDimParam(DimParam that) {
 //        RetType name_result = that.getName().accept(this);
-//        return forDimensionParamOnly(that, name_result);
+//        return forDimParamOnly(that, name_result);
 //    }
 //
 //    public RetType forIntParam(IntParam that) {

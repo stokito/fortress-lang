@@ -260,7 +260,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                           errorMsg("Expected Bool, got ", a, " for param ", p,
                                    " instantiating ", what));
                 }
-            } else if (p instanceof SimpleTypeParam) {
+            } else if (p instanceof TypeParam) {
                 // There's probably some inappropriate ones.
                 if (a instanceof FTypeNat) {
                     error(within, clenv,
@@ -276,7 +276,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 }
 
-            } else if (p instanceof OperatorParam) {
+            } else if (p instanceof OprParam) {
                 if (a instanceof FTypeOpr) {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else if (a instanceof SymbolicOprType) {
@@ -286,7 +286,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                           errorMsg("Expected Opr, got ", a, " for param ", p,
                                    " instantiating ", what));
                 }
-            } else if (p instanceof DimensionParam) {
+            } else if (p instanceof DimParam) {
                 NI.nyi("Generic, generic in dimension"); // TODO dimension params
             } else {
                 error(within, clenv,
@@ -399,12 +399,12 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forOperatorParam(com.sun.fortress.interpreter.nodes.OperatorParam)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forOprParam(com.sun.fortress.interpreter.nodes.OprParam)
      */
     @Override
-    public FType forOperatorParam(OperatorParam x) {
+    public FType forOprParam(OprParam x) {
         // TODO Auto-generated method stub
-        return super.forOperatorParam(x);
+        return super.forOprParam(x);
     }
 
     private long nonEmpty(List<? extends Type> value) {
