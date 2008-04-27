@@ -1119,17 +1119,17 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         if (!staticParams.isEmpty()) {
 
-                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls(), x);
+            FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls(), x);
             guardedPutType(fname, ftg, x);
-                //scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
+            //scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
            ft = ftg;
         } else {
 
-                BetterEnv interior = containing; // new BetterEnv(containing, x);
+            BetterEnv interior = containing; // new BetterEnv(containing, x);
             FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls(), x);
             guardedPutType(fname, ftt, x);
-                //scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
-           ft = ftt;
+            //scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
+            ft = ftt;
         }
 
         scanForFunctionalMethodNames(ft, x.getDecls());

@@ -56,7 +56,7 @@ public class FTypeOpr extends FType {
      *      com.sun.fortress.interpreter.nodes.TypeRef)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         bug(val,env,
                    errorMsg("Unimplemented --  unify opr parameter ", this,

@@ -1047,10 +1047,8 @@ trait StandardImmutableArrayType[\T extends StandardImmutableArrayType[\T,E,I\],
         Default implementations of getters based on abstract methods
         in StandardArrayType. **)
     getter indices(): Indexed[\I,I\] = bounds()
-(* puppy 4
     getter indexValuePairs(): Indexed[\(I,E),I\] =
         zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
-*)
     getter generator(): Indexed[\E,I\] =
         zeroIndices().map[\E\](fn (i:I):E => get(i))
 
@@ -1368,35 +1366,35 @@ vector[\T extends Number, nat s0\](f:ZZ32->T):Vector[\T,s0\] =
     vector[\T,s0\]().fill(f)
 
 
-opr +[\ T extends Number, nat n, nat m \]
+opr +[\ T extends Number, nat n \]
      (me : Vector[\T,n\], other : Vector[\T,n\]):Vector[\T,n\] = me.add(other)
 
-opr -[\ T extends Number, nat n, nat m \]
+opr -[\ T extends Number, nat n \]
      (me : Vector[\T,n\], other : Vector[\T,n\]):Vector[\T,n\] =
     me.subtract(other)
 
-opr -[\ T extends Number, nat n, nat m \]
+opr -[\ T extends Number, nat n \]
      (me : Vector[\T,n\]):Vector[\T,n\] = me.negate()
 
 pmul[\ T extends Number, nat k \]
     (a : Vector[\T,k\], b : Vector[\T,k\]):Vector[\T,k\] = a.pmul(b)
 
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n \]
        (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n \]
      (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
 
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n \]
        (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n \]
      (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
 
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n \]
         (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n \]
      (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
 
 squaredNorm[\T extends Number, nat s0\](a:Vector[\T,s0\]):T = a.dot(a)
@@ -1698,29 +1696,29 @@ opr juxtaposition[\ T extends Number, nat n, nat m, nat p\]
 
 
 (* matrix-vector multiplication *)
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m \]
        (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m \]
      (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
 
 (* vector-matrix multiplication *)
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m \]
        (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m \]
      (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
 
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m \]
        (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m \]
      (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
 
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m \]
        (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m \]
      (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
 (** Array3[\T,b0,s0,b1,s1,b2,s2\] is the type of 3-dimensional arrays
@@ -2751,16 +2749,11 @@ opr =(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress
 opr <=(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LessEq")
 opr ^(a: IntLiteral, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
 
-opr -[\ T extends Number, nat n, nat m \]
-     (a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
-opr +[\ T extends Number, nat n, nat m \]
-     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
-opr -[\ T extends Number, nat n, nat m \]
-     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+opr -(a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
+opr +(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
+opr -(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
+opr DOT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+opr juxtaposition(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
 opr DIV(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
 opr REM(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
 opr MOD(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mod")
