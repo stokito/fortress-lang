@@ -463,7 +463,7 @@ abstract public class FType implements Comparable<FType> {
             (sz==0 || !(candidate.get(sz-1) instanceof FTypeRest));
     }
 
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         boolean rc = false;
         FType other = null;
@@ -477,16 +477,25 @@ abstract public class FType implements Comparable<FType> {
             rc = true;
         } else {
             other = env.getTypeNull(((IdType)val).getName());
-            if (DUMP_UNIFY && other==null) System.out.print("null ");
+            if (DUMP_UNIFY && other==null) System.out.print("undef second ");
         }
-        if (other != null) {
+        if (!rc) {
             if (abm.isForward()) {
-                // Let the unification succeed if there's a subtype relationship.
-                rc = this.subtypeOf(other);
+                // Let unification succeed if there's a subtype relationship.
+                if (other==null) {
+                    // Uninitialized type.  Deal gracefully with absent type info.
+                    rc = this instanceof BottomType;
+                } else {
+                    rc = this.subtypeOf(other);
+                }
             } else {
-                // Let the unification succeed for a reverse subtype relationship.
-                if (DUMP_UNIFY) System.out.print("contra ");
-                rc = other.subtypeOf(this);
+                // Let unification succed if there's reverse subtyping.
+                if (other==null) {
+                    // Uninitialized type.  Deal gracefully with absent type info.
+                    rc = this instanceof FTypeTop;
+                } else {
+                    rc = other.subtypeOf(this);
+                }
             }
         }
         if (DUMP_UNIFY) {
@@ -508,33 +517,30 @@ abstract public class FType implements Comparable<FType> {
      * unifyNonVar; this is why that method is overridable while this
      * one is final.
      */
-    public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
+    public final void unify(BetterEnv env, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         /* Check if val is a type variable */
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
             String nm = NodeUtil.nameString(id_val.getName());
-//            for (StaticParam tp : tp_set) {
-//                String k = NodeUtil.getName(tp);
-//                if (k.equals(nm)) {
-                    if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this);
-                    try {
-                       abm.joinPut(nm, this);
-                    } catch (EmptyLatticeIntervalError el) {
-                        if (DUMP_UNIFY) System.out.println("Out of bounds");
-                        unificationError(val, errorMsg("Actual type ",this,
-                                                       " out of bounds for variable ",nm));
-                        return;
-                    } catch (Error th) {
-                        if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
-                        throw th;
-                    } catch (RuntimeException th) {
-                        if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
-                        throw th;
-                    }
-                    if (DUMP_UNIFY) System.out.println(" result abm= " + abm);
+            if (tp_set.contains(nm)) {
+                if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this);
+                try {
+                    abm.joinPut(nm, this);
+                } catch (EmptyLatticeIntervalError el) {
+                    if (DUMP_UNIFY) System.out.println("Out of bounds");
+                    unificationError(val, errorMsg("Actual type ",this,
+                                                   " out of bounds for variable ",nm));
                     return;
-//                }
-//            }
+                } catch (Error th) {
+                    if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
+                    throw th;
+                } catch (RuntimeException th) {
+                    if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
+                    throw th;
+                }
+                if (DUMP_UNIFY) System.out.println(" result abm= " + abm);
+                return;
+            }
         }
         /* We want to unify with the most specific subtype possible, so */
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
@@ -562,7 +568,7 @@ abstract public class FType implements Comparable<FType> {
      * Convenience method for unifying with a VarargsType (e.g., "T...").
      * VarargsTypes are special forms that appear only in ArgTypes. They are not Types.
      */
-    public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
+    public final void unify(BetterEnv env, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
         unify(env, tp_set, abm, val.getType());
     }
 

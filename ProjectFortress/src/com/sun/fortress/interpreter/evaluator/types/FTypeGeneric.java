@@ -87,6 +87,39 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     static List<FTraitOrObjectOrGeneric> pendingFunctionalMethodFinishes =
         new ArrayList<FTraitOrObjectOrGeneric>();
 
+    private final Generic def;
+    private final FTypeGeneric original;
+
+    public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+        super(NodeUtil.stringName(d), e, decl);
+        def = d;
+        params = d.getStaticParams();
+        genericAt = d;
+        this.members = members;
+        original = this;
+    }
+
+    public FTypeGeneric(FTypeGeneric orig, TraitObjectAbsDeclOrDecl new_def) {
+        super(orig.getName(), orig.getWithin(), orig.getDecl());
+        genericAt = orig.getDef();
+        def = new_def;
+        params = new_def.getStaticParams();
+        members = new_def.getDecls();
+        original = orig;
+    }
+
+    FTypeGeneric substituteOprs(List<FType> args) {
+        return this;
+    }
+
+    public Generic getDef() {
+        return def;
+    }
+
+    public FTypeGeneric getOriginal() {
+        return original;
+    }
+
     static public void startPendingTraitFMs() {
         if (!InstantiationLock.L.isHeldByCurrentThread()) {
             bug("startPendingTraitFMs without holding instantiation lock.");
@@ -103,34 +136,6 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         }
         pendingFunctionalMethodFinishes.clear();
-    }
-
-    public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
-        super(NodeUtil.stringName(d), e, decl);
-        def = d;
-        params = d.getStaticParams();
-        genericAt = d;
-        this.members = members;
-    }
-
-    public FTypeGeneric(FTypeGeneric orig, TraitObjectAbsDeclOrDecl new_def) {
-        super(orig.getName(), orig.getWithin(), orig.getDecl());
-        genericAt = orig.getDef();
-        def = new_def;
-        params = new_def.getStaticParams();
-        members = new_def.getDecls();
-
-    }
-
-    FTypeGeneric substituteOprs(List<FType> args) {
-        return this;
-    }
-
-
-     Generic def;
-
-    public Generic getDef() {
-        return def;
     }
 
     public List<StaticParam> getParams() {
@@ -369,6 +374,10 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         EvalType et = new EvalType(e);
         ArrayList<FType> argValues = et.forStaticArgList(args);
         return make(argValues, x);
+    }
+
+    public String toString() {
+        return getName()+Useful.listInOxfords(getParams())+"(uninstantiated)";
     }
 
 }

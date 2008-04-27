@@ -44,7 +44,7 @@ abstract public class FTypeNat extends FBuiltinType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         /* Unification has failed due to a fundamental kind error.
            Report that and fail. */

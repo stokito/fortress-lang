@@ -321,7 +321,7 @@ public class FTypeTuple extends FType {
      * Unify a tuple type with a list of Type.
      *  This gets used here and in FTypeArrow.
      */
-    public boolean unifyTuple(BetterEnv env, Set<StaticParam> tp_set,
+    public boolean unifyTuple(BetterEnv env, Set<String> tp_set,
                               BoundingMap<String, FType, TypeLatticeOps> abm,
                               List<Type> vals, Option<VarargsType> varargs) {
         Iterator<FType> ftIterator = l.iterator();
@@ -353,7 +353,7 @@ public class FTypeTuple extends FType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);

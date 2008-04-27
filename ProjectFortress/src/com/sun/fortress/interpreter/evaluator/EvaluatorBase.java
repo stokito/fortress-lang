@@ -143,22 +143,37 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         LatticeIntervalMap<String, FType, TypeLatticeOps>(TypeLatticeOps.V,
                 StringComparer.V);
         Param p = null;
-        Set<StaticParam> tp_set = new HashSet<StaticParam>(tparams);
+        Set<String> tp_set = new HashSet<String>();
+        List<TypeParam> rechecks = null;
         for (StaticParam sp : tparams) {
+            boolean rechecked = false;
+            String name = NodeUtil.getName(sp);
+            tp_set.add(name);
             if (sp instanceof TypeParam) {
+                if (DUMP_INFERENCE)
+                    System.err.println("TypeParam "+sp);
                 TypeParam stp = (TypeParam) sp;
-                String stp_name = stp.getName().getText();
                 for (Type tr : stp.getExtendsClause()) {
                     // Preinstall bounds in the boundingmap
                     try {
-                        abm.meetPut(stp_name, et.evalType(tr));
+                        FType tt = et.evalType(tr);
+                        if (DUMP_INFERENCE)
+                            System.err.println("    extends "+tr+" = "+tt);
+                        abm.meetPut(name, tt);
                     } catch (FortressError pe) {
-                        // TODO This is an experiment; some inferences are
-                        // failing to run
-                        // because the bounds cannot be evaluated early.
+                        if (DUMP_INFERENCE)
+                            System.err.println("    extends with failed evalType "+tr);
+                        if (!rechecked) {
+                            rechecked = true;
+                            if (rechecks == null) {
+                                rechecks = new ArrayList<TypeParam>();
+                            }
+                            rechecks.add(stp);
+                        }
                     }
                 }
-            }
+            } else if (DUMP_INFERENCE)
+                System.err.println("Non-simple StaticParam "+sp);
         }
         /* FIX FOR #62 */
         if (params.size()==1 && args.size() != 1) {
@@ -260,6 +275,37 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
         if (DUMP_INFERENCE)
             System.err.println("ABM 2={" + abm + "}");
+
+        /* Enforce upper bounds that we could not enforce up front.
+         * We're worried here about self-typing idioms.  What we have to do
+         * is find the (unique) occurrence of the type stem of the bounding type
+         * in the supertypes of the bounded type.
+         *
+         * What do we do with variable upper bounds?  We should impose the bounds
+         * derived for the given type variable.
+         */
+        if (rechecks != null) {
+            for (TypeParam tp : rechecks) {
+                FType t = abm.get(NodeUtil.getName(tp));
+                if (t == null) {
+                    if (DUMP_INFERENCE) {
+                        System.err.println("Can't constrain the type "+tp+
+                                           "\n    enough to enforce its upper bounds "+
+                                           tp.getExtendsClause() +
+                                           "\n    Choosing to erase to bottom.");
+                    }
+                    t = BottomType.ONLY;
+                }
+                for (Type tr : tp.getExtendsClause()) {
+                    if (DUMP_INFERENCE) {
+                        System.err.println("Unifying "+tp+" lower bound "+t+
+                                           "\n    with its bound "+tr+
+                                           " "+tr.getClass());
+                    }
+                    t.unify(e, tp_set, abm, tr);
+                }
+            }
+        }
 
         /*
          * Iterate over static parameters, choosing least-general binding for

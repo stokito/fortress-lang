@@ -27,13 +27,13 @@ check(db: Map[\String,ZZ32\]): () = do
     expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
     seen : Boolean[5] := array1[\Boolean,5\](false)
     n : ZZ32 := 0
-    for (k,v) <- database do
+    for (k,v) <- db do
         atomic if NOT seen[v] then seen[v] := true
                else fail("Duplicated " k "|->" v) end
         atomic n += 1
         assert(k,expect[v],"Unexpectedly " k "|->" v)
     end
-    assert(n,5,"Found the wrong number of keys!")
+    assert(n,5,"Found the wrong number of keys in ", db)
   end
 
 
