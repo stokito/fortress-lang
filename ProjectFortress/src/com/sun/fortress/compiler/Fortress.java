@@ -208,7 +208,7 @@ public class Fortress {
             Iterable<Api> apis, Iterable<Component> components,
             long lastModified) {
         // Handle APIs first
-    	
+
         // Build ApiIndices before disambiguating to allow circular references.
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
@@ -229,7 +229,7 @@ public class Fortress {
         Disambiguator.ApiResult apiDR =
             Disambiguator.disambiguateApis(apis, rawApiEnv);
         if (!apiDR.isSuccessful()) { return apiDR.errors(); }
-        
+
         // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
         if (!apiIR.isSuccessful()) { return apiIR.errors(); }
@@ -350,7 +350,7 @@ public class Fortress {
 			throw new WrappedException(e);
 		}
 	}
-    
+
     static class WrappedException extends StaticError {
 
         private final Throwable throwable;
@@ -367,7 +367,6 @@ public class Fortress {
 
         @Override
         public String toString() {
-        	throwable.printStackTrace();
             return throwable.getMessage();
         }
 
