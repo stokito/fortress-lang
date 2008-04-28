@@ -168,14 +168,12 @@ opr BIG {|->[\Key,Val\] g: ( Reduction[\SomeList\], (Key,Val) -> SomeList) ->
 opr BIG UNION[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
                               Map[\Key,Val\] -> Map[\Key,Val\]) ->
                             Map[\Key,Val\] ) : Map[\Key,Val\] =
-    g.generate[\Map[\Key,Val\]\](MapUnion[\Key,Val\],
-                                 identity[\Map[\Key,Val\]\])
+    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UNION b, EmptyMap[\Key,Val\], g)
 
 opr BIG UPLUS[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
                               Map[\Key,Val\] -> Map[\Key,Val\]) ->
                             Map[\Key,Val\] ) : Map[\Key,Val\] =
-    g.generate[\Map[\Key,Val\]\](DisjointMapUnion[\Key,Val\],
-                                 identity[\Map[\Key,Val\]\])
+    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UPLUS b, EmptyMap[\Key,Val\], g)
 
 object SeqMapGenerator[\Key,Val\](o:Map[\Key,Val\])
     extends SequentialGenerator[\(Key,Val)\]
@@ -186,12 +184,6 @@ object DisjointMapUnion[\Key,Val\] extends Reduction[\Map[\Key,Val\]\]
     empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
     join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
         a UPLUS b
-end
-
-object MapUnion[\Key,Val\] extends Reduction[\Map[\Key,Val\]\]
-    empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
-    join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
-        a UNION b
 end
 
 object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
