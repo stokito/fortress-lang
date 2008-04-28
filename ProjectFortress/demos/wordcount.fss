@@ -1,0 +1,83 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component wordcount
+import File.{...}
+import FileSupport.{...}
+import List.{...}
+import Map.{...}
+export Executable
+
+isDelimiter(c:Char):Boolean =   c = ' ' OR c = ','
+
+getWords(s:String):Map[\String, ZZ32\] = do
+    var database:Map[\String,ZZ32\] := mapping[\String,ZZ32\]()
+    var count:ZZ32 := 0
+    var current:ZZ32 := 0
+    var start:ZZ32 := 0
+    while (current < s.size()) do
+        if isDelimiter(s[current]) then
+           count := count - 1
+           if count >= 1 then 
+               database := database.add(s[start#count], 1)
+          end
+           start := current + 1
+           count := 0
+        end
+        count += 1
+        current += 1
+    end
+    database := database.add(s[start#count-1],1)
+    database
+end
+
+makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
+    var database:Map[\ZZ32,List[\String\]\] := mapping[\ZZ32,List[\String\]\]()
+    database := database.add(y, <| x |>)
+    database
+end
+
+object UnionSumReduction extends Reduction[\Map[\String,ZZ32\]\]  
+     join(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a UNIONSUM b
+     empty():Map[\String,ZZ32\] = mapping[\String,ZZ32\]()
+end
+    
+opr UNIONSUM(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a.union(fn(k,x,y)=>x+y, b)
+
+opr BIG UNIONSUM(g:(Reduction[\Map[\String,ZZ32\]\], Map[\String,ZZ32\]->Map[\String,ZZ32\])->Map[\String,ZZ32\]):Map[\String,ZZ32\]= 
+    g(UnionSumReduction, identity[\Map[\String,ZZ32\]\])
+
+object UnionUnionReduction extends Reduction[\Map[\ZZ32,List[\String\]\]\]
+    join(a:Map[\ZZ32, List[\String\]\], b:Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] = a UNIONUNION b
+    empty():Map[\ZZ32,List[\String\]\] = mapping[\ZZ32,List[\String\]\]()
+end
+
+opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] = a.union(fn(k,x,y) =>x.append(y),b)
+
+opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\], Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\])->Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] =g(UnionUnionReduction, identity[\Map[\ZZ32,List[\String\]\]\])
+  
+run(args:String...)= do
+    var rs:FileReadStream = FileReadStream("demos/presidents")
+    database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
+    invDatabase:Map[\ZZ32,List[\String\]\] = BIG UNIONUNION [(x,y) <-database] (makeInv(x,y))
+    (c,m) = invDatabase.maximum()
+    assert((c,m),(6,<|"James"|>), "Most common president's name")
+    println("The string " m " was used " c " times")
+    rs.close()
+end
+end
+

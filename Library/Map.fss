@@ -488,7 +488,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
      end
 
     double_R(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
-        println("double_R " NodeMap[\Key,Val\](c,left,right).showTree())
+        (* println("double_R " NodeMap[\Key,Val\](c,left,right).showTree()) *)
         (ak,av) = left.getPair()
         x = left.getLeftChild()
         (bk,bv) = left.getRightChild().getPair()
