@@ -32,7 +32,7 @@ getWords(s:String):Map[\String, ZZ32\] = do
     while (current < s.size()) do
         if isDelimiter(s[current]) then
            count := count - 1
-           if count >= 1 then 
+           if count >= 1 then
                database := database.add(s[start#count], 1)
           end
            start := current + 1
@@ -51,15 +51,10 @@ makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
     database
 end
 
-object UnionSumReduction extends Reduction[\Map[\String,ZZ32\]\]  
-     join(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a UNIONSUM b
-     empty():Map[\String,ZZ32\] = mapping[\String,ZZ32\]()
-end
-    
 opr UNIONSUM(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a.union(fn(k,x,y)=>x+y, b)
 
-opr BIG UNIONSUM(g:(Reduction[\Map[\String,ZZ32\]\], Map[\String,ZZ32\]->Map[\String,ZZ32\])->Map[\String,ZZ32\]):Map[\String,ZZ32\]= 
-    g(UnionSumReduction, identity[\Map[\String,ZZ32\]\])
+opr BIG UNIONSUM(g:(Reduction[\Map[\String,ZZ32\]\], Map[\String,ZZ32\]->Map[\String,ZZ32\])->Map[\String,ZZ32\]):Map[\String,ZZ32\]=
+    embiggen[\Map[\String,ZZ32\]\](fn (a,b) => a UNIONSUM b, mapping[\String,ZZ32\](), g)
 
 object UnionUnionReduction extends Reduction[\Map[\ZZ32,List[\String\]\]\]
     join(a:Map[\ZZ32, List[\String\]\], b:Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] = a UNIONUNION b
@@ -69,7 +64,7 @@ end
 opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] = a.union(fn(k,x,y) =>x.append(y),b)
 
 opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\], Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\])->Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] =g(UnionUnionReduction, identity[\Map[\ZZ32,List[\String\]\]\])
-  
+
 run(args:String...)= do
     var rs:FileReadStream = FileReadStream("demos/presidents")
     database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
