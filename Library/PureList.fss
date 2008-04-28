@@ -91,19 +91,19 @@ list[\E\](g:Generator[\E\]):List[\E\] =
 concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
 
 (** A reduction object for concatenating lists. *)
-object Concat[\E\] extends Reduction[\ List[\E\] \]
+private object Concat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
 end
 
 (** The same for reverse concatenation *)
-object RevConcat[\E\] extends Reduction[\ List[\E\] \]
+private object RevConcat[\E\] extends Reduction[\ List[\E\] \]
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
 end
 
 (** A reduction object for concatenating specifically PureLists. *)
-object PLConcat[\E\] extends Reduction[\ PureList[\E\] \]
+private object PLConcat[\E\] extends Reduction[\ PureList[\E\] \]
   empty(): PureList[\E\] = D0[\E\]
   join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
 end
@@ -168,30 +168,30 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       (PureList[\E\](l),PureList[\E\](r))
     end
   reverse(): PureList[\E\] = PureList[\E\](it.revMap(identity[\E\]))
-  contents():FingerTree[\E\] = it
-  left1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
-  left1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
+  private contents():FingerTree[\E\] = it
+  private left1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
+  private left1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
       Just[\E\](itt.left())
-  right1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
-  right1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
+  private right1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
+  private right1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
       Just[\E\](itt.right())
-  extractLeft1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
+  private extractLeft1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
       Nothing[\(E,PureList[\E\])\]
-  extractLeft1(itt: NonEmptyFingerTree[\E\]):
+  private extractLeft1(itt: NonEmptyFingerTree[\E\]):
           Just[\(E,PureList[\E\])\] = do
       (h,t) = it.extractLeft()
       Just[\(E,PureList[\E\])\](h,PureList[\E\](t))
     end
-  extractRight1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
+  private extractRight1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
       Nothing[\(E,PureList[\E\])\]
-  extractRight1(itt: NonEmptyFingerTree[\E\]):
+  private extractRight1(itt: NonEmptyFingerTree[\E\]):
           Just[\(E,PureList[\E\])\] = do
       (i,l) = it.extractRight()
       Just[\(PureList[\E\],E)\](PureList[\E\](i),l)
     end
 end
 
-value object SeqListGenerator[\E\]( it: FingerTree[\E\] )
+private value object SeqListGenerator[\E\]( it: FingerTree[\E\] )
         extends { SequentialGenerator[\E\] }
     getter size(): ZZ32 = |self|
     opr |self| : ZZ32 = leafSize(it)
@@ -207,13 +207,13 @@ singleton[\E\](e:E): List[\E\] =
    1.  This works because the tree innards can never be part of a
    nested tree unless there is an intervening PureList.  Data
    abstraction has its advantages! *)
-leafSize(a:Any):ZZ32 = 1
+private leafSize(a:Any):ZZ32 = 1
 
-trait Sized
+private trait Sized
     leafSize(self):ZZ32
 end
 
-trait FTStructure[\E\] extends Sized
+private trait FTStructure[\E\] extends Sized
     comprises { FingerTree[\E\], D04[\E\] }
   generate[\R\](r: Reduction[\R\], body: E->R): R
   seqgen[\R\](r: Reduction[\R\], body: E->R): R
@@ -223,7 +223,7 @@ trait FTStructure[\E\] extends Sized
   revMap(f:E -> E):FTStructure[\E\]
 end
 
-object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]
+private object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]
     getter size(): ZZ32 = |it|
     opr |self| : ZZ32 = |it|
     generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
@@ -231,14 +231,14 @@ object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]
     seq(self): SequentialGenerator[\E\] = SequentialIndexValuePairs[\E\](it)
 end
 
-object SequentialIndexValuePairs[\E\](it: FingerTree[\E\])
+private object SequentialIndexValuePairs[\E\](it: FingerTree[\E\])
         extends SequentialGenerator[\(ZZ32,E)\]
     getter size(): ZZ32 = |it|
     opr |self| : ZZ32 = |it|
     generate[\R\](r: Reduction[\R\], body: E->R): R = it.sivgen[\R\](0,r,body)
 end
 
-trait FingerTree[\E\] extends FTStructure[\E\]
+private trait FingerTree[\E\] extends FTStructure[\E\]
     comprises { D01[\E\], NonEmptyFingerTree[\E\] }
   append(f:D01[\E\]) : FingerTree[\E\] = addRightD(f)
   append(f:Deep[\E\]) : FingerTree[\E\]
@@ -257,7 +257,7 @@ trait FingerTree[\E\] extends FTStructure[\E\]
   split(): (FingerTree[\E\], FingerTree[\E\])
 end
 
-trait NonEmptyFingerTree[\E\] extends FingerTree[\E\]
+private trait NonEmptyFingerTree[\E\] extends FingerTree[\E\]
     comprises { D1[\E\], Deep[\E\] }
   getter isEmpty(): Boolean = false
   getter left():E
@@ -272,20 +272,20 @@ end
    We populate the sets of digits of particular sizes.  The ones which
    matter most are D14 (fringes of a Deep), D01 (shallow FingerTree), and
    D23 (nodes of the middle of a Deep).  *)
-trait D04[\E\] extends FTStructure[\E\]
+private trait D04[\E\] extends FTStructure[\E\]
     comprises { D03[\E\], D14[\E\] }
   toFinger():FingerTree[\E\]
   split(): (D02[\E\], D02[\E\])
   index(n:ZZ32): (ZZ32, E)
 end
 
-trait D03[\E\] extends D04[\E\]
+private trait D03[\E\] extends D04[\E\]
     comprises { D02[\E\], D13[\E\] }
   cons(e:E) : D14[\E\]
   snoc(e:E) : D14[\E\]
 end
 
-trait D14[\E\] extends D04[\E\]
+private trait D14[\E\] extends D04[\E\]
     comprises { D13[\E\], D24[\E\] }
   getter isEmpty(): Boolean = false
   getter uncons() : (E,D03[\E\])
@@ -299,13 +299,13 @@ trait D14[\E\] extends D04[\E\]
   split3(n:ZZ32): (D03[\E\], E, D03[\E\])
 end
 
-trait D02[\E\] extends D03[\E\]
+private trait D02[\E\] extends D03[\E\]
     comprises { D01[\E\],D12[\E\] }
   cons(e:E) : D13[\E\]
   snoc(e:E) : D13[\E\]
 end
 
-trait D13[\E\] extends { D03[\E\], D14[\E\] }
+private trait D13[\E\] extends { D03[\E\], D14[\E\] }
     comprises { D12[\E\], D23[\E\] }
   getter uncons() : (E,D02[\E\])
   getter unsnoc() : (D02[\E\],E)
@@ -315,7 +315,7 @@ trait D13[\E\] extends { D03[\E\], D14[\E\] }
   nodes2(x:D14[\E\]):D13[\D23[\E\]\]
 end
 
-trait D24[\E\] extends D14[\E\]
+private trait D24[\E\] extends D14[\E\]
   getter uncons() : (E,D13[\E\])
   getter unsnoc() : (D13[\E\],E)
   nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
@@ -323,7 +323,7 @@ trait D24[\E\] extends D14[\E\]
   nodes1():D12[\D23[\E\]\]
 end
 
-trait D01[\E\]
+private trait D01[\E\]
     extends { D02[\E\], FingerTree[\E\]  }
     comprises { D0[\E\], D1[\E\] }
   cons(e:E) : D12[\E\]
@@ -332,7 +332,7 @@ trait D01[\E\]
   toFinger():FingerTree[\E\] = self
 end
 
-trait D12[\E\] extends { D02[\E\], D13[\E\] }
+private trait D12[\E\] extends { D02[\E\], D13[\E\] }
     comprises { D1[\E\], D2[\E\] }
   getter uncons() : (E,D01[\E\])
   getter unsnoc() : (D01[\E\],E)
@@ -342,7 +342,7 @@ trait D12[\E\] extends { D02[\E\], D13[\E\] }
   nodes2(x:D14[\E\]):D12[\D23[\E\]\]
 end
 
-trait D23[\E\] extends { D13[\E\], D24[\E\] }
+private trait D23[\E\] extends { D13[\E\], D24[\E\] }
     comprises { D2[\E\], D3[\E\] }
   getter uncons() : (E,D12[\E\])
   getter unsnoc() : (D12[\E\],E)
@@ -352,7 +352,7 @@ trait D23[\E\] extends { D13[\E\], D24[\E\] }
   nodes2(x:D14[\E\]):D13[\D23[\E\]\]
 end
 
-trait D34[\E\] extends D24[\E\]
+private trait D34[\E\] extends D24[\E\]
     comprises { D3[\E\], D4[\E\] }
   getter uncons() : (E,D23[\E\])
   getter unsnoc() : (D23[\E\],E)
@@ -360,7 +360,7 @@ trait D34[\E\] extends D24[\E\]
   nodes2(x:D14[\E\]):D23[\D23[\E\]\]
 end
 
-object D0[\E\] extends { D01[\E\] }
+private object D0[\E\] extends { D01[\E\] }
   getter isEmpty():Boolean = true
   generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
@@ -384,7 +384,7 @@ object D0[\E\] extends { D01[\E\] }
   revMap(f:E->E): D0[\E\] = self
 end
 
-object D1[\E\](a:E)
+private object D1[\E\](a:E)
     extends { D01[\E\], D12[\E\], NonEmptyFingerTree[\E\] }
   getter left():Just[\E\] = a
   getter right():Just[\E\] = a
@@ -440,7 +440,7 @@ object D1[\E\](a:E)
   revMap(f:E->E): D1[\E\] = D1[\E\](f(a))
 end
 
-object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
+private object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
   ls = leafSize(a) + leafSize(b)
   getter car() = a
   getter rac() = b
@@ -524,7 +524,7 @@ object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
   revMap(f:E->E): D2[\E\] = D2[\E\](f(b),f(a))
 end
 
-object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
+private object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
   ls = leafSize(a) + leafSize(b) + leafSize(c)
   getter car() = a
   getter rac() = c
@@ -626,7 +626,7 @@ object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
   revMap(f:E->E): D3[\E\] = D3[\E\](f(c),f(b),f(a))
 end
 
-object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
+private object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
   ls = leafSize(a) + leafSize(b) + leafSize(c) + leafSize(d)
   getter car() = a
   getter rac() = d
@@ -749,7 +749,7 @@ object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
   revMap(f:E->E): D4[\E\] = D4[\E\](f(d),f(c),f(b),f(a))
 end
 
-object Deep[\E\]
+private object Deep[\E\]
            (l:D14[\E\], m:FingerTree[\ D23[\E\] \], r:D14[\E\])
     extends { NonEmptyFingerTree[\E\] }
   ls = leafSize(l)+leafSize(m)+leafSize(r)
