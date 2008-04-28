@@ -1290,13 +1290,42 @@ end
 
 opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
 
+(** A reduction performing String concatenation **)
 object StringReduction extends Reduction[\String\]
     getter toString()
     empty(): Boolean
     join(a:String, b:String): String
 end
 
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary. **)
 opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String
+
+(** A %MapReduceReduction% takes an associative binary function %j% on
+    arguments of type %R%, and the identity of that function %z%, and
+    returns the corresponding reduction. **)
+object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
+    getter toString()
+    empty(): R
+    join(a:R, b:R): R
+end
+
+(** Given an operator OP: (T,T) -> T and its identity z:T, create
+    the corresponding reduction.  OP must be associative. *)
+object OprReduction[\T,opr OP\](z:T) extends Reduction[\T\]
+    getter toString()
+    empty():T
+    join(a:T, b:T): T
+end
+
+(** %embiggen% takes a type %T% and an operation (either an operator
+    %OP% or binary function %f% on type %T%), along with the identity
+    %z% of the operation, and returns a function suitable as the right-hand
+    side of the definition of the corresponding BIG operator. **)
+(*
+embiggen[\T,opr OP\](z:T): ((Reduction[\T\],T->T) -> T) -> T
+*)
+embiggen[\T\](j:(Any,Any)->T, z:Any, g:(Reduction[\T\],T->Any) -> Any) : T
 
 (************************************************************
 * \subsection*{Ranges}
