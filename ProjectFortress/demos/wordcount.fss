@@ -56,14 +56,10 @@ opr UNIONSUM(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a.
 opr BIG UNIONSUM(g:(Reduction[\Map[\String,ZZ32\]\], Map[\String,ZZ32\]->Map[\String,ZZ32\])->Map[\String,ZZ32\]):Map[\String,ZZ32\]=
     embiggen[\Map[\String,ZZ32\]\](fn (a,b) => a UNIONSUM b, mapping[\String,ZZ32\](), g)
 
-object UnionUnionReduction extends Reduction[\Map[\ZZ32,List[\String\]\]\]
-    join(a:Map[\ZZ32, List[\String\]\], b:Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] = a UNIONUNION b
-    empty():Map[\ZZ32,List[\String\]\] = mapping[\ZZ32,List[\String\]\]()
-end
-
 opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] = a.union(fn(k,x,y) =>x.append(y),b)
 
-opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\], Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\])->Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] =g(UnionUnionReduction, identity[\Map[\ZZ32,List[\String\]\]\])
+opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\], Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\])->Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, mapping[\ZZ32,List[\String\]\](),g)
 
 run(args:String...)= do
     var rs:FileReadStream = FileReadStream("demos/presidents")
