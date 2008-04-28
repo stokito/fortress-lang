@@ -1998,20 +1998,61 @@ opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
         g(OrReduction, f)
     end MustBe
 
+(** A reduction performing String concatenation **)
 object StringReduction extends Reduction[\String\]
     getter toString() = "StringReduction"
     empty(): Boolean = ""
     join(a:String, b:String): String = a b
 end
 
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary. **)
 opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String =
     g(StringReduction, fn (x:Any)=> "" x)
 
+(** A %MapReduceReduction% takes an associative binary function %j% on
+    arguments of type %R%, and the identity of that function %z%, and
+    returns the corresponding reduction. **)
 object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
-    getter toString()="mapReduce.Reduction"
-    empty() = z
+    getter toString()="mapReduceReduction"
+    empty(): R = z
     join(a:R, b:R): R = (j)(a,b)
 end
+
+(** A %MapReduceReduction% takes an associative binary function %j% on
+    arguments of type %R%, and the identity of that function %z%, and
+    returns the corresponding reduction. **)
+object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends Reduction[\Any\]
+    getter toString()="mapReduceReduction"
+    empty(): R = z
+    join(a:Any, b:Any): R = (j)(a,b)
+end
+
+(** Given an operator OP: (T,T) -> T and its identity z:T, create
+    the corresponding reduction.  OP must be associative. *)
+object OprReduction[\T,opr OP\](z:T) extends Reduction[\T\]
+    getter toString()="OprReduction"
+    empty():T = z
+    join(a:T, b:T): T = a OP b
+end
+
+(** As above, but with hacks for missing type information. *)
+object MIOprReduction[\T,opr OP\](z:Any) extends Reduction[\Any\]
+    getter toString()="OprReduction"
+    empty(): T = z
+    join(a:Any, b:Any): T = a OP b
+end
+
+(** %embiggen% takes a type %T% and an operation (either an operator
+    %OP% or binary function %f% on type %T%), along with the identity
+    %z% of the operation, and returns a function suitable as the right-hand
+    side of the definition of the corresponding BIG operator. **)
+(*
+embiggen[\T,opr OP\](z:Any, g:(Reduction[\Any\],T->Any) -> Any) : T =
+    g(MIOprReduction[\T,OP\](z), fn (x) => x)
+*)
+embiggen[\T\](j:(Any,Any)->T, z:Any, g:(Reduction[\T\],T->Any) -> Any) : T =
+    g(MIMapReduceReduction[\T\](j,z), fn (x) => x)
 
 (** Helpers for maps and cross products of generators.  These can be
     quite a bit more sophisticated (for example, we can hoist maps

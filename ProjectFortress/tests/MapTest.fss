@@ -58,6 +58,12 @@ run(args:String...):() = do
     check(db)
     db0 = db UNION db'
     check(db0)
+    db1 = BIG UNION [(v,k) <- expect.indexValuePairs()] { k |-> v }
+    check(db1)
+    db2 = BIG UPLUS [(v,k) <- expect.indexValuePairs()] { k |-> v }
+    check(db2)
+    db3 = BIG UNION [i <- expect.indices()] { expect[v] |-> v | v <- 0:i }
+    check(db3)
     assert(db.member("Empty"),Nothing[\ZZ32\],"absent member")
     assert(db.member("Empty",77),77,"absent member with default 77")
     for (v,k) <- expect.indexValuePairs() do
