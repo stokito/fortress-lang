@@ -19,7 +19,6 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
-import java.util.Arrays;
 import java.util.Collections;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
@@ -37,11 +36,4 @@ public class Types {
     public static final Type CHAR = NodeFactory.makeInstantiatedType("FortressBuiltin", "Char");
     public static final Type STRING = NodeFactory.makeInstantiatedType("FortressBuiltin", "String");
     public static final Type REGION = NodeFactory.makeInstantiatedType("FortressLibrary", "Region");
-
-    public static final Type fromVarargsType(VarargsType varargsType) {
-        return NodeFactory.makeInstantiatedType(varargsType.getSpan(),
-                                                false,
-                                                makeQualifiedIdName(Arrays.asList(makeId("FortressBuiltin")),
-                                                                    makeId("ImmutableHeapSequence")));
-    }
 }
