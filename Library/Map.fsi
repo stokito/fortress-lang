@@ -42,12 +42,12 @@ trait Map[\Key,Val\]
         if the key is absent from the map. **)
     member(x:Key, v:Val): Val
     (** %minimum% and %maximum% refer to the key. **)
-    minimum():(Key,Val) throws NotFound
-    deleteMinimum():Map[\Key,Val\] throws NotFound
-    removeMinimum():((Key,Val), Map[\Key,Val\]) throws NotFound
-    maximum(): (Key,Val) throws NotFound
-    deleteMaximum():Map[\Key,Val\] throws NotFound
-    removeMaximum():((Key,Val), Map[\Key,Val\]) throws NotFound
+    minimum():Maybe[\(Key,Val)\]
+    deleteMinimum():Map[\Key,Val\]
+    extractMinimum():Maybe[\(Key,Val, Map[\Key,Val\])\]
+    maximum(): Maybe[\(Key,Val)\]
+    deleteMaximum():Map[\Key,Val\]
+    extractMaximum():Maybe[\(Key,Val, Map[\Key,Val\])\]
 
     (** If no mapping presently exists, maps %k% to %v%. **)
     add(k:Key, v:Val):Map[\Key,Val\]

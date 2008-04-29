@@ -55,7 +55,7 @@ trait Map[\Key,Val\]
         while notDone do
             typecase ni = n of
                 NodeMap[\Key,Val\] =>
-                    typecase _ = k CMP n.getKey() of
+                    typecase _ = k CMP ni.getKey() of
                         LessThan => n := ni.getLeftChild()
                         EqualTo  => notDone := false
                         else     => n := ni.getRightChild()
@@ -78,18 +78,14 @@ trait Map[\Key,Val\]
             else => v
         end
     (** minimum and maximum refer to the key **)
-    minimum():(Key,Val) throws NotFound
-    deleteMinimum():Map[\Key,Val\]  throws NotFound = do
-      (_, res) = self.removeMinimum()
-      res
-    end
-    removeMinimum():((Key,Val), Map[\Key,Val\]) throws NotFound
-    maximum(): (Key,Val) throws NotFound
-    deleteMaximum():Map[\Key,Val\] throws NotFound = do
-      (_, res) = self.removeMaximum()
-      res
-    end
-    removeMaximum():((Key,Val), Map[\Key,Val\]) throws NotFound
+    minimum():Maybe[\(Key,Val)\]
+    deleteMinimum():Map[\Key,Val\] =
+        if (_,_,r) <- extractMinimum() then r else self end
+    extractMinimum():Maybe[\(Key,Val, Map[\Key,Val\])\]
+    maximum(): Maybe[\(Key,Val)\]
+    deleteMaximum():Map[\Key,Val\] =
+        if (_,_,r) <- extractMaximum() then r else self end
+    extractMaximum():Maybe[\(Key,Val, Map[\Key,Val\])\]
 
     (** If no mapping presently exists, maps k to v. **)
     add(k:Key, v:Val):Map[\Key,Val\]
@@ -200,10 +196,12 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     getVal():Val = throw NotFound
     getLeftChild():Map[\Key,Val\] = self
     getRightChild():Map[\Key,Val\] = self
-    minimum(): (Key,Val) = throw NotFound
-    removeMinimum():((Key,Val), Map[\Key,Val\]) = throw NotFound
-    maximum(): (Key,Val) = throw NotFound
-    removeMaximum():((Key,Val), Map[\Key,Val\]) = throw NotFound
+    minimum(): Nothing[\(Key,Val)\] = Nothing[\(Key,Val)\]
+    extractMinimum():Nothing[\(Key,Val, Map[\Key,Val\])\] =
+        Nothing[\(Key,Val, Map[\Key,Val\])\]
+    maximum(): Nothing[\(Key,Val)\] = Nothing[\(Key,Val)\]
+    extractMaximum():Nothing[\(Key,Val, Map[\Key,Val\])\] =
+        Nothing[\(Key,Val, Map[\Key,Val\])\]
     add(k:Key, v:Val):Map[\Key,Val\] = NodeMap[\Key,Val\](k,v, self, self)
     update(k:Key, v:Val):Map[\Key,Val\] = add(k, v)
     delete(k:Key):Map[\Key,Val\] = self
@@ -243,7 +241,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     getter showTree():String =
       "[" left.showTree() " (" key "," val ") " right.showTree() "]"
     getter toString():String = do
-      (km, vm, delmin) = removeMinimum()
+      (km, vm, delmin) = extractMinimum().get()
       ("{" km "|->" vm
            (BIG STRING[(k,v)<-delmin] ", " k "|->" v) "}")
     end
@@ -274,7 +272,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     getLeftChild():Map[\Key,Val\] = left
     getRightChild():Map[\Key,Val\] = right
 
-    minimum():(Key,Val) = do
+    minimum():Just[\(Key,Val)\] = do
         t : NodeMap[\Key,Val\] := self
         notDone : Boolean := true
         while notDone do
@@ -283,16 +281,15 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
                 else => notDone := false
             end
         end
-        t.getPair()
+        Just[\Key,Val\](t.getPair())
       end
-    removeMinimum() =
-        typecase left of
-            NodeMap[\Key,Val\] =>
-                (k,v, delmin) = left.removeMinimum()
-                (k,v, balancedAdd(key,val,delmin,right))
-            else => (key,val, right)
+    extractMinimum():Just[\(Key,Val,Map[\Key,Val\])\] =
+        if (k,v,delmin) <- left.extractMinimum() then
+            Just[\(Key,Val,Map[\Key,Val\])\](k,v, balancedAdd(key,val,delmin,right))
+        else
+            Just[\(Key,Val,Map[\Key,Val\])\](key,val,right)
         end
-    maximum():(Key,Val) = do
+    maximum():Just[\(Key,Val)\] = do
         t : NodeMap[\Key,Val\] := self
         notDone : Boolean := true
         while notDone do
@@ -301,14 +298,13 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
                 else => notDone := false
             end
         end
-        t.getPair()
+        Just[\Key,Val\](t.getPair())
       end
-    removeMaximum() =
-        typecase right of
-            NodeMap[\Key,Val\] =>
-                (k,v, delmax) = left.removeMaximum()
-                (k,v, balancedAdd(key,val,left,delmax))
-            else => (key,val, left)
+    extractMaximum():Just[\(Key,Val,Map[\Key,Val\])\] =
+        if (k,v,delmax) <- right.extractMaximum() then
+            Just[\(Key,Val,Map[\Key,Val\])\](k,v, balancedAdd(key,val,left,delmax))
+        else
+            Just[\(Key,Val,Map[\Key,Val\])\](key,val,left)
         end
 
     add(k:Key, v:Val):Map[\Key,Val\] =
@@ -374,11 +370,10 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         end
 
     concat(t2:Map[\Key,Val\]): Map[\Key,Val\] =
-        typecase t2 of
-            NodeMap[\Key,Val\] =>
-                (min, butMin) = t2.removeMinimum()
-                self.concat3(min,butMin)
-            else => self
+        if (k,v,butMin) <- t2.extractMinimum() then
+            self.concat3(k,v,butMin)
+        else
+            self
         end
     concat3(k:Key, v:Val, t2:Map[\Key,Val\]): Map[\Key,Val\] = add(k,v)
     concat3(k:Key, v:Val, t2:NodeMap[\Key,Val\]): Map[\Key,Val\] =
@@ -427,11 +422,12 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
             else false end
         end
 
-    balancedDelete(r:NodeMap[\Key,Val\]):Map[\Key,Val\] = do
-      (min_elt, del_min) = right.removeMinimum()
-      balancedAdd(min_elt, self, del_min)
-    end
-    balancedDelete(r:Map[\Key,Val\]):Map[\Key,Val\] = self
+    balancedDelete(r:Map[\Key,Val\]):Map[\Key,Val\] =
+        if (min_k, min_v, del_min) <- r.extractMinimum() then
+            balancedAdd(min_k, min_v, self, del_min)
+        else
+            self
+        end
 
     balancedAdd(k:Key, v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
       ln = |left|
@@ -458,17 +454,17 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
       else NodeMap[\Key,Val\](k,v, left, right) end
     end
 
-    single_L(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
+    single_L(k:Key,v:Val, left:Map[\Key,Val\], right:NodeMap[\Key,Val\]):NodeMap[\Key,Val\] =
       NodeMap[\Key,Val\](right.getKey(), right.getVal(),
                          NodeMap[\Key,Val\](k,v, left, right.getLeftChild()),
                          right.getRightChild())
 
-    single_R(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
+    single_R(k:Key,v:Val, left:NodeMap[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
       NodeMap[\Key,Val\](left.getKey(), left.getVal(),
                          left.getLeftChild(),
                          NodeMap[\Key,Val\](k,v,left.getRightChild(),right))
 
-    double_L(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
+    double_L(k:Key,v:Val, left:Map[\Key,Val\], right:NodeMap[\Key,Val\]):NodeMap[\Key,Val\] = do
         x = left
         (ck,cv) = right.getPair()
         (bk,bv) = right.getLeftChild().getPair()
@@ -479,7 +475,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         NodeMap[\Key,Val\](bk,bv, NodeMap[\Key,Val\](k,v,x,y1),NodeMap[\Key,Val\](ck,cv,y2,z))
      end
 
-    double_R(k:Key,v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
+    double_R(k:Key,v:Val, left:NodeMap[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
         (* println("double_R " NodeMap[\Key,Val\](c,left,right).showTree()) *)
         (ak,av) = left.getPair()
         x = left.getLeftChild()

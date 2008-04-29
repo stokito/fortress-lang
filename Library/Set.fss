@@ -40,18 +40,14 @@ trait Set[\E\]
    opr IN(x:E, self):Boolean
    indexOf(x:E): ZZ32 = self.indexOfI(0,x)
    indexOfI(i:ZZ32, x:E): ZZ32
-   minimum():E
-   maximum():E
-   deleteMinimum():Set[\E\] = do
-     (_, res) = removeMinimum()
-     res
-   end
-   deleteMaximum():Set[\E\] = do
-     (_, res) = removeMaximum()
-     res
-   end
-   removeMinimum():(E, Set[\E\])
-   removeMaximum():(E, Set[\E\])
+   minimum():Maybe[\E\]
+   maximum():Maybe[\E\]
+   deleteMinimum():Set[\E\] =
+       if (_, res) <- extractMinimum() then res else self end
+   deleteMaximum():Set[\E\] =
+       if (_, res) <- extractMaximum() then res else self end
+   extractMinimum():Maybe[\(E, Set[\E\])\]
+   extractMaximum():Maybe[\(E, Set[\E\])\]
    add(z:E):Set[\E\]
    delete(z:E):Set[\E\]
    balancedDelete(r:Set[\E\]):Set[\E\]
@@ -162,10 +158,10 @@ object EmptySet[\E\] extends Set[\E\]
    showTree():String = "ε"
    toString():String = "{}"
    opr IN(x:E, self):Boolean = false
-   minimum():E = fail("Empty set: no minimum element.")
-   removeMinimum():(E, Set[\E\]) = fail("Empty set: cannot remove minimum.")
-   maximum():E = fail("Empty set: no maximum element.")
-   removeMaximum():(E, Set[\E\]) = fail("Empty set: cannot remove maximum.")
+   minimum():Nothing[\E\] = Nothing[\E\]
+   extractMinimum():Nothing[\(E, Set[\E\])\] = Nothing[\(E, Set[\E\])\]
+   maximum():Nothing[\E\] = Nothing[\E\]
+   extractMaximum():Nothing[\(E, Set[\E\])\] = Nothing[\(E, Set[\E\])\]
    add(z:E):Set[\E\] = NodeSet[\E\](z,self,self)
    delete(z:E):Set[\E\] = self
    balancedAdd(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = NodeSet[\E\](val,self,self)
@@ -230,7 +226,7 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
       "(" left.showTree() " " val " " right.showTree() ")"
 
    toString():String = do
-      (h,t) = removeMinimum()
+      (h,t) = extractMinimum().get()
       "{" h t.generate[\String\](StringReduction,
                                   fn (e:E)=>"," e) "}"
    end
@@ -255,33 +251,50 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
        else              left.balancedDelete(right)
        end
 
-   balancedDelete(r:NodeSet[\E\]):Set[\E\] = do
-     (min_elt, del_min) = r.removeMinimum()
-     balancedAdd(min_elt, self, del_min)
-   end
-   balancedDelete(r:Set[\E\]):Set[\E\] = self
+   balancedDelete(r:Set[\E\]):Set[\E\] =
+       if (min_elt, del_min) <- r.extractMinimum() then
+           balancedAdd(min_elt, self, del_min)
+       else
+           r
+       end
 
-   minimum():E = do
-      if left.isEmpty() then val else left.minimum() end
-   end
-
-   maximum():E = do
-      if right.isEmpty() then val else right.maximum() end
-   end
-
-   removeMinimum() =
-     if left.isEmpty() then (val,right)
-     else
-       (min, delmin) = left.removeMinimum()
-       (min, balancedAdd(val,delmin,right))
+   minimum():Just[\E\] = do
+       notDone : Boolean := true
+       r : NodeSet[\E\] := self
+       while notDone do
+           typecase l = t.getLeftChild() of
+               NodeSet[\E\] => t := l
+               else => notDone := false
+           end
+       end
+       Just[\E\](t.getVal())
      end
 
-   removeMaximum() =
-     if right.isEmpty() then (val,left)
-     else
-       (max, delmax) = right.removeMaximum()
-       (max, balancedAdd(val,left,delmax))
+   maximum():Just[\E\] = do
+       notDone : Boolean := true
+       r : NodeSet[\E\] := self
+       while notDone do
+           typecase l = t.getRightChild() of
+               NodeSet[\E\] => t := l
+               else => notDone := false
+           end
+       end
+       Just[\E\](t.getVal())
      end
+
+   extractMinimum(): Just[\(E,Set[\E\])\] =
+       if (min, delmin) <- left.extractMinimum() then
+           Just[\(E,Set[\E\])\](min, balancedAdd(val,delmin,right))
+       else
+           Just[\(E,Set[\E\])\](val,right)
+       end
+
+   extractMaximum(): Just[\(E,Set[\E\])\] =
+       if (max, delmax) <- right.extractMaximum() then
+           Just[\(E,Set[\E\])\](max, balancedAdd(val,left,delmax))
+       else
+           Just[\(E,Set[\E\])\](val,left)
+       end
 
    (* TODO: union, intersection, and difference should use hedge
       algorithms, which avoid splitting and the allocation it entails
@@ -353,11 +366,12 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
           end
       end
 
-   concat(t2:NodeSet[\E\]):Set[\E\] = do
-      (min, delmin) = t2.removeMinimum()
-      concat3(min, delmin)
-   end
-   concat(t2:Set[\E\]):Set[\E\] = self
+   concat(t2:Set[\E\]):Set[\E\] =
+       if (min, delmin) <- t2.extractMinimum() then
+           concat3(min, delmin)
+       else
+           self
+       end
 
    splitIndex(x:ZZ32):(Set[\E\],Set[\E\]) =
       if x < |left| then

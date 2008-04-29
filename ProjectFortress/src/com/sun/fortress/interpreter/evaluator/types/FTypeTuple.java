@@ -42,6 +42,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.FortressError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
 
@@ -247,13 +248,13 @@ public class FTypeTuple extends FType {
         // TODO these cases make my brain hurt.
 
         if (s1 != s2)
-            NI.nyi("JOIN of lists of types of unequal length");
+            bug(errorMsg("JOIN of type lists of unequal length: ", s1, " and ", s2));
 
         if (s1 > 0 && pl1.get(s1 - 1) instanceof FTypeRest)
-            NI.nyi("JOIN of lists, first has REST parameter");
+            bug(errorMsg("JOIN of lists, first has REST parameter: ", s1, " and ", s2));
 
         if (s2 > 0 && pl2.get(s2 - 1) instanceof FTypeRest)
-            NI.nyi("JOIN of lists, second has REST parameter");
+            bug(errorMsg("JOIN of lists, second has REST parameter: ",s1, " and ", s2));
 
         // TODO today, if we can arrive at a single answer, we declare victory,
         // otherwise punt.

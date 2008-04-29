@@ -75,8 +75,7 @@ aStarPair[\T extends SearchInstance[\T,C\],C\](a:T):(C,T) = (a.cost(),a)
 aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
     label succeed
         q : Heap[\C,T\] := singletonHeap[\C,T\](aStarPair[\T,C\](root))
-        while NOT q.isEmpty() do
-            (c,best,q') = q.extractMin()
+        while (c,best,q') <- q.extractMinimum() do
             println("************************************************************")
             println(best)
             println("Cost " c)
