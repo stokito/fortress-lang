@@ -677,6 +677,20 @@ public final class FortressUtil {
         }
     }
 
+    public static ArrayExpr addStaticArgsToArrayExpr(List<StaticArg> sargs,
+                                              ArrayExpr a) {
+        if (a instanceof ArrayElement) {
+            ArrayElement arrayE = (ArrayElement)a;
+            return new ArrayElement(arrayE.getSpan(), arrayE.isParenthesized(),
+                                    sargs, arrayE.getElement());
+        } else { // a instanceof ArrayElements
+            ArrayElements arrayE = (ArrayElements)a;
+            return new ArrayElements(arrayE.getSpan(), arrayE.isParenthesized(),
+                                     sargs, arrayE.getDimension(),
+                                     arrayE.getElements());
+        }
+    }
+
 // let rec unpasting_cons (span : span)
 //                        (one : unpasting)
 //                        (sep : int)
