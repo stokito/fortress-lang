@@ -450,5 +450,24 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
         return result;
     }
+    
+//    @Override public Node forOpRef(OpRef that) {
+//        OpName entity = IterUtil.first(that.getOps()).getName();
+//
+//        Set<QualifiedOpName> ops = _env.explicitFunctionNames(entity);
+//        if (ops.isEmpty()) {
+//            ops = _env.onDemandFunctionNames(entity);
+//            _onDemandImports.add(entity);
+//        }
+//        if (ops.isEmpty()) {
+//            return that;
+//        }
+//
+//        Expr result = new OpRef(entity.getSpan(), IterUtil.asList(ops));
+//        if (that.isParenthesized()) {
+//            result = ExprFactory.makeInParentheses(result);
+//        }
+//        return result;
+//    }
 
 }

@@ -20,11 +20,11 @@ package com.sun.fortress.compiler.desugarer;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.typechecker.*;
+
 import static com.sun.fortress.compiler.StaticError.errorMsg;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TraitIndex;
-import com.sun.fortress.compiler.typechecker.Types;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
@@ -143,7 +143,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
                                                  new ArrayList<StaticParam>(),
                                                  new ArrayList<Param>(),
-                                                 Option.wrap(Types.fromVarargsType(param.getVarargsType())),
+                                                 Option.wrap(TypesUtil.fromVarargsType(param.getVarargsType())),
                                                  new WhereClause(param.getSpan()), new Contract(new Span()),
                                                  new VarRef(param.getSpan(), false,
                                                             new QualifiedIdName(param.getSpan(),
