@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Collections;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Expr;
@@ -34,7 +35,7 @@ import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedOpName;
-import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -95,13 +96,20 @@ public class ASTUtil {
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
     //     opr span (node (span_two left right) (`Enclosing (left,right))) args
     public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
+        return enclosing(span, left, Collections.<StaticArg>emptyList(),
+                         args, right);
+    }
+
+    public static Expr enclosing(Span span, Op left, List<StaticArg> sargs,
+                                 List<Expr> args, Op right) {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
             Span s = FortressUtil.spanTwo(left, right);
             Enclosing en = new Enclosing(s, left, right);
             QualifiedOpName qName = new QualifiedOpName(s, Option.<APIName>none(),
                                                         new Enclosing(s, left, right));
             OpRef ref = new OpRef(s,
-                                  Collections.<QualifiedOpName>singletonList(qName));
+                                  Collections.<QualifiedOpName>singletonList(qName),
+                                  sargs);
             return new OprExpr(span, false, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +

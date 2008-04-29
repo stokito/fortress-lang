@@ -1128,14 +1128,15 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 MathPrimary(Expr front, List<MathItem> rest);
                 /**
                  * array expression
-                 * ArrayExpr ::= [ RectElements ]
+                 * ArrayExpr ::= [ StaticArgs? RectElements ]
                  * RectElements ::= Expr MultiDimCons*
                  * MultiDimCons ::= RectSeparator Expr
                  * RectSeparator ::= ;+
                  *                 | Whitespace
                  * e.g.) [1 2 3; 4 5 6; 7 8 9]
                  */
-                abstract ArrayExpr();
+                abstract ArrayExpr(List<StaticArg> staticArgs
+                                       = Collections.<StaticArg>emptyList());
                     /**
                      * array with a single element
                      * e.g.) [3]

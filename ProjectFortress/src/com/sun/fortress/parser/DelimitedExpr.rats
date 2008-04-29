@@ -235,19 +235,22 @@ private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
 private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
      { yyValue = new CatchClause(createSpan(yyStart,yyCount), a1, a2); };
 
-/* MapExpr ::= { (w EntryList)? w } */
+/* MapExpr ::= { StaticArgs? (w EntryList)? w } */
 Expr MapExpr =
-     void:opencurly a1:(w EntryList)? w void:closecurly
-     { if (a1 == null) a1 = FortressUtil.emptyExprs();
+     void:opencurly a1:StaticArgs? a2:(w EntryList)? w void:closecurly
+     { if (a2 == null) a2 = FortressUtil.emptyExprs();
+       Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyStart+1),
                                               "{|->");
        Op close = NodeFactory.makeOpEnclosing(createSpan(yyCount-1,1), "}");
-       yyValue = ASTUtil.enclosing(createSpan(yyStart,yyCount), open, a1, close);
+       if (a1 == null)
+            yyValue = ASTUtil.enclosing(span, open, a2, close);
+       else yyValue = ASTUtil.enclosing(span, open, a1, a2, close);
      };
 
 /* Comprehension ::=
      (BIG w)? [ StaticArgs? w ArrayComprehensionClause
-                          (br ArrayComprehensionClause)* w ]
+              (br ArrayComprehensionClause)* w ]
    | (BIG w)? { StaticArgs? w Entry wr | wr GeneratorClauseList w }
    | (BIG w)? LeftEncloser StaticArgs? w Expr wr | wr GeneratorClauseList w
               RightEncloser

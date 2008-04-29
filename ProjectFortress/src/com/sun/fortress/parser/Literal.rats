@@ -18,9 +18,10 @@
 /*
  * Definition of Fortress literals.
  */
-module com.sun.fortress.parser.Literal(DelimitedExpr, NoSpaceExpr, Symbol,
-                                       Spacing);
+module com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
+                                       NoSpaceExpr, Symbol, Spacing);
 
+import MayNewlineHeader;
 import DelimitedExpr;
 import NoSpaceExpr;
 import Symbol;
@@ -40,8 +41,12 @@ Expr LiteralExpr =
    / <STRING> StringLiteralExpr
    ;
 
-/* ArrayExpr ::= [ w RectElements w ] */
-ArrayExpr ArrayExpr = void:opensquare w RectElements w void:closesquare;
+/* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
+ArrayExpr ArrayExpr =
+     void:opensquare a1:StaticArgs? w a2:RectElements w void:closesquare
+     { if (a1 == null) yyValue = a2;
+       else            yyValue = FortressUtil.addStaticArgsToArrayExpr(a1, a2);
+     };
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
 private ArrayExpr RectElements =

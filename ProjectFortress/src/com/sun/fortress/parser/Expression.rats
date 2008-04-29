@@ -382,7 +382,7 @@ constant Expr MathPrimary =
      ArrayExpr
    | MapExpr
    | Comprehension
-   | LeftEncloser (w ExprList)? w RightEncloser
+   | LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
    | ParenthesisDelimited
    | VarOrFnRef
    | LiteralExpr
@@ -392,9 +392,11 @@ Expr PrimaryFront =
      ArrayExpr
    / MapExpr
    / Comprehension
-   / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
-     { if (a2 == null) a2 = FortressUtil.emptyExprs();
-       yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
+   / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
+     { if (a3 == null) a3 = FortressUtil.emptyExprs();
+       Span span = FortressUtil.spanTwo(a1, a4);
+       if (a2 == null) yyValue = ASTUtil.enclosing(span, a1, a3, a4);
+       else            yyValue = ASTUtil.enclosing(span, a1, a2, a3, a4);
      }
    / ParenthesisDelimited
    / VarOrFnRef
