@@ -44,13 +44,13 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
         if NOT (n=0) then fail("empty with n=/=0") end
     else
         flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
-        (k:ZZ32, v:ZZ32, h:Heap[\ZZ32,ZZ32\]) := h0.extractMin()
+        (k:ZZ32, v:ZZ32, h:Heap[\ZZ32,ZZ32\]) := h0.extractMinimum().get()
         k_prev : ZZ32 := k
         expected: ZZ32 := 1
         flags[v] := true
         failed : Boolean := false
         while NOT h.isEmpty() AND expected <= n do
-            (k,v,h) := h.extractMin()
+            (k,v,h) := h.extractMinimum().get()
             if k < k_prev then
                 println("FAIL: Keys " k_prev " and " k " out of order.")
                 failed := true
@@ -74,7 +74,7 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
             expected := 0
             println(h.dump())
             while NOT h.isEmpty() AND expected <= n do
-                (k,v,h) := h.extractMin()
+                (k,v,h) := h.extractMinimum().get()
                 println(expected ": min = (" k "," v ")")
                 println(h.dump())
                 expected += 1
@@ -113,7 +113,7 @@ checkGen(h:Heap[\ZZ32,ZZ32\], n:ZZ32): () = do
     (mn,sz,mx) = unj(h.generate[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\](TestReduction, sing))
     assert(n,sz," size versus computed size")
     if (sz > 0) then
-        (mn_k, mn_v) = h.minimum()
+        (mn_k, mn_v) = h.minimum().get()
         assert(mn,mn_k," computed minimum versus .minimum()")
     end
   end

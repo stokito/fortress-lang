@@ -25,7 +25,7 @@ api Heap
   Functional Data Structures'' by Okasaki \cite{functionalDS}.
 \begin{itemize}
   \item Pairing heaps, the current default:
-    %O(1)% merge; %O(lg n)% amortized %extractMin%, with %O(n)% worst case.  The worst
+    %O(1)% merge; %O(lg n)% amortized %extractMinimum%, with %O(n)% worst case.  The worst
     case is proportional to the number of deferred merge operations
     performed with the min; if you merge %n% entries tree-fashion rather
     than one at a time you should obtain %O(lg n)% worst case performance
@@ -37,7 +37,7 @@ api Heap
   some ways to implement than pairing heaps, and avoiding a potential
   stack overflow in the latter).  These do not seem to be quite as
   whizzy in this setting as ordinary Pairing heaps: %O(lg n)% merge,
-    %O(lg n)% worst-case %extractMin%.
+    %O(lg n)% worst-case %extractMinimum%.
 
   \item Splay heaps (noted as ``fastest in practice'', borne out by other
     experiments).  Problem: %O(n)% merge operation, vs %O(lg n)% for
@@ -49,7 +49,7 @@ api Heap
    %  empty
    %  singleton
    %  isEmpty
-   %  extractMin
+   %  extractMinimum
    %  merge(Heap[\K,V\])
  **)
 trait Heap[\K,V\] extends Generator[\(K,V)\]
@@ -57,7 +57,7 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     (** Given an instance of %Heap[\K,V\]%, get the empty %Heap[\K,V\]%. **)
     getter empty(): Heap[\K,V\]
     (** Get the (key,value) pair with minimal associated key. **)
-    getter minimum(): (K,V) throws NotFound
+    getter minimum(): Maybe[\(K,V)\]
     (** Given an instance of %Heap[\K,V\]%, generate a singleton %Heap[\K,V\]%. **)
     singleton(k:K, v:V): Heap[\K,V\]
     (** Return a heap that contains the key-value pairings in both of
@@ -67,7 +67,10 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     insert(k:K, v:V): Heap[\K,V\]
     (** Extract the (key,value) pair with minimal associated key,
      along with a heap with that key and value pair removed. **)
-    extractMin(): (K,V,Heap[\K,V\]) throws NotFound
+    extractMinimum(): Maybe[\(K,V,Heap[\K,V\])\]
+    (** Delete the minimum (key,value) pair (if any) from the heap,
+        and return the resulting heap. *)
+    deleteMinimum(): Heap[\K,V\]
 end
 
 object HeapMerge[\K,V\](boiler: Heap[\K,V\]) extends Reduction[\Heap[\K,V\]\]

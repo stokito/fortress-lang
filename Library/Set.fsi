@@ -31,12 +31,12 @@ trait Set[\E\]
       comprises { ... }
    printTree():()
    toString():String
-   minimum():E
-   maximum():E
+   minimum():Maybe[\E\]
+   maximum():Maybe[\E\]
    deleteMinimum():Set[\E\]
    deleteMaximum():Set[\E\]
-   removeMinimum():(E, Set[\E\])
-   removeMaximum():(E, Set[\E\])
+   extractMinimum():Maybe[\(E, Set[\E\])\]
+   extractMaximum():Maybe[\(E, Set[\E\])\]
    add(x:E):Set[\E\]
    delete(x:E):Set[\E\]
    opr UNION(self,t2:Set[\E\]):Set[\E\]

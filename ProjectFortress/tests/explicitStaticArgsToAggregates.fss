@@ -22,7 +22,6 @@ import List.{...}
 export Executable
 
 run(args:String...):()=do
-
     a:ZZ32[2,2] = [[\ZZ32\] 11 12 ;
                             21 22 ]
 
@@ -31,7 +30,6 @@ run(args:String...):()=do
    a2:ZZ32[4] = [ 2 3 4 5 ]
    s2:Set[\ZZ32\] = {[\ZZ32\] 1, 2, 3, 4, i }
    println("i=" i)
-
    ip:List[\ZZ32[4]\] = <|[\ZZ32[4]\] a1, a2 |>
    println("ip=" ip);
 

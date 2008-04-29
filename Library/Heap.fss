@@ -27,7 +27,7 @@ export Heap
 
   * Pairing Heaps, the current default:
     O(1) merge
-    O(lg n) amortized extractMin, with O(n) worst case.  The worst
+    O(lg n) amortized extractMinimum, with O(n) worst case.  The worst
     case is proportional to the number of deferred merge operations
     performed with the min; if you merge n entries tree-fashion rather
     than 1 at a time you should obtain O(lg n) worst case performance
@@ -40,7 +40,7 @@ export Heap
   stack overflow in the latter).  These don't seem to be quite as
   whizzy in this setting as ordinary Pairing Heaps.
     O(lg n) merge
-    O(lg n) worst-case extractMin
+    O(lg n) worst-case extractMinimum
 
   * Splay heaps (noted as "fastest in practice", borne out by other
     experiments).  Problem: O(n) merge operation, vs O(lg n) for
@@ -52,7 +52,7 @@ export Heap
      empty
      singleton
      isEmpty
-     extractMin
+     extractMinimum
      merge(Heap[\K,V\])
  **)
 trait Heap[\K,V\] extends Generator[\(K,V)\]
@@ -60,10 +60,12 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     (** Given an instance of Heap[\K,V\], get the empty Heap[\K,V\] **)
     getter empty(): Heap[\K,V\]
     (** Get the (key,value) pair with minimal associated key **)
-    getter minimum(): (K,V) throws NotFound = do
-        (r,_) = extractMin()
-        r
-      end
+    getter minimum(): Maybe[\(K,V)\] =
+        if (k,v,_) <- extractMinimum() then
+            Just[\(K,V)\](k,v)
+        else
+            Nothing[\(K,V)\]
+        end
     (** Check the invariants on the heap. **)
     check(): Heap[\K,V\]
     (** Produce string representation of internal structure for debugging **)
@@ -77,7 +79,11 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     insert(k:K, v:V): Heap[\K,V\] = self.merge(self.singleton[\K,V\](k,v))
     (** Extract the (key,value) pair with minimal associated key,
      along with a heap with that key and value pair removed. **)
-    extractMin(): (K,V,Heap[\K,V\]) throws NotFound
+    extractMinimum(): Maybe[\(K,V,Heap[\K,V\])\]
+    (** Delete the minimum (key,value) pair (if any) from the heap,
+        and return the resulting heap. *)
+    deleteMinimum(): Heap[\K,V\] =
+        if (_,_,r) <- extractMinimum() then r else self end
     (** We generate elements by repeated splitting.  This is fairly
         allocation-intensive (O(n) worst case) but gives reasonable
         parallelism. **)
@@ -90,7 +96,7 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
                 hh : Heap[\K,V\] := h
                 i : ZZ32 := 0
                 while NOT hh.isEmpty() AND i < n do
-                    (k,v,hhh) = hh.extractMin()
+                    (k,v,hhh) = hh.extractMinimum().get()
                     kvs.init(i,(k,v))
                     i += 1
                     hh := hhh
@@ -125,14 +131,14 @@ end
 
 object EmptyP[\K,V\] extends Pairing[\K,V\]
     getter isEmpty(): Boolean = true
-    getter minimum(): (K,V) throws NotFound = throw NotFound
+    getter minimum(): Nothing[\(K,V)\] = Nothing[\(K,V)\]
     dump(): String = "E"
     check(): EmptyP[\K,V\] = self
     check(pk:K):Boolean = true
     merge(h:Heap[\K,V\]): Heap[\K,V\] = h
     merge(h:Pairing[\K,V\]): Pairing[\K,V\] = h
     insert(k:K, v:V): Pairing[\K,V\] = NodeP[\K,V\](k,v,self,self)
-    extractMin(): (K,V,Pairing[\K,V\]) throws NotFound = throw NotFound
+    extractMinimum(): Nothing[\(K,V,Pairing[\K,V\])\] = Nothing[\(K,V,Pairing[\K,V\])\]
     emk(e: EmptyP[\K,V\]): Pairing[\K,V\] = self
     ems(_: EmptyP[\K,V\], leftSib: NodeP[\K,V\]): NodeP[\K,V\] = leftSib
     generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty()
@@ -141,7 +147,7 @@ end
 object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
         extends Pairing[\K,V\]
     getter isEmpty(): Boolean = false
-    getter minimum(): (K,V) = (k,v)
+    getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
     dump():String = "N(" k "," v "," sibs.dump() "," kids.dump() ")"
     check() = do
         if NOT sibs.isEmpty() then
@@ -167,13 +173,14 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
             NodeP[\K,V\](  k,   v, e, NodeP[\K,V\](h.k, h.v,   kids, h.kids))
         end
     insert(k':K, v':V): Pairing[\K,V\] =
-        if k' <= k then
+        if k' <= k then (* ' *)
             NodeP[\K,V\](k',v',empty(),self)
         else
             e = empty()
             NodeP[\K,V\](k,v,e,NodeP[\K,V\](k',v',kids,e))
         end
-    extractMin(): (K,V,Pairing[\K,V\]) = (k,v,kids.emk(empty()))
+    extractMinimum(): Just[\(K,V,Pairing[\K,V\])\] =
+        Just[\(K,V,Pairing[\K,V\])\](k,v,kids.emk(empty()))
 (*
     emk(e: EmptyP[\K,V\]): Pairing[\K,V\] = do
         res : Pairing[\K,V\] = e
@@ -223,14 +230,14 @@ end
 
 object EmptyLP[\K,V\] extends LazyPairing[\K,V\]
     getter isEmpty(): Boolean = true
-    getter minimum(): (K,V) throws NotFound = throw NotFound
+    getter minimum(): Nothing[\(K,V)\] = Nothing[\(K,V)\]
     check() = self
     check(pk:K):Boolean = true
     dump(): String = "EL"
     merge(h:Heap[\K,V\]): Heap[\K,V\] = h
     merge(h:LazyPairing[\K,V\]): LazyPairing[\K,V\] = h
     insert(k:K, v:V): LazyPairing[\K,V\] = NodeLP[\K,V\](k,v,self,self)
-    extractMin(): (K,V,LazyPairing[\K,V\]) throws NotFound = throw NotFound
+    extractMinimum(): Nothing[\(K,V,LazyPairing[\K,V\])\] = Nothing[\(K,V,LazyPairing[\K,V\])\]
     plink(e:EmptyLP[\K,V\],mn:NodeLP[\K,V\],mx:NodeLP[\K,V\]):NodeLP[\K,V\] =
         NodeLP[\K,V\](mn.k,mn.v,mx,mn.kids)
     generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty()
@@ -239,7 +246,7 @@ end
 object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K,V\])
         extends LazyPairing[\K,V\]
     getter isEmpty(): Boolean = false
-    getter minimum(): (K,V) = (k,v)
+    getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
     check() = do
         if NOT kids.check(k) then
             println("\nFAIL: heap structure violation in:\n" dump() "\n")
@@ -261,13 +268,14 @@ object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K
             self.link(e,h)
         end
     insert(k':K, v':V): LazyPairing[\K,V\] =
-        if k' <= k then
+        if k' <= k then (* ' *)
             NodeLP[\K,V\](k',v',self,empty())
         else
             e = empty()
             link(e,NodeLP[\K,V\](k',v',e,e))
         end
-    extractMin(): (K,V,LazyPairing[\K,V\]) = (k,v,pending.merge(kids))
+    extractMinimum(): Just[\(K,V,LazyPairing[\K,V\])\] =
+        Just[\(K,V,LazyPairing[\K,V\])\](k,v,pending.merge(kids))
     link(e:EmptyLP[\K,V\],n:NodeLP[\K,V\]):NodeLP[\K,V\] =
         pending.plink(e,self,n)
     plink(e:EmptyLP[\K,V\],mn:NodeLP[\K,V\],mx:NodeLP[\K,V\]):NodeLP[\K,V\] =

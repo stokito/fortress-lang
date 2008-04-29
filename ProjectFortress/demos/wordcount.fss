@@ -65,7 +65,7 @@ run(args:String...)= do
     var rs:FileReadStream = FileReadStream("demos/presidents")
     database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
     invDatabase:Map[\ZZ32,List[\String\]\] = BIG UNIONUNION [(x,y) <-database] (makeInv(x,y))
-    (c,m) = invDatabase.maximum()
+    (c,m) = invDatabase.maximum().get()
     assert((c,m),(6,<|"James"|>), "Most common president's name")
     println("The string " m " was used " c " times")
     rs.close()
