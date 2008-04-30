@@ -818,10 +818,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      Option<Block> elseClause = Option.<Block>none());
             /**
              * while expression
-             * DelimitedExpr ::= while Expr Do
+             * DelimitedExpr ::= while GeneratorClause Do
              * e.g.) while x < 10 do print x; x += 1 end
              */
-            While(Expr test, Do body);
+            While(GeneratorClause test, Do body);
         /**
          * control flow expression
          * Expr ::= FlowExpr

@@ -427,6 +427,10 @@ __loop[\E,R\](g:Generator[\E\], body:E->R): () = g.loop(body)
 __cond[\E,R\](c:Condition[\E\], t:E->R, e:()->R): R = c.cond[\R\](t,e)
 __cond[\E\](c:Condition[\E\], t:E->()): () = c.cond[\()\](t, fn () => ())
 
+(** Used in desugaring binding %while% **)
+__whileCond[\E\](c:Condition[\E\], b:E->()): () =
+    c.cond[\Boolean\](fn (e): Boolean => do b(e); true end, fn ():Boolean => false)
+
 (** Unlike the user-visible dotted map method, this method is used for
     the internals of comprehension desugaring.  As a result we know
     that its result will immediately be consumed, and we should *not*

@@ -64,7 +64,7 @@ Expr DelimitedExpr =
            error(a1, "Mismatched identifiers for label expressions.");
        yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
-   / while w a1:Expr w a2:Do
+   / while w a1:GeneratorClause w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
    / for w a1:GeneratorClauseList w a2:DoFront w end
      { yyValue = new For(createSpan(yyStart,yyCount), false, a1, a2); }

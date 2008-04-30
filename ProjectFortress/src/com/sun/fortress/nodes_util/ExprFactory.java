@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.CaseExpr;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
+import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.ExponentiationMI;
@@ -277,6 +278,10 @@ public class ExprFactory {
         return new GeneratorClause(span, IterUtil.asList(ids), expr);
     }
 
+    public static GeneratorClause makeGeneratorClause(Span span, Expr cond) {
+        return new GeneratorClause(span, Collections.<Id>emptyList(), cond);
+    }
+
     public static TupleExpr makeTuple(List<Expr> exprs) {
         return new TupleExpr(new Span(), false, exprs);
     }
@@ -476,7 +481,7 @@ public class ExprFactory {
         return
             makeIf(sp,
                 new IfClause(
-                    new GeneratorClause(Collections.<Id>emptyList(), cond),
+                    makeGeneratorClause(cond.getSpan(), cond),
                     _then), _else);
     }
 
@@ -484,18 +489,24 @@ public class ExprFactory {
         return
             makeIf(sp,
                 new IfClause(
-                    new GeneratorClause(Collections.<Id>emptyList(), cond),
+                    makeGeneratorClause(cond.getSpan(), cond),
                     _then));
     }
 
+    public static While makeWhile(Span sp, Expr cond) {
+        // Might not work; empty Do may be naughty.
+        return new While(sp, makeGeneratorClause(cond.getSpan(), cond),
+                         new Do(sp, Collections.<DoFront>emptyList()));
+    }
+
     public static Block makeBlock(Expr e) {
-        List<Expr> b = new ArrayList<Expr>();
+        List<Expr> b = new ArrayList<Expr>(1);
         b.add(e);
-        return new Block(b);
+        return new Block(e.getSpan(),b);
     }
 
     public static Block makeBlock(Span sp, Expr e) {
-        List<Expr> b = new ArrayList<Expr>();
+        List<Expr> b = new ArrayList<Expr>(1);
         b.add(e);
         return new Block(sp, b);
     }

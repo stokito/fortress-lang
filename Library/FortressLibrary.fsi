@@ -365,6 +365,9 @@ __map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\]
 __cond[\E,R\](c:Condition[\E\], t:E->R, e:()->R): R
 __cond[\E\](c:Condition[\E\], t:E->()): ()
 
+(** Used in desugaring binding %while% **)
+__whileCond[\E\](c:Condition[\E\], b:E->()): ()
+
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq(self)
     map[\G\](f: E->G): SequentialGenerator[\G\]

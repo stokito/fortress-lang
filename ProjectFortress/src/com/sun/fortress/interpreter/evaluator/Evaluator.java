@@ -932,8 +932,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (cond.getBind().isEmpty())
                 testExpr = cond.getInit();
             else
-                testExpr = error(ifclause,
-                                 "Generalized if expressions are not yet implemented.");
+                testExpr = bug(ifclause,"Undesugared generalized if expression.");
             FValue clauseVal = testExpr.accept(this);
             if (clauseVal instanceof FBool) {
                 if (((FBool) clauseVal).getBool()) {
@@ -1792,7 +1791,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forWhile(While x) {
         Expr body = x.getBody();
-        Expr test = x.getTest();
+        GeneratorClause cond = x.getTest();
+        Expr test;
+        if (cond.getBind().isEmpty())
+            test = cond.getInit();
+        else
+            test = bug(x,"Undesugared generalized while expression.");
         FBool res = (FBool) test.accept(this);
         while (res.getBool() != false) {
             body.accept(this);
