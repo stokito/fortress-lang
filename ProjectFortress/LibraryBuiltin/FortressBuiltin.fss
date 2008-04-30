@@ -101,6 +101,12 @@ object String
     opr >=(self, other:String): Boolean = self.cmp(other) >= 0
     opr CMP(self, other:String): TotalComparison = self.cmp(other) CMP 0
     opr [i:ZZ32]: Char =
+        if 0 <= i < |self|
+        then get(i)
+        else throw IndexOutOfBounds
+        end
+    (** get skips bounds checking. **)
+    get(i:ZZ32): Char =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Index")
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the string, returning the empty string, in order to permit some convenient
@@ -111,17 +117,10 @@ object String
         else self[l#(|self| - l)]
         end
       end
-    opr[r0:Range[\ZZ32\]] : String =
-        typecase r0 of
-            LowerRange[\ZZ32\] =>
-                l = r0.lower()
-                if l = |self| then ""
-                else self[l#(|self| - l)]
-                end
-            else =>
-                r1 = (bounds())[r0]
-                l = r1.lower()
-                self.substr(l, l + |r1|)
+    opr[r0:Range[\ZZ32\]] : String = do
+        r1 = (bounds())[r0]
+        l = r1.lower()
+        self.substr(l, l + |r1|)
       end
     eq(other:String): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Eq")
