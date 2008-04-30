@@ -54,6 +54,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private TypeEnv typeEnv;
     private final CompilationUnitIndex compilationUnit;
     private final SubtypeChecker subtypeChecker;
+    private final Relation<Id, Option<Type>> labelExitTypes; // Note: this is mutable state.
 
     public TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
@@ -65,19 +66,22 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         typeEnv = _typeEnv;
         compilationUnit = _compilationUnit;
         subtypeChecker = SubtypeChecker.make(table);
+        labelExitTypes = new HashRelation<Id, Option<Type>>(true, false);
     }
 
     private TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
                        TypeEnv _typeEnv,
                        CompilationUnitIndex _compilationUnit,
-                       SubtypeChecker _subtypeChecker)
+                       SubtypeChecker _subtypeChecker,
+                       Relation<Id, Option<Type>> _labelExitTypes)
     {
         table = _table;
         staticParamEnv = _staticParams;
         typeEnv = _typeEnv;
         compilationUnit = _compilationUnit;
         subtypeChecker = _subtypeChecker;
+        labelExitTypes = _labelExitTypes;
     }
 
     private static Type typeFromLValueBinds(List<LValueBind> bindings) {
@@ -90,13 +94,21 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
-        return new TypeChecker(table, staticParamEnv.extend(newStaticParams, whereClause),
-                               typeEnv.extend(newParams), compilationUnit, subtypeChecker.extend(newStaticParams, whereClause));
+        return new TypeChecker(table,
+                               staticParamEnv.extend(newStaticParams, whereClause),
+                               typeEnv.extend(newParams),
+                               compilationUnit,
+                               subtypeChecker.extend(newStaticParams, whereClause),
+                               labelExitTypes);
     }
 
     private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
-        return new TypeChecker(table, staticParamEnv.extend(newStaticParams, whereClause),
-                               typeEnv.extendWithParams(newParams), compilationUnit, subtypeChecker.extend(newStaticParams, whereClause));
+        return new TypeChecker(table,
+                               staticParamEnv.extend(newStaticParams, whereClause),
+                               typeEnv.extendWithParams(newParams),
+                               compilationUnit,
+                               subtypeChecker.extend(newStaticParams, whereClause),
+                               labelExitTypes);
     }
 
     private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
@@ -104,7 +116,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                staticParamEnv.extend(newStaticParams, whereClause),
                                typeEnv,
                                compilationUnit,
-                               subtypeChecker.extend(newStaticParams, whereClause));
+                               subtypeChecker.extend(newStaticParams, whereClause),
+                               labelExitTypes);
     }
 
     private TypeChecker extend(WhereClause whereClause) {
@@ -112,49 +125,56 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                staticParamEnv.extend(Collections.<StaticParam>emptyList(), whereClause),
                                typeEnv,
                                compilationUnit,
-                               subtypeChecker.extend(Collections.<StaticParam>emptyList(), whereClause));
+                               subtypeChecker.extend(Collections.<StaticParam>emptyList(), whereClause),
+                               labelExitTypes);
     }
 
     private TypeChecker extend(List<LValueBind> bindings) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithLValues(bindings),
                                compilationUnit,
-                               subtypeChecker);
+                               subtypeChecker,
+                               labelExitTypes);
     }
 
     private TypeChecker extend(LocalVarDecl decl) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extend(decl),
                                compilationUnit,
-                               subtypeChecker);
+                               subtypeChecker,
+                               labelExitTypes);
     }
 
     private TypeChecker extend(Param newParam) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extend(newParam),
                                compilationUnit,
-                               subtypeChecker);
+                               subtypeChecker,
+                               labelExitTypes);
     }
 
     public TypeChecker extendWithMethods(Relation<SimpleName, Method> methods) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithMethods(methods),
                                compilationUnit,
-                               subtypeChecker);
+                               subtypeChecker,
+                               labelExitTypes);
     }
 
     public TypeChecker extendWithFunctions(Relation<SimpleName, FunctionalMethod> methods) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithFunctions(methods),
                                compilationUnit,
-                               subtypeChecker);
+                               subtypeChecker,
+                               labelExitTypes);
     }
 
     public TypeChecker extendWithFnDefs(Relation<SimpleName, ? extends FnDef> fns) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithFnDefs(fns),
                                compilationUnit,
-                               subtypeChecker);
+                               subtypeChecker,
+                               labelExitTypes);
     }
 
     /**
@@ -196,6 +216,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         } else {
             return new TypeCheckerResult(ast, resultType);
         }
+    }
+    
+    /**
+     * Return an error complaining about usage of a label name as an identifier.
+     * @param name the label name that is being used
+     * @return a TypeError containing the error message and location
+     */
+    private StaticError makeLabelNameError(Id name) {
+        return TypeError.make(errorMsg("Cannot use label name ", name.getText(),
+                                       " as an identifier."),
+                              name);
     }
 
     /** Ignore unsupported nodes for now. */
@@ -293,7 +324,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Option<Type> thatType = typeEnv.type(that);
 
         if (thatType.isSome()) {
-            return new TypeCheckerResult(that, unwrap(thatType));
+            Type _type = unwrap(thatType);
+            if (_type instanceof LabelType) {
+                return new TypeCheckerResult(that, makeLabelNameError(that));
+            } else {
+                return new TypeCheckerResult(that, _type);
+            }
         } else {
             StaticError error =
                 TypeError.make(errorMsg("Attempt to reference an unbound identifier: ", that), that);
@@ -351,9 +387,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
         }
         Option<Type> type = typeEnv.type(name);
-        // System.err.println("typeEnv = "+typeEnv.description());
         if (type.isSome()) {
-            return new TypeCheckerResult(that, unwrap(type));
+            Type _type = unwrap(type);
+            if (_type instanceof LabelType) { // then name must be an Id
+                return new TypeCheckerResult(that, makeLabelNameError((Id)name));
+            } else {
+                return new TypeCheckerResult(that, _type);
+            }
         } else {
             StaticError error;
             if (name instanceof Id) {
@@ -1060,6 +1100,67 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                    lhsType,
                                                                    rhsType),
                                          exprs_result);
+    }
+    
+    // TODO: check for spawn and try/catch
+    public TypeCheckerResult forLabel(final Label that) {
+        
+        // Extend the checker with this label name in the type env
+        TypeChecker newChecker = this.extend(Collections.singletonList(NodeFactory.makeLValue(that.getName(), Types.LABEL)));
+        TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
+        
+        // If the body was typed, union all the exit types with it.
+        // If any exit type is none, then don't type this label.
+        if (bodyResult.type().isSome()) {
+            Set<Option<Type>> exitTypes = labelExitTypes.getSeconds(that.getName());
+            List<Type> disjunctTypes = new ArrayList<Type>();
+            boolean allTyped = true;
+            for (Option<Type> t : exitTypes) {
+                if (t.isSome()) {
+                    disjunctTypes.add(unwrap(t));
+                } else {
+                    allTyped = false;
+                }
+                
+                // Destroy this mapping since we are done with it
+                labelExitTypes.remove(that.getName(), t);
+            }
+            if (allTyped) {
+                disjunctTypes.add(unwrap(bodyResult.type()));
+                return TypeCheckerResult.compose(that, NodeFactory.makeOrType(disjunctTypes), bodyResult);
+            }
+        }
+        return TypeCheckerResult.compose(that, bodyResult);
+    }
+    
+    public TypeCheckerResult forExit(Exit that) {
+        assert (that.getTarget().isSome()); // Should be provided by disambiguator.
+        Id labelName = unwrap(that.getTarget());
+        Option<BindingLookup> b = typeEnv.binding(labelName);
+        if (b.isNone()) {
+            return new TypeCheckerResult(that,
+                                         TypeError.make(errorMsg("Couldn't find label expression with name: ",
+                                                                 labelName),
+                                                        labelName));
+        }
+        Type targetType = unwrap(unwrap(b).getType(), (Type)null);
+        if (!(targetType instanceof LabelType)) {
+            // TODO: better error message
+            return new TypeCheckerResult(that,
+                                         TypeError.make(errorMsg("Target of 'exit' is not a label name: ", 
+                                                                 labelName),
+                                                        labelName));
+        }
+        
+        // Append the 'with' type to the list for this label
+        if (that.getReturnExpr().isSome()) {
+            TypeCheckerResult withResult = unwrap(that.getReturnExpr()).accept(this);
+            labelExitTypes.add(labelName, withResult.type());
+            return TypeCheckerResult.compose(that, Types.BOTTOM, withResult);
+        } else {
+            labelExitTypes.add(labelName, some(Types.VOID));
+        }
+        return new TypeCheckerResult(that, Types.BOTTOM);
     }
 
     // TRIVIAL NODES ---------------------

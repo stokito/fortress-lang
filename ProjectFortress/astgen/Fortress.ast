@@ -1308,6 +1308,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             FixedPointType(QualifiedIdName name, Type body);
             /**
+             * The type of the name given to a label expression.  Used internally.
+             */
+            LabelType();
+            /**
              * dimension type
              */
             abstract DimType(Type type);

@@ -41,19 +41,12 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * to Variables.
  */
 class FnTypeEnv extends TypeEnv {
-    private Relation<SimpleName, Function> entries;
+    private Relation<SimpleName, ? extends Function> entries;
     private TypeEnv parent;
 
     FnTypeEnv(Relation<SimpleName, ? extends Function> _entries, TypeEnv _parent) {
         parent = _parent;
-        entries = new HashRelation<SimpleName, Function>(true, false);
-        for (Pair<SimpleName, ? extends Function> p : _entries) {
-            if (p.first() instanceof Op) {
-                entries.add(OprUtil.decorateOperator((Op)p.first()), p.second());
-            } else { // Normal function name, so just copy the entry
-                entries.add(p.first(), p.second());
-            }
-        }
+        entries = _entries;
     }
 
     /**
@@ -61,11 +54,6 @@ class FnTypeEnv extends TypeEnv {
      * (if the given Id is in this type environment).
      */
     public Option<BindingLookup> binding(SimpleName var) {
-        
-        // If operator, change name to match internal stored name (which indicates fixity)
-        if (var instanceof Op) {
-            var = OprUtil.decorateOperator((Op)var);
-        }
         
         Set<? extends Function> fns = entries.getSeconds(var);
         if (fns.isEmpty()) { return parent.binding(var); }
