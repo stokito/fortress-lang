@@ -36,4 +36,5 @@ public class Types {
     public static final Type CHAR = NodeFactory.makeInstantiatedType("FortressBuiltin", "Char");
     public static final Type STRING = NodeFactory.makeInstantiatedType("FortressBuiltin", "String");
     public static final Type REGION = NodeFactory.makeInstantiatedType("FortressLibrary", "Region");
+    public static final Type LABEL = new LabelType();
 }
