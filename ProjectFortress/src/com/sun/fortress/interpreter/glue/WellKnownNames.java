@@ -39,6 +39,7 @@ public class WellKnownNames {
     public static String singleton = "__singleton";
     public static String holds = "holds";
     public static String cond = "__cond";
+    public static String whileCond = "__whileCond";
 
     public static String generatorCross = "cross";
 

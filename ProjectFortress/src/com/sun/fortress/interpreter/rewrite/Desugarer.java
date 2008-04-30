@@ -131,6 +131,9 @@ public class Desugarer extends Rewrite {
     public final static VarRef COND_NAME =
         ExprFactory.makeVarRef(WellKnownNames.cond);
 
+    public final static VarRef WHILECOND_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.whileCond);
+
     private boolean isLibrary;
     private final static boolean debug = false;
 
@@ -813,6 +816,9 @@ public class Desugarer extends Rewrite {
                 } else if (node instanceof If) {
                     If i = (If)node;
                     return visitIf(i);
+                } else if (node instanceof While) {
+                    While w = (While)node;
+                    return visitWhile(w);
                 } else if (node instanceof For) {
                     For f = (For)node;
                     DoFront df = f.getBody();
@@ -915,8 +921,8 @@ public class Desugarer extends Rewrite {
     }
 
     /**
-     *  Given generalized if expression, desugar into mix of holds()
-     *  method calls (no binding) and __cond calls (binding)
+     *  Given generalized if expression, desugar into __cond calls (binding)
+     *  where required.
      */
     private Expr visitIf(If i) {
         Expr result = null;
@@ -926,6 +932,7 @@ public class Desugarer extends Rewrite {
         List<IfClause> clauses = i.getClauses();
         int n = clauses.size();
         if (n <= 0) bug(i,"if with no clauses!");
+        // Traverse each clause and desugar it into an if or a __cond as appropriate.
         for (--n; n >= 0; --n) {
             result = addIfClause(clauses.get(n), result);
         }
@@ -939,7 +946,8 @@ public class Desugarer extends Rewrite {
     private Expr addIfClause(IfClause c, Expr elsePart) {
         GeneratorClause g = c.getTest();
         if (g.getBind().size() > 0) {
-            // __cond(init, fn (binds) => body, elsePart)
+            // if binds <- expr then body else elsePart end desugars to
+            // __cond(expr, fn (binds) => body, elsePart)
             ArrayList<Expr> args = new ArrayList<Expr>(3);
             args.add(g.getInit());
             args.add(bindsAndBody(g,c.getBody()));
@@ -948,17 +956,34 @@ public class Desugarer extends Rewrite {
                                  Useful.list(COND_NAME,
                                              ExprFactory.makeTuple(c.getSpan(),args)));
         }
-        Expr oldInit = g.getInit();
-        Expr test =
-            new MethodInvocation(oldInit.getSpan(), false,
-                                 oldInit, HOLDS_NAME,
-                                 ExprFactory.makeVoidLiteralExpr(oldInit.getSpan()));
+        // if expr then body else elsePart end is preserved
+        // (but we replace elif chains by nesting).
         if (elsePart==null) {
-            return ExprFactory.makeIf(c.getSpan(), test, c.getBody());
+            return ExprFactory.makeIf(c.getSpan(), c);
         } else {
-            return ExprFactory.makeIf(c.getSpan(), test, c.getBody(),
-                                      ExprFactory.makeBlock(elsePart));
+            return ExprFactory.makeIf(c.getSpan(), c, ExprFactory.makeBlock(elsePart));
         }
+    }
+
+    /**
+     * Desugar a generalized While clause.
+     **/
+    private Expr visitWhile(While w) {
+        GeneratorClause g = w.getTest();
+        if (g.getBind().size() > 0) {
+            // while binds <- expr  do body end
+            // desugars to
+            // while __whileCond(expr, fn (binds) => body) do end
+            ArrayList<Expr> args = new ArrayList<Expr>(2);
+            args.add(g.getInit());
+            args.add(bindsAndBody(g,w.getBody()));
+            Expr cond =
+                new TightJuxt(g.getSpan(), false,
+                              Useful.list(WHILECOND_NAME,
+                                          ExprFactory.makeTuple(w.getSpan(),args)));
+            w = ExprFactory.makeWhile(w.getSpan(),cond);
+        }
+        return (Expr)visitNode(w);
     }
 
     /**
