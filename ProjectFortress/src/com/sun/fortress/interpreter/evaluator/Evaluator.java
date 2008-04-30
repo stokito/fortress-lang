@@ -1664,9 +1664,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     Block catchBody = clause.getBody();
                     FType foo = EvalType.getFType(match, e);
                     if (excType.subtypeOf(foo)) {
-                        Evaluator evClause = new Evaluator(this, _catch);
-                        evClause.e.putValue(name.getText(), exc.getException());
-                        return catchBody.accept(evClause);
+                        try {
+                            Evaluator evClause = new Evaluator(this, _catch);
+                            evClause.e.putValue(name.getText(), exc.getException());
+                            return catchBody.accept(evClause);
+                        } catch (FortressError err) {
+                            throw err.setContext(x,e);
+                        }
                     }
                 }
             }
@@ -1679,7 +1683,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                   // Can we get a better HasAt?
                   HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
                   FObject f = (FObject) c.apply(args, at, e);
-                  FortressException f_exc = new FortressException(f);
+                  FortressException f_exc = new FortressException(x,e,f);
                   throw f_exc;
                 }
             }
