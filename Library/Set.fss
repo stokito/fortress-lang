@@ -255,12 +255,12 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
        if (min_elt, del_min) <- r.extractMinimum() then
            balancedAdd(min_elt, self, del_min)
        else
-           r
+           self
        end
 
    minimum():Just[\E\] = do
        notDone : Boolean := true
-       r : NodeSet[\E\] := self
+       t : NodeSet[\E\] := self
        while notDone do
            typecase l = t.getLeftChild() of
                NodeSet[\E\] => t := l
@@ -272,7 +272,7 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
 
    maximum():Just[\E\] = do
        notDone : Boolean := true
-       r : NodeSet[\E\] := self
+       t : NodeSet[\E\] := self
        while notDone do
            typecase l = t.getRightChild() of
                NodeSet[\E\] => t := l

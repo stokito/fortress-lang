@@ -77,6 +77,7 @@ propagate(board:Set[\ZZ32\][9,9]):() = do
       end
       println("**** " unsolved)
    end
+   assert(unsolved, 0, "Left stuff unsolved!\n",board)
 end
 
 run(args:String...):()=do
