@@ -38,10 +38,10 @@ import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TightJuxt;
@@ -126,8 +126,8 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 		if (value.list().isEmpty()) {
 			return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
 		}
-		List<QualifiedOpName> ops = new LinkedList<QualifiedOpName>();
-		ops.add(NodeFactory.makeQualifiedEncloserOpName(this.span));
+		List<OpName> ops = new LinkedList<OpName>();
+		ops.add(NodeFactory.makeEncloserOpName(this.span));
 		List<Expr> args = new LinkedList<Expr>();
 		boolean first = true;
 		for (Object o: value.list()) {
@@ -223,7 +223,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 	public Expr forOpRefOnly(OpRef that, List<Expr> ops_result,
 			List<Expr> staticArgs_result) {
 		List<Expr> args = new LinkedList<Expr>();
-		args.add(SyntaxAbstractionUtil.makeList(this.span, ops_result, "QualifiedOpName"));
+		args.add(SyntaxAbstractionUtil.makeList(this.span, ops_result, "OpName"));
 		args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
 		return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "OpRef", args);
 	}
@@ -241,12 +241,6 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 	public Expr forQualifiedIdNameOnly(QualifiedIdName that,
 			Option<Expr> api_result, Expr name_result) {
 		return handleQualifiedName("QualifiedIdName", api_result, name_result);
-	}
-
-	@Override
-	public Expr forQualifiedOpNameOnly(QualifiedOpName that,
-			Option<Expr> api_result, Expr name_result) {
-		return handleQualifiedName("QualifiedOpName", api_result, name_result);
 	}
 
 	private Expr handleQualifiedName(String objectName, Option<Expr> api_result,

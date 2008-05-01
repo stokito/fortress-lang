@@ -43,7 +43,6 @@ import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitType;
@@ -126,9 +125,9 @@ public class SyntaxAbstractionUtil {
     }
 
     public static Expr makeList(Span span, List<Expr> args, String typeName) {
-        List<QualifiedOpName> ops = new LinkedList<QualifiedOpName>();
-        OpName opName = new Enclosing(new Op("<|", Option.<Fixity>some(new EnclosingFixity())), new Op("|>", Option.<Fixity>some(new EnclosingFixity())));
-        ops.add(new QualifiedOpName(span, opName ));
+        List<OpName> ops = new LinkedList<OpName>();
+        OpName opName = new Enclosing(span, new Op("<|", Option.<Fixity>some(new EnclosingFixity())), new Op("|>", Option.<Fixity>some(new EnclosingFixity())));
+        ops.add(opName);
 
         List<StaticArg> staticArgs = new LinkedList<StaticArg>();
         Type type = new IdType(span, NodeFactory.makeQualifiedIdName(typeName));

@@ -41,7 +41,6 @@ import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.StaticArg;
@@ -126,7 +125,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	public String forIdTypeOnly(IdType that, String name_result) {
 		String rVarName = FreshName.getFreshName("idType");
 		this.code.add("IdType "+rVarName+" = new IdType("+name_result+");");
-		return rVarName;		
+		return rVarName;
 	}
 
 	@Override
@@ -150,7 +149,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 			api = "Option.<APIName>some("+Option.unwrap(api_result)+")";
 		}
 		this.code.add("QualifiedIdName "+rVarName+" = new QualifiedIdName("+api+", "+name_result+");");
-		return rVarName; 
+		return rVarName;
 	}
 
 	@Override
@@ -166,14 +165,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 		String rVarName = FreshName.getFreshName("tj");
 		this.code.addAll(mkList(exprs_result, varName, "Expr"));
 		this.code.add("TightJuxt "+rVarName+" = new TightJuxt("+that.isParenthesized()+", "+varName+");");
-		return rVarName; 
+		return rVarName;
 	}
 
 	@Override
 	public String forTypeArgOnly(TypeArg that, String type_result) {
 		String rVarName = FreshName.getFreshName("typeArg");
 		this.code.add("TypeArg "+rVarName+" = new TypeArg("+that.isParenthesized()+", "+type_result+");");
-		return rVarName; 
+		return rVarName;
 	}
 
 	@Override
@@ -215,13 +214,13 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 			this.code.add("}");
 
 			this.code.add("else {");
-			this.code.add("List<QualifiedOpName> ops = new LinkedList<QualifiedOpName>();");
+			this.code.add("List<OpName> ops = new LinkedList<OpName>();");
 			this.code.add("ops.add(NodeFactory.makeQualifiedEncloserOpName(createSpan(yyStart,yyCount)));");
 			this.code.add("List<Expr> args = "+varName+".list();");
 //			this.code.add("Expr e = args.remove(0);");
 //			this.code.add("e = new AsIfExpr(e, new InstantiatedType("+((IdType)type.getType()).getName().accept(this)+", new LinkedList<StaticArg>()));");
 //			this.code.add("args.add(0, e);");
-			this.code.add(rVarName + " = new OprExpr(new OpRef(ops), args);");		
+			this.code.add(rVarName + " = new OprExpr(new OpRef(ops), args);");
 			this.code.add("}");
 			return rVarName;
 		}
@@ -229,7 +228,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	}
 
 	/**
-	 * We siliently assume, that Terminal definitions does not 
+	 * We siliently assume, that Terminal definitions does not
 	 * @param ps
 	 * @param nonterminalNameToDeclaredReturnType
 	 * @return
@@ -241,7 +240,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 //			@Override
 //			public Pair<String, Option<Kinds>> defaultCase(Node that) {
 //				return new Pair<String, Option<Kinds>>("", Option.<Kinds>none());
-//			}		
+//			}
 //
 //			@Override
 //			public Pair<String, Option<Kinds>> forOptionalSymbolOnly(
@@ -263,7 +262,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 //				return handle(symbol_result, Kinds.REPETITION);
 //			}
 //
-//			@Override 
+//			@Override
 //			public Pair<String, Option<Kinds>> forNonterminalSymbol(NonterminalSymbol that) {
 //				return new Pair<String, Option<Kinds>>(that.getNonterminal().getName().toString(), Option.<Kinds>none());
 //			}

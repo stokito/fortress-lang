@@ -448,15 +448,6 @@ public class NodeFactory {
                 name);
     }
 
-    public static QualifiedOpName makeQualifiedOpName(OpName name) {
-        return new QualifiedOpName(name.getSpan(), Option.<APIName>none(), name);
-    }
-
-    public static QualifiedOpName makeQualifiedOpName(APIName api, OpName name) {
-        return new QualifiedOpName(FortressUtil.spanTwo(api, name), Option.some(api),
-                name);
-    }
-
     /**
      * Alternatively, you can invoke the FnDef constructor without a selfName
      */
@@ -1111,11 +1102,10 @@ public class NodeFactory {
         return new FnRef(span, ids, staticArgs);
     }
 
-    public static QualifiedOpName makeQualifiedEncloserOpName(Span span) {
+    public static OpName makeEncloserOpName(Span span) {
         Op open = NodeFactory.makeOpEnclosing(span, "<|");
         Op close = NodeFactory.makeOpEnclosing(span, "|>");
-        Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close), open,close);
-        return NodeFactory.makeQualifiedOpName(op);
+        return new Enclosing(FortressUtil.spanTwo(open,close), open,close);
     }
 
     public static NamedType makeNamedType(APIName api, NamedType type) {

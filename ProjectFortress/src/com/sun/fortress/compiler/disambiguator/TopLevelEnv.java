@@ -43,7 +43,7 @@ public class TopLevelEnv extends NameEnv {
     private Map<Id, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<Id, Set<QualifiedIdName>>();
     private Map<Id, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<Id, Set<QualifiedIdName>>();
     private Map<Id, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<Id, Set<QualifiedIdName>>();
-    private Map<OpName, Set<QualifiedOpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<QualifiedOpName>>();
+    private Map<OpName, Set<OpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<OpName>>();
     private Map<Id, Set<QualifiedIdName>> _onDemandGrammarNames = new HashMap<Id, Set<QualifiedIdName>>();
 
     private static class TypeIndex {
@@ -167,14 +167,11 @@ public class TopLevelEnv extends NameEnv {
                     }
                 } else { // fnName instanceof OpName
                     OpName _fnName = (OpName)fnName;
-                    QualifiedOpName name = new QualifiedOpName(_fnName.getSpan(),
-                                                             Option.some(apiEntry.getKey()),
-                                                             _fnName);
                     if (_onDemandFunctionOpNames.containsKey(_fnName)) {
-                        _onDemandFunctionOpNames.get(_fnName).add(name);
+                        _onDemandFunctionOpNames.get(_fnName).add(_fnName);
                     } else {
-                        Set<QualifiedOpName> matches = new HashSet<QualifiedOpName>();
-                        matches.add(name);
+                        Set<OpName> matches = new HashSet<OpName>();
+                        matches.add(_fnName);
                         _onDemandFunctionOpNames.put(_fnName, matches);
                     }
                 }
@@ -253,10 +250,10 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
 
-    public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
+    public Set<OpName> explicitFunctionNames(OpName name) {
         // TODO: imports
         if (_current.functions().containsFirst(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedOpName(_current.ast().getName(), name));
+            return Collections.singleton(name);
         }
         else { return Collections.emptySet(); }
     }
@@ -299,11 +296,11 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
-    public Set<QualifiedOpName> onDemandFunctionNames(OpName name) {
+    public Set<OpName> onDemandFunctionNames(OpName name) {
         if (_onDemandFunctionOpNames.containsKey(name)) {
             return _onDemandFunctionOpNames.get(name);
         } else {
-            return new HashSet<QualifiedOpName>();
+            return new HashSet<OpName>();
         }
     }
 

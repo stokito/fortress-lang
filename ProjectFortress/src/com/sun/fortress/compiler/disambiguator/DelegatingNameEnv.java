@@ -24,7 +24,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class DelegatingNameEnv extends NameEnv {
@@ -51,7 +50,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<QualifiedIdName> explicitFunctionNames(Id name) {
         return _parent.explicitFunctionNames(name);
     }
-    public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
+    public Set<OpName> explicitFunctionNames(OpName name) {
         return _parent.explicitFunctionNames(name);
     }
 
@@ -64,7 +63,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<QualifiedIdName> onDemandFunctionNames(Id name) {
         return _parent.onDemandFunctionNames(name);
     }
-    public Set<QualifiedOpName> onDemandFunctionNames(OpName name) {
+    public Set<OpName> onDemandFunctionNames(OpName name) {
         return _parent.onDemandFunctionNames(name);
     }
 

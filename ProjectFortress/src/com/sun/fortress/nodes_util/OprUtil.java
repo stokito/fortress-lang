@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
 import com.sun.fortress.nodes.InFixity;
@@ -39,16 +38,8 @@ public final class OprUtil {
         return (op instanceof Enclosing);
     }
 
-    public static boolean isEnclosing(QualifiedOpName q) {
-        return isEnclosing(q.getName());
-    }
-
     private static boolean isNotEnclosing(OpName op) {
         return !(isEnclosing(op));
-    }
-
-    private static boolean isNotEnclosing(QualifiedOpName q) {
-        return isNotEnclosing(q.getName());
     }
 
     public static boolean isUnknownFixity(Op name) {
@@ -59,10 +50,6 @@ public final class OprUtil {
         if (name instanceof Enclosing)
             return false;
         return isUnknownFixity((Op)name);
-    }
-
-    public static boolean isUnknownFixity(QualifiedOpName q) {
-        return isUnknownFixity(q.getName());
     }
 
     private static boolean isPostfix(Op name) {
@@ -84,10 +71,6 @@ public final class OprUtil {
         }
     }
 
-    public static Op getOp(QualifiedOpName q) {
-        return getOp(q.getName());
-    }
-
     public static boolean hasPrefixColon(Op op) {
         String opName = op.getText();
         return (opName.length()>1 && opName.charAt(0)==':');
@@ -99,10 +82,6 @@ public final class OprUtil {
         } else {
             return false;
         }
-    }
-
-    public static boolean hasPrefixColon(QualifiedOpName q) {
-        return hasPrefixColon(q.getName());
     }
 
     public static boolean hasSuffixColon(Op op) {
@@ -117,10 +96,6 @@ public final class OprUtil {
         } else {
             return false;
         }
-    }
-
-    public static boolean hasSuffixColon(QualifiedOpName q) {
-        return hasSuffixColon(q.getName());
     }
 
     public static String noColonText(Op op) {
@@ -146,10 +121,6 @@ public final class OprUtil {
         } else {
             return getOp(n).getText();
         }
-    }
-
-    public static String noColonText(QualifiedOpName q) {
-        return noColonText(q.getName());
     }
 
     public static Op noColon(Op op) {
@@ -179,15 +150,6 @@ public final class OprUtil {
         return n;
     }
 
-    public static QualifiedOpName noColon(QualifiedOpName q) {
-        OpName orig = q.getName();
-        OpName n = noColon(orig);
-        if (n != orig) {
-            return new QualifiedOpName(q.getSpan(), q.getApi(), n);
-        }
-        return q;
-    }
-    
     public static String fixityDecorator(final Option<Fixity> of, final String s) {
         if (of.isNone()) {
             return s;
@@ -219,12 +181,12 @@ public final class OprUtil {
             }
         });
     }
-    
+
     /** Return a new operator with the fixity prepended to the text. */
     public static Op decorateOperator(Op o) {
         return new Op(o.getSpan(), fixityDecorator(o.getFixity(), o.getText()), o.getFixity());
     }
-    
+
     /** Return a new operator with the fixity stripped from the text. */
     public static Op undecorateOperator(Op o) {
         int i = o.getText().indexOf(" ");
