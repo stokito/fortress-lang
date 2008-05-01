@@ -64,10 +64,10 @@ import com.sun.fortress.useful.HasAt;
 public class TypeDisambiguator extends NodeUpdateVisitor {
 
     private TypeNameEnv _env;
-    private Set<SimpleName> _onDemandImports;
+    private Set<IdOrOpOrAnonymousName> _onDemandImports;
     private List<StaticError> _errors;
 
-    public TypeDisambiguator(TypeNameEnv env, Set<SimpleName> onDemandImports,
+    public TypeDisambiguator(TypeNameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
             List<StaticError> errors) {
         _env = env;
         _onDemandImports = onDemandImports;
@@ -172,7 +172,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         return forAbsFnDeclOnly(that,
                 v.recurOnListOfModifier(that.getMods()),
-                (SimpleName) that.getName().accept(v),
+                (IdOrOpOrAnonymousName) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfParam(that.getParams()),
                 v.recurOnOptionOfType(that.getReturnType()),
@@ -190,7 +190,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         return forFnDefOnly(that,
                 v.recurOnListOfModifier(that.getMods()),
-                (SimpleName) that.getName().accept(v),
+                (IdOrOpOrAnonymousName) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfParam(that.getParams()),
                 v.recurOnOptionOfType(that.getReturnType()),

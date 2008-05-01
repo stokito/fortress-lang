@@ -82,7 +82,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
@@ -492,8 +492,8 @@ public class Driver {
                     /* A set of names */
                     List<AliasedSimpleName> names = ((ImportNames) ix).getAliasedNames();
                     for (AliasedSimpleName an : names) {
-                        SimpleName name = an.getName();
-                        Option<SimpleName> alias = an.getAlias();
+                        IdOrOpOrAnonymousName name = an.getName();
+                        Option<IdOrOpOrAnonymousName> alias = an.getAlias();
                         /*
                          * If alias exists, associate the binding from
                          * component_wrapper with alias, otherwise associate
@@ -538,11 +538,11 @@ public class Driver {
                      * Include all names defined locally in the "except" list,
                      * because local definitions block import-* imports.
                      */
-                    final List<SimpleName> excepts = ((ImportStar) ix)
+                    final List<IdOrOpOrAnonymousName> excepts = ((ImportStar) ix)
                             .getExcept();
                     final Collection<String> except_names = Useful.applyToAllInserting(
-                            excepts, new Fn<SimpleName, String>() {
-                                public String apply(SimpleName n) {
+                            excepts, new Fn<IdOrOpOrAnonymousName, String>() {
+                                public String apply(IdOrOpOrAnonymousName n) {
                                     return NodeUtil.nameString(n);
                                 }
                             },
@@ -599,8 +599,8 @@ public class Driver {
                     /* A set of names */
                     List<AliasedSimpleName> names = ((ImportNames) ix).getAliasedNames();
                     for (AliasedSimpleName an : names) {
-                        SimpleName name = an.getName();
-                        Option<SimpleName> alias = an.getAlias();
+                        IdOrOpOrAnonymousName name = an.getName();
+                        Option<IdOrOpOrAnonymousName> alias = an.getAlias();
                         /*
                          * If alias exists, associate the binding from
                          * component_wrapper with alias, otherwise associate
@@ -616,12 +616,12 @@ public class Driver {
 
                 } else if (ix instanceof ImportStar) {
                     /* All names BUT excepts, as they are listed. */
-                    final List<SimpleName> excepts = ((ImportStar) ix)
+                    final List<IdOrOpOrAnonymousName> excepts = ((ImportStar) ix)
                             .getExcept();
                     final Set<String> except_names = Useful.applyToAllInserting(
                             excepts,
-                            new Fn<SimpleName, String>() {
-                                public String apply(SimpleName n) {
+                            new Fn<IdOrOpOrAnonymousName, String>() {
+                                public String apply(IdOrOpOrAnonymousName n) {
                                     return NodeUtil.nameString(n);
                                 }
                             },
@@ -859,7 +859,7 @@ public class Driver {
 
             @Override
             public void forAbsFnDecl(AbsFnDecl that) {
-                SimpleName id = that.getName();
+                IdOrOpOrAnonymousName id = that.getName();
                 String s = id.stringName();
                 vnames.add(s);
             }
@@ -897,21 +897,21 @@ public class Driver {
 
             @Override
             public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl that) {
-                SimpleName id = that.getName();
+                IdOrOpOrAnonymousName id = that.getName();
                 String s = id.stringName();
                 vnames.add(s);
             }
 
             @Override
             public void forFnDecl(FnDecl that) {
-                SimpleName id = that.getName();
+                IdOrOpOrAnonymousName id = that.getName();
                 String s = id.stringName();
                 vnames.add(s);
             }
 
             @Override
             public void forFnDef(FnDef that) {
-                SimpleName id = that.getName();
+                IdOrOpOrAnonymousName id = that.getName();
                 String s = id.stringName();
                 vnames.add(s);
             }
@@ -1009,7 +1009,7 @@ public class Driver {
     }
 
     private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
-            SimpleName name, Option<SimpleName> alias, String a, String c,
+            IdOrOpOrAnonymousName name, Option<IdOrOpOrAnonymousName> alias, String a, String c,
             ComponentWrapper importer) {
         String s = NodeUtil.nameString(name);
         String add_as = s;

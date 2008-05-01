@@ -37,7 +37,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
@@ -123,8 +123,8 @@ public abstract class TypeCheckerTestCase extends TestCase {
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Function>emptySet(),
-                                    CollectUtil.<SimpleName, Method>emptyRelation(),
-                                    CollectUtil.<SimpleName, FunctionalMethod>emptyRelation());
+                                    CollectUtil.<IdOrOpOrAnonymousName, Method>emptyRelation(),
+                                    CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }
 
     public static List<StaticParam> makeSparams(StaticParam... params) {

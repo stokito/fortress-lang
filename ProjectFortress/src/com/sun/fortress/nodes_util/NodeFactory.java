@@ -43,7 +43,7 @@ import static edu.rice.cs.plt.tuple.Option.wrap;
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
-            Option<Id> optSelfName, SimpleName name,
+            Option<Id> optSelfName, IdOrOpOrAnonymousName name,
             List<StaticParam> staticParams,
             List<Param> params,
             Option<Type> returnType,
@@ -61,34 +61,34 @@ public class NodeFactory {
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span,
-            SimpleName name) {
-        return new AliasedSimpleName(span, name, Option.<SimpleName>none());
+            IdOrOpOrAnonymousName name) {
+        return new AliasedSimpleName(span, name, Option.<IdOrOpOrAnonymousName>none());
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span,
-            SimpleName name,
+            IdOrOpOrAnonymousName name,
             Id alias) {
         return new AliasedSimpleName(span, name,
-                Option.<SimpleName>some(alias));
+                Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id) {
-        return new AliasedSimpleName(span, id, Option.<SimpleName>none());
+        return new AliasedSimpleName(span, id, Option.<IdOrOpOrAnonymousName>none());
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id,
             Id alias) {
-        return new AliasedSimpleName(span, id, Option.<SimpleName>some(alias));
+        return new AliasedSimpleName(span, id, Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
     public static AliasedSimpleName makeAliasedSimpleName(Span span, OpName op) {
-        return new AliasedSimpleName(span, op, Option.<SimpleName>none());
+        return new AliasedSimpleName(span, op, Option.<IdOrOpOrAnonymousName>none());
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span, OpName op,
             OpName alias) {
-        return new AliasedSimpleName(span, op, Option.<SimpleName>some(alias));
+        return new AliasedSimpleName(span, op, Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
     public static ArrayType makeArrayType(Span span, Type element,
@@ -461,7 +461,7 @@ public class NodeFactory {
      * Alternatively, you can invoke the FnDef constructor without a selfName
      */
     public static FnDef makeFnDecl(Span s, List<Modifier> mods,
-            Option<Id> optSelfName, SimpleName name,
+            Option<Id> optSelfName, IdOrOpOrAnonymousName name,
             List<StaticParam> staticParams,
             List<Param> params,
             Option<Type> returnType,
@@ -1086,7 +1086,7 @@ public class NodeFactory {
         return new VoidLiteralExpr();
     }
 
-    public static Import makeImportStar(APIName api, List<SimpleName> excepts) {
+    public static Import makeImportStar(APIName api, List<IdOrOpOrAnonymousName> excepts) {
         return new ImportStar(api, excepts);
     }
 

@@ -33,7 +33,7 @@ import com.sun.fortress.nodes.MathItem;
 import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TightJuxt;
@@ -96,7 +96,7 @@ public abstract class NativeApp implements Applicable {
     public List<StaticParam> getStaticParams() {
         return a.getStaticParams();
     }
-    public SimpleName getName() { return a.getName(); }
+    public IdOrOpOrAnonymousName getName() { return a.getName(); }
     public WhereClause getWhere() { return a.getWhere(); }
     public String at() { return a.at(); }
     public String stringName() { return a.stringName(); }

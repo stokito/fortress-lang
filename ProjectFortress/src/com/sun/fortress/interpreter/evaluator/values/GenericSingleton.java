@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -76,7 +76,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
          return t;
     }
 
-    public SimpleName getName() {
+    public IdOrOpOrAnonymousName getName() {
         // TODO Auto-generated method stub
         return odecl.getName();
     }

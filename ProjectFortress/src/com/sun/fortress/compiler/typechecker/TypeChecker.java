@@ -153,7 +153,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                labelExitTypes);
     }
 
-    public TypeChecker extendWithMethods(Relation<SimpleName, Method> methods) {
+    public TypeChecker extendWithMethods(Relation<IdOrOpOrAnonymousName, Method> methods) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithMethods(methods),
                                compilationUnit,
@@ -161,7 +161,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                labelExitTypes);
     }
 
-    public TypeChecker extendWithFunctions(Relation<SimpleName, FunctionalMethod> methods) {
+    public TypeChecker extendWithFunctions(Relation<IdOrOpOrAnonymousName, FunctionalMethod> methods) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithFunctions(methods),
                                compilationUnit,
@@ -169,7 +169,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                labelExitTypes);
     }
 
-    public TypeChecker extendWithFnDefs(Relation<SimpleName, ? extends FnDef> fns) {
+    public TypeChecker extendWithFnDefs(Relation<IdOrOpOrAnonymousName, ? extends FnDef> fns) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithFnDefs(fns),
                                compilationUnit,
@@ -217,7 +217,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return new TypeCheckerResult(ast, resultType);
         }
     }
-    
+
     /**
      * Return an error complaining about usage of a label name as an identifier.
      * @param name the label name that is being used
@@ -354,7 +354,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     private TypeCheckerResult forQualifiedName(QualifiedName that) {
-        SimpleName name = that.getName();
+        IdOrOpOrAnonymousName name = that.getName();
         Option<APIName> apiName = that.getApi();
         if (apiName.isSome()) {
             APIName api = unwrap(apiName);
@@ -674,7 +674,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forLetFn(LetFn that) {
         TypeCheckerResult result = new TypeCheckerResult(that);
-        Relation<SimpleName, FnDef> fnDefs = new HashRelation<SimpleName, FnDef>(true, false);
+        Relation<IdOrOpOrAnonymousName, FnDef> fnDefs = new HashRelation<IdOrOpOrAnonymousName, FnDef>(true, false);
         for (FnDef fnDef : that.getFns()) {
             fnDefs.add(fnDef.getName(), fnDef);
         }
@@ -965,7 +965,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         for (Pair<Type, Type> guardTypePair : IterUtil.cross(guards.firstSet(), guards.firstSet())) {
             Type guardTypeL = guardTypePair.first();
             Type guardTypeR = guardTypePair.second();
-            
+
             Option<Type> applicationType =
                 TypesUtil.applicationType(subtypeChecker,
                                                  opType,
@@ -974,7 +974,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             // Check if "opType guardType_i guardType_j" application has type Boolean
             if (applicationType.isSome() && subtypeChecker.subtype(unwrap(applicationType), Types.BOOLEAN)) {
-                
+
                 // The list of expressions for which to generate errors is got from both types'
                 // lists of guard expressions. If the types are equal, do not compose these lists.
                 Iterable<Expr> guardExprsForTypes =
@@ -1101,14 +1101,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                    rhsType),
                                          exprs_result);
     }
-    
+
     // TODO: check for spawn and try/catch
     public TypeCheckerResult forLabel(final Label that) {
-        
+
         // Extend the checker with this label name in the type env
         TypeChecker newChecker = this.extend(Collections.singletonList(NodeFactory.makeLValue(that.getName(), Types.LABEL)));
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
-        
+
         // If the body was typed, union all the exit types with it.
         // If any exit type is none, then don't type this label.
         if (bodyResult.type().isSome()) {
@@ -1121,7 +1121,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 } else {
                     allTyped = false;
                 }
-                
+
                 // Destroy this mapping since we are done with it
                 labelExitTypes.remove(that.getName(), t);
             }
@@ -1132,7 +1132,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         return TypeCheckerResult.compose(that, bodyResult);
     }
-    
+
     public TypeCheckerResult forExit(Exit that) {
         assert (that.getTarget().isSome()); // Should be provided by disambiguator.
         Id labelName = unwrap(that.getTarget());
@@ -1147,11 +1147,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if (!(targetType instanceof LabelType)) {
             // TODO: better error message
             return new TypeCheckerResult(that,
-                                         TypeError.make(errorMsg("Target of 'exit' is not a label name: ", 
+                                         TypeError.make(errorMsg("Target of 'exit' is not a label name: ",
                                                                  labelName),
                                                         labelName));
         }
-        
+
         // Append the 'with' type to the list for this label
         if (that.getReturnExpr().isSome()) {
             TypeCheckerResult withResult = unwrap(that.getReturnExpr()).accept(this);
@@ -2222,16 +2222,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forQualifiedNameOnly(that, api_result, name_result);
 //    }
 //
-//    public RetType forSimpleNameOnly(SimpleName that) {
+//    public RetType forIdOrOpOrAnonymousNameOnly(IdOrOpOrAnonymousName that) {
 //        return forNameOnly(that);
 //    }
 //
 //    public RetType forIdOnly(Id that) {
-//        return forSimpleNameOnly(that);
+//        return forIdOrOpOrAnonymousNameOnly(that);
 //    }
 //
 //    public RetType forOpNameOnly(OpName that) {
-//        return forSimpleNameOnly(that);
+//        return forIdOrOpOrAnonymousNameOnly(that);
 //    }
 //
 //    public RetType forEnclosingOnly(Enclosing that, RetType open_result, RetType close_result) {
@@ -2239,11 +2239,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    }
 //
 //    public RetType forAnonymousFnNameOnly(AnonymousFnName that) {
-//        return forSimpleNameOnly(that);
+//        return forIdOrOpOrAnonymousNameOnly(that);
 //    }
 //
 //    public RetType forConstructorFnNameOnly(ConstructorFnName that, RetType def_result) {
-//        return forSimpleNameOnly(that);
+//        return forIdOrOpOrAnonymousNameOnly(that);
 //    }
 //
 //    public RetType forArrayComprehensionClauseOnly(ArrayComprehensionClause that, List<RetType> bind_result, RetType init_result, List<RetType> gens_result) {
@@ -2357,13 +2357,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forImportStar(ImportStar that) {
 //        RetType api_result = that.getApi().accept(this);
-//        List<RetType> except_result = recurOnListOfSimpleName(that.getExcept());
+//        List<RetType> except_result = recurOnListOfIdOrOpOrAnonymousName(that.getExcept());
 //        return forImportStarOnly(that, api_result, except_result);
 //    }
 //
 //    public RetType forImportNames(ImportNames that) {
 //        RetType api_result = that.getApi().accept(this);
-//        List<RetType> aliasedNames_result = recurOnListOfAliasedSimpleName(that.getAliasedNames());
+//        List<RetType> aliasedNames_result = recurOnListOfAliasedIdOrOpOrAnonymousName(that.getAliasedNames());
 //        return forImportNamesOnly(that, api_result, aliasedNames_result);
 //    }
 //
@@ -2374,7 +2374,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forAliasedSimpleName(AliasedSimpleName that) {
 //        RetType name_result = that.getName().accept(this);
-//        Option<RetType> alias_result = recurOnOptionOfSimpleName(that.getAlias());
+//        Option<RetType> alias_result = recurOnOptionOfIdOrOpOrAnonymousName(that.getAlias());
 //        return forAliasedSimpleNameOnly(that, name_result, alias_result);
 //    }
 //

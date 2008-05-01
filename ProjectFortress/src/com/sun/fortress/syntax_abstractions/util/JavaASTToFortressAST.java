@@ -76,7 +76,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 					return handleOption(value, it);
 				}
 				// or the result of a repetition
-				if ((value instanceof Pair) && 
+				if ((value instanceof Pair) &&
 					 it.getName().equals(NodeFactory.makeQualifiedIdName("List","List"))) {
 					return handleRepetition((Pair) value, it);
 				}
@@ -121,7 +121,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 		args.add(dispatch(value, Option.<Type>none()));
 		return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.JUST, args, it.getArgs());
 	}
-	
+
 	private Expr handleRepetition(Pair value, InstantiatedType type) {
 		if (value.list().isEmpty()) {
 			return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
@@ -151,19 +151,19 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 		args.add(that);
 		return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "FortressAst", "StringLiteralExpr", args, new LinkedList<StaticArg>());
 	}
-	
+
 	@Override
 	public Expr forIntLiteralExpr(IntLiteralExpr that) {
 		List<Expr> args = new LinkedList<Expr>();
 		args.add(that);
 		return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "FortressAst", "IntLiteralExpr", args, new LinkedList<StaticArg>());
 	}
-	
+
 	@Override
 	public Expr forAPINameOnly(APIName that, List<Expr> ids_result) {
 		List<Expr> args = new LinkedList<Expr>();
 		args.add(SyntaxAbstractionUtil.makeList(this.span, ids_result, "Id"));
-		return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "FortressAst", "APIName", args, new LinkedList<StaticArg>());		
+		return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "FortressAst", "APIName", args, new LinkedList<StaticArg>());
 	}
 
 	@Override
@@ -179,9 +179,10 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 	}
 
 	@Override
-	public Expr forEnclosingOnly(Enclosing that, Expr open_result,
+            public Expr forEnclosingOnly(Enclosing that, Option<Expr> api_result, Expr open_result,
 			Expr close_result) {
 		List<Expr> args = new LinkedList<Expr>();
+		args.add(SyntaxAbstractionUtil.makeMaybe(this.span, api_result, "ApiName"));
 		args.add(open_result);
 		args.add(close_result);
 		return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "Enclosing", args );
@@ -211,8 +212,9 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 	}
 
 	@Override
-	public Expr forOpOnly(Op that, Option<Expr> fixity_result) {
+            public Expr forOpOnly(Op that, Option<Expr> api_result, Option<Expr> fixity_result) {
 		List<Expr> args = new LinkedList<Expr>();
+		args.add(SyntaxAbstractionUtil.makeMaybe(this.span, api_result, "ApiName"));
 		args.add(SyntaxAbstractionUtil.makeMaybe(this.span, fixity_result, "Fixity"));
 		return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "Op", args);
 	}
@@ -243,10 +245,10 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 
 	@Override
 	public Expr forQualifiedOpNameOnly(QualifiedOpName that,
-			Option<Expr> api_result, Expr name_result) {	
+			Option<Expr> api_result, Expr name_result) {
 		return handleQualifiedName("QualifiedOpName", api_result, name_result);
 	}
-	
+
 	private Expr handleQualifiedName(String objectName, Option<Expr> api_result,
 			Expr name_result) {
 		List<Expr> args = new LinkedList<Expr>();

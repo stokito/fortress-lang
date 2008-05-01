@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;

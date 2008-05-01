@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFul
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OprParam;
@@ -184,8 +184,8 @@ public class GenericMethod extends MethodClosure implements
             Applicable a0 = arg0.getDef();
             Applicable a1 = arg1.getDef();
 
-            SimpleName fn0 = a0.getName();
-            SimpleName fn1 = a1.getName();
+            IdOrOpOrAnonymousName fn0 = a0.getName();
+            IdOrOpOrAnonymousName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;
@@ -228,7 +228,7 @@ public class GenericMethod extends MethodClosure implements
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
-    public SimpleName getName() {
+    public IdOrOpOrAnonymousName getName() {
         return getDef().getName();
     }
 

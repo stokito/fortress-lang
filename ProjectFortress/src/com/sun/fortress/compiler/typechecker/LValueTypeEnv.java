@@ -39,10 +39,10 @@ class LValueTypeEnv extends TypeEnv {
     }
 
     /**
-     * Return a BindingLookup that binds the given SimpleName to a type
-     * (if the given SimpleName is in this type environment).
+     * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
+     * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
-    public Option<BindingLookup> binding(SimpleName var) {
+    public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         for (LValueBind entry : entries) {
             if (var.equals(entry.getName())) {
                 return some(new BindingLookup(entry));

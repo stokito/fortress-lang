@@ -24,7 +24,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 
 import com.sun.fortress.useful.NI;
 
@@ -42,8 +42,8 @@ public class ObjectTraitIndex extends TraitIndex {
                             Map<Id, Method> getters,
                             Map<Id, Method> setters,
                             Set<Function>coercions,
-                            Relation<SimpleName, Method> dottedMethods,
-                            Relation<SimpleName, FunctionalMethod> functionalMethods) {
+                            Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
+                            Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
         super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
         _constructor = constructor;
         _fields = fields;

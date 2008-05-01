@@ -41,10 +41,10 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * to Variables.
  */
 class FnTypeEnv extends TypeEnv {
-    private Relation<SimpleName, ? extends Function> entries;
+    private Relation<IdOrOpOrAnonymousName, ? extends Function> entries;
     private TypeEnv parent;
 
-    FnTypeEnv(Relation<SimpleName, ? extends Function> _entries, TypeEnv _parent) {
+    FnTypeEnv(Relation<IdOrOpOrAnonymousName, ? extends Function> _entries, TypeEnv _parent) {
         parent = _parent;
         entries = _entries;
     }
@@ -53,7 +53,7 @@ class FnTypeEnv extends TypeEnv {
      * Return a BindingLookup that binds the given Id to a type
      * (if the given Id is in this type environment).
      */
-    public Option<BindingLookup> binding(SimpleName var) {
+    public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         
         Set<? extends Function> fns = entries.getSeconds(var);
         if (fns.isEmpty()) { return parent.binding(var); }
@@ -99,7 +99,7 @@ class FnTypeEnv extends TypeEnv {
     @Override
     public List<BindingLookup> contents() {
         List<BindingLookup> result = new ArrayList<BindingLookup>();
-        for (SimpleName name : entries.firstSet()) {
+        for (IdOrOpOrAnonymousName name : entries.firstSet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
                 result.add(unwrap(element));

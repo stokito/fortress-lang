@@ -33,7 +33,7 @@ public abstract class StaticParamEnv {
         return EmptyStaticParamEnv.ONLY.extend(params);
     }
 
-    public abstract Option<StaticParam> binding(SimpleName name);
+    public abstract Option<StaticParam> binding(IdOrOpOrAnonymousName name);
 
     public Option<StaticParam> binding(String name) {
         return binding(NodeFactory.makeId(name));

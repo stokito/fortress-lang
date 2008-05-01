@@ -70,7 +70,7 @@ List<Id> BindIdOrBindIdTuple =
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
 /* SimpleName ::= Id | opr w Op | opr w EncloserPair */
-SimpleName SimpleName =
+IdOrOpOrAnonymousName SimpleName =
      Id
    / opr w Op
    / opr w EncloserPair;

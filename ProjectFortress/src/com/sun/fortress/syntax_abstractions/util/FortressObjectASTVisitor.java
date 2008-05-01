@@ -49,7 +49,7 @@ import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
@@ -180,7 +180,7 @@ public class FortressObjectASTVisitor<T> {
 
     /*
      * mods:List[\Modifier\],
-      name:SimpleName,
+      name:IdOrOpOrAnonymousName,
       staticParams:List[\StaticParam\],
       params:List[\Param\],
       returnType:Maybe[\Type\],
@@ -194,7 +194,7 @@ public class FortressObjectASTVisitor<T> {
         FValue v1 = getField(value, "mods");
         List<Modifier> mods = dispatchList((FObject)v1);
         FValue v2 = getField(value, "name");
-        SimpleName name = new FortressObjectASTVisitor<SimpleName>(this.span).dispatch((FObject)v2);
+        IdOrOpOrAnonymousName name = new FortressObjectASTVisitor<IdOrOpOrAnonymousName>(this.span).dispatch((FObject)v2);
         FValue v3 = getField(value, "staticParams");
         List<StaticParam> staticParams = dispatchList((FObject)v3);
         FValue v4 = getField(value, "params");

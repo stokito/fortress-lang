@@ -25,7 +25,7 @@ public class EmptyStaticParamEnv extends StaticParamEnv {
     
     private EmptyStaticParamEnv() {}
     
-    public Option<StaticParam> binding(SimpleName name) {
+    public Option<StaticParam> binding(IdOrOpOrAnonymousName name) {
         return Option.none();
     }
 }

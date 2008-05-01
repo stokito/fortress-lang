@@ -38,7 +38,7 @@ import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.NoWhitespaceSymbol;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.WhitespaceSymbol;
@@ -103,7 +103,7 @@ public class Disambiguator {
         for (Api api : apis) {
             ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-            Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
+            Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
                 new TypeDisambiguator(env, onDemandImports, newErrs);
@@ -172,7 +172,7 @@ public class Disambiguator {
                 throw new IllegalArgumentException("Missing component index");
             }
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-            Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
+            Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
             
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 

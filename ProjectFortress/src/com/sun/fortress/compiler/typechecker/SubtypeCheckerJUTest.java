@@ -328,7 +328,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
                           traitDecls);
         return new ApiIndex(ast,
                             Collections.<Id, Variable>emptyMap(),
-                            CollectUtil.<SimpleName, Function>emptyRelation(),
+                            CollectUtil.<IdOrOpOrAnonymousName, Function>emptyRelation(),
                             traitMap,
                             CollectUtil.<Id, Dimension>emptyMap(),
                             CollectUtil.<Id, Unit>emptyMap(),
@@ -355,7 +355,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         return new ComponentIndex(ast,
                                   Collections.<Id, Variable>emptyMap(),
                                   Collections.<VarDecl>emptySet(),
-                                  CollectUtil.<SimpleName, Function>emptyRelation(),
+                                  CollectUtil.<IdOrOpOrAnonymousName, Function>emptyRelation(),
                                   traitMap,
                                   CollectUtil.<Id, Dimension>emptyMap(),
                                   CollectUtil.<Id, Unit>emptyMap(),
@@ -402,8 +402,8 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Function>emptySet(),
-                                    CollectUtil.<SimpleName, Method>emptyRelation(),
-                                    CollectUtil.<SimpleName, FunctionalMethod>emptyRelation());
+                                    CollectUtil.<IdOrOpOrAnonymousName, Method>emptyRelation(),
+                                    CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }
 
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */

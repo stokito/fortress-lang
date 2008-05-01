@@ -61,10 +61,10 @@ import com.sun.fortress.compiler.index.ApiIndex;
 public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private NameEnv _env;
-    private Set<SimpleName> _onDemandImports;
+    private Set<IdOrOpOrAnonymousName> _onDemandImports;
     private List<StaticError> _errors;
 
-    public ExprDisambiguator(NameEnv env, Set<SimpleName> onDemandImports,
+    public ExprDisambiguator(NameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
                              List<StaticError> errors) {
         _env = env;
         _onDemandImports = onDemandImports;
@@ -277,7 +277,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         return forAbsFnDeclOnly(that,
                                 v.recurOnListOfModifier(that.getMods()),
-                                (SimpleName) that.getName().accept(v),
+                                (IdOrOpOrAnonymousName) that.getName().accept(v),
                                 v.recurOnListOfStaticParam(that.getStaticParams()),
                                 v.recurOnListOfParam(that.getParams()),
                                 v.recurOnOptionOfType(that.getReturnType()),
@@ -301,7 +301,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         return forFnDefOnly(that,
                             v.recurOnListOfModifier(that.getMods()),
-                            (SimpleName) that.getName().accept(v),
+                            (IdOrOpOrAnonymousName) that.getName().accept(v),
                             v.recurOnListOfStaticParam(that.getStaticParams()),
                             v.recurOnListOfParam(that.getParams()),
                             v.recurOnOptionOfType(that.getReturnType()),
@@ -323,7 +323,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = extend(staticExprVars).extend(params);
 
         return forFnExprOnly(that,
-                             (SimpleName) that.getName().accept(v),
+                             (IdOrOpOrAnonymousName) that.getName().accept(v),
                              v.recurOnListOfStaticParam(that.getStaticParams()),
                              v.recurOnListOfParam(that.getParams()),
                              v.recurOnOptionOfType(that.getReturnType()),
@@ -335,15 +335,15 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     /** LetFns introduce local functions in scope within the body. */
     @Override public Node forLetFn(LetFn that) {
       List<FnDef> fnsResult = recurOnListOfFnDef(that.getFns());
-      Set<SimpleName> definedNames = extractDefinedFnNames(fnsResult);
+      Set<IdOrOpOrAnonymousName> definedNames = extractDefinedFnNames(fnsResult);
       NameEnv newEnv = new LocalFnEnv(_env, definedNames);
       ExprDisambiguator v = new ExprDisambiguator(newEnv, _onDemandImports, _errors);
       List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
       return forLetFnOnly(that, bodyResult, fnsResult);
     }
 
-    private Set<SimpleName> extractDefinedFnNames(Iterable<FnDef> fnDefs) {
-      Set<SimpleName> result = new HashSet<SimpleName>();
+    private Set<IdOrOpOrAnonymousName> extractDefinedFnNames(Iterable<FnDef> fnDefs) {
+      Set<IdOrOpOrAnonymousName> result = new HashSet<IdOrOpOrAnonymousName>();
       for (FnDef fd : fnDefs) { result.add(fd.getName()); }
       // multiple instances of the same name are allowed
       return result;

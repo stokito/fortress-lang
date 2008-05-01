@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.useful.HasAt;
 
 
@@ -70,7 +70,7 @@ public class AnonymousConstructor extends NonPrimitive {
     }
 
     @Override
-    public SimpleName getFnName() {
+    public IdOrOpOrAnonymousName getFnName() {
         // TODO Auto-generated method stub
         return null;
     }

@@ -53,7 +53,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
@@ -258,7 +258,7 @@ public class ActionCreater {
     }
 
     private Import makeImportStar(String apiName) {
-        return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<SimpleName>());
+        return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
     }
 
 
