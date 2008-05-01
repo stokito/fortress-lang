@@ -34,7 +34,6 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -86,10 +85,8 @@ public class ASTUtil {
             opr = NodeFactory.makeOpInfix(op);
         else
             opr = error(op, "Operator fixity is invalid in its application.");
-        QualifiedOpName qName =
-            new QualifiedOpName(op.getSpan(), Option.<APIName>none(), opr);
         OpRef ref = new OpRef(op.getSpan(),
-                              Collections.<QualifiedOpName>singletonList(qName));
+                              Collections.<OpName>singletonList(opr));
         return new OprExpr(span, false, ref, args);
     }
 
@@ -105,10 +102,8 @@ public class ASTUtil {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
             Span s = FortressUtil.spanTwo(left, right);
             Enclosing en = new Enclosing(s, left, right);
-            QualifiedOpName qName = new QualifiedOpName(s, Option.<APIName>none(),
-                                                        new Enclosing(s, left, right));
             OpRef ref = new OpRef(s,
-                                  Collections.<QualifiedOpName>singletonList(qName),
+                                  Collections.<OpName>singletonList(en),
                                   sargs);
             return new OprExpr(span, false, ref, args);
         } else {

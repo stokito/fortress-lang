@@ -24,7 +24,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class DelegatingTypeNameEnv extends TypeNameEnv {

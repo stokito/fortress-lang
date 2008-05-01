@@ -349,10 +349,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return forQualifiedName(that);
     }
 
-    public TypeCheckerResult forQualifiedOpName(QualifiedOpName that) {
-        return forQualifiedName(that);
-    }
-
     private TypeCheckerResult forQualifiedName(QualifiedName that) {
         IdOrOpOrAnonymousName name = that.getName();
         Option<APIName> apiName = that.getApi();
@@ -380,7 +376,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return new TypeCheckerResult(that, _type);
             } else {
                 // Operators are never qualified in source code, so if 'that' is qualified and not
-                // found, it must be a QualifiedIdName, not a QualifiedOpName.
+                // found, it must be a QualifiedIdName, not a OpName.
                 StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
                                                    that);
                 return new TypeCheckerResult(that, error);
@@ -1069,7 +1065,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 if (applicationType.isNone()) {
                     // Guaranteed at least one operator because all the overloaded operators
                     // are created by disambiguation, not by the user.
-                    OpName opName = that.getOp().getOps().get(0).getName();
+                    OpName opName = that.getOp().getOps().get(0);
                     return TypeCheckerResult.compose(that,
                             op_result,
                             TypeCheckerResult.compose(that, args_result),
@@ -2218,10 +2214,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forQualifiedNameOnly(that, api_result, name_result);
 //    }
 //
-//    public RetType forQualifiedOpNameOnly(QualifiedOpName that, Option<RetType> api_result, RetType name_result) {
-//        return forQualifiedNameOnly(that, api_result, name_result);
-//    }
-//
 //    public RetType forIdOrOpOrAnonymousNameOnly(IdOrOpOrAnonymousName that) {
 //        return forNameOnly(that);
 //    }
@@ -2771,7 +2763,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    }
 //
 //    public RetType forOprExpr(OprExpr that) {
-//        List<RetType> ops_result = recurOnListOfQualifiedOpName(that.getOps());
+//        List<RetType> ops_result = recurOnListOfOpName(that.getOps());
 //        List<RetType> args_result = recurOnListOfExpr(that.getArgs());
 //        return forOprExprOnly(that, ops_result, args_result);
 //    }
@@ -3323,12 +3315,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        Option<RetType> api_result = recurOnOptionOfAPIName(that.getApi());
 //        RetType name_result = that.getName().accept(this);
 //        return forQualifiedIdNameOnly(that, api_result, name_result);
-//    }
-//
-//    public RetType forQualifiedOpName(QualifiedOpName that) {
-//        Option<RetType> api_result = recurOnOptionOfAPIName(that.getApi());
-//        RetType name_result = that.getName().accept(this);
-//        return forQualifiedOpNameOnly(that, api_result, name_result);
 //    }
 //
 //    public RetType forId(Id that) {

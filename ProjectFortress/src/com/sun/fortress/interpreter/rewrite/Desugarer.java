@@ -1070,11 +1070,11 @@ public class Desugarer extends Rewrite {
 
         List<Expr> args = opExp.getArgs();
         if (args.size() <= 1) return opExp;
-        QualifiedOpName qop = ref.getOps().get(0);
+        OpName qop = ref.getOps().get(0);
         if (OprUtil.isEnclosing(qop)) return opExp;
         if (OprUtil.isUnknownFixity(qop))
             return bug(opExp, "The operator fixity is unknown: " +
-                       ((Op)qop.getName()).getText());
+                       ((Op)qop).getText());
         boolean prefix = OprUtil.hasPrefixColon(qop);
         boolean suffix = OprUtil.hasSuffixColon(qop);
         if (!prefix && !suffix) return opExp;

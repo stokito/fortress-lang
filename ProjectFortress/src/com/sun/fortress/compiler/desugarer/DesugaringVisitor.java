@@ -752,7 +752,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new _RewriteFnRef(that.getSpan(), that.isParenthesized(), fn_result, staticArgs_result);
 //    }
 //
-//    public Node forOpRefOnly(OpRef that, List<QualifiedOpName> ops_result, List<StaticArg> staticArgs_result) {
+//    public Node forOpRefOnly(OpRef that, List<OpName> ops_result, List<StaticArg> staticArgs_result) {
 //        if (that.getOps() == ops_result && that.getStaticArgs() == staticArgs_result) return that;
 //        else return new OpRef(that.getSpan(), that.isParenthesized(), ops_result, staticArgs_result);
 //    }
@@ -1251,11 +1251,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    public Node forQualifiedIdNameOnly(QualifiedIdName that, Option<APIName> api_result, Id name_result) {
 //        if (that.getApi() == api_result && that.getName() == name_result) return that;
 //        else return new QualifiedIdName(that.getSpan(), api_result, name_result);
-//    }
-//
-//    public Node forQualifiedOpNameOnly(QualifiedOpName that, Option<APIName> api_result, OpName name_result) {
-//        if (that.getApi() == api_result && that.getName() == name_result) return that;
-//        else return new QualifiedOpName(that.getSpan(), api_result, name_result);
 //    }
 //
 //    public Node forIdOnly(Id that) {
@@ -1986,7 +1981,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forOpRef(OpRef that) {
-//        List<QualifiedOpName> ops_result = recurOnListOfQualifiedOpName(that.getOps());
+//        List<OpName> ops_result = recurOnListOfOpName(that.getOps());
 //        List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
 //        return forOpRefOnly(that, ops_result, staticArgs_result);
 //    }
@@ -2530,12 +2525,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        Option<APIName> api_result = recurOnOptionOfAPIName(that.getApi());
 //        Id name_result = (Id) that.getName().accept(this);
 //        return forQualifiedIdNameOnly(that, api_result, name_result);
-//    }
-//
-//    public Node forQualifiedOpName(QualifiedOpName that) {
-//        Option<APIName> api_result = recurOnOptionOfAPIName(that.getApi());
-//        OpName name_result = (OpName) that.getName().accept(this);
-//        return forQualifiedOpNameOnly(that, api_result, name_result);
 //    }
 //
 //    public Node forId(Id that) {
@@ -3242,17 +3231,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //                return that;
 //            }
 //        });
-//    }
-//
-//    public List<QualifiedOpName> recurOnListOfQualifiedOpName(final List<QualifiedOpName> that) {
-//        boolean changed = false;
-//        List<QualifiedOpName> result = new java.util.ArrayList<QualifiedOpName>(0);
-//        for (QualifiedOpName elt : that) {
-//            QualifiedOpName elt_result = (QualifiedOpName) elt.accept(this);
-//            result.add(elt_result);
-//            if (elt != elt_result) changed = true;
-//        }
-//        return changed ? (result) : that;
 //    }
 //
 //    public List<MathItem> recurOnListOfMathItem(final List<MathItem> that) {

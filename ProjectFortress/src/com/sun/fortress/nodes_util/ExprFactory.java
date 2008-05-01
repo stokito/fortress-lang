@@ -77,7 +77,6 @@ import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -294,52 +293,32 @@ public class ExprFactory {
         return makeTuple(Arrays.asList(exprs));
     }
 
-    private static OpRef makeOpRef(QualifiedOpName op) {
+    private static OpRef makeOpRef(OpName op) {
         return new OpRef(op.getSpan(), Collections.singletonList(op));
     }
 
-    private static OpRef makeOpRef(QualifiedOpName op, List<StaticArg> staticArgs) {
+    private static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
         return new OpRef(op.getSpan(), Collections.singletonList(op), staticArgs);
     }
 
-    public static OprExpr makeOprExpr(Span span, QualifiedOpName op) {
+    public static OprExpr makeOprExpr(Span span, OpName op) {
         return new OprExpr(span, false, makeOpRef(op));
     }
 
-    public static OprExpr makeOprExpr(Span span, QualifiedOpName op, Expr arg) {
-        return new OprExpr(span, false, makeOpRef(op),
-                           Collections.singletonList(arg));
-    }
-
-    public static OprExpr makeOprExpr(Span span, QualifiedOpName op, Expr first,
-                                      Expr second) {
-        return new OprExpr(span, false, makeOpRef(op),
-                           Arrays.asList(first, second));
-    }
-
-    public static OprExpr makeOprExpr(Span span, OpName op) {
-        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
-        return new OprExpr(span, false, makeOpRef(name),
-                           Collections.<Expr>emptyList());
-    }
-
     public static OprExpr makeOprExpr(Span span, OpName op, Expr arg) {
-        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
-        return new OprExpr(span, false, makeOpRef(name),
+        return new OprExpr(span, false, makeOpRef(op),
                            Collections.singletonList(arg));
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op, Expr first,
                                       Expr second) {
-        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
-        return new OprExpr(span, false, makeOpRef(name),
+        return new OprExpr(span, false, makeOpRef(op),
                            Arrays.asList(first, second));
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op, Expr arg,
                                       List<StaticArg> staticArgs) {
-        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
-        return new OprExpr(span, false, makeOpRef(name, staticArgs),
+        return new OprExpr(span, false, makeOpRef(op, staticArgs),
                            Collections.singletonList(arg));
     }
 
@@ -777,7 +756,7 @@ public class ExprFactory {
      */
     public static Typecase makeTypecase(Typecase tc, List<Id> lid, Expr expr) {
         /* Span in_span,
-         * boolean in_parenthesized, 
+         * boolean in_parenthesized,
          * Pair<List<Id>, Option<Expr>> in_bind,
          * List<TypecaseClause> in_clauses,
          * Option<Block> in_elseClause

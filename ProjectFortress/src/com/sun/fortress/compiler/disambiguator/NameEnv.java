@@ -22,10 +22,9 @@ import java.util.Set;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 
 public abstract class NameEnv extends TypeNameEnv {
-    
+
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * variable name; on-demand imports are ignored.  An undefined reference
@@ -44,12 +43,12 @@ public abstract class NameEnv extends TypeNameEnv {
      * operator name; on-demand imports are ignored.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<QualifiedOpName> explicitFunctionNames(OpName name);
-    
+    public abstract Set<OpName> explicitFunctionNames(OpName name);
+
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given variable name.  An undefined reference
-     * produces an empty set, and an ambiguous reference produces a set of size 
+     * produces an empty set, and an ambiguous reference produces a set of size
      * greater than 1.
      */
     public abstract Set<QualifiedIdName> onDemandVariableNames(Id name);
@@ -64,8 +63,8 @@ public abstract class NameEnv extends TypeNameEnv {
      * that correspond to the given operator name.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<QualifiedOpName> onDemandFunctionNames(OpName name);
-    
+    public abstract Set<OpName> onDemandFunctionNames(OpName name);
+
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a variable exists.  Assumes {@code name.getApi().isSome()}.

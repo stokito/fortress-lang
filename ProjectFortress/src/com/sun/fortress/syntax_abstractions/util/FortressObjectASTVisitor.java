@@ -48,7 +48,6 @@ import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -163,8 +162,6 @@ public class FortressObjectASTVisitor<T> {
             return dispatchAPIName(value);
         } else if (value.type().toString().equals("QualifiedIdName")) {
             return dispatchQualifiedIdName(value);
-        } else if (value.type().toString().equals("QualifiedOpName")) {
-            return dispatchQualifiedOpName(value);
         } else if (value.type().toString().equals("Id")) {
             return dispatchId(value);
         } else if (value.type().toString().equals("Op")) {
@@ -229,7 +226,7 @@ public class FortressObjectASTVisitor<T> {
 
     private T dispatchOpRef(FObject value) {
         FValue v1 = getField(value, "ops");
-        List<QualifiedOpName> ops = dispatchList((FObject)v1);
+        List<OpName> ops = dispatchList((FObject)v1);
         FValue v2 = getField(value, "staticArgs");
         List<StaticArg> staticArgs = dispatchList((FObject)v2);
         return (T) new OpRef(this.span, ops, staticArgs);
@@ -312,14 +309,6 @@ public class FortressObjectASTVisitor<T> {
         FValue v2 = getField(value, "name");
         Id id = new FortressObjectASTVisitor<Id>(this.span).dispatch((FObject)v2);
         return (T) new QualifiedIdName(this.span, apiName, id);
-    }
-
-    private T dispatchQualifiedOpName(FObject value) {
-        FValue v1 = getField(value, "apiName");
-        Option<APIName> apiName = dispatchMaybe((FObject)v1);
-        FValue v2 = getField(value, "name");
-        OpName op = new FortressObjectASTVisitor<OpName>(this.span).dispatch((FObject)v2);
-        return (T) new QualifiedOpName(this.span, apiName, op);
     }
 
     private T dispatchId(FObject value) {

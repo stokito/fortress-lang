@@ -25,7 +25,6 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -45,9 +44,9 @@ public class LocalFnEnv extends DelegatingNameEnv {
         else { return super.explicitFunctionNames(name); }
     }
 
-    @Override public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
+    @Override public Set<OpName> explicitFunctionNames(OpName name) {
         if (_fns.contains(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedOpName(name));
+            return Collections.singleton(name);
         }
         else { return super.explicitFunctionNames(name); }
     }

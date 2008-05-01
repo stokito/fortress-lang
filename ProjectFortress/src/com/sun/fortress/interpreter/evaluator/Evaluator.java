@@ -129,7 +129,6 @@ import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
 import com.sun.fortress.nodes.StaticArg;
@@ -1116,7 +1115,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         OpRef ref = expr.getOp();
         if (ref.getOps().size() != 1) return false;
         else {
-            OpName name = ref.getOps().get(0).getName();
+            OpName name = ref.getOps().get(0);
             if (!(name instanceof Op)) return false;
             else return (((Op)name).getText().equals("^") ||
                          OprUtil.isPostfix(name));
@@ -1131,8 +1130,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (ref.getOps().size() != 1) {
             return bug(x, errorMsg("OprExpr with multiple operators ",x));
         }
-        QualifiedOpName op = ref.getOps().get(0);
-        OpName name = op.getName();
+        OpName op = ref.getOps().get(0);
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
         fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);
@@ -1141,7 +1139,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = FVoid.V;
         List<FValue> vargs;
 
-        if (name instanceof Op && OprUtil.isPostfix(name) &&
+        if (op instanceof Op && OprUtil.isPostfix(op) &&
             args.size() == 1) {
         // It is a static error if a function argument is immediately followed
         // by a non-expression element.  For example, f(x)!
@@ -1180,7 +1178,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                            " has a non-function value ", fvalue));
         }
         Fcn fcn = (Fcn) fvalue;
-        if (s <= 2 || (op.getName() instanceof Enclosing)) {
+        if (s <= 2 || (op instanceof Enclosing)) {
             res = functionInvocation(vargs, fcn, x);
         } else {
             List<FValue> argPair = new ArrayList<FValue>(2);

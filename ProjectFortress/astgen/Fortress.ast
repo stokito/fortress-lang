@@ -1054,7 +1054,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * Primary ::= Op[\StaticArgList\]
                      * e.g.) +[\String\]
                      */
-                    OpRef(List<QualifiedOpName> ops,
+                    OpRef(List<OpName> ops,
                           List<StaticArg> staticArgs
                               = Collections.<StaticArg>emptyList());
                 /**
@@ -1829,12 +1829,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) com.sun.fortress.nodes_util.getName
              */
             QualifiedIdName(Id name);
-            /**
-             * qualified operator name
-             * internal uses only
-             * e.g.) com.sun.fortress.nodes_util.+
-             */
-            QualifiedOpName(OpName name);
         /**
          * non-API name
          * SimpleName ::= Id
