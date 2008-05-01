@@ -1143,13 +1143,13 @@ public class NodeFactory {
         }
     }
 
-    public static Type makeOrType(List<Type> types) {
-        if (types.isEmpty()) {
+    public static Type makeOrType(Iterable<Type> types) {
+        if (IterUtil.isEmpty(types)) {
             return Types.BOTTOM;
-        } else if (types.size() == 1) {
-            return types.get(0);
+        } else if (IterUtil.sizeOf(types) == 1) {
+            return IterUtil.first(types);
         } else {
-            return IterUtil.fold(IterUtil.skipFirst(types), types.get(0),
+            return IterUtil.fold(IterUtil.skipFirst(types), IterUtil.first(types),
                     new Lambda2<Type, Type, Type>() {
                         public Type value(Type arg0, Type arg1) {
                             return new OrType(arg0, arg1);

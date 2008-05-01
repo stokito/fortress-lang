@@ -8,6 +8,7 @@ import java.util.List;
 import com.sun.fortress.nodes.AndType;
 import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.OrType;
@@ -134,6 +135,13 @@ public class TypesUtil {
                                                                     makeId("ImmutableHeapSequence")));
     }
     
+    public static Type makeThreadType(Type typeArg) {
+        return new InstantiatedType(NodeFactory.makeQualifiedIdName("FortressBuiltin", "Thread"),
+                Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
+    }
     
-
+    public static Type makeGeneratorType(Type typeArg) {
+        return new InstantiatedType(NodeFactory.makeQualifiedIdName("FortressLibrary", "Generator"),
+                Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
+    }
 }

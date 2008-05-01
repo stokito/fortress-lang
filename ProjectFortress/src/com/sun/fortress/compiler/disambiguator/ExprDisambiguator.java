@@ -490,18 +490,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
     
     @Override public Node forExitOnly(Exit that, Option<Id> target_result, Option<Expr> returnExpr_result) {
-        if (target_result.isNone()) {
-            if (_innerMostLabel.isNone()) {
-                error("Exit occurs outside of a label", that);
-                if (that.getReturnExpr() == returnExpr_result) {
-                    return that;
-                } else {
-                    return new Exit(that.getSpan(), that.isParenthesized(), target_result, returnExpr_result);
-                }
-            }
-            return new Exit(that.getSpan(), that.isParenthesized(), _innerMostLabel, returnExpr_result);
+        Option<Id> target = target_result.isSome() ? target_result
+                                                   : _innerMostLabel;
+        Option<Expr> with = returnExpr_result.isSome() ? returnExpr_result
+                                                       : wrap((Expr)new VoidLiteralExpr(that.getSpan()));
+        if (target.isNone()) {
+            error("Exit occurs outside of a label", that);
         }
-        return super.forExitOnly(that, target_result, returnExpr_result);
+        Exit newExit = new Exit(that.getSpan(), that.isParenthesized(), target, with);
+        if (newExit.equals(that)) {
+            return that;
+        } else {
+            return newExit;
+        }
     }
 
 }
