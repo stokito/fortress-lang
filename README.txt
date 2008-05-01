@@ -80,7 +80,6 @@ will need to have access to the following:
 
 * J2SDK 1.5 or later.  See http://java.sun.com/javase/downloads/index.jsp
 * Ant 1.6.5 or later.  See http://ant.apache.org/bindownload.cgi
-* JUnit 3.8.1 or later.  See http://prdownloads.sourceforge.net/junit
 * Bash version 2.5 or later, installed at /bin/bash.
   See http://www.gnu.org/software/bash/
 
