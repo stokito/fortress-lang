@@ -62,6 +62,7 @@ object String extends { StandardTotalOrder[\String\] }
     opr >(self, other:String): Boolean
     opr >=(self, other:String): Boolean
     opr CMP(self, other:String): TotalComparison
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
     opr [i:ZZ32]: Char
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the string, returning the empty string, in order to permit some convenient

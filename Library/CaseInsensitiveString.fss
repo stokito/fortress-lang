@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component CaseInsensitiveString
+export CaseInsensitiveString
+
+(** A %CaseInsensitiveString% is a wrapper around a %String% that
+    totally orders the underlying string case-insensitively.  This is
+    useful when using strings in a data structure that expects them to
+    extend StandardTotalOrder, for example as keys in a map or
+    elements of a set. **)
+value object CaseInsensitiveString(s:String)
+        extends { StandardTotalOrder[\CaseInsensitiveString\],
+                  ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
+    getter size() = |s|
+    (** %toString% returns the underlying non-case-insensitive %String%, %s%. **)
+    getter toString() : String = s
+    getter indices() : FullRange[\ZZ32\] = s.indices()
+    getter generator() : Generator[\Char\] = s.generator()
+    opr |self| : ZZ32 = |s|
+    opr =(self, other:String): Boolean = s.cicmp(other) = 0
+    opr <(self, other:String): Boolean = s.cicmp(other) < 0
+    opr <=(self, other:String): Boolean = s.cicmp(other) <= 0
+    opr >(self, other:String): Boolean = s.cicmp(other) > 0
+    opr >=(self, other:String): Boolean = s.cicmp(other) >= 0
+    opr CMP(self, other:String): TotalComparison = s.cicmp(other) CMP 0
+    opr [i:ZZ32]: Char = s[i]
+    (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
+        of the string, returning the empty string, in order to permit some convenient
+        string-trimming idioms. **)
+    opr[r0:Range[\ZZ32\]] : String =  CaseInsensitiveString(s[r0])
+end
+
+end
