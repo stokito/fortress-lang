@@ -32,7 +32,7 @@ class EmptyTypeEnv extends TypeEnv {
     
     private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
     
-    public Option<BindingLookup> binding(SimpleName var) { return none(); }
+    public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) { return none(); }
 
     @Override
     public List<BindingLookup> contents() {

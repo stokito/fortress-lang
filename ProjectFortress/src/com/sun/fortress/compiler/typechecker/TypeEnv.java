@@ -156,16 +156,16 @@ public abstract class TypeEnv {
     }
 
     /**
-     * Return a BindingLookup that binds the given SimpleName to a type
-     * (if the given SimpleName is in this type environment).
+     * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
+     * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
-    public abstract Option<BindingLookup> binding(SimpleName var);
+    public abstract Option<BindingLookup> binding(IdOrOpOrAnonymousName var);
 
     /**
-     * Return the type of the given SimpleName (if the given SimpleName is in
+     * Return the type of the given IdOrOpOrAnonymousName (if the given IdOrOpOrAnonymousName is in
      * this type environment).
      */
-    public final Option<Type> type(SimpleName var) {
+    public final Option<Type> type(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> _binding = binding(var);
         if (_binding.isSome()) {
             Option<Type> type = unwrap(_binding).getType();
@@ -186,10 +186,10 @@ public abstract class TypeEnv {
     }
 
     /**
-     * Return the list of modifiers for the given SimpleName (if that
-     * SimpleName is in this type environment).
+     * Return the list of modifiers for the given IdOrOpOrAnonymousName (if that
+     * IdOrOpOrAnonymousName is in this type environment).
      */
-    public final Option<List<Modifier>> mods(SimpleName var) {
+    public final Option<List<Modifier>> mods(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> binding = binding(var);
 
         if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
@@ -197,10 +197,10 @@ public abstract class TypeEnv {
     }
 
     /**
-     * Indicate whether the given SimpleName is bound as a mutable
-     * variable (if the given SimpleName is in this type environment).
+     * Indicate whether the given IdOrOpOrAnonymousName is bound as a mutable
+     * variable (if the given IdOrOpOrAnonymousName is in this type environment).
      */
-    public final Option<Boolean> mutable(SimpleName var) {
+    public final Option<Boolean> mutable(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> binding = binding(var);
 
         if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }
@@ -267,17 +267,17 @@ public abstract class TypeEnv {
         else { return new VarTypeEnv(vars, this); }
     }
 
-    public final TypeEnv extendWithFunctions(Relation<SimpleName, ? extends Function> fns) {
+    public final TypeEnv extendWithFunctions(Relation<IdOrOpOrAnonymousName, ? extends Function> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnTypeEnv(fns, this); }
     }
 
-    public final TypeEnv extendWithFnDefs(Relation<SimpleName, ? extends FnDef> fns) {
+    public final TypeEnv extendWithFnDefs(Relation<IdOrOpOrAnonymousName, ? extends FnDef> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnDefTypeEnv(fns, this); }
     }
 
-    public final TypeEnv extendWithMethods(Relation<SimpleName, Method> methods) {
+    public final TypeEnv extendWithMethods(Relation<IdOrOpOrAnonymousName, Method> methods) {
         if (methods.size() == 0) { return this; }
         else { return new MethodTypeEnv(methods, this); }
     }
@@ -308,12 +308,12 @@ public abstract class TypeEnv {
      * A wrapper around the binding found in the TypeEnv.  Since some bindings
      * do not have an Id to be indexed, there is no way to create the LValueBind
      * node to represent the binding.  In the case of operators, for example,
-     * only a SimpleName exists, so the BindingLookup exports the same methods
+     * only a IdOrOpOrAnonymousName exists, so the BindingLookup exports the same methods
      * that LValueBind does, since an LValueBind cannot be created.
      */
     public static class BindingLookup {
 
-        private final SimpleName var;
+        private final IdOrOpOrAnonymousName var;
         private final Option<Type> type;
         private final List<Modifier> mods;
         private final boolean mutable;
@@ -325,7 +325,7 @@ public abstract class TypeEnv {
             mutable = binding.isMutable();
         }
 
-        public BindingLookup(SimpleName _var, FnAbsDeclOrDecl decl) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, FnAbsDeclOrDecl decl) {
             var = _var;
             type = wrap((Type)makeGenericArrowType(decl.getSpan(),
                     decl.getStaticParams(),
@@ -337,7 +337,7 @@ public abstract class TypeEnv {
             mutable = false;
         }
 
-        public BindingLookup(SimpleName _var, Collection<? extends FnAbsDeclOrDecl> decls) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Collection<? extends FnAbsDeclOrDecl> decls) {
             var = _var;
             Type _type = Types.ANY;
             mods = Collections.<Modifier>emptyList();
@@ -355,37 +355,37 @@ public abstract class TypeEnv {
             mutable = false;
         }
 
-        public BindingLookup(SimpleName _var, Type _type) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type) {
             this(_var, _type, Collections.<Modifier>emptyList(), false);
         }
 
-        public BindingLookup(SimpleName _var, Option<Type> _type) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type) {
             this(_var, _type, Collections.<Modifier>emptyList(), false);
         }
 
-        public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, List<Modifier> _mods) {
             this(_var, _type, _mods, false);
         }
 
-        public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, List<Modifier> _mods) {
             this(_var, _type, _mods, false);
         }
 
-        public BindingLookup(SimpleName _var, Type _type, List<Modifier> _mods, boolean _mutable) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, List<Modifier> _mods, boolean _mutable) {
             var = _var;
             type = some(_type);
             mods = _mods;
             mutable = _mutable;
         }
 
-        public BindingLookup(SimpleName _var, Option<Type> _type, List<Modifier> _mods, boolean _mutable) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, List<Modifier> _mods, boolean _mutable) {
             var = _var;
             type = _type;
             mods = _mods;
             mutable = _mutable;
         }
 
-        public SimpleName getVar() { return var; }
+        public IdOrOpOrAnonymousName getVar() { return var; }
         public Option<Type> getType() { return type; }
         public List<Modifier> getMods() { return mods; }
         public boolean isMutable() { return mutable; }

@@ -126,7 +126,7 @@ FnHeaderFront OpHeaderFront =
          / LeftEncloser
          / Encloser)
      opa2:(w StaticParams)? w opa3:Params w opa4:(RightEncloser / Encloser)
-     { SimpleName name;
+     { IdOrOpOrAnonymousName name;
        Span span = createSpan(yyStart,yyCount);
        Op leftOp = (Op)opa1;
        String left  = leftOp.getText();
@@ -197,7 +197,7 @@ FnHeaderFront AbsOpHeaderFront =
          / LeftEncloser
          / Encloser)
      opa2:(w StaticParams)? w opa3:AbsParams w opa4:(RightEncloser / Encloser)
-     { SimpleName name;
+     { IdOrOpOrAnonymousName name;
        Span span = createSpan(yyStart,yyCount);
        Op leftOp = (Op)opa1;
        String left  = leftOp.getText();

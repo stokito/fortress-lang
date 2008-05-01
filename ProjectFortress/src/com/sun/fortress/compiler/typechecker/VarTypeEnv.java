@@ -42,10 +42,10 @@ class VarTypeEnv extends TypeEnv {
     }
 
     /**
-     * Return a BindingLookup that binds the given SimpleName to a type
-     * (if the given SimpleName is in this type environment).
+     * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
+     * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
-    public Option<BindingLookup> binding(SimpleName var) {
+    public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
     	if (!(var instanceof Id)) {	return parent.binding(var); }
     	Id _var = (Id)var;
         if (entries.containsKey(_var)) {
@@ -71,7 +71,7 @@ class VarTypeEnv extends TypeEnv {
     @Override
     public List<BindingLookup> contents() {
         List<BindingLookup> result = new ArrayList<BindingLookup>();
-        for (SimpleName name : entries.keySet()) {
+        for (IdOrOpOrAnonymousName name : entries.keySet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
                 result.add(unwrap(element));

@@ -127,7 +127,7 @@ private List<Import> Import =
 private List<Import> ImportedNames =
      a1:APIName dot w opencurly w ellipses w closecurly
      a2:(w except w SimpleNames)?
-     { if (a2 == null) a2 = Collections.<SimpleName>emptyList();
+     { if (a2 == null) a2 = Collections.<IdOrOpOrAnonymousName>emptyList();
        yyValue = FortressUtil.mkList((Import)new ImportStar(
                                              createSpan(yyStart,yyCount),a1,a2));
      }
@@ -138,13 +138,13 @@ private List<Import> ImportedNames =
                                                                          a1,a2));
        if (a3 != null)
            imports.add((Import)new ImportStar(span, a1,
-                               Collections.<SimpleName>emptyList()));
+                               Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
      }
    / a1:QualifiedName a2:(w as w Id)?
      { AliasedSimpleName an;
        APIName api = Option.unwrap(a1.getApi());
-       SimpleName name = a1.getName();
+       IdOrOpOrAnonymousName name = a1.getName();
        if (a2 == null)
            an = NodeFactory.makeAliasedSimpleName(name.getSpan(), name);
        else
@@ -156,12 +156,12 @@ private List<Import> ImportedNames =
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
-private List<SimpleName> SimpleNames =
+private List<IdOrOpOrAnonymousName> SimpleNames =
      a1:SimpleName { yyValue = FortressUtil.mkList(a1); }
    / void:opencurly w SimpleNameList w void:closecurly ;
 
 /* SimpleNameList ::= SimpleName (w , w SimpleName)* */
-private List<SimpleName> SimpleNameList =
+private List<IdOrOpOrAnonymousName> SimpleNameList =
      a1:SimpleName a2s:(w comma w SimpleName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 

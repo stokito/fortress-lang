@@ -38,7 +38,7 @@ import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -100,7 +100,7 @@ public Constructor make(List<FType> l,  HasAt within) {
     return memo.make(l,  within);
 }
 
-public GenericConstructor(BetterEnv env, GenericWithParams odefOrDecl, SimpleName cfn) {
+public GenericConstructor(BetterEnv env, GenericWithParams odefOrDecl, IdOrOpOrAnonymousName cfn) {
     super(env);
     this.env = env;
     this.odefOrDecl = odefOrDecl;
@@ -109,7 +109,7 @@ public GenericConstructor(BetterEnv env, GenericWithParams odefOrDecl, SimpleNam
 
 Environment env;
 GenericWithParams odefOrDecl;
-SimpleName cfn;
+IdOrOpOrAnonymousName cfn;
 volatile Simple_fcn symbolicInstantiation;
 
 
@@ -175,7 +175,7 @@ public static ArrayList<FType> argsToTypes(List<StaticArg> args,
 }
 
 @Override
-    public SimpleName getFnName() {
+    public IdOrOpOrAnonymousName getFnName() {
     // TODO Auto-generated method stub
     return cfn;
 }
@@ -216,7 +216,7 @@ public String stringName() {
 
 }
 
-public SimpleName getName() {
+public IdOrOpOrAnonymousName getName() {
     // TODO Auto-generated method stub
     return cfn;
 }

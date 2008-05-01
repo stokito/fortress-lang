@@ -29,7 +29,7 @@ import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 
 import com.sun.fortress.useful.NI;
 
@@ -43,15 +43,15 @@ public abstract class TraitIndex extends TypeConsIndex {
     private final Map<Id, Method> _getters;
     private final Map<Id, Method> _setters;
     private final Set<Function> _coercions;
-    private final Relation<SimpleName, Method> _dottedMethods;
-    private final Relation<SimpleName, FunctionalMethod> _functionalMethods;
+    private final Relation<IdOrOpOrAnonymousName, Method> _dottedMethods;
+    private final Relation<IdOrOpOrAnonymousName, FunctionalMethod> _functionalMethods;
     
     public TraitIndex(TraitObjectAbsDeclOrDecl ast,
                       Map<Id, Method> getters,
                       Map<Id, Method> setters,
                       Set<Function> coercions,
-                      Relation<SimpleName, Method> dottedMethods,
-                      Relation<SimpleName, FunctionalMethod> functionalMethods) {
+                      Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
+                      Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
         _ast = ast;
         _getters = getters;
         _setters = setters;
@@ -89,11 +89,11 @@ public abstract class TraitIndex extends TypeConsIndex {
         return _coercions;
     }
     
-    public Relation<SimpleName, Method> dottedMethods() {
+    public Relation<IdOrOpOrAnonymousName, Method> dottedMethods() {
         return _dottedMethods;
     }
     
-    public Relation<SimpleName, FunctionalMethod> functionalMethods() {
+    public Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods() {
         return _functionalMethods;
     }
     

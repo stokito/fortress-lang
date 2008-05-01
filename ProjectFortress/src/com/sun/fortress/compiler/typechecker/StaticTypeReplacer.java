@@ -37,7 +37,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes.OprArg;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
@@ -67,15 +67,15 @@ import static edu.rice.cs.plt.tuple.Option.*;
 public class StaticTypeReplacer extends NodeUpdateVisitor {
 
     /** Map parameter name to the static argument bound to it. */
-    private final Map<SimpleName, StaticArg> parameterMap;
+    private final Map<IdOrOpOrAnonymousName, StaticArg> parameterMap;
 
     /** Assume params.size() == args.size() */
     public StaticTypeReplacer(List<StaticParam> params, List<StaticArg> args) {
         assert(params.size() == args.size());
         int n = params.size();
-        parameterMap = new HashMap<SimpleName, StaticArg>(n);
+        parameterMap = new HashMap<IdOrOpOrAnonymousName, StaticArg>(n);
         for (int i=0; i<n; ++i) {
-            SimpleName name;
+            IdOrOpOrAnonymousName name;
             StaticParam p = params.get(i);
             if (p instanceof OprParam) {
                 name = ((OprParam)p).getName();

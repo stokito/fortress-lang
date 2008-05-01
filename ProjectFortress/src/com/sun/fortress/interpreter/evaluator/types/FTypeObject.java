@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarAbsDeclOrDecl;
@@ -57,7 +57,7 @@ public class FTypeObject extends FTraitOrObject {
     // names of methods
     // including coercions, getters, setters, operator methods,
     // functional methods, and dotted methods
-    List<SimpleName> methods = new ArrayList<SimpleName>();
+    List<IdOrOpOrAnonymousName> methods = new ArrayList<IdOrOpOrAnonymousName>();
 
     public FTypeObject(String name, BetterEnv env, HasAt at,
                        Option<List<Param>> params,
@@ -86,7 +86,7 @@ public class FTypeObject extends FTraitOrObject {
         return fields;
     }
 
-    public List<SimpleName> getMethodNames() {
+    public List<IdOrOpOrAnonymousName> getMethodNames() {
         return methods;
     }
 

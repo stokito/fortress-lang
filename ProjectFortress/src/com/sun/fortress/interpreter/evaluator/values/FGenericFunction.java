@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -206,11 +206,11 @@ public class FGenericFunction extends SingleFcn
     }
 
     @Override
-    public SimpleName getFnName() {
+    public IdOrOpOrAnonymousName getFnName() {
         return fndef.getName();
     }
 
-    public SimpleName getName() {
+    public IdOrOpOrAnonymousName getName() {
         return fndef.getName();
     }
 
@@ -222,8 +222,8 @@ public class FGenericFunction extends SingleFcn
 
         public int compare(GenericFunctionOrMethod a0, GenericFunctionOrMethod a1) {
 
-            SimpleName fn0 = a0.getName();
-            SimpleName fn1 = a1.getName();
+            IdOrOpOrAnonymousName fn0 = a0.getName();
+            IdOrOpOrAnonymousName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;

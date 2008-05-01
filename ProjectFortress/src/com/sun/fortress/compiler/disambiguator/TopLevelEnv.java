@@ -152,7 +152,7 @@ public class TopLevelEnv extends NameEnv {
 
     private void initializeOnDemandFunctionNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-            for (SimpleName fnName: apiEntry.getValue().functions().firstSet()) {
+            for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
                 if (fnName instanceof Id) {
                     Id _fnName = (Id)fnName;
                     QualifiedIdName name = new QualifiedIdName(_fnName.getSpan(),

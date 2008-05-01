@@ -30,7 +30,7 @@ public abstract class CompilationUnitIndex {
 
     private final CompilationUnit _ast;
     private final Map<Id, Variable> _variables;
-    private final Relation<SimpleName, Function> _functions;
+    private final Relation<IdOrOpOrAnonymousName, Function> _functions;
     private final Map<Id, TypeConsIndex> _typeConses;
     private final Map<Id, Dimension> _dimensions;
     private final Map<Id, Unit> _units;
@@ -38,7 +38,7 @@ public abstract class CompilationUnitIndex {
 
     public CompilationUnitIndex(CompilationUnit ast,
                                 Map<Id, Variable> variables,
-                                Relation<SimpleName, Function> functions,
+                                Relation<IdOrOpOrAnonymousName, Function> functions,
                                 Map<Id, TypeConsIndex> typeConses,
                                 Map<Id, Dimension> dimensions,
                                 Map<Id, Unit> units,
@@ -75,7 +75,7 @@ public abstract class CompilationUnitIndex {
 
     public Map<Id, Variable> variables() { return _variables; }
 
-    public Relation<SimpleName, Function> functions() { return _functions; }
+    public Relation<IdOrOpOrAnonymousName, Function> functions() { return _functions; }
 
     public Map<Id, TypeConsIndex> typeConses() { return _typeConses; }
     

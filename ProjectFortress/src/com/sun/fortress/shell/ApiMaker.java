@@ -103,7 +103,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
 
     public Node forFnDefOnly(FnDef that,
                              List<Modifier> mods_result,
-                             SimpleName name_result,
+                             IdOrOpOrAnonymousName name_result,
                              List<StaticParam> staticParams_result,
                              List<Param> params_result,
                              Option<Type> returnType_result,
@@ -124,9 +124,9 @@ public final class ApiMaker extends NodeUpdateVisitor {
     }
 
     public Node forExternalSyntaxOnly(ExternalSyntax that,
-                                      SimpleName openExpander_result,
+                                      IdOrOpOrAnonymousName openExpander_result,
                                       Id name_result,
-                                      SimpleName closeExpander_result,
+                                      IdOrOpOrAnonymousName closeExpander_result,
                                       Expr expr_result) {
         return new AbsExternalSyntax(that.getSpan(),
                                      openExpander_result,
@@ -149,7 +149,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
 
     public Node forFnDef(FnDef that) {
         List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
-        SimpleName name_result = (SimpleName) that.getName().accept(this);
+        IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) that.getName().accept(this);
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
         List<Param> params_result = recurOnListOfParam(that.getParams());
         Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
@@ -171,9 +171,9 @@ public final class ApiMaker extends NodeUpdateVisitor {
     }
 
     public Node forExternalSyntax(ExternalSyntax that) {
-        SimpleName openExpander_result = (SimpleName) that.getOpenExpander().accept(this);
+        IdOrOpOrAnonymousName openExpander_result = (IdOrOpOrAnonymousName) that.getOpenExpander().accept(this);
         Id name_result = (Id) that.getName().accept(this);
-        SimpleName closeExpander_result = (SimpleName) that.getCloseExpander().accept(this);
+        IdOrOpOrAnonymousName closeExpander_result = (IdOrOpOrAnonymousName) that.getCloseExpander().accept(this);
         // No need to recur on the body, since we throw it away.
         Expr expr_result = null;
         return forExternalSyntaxOnly(that, openExpander_result, name_result, closeExpander_result, expr_result);

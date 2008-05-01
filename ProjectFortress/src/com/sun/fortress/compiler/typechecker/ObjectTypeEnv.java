@@ -46,7 +46,7 @@ class ObjectTypeEnv extends TypeEnv {
      * Return a BindingLookup that binds the given Id to a type
      * (if the given Id is in this type environment).
      */
-    public Option<BindingLookup> binding(SimpleName var) {
+    public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         if (!(var instanceof Id)) { return parent.binding(var); }
         Id _var = (Id)var;
 
@@ -88,7 +88,7 @@ class ObjectTypeEnv extends TypeEnv {
     @Override
     public List<BindingLookup> contents() {
         List<BindingLookup> result = new ArrayList<BindingLookup>();
-        for (SimpleName name : entries.keySet()) {
+        for (IdOrOpOrAnonymousName name : entries.keySet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
                 result.add(unwrap(element));

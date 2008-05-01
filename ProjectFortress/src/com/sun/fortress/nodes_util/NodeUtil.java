@@ -211,7 +211,7 @@ public class NodeUtil {
         public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
             return nameString(node.getName());
         }
-        public String forSimpleName(SimpleName node) {
+        public String forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName node) {
             return nameString(node);
         }
         public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {

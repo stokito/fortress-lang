@@ -24,7 +24,7 @@ package com.sun.fortress.parser_util;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
@@ -32,11 +32,11 @@ import com.sun.fortress.useful.MagicNumbers;
 
 public class FnHeaderFront {
     private Option<Id> receiver;
-    private SimpleName name;
+    private IdOrOpOrAnonymousName name;
     private List<StaticParam> staticParams;
     private List<Param> params;
 
-    public FnHeaderFront(Option<Id> receiver, SimpleName name,
+    public FnHeaderFront(Option<Id> receiver, IdOrOpOrAnonymousName name,
                          List<StaticParam> staticParams,
                          List<Param> params, Option<Param> param) {
         this.receiver = receiver;
@@ -47,22 +47,22 @@ public class FnHeaderFront {
             this.params.add(0, Option.unwrap(param));
     }
 
-    public FnHeaderFront(Option<Id> receiver, SimpleName name,
+    public FnHeaderFront(Option<Id> receiver, IdOrOpOrAnonymousName name,
                          List<StaticParam> staticParams, List<Param> params1) {
         this(receiver, name, staticParams, params1, Option.<Param>none());
     }
 
-    public FnHeaderFront(SimpleName name, List<StaticParam> staticParams,
+    public FnHeaderFront(IdOrOpOrAnonymousName name, List<StaticParam> staticParams,
                          List<Param> params1, Option<Param> param2) {
         this(Option.<Id>none(), name, staticParams, params1, param2);
     }
 
-    public FnHeaderFront(SimpleName name, List<StaticParam> staticParams,
+    public FnHeaderFront(IdOrOpOrAnonymousName name, List<StaticParam> staticParams,
                          List<Param> params1) {
         this(Option.<Id>none(), name, staticParams, params1, Option.<Param>none());
     }
 
-    public FnHeaderFront(SimpleName name, List<Param> params1) {
+    public FnHeaderFront(IdOrOpOrAnonymousName name, List<Param> params1) {
         this(Option.<Id>none(), name, FortressUtil.emptyStaticParams(), params1,
              Option.<Param>none());
     }
@@ -71,7 +71,7 @@ public class FnHeaderFront {
         return receiver;
     }
 
-    public SimpleName getName() {
+    public IdOrOpOrAnonymousName getName() {
         return name;
     }
 

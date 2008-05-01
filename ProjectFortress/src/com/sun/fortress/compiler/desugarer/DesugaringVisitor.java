@@ -279,7 +279,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new Api(that.getSpan(), that.is_native(), name_result, imports_result, decls_result);
 //    }
 //
-//    public Node forImportStarOnly(ImportStar that, APIName api_result, List<SimpleName> except_result) {
+//    public Node forImportStarOnly(ImportStar that, APIName api_result, List<IdOrOpOrAnonymousName> except_result) {
 //        if (that.getApi() == api_result && that.getExcept() == except_result) return that;
 //        else return new ImportStar(that.getSpan(), api_result, except_result);
 //    }
@@ -294,7 +294,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new ImportApi(that.getSpan(), apis_result);
 //    }
 //
-//    public Node forAliasedSimpleNameOnly(AliasedSimpleName that, SimpleName name_result, Option<SimpleName> alias_result) {
+//    public Node forAliasedSimpleNameOnly(AliasedSimpleName that, IdOrOpOrAnonymousName name_result, Option<IdOrOpOrAnonymousName> alias_result) {
 //        if (that.getName() == name_result && that.getAlias() == alias_result) return that;
 //        else return new AliasedSimpleName(that.getSpan(), name_result, alias_result);
 //    }
@@ -363,14 +363,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new UnpastingSplit(that.getSpan(), elems_result, that.getDim());
 //    }
 //
-//    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result, SimpleName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<TraitType>> throwsClause_result, WhereClause where_result, Contract contract_result) {
+//    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<TraitType>> throwsClause_result, WhereClause where_result, Contract contract_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getParams() == params_result && that.getReturnType() == returnType_result && that.getThrowsClause() == throwsClause_result && that.getWhere() == where_result && that.getContract() == contract_result)
 //            return that;
 //        else
 //            return new AbsFnDecl(that.getSpan(), mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result, that.getSelfName());
 //    }
 //
-//    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, SimpleName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<TraitType>> throwsClause_result, WhereClause where_result, Contract contract_result, Expr body_result) {
+//    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<TraitType>> throwsClause_result, WhereClause where_result, Contract contract_result, Expr body_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getParams() == params_result && that.getReturnType() == returnType_result && that.getThrowsClause() == throwsClause_result && that.getWhere() == where_result && that.getContract() == contract_result && that.getBody() == body_result)
 //            return that;
 //        else
@@ -412,13 +412,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new PropertyDecl(that.getSpan(), name_result, params_result, expr_result);
 //    }
 //
-//    public Node forAbsExternalSyntaxOnly(AbsExternalSyntax that, SimpleName openExpander_result, Id name_result, SimpleName closeExpander_result) {
+//    public Node forAbsExternalSyntaxOnly(AbsExternalSyntax that, IdOrOpOrAnonymousName openExpander_result, Id name_result, IdOrOpOrAnonymousName closeExpander_result) {
 //        if (that.getOpenExpander() == openExpander_result && that.getName() == name_result && that.getCloseExpander() == closeExpander_result)
 //            return that;
 //        else return new AbsExternalSyntax(that.getSpan(), openExpander_result, name_result, closeExpander_result);
 //    }
 //
-//    public Node forExternalSyntaxOnly(ExternalSyntax that, SimpleName openExpander_result, Id name_result, SimpleName closeExpander_result, Expr expr_result) {
+//    public Node forExternalSyntaxOnly(ExternalSyntax that, IdOrOpOrAnonymousName openExpander_result, Id name_result, IdOrOpOrAnonymousName closeExpander_result, Expr expr_result) {
 //        if (that.getOpenExpander() == openExpander_result && that.getName() == name_result && that.getCloseExpander() == closeExpander_result && that.getExpr() == expr_result)
 //            return that;
 //        else
@@ -675,7 +675,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new TryAtomicExpr(that.getSpan(), that.isParenthesized(), expr_result);
 //    }
 //
-//    public Node forFnExprOnly(FnExpr that, SimpleName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, WhereClause where_result, Option<List<TraitType>> throwsClause_result, Expr body_result) {
+//    public Node forFnExprOnly(FnExpr that, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, WhereClause where_result, Option<List<TraitType>> throwsClause_result, Expr body_result) {
 //        if (that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getParams() == params_result && that.getReturnType() == returnType_result && that.getWhere() == where_result && that.getThrowsClause() == throwsClause_result && that.getBody() == body_result)
 //            return that;
 //        else
@@ -1426,7 +1426,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forImportStar(ImportStar that) {
 //        APIName api_result = (APIName) that.getApi().accept(this);
-//        List<SimpleName> except_result = recurOnListOfSimpleName(that.getExcept());
+//        List<IdOrOpOrAnonymousName> except_result = recurOnListOfIdOrOpOrAnonymousName(that.getExcept());
 //        return forImportStarOnly(that, api_result, except_result);
 //    }
 //
@@ -1442,8 +1442,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forAliasedSimpleName(AliasedSimpleName that) {
-//        SimpleName name_result = (SimpleName) that.getName().accept(this);
-//        Option<SimpleName> alias_result = recurOnOptionOfSimpleName(that.getAlias());
+//        IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) that.getName().accept(this);
+//        Option<IdOrOpOrAnonymousName> alias_result = recurOnOptionOfIdOrOpOrAnonymousName(that.getAlias());
 //        return forAliasedSimpleNameOnly(that, name_result, alias_result);
 //    }
 //
@@ -1539,7 +1539,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forAbsFnDecl(AbsFnDecl that) {
 //        List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
-//        SimpleName name_result = (SimpleName) that.getName().accept(this);
+//        IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) that.getName().accept(this);
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<Param> params_result = recurOnListOfParam(that.getParams());
 //        Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
@@ -1551,7 +1551,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forFnDef(FnDef that) {
 //        List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
-//        SimpleName name_result = (SimpleName) that.getName().accept(this);
+//        IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) that.getName().accept(this);
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<Param> params_result = recurOnListOfParam(that.getParams());
 //        Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
@@ -1606,16 +1606,16 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forAbsExternalSyntax(AbsExternalSyntax that) {
-//        SimpleName openExpander_result = (SimpleName) that.getOpenExpander().accept(this);
+//        IdOrOpOrAnonymousName openExpander_result = (IdOrOpOrAnonymousName) that.getOpenExpander().accept(this);
 //        Id name_result = (Id) that.getName().accept(this);
-//        SimpleName closeExpander_result = (SimpleName) that.getCloseExpander().accept(this);
+//        IdOrOpOrAnonymousName closeExpander_result = (IdOrOpOrAnonymousName) that.getCloseExpander().accept(this);
 //        return forAbsExternalSyntaxOnly(that, openExpander_result, name_result, closeExpander_result);
 //    }
 //
 //    public Node forExternalSyntax(ExternalSyntax that) {
-//        SimpleName openExpander_result = (SimpleName) that.getOpenExpander().accept(this);
+//        IdOrOpOrAnonymousName openExpander_result = (IdOrOpOrAnonymousName) that.getOpenExpander().accept(this);
 //        Id name_result = (Id) that.getName().accept(this);
-//        SimpleName closeExpander_result = (SimpleName) that.getCloseExpander().accept(this);
+//        IdOrOpOrAnonymousName closeExpander_result = (IdOrOpOrAnonymousName) that.getCloseExpander().accept(this);
 //        Expr expr_result = (Expr) that.getExpr().accept(this);
 //        return forExternalSyntaxOnly(that, openExpander_result, name_result, closeExpander_result, expr_result);
 //    }
@@ -1894,7 +1894,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forFnExpr(FnExpr that) {
-//        SimpleName name_result = (SimpleName) that.getName().accept(this);
+//        IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) that.getName().accept(this);
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<Param> params_result = recurOnListOfParam(that.getParams());
 //        Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
@@ -2745,11 +2745,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return changed ? (result) : that;
 //    }
 //
-//    public List<SimpleName> recurOnListOfSimpleName(final List<SimpleName> that) {
+//    public List<IdOrOpOrAnonymousName> recurOnListOfIdOrOpOrAnonymousName(final List<IdOrOpOrAnonymousName> that) {
 //        boolean changed = false;
-//        List<SimpleName> result = new java.util.ArrayList<SimpleName>(0);
-//        for (SimpleName elt : that) {
-//            SimpleName elt_result = (SimpleName) elt.accept(this);
+//        List<IdOrOpOrAnonymousName> result = new java.util.ArrayList<IdOrOpOrAnonymousName>(0);
+//        for (IdOrOpOrAnonymousName elt : that) {
+//            IdOrOpOrAnonymousName elt_result = (IdOrOpOrAnonymousName) elt.accept(this);
 //            result.add(elt_result);
 //            if (elt != elt_result) changed = true;
 //        }
@@ -2778,14 +2778,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return changed ? (result) : that;
 //    }
 //
-//    public Option<SimpleName> recurOnOptionOfSimpleName(final Option<SimpleName> that) {
-//        return that.apply(new edu.rice.cs.plt.tuple.OptionVisitor<SimpleName, Option<SimpleName>>() {
-//            public Option<SimpleName> forSome(SimpleName elt) {
-//                SimpleName elt_result = (SimpleName) elt.accept(NodeUpdateVisitor.this);
+//    public Option<IdOrOpOrAnonymousName> recurOnOptionOfIdOrOpOrAnonymousName(final Option<IdOrOpOrAnonymousName> that) {
+//        return that.apply(new edu.rice.cs.plt.tuple.OptionVisitor<IdOrOpOrAnonymousName, Option<IdOrOpOrAnonymousName>>() {
+//            public Option<IdOrOpOrAnonymousName> forSome(IdOrOpOrAnonymousName elt) {
+//                IdOrOpOrAnonymousName elt_result = (IdOrOpOrAnonymousName) elt.accept(NodeUpdateVisitor.this);
 //                return (elt == elt_result) ? that : edu.rice.cs.plt.tuple.Option.some(elt_result);
 //            }
 //
-//            public Option<SimpleName> forNone() {
+//            public Option<IdOrOpOrAnonymousName> forNone() {
 //                return that;
 //            }
 //        });

@@ -88,7 +88,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
  *  - String nameAsMethod(Applicable)
  *  - Option<Expr> getBody(Applicable)
  */
-interface Applicable(SimpleName name, List<StaticParam> staticParams,
+interface Applicable(IdOrOpOrAnonymousName name, List<StaticParam> staticParams,
                      List<Param> params, Option<Type> returnType,
                      WhereClause where) extends HasAt;
 
@@ -144,7 +144,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * e.g.) import Set.{...} except {opr UNION, union}
              */
-            ImportStar(List<SimpleName> except);
+            ImportStar(List<IdOrOpOrAnonymousName> except);
             /**
              * e.g.) import Set.{empty, union}
              */
@@ -161,8 +161,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * EncloserPair ::= (LeftEncloser | Encloser) (RightEncloser | Encloser)
      * e.g.) longComplexName as shortName
      */
-    AliasedSimpleName(SimpleName name,
-                      Option<SimpleName> alias = Option.<SimpleName>none());
+    AliasedSimpleName(IdOrOpOrAnonymousName name,
+                      Option<IdOrOpOrAnonymousName> alias = Option.<IdOrOpOrAnonymousName>none());
     /**
      * aliased API name used in import statements
      * AliasedAPIName ::= APIName (as Id)?
@@ -357,7 +357,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract FnAbsDeclOrDecl(List<Modifier> mods
                                  = Collections.<Modifier>emptyList(),
-                             SimpleName name,
+                             IdOrOpOrAnonymousName name,
                              List<StaticParam> staticParams
                                  = Collections.<StaticParam>emptyList(),
                              List<Param> params,
@@ -460,8 +460,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * syntax expanders declaration in components or APIs
      */
-    abstract ExternalSyntaxAbsDeclOrDecl(SimpleName openExpander, Id name,
-                                         SimpleName closeExpander)
+    abstract ExternalSyntaxAbsDeclOrDecl(IdOrOpOrAnonymousName openExpander, Id name,
+                                         IdOrOpOrAnonymousName closeExpander)
                                         implements AbsDeclOrDecl;
         /**
          * syntax expanders declaration in APIs
@@ -888,7 +888,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
                boolean parenthesized = false,
-               SimpleName name = new AnonymousFnName(in_span),
+               IdOrOpOrAnonymousName name = new AnonymousFnName(in_span),
                List<StaticParam> staticParams
                    = Collections.<StaticParam>emptyList(),
                List<Param> params,
@@ -1822,7 +1822,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * name prefixed by an optional API name
          */
         abstract QualifiedName(Option<APIName> api = Option.<APIName>none(),
-                               SimpleName name);
+                               IdOrOpOrAnonymousName name);
             /**
              * qualified id name
              * QualifiedName ::= Id(.Id)*
@@ -1836,46 +1836,56 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             QualifiedOpName(OpName name);
         /**
-         * unqualified name
+         * non-API name
          * SimpleName ::= Id
          *              | opr Op
          *              | opr EncloserPair
          */
-        abstract SimpleName();
+        abstract IdOrOpOrAnonymousName(Option<APIName> api
+                                           = Option.<APIName>none());
             /**
-             * unqualified identifier
-             * e.g.) hashCode
+             * identifier or operator name
              */
-            Id(String text);
-            /**
-             * unqualified operator name
-             */
-            abstract OpName();
+            abstract IdOrOpName();
                 /**
-                 * non-enclosing operator
-                 * e.g.) COMPOSE
-                 * e.g.) ===
+                 * identifier name
+                 * e.g.) hashCode
                  */
-                Op(String text, Option<Fixity> fixity = Option.<Fixity>none());
+                Id(String text);
                 /**
-                 * pair of enclosing operators
-                 * EncloserPair ::= (LeftEncloser | Encloser)
-                 *                    (RightEncloser | Encloser)
-                 * e.g.) </ />
+                 * operator name
                  */
-                Enclosing(Op open, Op close);
+                abstract OpName();
+                    /**
+                     * non-enclosing operator
+                     * e.g.) COMPOSE
+                     * e.g.) ===
+                     */
+                    Op(String text,
+                       Option<Fixity> fixity = Option.<Fixity>none());
+                    /**
+                     * pair of enclosing operators
+                     * EncloserPair ::= (LeftEncloser | Encloser)
+                     *                    (RightEncloser | Encloser)
+                     * e.g.) </ />
+                     */
+                    Enclosing(Op open, Op close);
             /**
-             * internal name for anonymous function expressions
-             * not created during parsing but during evaluation
-             * e.g.) name for "fn x => x + 1"
+             * anonymous name; used internally
              */
-            AnonymousFnName();
-            /**
-             * internal name for anonymous constructor expressions
-             * not created during parsing but during evaluation
-             * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
-             */
-            ConstructorFnName(GenericWithParams def);
+            abstract AnonymousName();
+                /**
+                 * internal name for anonymous function expressions
+                 * not created during parsing but during evaluation
+                 * e.g.) name for "fn x => x + 1"
+                 */
+                AnonymousFnName();
+                /**
+                 * internal name for anonymous constructor expressions
+                 * not created during parsing but during evaluation
+                 * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
+                 */
+                ConstructorFnName(GenericWithParams def);
     /**
      * array comprehension clause
      * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorClauseList

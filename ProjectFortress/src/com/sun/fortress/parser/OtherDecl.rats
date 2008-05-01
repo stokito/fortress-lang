@@ -105,10 +105,10 @@ ExternalSyntax ExternalSyntax =
      { yyValue = new ExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3,a4); };
 
 /* OpenExpander ::= Id | LeftEncloser | Encloser */
-SimpleName OpenExpander = Id / LeftEncloser / Encloser ;
+IdOrOpOrAnonymousName OpenExpander = Id / LeftEncloser / Encloser ;
 
 /* CloseExpander ::= Id | RightEncloser | Encloser | end */
-SimpleName CloseExpander =
+IdOrOpOrAnonymousName CloseExpander =
      Id
    / RightEncloser
    / Encloser

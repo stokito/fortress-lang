@@ -34,19 +34,19 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * to Variables.
  */
 class MethodTypeEnv extends TypeEnv {
-    private Relation<SimpleName, Method> entries;
+    private Relation<IdOrOpOrAnonymousName, Method> entries;
     private TypeEnv parent;
     
-    MethodTypeEnv(Relation<SimpleName, Method> _entries, TypeEnv _parent) {
+    MethodTypeEnv(Relation<IdOrOpOrAnonymousName, Method> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
     
     /**
-     * Return a BindingLookup that binds the given SimpleName to a type
-     * (if the given SimpleName is in this type environment).
+     * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
+     * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
-    public Option<BindingLookup> binding(SimpleName var) {
+    public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         Set<Method> methods = entries.getSeconds(var);
         if (methods.isEmpty()) { return parent.binding(var); }
         
@@ -84,7 +84,7 @@ class MethodTypeEnv extends TypeEnv {
     @Override
     public List<BindingLookup> contents() {
         List<BindingLookup> result = new ArrayList<BindingLookup>();
-        for (SimpleName name : entries.firstSet()) {
+        for (IdOrOpOrAnonymousName name : entries.firstSet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
                 result.add(unwrap(element));

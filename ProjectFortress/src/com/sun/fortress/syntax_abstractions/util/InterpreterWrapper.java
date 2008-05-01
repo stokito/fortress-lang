@@ -56,7 +56,7 @@ import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TraitDecl;

@@ -23,7 +23,7 @@ import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 
 public class ApiIndex extends CompilationUnitIndex {
     
@@ -31,7 +31,7 @@ public class ApiIndex extends CompilationUnitIndex {
     
     public ApiIndex(Api ast,
                     Map<Id, Variable> variables,
-                    Relation<SimpleName, Function> functions,
+                    Relation<IdOrOpOrAnonymousName, Function> functions,
                     Map<Id, TypeConsIndex> typeConses,
                     Map<Id, Dimension> dimensions,
                     Map<Id, Unit> units,

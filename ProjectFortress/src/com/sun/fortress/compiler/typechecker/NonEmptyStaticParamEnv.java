@@ -32,7 +32,7 @@ public class NonEmptyStaticParamEnv extends StaticParamEnv {
         parent = _parent;
     }
 
-    private SimpleName paramName(StaticParam param) {
+    private IdOrOpOrAnonymousName paramName(StaticParam param) {
         // Both OprParams and IdStaticParams have name fields, but they
         // differ in the types of the fields.
         if (param instanceof OprParam) {
@@ -42,7 +42,7 @@ public class NonEmptyStaticParamEnv extends StaticParamEnv {
         }
     }
 
-    public Option<StaticParam> binding(SimpleName name) {
+    public Option<StaticParam> binding(IdOrOpOrAnonymousName name) {
         for (StaticParam entry : entries) {
             if (name.equals(paramName(entry))) { return wrap(entry); }
         }

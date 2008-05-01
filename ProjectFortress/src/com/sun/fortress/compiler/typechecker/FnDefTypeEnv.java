@@ -38,19 +38,19 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * A type environment whose outermost scope binds local function definitions.
  */
 class FnDefTypeEnv extends TypeEnv {
-    private Relation<SimpleName, ? extends FnDef> entries;
+    private Relation<IdOrOpOrAnonymousName, ? extends FnDef> entries;
     private TypeEnv parent;
     
-    FnDefTypeEnv(Relation<SimpleName, ? extends FnDef> _entries, TypeEnv _parent) {
+    FnDefTypeEnv(Relation<IdOrOpOrAnonymousName, ? extends FnDef> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
     
     /**
-     * Return a BindingLookup that binds the given SimpleName to a type
-     * (if the given SimpleName is in this type environment).
+     * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
+     * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
-    public Option<BindingLookup> binding(SimpleName var) {
+    public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         Set<? extends FnDef> fns = entries.getSeconds(var);
         if (fns.isEmpty()) { return parent.binding(var); }
 
@@ -69,7 +69,7 @@ class FnDefTypeEnv extends TypeEnv {
     @Override
     public List<BindingLookup> contents() {
         List<BindingLookup> result = new ArrayList<BindingLookup>();
-        for (SimpleName name : entries.firstSet()) {
+        for (IdOrOpOrAnonymousName name : entries.firstSet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
                 result.add(unwrap(element));

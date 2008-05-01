@@ -48,7 +48,7 @@ import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierOverride;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NodeVisitor_void;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.HasParams;
 import com.sun.fortress.nodes.ObjectDecl;
@@ -73,7 +73,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
 
     boolean finished = false;
 
-    SimpleName cfn;
+    IdOrOpOrAnonymousName cfn;
     List<? extends AbsDeclOrDecl> defs;
     Option<List<Param>> params;
 
@@ -169,7 +169,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     // TODO need to copy the field names
 
     public Constructor(BetterEnv env, FTypeObject selfType, HasAt def,
-                SimpleName name, List<? extends AbsDeclOrDecl> defs,
+                IdOrOpOrAnonymousName name, List<? extends AbsDeclOrDecl> defs,
                 Option<List<Param>> params) {
         super(env, selfType, def); // TODO verify that this is the proper env.
         this.cfn = name;
@@ -544,7 +544,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         return (s(selfType)) + (l == null ? "(DOMAIN_ERROR null)" : Useful.listInParens(l)) + cfn.at();
     }
 
-    public SimpleName getFnName() {
+    public IdOrOpOrAnonymousName getFnName() {
         return cfn;
     }
 

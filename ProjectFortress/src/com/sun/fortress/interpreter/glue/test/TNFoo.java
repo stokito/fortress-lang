@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.GenericWithParams;
 
 public class TNFoo extends NativeConstructor {
