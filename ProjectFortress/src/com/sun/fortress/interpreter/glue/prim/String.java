@@ -118,6 +118,12 @@ public class String extends NativeConstructor {
         }
     }
 
+    public static final class CICmp extends ss2I {
+        protected int f(java.lang.String self, java.lang.String other) {
+            return self.compareToIgnoreCase(other);
+        }
+    }
+
     public static final class Substr extends sII2s {
         protected java.lang.String f(java.lang.String self, int x, int y) {
             return self.substring(x,y);
