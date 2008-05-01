@@ -36,6 +36,8 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 
+import static edu.rice.cs.plt.tuple.Option.*;
+
 /**
  * <p>Eliminates ambiguities in an AST that can be resolved solely by knowing what kind
  * of entity a name refers to.  This class assumes all types in declarations have been
@@ -63,12 +65,20 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private NameEnv _env;
     private Set<IdOrOpOrAnonymousName> _onDemandImports;
     private List<StaticError> _errors;
+    private Option<Id> _innerMostLabel;
 
     public ExprDisambiguator(NameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
                              List<StaticError> errors) {
         _env = env;
         _onDemandImports = onDemandImports;
         _errors = errors;
+        _innerMostLabel = Option.<Id>none();
+    }
+    
+    private ExprDisambiguator(NameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
+                               List<StaticError> errors, Option<Id> innerMostLabel) {
+        this(env, onDemandImports, errors);
+        _innerMostLabel = innerMostLabel;
     }
 
     private ExprDisambiguator extend(Set<Id> vars) {
@@ -469,5 +479,29 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //        }
 //        return result;
 //    }
+    
+    @Override public Node forLabel(Label that) {
+        Id newName = (Id) that.getName().accept(this);
+        ExprDisambiguator dis = new ExprDisambiguator(_env,
+                                                      _onDemandImports, _errors,
+                                                      Option.wrap(that.getName()));
+        Block newBody = (Block) that.getBody().accept(dis);
+        return super.forLabelOnly(that, newName, newBody);
+    }
+    
+    @Override public Node forExitOnly(Exit that, Option<Id> target_result, Option<Expr> returnExpr_result) {
+        if (target_result.isNone()) {
+            if (_innerMostLabel.isNone()) {
+                error("Exit occurs outside of a label", that);
+                if (that.getReturnExpr() == returnExpr_result) {
+                    return that;
+                } else {
+                    return new Exit(that.getSpan(), that.isParenthesized(), target_result, returnExpr_result);
+                }
+            }
+            return new Exit(that.getSpan(), that.isParenthesized(), _innerMostLabel, returnExpr_result);
+        }
+        return super.forExitOnly(that, target_result, returnExpr_result);
+    }
 
 }
