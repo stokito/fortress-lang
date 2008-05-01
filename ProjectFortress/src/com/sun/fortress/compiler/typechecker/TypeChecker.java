@@ -54,7 +54,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private TypeEnv typeEnv;
     private final CompilationUnitIndex compilationUnit;
     private final SubtypeChecker subtypeChecker;
-    private final Relation<Id, Option<Type>> labelExitTypes; // Note: this is mutable state.
+    private final Map<Id, Option<Set<Type>>> labelExitTypes; // Note: this is mutable state.
 
     public TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
@@ -66,7 +66,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         typeEnv = _typeEnv;
         compilationUnit = _compilationUnit;
         subtypeChecker = SubtypeChecker.make(table);
-        labelExitTypes = new HashRelation<Id, Option<Type>>(true, false);
+        labelExitTypes = new HashMap<Id, Option<Set<Type>>>();
     }
 
     private TypeChecker(TraitTable _table,
@@ -74,7 +74,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                        TypeEnv _typeEnv,
                        CompilationUnitIndex _compilationUnit,
                        SubtypeChecker _subtypeChecker,
-                       Relation<Id, Option<Type>> _labelExitTypes)
+                       Map<Id, Option<Set<Type>>> _labelExitTypes)
     {
         table = _table;
         staticParamEnv = _staticParams;
@@ -172,6 +172,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeChecker extendWithFnDefs(Relation<IdOrOpOrAnonymousName, ? extends FnDef> fns) {
         return new TypeChecker(table, staticParamEnv,
                                typeEnv.extendWithFnDefs(fns),
+                               compilationUnit,
+                               subtypeChecker,
+                               labelExitTypes);
+    }
+
+    public TypeChecker extendWithout(Set<? extends IdOrOpOrAnonymousName> names) {
+        return new TypeChecker(table, staticParamEnv,
+                               typeEnv.extendWithout(names),
                                compilationUnit,
                                subtypeChecker,
                                labelExitTypes);
@@ -716,17 +724,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,
                                                        TypeCheckerResult expr_result,
-                                                       TypeCheckerResult type_result,
                                                        String errorMsg) {
         // Check that expression type <: annotated type.
-        Type annotatedType = (Type) type_result.ast();
+        Type annotatedType = that.getType();
         if (expr_result.type().isSome()) {
             Type exprType = unwrap(expr_result.type());
             return TypeCheckerResult.compose(
                 that,
                 annotatedType,
                 expr_result,
-                type_result,
                 checkSubtype(exprType,
                              annotatedType,
                              expr_result.ast(),
@@ -734,31 +740,26 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         } else {
             return TypeCheckerResult.compose(that,
                                              annotatedType,
-                                             expr_result,
-                                             type_result);
+                                             expr_result);
         }
     }
 
-    public TypeCheckerResult forAsExprOnly(AsExpr that,
-                                           TypeCheckerResult expr_result,
-                                           TypeCheckerResult type_result) {
-        Type ascriptedType = (Type) type_result.ast();
+    public TypeCheckerResult forAsExpr(AsExpr that) {
+        Type ascriptedType = that.getType();
+        TypeCheckerResult expr_result = that.getExpr().accept(this);
         Type exprType = expr_result.type().isSome() ? unwrap(expr_result.type()) : Types.BOTTOM;
         return forTypeAnnotatedExprOnly(that,
                                         expr_result,
-                                        type_result,
-                                        errorMsg("Attempt to ascript expression of type ",
+                                        errorMsg("Attempt to ascribe expression of type ",
                                                  exprType, " to non-supertype ", ascriptedType));
     }
 
-    public TypeCheckerResult forAsIfExprOnly(AsIfExpr that,
-                                             TypeCheckerResult expr_result,
-                                             TypeCheckerResult type_result) {
-        Type assumedType = (Type) type_result.ast();
+    public TypeCheckerResult forAsIfExprOnly(AsIfExpr that) {
+        Type assumedType = that.getType();
+        TypeCheckerResult expr_result = that.getExpr().accept(this);
         Type exprType = expr_result.type().isSome() ? unwrap(expr_result.type()) : Types.BOTTOM;
         return forTypeAnnotatedExprOnly(that,
                                         expr_result,
-                                        type_result,
                                         errorMsg("Attempt to assume type ", assumedType,
                                                  " from non-subtype ", exprType));
     }
@@ -860,6 +861,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Type givenOpType = null;
         Type inOpType = null;
         Type eqOpType = null;
+        // TODO: Change these to be qualified operators
         Op givenOp = unwrap(that.getCompare(), (Op)null);
         Op inOp = new Op("IN", some((Fixity)new InFixity()));
         Op eqOp = new Op("EQ", some((Fixity)new InFixity()));
@@ -880,9 +882,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // Init some types
         Type paramType = unwrap(paramResult.type());
-        Type paramGeneratorType =
-            new InstantiatedType(NodeFactory.makeQualifiedIdName("Generator"),
-                                 Arrays.asList((StaticArg)NodeFactory.makeTypeArg(paramType)));
+        Type paramGeneratorType = TypesUtil.makeGeneratorType(paramType);
 
         // Type check "paramExpr OP guardExpr" for each distinct type
         for (Type guardType : guards.firstSet()) {
@@ -980,10 +980,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 for (Expr guardExpr : guardExprsForTypes) {
                     result = TypeCheckerResult.compose(that, result,
                             new TypeCheckerResult(guardExpr,
-                                    // TODO: error message should contain "<guardTypeL> <OP> <guardTypeR>"?
-                                    TypeError.make(errorMsg("Guard expression types ", guardTypeL,
-                                                            " and ", guardTypeR, " are invalid ",
-                                                            "for extremum operator ", op.getText(), "."),
+                                    TypeError.make(errorMsg("Guard expression types are invalid for ",
+                                                            "extremum operator: ", guardTypeL, " ",
+                                                            op.getText(), " ", guardTypeR),
                                                    guardExpr)));
                 }
             }
@@ -1024,9 +1023,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return new TypeCheckerResult(that, unwrap(binding).getType());
         } else {
             return new TypeCheckerResult(that,
-                                         TypeError.make(errorMsg("Operator '",
-                                                                 OprUtil.decorateOperator(that),
-                                                                 "' not found."),
+                                         TypeError.make(errorMsg("Operator not found: ",
+                                                                 OprUtil.decorateOperator(that)),
                                                         that));
         }
     }
@@ -1037,8 +1035,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return new TypeCheckerResult(that, unwrap(binding).getType());
         } else {
             return new TypeCheckerResult(that,
-                                         TypeError.make(errorMsg("Enclosing operator '",
-                                                                 that, "' not found."),
+                                         TypeError.make(errorMsg("Enclosing operator not found: ",
+                                                                 that),
                                                         that));
         }
     }
@@ -1069,9 +1067,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     return TypeCheckerResult.compose(that,
                             op_result,
                             TypeCheckerResult.compose(that, args_result),
-                            new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator '",
+                            new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator ",
                                                                                 opName,
-                                                                                "' has invalid arguments."),
+                                                                                " has invalid arguments."),
                                                                        that)));
                 }
             }
@@ -1098,65 +1096,126 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          exprs_result);
     }
 
-    // TODO: check for spawn and try/catch
-    public TypeCheckerResult forLabel(final Label that) {
-
+    public TypeCheckerResult forLabel(Label that) {
+        
+        // Make sure this label isn't already bound
+        Option<BindingLookup> b = typeEnv.binding(that.getName());
+        if (b.isSome()) {
+            TypeCheckerResult bodyResult = that.getBody().accept(this);
+            return TypeCheckerResult.compose(that,
+                new TypeCheckerResult(that, TypeError.make(errorMsg("Cannot use an existing identifier ",
+                                                                    "for a 'label' expression: ",
+                                                                    that.getName()),
+                                                           that)),
+                bodyResult);
+        }
+        
+        // Check for nested label of same name
+        if (labelExitTypes.containsKey(that.getName())) {
+            TypeCheckerResult bodyResult = that.getBody().accept(this);
+            return TypeCheckerResult.compose(that,
+                new TypeCheckerResult(that, TypeError.make(errorMsg("Name of 'label' expression ",
+                                                                    "already in scope: ", that.getName()),
+                                                           that)),
+                bodyResult);
+        }
+        
+        // Initialize the set of exit types
+        labelExitTypes.put(that.getName(), some((Set<Type>)new HashSet<Type>()));
+        
         // Extend the checker with this label name in the type env
         TypeChecker newChecker = this.extend(Collections.singletonList(NodeFactory.makeLValue(that.getName(), Types.LABEL)));
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
 
         // If the body was typed, union all the exit types with it.
         // If any exit type is none, then don't type this label.
+        Option<Type> labelType = none();
         if (bodyResult.type().isSome()) {
-            Set<Option<Type>> exitTypes = labelExitTypes.getSeconds(that.getName());
-            List<Type> disjunctTypes = new ArrayList<Type>();
-            boolean allTyped = true;
-            for (Option<Type> t : exitTypes) {
-                if (t.isSome()) {
-                    disjunctTypes.add(unwrap(t));
-                } else {
-                    allTyped = false;
-                }
-
-                // Destroy this mapping since we are done with it
-                labelExitTypes.remove(that.getName(), t);
-            }
-            if (allTyped) {
-                disjunctTypes.add(unwrap(bodyResult.type()));
-                return TypeCheckerResult.compose(that, NodeFactory.makeOrType(disjunctTypes), bodyResult);
+            Option<Set<Type>> exitTypes = labelExitTypes.get(that.getName());
+            if (exitTypes.isSome()) {
+                Set<Type> _exitTypes = unwrap(exitTypes);
+                _exitTypes.add(unwrap(bodyResult.type()));
+                labelType = some(NodeFactory.makeOrType(_exitTypes));
             }
         }
-        return TypeCheckerResult.compose(that, bodyResult);
+        
+        // Destroy the mappings for this label
+        labelExitTypes.remove(that.getName());
+        return TypeCheckerResult.compose(that, labelType, bodyResult);
     }
 
     public TypeCheckerResult forExit(Exit that) {
-        assert (that.getTarget().isSome()); // Should be provided by disambiguator.
+        assert (that.getTarget().isSome()); // Filled in by disambiguator
         Id labelName = unwrap(that.getTarget());
         Option<BindingLookup> b = typeEnv.binding(labelName);
         if (b.isNone()) {
-            return new TypeCheckerResult(that,
-                                         TypeError.make(errorMsg("Couldn't find label expression with name: ",
-                                                                 labelName),
-                                                        labelName));
+            TypeCheckerResult withResult = unwrap(that.getReturnExpr()).accept(this);
+            return TypeCheckerResult.compose(
+                    that,
+                    Types.BOTTOM,
+                    new TypeCheckerResult(that,
+                                          TypeError.make(errorMsg("Could not find 'label' expression with name: ",
+                                                                  labelName),
+                                                         labelName)),
+                    withResult);
         }
         Type targetType = unwrap(unwrap(b).getType(), (Type)null);
         if (!(targetType instanceof LabelType)) {
-            // TODO: better error message
-            return new TypeCheckerResult(that,
-                                         TypeError.make(errorMsg("Target of 'exit' is not a label name: ",
+            TypeCheckerResult withResult = unwrap(that.getReturnExpr()).accept(this);
+            return TypeCheckerResult.compose(
+                    that,
+                    Types.BOTTOM,
+                    new TypeCheckerResult(that,
+                                         TypeError.make(errorMsg("Target of 'exit' expression is not a label name: ",
                                                                  labelName),
-                                                        labelName));
+                                                        labelName)),
+                    withResult);
         }
 
         // Append the 'with' type to the list for this label
-        if (that.getReturnExpr().isSome()) {
-            TypeCheckerResult withResult = unwrap(that.getReturnExpr()).accept(this);
-            labelExitTypes.add(labelName, withResult.type());
-            return TypeCheckerResult.compose(that, Types.BOTTOM, withResult);
+        assert (that.getReturnExpr().isSome()); // Filled in by disambiguator
+        TypeCheckerResult withResult = unwrap(that.getReturnExpr()).accept(this);
+        if (withResult.type().isNone()) {
+            labelExitTypes.put(labelName, Option.<Set<Type>>none());
         } else {
-            labelExitTypes.add(labelName, some(Types.VOID));
+            unwrap(labelExitTypes.get(labelName)).add(unwrap(withResult.type()));
         }
-        return new TypeCheckerResult(that, Types.BOTTOM);
+        return TypeCheckerResult.compose(that, Types.BOTTOM, withResult);
+    }
+    
+    public TypeCheckerResult forSpawn(Spawn that) {
+        // Create a new type checker that conceals any labels
+        TypeChecker newChecker = this.extendWithout(labelExitTypes.keySet());
+        TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
+        if (bodyResult.type().isSome()) {
+            return TypeCheckerResult.compose(that,
+                                             TypesUtil.makeThreadType(unwrap(bodyResult.type())),
+                                             bodyResult);
+        } else {
+            return TypeCheckerResult.compose(that, bodyResult);
+        }
+    }
+    
+    public TypeCheckerResult forAtomicExpr(AtomicExpr that) {
+        TypeChecker newChecker = new TypeChecker(table,
+                                                 staticParamEnv,
+                                                 typeEnv,
+                                                 compilationUnit,
+                                                 subtypeChecker,
+                                                 labelExitTypes) {
+            @Override public TypeCheckerResult forSpawn(Spawn that) {
+                // Use TypeChecker's forSpawn method, but compose an error onto the result
+                return TypeCheckerResult.compose(
+                        that,
+                        new TypeCheckerResult(that,
+                                             TypeError.make(errorMsg("A 'spawn' expression must not ",
+                                                                     "occur inside an 'atomic' expression."),
+                                                            that)),
+                        that.accept(TypeChecker.this));
+            }
+        };
+        TypeCheckerResult bodyResult = that.getExpr().accept(newChecker);
+        return TypeCheckerResult.compose(that, bodyResult.type(), bodyResult);
     }
 
     // TRIVIAL NODES ---------------------
