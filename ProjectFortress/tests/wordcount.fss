@@ -100,7 +100,7 @@ end
 
 
 run(args:String...)= do
-    processFile("demos/hamlet")  
+    processFile("tests/presidents")   
 end
 end
 
