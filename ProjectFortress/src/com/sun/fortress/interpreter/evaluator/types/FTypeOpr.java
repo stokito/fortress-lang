@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
@@ -62,6 +63,14 @@ public class FTypeOpr extends FType {
                    errorMsg("Unimplemented --  unify opr parameter ", this,
                             " and  type argument ", val));
         return false;
+    }
+
+    @Override
+    public void unifyStaticArg(BetterEnv env, Set<String> tp_set,
+            BoundingMap<String, FType, TypeLatticeOps> abm, StaticArg val) {
+        bug(val,env,
+                   errorMsg("Unimplemented --  unify opr parameter ", this,
+                            " and  type argument ", val));
     }
 
     /* (non-Javadoc)

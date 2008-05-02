@@ -62,8 +62,6 @@ public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
         //assertEqualTypes("List[\\ZZ32\\] -> Foo[\\ZZ32, -5\\]", "List[\\K\\] -> Foo[\\K, n\\]");
         assertEqualTypes("(ZZ32, String, ZZ32)", "(K, String, ZZ32)");
 //        assertEqualTypes("(ZZ32, String, ZZ32)", "(K, String, ZZ32)", subst);
-        assertEqualTypes("(true, -, -5, m, Length, ft_, ZZ32)", "(b, +, n, m, d, u, K)");
-//        assertEqualTypes("(true, -, -5, m, Length, ft_, ZZ32)", "(b, +, n, m, d, u, K)", subst);
     }
 
     // TODO: Do better equality check than String comparison

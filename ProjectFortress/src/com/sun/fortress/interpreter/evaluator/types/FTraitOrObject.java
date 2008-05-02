@@ -312,19 +312,17 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
             return false;
         }
         Iterator<StaticArg> val_args_iterator = pt.getArgs().iterator();
-        Type a = null;
+        StaticArg targ = null;
         FType t = null;
         try {
             for (FType param_ftype: getTypeParams()) {
-                StaticArg targ = val_args_iterator.next();
+                targ = val_args_iterator.next();
                 t = param_ftype;
                 if (targ instanceof TypeArg) {
-                    a = ((TypeArg)targ).getType();
                     param_ftype.unify(env, tp_set, abm,
                                       ((TypeArg)targ).getType());
                 } else if (param_ftype instanceof FTypeNat) {
-                    a = targ;
-                    param_ftype.unify(env, tp_set, abm, targ);
+                    param_ftype.unifyStaticArg(env, tp_set, abm, targ);
                 } else {
                     bug(val,e,
                         errorMsg("Can't handle unification of parameters ",
@@ -336,7 +334,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
             return false;
         } catch (EmptyLatticeIntervalError p) {
             if (DUMP_UNIFY)
-                System.out.println("Interval went empty unifying " + t + " and " + a);
+                System.out.println("Interval went empty unifying " + t + " and " + targ);
             return false;
         }
         return true;

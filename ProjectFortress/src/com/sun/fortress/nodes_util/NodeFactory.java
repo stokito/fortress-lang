@@ -181,11 +181,11 @@ public class NodeFactory {
     }
 
     public static TypeArg makeTypeArg(TypeArg t, Type s) {
-        return new TypeArg(t.getSpan(), t.isParenthesized(), s);
+        return new TypeArg(t.getSpan(), s);
     }
 
     public static DimArg makeDimArg(DimArg t, DimExpr s) {
-        return new DimArg(t.getSpan(), t.isParenthesized(), s);
+        return new DimArg(t.getSpan(), s);
     }
 
     public static DimArg makeDimArg(DimExpr s) {
@@ -1037,33 +1037,6 @@ public class NodeFactory {
             public UnitExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
                            " is not a subtype of UnitExpr.");
-            }
-        });
-    }
-
-    public static StaticArg makeInParentheses(StaticArg ty) {
-        return ty.accept(new NodeAbstractVisitor<StaticArg>() {
-            public StaticArg forBoolArg(BoolArg t) {
-                return new BoolArg(t.getSpan(), true, t.getBool());
-            }
-            public StaticArg forIntArg(IntArg t) {
-                return new IntArg(t.getSpan(), true, t.getVal());
-            }
-            public StaticArg forOprArg(OprArg t) {
-                return new OprArg(t.getSpan(), true, t.getName());
-            }
-            public StaticArg forDimArg(DimArg t) {
-                return new DimArg(t.getSpan(), true, t.getDim());
-            }
-            public StaticArg forUnitArg(UnitArg t) {
-                return new UnitArg(t.getSpan(), true, t.getUnit());
-            }
-            public StaticArg forTypeArg(TypeArg t) {
-                return new TypeArg(t.getSpan(), true, t.getType());
-            }
-            public StaticArg defaultCase(Node x) {
-                return bug(x, "makeInParentheses: " + x.getClass() +
-                " is not a subtype of StaticArg.");
             }
         });
     }

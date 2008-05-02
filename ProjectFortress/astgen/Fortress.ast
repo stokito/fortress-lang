@@ -1327,46 +1327,46 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) RR64 meter
                  */
                 TaggedUnitType(Expr unit);
+    /**
+     * static argument
+     */
+    abstract StaticArg();
         /**
-         * static argument
+         * type used as static argument
+         * StaticArg ::= Type
+         * e.g.) List[\ZZ64\]
          */
-        abstract StaticArg();
-            /**
-             * type used as static argument
-             * StaticArg ::= Type
-             * e.g.) List[\ZZ64\]
-             */
-            TypeArg(Type type);
-            /**
-             * integer used as static argument
-             * StaticArg ::= IntExpr
-             * e.g.) m + n
-             */
-            IntArg(IntExpr val);
-            /**
-             * boolean used as static argument
-             * StaticArg ::= BoolExpr
-             * e.g.) ninf OR pinf
-             */
-            BoolArg(BoolExpr bool);
-            /**
-             * operator used as static argument
-             * StaticArg ::= Op
-             * e.g.) +
-             */
-            OprArg(Op name);
-            /**
-             * dimension used as static argument
-             * StaticArg ::= Type
-             * e.g.) Unity
-             */
-            DimArg(DimExpr dim);
-            /**
-             * unit used as static argument
-             * StaticArg ::= UnitExpr
-             * e.g.) dimensionless
-             */
-            UnitArg(UnitExpr unit);
+        TypeArg(Type type);
+        /**
+         * integer used as static argument
+         * StaticArg ::= IntExpr
+         * e.g.) m + n
+         */
+        IntArg(IntExpr val);
+        /**
+         * boolean used as static argument
+         * StaticArg ::= BoolExpr
+         * e.g.) ninf OR pinf
+         */
+        BoolArg(BoolExpr bool);
+        /**
+         * operator used as static argument
+         * StaticArg ::= Op
+         * e.g.) +
+         */
+        OprArg(Op name);
+        /**
+         * dimension used as static argument
+         * StaticArg ::= Type
+         * e.g.) Unity
+         */
+        DimArg(DimExpr dim);
+        /**
+         * unit used as static argument
+         * StaticArg ::= UnitExpr
+         * e.g.) dimensionless
+         */
+        UnitArg(UnitExpr unit);
     /**
      * static expression
      */

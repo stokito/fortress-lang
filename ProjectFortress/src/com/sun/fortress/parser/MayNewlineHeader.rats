@@ -483,8 +483,6 @@ StaticArg StaticArg =
          yyValue = error(a2, "A dimension is expected but a type is found.");
        }
      }
-   / openparen w a1:StaticArg w closeparen
-     { yyValue = NodeFactory.makeInParentheses(a1); }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
                       w opendoublesquare / w opensquare / w rightarrow /
                       w "OR":op / w "AND":op / w "IMPLIES":op / w equals))
