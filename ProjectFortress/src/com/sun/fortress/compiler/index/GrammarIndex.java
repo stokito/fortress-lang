@@ -85,7 +85,7 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 		return this.env;
 	}
 
-	public QualifiedIdName getName() {
+	public Id getName() {
 		if (this.ast().isSome()) {
 			return Option.unwrap(this.ast()).getName();
 		}

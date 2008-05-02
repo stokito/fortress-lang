@@ -34,7 +34,6 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.NotPredicateSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
@@ -64,13 +63,13 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         this._terminalDefs = new LinkedList<_TerminalDef>();
         this._apiName = new LinkedList<Id>();
         this._apiName.addAll(Option.unwrap(that.getName().getApi()).getIds());
-        this._apiName.add(that.getName().getName());
+        this._apiName.add(that.getName());
         return super.forGrammarDef(that);
     }
 
     @Override
-    public Node forGrammarDefOnly(GrammarDef that, QualifiedIdName name_result,
-            List<QualifiedIdName> extends_result,
+    public Node forGrammarDefOnly(GrammarDef that, Id name_result,
+            List<Id> extends_result,
             List<GrammarMemberDecl> members_result) {
         members_result.addAll(this._terminalDefs);
         return super.forGrammarDefOnly(that, name_result, extends_result,
@@ -110,7 +109,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         }
         APIName apiName = NodeFactory.makeAPIName(this._apiName);
         Id id = NodeFactory.makeId(var);
-        QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName,id);
+        Id name = NodeFactory.makeId(apiName,id);
 
         // Create a the return type - A StringLiteralExpr
         Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", STRINGLITERALEXPR)));

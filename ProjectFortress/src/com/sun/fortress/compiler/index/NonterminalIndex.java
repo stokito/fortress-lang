@@ -37,7 +37,7 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
 	public Id getName() {
 		if (this.ast().isSome()) {
-                    return Option.unwrap(this.ast()).getName().getName();
+                    return Option.unwrap(this.ast()).getName();
 		}
 		throw new RuntimeException("Production index without ast and thus no name");
 	}

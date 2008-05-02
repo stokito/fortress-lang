@@ -47,27 +47,27 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
     }
 
     @Override
-    public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
+    public Set<Id> explicitGrammarNames(Id name) {
         return Collections.emptySet();
     }
 
     @Override
-    public boolean hasGrammar(QualifiedIdName name) {
+    public boolean hasGrammar(Id name) {
         return false;
     }
 
     @Override
-    public boolean hasQualifiedGrammar(QualifiedIdName name) {
+    public boolean hasQualifiedGrammar(Id name) {
         return false;
     }
 
     @Override
-    public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
+    public Set<Id> onDemandGrammarNames(Id name) {
         return Collections.emptySet();
     }
 
     @Override
-    public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
+    public Option<GrammarIndex> grammarIndex(Id name) {
         return Option.none();
     }
 

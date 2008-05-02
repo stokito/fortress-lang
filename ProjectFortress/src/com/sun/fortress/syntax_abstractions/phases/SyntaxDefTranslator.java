@@ -120,7 +120,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	@Override
 	public List<Sequence> forNonterminalDef(NonterminalDef that) {
 		TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
-		String name = that.getName().getName().toString();
+		String name = that.getName().toString();
 		return visitSyntaxDefs(that.getSyntaxDefs(), name, type);
 	}
 
@@ -132,7 +132,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	@Override
 	public List<Sequence> for_TerminalDef(_TerminalDef that) {
 		TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
-		String name = that.getName().getName().toString();
+		String name = that.getName().toString();
 		List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type));
 		return sequences;
 	}

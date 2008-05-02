@@ -66,11 +66,11 @@ public class MemberTranslator {
 
 	/**
 	 * Translate a collection of grammar members to Rats! productions
-	 * @param 
-	 * @param env 
+	 * @param
+	 * @param env
 	 * @return
 	 */
-	public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {	
+	public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		return new MemberTranslator().doTranslate(members);
 	}
 
@@ -85,7 +85,7 @@ public class MemberTranslator {
 	}
 
 	/**
-	 * Translate a grammar member to a Rats! production 
+	 * Translate a grammar member to a Rats! production
 	 * @param member
 	 * @return
 	 */
@@ -100,7 +100,7 @@ public class MemberTranslator {
 
 
 	private static class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
-		private Collection<StaticError> errors; 
+		private Collection<StaticError> errors;
 
 		public NonterminalTranslator() {
 			this.errors = new LinkedList<StaticError>();
@@ -114,9 +114,9 @@ public class MemberTranslator {
 		public Production forNonterminalDef(NonterminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
 			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
-			String name = that.getName().getName().toString();
+			String name = that.getName().toString();
 
-			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
+			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that);
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
 			List<Sequence> sequence = sdtr.alternatives();
 
@@ -136,14 +136,14 @@ public class MemberTranslator {
 		public Production for_TerminalDef(_TerminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
 			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
-			String name = that.getName().getName().toString();
+			String name = that.getName().toString();
 
-			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
+			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that);
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
 			List<Sequence> sequence = sdtr.alternatives();
 
 			Production p = new FullProduction(attr,
-											  type.toString(), 
+											  type.toString(),
 											  new NonTerminal(name),
 											  new OrderedChoice(sequence));
 			p.name = new NonTerminal(name);

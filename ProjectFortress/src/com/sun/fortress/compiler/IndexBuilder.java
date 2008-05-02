@@ -2,15 +2,15 @@
   Copyright 2008 Sun Microsystems, Inc.,
   4150 Network Circle, Santa Clara, California 95054, U.S.A.
   All rights reserved.
-  
+
   U.S. Government Rights - Commercial software.
   Government users are subject to the Sun Microsystems, Inc. standard
   license agreement and applicable provisions of the FAR and its supplements.
-  
+
   Use is subject to license terms.
-  
+
   This distribution may include materials developed by third parties.
-  
+
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
   ******************************************************************************/
@@ -91,7 +91,6 @@ import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.PropertyDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.TestDecl;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
@@ -111,22 +110,22 @@ import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 
 public class IndexBuilder {
-    
+
     static public IndexBuilder builder = new IndexBuilder();
-    
+
     /** Result of {@link #buildApis}. */
     public static class ApiResult extends StaticPhaseResult {
         private final Map<APIName, ApiIndex> _apis;
-        
+
         public ApiResult(Map<APIName, ApiIndex> apis,
                          Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
-        
+
         public Map<APIName, ApiIndex> apis() { return _apis; }
     }
-    
+
     /** Convert the given ASTs to ApiIndices. */
     public static ApiResult buildApis(Iterable<Api> asts, long modifiedDate) {
         IndexBuilder builder = new IndexBuilder();
@@ -134,28 +133,28 @@ public class IndexBuilder {
         for (Api ast : asts) { builder.buildApi(ast, apis, modifiedDate); }
         return new ApiResult(apis, builder.errors());
     }
-    
+
     /** Convenience function that takes apis as varargs and builds an ApiResult. */
     public static ApiResult buildApis(long modifiedDate, Api... asts) {
         ArrayList<Api> apiList = new ArrayList<Api>();
         for (Api ast: asts) { apiList.add(ast); }
         return buildApis(apiList, modifiedDate);
     }
-    
-    
+
+
     /** Result of {@link #buildComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
-        
+
         public ComponentResult(Map<APIName, ComponentIndex> components,
                                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
-        
+
         public Map<APIName, ComponentIndex> components() { return _components; }
     }
-    
+
     /** Convert the given ASTs to ComponentIndices. */
     public static ComponentResult buildComponents(Iterable<Component> asts, long modifiedDate) {
         IndexBuilder builder = new IndexBuilder();
@@ -164,24 +163,24 @@ public class IndexBuilder {
         for (Component ast : asts) { builder.buildComponent(ast, components, modifiedDate); }
         return new ComponentResult(components, builder.errors());
     }
-    
-    
+
+
     private List<StaticError> _errors;
-    
+
     public IndexBuilder() { _errors = new LinkedList<StaticError>(); }
-    
+
     private List<StaticError> errors() { return _errors; }
-    
+
     private void error(String message, HasAt loc) {
         _errors.add(StaticError.make(message, loc));
     }
-    
+
     /** Create an ApiIndex and add it to the given map. */
     private void buildApi(Api ast, Map<APIName, ApiIndex> apis, long modifiedDate) {
         ApiIndex api = buildApiIndex(ast, modifiedDate);
         apis.put(ast.getName(), api);
     }
-    
+
     public ApiIndex buildApiIndex(Api ast, long modifiedDate) {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
@@ -191,8 +190,8 @@ public class IndexBuilder {
         final Map<Id, Dimension> dimensions =
             new HashMap<Id, Dimension>();
         final Map<Id, Unit> units = new HashMap<Id, Unit>();
-        final Map<QualifiedIdName, GrammarIndex> grammars =
-            new HashMap<QualifiedIdName, GrammarIndex>();
+        final Map<Id, GrammarIndex> grammars =
+            new HashMap<Id, GrammarIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsTraitDecl(AbsTraitDecl d) {
                 buildTrait(d, typeConses, functions);
@@ -234,7 +233,7 @@ public class IndexBuilder {
         ApiIndex api = new ApiIndex(ast, variables, functions, typeConses, dimensions, units, grammars, modifiedDate);
         return api;
     }
-    
+
     /** Create a ComponentIndex and add it to the given map. */
     private void buildComponent(Component ast,
                                 Map<APIName, ComponentIndex> components,
@@ -242,7 +241,7 @@ public class IndexBuilder {
         ComponentIndex comp = buildComponentIndex(ast, modifiedDate);
         components.put(ast.getName(), comp);
     }
-    
+
     public ComponentIndex buildComponentIndex(Component ast, long modifiedDate) {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
@@ -250,9 +249,9 @@ public class IndexBuilder {
             new HashRelation<IdOrOpOrAnonymousName, Function>(true, false);
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
-        final Map<Id, Dimension> dimensions = 
+        final Map<Id, Dimension> dimensions =
             new HashMap<Id, Dimension>();
-        final Map<Id, Unit> units = 
+        final Map<Id, Unit> units =
             new HashMap<Id, Unit>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forTraitDecl(TraitDecl d) {
@@ -296,8 +295,8 @@ public class IndexBuilder {
                                                  functions, typeConses, dimensions, units, modifiedDate);
         return comp;
     }
-    
-    
+
+
     /**
      * Create a ProperTraitIndex and put it in the given map; add functional methods
      * to the given relation.
@@ -332,7 +331,7 @@ public class IndexBuilder {
                                                 dottedMethods, functionalMethods);
         typeConses.put(name, trait);
     }
-    
+
     /**
      * Create an ObjectTraitIndex and put it in the given map; add functional methods
      * to the given relation; create a constructor function or singleton variable and
@@ -352,14 +351,14 @@ public class IndexBuilder {
             new HashRelation<IdOrOpOrAnonymousName, Method>(true, false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
             new HashRelation<IdOrOpOrAnonymousName, FunctionalMethod>(true, false);
-        
+
         Option<Constructor> constructor;
         if (ast.getParams().isSome()) {
             for (Param p : Option.unwrap(ast.getParams())) {
                 fields.put(p.getName(), new ParamVariable(p));
             }
-            Constructor c = new Constructor(name, 
-                                            ast.getStaticParams(), 
+            Constructor c = new Constructor(name,
+                                            ast.getStaticParams(),
                                             ast.getParams(),
                                             ast.getThrowsClause(),
                                             ast.getWhere());
@@ -370,7 +369,7 @@ public class IndexBuilder {
             constructor = Option.none();
             variables.put(name, new SingletonVariable(name));
         }
-        
+
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsVarDecl(AbsVarDecl d) {
                 buildFields(d, name, fields, getters, setters);
@@ -395,8 +394,8 @@ public class IndexBuilder {
                                                 dottedMethods, functionalMethods);
         typeConses.put(name, trait);
     }
-    
-    
+
+
     /**
      * Create a variable wrapper for each declared variable and add it to the given
      * map.
@@ -407,7 +406,7 @@ public class IndexBuilder {
             variables.put(b.getName(), new DeclaredVariable(b));
         }
     }
-    
+
     /**
      * Create and add to the given maps implicit getters and setters for a trait's
      * abstract fields.
@@ -428,7 +427,7 @@ public class IndexBuilder {
             }
         }
     }
-    
+
     /**
      * Create field variables and add them to the given map; also create implicit
      * getters and setters.
@@ -451,7 +450,7 @@ public class IndexBuilder {
             }
         }
     }
-    
+
     /**
      * Create a dimension wrapper for the declaration and put it in the given map.
      */
@@ -469,7 +468,7 @@ public class IndexBuilder {
             units.put(unit, new Unit(ast));
         }
     }
-    
+
     /**
      * Create a function wrapper for the declaration and put it in the given
      * relation.
@@ -478,7 +477,7 @@ public class IndexBuilder {
                                Relation<IdOrOpOrAnonymousName, Function> functions) {
         functions.add(ast.getName(), new DeclaredFunction(ast));
     }
-    
+
     /**
      * Determine whether the given declaration is a getter, setter, coercion, dotted
      * method, or functional method, and add it to the appropriate map; also store
@@ -536,23 +535,23 @@ public class IndexBuilder {
             else { dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait)); }
         }
     }
-    
+
     /**
      * Create a Grammar and put it in the given map.
      */
-    private void buildGrammar(GrammarDef ast, Map<QualifiedIdName, GrammarIndex> grammars) {
-        final QualifiedIdName name = ast.getName();
+    private void buildGrammar(GrammarDef ast, Map<Id, GrammarIndex> grammars) {
+        final Id name = ast.getName();
         GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {
             error("Grammar declared twice: "+name, ast);
         }
         grammars.put(name, grammar);
     }
-    
-    
+
+
     private Set<NonterminalIndex<? extends GrammarMemberDecl>> buildMembers(List<GrammarMemberDecl> members) {
     	Set<NonterminalIndex<? extends GrammarMemberDecl>> result = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
-    	Set<QualifiedIdName> names = new HashSet<QualifiedIdName>();
+    	Set<Id> names = new HashSet<Id>();
     	for (GrammarMemberDecl m: members) {
             if (names.contains(m.getName())) {
                 error("Nonterminal declared twice: "+m.getName(), m);
@@ -570,22 +569,22 @@ public class IndexBuilder {
 						NonterminalExtensionDef that) {
 					return new NonterminalExtendIndex(Option.wrap(that));
 				}
-				
+
 				@Override
 				public NonterminalIndex<_TerminalDef> for_TerminalDef(
 						_TerminalDef that) {
 					return new GrammarTerminalIndex(Option.wrap(that));
 				}
-            	
+
             }));
         }
         return result;
     }
-    
-    
+
+
     private static final Id COERCION_NAME = NodeFactory.makeId("coercion");
     private static final Id SELF_NAME = NodeFactory.makeId("self");
-    
+
     private ModifierSet extractModifiers(List<Modifier> mods) {
         final ModifierSet result = new ModifierSet();
         NodeAbstractVisitor_void handleMod = new NodeAbstractVisitor_void() {
@@ -636,8 +635,8 @@ public class IndexBuilder {
         for (Modifier m : mods) { m.accept(handleMod); }
         return result;
     }
-    
-    
+
+
     private static class ModifierSet {
         public boolean isVar = false;
         public boolean isHidden = false;
@@ -654,5 +653,5 @@ public class IndexBuilder {
         public boolean isTest = false;
         public boolean isValue = false;
     }
-    
+
 }

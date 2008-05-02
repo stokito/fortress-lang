@@ -444,11 +444,11 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         */
     }
 
-    private Pair<List<QualifiedIdName>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
-        List<QualifiedIdName> ls = new LinkedList<QualifiedIdName>();
+    private Pair<List<Id>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
+        List<Id> ls = new LinkedList<Id>();
         Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
-        for (QualifiedIdName name: that.getExtends()) {
-            QualifiedIdName nname = handleGrammarName(name);
+        for (Id name: that.getExtends()) {
+            Id nname = handleGrammarName(name);
             ls.add(nname);
 
             Option<GrammarIndex> gi = this._env.grammarIndex(nname);
@@ -459,15 +459,15 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 error("Undefined grammar: " + NodeUtil.nameString(nname), name);
             }
         }
-        return new Pair<List<QualifiedIdName>, Collection<GrammarIndex>>(ls,gs);
+        return new Pair<List<Id>, Collection<GrammarIndex>>(ls,gs);
     }
 
     @Override
     public Node forGrammarDef(GrammarDef that) {
 
-        Pair<List<QualifiedIdName>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
+        Pair<List<Id>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
 
-        QualifiedIdName name = handleGrammarName(that.getName());
+        Id name = handleGrammarName(that.getName());
 
         GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),that.getMembers());
 
@@ -489,7 +489,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
 
 
-    private QualifiedIdName handleGrammarName(QualifiedIdName name) {
+    private Id handleGrammarName(Id name) {
         if (name.getApi().isSome()) {
             APIName originalApi = Option.unwrap(name.getApi());
             Option<APIName> realApiOpt = _env.apiName(originalApi);
@@ -498,9 +498,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 return name;
             }
             APIName realApi = Option.unwrap(realApiOpt);
-            QualifiedIdName newN;
+            Id newN;
             if (originalApi == realApi) { newN = name; }
-            else { newN = NodeFactory.makeQualifiedIdName(realApi, name.getName()); }
+            else { newN = NodeFactory.makeId(realApi, name); }
 
             if (!_env.hasQualifiedGrammar(newN)) {
                 error("Undefined grammar: " + NodeUtil.nameString(newN), newN);
@@ -510,19 +510,19 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         }
         else {
             if (_env.hasGrammar(name)) {
-                Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
+                Set<Id> grammars = _env.explicitGrammarNames(name);
                 if (grammars.size() > 1) {
                     error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
                     return name;
                 }
-                QualifiedIdName qname = IterUtil.first(grammars);
+                Id qname = IterUtil.first(grammars);
                 return qname;
             }
             else {
-                Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
+                Set<Id> grammars = _env.explicitGrammarNames(name);
                 if (grammars.isEmpty()) {
-                    grammars = _env.onDemandGrammarNames(name.getName());
-                    _onDemandImports.add(name.getName());
+                    grammars = _env.onDemandGrammarNames(name);
+                    _onDemandImports.add(name);
                 }
 
                 if (grammars.isEmpty()) {
@@ -533,7 +533,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
                     return name;
                 }
-                QualifiedIdName qname = IterUtil.first(grammars);
+                Id qname = IterUtil.first(grammars);
                 return qname;
             }
         }

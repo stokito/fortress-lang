@@ -33,17 +33,17 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.Id;
 
 import edu.rice.cs.plt.tuple.Option;
 
 /*
- * 1) Disambiguate item symbols and rewrite to either nonterminal, 
+ * 1) Disambiguate item symbols and rewrite to either nonterminal,
  *    keyword or token symbol
  * 2) Remove whitespace where indicated by no-whitespace symbols
  * 3) Rewrite escaped symbols
  * 4) Create a terminal declaration for each keyword and token symbols,
- *    and rewrite keyword and token symbols to nonterminal symbols, referring 
+ *    and rewrite keyword and token symbols to nonterminal symbols, referring
  *    to the corresponding terminal definitions.
  */
 public class GrammarRewriter {
@@ -52,7 +52,7 @@ public class GrammarRewriter {
 	public static class ApiResult extends StaticPhaseResult {
 		private final Iterable<Api> _apis;
 
-		public ApiResult(Iterable<Api> apis, 
+		public ApiResult(Iterable<Api> apis,
 				Iterable<? extends StaticError> errors) {
 			super(errors);
 			_apis = apis;
@@ -66,7 +66,7 @@ public class GrammarRewriter {
 		apis.addAll(map.values());
 		apis.addAll(env.apis().values());
 		initializeGrammarIndexExtensions(apis);
-		
+
 		List<Api> results = new ArrayList<Api>();
 		ItemDisambiguator id = new ItemDisambiguator(env);
 		for (ApiIndex api: apis) {
@@ -79,7 +79,7 @@ public class GrammarRewriter {
 				// Rewrite escaped characters
 				EscapeRewriter escapeRewriter = new EscapeRewriter();
 				Api erResult = (Api) sdResult.accept(escapeRewriter);
-				
+
 				// Rewrite terminals to be declared using terminal definitions
 				TerminalRewriter terminalRewriter = new TerminalRewriter();
 				Api trResult = (Api) erResult.accept(terminalRewriter);
@@ -90,25 +90,25 @@ public class GrammarRewriter {
 	}
 
 	private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
-		Map<QualifiedIdName, GrammarIndex> grammars = new HashMap<QualifiedIdName, GrammarIndex>();
+		Map<Id, GrammarIndex> grammars = new HashMap<Id, GrammarIndex>();
 		for (ApiIndex a2: apis) {
-			for (Entry<QualifiedIdName,GrammarIndex> e: a2.grammars().entrySet()) {
+			for (Entry<Id,GrammarIndex> e: a2.grammars().entrySet()) {
 				grammars.put(e.getKey(), e.getValue());
 			}
 		}
-		
+
 		for (ApiIndex a1: apis) {
-			for (Entry<QualifiedIdName,GrammarIndex> e: a1.grammars().entrySet()) {
+			for (Entry<Id,GrammarIndex> e: a1.grammars().entrySet()) {
 				Option<GrammarDef> og = e.getValue().ast();
 				if (og.isSome()) {
 					List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-					for (QualifiedIdName n: Option.unwrap(og).getExtends()) {
+					for (Id n: Option.unwrap(og).getExtends()) {
 						ls.add(grammars.get(n));
 					}
 					e.getValue().setExtended(ls);
 				}
 			}
-		}		
+		}
 	}
 
 }

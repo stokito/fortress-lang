@@ -33,7 +33,6 @@ import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
@@ -96,7 +95,7 @@ public class GrammarIndexInitializer {
 	private static void initGrammarExtends(Collection<GrammarEnv> envs,
 			Collection<StaticError> ses) {
 		// Record all the grammar names and their grammar index
-		Map<QualifiedIdName, GrammarIndex> m = new HashMap<QualifiedIdName, GrammarIndex>();
+		Map<Id, GrammarIndex> m = new HashMap<Id, GrammarIndex>();
 		for (GrammarEnv gEnv: envs) {
 			for (GrammarIndex g: gEnv.getGrammars()) {
 				m.put(g.getName(), g);
@@ -109,7 +108,7 @@ public class GrammarIndexInitializer {
 				g.setEnv(new NonterminalEnv(g));
 				if (g.ast().isSome()) {
 					List<GrammarIndex> gs = new LinkedList<GrammarIndex>();
-					for (QualifiedIdName otherName: Option.unwrap(g.ast()).getExtends()) {
+					for (Id otherName: Option.unwrap(g.ast()).getExtends()) {
 						if (m.containsKey(otherName)) {
 							gs.add(m.get(otherName));
 						}

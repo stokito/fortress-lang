@@ -18,7 +18,9 @@
 /*
  * Definition of Fortress macro language.
  */
-module com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expr, DelimitedExpr, LocalDecl, Unicode, Header, Type);
+module com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expr,
+                                      DelimitedExpr, LocalDecl, Unicode, Header,
+                                      Type);
 
 import Identifier;
 import Keyword;
@@ -53,8 +55,16 @@ option setOfString(FORTRESS_SYNTAX_SPECIAL_SYMBOLS), setOfString(FORTRESS_SYNTAX
 /* GrammarDef ::= grammar w id w GrammarExtends? (br NonterminalDef)* w end */
 public GrammarDecl GrammarDef =
      grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
-     { if ( a2 == null) a2 = Collections.<QualifiedIdName>emptyList();
-       yyValue = new GrammarDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), a2, a3s.list()); };
+     { List<Id> ids = new ArrayList<Id>();
+       if ( a2 == null) ids = Collections.<Id>emptyList();
+       else {
+           for (QualifiedIdName qid : a2) {
+               ids.add(qid.getName());
+           }
+       }
+/* todotodo
+ */
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list()); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
 List<QualifiedIdName> GrammarExtends = extends w QualifiedNames ;
@@ -78,24 +88,24 @@ private GrammarMemberDecl NonterminalDef =
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); }
     /m1:(NonTermMod w)? a1:Id (w args:NonterminalArguments)? w void:colon a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); }
     / m1:(NonTermMod w)? a1:Id (w args:NonterminalArguments)? w void:colon w a2:TraitType
       { Option<TraitType> type = Option.some(a2);
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
         if (m1 == null) m1 = Option.none();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); }
      /m1:(NonTermMod w)? a1:Id (w args:NonterminalArguments)? w void:bar w a2:TraitType
       { Option<TraitType> type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); };
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); };
 
 private Option<ModifierPrivate> NonTermMod =
         private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
@@ -103,13 +113,13 @@ private Option<ModifierPrivate> NonTermMod =
 private List<edu.rice.cs.plt.tuple.Pair<Id,Type>> NonterminalArguments =
         void:openparen w DeclList w void:closeparen;
 
-private List<edu.rice.cs.plt.tuple.Pair<Id,Type>> DeclList = 
+private List<edu.rice.cs.plt.tuple.Pair<Id,Type>> DeclList =
         a1:Decl w comma w a2s:DeclList
         { yyValue = FortressUtil.mkList(a1, a2s); }
      /  a1:Decl
         { yyValue = FortressUtil.mkList(a1); };
 
-private edu.rice.cs.plt.tuple.Pair<Id,Type> Decl = 
+private edu.rice.cs.plt.tuple.Pair<Id,Type> Decl =
         a1:Id colon a2:Type
         { yyValue = new edu.rice.cs.plt.tuple.Pair(a1,a2); };
 
@@ -127,7 +137,7 @@ SyntaxDef SyntaxDefOr =
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 /* TransformationExpr ::= do BlockElems end */
-TransformationExpressionDef TransformationExpr = 
+TransformationExpressionDef TransformationExpr =
      do a3:(w BlockElems) w end
      { Span span = createSpan(yyStart, yyCount);
        if (a3 == null) a3 = FortressUtil.doBlock(span);
@@ -189,7 +199,7 @@ SyntaxSymbol SyntaxSymbol =
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
           yyValue = new NoWhitespaceSymbol(s1.getSpan(), new PrefixedSymbol(prefix, tmp));
         }
-        else 
+        else
         if (s1 instanceof SpecialSymbol) {
           yyValue = s1;
         }

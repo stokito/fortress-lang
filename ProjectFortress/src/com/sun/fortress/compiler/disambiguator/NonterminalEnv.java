@@ -125,7 +125,7 @@ public class NonterminalEnv {
 		Set<Id> results = new HashSet<Id>();
 		if (this.nonterminals.containsKey(name)) {
 			if (grammar.ast().isSome()) {
-                            Id gname = Option.unwrap(grammar.ast()).getName().getName();
+                            Id gname = Option.unwrap(grammar.ast()).getName();
 				APIName gApi = Option.unwrap(gname.getApi());
 				results.addAll(Collections.singleton(SyntaxAbstractionUtil.memberName(gApi , gname, name)));
 			}

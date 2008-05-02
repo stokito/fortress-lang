@@ -82,7 +82,7 @@ public class ContractedNonterminal {
 		Span span = this.members.get(0).getAst().getSpan();
 		Option<TraitType> type = this.members.get(0).getAst().getType();
 		NonterminalDef nonterminal = new NonterminalDef(span,
-                                                                NodeFactory.makeQualifiedIdName(name), type, Option.<Modifier>none(), syntaxDefs);
+                                                                name, type, Option.<Modifier>none(), syntaxDefs);
 		Option<NonterminalDef> nonterminalDef = Option.some(nonterminal);
 		return new NonterminalDefIndex(nonterminalDef);
 	}
