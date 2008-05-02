@@ -122,28 +122,28 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.JUST, args, it.getArgs());
  }
 
-	private Expr handleRepetition(Pair value, InstantiatedType type) {
-		if (value.list().isEmpty()) {
-			return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
-		}
-		List<OpName> ops = new LinkedList<OpName>();
-		ops.add(NodeFactory.makeEncloserOpName(this.span));
-		List<Expr> args = new LinkedList<Expr>();
-		boolean first = true;
-		for (Object o: value.list()) {
-			Node n = (Node) o;
-			System.err.println("Node: "+n.getClass());
-			JavaASTToFortressAST jaTofss = new JavaASTToFortressAST(n.getSpan());
-			Expr e = n.accept(jaTofss);
-			if (first) {
-				Type t = IterUtil.first(type.getArgs());
-				e = new AsIfExpr(e, t);
-				first = false;
-			}
-			args.add(e);
-		}
-		return new OprExpr(new OpRef(ops), args);
-	}
+ private Expr handleRepetition(Pair value, InstantiatedType type) {
+  if (value.list().isEmpty()) {
+   return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
+  }
+  List<OpName> ops = new LinkedList<OpName>();
+  ops.add(NodeFactory.makeEncloserOpName(this.span));
+  List<Expr> args = new LinkedList<Expr>();
+  boolean first = true;
+  for (Object o: value.list()) {
+   Node n = (Node) o;
+   System.err.println("Node: "+n.getClass());
+   JavaASTToFortressAST jaTofss = new JavaASTToFortressAST(n.getSpan());
+   Expr e = n.accept(jaTofss);
+   if (first) {
+    StaticArg t = IterUtil.first(type.getArgs());
+    e = new AsIfExpr(e, ((TypeArg) t).getType());
+    first = false;
+   }
+   args.add(e);
+  }
+  return new OprExpr(new OpRef(ops), args);
+ }
 
  @Override
  public Expr forStringLiteralExpr(StringLiteralExpr that) {
@@ -219,14 +219,14 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "Op", args);
  }
 
-	@Override
-	public Expr forOpRefOnly(OpRef that, List<Expr> ops_result,
-			List<Expr> staticArgs_result) {
-		List<Expr> args = new LinkedList<Expr>();
-		args.add(SyntaxAbstractionUtil.makeList(this.span, ops_result, "OpName"));
-		args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
-		return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "OpRef", args);
-	}
+ @Override
+ public Expr forOpRefOnly(OpRef that, List<Expr> ops_result,
+   List<Expr> staticArgs_result) {
+  List<Expr> args = new LinkedList<Expr>();
+  args.add(SyntaxAbstractionUtil.makeList(this.span, ops_result, "OpName"));
+  args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
+  return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "OpRef", args);
+ }
 
  @Override
  public Expr forOprExprOnly(OprExpr that, Expr op_result,
