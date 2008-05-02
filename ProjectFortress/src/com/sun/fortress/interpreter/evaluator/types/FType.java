@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BoundingMap;
@@ -564,6 +565,26 @@ abstract public class FType implements Comparable<FType> {
                        ));
     }
 
+    /** Unify with a static arg. */
+    public void unifyStaticArg(BetterEnv env, Set<String> tp_set,
+                               BoundingMap<String, FType, TypeLatticeOps> abm,
+                               StaticArg val) {
+        if (DUMP_UNIFY)
+            System.out.println("    Can't unify "+this+" with "+val);
+        unificationError(val,env,
+              errorMsg("Cannot unify ",
+                       this,
+                       "(",
+                       this.getClass(),
+                       ")\n  with ",
+                       val,
+                       "(",
+                       val.getClass(),
+                       ") abm=" + abm
+                       ));
+    }
+
+        
     /**
      * Convenience method for unifying with a VarargsType (e.g., "T...").
      * VarargsTypes are special forms that appear only in ArgTypes. They are not Types.

@@ -83,9 +83,6 @@ public abstract class TypeCheckerTestCase extends TestCase {
             types.add(parseType(s));
             return NodeFactory.makeTupleType(types);
         }
-        if ("+-/*^!&".indexOf(s) >= 0) {
-            return NodeFactory.makeOprArg(s);
-        }
         else {
             return NodeFactory.makeIdType(s);
         }

@@ -102,8 +102,7 @@ public class TypeAnalyzerUtil {
                     /** Handle arguments to opr parameters */
                     @Override public OprArg forOprArg(OprArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OprArg(n.getSpan(), n.isParenthesized(),
-                                              opSubs.get(n.getName()));
+                            return new OprArg(n.getSpan(), opSubs.get(n.getName()));
                         }
                         else { return n; }
                     }

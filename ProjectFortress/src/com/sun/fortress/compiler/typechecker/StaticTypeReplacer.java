@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.OprArg;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
@@ -94,7 +95,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     private Node updateNode(Node that, QualifiedIdName name) {
         if (name.getApi().isSome()) { return that; }
         StaticArg arg = parameterMap.get(name.getName());
-        return arg == null ? that : arg;
+        return arg instanceof TypeArg ? ((TypeArg) arg).getType() : that;
     }
 
     private Node updateNode(Node that, Id name) {

@@ -132,7 +132,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public  FType getFType(Type t) {
-    	return t.accept(this);
+     return t.accept(this);
     }
 
     public FType getFType(VarargsType t) {
@@ -295,11 +295,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
          }
     }
 
-    public ArrayList<FType> forStaticArgList(List<? extends Type> args) {
+    public ArrayList<FType> forStaticArgList(List<StaticArg> args) {
         ArrayList<FType> argValues = new ArrayList<FType>(args.size());
 
         for (int i = 0; i < args.size(); i++) {
-            Type a = args.get(i);
+            StaticArg a = args.get(i);
             FType t = a.accept(this);
             argValues.add(t);
         }
@@ -493,8 +493,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     TypeRange extentRangeToTypeRange(ExtentRange extent) {
 
-        Option<? extends Type> b = extent.getBase();
-        Option<? extends Type> s = extent.getSize();
+        Option<StaticArg> b = extent.getBase();
+        Option<StaticArg> s = extent.getSize();
         FTypeNat natB, natS;
         if (b.isSome()) {
             FType bt = Option.unwrap(b).accept(this);

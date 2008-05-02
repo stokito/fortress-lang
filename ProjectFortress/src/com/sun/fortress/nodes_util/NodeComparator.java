@@ -217,7 +217,15 @@ public class NodeComparator {
     }
 
     public static int compare(StaticArg left, StaticArg right) {
-        return compare((Type) left, right);
+        Class leftClass = left.getClass();
+        Class rightClass = right.getClass();
+
+        if (leftClass != rightClass) {
+            return leftClass.getName().compareTo(rightClass.getName());
+        }
+        else {
+            return subtypeCompareTo(left, right);
+        }
     }
 
     public static int compare(Type left, Type right) {
@@ -368,6 +376,27 @@ public class NodeComparator {
     static int compare(TypeArg left, TypeArg right) {
         return compare(left.getType(), right.getType());
     }
+    
+    private static int subtypeCompareTo(StaticArg left, StaticArg right) {
+        if (left instanceof BoolArg) {
+            //return compare((BoolArg) left, (BoolArg) right);
+        } else if (left instanceof DimArg) {
+            //return compare((DimArg) left, (DimArg) right);
+        } else if (left instanceof IntArg) {
+            return compare((IntArg) left, (IntArg) right);
+        } else if (left instanceof OprArg) {
+            return compare((OprArg) left, (OprArg) right);
+        } else if (left instanceof TypeArg) {
+            return compare((TypeArg) left, (TypeArg) right);
+        } else if (left instanceof UnitArg) {
+            //return compare((UnitArg) left, (UnitArg) right);
+        } else {
+
+        }
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
+    }
 
     private static int subtypeCompareTo(Type left, Type right) {
         // Commented out cases haven't had their methods implememnted yet,
@@ -393,18 +422,6 @@ public class NodeComparator {
             return compare((InstantiatedType) left, (InstantiatedType) right);
         } else if (left instanceof MatrixType) {
             return compare((MatrixType) left, (MatrixType) right);
-        } else if (left instanceof BoolArg) {
-            //return compare((BoolArg) left, (BoolArg) right);
-        } else if (left instanceof DimArg) {
-            //return compare((DimArg) left, (DimArg) right);
-        } else if (left instanceof IntArg) {
-            return compare((IntArg) left, (IntArg) right);
-        } else if (left instanceof OprArg) {
-            return compare((OprArg) left, (OprArg) right);
-        } else if (left instanceof TypeArg) {
-            return compare((TypeArg) left, (TypeArg) right);
-        } else if (left instanceof UnitArg) {
-            //return compare((UnitArg) left, (UnitArg) right);
         } else {
 
         }
