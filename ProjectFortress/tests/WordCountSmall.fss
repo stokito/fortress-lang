@@ -15,8 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component wordcount
-import CaseInsensitiveString.{...}
+component WordCountSmall
 import File.{...}
 import FileSupport.{...}
 import List.{...}
