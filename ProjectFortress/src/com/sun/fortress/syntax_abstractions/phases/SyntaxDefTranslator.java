@@ -73,9 +73,9 @@ import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
-	
+
 	private Iterable<? extends StaticError> errors;
-	
+
 	public class Result extends StaticPhaseResult {
 		private List<Sequence> alternatives;
 		private Set<String> keywords;
@@ -96,14 +96,14 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		public List<Sequence> alternatives() { return alternatives; }
 
 		public Set<String> keywords() { return keywords; }
-		
+
 		public Collection<Module> keywordModules() { return this.keywordModules; }
 	}
-	
+
 	public SyntaxDefTranslator() {
 		this.errors = new LinkedList<StaticError>();
 	}
-	
+
 	public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
 		return new SyntaxDefTranslator().visit(member.getAst());
 	}
@@ -111,12 +111,12 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	public static Result translate(GrammarMemberDecl member) {
 		return new SyntaxDefTranslator().visit(member);
 	}
-	
+
 	public Result visit(GrammarMemberDecl member) {
 		List<Sequence> sequence = member.accept(this);
 		return new Result(sequence, new HashSet<String>(), new LinkedList<Module>(), this.errors);
 	}
-		
+
 	@Override
 	public List<Sequence> forNonterminalDef(NonterminalDef that) {
 		TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
@@ -136,7 +136,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type));
 		return sequences;
 	}
-	
+
 	private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs,
 			String name, TraitType type) {
 		List<Sequence> sequence = new LinkedList<Sequence>();
@@ -145,7 +145,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		}
 		return sequence;
 	}
-	
+
 	private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, TraitType type) {
 		List<Element> elms = new LinkedList<Element>();
 		// Translate the symbols
@@ -160,7 +160,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		elms.add(acr.action());
 		return new Sequence(new SequenceName(newName), elms);
 	}
-	
+
 	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
 
 		private List<Element> mkList(Element e) {
@@ -171,8 +171,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
 		@Override
 		public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
-			return mkList(new NonTerminal(that.getNonterminal().getName().stringName()));
-		}	
+			return mkList(new NonTerminal(that.getNonterminal().stringName()));
+		}
 
 		@Override
 		public List<Element> forKeywordSymbol(KeywordSymbol that) {
@@ -243,7 +243,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 							new RuntimeException(mess+that.getString());
 						}
 						return new CharRange(that.getString().charAt(0));
-					}					
+					}
 				});
 				crs.add(cr);
 			}

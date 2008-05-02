@@ -94,35 +94,35 @@ public class ActionCreater {
 
     private static final Id ANY = new Id("Any");
 
-	public static Result create(String alternativeName, 
+	public static Result create(String alternativeName,
 			TransformationDecl transformation,
 			TraitType type,
 			Collection<PrefixedSymbol> boundVariables) {
 		ActionCreater ac = new ActionCreater();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
-		List<Integer> indents = new LinkedList<Integer>();		
+		List<Integer> indents = new LinkedList<Integer>();
 		List<String> code = new LinkedList<String>();
-		
+
 		String returnType = new FortressTypeToJavaType().analyze(type);
-		
+
 		if (transformation instanceof TransformationExpressionDef) {
 			code = createVariabelBinding(indents, boundVariables);
-			
+
 			Expr e = ((TransformationExpressionDef) transformation).getTransformation();
 			Component component = ac.makeComponent(e, boundVariables);
 			String serializedComponent = ac.writeJavaAST(component);
 			code.addAll(createRatsAction(serializedComponent, indents));
-			
+
 			addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
 			addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
 		}
 		else if (transformation instanceof TransformationTemplateDef) {
-			AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation(); 
+			AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
 			JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(boundVariables);
 			String yyValue = n.accept(jpp);
 			for (String s: jpp.getCode()) {
 				addCodeLine(s, code, indents);
-			}			
+			}
 
 			addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
 			addCodeLine("yyValue = "+yyValue+";", code, indents);
@@ -168,9 +168,9 @@ public class ActionCreater {
                 return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
             }
 
-			@Override 
+			@Override
 			public Option<Type> forNonterminalSymbol(NonterminalSymbol that) {
-				return NonterminalTypeDictionary.getType(that.getNonterminal().getName().getText());
+				return NonterminalTypeDictionary.getType(that.getNonterminal().getText());
 			}
 
 			@Override

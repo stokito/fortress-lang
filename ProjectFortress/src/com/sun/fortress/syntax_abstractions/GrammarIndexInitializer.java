@@ -64,7 +64,7 @@ public class GrammarIndexInitializer {
 	}
 
 	/**
-	 * Each nonterminal index is linked to the other  
+	 * Each nonterminal index is linked to the other
 	 * @param envs
 	 * @param ses
 	 */
@@ -75,7 +75,7 @@ public class GrammarIndexInitializer {
 				// Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
 				for (NonterminalIndex /*<? extends GrammarMemberDecl> */ n: g.getDeclaredNonterminals()) {
 					if (n instanceof NonterminalExtendIndex) {
-						Id name = n.getName().getName();
+						Id name = n.getName();
 						GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
 						Collection<NonterminalIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name, g);
 						if (s.isEmpty()) {
@@ -85,7 +85,7 @@ public class GrammarIndexInitializer {
 				}
 			}
 		}
-		
+
 	}
 
 	/**

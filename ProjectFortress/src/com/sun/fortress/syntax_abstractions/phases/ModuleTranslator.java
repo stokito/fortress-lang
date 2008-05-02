@@ -33,7 +33,6 @@ import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.ContractedNonterminal;
@@ -58,7 +57,7 @@ public class ModuleTranslator {
 	public static class Result extends StaticPhaseResult {
 		Collection<Module> modules;
 
-		public Result(Collection<Module> modules, 
+		public Result(Collection<Module> modules,
 				Collection<StaticError> errors) {
 			super(errors);
 			this.modules = modules;
@@ -80,7 +79,7 @@ public class ModuleTranslator {
 	}
 
 	public static Result translate(Collection<GrammarEnv> environments) {
-		_errors = new LinkedList<StaticError>(); 
+		_errors = new LinkedList<StaticError>();
 		ModuleEnvironment menv = new ModuleEnvironment();
 		for (GrammarEnv env: environments) {
 			for (GrammarIndex g: env.getGrammars()) {
@@ -98,10 +97,10 @@ public class ModuleTranslator {
 	}
 
 	private static void renameModulesToFreshName(ModuleEnvironment menv) {
-		Map<String, QualifiedIdName> moduleNames = new HashMap<String, QualifiedIdName>();
+		Map<String, Id> moduleNames = new HashMap<String, Id>();
 		for (Module module: menv.getModules()) {
 			if (module instanceof UserModule) {
-				QualifiedIdName freshName = getFreshName(module.getName().toString(), moduleNames);
+				Id freshName = getFreshName(module.getName().toString(), moduleNames);
 				module.setName(freshName);
 			}
 			Set<ModuleName> ls = new LinkedHashSet<ModuleName>();
@@ -122,8 +121,8 @@ public class ModuleTranslator {
 	private static String getFreshName(String name, ModuleEnvironment menv) {
 		APIName apiName = NodeFactory.makeAPIName(name);
 		Id id = apiName.getIds().remove(apiName.getIds().size()-1);
-		QualifiedIdName qName = NodeFactory.makeQualifiedIdName(apiName, id);
-		Option<QualifiedIdName> on = menv.getContractedName(qName);
+		Id qName = NodeFactory.makeId(apiName, id);
+		Option<Id> on = menv.getContractedName(qName);
 		String nm = name;
 		if (on.isSome()) {
 			if (ModuleInfo.isFortressModule(Option.unwrap(on))) {
@@ -135,31 +134,31 @@ public class ModuleTranslator {
 		}
 		return nm;
 	}
-	
+
 	/**
-	 * Renames the given module name to a fresh name, 
+	 * Renames the given module name to a fresh name,
 	 * if it is not the name of a core Fortress module.
 	 * @param nm
 	 * @param moduleNames
 	 * @return
 	 */
 	private static String renameModule(String nm,
-			Map<String, QualifiedIdName> moduleNames) {
+			Map<String, Id> moduleNames) {
 		if (ModuleInfo.getFortressModuleNames().contains(nm)) {
 			return nm;
 		}
 		return getFreshName(nm, moduleNames).toString();
 	}
 
-	private static QualifiedIdName getFreshName(String name,
-			Map<String, QualifiedIdName> moduleNames) {
-		QualifiedIdName freshName;
+	private static Id getFreshName(String name,
+			Map<String, Id> moduleNames) {
+		Id freshName;
 		if (moduleNames.containsKey(name)) {
 			freshName = moduleNames.get(name);
 		}
 		else {
 			String fn = FreshName.getFreshName(name.toString().replace('.', '_'));
-			freshName = NodeFactory.makeQualifiedIdName(new Id(fn));
+			freshName = new Id(fn);
 			moduleNames.put(name, freshName);
 		}
 		return freshName;

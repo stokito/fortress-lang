@@ -24,7 +24,6 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
@@ -32,15 +31,15 @@ import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import edu.rice.cs.plt.tuple.Option;
 
 /*
- * Collect the names of nonterminals referred form the alternatives of any 
+ * Collect the names of nonterminals referred form the alternatives of any
  * nonterminal declaration it is applied to.
  */
 public class DependencyCollector extends NodeDepthFirstVisitor_void {
 
-	private Set<QualifiedIdName> result;
-	
+	private Set<Id> result;
+
 	public DependencyCollector() {
-		this.result = new HashSet<QualifiedIdName>();
+		this.result = new HashSet<Id>();
 	}
 
 	@Override
@@ -48,14 +47,14 @@ public class DependencyCollector extends NodeDepthFirstVisitor_void {
 		// We know that fortress modules are on the form FortressSyntax.moduleName.nonterminal
 		if (ModuleInfo.isFortressModule(that.getNonterminal())) {
 			Id id = Option.unwrap(that.getNonterminal().getApi()).getIds().get(1);
-			result.add(NodeFactory.makeQualifiedIdName(id));
+			result.add(id);
 		}
 		else {
 			result.add(that.getNonterminal());
 		}
 	}
 
-	public Set<QualifiedIdName> getResult() {
+	public Set<Id> getResult() {
 		return this.result;
 	}
 

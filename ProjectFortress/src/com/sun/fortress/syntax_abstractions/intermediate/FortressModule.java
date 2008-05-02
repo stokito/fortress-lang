@@ -21,17 +21,17 @@ import java.util.Collection;
 
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
 /*
- * This module corresponds to a grammar that is part of the Fortress grammars. 
+ * This module corresponds to a grammar that is part of the Fortress grammars.
  */
 public class FortressModule extends Module {
 
-	public FortressModule(QualifiedIdName name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+	public FortressModule(Id name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		super(name, members);
 		initialize();
 	}

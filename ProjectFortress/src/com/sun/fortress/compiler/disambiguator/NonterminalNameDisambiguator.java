@@ -27,7 +27,6 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -44,15 +43,15 @@ public class NonterminalNameDisambiguator {
 		this._errors = new LinkedList<StaticError>();
 		this._globalEnv = env;
 	}
-	
+
 	private void error(String msg, HasAt loc) {
 		this._errors.add(StaticError.make(msg, loc));
 	}
-	
+
 	public List<StaticError> errors() {
 		return this._errors;
 	}
-	
+
 	/**
 	 * Given a name Foo.Bar.Baz iterate though the set of {Foo, Bar, Baz} and
 	 * construct each of the prefixes: Foo, Foo.Bar, Foo.Bar.Baz.
@@ -62,7 +61,7 @@ public class NonterminalNameDisambiguator {
 	 * Return none if no API is found and some if an API is found.
 	 * @param name
 	 * @return
-	 * TODO: we don't check for the case if an API exists which name is a prefix of 
+	 * TODO: we don't check for the case if an API exists which name is a prefix of
 	 * the intended name.
 	 */
 	public Option<APIName> grammarName(APIName name) {
@@ -85,7 +84,7 @@ public class NonterminalNameDisambiguator {
 		aids.add(grammarName);
 		return Option.some(NodeFactory.makeAPIName(aids));
 	}
-	
+
 	/**
 	 * Disambiguate the given nonterminal name against the given nonterminal environment.
 	 * If reportNonterminalErrors is false, don't report errors relating to nonterminals
@@ -93,20 +92,20 @@ public class NonterminalNameDisambiguator {
 	 * @param name
 	 * @return
 	 */
-	public Option<QualifiedIdName> handleNonterminalName(NonterminalEnv currentEnv, QualifiedIdName name) {
+	public Option<Id> handleNonterminalName(NonterminalEnv currentEnv, Id name) {
 		// If it is already fully qualified
 		if (name.getApi().isSome()) {
 			APIName originalApiGrammar = Option.unwrap(name.getApi());
 			Option<APIName> realApiGrammarOpt = this.grammarName(originalApiGrammar);
-			// Check that the qualifying part is a real grammar 
+			// Check that the qualifying part is a real grammar
 			if (realApiGrammarOpt.isNone()) {
 				error("Undefined grammar: " + NodeUtil.nameString(originalApiGrammar) +" obtained from "+name, originalApiGrammar);
 				return Option.none();
 			}
 			APIName realApiGrammar = Option.unwrap(realApiGrammarOpt);
-			QualifiedIdName newN;
+			Id newN;
 			if (originalApiGrammar == realApiGrammar) { newN = name; }
-			else { newN = NodeFactory.makeQualifiedIdName(realApiGrammar, name.getName()); }
+			else { newN = NodeFactory.makeId(realApiGrammar, name); }
 
 			if (!currentEnv.hasQualifiedNonterminal(newN)) {
 				error("Undefined nonterminal: " + NodeUtil.nameString(newN), newN);
@@ -116,8 +115,8 @@ public class NonterminalNameDisambiguator {
 		}
 		else { // Unqualified name
 			// Is it defined in the current grammar?
-			if (currentEnv.hasNonterminal(name.getName())) {
-				Set<QualifiedIdName> names = currentEnv.declaredNonterminalNames(name.getName());
+			if (currentEnv.hasNonterminal(name)) {
+				Set<Id> names = currentEnv.declaredNonterminalNames(name);
 				if (names.size() > 1) {
 					error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
 					return Option.none();
@@ -126,15 +125,15 @@ public class NonterminalNameDisambiguator {
 					error("Internal error we know the nonterminal is there but can't see it: " + name, name);
 					return Option.none();
 				}
-				QualifiedIdName qname = IterUtil.first(names);
+				Id qname = IterUtil.first(names);
 				return Option.some(qname);
 			}
 			else {
-				Set<QualifiedIdName> names = currentEnv.declaredNonterminalNames(name.getName());
+				Set<Id> names = currentEnv.declaredNonterminalNames(name);
 				// If the nonterminal is not defined in the current grammar then look
 				// among the inherited nonterminal names
 				if (names.isEmpty()) {
-					names = currentEnv.inheritedNonterminalNames(name.getName());
+					names = currentEnv.inheritedNonterminalNames(name);
 				}
 
 				// if not there it is undefined
@@ -148,11 +147,10 @@ public class NonterminalNameDisambiguator {
 					error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
 					return Option.none();
 				}
-				QualifiedIdName qname = IterUtil.first(names); 
+				Id qname = IterUtil.first(names);
 				return Option.some(qname);
 			}
 		}
-	}	
+	}
 
 }
-

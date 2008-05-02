@@ -448,6 +448,74 @@ public class NodeFactory {
                 name);
     }
 
+    /*******************************************************************/
+
+    public static Id makeId(Span span, String s) {
+        return new Id(span, Option.<APIName>none(), s);
+    }
+
+    public static Id makeId(Span span, Id id) {
+        return new Id(span, id.getApi(), id.getText());
+    }
+
+    public static Id makeId(Iterable<Id> apiIds, Id id) {
+        Span span;
+        Option<APIName> api;
+        if (IterUtil.isEmpty(apiIds)) {
+            span = id.getSpan();
+            api = Option.none();
+        }
+        else {
+            APIName n = makeAPIName(apiIds);
+            span = FortressUtil.spanTwo(n, id);
+            api = Option.some(n);
+        }
+        return new Id(span, api, id.getText());
+    }
+
+    public static Id makeId(Span span, String api, String name) {
+        List<Id> apis = new ArrayList<Id>();
+        apis.add(makeId(span, api));
+        return new Id(span, Option.some(new APIName(span, apis)), name);
+    }
+
+    public static Id makeId(Span span, Iterable<Id> apiIds, Id id) {
+        Option<APIName> api;
+        if (IterUtil.isEmpty(apiIds)) { api = Option.none(); }
+        else { api = Option.some(makeAPIName(apiIds)); }
+        return new Id(span, api, id.getText());
+    }
+
+    public static Id makeId(Span span, Id id, Iterable<Id> ids) {
+        Option<APIName> api;
+        Id last;
+        if (IterUtil.isEmpty(ids)) { api = Option.none(); last = id; }
+        else { api = Option.some(makeAPIName(id, IterUtil.skipLast(ids)));
+            last = IterUtil.last(ids);
+        }
+        return new Id(span, api, last.getText());
+    }
+
+    public static Id makeId(Span span, APIName api, Id id) {
+        return new Id(span, Option.some(api), id.getText());
+    }
+
+    /** Assumes {@code ids} is nonempty. */
+    public static Id makeId(Iterable<Id> ids) {
+        return makeId(IterUtil.skipLast(ids), IterUtil.last(ids));
+    }
+
+    public static Id makeId(String nameFirst, String... nameRest) {
+        Iterable<Id> ids = IterUtil.compose(makeId(nameFirst),
+                IterUtil.map(IterUtil.make(nameRest), STRING_TO_ID));
+        return makeId(ids);
+    }
+
+    public static Id makeId(APIName api, Id name) {
+        return new Id(FortressUtil.spanTwo(api, name), Option.some(api),
+                      name.getText());
+    }
+
     /**
      * Alternatively, you can invoke the FnDef constructor without a selfName
      */
@@ -471,10 +539,6 @@ public class NodeFactory {
 
     public static Id makeId(String string) {
         return new Id(new Span(), string);
-    }
-
-    public static Id makeId(Span span, String string) {
-        return new Id(span, string);
     }
 
     public static final Lambda<String, Id> STRING_TO_ID = new Lambda<String, Id>() {

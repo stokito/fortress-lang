@@ -33,7 +33,7 @@ import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -49,12 +49,12 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ModuleEnvironment {
 
-	private Map<QualifiedIdName, Module> modules;
-	private Map<QualifiedIdName, QualifiedIdName> contractedNames;
+	private Map<Id, Module> modules;
+	private Map<Id, Id> contractedNames;
 
 	public ModuleEnvironment() {
-		this.modules = new HashMap<QualifiedIdName, Module>();
-		this.contractedNames = new HashMap<QualifiedIdName, QualifiedIdName>();
+		this.modules = new HashMap<Id, Module>();
+		this.contractedNames = new HashMap<Id, Id>();
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class ModuleEnvironment {
 	 * Given a contracted nonterminal, decide whether to add the alternative to an existing
 	 * module or create a new module.
 	 * @param member
-	 */	
+	 */
 	public void add(ContractedNonterminal cnt) {
 		Module module = makeNewModule(cnt);
 		Option<Module> om = this.getRelated(module.getName());
@@ -84,7 +84,7 @@ public class ModuleEnvironment {
 	 * @param cnt
 	 * @return
 	 */
-	private Option<Module> getRelated(QualifiedIdName name) {
+	private Option<Module> getRelated(Id name) {
 		if (this.modules.keySet().contains(name)) {
 			return Option.some(this.modules.get(name));
 		}
@@ -92,11 +92,11 @@ public class ModuleEnvironment {
 	}
 
 	private Module merge(Module m1, Module m2) {
-		if ((m1 instanceof FortressModule) && 
+		if ((m1 instanceof FortressModule) &&
 				(m2 instanceof FortressModule)) {
 			return merge((FortressModule) m1, (FortressModule) m2);
 		}
-		else if ((m1 instanceof UserModule) && 
+		else if ((m1 instanceof UserModule) &&
 				(m2 instanceof UserModule)) {
 			return merge((UserModule) m1, (UserModule) m2);
 		}
@@ -106,7 +106,7 @@ public class ModuleEnvironment {
 	private UserModule merge(UserModule m1, UserModule m2) {
 		NonterminalIndex<? extends GrammarMemberDecl> member1 = IterUtil.first(m1.getDeclaredNonterminals());
 		NonterminalIndex<? extends GrammarMemberDecl> member2 = IterUtil.first(m2.getDeclaredNonterminals());
-		
+
 		if ((member1 instanceof GrammarNonterminalIndex) &&
 				(member2 instanceof GrammarNonterminalIndex)) {
 			GrammarNonterminalIndex<? extends NonterminalDecl> cni1 = (GrammarNonterminalIndex) member1;
@@ -158,7 +158,7 @@ public class ModuleEnvironment {
 		Module m;
 		if (ModuleInfo.isFortressModule(nt.getName())) {
 			APIName apiName = Option.unwrap(nt.getName().getApi());
-			QualifiedIdName newName = NodeFactory.makeQualifiedIdName(apiName.getIds().get(1));
+			Id newName = apiName.getIds().get(1);
 			m = new FortressModule(newName, ls);
 		}
 		else {
@@ -180,37 +180,36 @@ public class ModuleEnvironment {
 		return m;
 	}
 
-	private Collection<ModuleName> makeParameters(
-			Set<QualifiedIdName> dependencies) {
+	private Collection<ModuleName> makeParameters(Set<Id> dependencies) {
 		Collection<ModuleName> dep = new LinkedList<ModuleName>();
-		for (QualifiedIdName q: dependencies) {
+		for (Id q: dependencies) {
 			dep.add(new ModuleName(q.toString()));
 		}
 		return dep;
 	}
 
 	private Collection<ModuleImport> makeDependencies(
-			Set<QualifiedIdName> dependencies) {
+			Set<Id> dependencies) {
 		Collection<ModuleImport> dep = new LinkedList<ModuleImport>();
-		for (QualifiedIdName q: dependencies) {
+		for (Id q: dependencies) {
 			dep.add(new ModuleImport(new ModuleName(q.toString())));
 		}
 		return dep;
 	}
 
 	private void addToNameContractionMap(
-			List<QualifiedIdName> contractedNames, QualifiedIdName name) {
-		for (QualifiedIdName n: contractedNames) {
+			List<Id> contractedNames, Id name) {
+		for (Id n: contractedNames) {
 			this.contractedNames.put(n, name);
 		}
 	}
-	
-	public Option<QualifiedIdName> getContractedName(QualifiedIdName name) {
-		QualifiedIdName n = this.contractedNames.get(name);
+
+	public Option<Id> getContractedName(Id name) {
+		Id n = this.contractedNames.get(name);
 		if (n != null) {
 			return Option.some(n);
 		}
 		return Option.none();
 	}
-	
+
 }

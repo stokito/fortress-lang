@@ -118,7 +118,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
         syntaxSymbols.add(that);
-        syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeQualifiedIdName("FortressSyntax", "Identifier", "idrest"))));
+        syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeId("FortressSyntax", "Identifier", "idrest"))));
 
         // Create the transformation expression
         Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);
@@ -128,7 +128,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         this._terminalDefs.add(new _TerminalDef(name, type, Option.<Modifier>none(), syntaxDef));
 
         // Return a new nonterminal reference to the new terminal definition
-        return new NonterminalSymbol(NodeFactory.makeQualifiedIdName(apiName, id));
+        return new NonterminalSymbol(NodeFactory.makeId(apiName, id));
     }
 
 }

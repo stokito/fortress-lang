@@ -22,15 +22,15 @@ import java.util.Collection;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.Id;
 
 /*
- * This module corresponds to a user defined grammar. 
+ * This module corresponds to a user defined grammar.
  */
 public class UserModule extends Module {
-	
-	public UserModule(QualifiedIdName name,
-				      Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+
+	public UserModule(Id name,
+                          Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		super(name, members);
 	}
 
