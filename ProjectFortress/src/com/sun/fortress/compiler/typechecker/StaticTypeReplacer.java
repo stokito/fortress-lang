@@ -40,6 +40,10 @@ import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.UnitArg;
+import com.sun.fortress.nodes.DimArg;
+import com.sun.fortress.nodes.IntArg;
+import com.sun.fortress.nodes.BoolArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
@@ -95,7 +99,18 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     private Node updateNode(Node that, QualifiedIdName name) {
         if (name.getApi().isSome()) { return that; }
         StaticArg arg = parameterMap.get(name.getName());
-        return arg instanceof TypeArg ? ((TypeArg) arg).getType() : that;
+        if (arg == null) { return that; }
+        else {
+            // unwrap the StaticArg
+            return arg.accept(new NodeAbstractVisitor<Node>() {
+                @Override public Node forTypeArg(TypeArg arg) { return arg.getType(); }
+                @Override public Node forIntArg(IntArg arg) { return arg.getVal(); }
+                @Override public Node forBoolArg(BoolArg arg) { return arg.getBool(); }
+                @Override public Node forOprArg(OprArg arg) { return arg.getName(); }
+                @Override public Node forDimArg(DimArg arg) { return arg.getDim(); }
+                @Override public Node forUnitArg(UnitArg arg) { return arg.getUnit(); }
+            });
+        }
     }
 
     private Node updateNode(Node that, Id name) {
