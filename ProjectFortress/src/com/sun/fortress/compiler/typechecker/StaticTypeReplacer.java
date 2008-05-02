@@ -97,6 +97,12 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return arg == null ? that : arg;
     }
 
+    private Node updateNode(Node that, Id name) {
+        if (name.getApi().isSome()) { return that; }
+        StaticArg arg = parameterMap.get(name);
+        return arg == null ? that : arg;
+    }
+
     // ----------- VISITOR METHODS ---------------
 
     @Override

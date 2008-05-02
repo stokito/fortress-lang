@@ -42,6 +42,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
@@ -549,6 +550,10 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public FType getTypeNull(QualifiedIdName name) {
+        return getTypeNull(NodeUtil.nameString(name));
+    }
+
+    public FType getTypeNull(Id name) {
         return getTypeNull(NodeUtil.nameString(name));
     }
 

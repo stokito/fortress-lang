@@ -50,6 +50,17 @@ public class NodeUtil {
         });
     }
 
+    public static Iterable<Id> getIds(final Id qName) {
+        return qName.getApi().apply(new OptionVisitor<APIName, Iterable<Id>>() {
+            public Iterable<Id> forSome(APIName apiName) {
+                return IterUtil.compose(apiName.getIds(), qName);
+            }
+            public Iterable<Id> forNone() {
+                return IterUtil.singleton(qName);
+            }
+        });
+    }
+
     /* for HasAt ***********************************************************/
     /**
      * Returns the index of the 'self' parameter in the parameter list,

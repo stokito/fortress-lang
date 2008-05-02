@@ -201,7 +201,7 @@ public class NodeFactory {
     }
 
     public static UnitRef makeUnitRef(String name) {
-        return new UnitRef(makeQualifiedIdName(name));
+        return new UnitRef(makeId(name));
     }
 
     public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
@@ -816,7 +816,7 @@ public class NodeFactory {
     }
 
     public static BoolRef makeBoolRef(String string) {
-        return new BoolRef(new Span(), makeQualifiedIdName(string));
+        return new BoolRef(new Span(), makeId(string));
     }
 
     public static BoolArg makeBoolArg(String string) {
@@ -824,7 +824,7 @@ public class NodeFactory {
     }
 
     public static IntRef makeIntRef(String string) {
-        return new IntRef(new Span(), makeQualifiedIdName(string));
+        return new IntRef(new Span(), makeId(string));
     }
 
     public static IntVal makeIntVal(String i) {

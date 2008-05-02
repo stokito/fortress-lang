@@ -188,10 +188,10 @@ public abstract class SubtypeChecker {
 
         final Map<QualifiedIdName, Type> typeSubs = new HashMap<QualifiedIdName, Type>();
         final Map<Op, Op> opSubs = new HashMap<Op, Op>();
-        final Map<QualifiedIdName, IntExpr> intSubs = new HashMap<QualifiedIdName, IntExpr>();
-        final Map<QualifiedIdName, BoolExpr> boolSubs = new HashMap<QualifiedIdName, BoolExpr>();
+        final Map<Id, IntExpr> intSubs = new HashMap<Id, IntExpr>();
+        final Map<Id, BoolExpr> boolSubs = new HashMap<Id, BoolExpr>();
         final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
-        final Map<QualifiedIdName, UnitExpr> unitSubs = new HashMap<QualifiedIdName, UnitExpr>();
+        final Map<Id, UnitExpr> unitSubs = new HashMap<Id, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
@@ -210,21 +210,21 @@ public abstract class SubtypeChecker {
                 }
                 @Override public void forIntParam(IntParam p) {
                     if (isIntArg(a))
-                        intSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                        intSubs.put(p.getName(),
                                     ((IntArg)a).getVal());
                     else error("An integer parameter is instantiated with a " +
                                "non-integer argument.");
                 }
                 @Override public void forNatParam(NatParam p) {
                     if (isIntArg(a))
-                        intSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                        intSubs.put(p.getName(),
                                     ((IntArg)a).getVal());
                     else error("A nat parameter is instantiated with a " +
                                "non-nat argument.");
                 }
                 @Override public void forBoolParam(BoolParam p) {
                     if (isBoolArg(a))
-                        boolSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                        boolSubs.put(p.getName(),
                                      ((BoolArg)a).getBool());
                     else error("A bool parameter is instantiated with a " +
                                "non-bool argument.");
@@ -238,7 +238,7 @@ public abstract class SubtypeChecker {
                 }
                 @Override public void forUnitParam(UnitParam p) {
                     if (isUnitArg(a))
-                        unitSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                        unitSubs.put(p.getName(),
                                      ((UnitArg)a).getUnit());
                     else error("A unit parameter is instantiated with a " +
                                "non-unit argument.");

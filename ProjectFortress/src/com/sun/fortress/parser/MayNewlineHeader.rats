@@ -62,7 +62,10 @@ WhereConstraint WhereConstraint =
      { yyValue = new WhereWidens(createSpan(yyStart,yyCount), a1, a2); }
    / UnitConstraint
    / a1:QualifiedName w equals w a2:QualifiedName
+/* todotodo
      { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
+*/
+     { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1.getName(), a2.getName()); }
    / IntConstraint
    / a1:BoolConstraint
      { yyValue = new BoolConstraintExpr(createSpan(yyStart,yyCount), a1); };
@@ -104,7 +107,10 @@ IntVal IntVal =
      a1:IntLiteralExpr
      { yyValue = new NumberConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:QualifiedName
+/* todotodo
      { yyValue = new IntRef(createSpan(yyStart,yyCount), a1); };
+*/
+     { yyValue = new IntRef(createSpan(yyStart,yyCount), a1.getName()); };
 
 /* IntExpr ::=
      IntVal
@@ -253,7 +259,10 @@ private BoolVal BoolVal =
    / a1:"false"
      { yyValue = new BoolConstant(createSpan(yyStart,yyCount), false); }
    / a1:QualifiedName
+/* todotodo
      { yyValue = new BoolRef(createSpan(yyStart,yyCount), a1); };
+*/
+     { yyValue = new BoolRef(createSpan(yyStart,yyCount), a1.getName()); };
 
 /* BoolExpr ::=
      BoolVal
@@ -333,10 +342,13 @@ UnitExpr UnitExpr =
 private UnitExpr UnitExprFront =
      a1:"dimensionless"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new UnitRef(span, NodeFactory.makeQualifiedIdName(span, a1));
+       yyValue = new UnitRef(span, NodeFactory.makeId(span, a1));
      }
    / a1:QualifiedName
+/* todotodo
      { yyValue = new UnitRef(createSpan(yyStart,yyCount), a1); }
+*/
+     { yyValue = new UnitRef(createSpan(yyStart,yyCount), a1.getName()); }
    / openparen w a1:UnitExpr w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
@@ -441,7 +453,7 @@ StaticArg StaticArg =
      }
    / a1:"dimensionless"
      { Span span = createSpan(yyStart,yyCount);
-       UnitRef unit = new UnitRef(span,NodeFactory.makeQualifiedIdName(span,a1));
+       UnitRef unit = new UnitRef(span, NodeFactory.makeId(span,a1));
        yyValue = new UnitArg(span, unit);
      }
    / a1:"true"

@@ -374,7 +374,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 return IntNat.make(n.getVal().getVal().intValue());
             }
             public FType forIntRef(IntRef n) {
-                QualifiedIdName q = n.getName();
+                Id q = n.getName();
                 try {
                     FType result = env.getType(q);
                     return result;

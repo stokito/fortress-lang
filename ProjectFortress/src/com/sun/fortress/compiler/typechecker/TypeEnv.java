@@ -131,16 +131,16 @@ public abstract class TypeEnv {
                     return new OprArg(new Span(), that.getName());
                 }
                 public StaticArg forBoolParam(BoolParam that) {
-                    return new BoolArg(new Span(), new BoolRef(new Span(), makeQualifiedIdName(that.getName())));
+                    return new BoolArg(new Span(), new BoolRef(new Span(), that.getName()));
                 }
                 public StaticArg forDimParam(DimParam that) {
                     return new DimArg(new Span(), new DimRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
                 public StaticArg forIntParam(IntParam that) {
-                    return new IntArg(new Span(), new IntRef(new Span(), makeQualifiedIdName(that.getName())));
+                    return new IntArg(new Span(), new IntRef(new Span(), that.getName()));
                 }
                 public StaticArg forNatParam(NatParam that) {
-                    return new IntArg(new Span(), new IntRef(new Span(), makeQualifiedIdName(that.getName())));
+                    return new IntArg(new Span(), new IntRef(new Span(), that.getName()));
                 }
                 public StaticArg forTypeParam(TypeParam that) {
                     return new TypeArg(new Span(),
@@ -148,7 +148,7 @@ public abstract class TypeEnv {
                                                               that.getName()));
                 }
                 public StaticArg forUnitParam(UnitParam that) {
-                    return new UnitArg(new Span(), new UnitRef(new Span(), makeQualifiedIdName(that.getName())));
+                    return new UnitArg(new Span(), new UnitRef(new Span(), that.getName()));
                 }
             }));
         }
