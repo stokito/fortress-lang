@@ -36,13 +36,13 @@ import edu.rice.cs.plt.tuple.Option;
 public class GrammarIndex implements Analyzable<GrammarIndex> {
 
 	private Option<GrammarDef> ast;
-	
+
 	private Collection<NonterminalIndex<? extends GrammarMemberDecl>> members;
 
 	private Collection<GrammarIndex> extendedGrammars;
 
 	private NonterminalEnv env;
-	
+
 	public GrammarIndex(Option<GrammarDef> ast, Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		this.ast = ast;
 		this.extendedGrammars = new LinkedList<GrammarIndex>();
@@ -53,26 +53,26 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 	public Option<GrammarDef> ast() {
 		return this.ast;
 	}
-	
+
 	public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
 //		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
 //		for (ProductionIndex<? extends GrammarMemberDecl> g: this.members) {
-//			if ((g instanceof ProductionDefIndex) || 
+//			if ((g instanceof ProductionDefIndex) ||
 //			    (g instanceof ProductionExtendIndex)) {
-//				nonterminals.add((ProductionIndex) g); // Raw type used because of bug in javac Java 1.5 on Solaris 
+//				nonterminals.add((ProductionIndex) g); // Raw type used because of bug in javac Java 1.5 on Solaris
 //			}
 //		}
 		return this.members;
 	}
-	
+
 	public void setAst(GrammarDef g) {
-		this.ast = Option.wrap(g);		
+		this.ast = Option.wrap(g);
 	}
 
 	public void setExtended(Collection<GrammarIndex> gs) {
 		this.extendedGrammars = gs;
 	}
-	
+
 	public Collection<GrammarIndex> getExtended() {
 		return this.extendedGrammars;
 	}
@@ -94,7 +94,7 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 
 	public Option<GrammarNonterminalIndex<? extends NonterminalDecl>> getNonterminalDecl(Id name) {
 		for (NonterminalIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
-			if (name.getText().equals(m.getName().getName().getText())) {
+			if (name.getText().equals(m.getName().getText())) {
 				if (m.ast().isSome()) {
 					if (m instanceof GrammarNonterminalIndex) {
 						return Option.<GrammarNonterminalIndex<? extends NonterminalDecl>>some((GrammarNonterminalIndex) m);

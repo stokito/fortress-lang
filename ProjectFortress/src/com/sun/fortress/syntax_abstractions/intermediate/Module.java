@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TerminalDecl;
@@ -47,18 +47,18 @@ import edu.rice.cs.plt.tuple.Option;
 
 public abstract class Module implements Analyzable<Module> {
 
-	protected QualifiedIdName name;
+	protected Id name;
 	private boolean isTopLevel;
-	
+
 	private Map<String, Set<SyntaxSymbol>> tokenMap;
 
 	protected Set<ModuleName> parameters;
 	protected Set<ModuleDependency> dependencies;
-	
+
 	protected Collection<NonterminalIndex<? extends GrammarMemberDecl>> declaredMembers;
 
-	protected Collection<? extends Module> extendedModules; 
-	
+	protected Collection<? extends Module> extendedModules;
+
 	public Module() {
 		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
 		this.declaredMembers = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
@@ -67,36 +67,36 @@ public abstract class Module implements Analyzable<Module> {
 		this.dependencies = new LinkedHashSet<ModuleDependency>();
 	}
 
-	public Module(QualifiedIdName name,Collection<NonterminalIndex<? extends GrammarMemberDecl>> declaredMembers) {
+	public Module(Id name,Collection<NonterminalIndex<? extends GrammarMemberDecl>> declaredMembers) {
 		this();
 		this.name = name;
 		this.declaredMembers.addAll(declaredMembers);
 	}
 
 	public void isTopLevel(boolean b) {
-		this.isTopLevel = b;		
+		this.isTopLevel = b;
 	}
-	
+
 	public boolean isTopLevel() {
 		return this.isTopLevel;
 	}
 
-	public QualifiedIdName getName() {
+	public Id getName() {
 		return this.name;
 	}
-	
-	public void setName(QualifiedIdName name) {
+
+	public void setName(Id name) {
 		this.name = name;
 	}
-	
+
 	public Set<ModuleName> getParameters() {
 		return this.parameters;
 	}
 
 	public void setParameters(Set<ModuleName> ls) {
-		this.parameters = ls;		
+		this.parameters = ls;
 	}
-	
+
 	public Collection<ModuleDependency> getDependencies() {
 		return this.dependencies;
 	}
@@ -104,20 +104,20 @@ public abstract class Module implements Analyzable<Module> {
 	public void setDependencies(Set<ModuleDependency> ls) {
 		this.dependencies = ls;
 	}
-	
+
 	public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
 		return this.declaredMembers;
 	}
-	
+
 	public Collection<? extends Module> getExtended() {
 		return this.extendedModules;
 	}
 
 	public void setExtended(Collection<Module> ls) {
-		this.extendedModules = ls;		
+		this.extendedModules = ls;
 	}
 
-	/** 
+	/**
 	 * Returns a set of all token symbols from all declared and inherited members
 	 * @return
 	 */
@@ -135,8 +135,8 @@ public abstract class Module implements Analyzable<Module> {
 			}
 		return keywords;
 	}
-	
-	/** 
+
+	/**
 	 * Returns a set of all token symbols from all declared and inherited members
 	 * @return
 	 */
@@ -160,9 +160,9 @@ public abstract class Module implements Analyzable<Module> {
 		String indent = indentation;
 		String tmpIndent = "";
 		String s = "*** "+this.getName()+" ***\n";
-		
+
 		s+= indent+"* Toplevel: "+this.isTopLevel+"\n";
-			
+
 		s+= indent+"* Parameters\n";
 		tmpIndent = indent;
 		indent += indentation;
@@ -171,7 +171,7 @@ public abstract class Module implements Analyzable<Module> {
 			s+= indent+"- "+pit.next().toString()+"\n";
 		}
 		indent = tmpIndent;
-		
+
 		s+= indent+"* Dependencies\n";
 		tmpIndent = indent;
 		indent += indentation;
@@ -180,7 +180,7 @@ public abstract class Module implements Analyzable<Module> {
 			s+= indent+"- "+dit.next().visibleName().toString()+"\n";
 		}
 		indent = tmpIndent;
-	    
+
 		s+= indent+"* declared nonterminals\n";
 		tmpIndent = indent;
 		indent += indentation;
@@ -195,7 +195,7 @@ public abstract class Module implements Analyzable<Module> {
 			}
 		}
 		indent = tmpIndent;
-		
+
 		s+= indent+"* extended modules\n";
 		indent += indentation;
 		Iterator<? extends Module> amit = this.extendedModules.iterator();

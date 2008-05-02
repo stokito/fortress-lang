@@ -84,6 +84,14 @@ public class SyntaxAbstractionUtil {
         return NodeFactory.makeQualifiedIdName(apiGrammar, memberName);
     }
 
+    public static Id memberName(APIName api, Id grammarName, Id memberName) {
+        Collection<Id> names = new LinkedList<Id>();
+        names.addAll(api.getIds());
+        names.add(grammarName);
+        APIName apiGrammar = NodeFactory.makeAPIName(names);
+        return NodeFactory.makeId(apiGrammar, memberName);
+    }
+
     /**
      * Create a Java representation of a Fortress AST which when evaluated
      * instantiates a new object of the given name from the given api, with the given option

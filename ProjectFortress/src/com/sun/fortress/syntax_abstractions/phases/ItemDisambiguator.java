@@ -103,7 +103,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			this._currentGrammarIndex = Option.unwrap(index);
 		}
 		else {
-			error("Grammar "+that.getName()+" not found", that); 
+			error("Grammar "+that.getName()+" not found", that);
 		}
 		return super.forGrammarDef(that);
 	}
@@ -124,14 +124,14 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	private SyntaxSymbol nameResolution(ItemSymbol item) {
 		if (IdentifierUtil.validId(item.getItem())) {
 			GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-			QualifiedIdName name = makeQualifiedIdName(item.getSpan(), item.getItem());
+			Id name = makeId(item.getSpan(), item.getItem());
 			NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-			Option<QualifiedIdName> oname = nnd.handleNonterminalName(this._currentGrammarIndex.env(), name);
-			
+			Option<Id> oname = nnd.handleNonterminalName(this._currentGrammarIndex.env(), name);
+
 			if (oname.isSome()) {
 				name = Option.unwrap(oname);
-				
-				Set<QualifiedIdName> setOfNonterminals = ga.getContained(name.getName(), this._currentGrammarIndex);
+
+				Set<Id> setOfNonterminals = ga.getContained(name, this._currentGrammarIndex);
 
 				if (setOfNonterminals.size() == 1) {
 					this._errors.addAll(nnd.errors());
@@ -149,7 +149,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		return makeTokenSymbol(item);
 	}
 
-	private NonterminalSymbol makeNonterminal(ItemSymbol that, QualifiedIdName name) {
+	private NonterminalSymbol makeNonterminal(ItemSymbol that, Id name) {
 		return new NonterminalSymbol(that.getSpan(), name);
 	}
 
@@ -171,7 +171,18 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			return NodeFactory.makeQualifiedIdName(span, item);
 		}
 	}
-	
+
+	private static Id makeId(Span span, String item) {
+		int lastIndexOf = item.lastIndexOf('.');
+		if (lastIndexOf != -1) {
+			APIName apiName = NodeFactory.makeAPIName(item.substring(0, lastIndexOf));
+			return NodeFactory.makeId(apiName, NodeFactory.makeId(item.substring(lastIndexOf+1)));
+		}
+		else {
+			return NodeFactory.makeId(span, item);
+		}
+	}
+
 	@Override
 	public Node forPrefixedSymbolOnly(final PrefixedSymbol prefix,
 			Option<Id> id_result, SyntaxSymbol symbol_result) {
@@ -186,15 +197,15 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			return new PrefixedSymbol(prefix.getSpan(), id_result, symbol_result);
 		}
 	}
-	
+
 	private Node handle(PrefixedSymbol prefix, SyntaxSymbol that, String varName) {
 		Id var = NodeFactory.makeId(varName);
 		return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var), that);
 	}
-	
+
 	private class PrefixHandler extends NodeDepthFirstVisitor<String> {
 
-		
+
 		@Override
 		public String defaultCase(Node that) {
 			System.err.println(that.getClass());
@@ -210,12 +221,12 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		public String forTokenSymbol(TokenSymbol that) {
 			return that.getToken(); // handle(that, that.getItem());
 		}
-		
+
 		@Override
 		public String forNonterminalSymbol(NonterminalSymbol that) {
 			return _currentItem; // handle(that, _currentItem);
 		}
-		
+
 		@Override
 		public String forKeywordSymbol(KeywordSymbol that) {
 			return that.getToken(); // handle(that, that.getToken());
@@ -236,7 +247,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 				String symbol_result) {
 			return symbol_result;
 		}
-	
+
 	}
 
 }

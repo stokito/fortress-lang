@@ -33,7 +33,6 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
@@ -42,16 +41,16 @@ import edu.rice.cs.plt.tuple.Option;
 
 /**
  * 	This nonterminal environment is used during disambiguation
- *  The nonterminal environment has separate access to the nonterminal names 
- *  declared in the current grammar (using explicitNonterminalNames) and 
+ *  The nonterminal environment has separate access to the nonterminal names
+ *  declared in the current grammar (using explicitNonterminalNames) and
  *  to those inherited from extended grammars (using inheritedNonterminalNames()).
- *  The name should not be qualified. 
+ *  The name should not be qualified.
  */
 public class NonterminalEnv {
 
 	private GrammarIndex current;
-	private Map<Id, Set<QualifiedIdName>> nonterminals = new HashMap<Id, Set<QualifiedIdName>>();
-		
+	private Map<Id, Set<Id>> nonterminals = new HashMap<Id, Set<Id>>();
+
 	public NonterminalEnv(GrammarIndex currentGrammar) {
 		this.current = currentGrammar;
 		initializeNonterminals();
@@ -60,25 +59,25 @@ public class NonterminalEnv {
 	public GrammarIndex getGrammarIndex() {
 		return this.current;
 	}
-	
+
 	/**
 	 * Initialize the mapping from nonterminal names to sets of qualified nonterminal names
 	 */
 	private void initializeNonterminals() {
 		for (NonterminalIndex<? extends GrammarMemberDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
-			Id key = e.getName().getName();
+			Id key = e.getName();
 			GrammarDecl currentGrammar = Option.unwrap(this.getGrammarIndex().ast());
 			Id name = NodeFactory.makeId(currentGrammar.getName().stringName()+"."+key.stringName());
 			if (nonterminals.containsKey(key)) {
-				nonterminals.get(key).add(new QualifiedIdName(key.getSpan(),
-						currentGrammar.getName().getApi(),
-						name));
+				nonterminals.get(key).add(new Id(key.getSpan(),
+                                                                 currentGrammar.getName().getApi(),
+                                                                 name.getText()));
 
 			} else {
-				Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
-				matches.add(new QualifiedIdName(key.getSpan(),
-						currentGrammar.getName().getApi(),
-						name));
+				Set<Id> matches = new HashSet<Id>();
+				matches.add(new Id(key.getSpan(),
+                                                   currentGrammar.getName().getApi(),
+                                                   name.getText()));
 				nonterminals.put(key, matches);
 			}
 		}
@@ -88,13 +87,13 @@ public class NonterminalEnv {
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a nonterminal exists.  Assumes {@code name.getApi().isSome()}.
      */
-	public boolean hasQualifiedNonterminal(QualifiedIdName name) {
+	public boolean hasQualifiedNonterminal(Id name) {
 		APIName api = getApi(Option.unwrap(name.getApi()));
         Id gname = getGrammar(Option.unwrap(name.getApi()));
-        QualifiedIdName grammarName = NodeFactory.makeQualifiedIdName(api, gname);
-        
+        Id grammarName = NodeFactory.makeId(api, gname);
+
         if (grammarName.equals(this.current.getName())) {
-            	Set<QualifiedIdName> names = this.declaredNonterminalNames(name.getName());
+            	Set<Id> names = this.declaredNonterminalNames(name);
             	return !names.isEmpty();
         }
         return false;
@@ -111,35 +110,35 @@ public class NonterminalEnv {
 	/**
      * Produce the set of qualified names corresponding to the given
      * nonterminal name.  If the name is not declared in the current grammar
-     * an empty set is produced, and an ambiguous reference produces a set 
+     * an empty set is produced, and an ambiguous reference produces a set
      * of size greater than 1.
      */
-	public Set<QualifiedIdName> declaredNonterminalNames(Id name) {
+	public Set<Id> declaredNonterminalNames(Id name) {
         return declaredNonterminalNames(this.getGrammarIndex(), name);
 	}
 
     // TODO are more than one ever returned?
 	/**
-	 * Name May be qualified or unqualified. If qualified it must be in the grammar specified. 
+	 * Name May be qualified or unqualified. If qualified it must be in the grammar specified.
 	 */
-	private Set<QualifiedIdName> declaredNonterminalNames(GrammarIndex grammar, Id name) {
-		Set<QualifiedIdName> results = new HashSet<QualifiedIdName>();
+	private Set<Id> declaredNonterminalNames(GrammarIndex grammar, Id name) {
+		Set<Id> results = new HashSet<Id>();
 		if (this.nonterminals.containsKey(name)) {
 			if (grammar.ast().isSome()) {
-				QualifiedIdName gname = Option.unwrap(grammar.ast()).getName();
+                            Id gname = Option.unwrap(grammar.ast()).getName().getName();
 				APIName gApi = Option.unwrap(gname.getApi());
-				results.addAll(Collections.singleton(SyntaxAbstractionUtil.qualifyMemberName(gApi , gname.getName(), name)));				
+				results.addAll(Collections.singleton(SyntaxAbstractionUtil.memberName(gApi , gname, name)));
 			}
 		}
 	    return results;
 	}
 
-	public Set<QualifiedIdName> inheritedNonterminalNames(Id name) {
+	public Set<Id> inheritedNonterminalNames(Id name) {
 		GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-		Set<QualifiedIdName> results = ga.getInherited(name, this.current);
+		Set<Id> results = ga.getInherited(name, this.current);
 		return results;
 	}
-		
+
 	private Id getGrammar(APIName name) {
 		return name.getIds().get(name.getIds().size()-1);
 	}

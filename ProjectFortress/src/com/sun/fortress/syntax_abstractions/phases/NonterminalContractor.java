@@ -34,7 +34,6 @@ import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.syntax_abstractions.intermediate.ContractedNonterminal;
 
@@ -45,26 +44,26 @@ public class NonterminalContractor {
 	private Collection<GrammarIndex> visitedGrammars;
 
 	/**
-	 * Given a grammar index g, return a collection of contained terminals and nonterminals where 
-	 * each overriding nonterminal has been contracted so it contains all the alternatives 
+	 * Given a grammar index g, return a collection of contained terminals and nonterminals where
+	 * each overriding nonterminal has been contracted so it contains all the alternatives
 	 * of the nonterminals it overrides.
 	 * @param g
 	 * @return A collection of grammar member declarations
 	 */
 	public Collection<ContractedNonterminal> getContractionList(GrammarIndex g) {
-		Collection<ContractedNonterminal> result = new LinkedList<ContractedNonterminal>();		
+		Collection<ContractedNonterminal> result = new LinkedList<ContractedNonterminal>();
 		GrammarAnalyzer<GrammarIndex> analyzer = new GrammarAnalyzer<GrammarIndex>();
 
 		for (NonterminalIndex<? extends GrammarMemberDecl> n: analyzer.getContainedSet(g)) {
 			DependencyCollector dc = new DependencyCollector();
 			n.getAst().accept(dc);
-			Set<QualifiedIdName> dependencies = dc.getResult();
+			Set<Id> dependencies = dc.getResult();
 			if (n.getAst() instanceof NonterminalExtensionDef) {
 				visitedGrammars = new LinkedList<GrammarIndex>();
 
-				List<NonterminalIndex<? extends GrammarMemberDecl>> ls = getCollapsedNonterminal(n.getName().getName(), g);			
+				List<NonterminalIndex<? extends GrammarMemberDecl>> ls = getCollapsedNonterminal(n.getName(), g);
 				dependencies.addAll(getDependencies(ls));
-				
+
 				result.add(new ContractedNonterminal(ls, dependencies));
 			}
 			else {
@@ -74,9 +73,9 @@ public class NonterminalContractor {
 		return result;
 	}
 
-	private Set<QualifiedIdName> getDependencies(
+	private Set<Id> getDependencies(
 			List<NonterminalIndex<? extends GrammarMemberDecl>> ls) {
-		Set<QualifiedIdName> s = new HashSet<QualifiedIdName>();
+		Set<Id> s = new HashSet<Id>();
 		for (NonterminalIndex<? extends GrammarMemberDecl> m: ls) {
 			DependencyCollector dc = new DependencyCollector();
 			m.getAst().accept(dc);
@@ -86,15 +85,15 @@ public class NonterminalContractor {
 	}
 
 	/**
-	 * Returns a set of all the members which the member with the given name  
+	 * Returns a set of all the members which the member with the given name
 	 * overrides.
 	 * @param name
 	 * @param a
 	 * @return
 	 */
 	private List<NonterminalIndex<? extends GrammarMemberDecl>> getCollapsedNonterminal(Id name, GrammarIndex g) {
-		visitedGrammars.add(g);		
-		List<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>(); 
+		visitedGrammars.add(g);
+		List<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
 		for (GrammarIndex gi: g.getExtended()) {
 			if (!visitedGrammars.contains(gi)) {
 				ls.addAll(getCollapsedNonterminal(name, gi));

@@ -18,7 +18,7 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.TraitType;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -26,7 +26,7 @@ import edu.rice.cs.plt.tuple.Option;
 public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
 	private Option<T> ast;
-	
+
 	public NonterminalIndex(Option<T> ast) {
 		this.ast = ast;
 	}
@@ -35,9 +35,9 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 		return this.ast;
 	}
 
-	public QualifiedIdName getName() {
+	public Id getName() {
 		if (this.ast().isSome()) {
-			return Option.unwrap(this.ast()).getName();
+                    return Option.unwrap(this.ast()).getName().getName();
 		}
 		throw new RuntimeException("Production index without ast and thus no name");
 	}
@@ -70,5 +70,5 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 	public boolean isPrivate() {
 		return getAst().getModifier().isSome();
 	}
-	
+
 }

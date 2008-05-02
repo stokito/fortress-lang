@@ -42,7 +42,7 @@ import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 public class GrammarTranslator {
 	private Collection<Module> ratsModules;
 	private Iterable<? extends StaticError> errors;
-	
+
 	public class Result extends StaticPhaseResult {
 
 		public Result(Iterable<? extends StaticError> errors) {
@@ -51,7 +51,7 @@ public class GrammarTranslator {
 
 		public Collection<Module> modules() { return ratsModules; }
 	}
-	
+
 	public GrammarTranslator() {
 		ratsModules = new LinkedList<Module>();
 		errors = new LinkedList<StaticError>();
@@ -62,10 +62,10 @@ public class GrammarTranslator {
 	}
 
 	private Result doTranslation(
-			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {	
-		
-		NonterminalTypeDictionary.addAll(modules);		
-		
+			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {
+
+		NonterminalTypeDictionary.addAll(modules);
+
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
 			if (module instanceof FortressModule) {
 				ratsModules.add(makeFortressModule((FortressModule) module));
@@ -80,39 +80,39 @@ public class GrammarTranslator {
 	}
 
 	/**
-	 * Load the corresponding Fortress grammar module and add the 
+	 * Load the corresponding Fortress grammar module and add the
 	 * translated syntax definitions to the relevant productions.
 	 * @param module
 	 * @return
 	 */
 	private Module makeFortressModule(FortressModule module) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+module.getName().toString()+".rats");
-		
+
 		List<ModuleName> ls = new LinkedList<ModuleName>();
 		ls.addAll(m.parameters.names);
 		ls.addAll(module.getParameters());
 		m.parameters = new ModuleList(ls);
-		
+
 		List<ModuleDependency> mds = new LinkedList<ModuleDependency>();
 		mds.addAll(m.dependencies);
 		mds.addAll(module.getDependencies());
 		m.dependencies = mds;
-		
+
 		for (Production p: m.productions) {
 			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
-				if (member.getName().getName().toString().equals(p.name.name)) {
-					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);				
+				if (member.getName().toString().equals(p.name.name)) {
+					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);
 					p.choice.alternatives.addAll(ptr.alternatives());
 				}
 			}
 		}
-		
+
 		m.documentation.text.addAll(RatsUtil.getComment().text);
 		return m;
 	}
 
 	/**
-	 * Make a new module with the members defined in the module. 
+	 * Make a new module with the members defined in the module.
 	 * @param module
 	 * @return
 	 */
@@ -132,7 +132,7 @@ public class GrammarTranslator {
 	private Module loadFortressGrammarModule(
 			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+"Fortress.rats");
-		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) { 
+		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
 			if (module instanceof FortressModule) {
 				RatsUtil.addParametersToInstantiation(m,module.getName().toString(), module.getParameters());
 			}
@@ -150,12 +150,12 @@ public class GrammarTranslator {
 	private Module loadKeywordGrammarModule(
 			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+"Keyword.rats");
-		
+
 		Set<String> keywords = new HashSet<String>();
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
 			keywords.addAll(module.getKeywords());
 		}
-		
+
 		// Adding keyword to the set of FORTRESS_KEYWORDS
 		List<String> code = m.body.code;
 		String insertString = "";
@@ -180,7 +180,7 @@ public class GrammarTranslator {
 		}
 		code.remove(inx);
 		code.add(inx, insertString);
-		
+
 		return m;
 	}
 }
