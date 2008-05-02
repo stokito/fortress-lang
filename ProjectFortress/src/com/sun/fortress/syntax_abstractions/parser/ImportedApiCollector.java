@@ -141,7 +141,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 			for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
 				boolean found = false;
 				for (AliasedSimpleName name: that.getAliasedNames()) {
-					if (name.getName().toString().equals(Option.unwrap(grammar.ast()).getName().getName().getText())) {
+					if (name.getName().toString().equals(Option.unwrap(grammar.ast()).getName().getText())) {
 						found  = true;
 						break;
 					}

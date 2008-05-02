@@ -38,7 +38,6 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
@@ -68,7 +67,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		this._errors.add(StaticError.make(msg, loc));
 	}
 
-	public Option<GrammarIndex> grammarIndex(final QualifiedIdName name) {
+	public Option<GrammarIndex> grammarIndex(final Id name) {
 		if (name.getApi().isSome()) {
 			APIName n = Option.unwrap(name.getApi());
 			if (this._globalEnv.definesApi(n)) {
@@ -159,17 +158,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
 	private TokenSymbol makeTokenSymbol(ItemSymbol item) {
 		return new TokenSymbol(item.getSpan(), item.getItem());
-	}
-
-	private static QualifiedIdName makeQualifiedIdName(Span span, String item) {
-		int lastIndexOf = item.lastIndexOf('.');
-		if (lastIndexOf != -1) {
-			APIName apiName = NodeFactory.makeAPIName(item.substring(0, lastIndexOf));
-			return NodeFactory.makeQualifiedIdName(apiName, NodeFactory.makeId(item.substring(lastIndexOf+1)));
-		}
-		else {
-			return NodeFactory.makeQualifiedIdName(span, item);
-		}
 	}
 
 	private static Id makeId(Span span, String item) {

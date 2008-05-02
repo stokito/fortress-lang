@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -69,21 +68,21 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forGrammarDefOnly(GrammarDef that, QualifiedIdName name_result, List<QualifiedIdName> extends_result, List<GrammarMemberDecl> nonterminal_result) {
+	public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> nonterminal_result) {
 		return new GrammarDef(name_result, extends_result, nonterminal_result);
 	}
 
 	@Override
-	public Node forNonterminalDefOnly(NonterminalDef that, QualifiedIdName name_result, Option<TraitType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
+	public Node forNonterminalDefOnly(NonterminalDef that, Id name_result, Option<TraitType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
 		if (type_result.isNone()) {
 			throw new RuntimeException("Type inference is not supported yet!");
 		}
 		NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-		Option<Id> oname = nnd.handleNonterminalName(_currentEnv, that.getName().getName());
+		Option<Id> oname = nnd.handleNonterminalName(_currentEnv, that.getName());
 		this._errors.addAll(nnd.errors());
 		if (oname.isSome()) {
                     Id name = Option.unwrap(oname);
-                    return new NonterminalDef(NodeFactory.makeQualifiedIdName(name), that.getType(), that.getModifier(), syntaxDefs_result);
+                    return new NonterminalDef(name, that.getType(), that.getModifier(), syntaxDefs_result);
 		}
 		return new NonterminalDef(that.getName(), that.getType(), that.getModifier(), syntaxDefs_result);
 	}
@@ -91,15 +90,15 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
 	@Override
 	public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
-			QualifiedIdName name_result, Option<TraitType> type_result,
+			Id name_result, Option<TraitType> type_result,
 			Option<? extends Modifier> modifier_result,
 			List<SyntaxDef> syntaxDefs_result) {
 		NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
-		Option<Id> oname = pnd.handleNonterminalName(_currentEnv, that.getName().getName());
+		Option<Id> oname = pnd.handleNonterminalName(_currentEnv, that.getName());
 		this._errors.addAll(pnd.errors());
 		if (oname.isSome()) {
                     Id name = Option.unwrap(oname);
-                    return new NonterminalExtensionDef(NodeFactory.makeQualifiedIdName(name), that.getType(), that.getModifier(), syntaxDefs_result);
+                    return new NonterminalExtensionDef(name, that.getType(), that.getModifier(), syntaxDefs_result);
 		}
 		return new NonterminalExtensionDef(that.getName(), that.getType(), that.getModifier(), syntaxDefs_result);
 	}
