@@ -286,6 +286,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             destdir="${build}"
             source="1.5"
             debug="true"
+            fork="true"
+            memorymaximumsize="256M"
             classpath="${compile.classpath}">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
@@ -307,6 +309,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             destdir="${build}"
             source="1.5"
             debug="true"
+            fork="true"
+            memorymaximumsize="256M"
             classpath="${compile.classpath}">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
@@ -328,6 +332,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
              destdir="${build}"
              source="1.5"
              debug="true"
+             fork="true"
              classpath="${compile.classpath}">
 
              <!-- Uncomment the following line to print unchecked warnings
@@ -353,6 +358,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
              destdir="${build}"
              source="1.5"
              debug="true"
+             fork="true"
              classpath="${compile.classpath}">
 
              <!-- Uncomment the following line to print unchecked warnings
