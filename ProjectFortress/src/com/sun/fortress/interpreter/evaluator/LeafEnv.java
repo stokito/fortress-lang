@@ -34,8 +34,8 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
@@ -300,21 +300,25 @@ class LeafEnv extends CommonEnv {
      * forth in JLS 6.5, "Determining the meaning of a name",
      * adapted for Fortress.
      */
-    
+
     protected Environment deDot(APIName d) {
         return deDot(IterUtil.skipLast(d.getIds()));
     }
-    
+
     protected String last(APIName d) {
         return IterUtil.last(d.getIds()).getText();
     }
-    
+
     protected Environment deDot(QualifiedIdName q) {
         return deDot(IterUtil.skipLast(NodeUtil.getIds(q)));
     }
 
     protected String last(QualifiedIdName q) {
         return NodeUtil.nameString(q.getName());
+    }
+
+    protected String last(Id id) {
+        return NodeUtil.nameString(id);
     }
 
     /**
@@ -356,6 +360,14 @@ class LeafEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#getType(com.sun.fortress.interpreter.nodes.QualifiedIdName)
      */
     public FType getTypeNull(QualifiedIdName d) {
+        return deDot(d).getType(last(d));
+     }
+
+    protected Environment deDot(Id id) {
+        return deDot(IterUtil.skipLast(NodeUtil.getIds(id)));
+    }
+
+    public FType getTypeNull(Id d) {
         return deDot(d).getType(last(d));
      }
 

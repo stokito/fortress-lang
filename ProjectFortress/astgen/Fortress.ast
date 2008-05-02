@@ -1393,7 +1393,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * IntVal ::= QualifiedName
                  * e.g.) m
                  */
-                IntRef(QualifiedIdName name);
+                IntRef(Id name);
             /**
              * integer expression with an operator
              */
@@ -1444,7 +1444,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * BoolVal ::= QualifiedName
                  * e.g.) ninf
                  */
-                BoolRef(QualifiedIdName name);
+                BoolRef(Id name);
             /**
              * boolean constraint
              * BoolExpr ::= BoolConstraint
@@ -1496,7 +1496,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *            | QualifiedName
              * e.g.) m
              */
-            UnitRef(QualifiedIdName name);
+            UnitRef(Id name);
             /**
              * unit expression with an operator
              */
@@ -1608,7 +1608,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * WhereConstraint ::= QualifiedName = QualifiedName
          * e.g.) m = n
          */
-        WhereEquals(QualifiedIdName left, QualifiedIdName right);
+        WhereEquals(Id left, Id right);
         /**
          * unit constraint used in where clauses
          * WhereConstraint ::= dimensionless = Id

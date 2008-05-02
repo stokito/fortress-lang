@@ -45,10 +45,10 @@ public class TypeAnalyzerUtil {
                                                       Iterable<? extends Id> hiddenParams) {
         final Map<QualifiedIdName, Type> typeSubs = new HashMap<QualifiedIdName, Type>();
         final Map<Op, Op> opSubs = new HashMap<Op, Op>();
-        final Map<QualifiedIdName, IntExpr> intSubs = new HashMap<QualifiedIdName, IntExpr>();
-        final Map<QualifiedIdName, BoolExpr> boolSubs = new HashMap<QualifiedIdName, BoolExpr>();
+        final Map<Id, IntExpr> intSubs = new HashMap<Id, IntExpr>();
+        final Map<Id, BoolExpr> boolSubs = new HashMap<Id, BoolExpr>();
         final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
-        final Map<QualifiedIdName, UnitExpr> unitSubs = new HashMap<QualifiedIdName, UnitExpr>();
+        final Map<Id, UnitExpr> unitSubs = new HashMap<Id, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
@@ -60,15 +60,15 @@ public class TypeAnalyzerUtil {
                     opSubs.put(p.getName(), ((OprArg) a).getName());
                 }
                 @Override public void forIntParam(IntParam p) {
-                    intSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                    intSubs.put(p.getName(),
                                 ((IntArg) a).getVal());
                 }
                 @Override public void forNatParam(NatParam p) {
-                    intSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                    intSubs.put(p.getName(),
                                 ((IntArg) a).getVal());
                 }
                 @Override public void forBoolParam(BoolParam p) {
-                    boolSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                    boolSubs.put(p.getName(),
                                  ((BoolArg) a).getBool());
                 }
                 @Override public void forDimParam(DimParam p) {
@@ -76,7 +76,7 @@ public class TypeAnalyzerUtil {
                                 ((DimArg) a).getDim());
                 }
                 @Override public void forUnitParam(UnitParam p) {
-                    unitSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                    unitSubs.put(p.getName(),
                                  ((UnitArg) a).getUnit());
                 }
 

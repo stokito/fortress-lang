@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedIdName;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -102,6 +103,12 @@ public class EmptyEnv extends CommonEnv {
      */
     @Override
     public FType getTypeNull(QualifiedIdName q) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public FType getTypeNull(Id q) {
         // TODO Auto-generated method stub
         return null;
     }
