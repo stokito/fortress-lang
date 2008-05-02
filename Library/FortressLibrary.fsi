@@ -1637,6 +1637,9 @@ println(a:Any):()
 print():()
 println():()
 
+(* A way to get environment information from inside of fortress *)
+getEnvironment(name:String, defaultValue:String):String
+
 (** The following three functions are useful temporary hacks for
     debugging multi-threaded programs. **)
 printThreadInfo(a:String):()
