@@ -15,17 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Atomic
+component AtomicExpr
 export Executable
 
-  (* Atomic has type of its body. *)
+  (* Atomic expression has type of its body. *)
 
   run(args:String...):() = do
     
-    atomic do
-      0
-      true
-    end as Boolean
+    (atomic true) as Boolean
     
   end
 
