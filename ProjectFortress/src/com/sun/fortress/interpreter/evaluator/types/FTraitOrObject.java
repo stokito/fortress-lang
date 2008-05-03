@@ -449,12 +449,12 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
     private void methodClosureIntoRandS(String s, MethodClosure mc,
             MultiMap<String, Overload> thisRequires,
             MultiMap<String, Overload> thisSupplies,
-            MultiMap<String, Overload> overrides) {
+            MultiMap<String, Overload> thisOverrides) {
 
         Overload mo = wrapInOverload(mc);
 
         if (mc.isOverride()) {
-            overrides.putItem(s, mo);
+            thisOverrides.putItem(s, mo);
         }
         Applicable a = mc.getDef();
         if (a instanceof FnDef) {

@@ -110,12 +110,10 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         try {
             
             if (ast instanceof Component) {
-                ASTIO.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-                                    DOT + ProjectProperties.COMP_TREE_SUFFIX);
+                ASTIO.writeJavaAst(ast, compFileName(ast.getName() ));
             }
             else { // ast instanceof Api
-                ASTIO.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-                                    DOT + ProjectProperties.API_TREE_SUFFIX);
+                ASTIO.writeJavaAst(ast, apiFileName(ast.getName() ));
             }
         } catch (IOException e) {
             throw new ShellException(e);
@@ -151,12 +149,16 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         }
     }
 
-    private String compFileName(APIName name) {
-        return pwd + SEP + name + DOT + ProjectProperties.COMP_TREE_SUFFIX;
+    private String deCase(APIName s) {
+        return "-" + Integer.toString(s.hashCode()&0x7fffffff,16);
+    }
+    
+    public String compFileName(APIName name) {
+        return pwd + SEP + name + deCase(name) + DOT + ProjectProperties.COMP_TREE_SUFFIX;
     }
 
-    private String apiFileName(APIName name) {
-        return pwd + SEP + name + DOT + ProjectProperties.API_TREE_SUFFIX;
+    public String apiFileName(APIName name) {
+        return pwd + SEP + name + deCase(name) +DOT + ProjectProperties.API_TREE_SUFFIX;
     }
 
     private long dateFromFile(APIName name, String s, String tag)
