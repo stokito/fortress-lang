@@ -610,23 +610,29 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return TypeCheckerResult.compose(that, frontType, fronts_result);
     }
 
-
-    public TypeCheckerResult forDoFrontOnly(DoFront that,
-                                            Option<TypeCheckerResult> loc_result,
-                                            TypeCheckerResult expr_result) {
-        if (loc_result.isSome()) {
-            TypeCheckerResult _loc_result = unwrap(loc_result);
-            if (_loc_result.type().isSome()) {
-                return TypeCheckerResult.compose(that,
-                                                 _loc_result,
-                                                 expr_result,
-                                                 checkSubtype(unwrap(_loc_result.type()), Types.REGION, _loc_result.ast()));
-            } else {
-                return TypeCheckerResult.compose(that, expr_result.type(), _loc_result, expr_result);
+    public TypeCheckerResult forDoFront(DoFront that) {
+        TypeCheckerResult bodyResult = 
+            that.isAtomic() ? forAtomic(that,
+                                        that.getExpr(),
+                                        errorMsg("A 'spawn' expression must not occur inside",
+                                                 "an 'atomic' do block."))
+                            : that.getExpr().accept(this);
+        TypeCheckerResult result = new TypeCheckerResult(that);
+        if (that.getLoc().isSome()) {
+            Expr loc = unwrap(that.getLoc());
+            result = loc.accept(this);
+            if (result.type().isSome()) {
+                Type locType = unwrap(result.type());
+                result = TypeCheckerResult.compose(that,
+                                                   result,
+                                                   checkSubtype(locType,
+                                                                Types.REGION,
+                                                                loc,
+                                                                errorMsg("Location of 'do' block must ",
+                                                                         "have type Region: ", locType)));
             }
-        } else {
-            return TypeCheckerResult.compose(that, expr_result.type(), expr_result);
         }
+        return TypeCheckerResult.compose(that, bodyResult.type(), bodyResult, result);
     }
 
     public TypeCheckerResult forFnRefOnly(FnRef that,
@@ -1197,6 +1203,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
     
     public TypeCheckerResult forAtomicExpr(AtomicExpr that) {
+        return forAtomic(that,
+                         that.getExpr(),
+                         errorMsg("A 'spawn' expression must not occur inside an 'atomic' expression."));
+    }
+    
+    private TypeCheckerResult forAtomic(Node that, Expr body, final String errorMsg) {
         TypeChecker newChecker = new TypeChecker(table,
                                                  staticParamEnv,
                                                  typeEnv,
@@ -1208,13 +1220,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return TypeCheckerResult.compose(
                         that,
                         new TypeCheckerResult(that,
-                                             TypeError.make(errorMsg("A 'spawn' expression must not ",
-                                                                     "occur inside an 'atomic' expression."),
+                                             TypeError.make(errorMsg,
                                                             that)),
                         that.accept(TypeChecker.this));
             }
         };
-        TypeCheckerResult bodyResult = that.getExpr().accept(newChecker);
+        TypeCheckerResult bodyResult = body.accept(newChecker);
         return TypeCheckerResult.compose(that, bodyResult.type(), bodyResult);
     }
 
