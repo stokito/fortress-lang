@@ -1558,6 +1558,17 @@ opr DOT(a:Number,b:Number):RR64
 opr juxtaposition
      (a:Number,b:Number):RR64
 opr /(a:Number,b:Number):RR64
+opr SQRT(a:Number):RR64
+opr PLUS_UP(a:Number,b:Number):RR64
+opr MINUS_UP(a:Number,b:Number):RR64
+opr DOT_UP(a:Number,b:Number):RR64
+opr SLASH_UP(a:Number,b:Number):RR64
+opr SQRT_UP(a:Number):RR64
+opr PLUS_DOWN(a:Number,b:Number):RR64
+opr MINUS_DOWN(a:Number,b:Number):RR64
+opr DOT_DOWN(a:Number,b:Number):RR64
+opr SLASH_DOWN(a:Number,b:Number):RR64
+opr SQRT_DOWN(a:Number):RR64
 opr =(a:Number, b:Number):Boolean
 opr =/=(a:Number, b:Number):Boolean
 opr <(a:Number, b:Number):Boolean
@@ -1569,7 +1580,6 @@ opr MIN(a:Number, b:Number):Boolean
 opr MAX(a:Number, b:Number):Boolean
 opr |a:RR64| : RR64
 opr ^(a:Number, b:Number):RR64
-opr SQRT(a:Number):RR64
 sin(a:Number):RR64
 cos(a:Number):RR64
 tan(a:Number):RR64
@@ -1584,6 +1594,10 @@ opr |\a:Number/| : ZZ64
 ceiling(a:Number):RR64
 opr |/a:Number\| : ZZ64
 truncate(a:Number):ZZ64
+nextUp(a:RR64):RR64
+nextDown(a:RR64):RR64
+rawBits(a:RR64):ZZ64
+fromRawBits(a:ZZ64):RR64
 random(a:Number):RR64
 
 (** %char% converts an integer unicode code point into the

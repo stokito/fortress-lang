@@ -19,6 +19,8 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import java.util.List;
 
+import com.sun.fortress.numerics.DirectedRounding;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
@@ -56,6 +58,39 @@ public static final class Mul extends Util.RR2R {
 public static final class Div extends Util.RR2R {
     protected double f(double x, double y) { return x / y; }
 }
+public static final class Sqrt extends Util.R2R {
+    protected double f(double x) { return Math.sqrt(x); }
+}
+public static final class AddUp extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.addUp(x,y); }
+}
+public static final class SubUp extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.subtractUp(x,y); }
+}
+public static final class MulUp extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.multiplyUp(x,y); }
+}
+public static final class DivUp extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.divideUp(x,y); }
+}
+public static final class SqrtUp extends Util.R2R {
+    protected double f(double x) { return DirectedRounding.sqrtUp(x); }
+}
+public static final class AddDown extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.addDown(x,y); }
+}
+public static final class SubDown extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.subtractDown(x,y);}
+}
+public static final class MulDown extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.multiplyDown(x,y);}
+}
+public static final class DivDown extends Util.RR2R {
+    protected double f(double x, double y) { return DirectedRounding.divideDown(x,y); }
+}
+public static final class SqrtDown extends Util.R2R {
+    protected double f(double x) { return DirectedRounding.sqrtDown(x); }
+}
 public static final class Eq extends Util.RR2B {
     protected boolean f(double x, double y) { return x==y; }
 }
@@ -84,9 +119,6 @@ public static final class Pow extends Util.RR2R {
     protected double f(double x, double y) {
         return Math.pow(x,y);
     }
-}
-public static final class Sqrt extends Util.R2R {
-    protected double f(double x) { return Math.sqrt(x); }
 }
 public static final class Sin extends Util.R2R {
     protected double f(double x) { return Math.sin(x); }
@@ -133,6 +165,19 @@ public static final class Truncate extends Util.R2L {
 public static final class Abs extends Util.R2R {
     protected double f(double x) { return Math.abs(x); }
 }
+public static final class NextUp extends Util.R2R {
+    protected double f(double x) { return DirectedRounding.nextUp(x); }
+}
+public static final class NextDown extends Util.R2R {
+    protected double f(double x) { return DirectedRounding.nextDown(x); }
+}
+public static final class RawBits extends Util.R2L {
+    protected long f(double x) { return Double.doubleToLongBits(x); }
+}
+public static final class FromRawBits extends Util.L2R {
+    protected double f(long x) { return Double.longBitsToDouble(x); }
+}
+
 public static final class Random extends Util.R2R {
     protected double f(double scale) { return scale*Math.random(); }
 }

@@ -92,6 +92,12 @@ public class Util {
             return FLong.make(f(x.getLong()));
         }
     }
+    static public abstract class L2R extends NativeFn1 {
+        protected abstract double f(long x);
+        protected final FValue act(FValue x) {
+            return FFloat.make(f(x.getLong()));
+        }
+    }
     static public abstract class LL2o extends NativeFn2 {
         protected abstract FValue f(long x, long y);
         protected final FValue act(FValue x, FValue y) {
