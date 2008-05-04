@@ -1036,7 +1036,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * Primary ::= Id[\StaticArgList\]
                      * e.g.) identity[\String\]
                      */
-                    FnRef(List<QualifiedIdName> fns,
+                    FnRef(List<Id> fns,
                           List<StaticArg> staticArgs
                               = Collections.<StaticArg>emptyList());
                     /**

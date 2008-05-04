@@ -132,7 +132,7 @@ public class NodeUtil {
         @Override public String forQualifiedName(QualifiedName n) {
             return nameString(n);
             }
-        public String forId(Id n) { return n.getText(); }
+        public String forId(Id n) { return nameString(n); }
         public String forOp(Op n) { return OprUtil.fixityDecorator(n.getFixity(), n.getText()); }
         public String forEnclosing(Enclosing n) {
             return n.getOpen().getText() + " " + n.getClose().getText();
@@ -152,7 +152,9 @@ public class NodeUtil {
     }
 
     public static String nameString(Id n) {
-        return n.getText();
+        final String last = n.getText();
+        Option<APIName> odn = n.getApi();
+        return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
     }
 
     public static String nameString(Op n) {
@@ -166,12 +168,6 @@ public class NodeUtil {
 
     public static String nameString(QualifiedName n) {
         final String last = n.getName().accept(nameGetter);
-//        return n.getApi().apply(new OptionVisitor<APIName, String>() {
-//            public String forSome(APIName api) {
-//                return nameString(api) + "." + last;
-//            }
-//            public String forNone() { return last; }
-//        });
         Option<APIName> odn = n.getApi();
         return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
     }
@@ -352,7 +348,7 @@ public class NodeUtil {
     /* function ************************************************************/
     public static final Fn<Id, String> IdToStringFn = new Fn<Id, String>() {
             public String apply(Id x) {
-                return x.getText();
+                return stringName(x);
             }
         };
 

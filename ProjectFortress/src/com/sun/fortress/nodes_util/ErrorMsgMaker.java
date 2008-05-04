@@ -108,7 +108,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
 
     public String forId(Id node) {
-        return node.getText();
+        return NodeUtil.nameString(node);
     }
 
     public String forOp(Op node) {

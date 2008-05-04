@@ -47,7 +47,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<QualifiedIdName> explicitVariableNames(Id name) {
         return _parent.explicitVariableNames(name);
     }
-    public Set<QualifiedIdName> explicitFunctionNames(Id name) {
+    public Set<Id> explicitFunctionNames(Id name) {
         return _parent.explicitFunctionNames(name);
     }
     public Set<OpName> explicitFunctionNames(OpName name) {
@@ -60,7 +60,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<QualifiedIdName> onDemandVariableNames(Id name) {
         return _parent.onDemandVariableNames(name);
     }
-    public Set<QualifiedIdName> onDemandFunctionNames(Id name) {
+    public Set<Id> onDemandFunctionNames(Id name) {
         return _parent.onDemandFunctionNames(name);
     }
     public Set<OpName> onDemandFunctionNames(OpName name) {
@@ -74,7 +74,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public boolean hasQualifiedVariable(QualifiedIdName name) {
         return _parent.hasQualifiedVariable(name);
     }
-    public boolean hasQualifiedFunction(QualifiedIdName name) {
+    public boolean hasQualifiedFunction(Id name) {
         return _parent.hasQualifiedFunction(name);
     }
 

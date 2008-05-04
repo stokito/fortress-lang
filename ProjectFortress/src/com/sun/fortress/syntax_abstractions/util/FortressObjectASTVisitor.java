@@ -218,7 +218,7 @@ public class FortressObjectASTVisitor<T> {
 
     private T dispatchFnRef(FObject value) {
         FValue v1 = getField(value, "fns");
-        List<QualifiedIdName> fns = dispatchList((FObject)v1);
+        List<Id> fns = dispatchList((FObject)v1);
         FValue v2 = getField(value, "staticArgs");
         List<StaticArg> staticArgs = dispatchList((FObject)v2);
         return (T) new FnRef(this.span, fns, staticArgs);

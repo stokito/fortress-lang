@@ -42,7 +42,7 @@ public class TopLevelEnv extends NameEnv {
     private Map<APIName, ApiIndex> _onDemandImportedApis = new HashMap<APIName, ApiIndex>();
     private Map<Id, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<Id, Set<QualifiedIdName>>();
     private Map<Id, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<Id, Set<QualifiedIdName>>();
-    private Map<Id, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<Id, Set<QualifiedIdName>>();
+    private Map<Id, Set<Id>> _onDemandFunctionIdNames = new HashMap<Id, Set<Id>>();
     private Map<OpName, Set<OpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<OpName>>();
     private Map<Id, Set<Id>> _onDemandGrammarNames = new HashMap<Id, Set<Id>>();
 
@@ -155,13 +155,13 @@ public class TopLevelEnv extends NameEnv {
             for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
                 if (fnName instanceof Id) {
                     Id _fnName = (Id)fnName;
-                    QualifiedIdName name = new QualifiedIdName(_fnName.getSpan(),
-                                                               Option.some(apiEntry.getKey()),
-                                                               _fnName);
+                    Id name = new Id(_fnName.getSpan(),
+                                     Option.some(apiEntry.getKey()),
+                                     _fnName.getText());
                     if (_onDemandFunctionIdNames.containsKey(_fnName)) {
                         _onDemandFunctionIdNames.get(_fnName).add(name);
                     } else {
-                        Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
+                        Set<Id> matches = new HashSet<Id>();
                         matches.add(name);
                         _onDemandFunctionIdNames.put(_fnName, matches);
                     }
@@ -242,10 +242,10 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
 
-    public Set<QualifiedIdName> explicitFunctionNames(Id name) {
+    public Set<Id> explicitFunctionNames(Id name) {
         // TODO: imports
         if (_current.functions().containsFirst(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(_current.ast().getName(), name));
+            return Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
         }
         else { return Collections.emptySet(); }
     }
@@ -287,11 +287,11 @@ public class TopLevelEnv extends NameEnv {
         return onDemandNames(name, _onDemandVariableNames);
     }
 
-    public Set<QualifiedIdName> onDemandFunctionNames(Id name) {
+    public Set<Id> onDemandFunctionNames(Id name) {
         if (_onDemandFunctionIdNames.containsKey(name)) {
             return _onDemandFunctionIdNames.get(name);
         } else {
-            return new HashSet<QualifiedIdName>();
+            return new HashSet<Id>();
         }
     }
 
@@ -327,10 +327,10 @@ public class TopLevelEnv extends NameEnv {
         else { return false; }
     }
 
-    public boolean hasQualifiedFunction(QualifiedIdName name) {
+    public boolean hasQualifiedFunction(Id name) {
         APIName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
-            return _globalEnv.api(api).functions().containsFirst(name.getName());
+            return _globalEnv.api(api).functions().containsFirst(name);
         }
         else { return false; }
     }

@@ -73,7 +73,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private static final Id mangleName(Id fieldName) {
-        return NodeFactory.makeId(fieldName.getSpan(), "$" + fieldName.getText());
+        return new Id(fieldName.getSpan(), fieldName.getApi(), "$" + fieldName.getText());
     }
 
     private static Option<List<Param>> mangleParams(Option<List<Param>> params) {

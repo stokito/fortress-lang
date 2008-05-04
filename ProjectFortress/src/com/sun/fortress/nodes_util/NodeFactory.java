@@ -371,6 +371,11 @@ public class NodeFactory {
         }
     }
 
+    public static QualifiedIdName makeQIdfromId(Id id) {
+        return new QualifiedIdName(id.getSpan(), id.getApi(),
+                                   makeId(id.getSpan(), id.getText()));
+    }
+
     public static QualifiedIdName makeQualifiedIdName(Span span, String s) {
         return new QualifiedIdName(span, Option.<APIName>none(),
                 new Id(span, s));
@@ -1118,8 +1123,8 @@ public class NodeFactory {
         return new ImportStar(api, excepts);
     }
 
-    public static FnRef makeFnRef(Span span, QualifiedIdName name) {
-        List<QualifiedIdName> ids = new LinkedList<QualifiedIdName>();
+    public static FnRef makeFnRef(Span span, Id name) {
+        List<Id> ids = new LinkedList<Id>();
         ids.add(name);
         return new FnRef(span, ids);
     }
@@ -1132,9 +1137,9 @@ public class NodeFactory {
         return new VarRef(span, true, name);
     }
 
-    public static Expr makeFnRef(Span span, QualifiedIdName name,
+    public static Expr makeFnRef(Span span, Id name,
             List<StaticArg> staticArgs) {
-        List<QualifiedIdName> ids = new LinkedList<QualifiedIdName>();
+        List<Id> ids = new LinkedList<Id>();
         ids.add(name);
         return new FnRef(span, ids, staticArgs);
     }

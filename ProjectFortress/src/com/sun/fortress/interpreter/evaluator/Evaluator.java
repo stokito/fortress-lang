@@ -157,6 +157,7 @@ import com.sun.fortress.nodes.While;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -1835,7 +1836,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     /** Assumes {@code x.getIds()} is a list of length 1. */
     @Override
     public FValue forFnRef(FnRef x) {
-        QualifiedIdName name = x.getFns().get(0);
+        QualifiedIdName name = NodeFactory.makeQIdfromId(x.getFns().get(0));
         FValue g = forVarRef(new VarRef(name.getSpan(), name));
         return applyToActualStaticArgs(g,x.getStaticArgs(),x);
     }

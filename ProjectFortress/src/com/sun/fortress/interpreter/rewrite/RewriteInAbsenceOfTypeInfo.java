@@ -25,7 +25,6 @@ import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.MathItem;
 import com.sun.fortress.nodes.MathPrimary;
@@ -37,6 +36,7 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -57,16 +57,17 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
     }
 
     static Expr translateFnRef(FnRef fr) {
-        List<QualifiedIdName> fns = fr.getFns();
+        List<Id> fns = fr.getFns();
         List<StaticArg> sargs = fr.getStaticArgs();
-        QualifiedIdName qidn = fns.get(0);
+        Id idn = fns.get(0);
+        QualifiedIdName qidn = NodeFactory.makeQIdfromId(idn);
         if (sargs.size() == 0) {
             // Call it a var or field ref for now.
-            if (qidn.getApi().isNone()) {
-                return new VarRef(qidn.getSpan(), qidn);
+            if (idn.getApi().isNone()) {
+                return new VarRef(idn.getSpan(), qidn);
 
             } else {
-                List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
+                List<Id> ids = Option.unwrap(idn.getApi()).getIds();
 
                 return new FieldRef(fr.getSpan(),
                                         false,
@@ -74,13 +75,13 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
                                         qidn.getName());
             }
         } else {
-        if (qidn.getApi().isNone()) {
+        if (idn.getApi().isNone()) {
             return new _RewriteFnRef(fr.getSpan(),
                     false,
-                    new VarRef(qidn.getSpan(), qidn),
+                    new VarRef(idn.getSpan(), qidn),
                     sargs);
         } else {
-            List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
+            List<Id> ids = Option.unwrap(idn.getApi()).getIds();
 
             return new _RewriteFnRef(fr.getSpan(),
                         false,

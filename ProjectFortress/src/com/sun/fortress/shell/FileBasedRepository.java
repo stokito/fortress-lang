@@ -21,54 +21,55 @@ import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
 import java.io.*;
 import java.util.*;
 
-import static com.sun.fortress.shell.ConvenientStrings.*; 
+import static com.sun.fortress.shell.ConvenientStrings.*;
 
 public class FileBasedRepository extends CacheBasedRepository implements FortressRepository {
 
     private final String path;
-    
+
     public FileBasedRepository(String _pwd) throws IOException {
         this(_pwd, Shell.fortressLocation());
     }
-    
+
     public FileBasedRepository(String _pwd, String _path) throws IOException {
         super(_pwd);
         path = _path;
         initialize();
     }
 
-    private void initialize() throws IOException { 
+    private void initialize() throws IOException {
          File[] fileArray = Files.ls(path);
         if (fileArray == null) {
             throw new IOException("Apparently there are no files in " + path);
         }
         List<File> files = Arrays.asList(fileArray);
-        
+
         for (File file: files) {
-            
+
             if ((! file.isDirectory()) &&
                 (file.getName().matches("[\\S]+.tfs") ||
-                 file.getName().matches("[\\S]+.tfi"))) 
+                 file.getName().matches("[\\S]+.tfi")))
             {
                 System.err.println("Loading " + file);
-                
-                Option<CompilationUnit> candidate = 
+
+                Option<CompilationUnit> candidate =
                     ASTIO.readJavaAst(file.getCanonicalPath());
-                
+
                 if (candidate.isNone()) {
                     throw new RepositoryError ("Compilation aborted. " +
-                                               "There were problems reading back the compiled file " + 
+                                               "There were problems reading back the compiled file " +
                                                file.getCanonicalPath());
                 }
                 else {
                     CompilationUnit _candidate = Option.unwrap(candidate);
-                    
+
                     if (_candidate instanceof Api) {
                         ArrayList<Api> _candidates = new ArrayList<Api>();
                         _candidates.add((Api)_candidate);
@@ -76,18 +77,19 @@ public class FileBasedRepository extends CacheBasedRepository implements Fortres
                     } else if (_candidate instanceof Component) {
                         ArrayList<Component> _candidates = new ArrayList<Component>();
                         _candidates.add((Component)_candidate);
-                        
+
                         components.putAll(IndexBuilder.buildComponents(_candidates, file.lastModified()).components());
-                        
+
                         ArrayList<Id> _ids = new ArrayList<Id>();
-                        for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
-                        
-                        
+                        for (Id id: _candidate.getName().getIds()) {
+                            _ids.add(new Id(new String(NodeUtil.stringName(id))));
+                        }
+
                     } else {
                         throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
-                    }   
-                }                                 
+                    }
+                }
             }
         }
-    } 
+    }
 }

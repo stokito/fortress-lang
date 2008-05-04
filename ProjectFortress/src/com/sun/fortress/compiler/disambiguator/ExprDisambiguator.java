@@ -74,7 +74,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         _errors = errors;
         _innerMostLabel = Option.<Id>none();
     }
-    
+
     private ExprDisambiguator(NameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
                                List<StaticError> errors, Option<Id> innerMostLabel) {
         this(env, onDemandImports, errors);
@@ -376,6 +376,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 APIName realApiName = Option.unwrap(realApiNameOpt);
                 QualifiedIdName newName =
                     NodeFactory.makeQualifiedIdName(realApiName, entity);
+                Id newId = NodeFactory.makeId(realApiName, entity);
                 if (_env.hasQualifiedVariable(newName)) {
                     if (ConsList.isEmpty(fields) && givenApiName == realApiName) {
                         // no change -- no need to recreate the VarRef
@@ -383,8 +384,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     }
                     else { result = new VarRef(newName.getSpan(), newName); }
                 }
-                else if (_env.hasQualifiedFunction(newName)) {
-                    result = ExprFactory.makeFnRef(newName);
+                else if (_env.hasQualifiedFunction(newId)) {
+                    result = ExprFactory.makeFnRef(newId);
                     // TODO: insert correct number of to-infer arguments?
                 }
                 else {
@@ -408,7 +409,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if (result == null) {
             // api.isNone() must be true
             Set<QualifiedIdName> vars = _env.explicitVariableNames(entity);
-            Set<QualifiedIdName> fns = _env.explicitFunctionNames(entity);
+            Set<Id> fns = _env.explicitFunctionNames(entity);
             if (vars.isEmpty() && fns.isEmpty()) {
                 vars = _env.onDemandVariableNames(entity);
                 fns = _env.onDemandFunctionNames(entity);
@@ -430,7 +431,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // TODO: insert correct number of to-infer arguments?
             }
             else if (!vars.isEmpty() || !fns.isEmpty()) {
-                Set<QualifiedIdName> varsAndFns = CollectUtil.union(vars, fns);
+                Set<QualifiedIdName> qfns = CollectUtil.emptySet();
+                for (Id id : fns) {
+                    qfns.add(NodeFactory.makeQIdfromId(id));
+                }
+                Set<QualifiedIdName> varsAndFns = CollectUtil.union(vars, qfns);
                 error("Name may refer to: " + NodeUtil.namesString(varsAndFns), entity);
                 return that;
             }
@@ -479,7 +484,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //        }
 //        return result;
 //    }
-    
+
     @Override public Node forLabel(Label that) {
         Id newName = (Id) that.getName().accept(this);
         ExprDisambiguator dis = new ExprDisambiguator(_env,
@@ -488,7 +493,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Block newBody = (Block) that.getBody().accept(dis);
         return super.forLabelOnly(that, newName, newBody);
     }
-    
+
     @Override public Node forExitOnly(Exit that, Option<Id> target_result, Option<Expr> returnExpr_result) {
         Option<Id> target = target_result.isSome() ? target_result
                                                    : _innerMostLabel;

@@ -303,7 +303,7 @@ public abstract class TypeEnv {
     public final TypeEnv extend(Param param) {
         return new ParamTypeEnv(Arrays.asList(param), this);
     }
-    
+
     public final TypeEnv extendWithout(Set<? extends IdOrOpOrAnonymousName> entries) {
         return new ConcealingTypeEnv(entries, this);
     }
