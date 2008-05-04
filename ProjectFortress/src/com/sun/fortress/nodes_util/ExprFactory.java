@@ -322,33 +322,28 @@ public class ExprFactory {
                            Collections.singletonList(arg));
     }
 
-    public static FnRef makeFnRef(Span span, QualifiedIdName name, List<StaticArg> sargs) {
-        List<QualifiedIdName> names = Collections.singletonList(name);
+    public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
+        List<Id> names = Collections.singletonList(name);
         return new FnRef(span, false, names, sargs);
     }
 
     public static FnRef makeFnRef(Id name) {
-        List<QualifiedIdName> names =
-            Collections.singletonList(NodeFactory.makeQualifiedIdName(name));
+        List<Id> names =
+            Collections.singletonList(name);
         return new FnRef(name.getSpan(), false, names, Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
-        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(apiIds, name);
-        List<QualifiedIdName> qNames = Collections.singletonList(qName);
+        Id qName = NodeFactory.makeId(apiIds, name);
+        List<Id> qNames = Collections.singletonList(qName);
         return new FnRef(qName.getSpan(), false, qNames,
                          Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(APIName api, Id name) {
-        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
-        List<QualifiedIdName> qNames = Collections.singletonList(qName);
+        Id qName = NodeFactory.makeId(api, name);
+        List<Id> qNames = Collections.singletonList(qName);
         return new FnRef(qName.getSpan(), false, qNames,
-                         Collections.<StaticArg>emptyList());
-    }
-
-    public static FnRef makeFnRef(QualifiedIdName name) {
-        return new FnRef(name.getSpan(), false, Collections.singletonList(name),
                          Collections.<StaticArg>emptyList());
     }
 

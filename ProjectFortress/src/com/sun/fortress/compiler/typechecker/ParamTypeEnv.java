@@ -29,19 +29,19 @@ import java.util.*;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
-/** 
+/**
  * A type environment whose outermost lexical scope consists of a map from IDs
  * to Variables.
  */
 class ParamTypeEnv extends TypeEnv {
     private List<Param> entries;
     private TypeEnv parent;
-    
+
     ParamTypeEnv(List<Param> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
@@ -54,6 +54,8 @@ class ParamTypeEnv extends TypeEnv {
                 return some(new BindingLookup(_var, typeFromParam(param)));
             }
         }
+        if (_var.getApi().isSome())
+            return binding(new Id(_var.getSpan(), _var.getText()));
         return parent.binding(_var);
     }
 

@@ -193,7 +193,7 @@ public class NodeComparator {
     }
 
     public static int compare(Id left, Id right) {
-        return left.getText().compareTo(right.getText());
+        return NodeUtil.nameString(left).compareTo(NodeUtil.nameString(right));
     }
 
     public static int compare(KeywordType left, KeywordType right) {
@@ -202,8 +202,8 @@ public class NodeComparator {
     }
 
     public static int compare(Param left, Param right) {
-        int x = left.getName().getText()
-                    .compareTo(right.getName().getText());
+        int x = NodeUtil.nameString(left.getName())
+                        .compareTo(NodeUtil.nameString(right.getName()));
         if (x != 0) return x;
         if ((left instanceof NormalParam) && (right instanceof NormalParam)) {
             x = compareOptionalType(((NormalParam)left).getType(), ((NormalParam)right).getType());
@@ -376,7 +376,7 @@ public class NodeComparator {
     static int compare(TypeArg left, TypeArg right) {
         return compare(left.getType(), right.getType());
     }
-    
+
     private static int subtypeCompareTo(StaticArg left, StaticArg right) {
         if (left instanceof BoolArg) {
             //return compare((BoolArg) left, (BoolArg) right);

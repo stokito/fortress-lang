@@ -24,7 +24,6 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -37,9 +36,9 @@ public class LocalFnEnv extends DelegatingNameEnv {
         _fns = fns;
     }
 
-    @Override public Set<QualifiedIdName> explicitFunctionNames(Id name) {
+    @Override public Set<Id> explicitFunctionNames(Id name) {
         if (_fns.contains(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
+            return Collections.singleton(name);
         }
         else { return super.explicitFunctionNames(name); }
     }

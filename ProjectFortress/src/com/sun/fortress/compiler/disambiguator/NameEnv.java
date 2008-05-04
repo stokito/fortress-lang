@@ -37,7 +37,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * function name; on-demand imports are ignored.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<QualifiedIdName> explicitFunctionNames(Id name);
+    public abstract Set<Id> explicitFunctionNames(Id name);
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * operator name; on-demand imports are ignored.  An undefined reference
@@ -57,7 +57,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * that correspond to the given function name.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<QualifiedIdName> onDemandFunctionNames(Id name);
+    public abstract Set<Id> onDemandFunctionNames(Id name);
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given operator name.  An undefined reference
@@ -74,6 +74,6 @@ public abstract class NameEnv extends TypeNameEnv {
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a function exists.  Assumes {@code name.getApi().isSome()}.
      */
-    public abstract boolean hasQualifiedFunction(QualifiedIdName name);
+    public abstract boolean hasQualifiedFunction(Id name);
 
 }

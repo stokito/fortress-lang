@@ -105,7 +105,7 @@ public class SyntaxAbstractionUtil {
     public static Expr makeObjectInstantiation(Span span, String apiName,
             String objectName, List<Expr> args, List<StaticArg> staticArgs) {
         List<Expr> exprs = new LinkedList<Expr>();
-        QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName, objectName);
+        Id name = NodeFactory.makeId(apiName, objectName);
         exprs.add(NodeFactory.makeFnRef(span, name, staticArgs));
         if (args.isEmpty()) {
             exprs.add(new VoidLiteralExpr());
@@ -117,7 +117,7 @@ public class SyntaxAbstractionUtil {
     }
 
     public static Expr makeNoParamObjectInstantiation(Span span, String apiName, String objectName, List<StaticArg> staticArgs) {
-        QualifiedIdName name = NodeFactory.makeQualifiedIdName(apiName, objectName);
+        Id name = NodeFactory.makeId(apiName, objectName);
         return NodeFactory.makeFnRef(span, name, staticArgs);
     }
 
@@ -160,7 +160,7 @@ public class SyntaxAbstractionUtil {
         Option<Type> type = Option.<Type>some(new InstantiatedType(NodeFactory.makeQualifiedIdName("List", "List"), staticArgs));
         lhs.add(new LValueBind(span, freshVar, type , false));
 
-        QualifiedIdName name = NodeFactory.makeQualifiedIdName(lastFreshName, "addRight");
+        Id name = NodeFactory.makeId(lastFreshName, "addRight");
         List<Expr> exprs = new LinkedList<Expr>();
         exprs.add(NodeFactory.makeFnRef(span, name));
         List<Expr> args = new LinkedList<Expr>();

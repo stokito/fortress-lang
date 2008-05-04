@@ -22,12 +22,14 @@ import java.util.List;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnRef;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 public class RewriteInPresenceOfTypeInfo extends Rewrite {
 
@@ -45,23 +47,25 @@ public class RewriteInPresenceOfTypeInfo extends Rewrite {
         } else if (node instanceof FnRef) {
 
                 FnRef fr = (FnRef) node;
-                List<QualifiedIdName> fns = fr.getFns();
+                List<Id> fns = fr.getFns();
                 List<StaticArg> sargs = fr.getStaticArgs();
-                QualifiedIdName qidn = fns.get(0);
-                
+                Id idn = fns.get(0);
+                QualifiedIdName qidn = NodeFactory.makeQIdfromId(idn);
+
                 if (fns.size() != 1) {
-                    return bug("Overloaded function in FnRef " + node.toStringVerbose()); 
+                    return bug("Overloaded function in FnRef " + node.toStringVerbose());
                 }
-                
+
                 if (sargs.size() > 0)
                     return visit(new _RewriteFnRef(fr.getSpan(),
                         fr.isParenthesized(),
-                        new VarRef(qidn.getSpan(), qidn),
+                                                   new VarRef(idn.getSpan(),
+                                                              qidn),
                         sargs));
-                
+
                 else
-                    return visit(new VarRef(qidn.getSpan(), fr.isParenthesized(), qidn));
-                
+                    return visit(new VarRef(idn.getSpan(), fr.isParenthesized(), qidn));
+
         } else if (node instanceof InstantiatedType) {
             InstantiatedType it = (InstantiatedType) node;
             if (it.getArgs().size() == 0) {

@@ -328,20 +328,51 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
-    public TypeCheckerResult forId(Id that) {
-        Option<Type> thatType = typeEnv.type(that);
-
-        if (thatType.isSome()) {
-            Type _type = unwrap(thatType);
-            if (_type instanceof LabelType) {
-                return new TypeCheckerResult(that, makeLabelNameError(that));
+    public TypeCheckerResult forId(Id name) {
+        Option<APIName> apiName = name.getApi();
+        if (apiName.isSome()) {
+            APIName api = unwrap(apiName);
+            TypeEnv apiTypeEnv;
+            if (compilationUnit.ast().getName().equals(api)) {
+                apiTypeEnv = typeEnv;
             } else {
-                return new TypeCheckerResult(that, _type);
+                apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
+            }
+
+            Option<Type> type = apiTypeEnv.type(name);
+            if (type.isSome()) {
+                Type _type = unwrap(type);
+                if (_type instanceof NamedType) { // Do we need to qualify?
+                    NamedType _namedType = (NamedType)_type;
+
+                    // Type was declared in that API, so it's not qualified;
+                    // prepend it with the API.
+                    if (_namedType.getName().getApi().isNone()) {
+                        _type = NodeFactory.makeNamedType(api, (NamedType)unwrap(type));
+                    }
+                }
+                return new TypeCheckerResult(name, _type);
+            } else {
+                // Operators are never qualified in source code, so if 'name' is qualified and not
+                // found, it must be a QualifiedIdName, not a OpName.
+                StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", name),
+                                                   name);
+                return new TypeCheckerResult(name, error);
+            }
+        }
+        Option<Type> type = typeEnv.type(name);
+        if (type.isSome()) {
+            Type _type = unwrap(type);
+            if (_type instanceof LabelType) { // then name must be an Id
+                return new TypeCheckerResult(name, makeLabelNameError((Id)name));
+            } else {
+                return new TypeCheckerResult(name, _type);
             }
         } else {
-            StaticError error =
-                TypeError.make(errorMsg("Attempt to reference an unbound identifier: ", that), that);
-            return new TypeCheckerResult(that, error);
+            StaticError error;
+            error = TypeError.make(errorMsg("Variable '", name, "' not found."),
+                                   name);
+            return new TypeCheckerResult(name, error);
         }
     }
 
@@ -611,7 +642,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forDoFront(DoFront that) {
-        TypeCheckerResult bodyResult = 
+        TypeCheckerResult bodyResult =
             that.isAtomic() ? forAtomic(that,
                                         that.getExpr(),
                                         errorMsg("A 'spawn' expression must not occur inside",
@@ -648,6 +679,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         Option<Type> type = (overloadedTypes.isEmpty()) ? Option.<Type>none()
                                                         : wrap(NodeFactory.makeAndType(overloadedTypes));
+
         return TypeCheckerResult.compose(that,
                                          type,
                                          TypeCheckerResult.compose(that, fns_result),
@@ -1103,7 +1135,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forLabel(Label that) {
-        
+
         // Make sure this label isn't already bound
         Option<BindingLookup> b = typeEnv.binding(that.getName());
         if (b.isSome()) {
@@ -1115,7 +1147,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                            that)),
                 bodyResult);
         }
-        
+
         // Check for nested label of same name
         if (labelExitTypes.containsKey(that.getName())) {
             TypeCheckerResult bodyResult = that.getBody().accept(this);
@@ -1125,10 +1157,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                            that)),
                 bodyResult);
         }
-        
+
         // Initialize the set of exit types
         labelExitTypes.put(that.getName(), some((Set<Type>)new HashSet<Type>()));
-        
+
         // Extend the checker with this label name in the type env
         TypeChecker newChecker = this.extend(Collections.singletonList(NodeFactory.makeLValue(that.getName(), Types.LABEL)));
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
@@ -1144,7 +1176,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 labelType = some(NodeFactory.makeOrType(_exitTypes));
             }
         }
-        
+
         // Destroy the mappings for this label
         labelExitTypes.remove(that.getName());
         return TypeCheckerResult.compose(that, labelType, bodyResult);
@@ -1188,7 +1220,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         return TypeCheckerResult.compose(that, Types.BOTTOM, withResult);
     }
-    
+
     public TypeCheckerResult forSpawn(Spawn that) {
         // Create a new type checker that conceals any labels
         TypeChecker newChecker = this.extendWithout(labelExitTypes.keySet());
@@ -1201,13 +1233,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return TypeCheckerResult.compose(that, bodyResult);
         }
     }
-    
+
     public TypeCheckerResult forAtomicExpr(AtomicExpr that) {
         return forAtomic(that,
                          that.getExpr(),
                          errorMsg("A 'spawn' expression must not occur inside an 'atomic' expression."));
     }
-    
+
     private TypeCheckerResult forAtomic(Node that, Expr body, final String errorMsg) {
         TypeChecker newChecker = new TypeChecker(table,
                                                  staticParamEnv,
