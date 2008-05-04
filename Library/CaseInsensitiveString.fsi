@@ -27,6 +27,7 @@ value object CaseInsensitiveString(s:String)
                   ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
     (** %toString% returns the underlying non-case-insensitive %String%, %s%. **)
     getter toString() : String
+    opr juxtaposition(self, other:CaseInsensitiveString): CaseInsensitiveString
 end
 
 end

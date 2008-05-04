@@ -43,6 +43,8 @@ value object CaseInsensitiveString(s:String)
         of the string, returning the empty string, in order to permit some convenient
         string-trimming idioms. **)
     opr[r0:Range[\ZZ32\]] : String =  CaseInsensitiveString(s[r0])
+    opr juxtaposition(self, other:CaseInsensitiveString): CaseInsensitiveString =
+        CaseInsensitiveString(s other)
 end
 
 end
