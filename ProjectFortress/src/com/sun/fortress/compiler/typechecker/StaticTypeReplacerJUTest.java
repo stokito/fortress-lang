@@ -30,7 +30,7 @@ import com.sun.fortress.compiler.index.*;
 
 import static java.lang.Boolean.TRUE;
 import static java.lang.Boolean.FALSE;
-import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 
 public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {

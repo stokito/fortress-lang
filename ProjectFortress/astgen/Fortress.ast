@@ -197,10 +197,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * trait declaration in components or APIs
          */
-        abstract TraitAbsDeclOrDecl(List<TraitType> excludes
-                                        = Collections.<TraitType>emptyList(),
-                                    Option<List<TraitType>> comprises
-                                        = Option.<List<TraitType>>none(),
+        abstract TraitAbsDeclOrDecl(List<BaseType> excludes
+                                        = Collections.<BaseType>emptyList(),
+                                    Option<List<BaseType>> comprises
+                                        = Option.<List<BaseType>>none(),
                                     List<? extends AbsDeclOrDecl> decls);
             /**
              * trait declaration in APIs
@@ -251,8 +251,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
                                          = Option.<List<Param>>none(),
-                                     Option<List<TraitType>> throwsClause
-                                         = Option.<List<TraitType>>none(),
+                                     Option<List<BaseType>> throwsClause
+                                         = Option.<List<BaseType>>none(),
                                      Contract contract = new Contract(),
                                      List<? extends AbsDeclOrDecl> decls)
                                     implements GenericAbsDeclOrDeclWithParams;
@@ -367,8 +367,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              List<Param> params,
                              Option<Type> returnType
                                  = Option.<Type>none(),
-                             Option<List<TraitType>> throwsClause
-                                 = Option.<List<TraitType>>none(),
+                             Option<List<BaseType>> throwsClause
+                                 = Option.<List<BaseType>>none(),
                              WhereClause where
                                  = FortressUtil.emptyWhereClause(),
                              Contract contract = new Contract(),
@@ -496,9 +496,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * grammar member (nonterminal or terminal) declaration
      */
     abstract GrammarMemberDecl(Id name,
-                            Option<TraitType> type,
-                            Option<? extends Modifier> modifier
-                            List<Pair<Id,Type>> params) implements AbsDecl;
+                               Option<BaseType> type,
+                               Option<? extends Modifier> modifier
+                                   List<Pair<Id,Type>> params) implements AbsDecl;
         /**
          * nonterminal declaration
          */
@@ -784,7 +784,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *       end
              */
             Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
-                List<TraitType> forbid = Collections.<TraitType>emptyList(),
+                List<BaseType> forbid = Collections.<BaseType>emptyList(),
                 Option<Block> finallyClause = Option.<Block>none());
             /**
              * labeled expression: tuple expression or argument expression
@@ -902,8 +902,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                List<Param> params,
                Option<Type> returnType = Option.<Type>none(),
                WhereClause where = FortressUtil.emptyWhereClause(),
-               Option<List<TraitType>> throwsClause
-                   = Option.<List<TraitType>>none(),
+               Option<List<BaseType>> throwsClause
+                   = Option.<List<BaseType>>none(),
                Expr body)
               implements Applicable;
         /**
@@ -1116,7 +1116,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * internal node created by static analysis
                      * after inferring the implicit coercion invocations
                      */
-                    CoercionInvocation(TraitType type,
+                    CoercionInvocation(BaseType type,
                                        List<StaticArg> staticArgs
                                            = Collections.<StaticArg>emptyList(),
                                        Expr arg);
@@ -1226,13 +1226,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract NonArrowType();
             /**
-             * bottom type
-             */
-            BottomType();
-            /**
              * trait type
              */
-            abstract TraitType();
+            abstract BaseType();
+                /**
+                 * any type
+                 */
+                AnyType();
+                /**
+                 * bottom type
+                 */
+                BottomType();
                 /**
                  * named type
                  */
@@ -1548,7 +1552,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * Extends ::= extends TraitTypes
          * e.g.) T extends Object
          */
-        WhereType(List<TraitType> supers);
+        WhereType(List<BaseType> supers);
         /**
          * nat parameter declared in where clauses
          * WhereBinding ::= nat Id
@@ -1582,7 +1586,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * WhereConstraint ::= Id Extends
          * e.g.) T extends Object
          */
-        WhereExtends(Id name, List<TraitType> supers);
+        WhereExtends(Id name, List<BaseType> supers);
         /**
          * type alias declaration
          * TypeAlias ::= type Id StaticParams? = Type
@@ -1806,8 +1810,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             * StaticParam ::= Id Extends? (absorbs unit)?
             * e.g.) EltType extends Number absorbs unit
             */
-            TypeParam(List<TraitType> extendsClause =
-                          Collections.<TraitType>emptyList(),
+            TypeParam(List<BaseType> extendsClause =
+                          Collections.<BaseType>emptyList(),
                       boolean absorbs = false);
            /**
             * unit parameter
@@ -1922,7 +1926,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * CatchClause ::= TraitType => BlockElems
      * e.g.) IOException => throw ForbiddenException(e)
      */
-    CatchClause(TraitType match, Block body);
+    CatchClause(BaseType match, Block body);
     /**
      * block expression used in do expressions
      * DoFront ::= (at Expr)? atomic? do BlockElems?
@@ -1984,7 +1988,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * trait type with a where clause used in extends clauses
      * TraitTypeWhere ::= TraitType Where?
      */
-    TraitTypeWhere(TraitType type, WhereClause where);
+    TraitTypeWhere(BaseType type, WhereClause where);
     /**
      * array dimensionality
      * ArraySize ::= ExtentRange(, ExtentRange)*

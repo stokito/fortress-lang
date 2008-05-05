@@ -31,7 +31,7 @@ import com.sun.fortress.useful.*;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
-import com.sun.fortress.compiler.typechecker.Types;
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -47,7 +47,7 @@ public class NodeFactory {
             List<StaticParam> staticParams,
             List<Param> params,
             Option<Type> returnType,
-            Option<List<TraitType>> throwss,
+            Option<List<BaseType>> throwss,
             WhereClause where,
             Contract contract) {
         String selfName;
@@ -258,7 +258,7 @@ public class NodeFactory {
 
     public static ArrowType makeArrowType(Span span, Type domain,
             Type range,
-            Option<List<TraitType>> throws_) {
+            Option<List<BaseType>> throws_) {
         Option<List<Type>> throwsAsTypeList =
             throws_.isSome() ?
                     Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
@@ -275,7 +275,7 @@ public class NodeFactory {
             List<StaticParam> staticParams,
             Type domain,
             Type range,
-            Option<List<TraitType>> throws_,
+            Option<List<BaseType>> throws_,
             WhereClause where) {
         if (staticParams.isEmpty() && where.getConstraints().isEmpty() && where.getBindings().isEmpty()) {
             return makeArrowType(span, domain, range, throws_);
@@ -294,7 +294,7 @@ public class NodeFactory {
             Type domain,
             Type range) {
         if (staticParams.isEmpty()) {
-            return makeArrowType(span, domain, range, Option.<List<TraitType>>none());
+            return makeArrowType(span, domain, range, Option.<List<BaseType>>none());
         }
         return new _RewriteGenericArrowType(span, inArrowType(domain), range,
                 Option.<List<Type>>none(), staticParams, new WhereClause());
@@ -533,7 +533,7 @@ public class NodeFactory {
             List<StaticParam> staticParams,
             List<Param> params,
             Option<Type> returnType,
-            Option<List<TraitType>> throwss,
+            Option<List<BaseType>> throwss,
             WhereClause where, Contract contract,
             Expr body) {
         String selfName;
@@ -681,7 +681,7 @@ public class NodeFactory {
             List<StaticParam> stParams,
             Option<List<Param>> params,
             List<TraitTypeWhere> traits,
-            Option<List<TraitType>> throws_,
+            Option<List<BaseType>> throws_,
             WhereClause where,
             Contract contract) {
         return new ObjectDecl(new Span(), mods, name, stParams, traits, where,
@@ -806,12 +806,12 @@ public class NodeFactory {
     public static TypeParam makeTypeParam(String name) {
         Span s = new Span();
         return new TypeParam(s, new Id(s, name),
-                Collections.<TraitType>emptyList(), false);
+                Collections.<BaseType>emptyList(), false);
     }
 
     public static TypeParam makeTypeParam(String name, String sup) {
         Span s = new Span();
-        List<TraitType> supers = new ArrayList<TraitType>(1);
+        List<BaseType> supers = new ArrayList<BaseType>(1);
         supers.add(makeIdType(sup));
         return new TypeParam(s, new Id(s, name), supers);
     }

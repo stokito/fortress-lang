@@ -191,8 +191,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    v.recurOnListOfStaticParam(that.getStaticParams()),
                                    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                    (WhereClause) that.getWhere().accept(v),
-                                   v.recurOnListOfTraitType(that.getExcludes()),
-                                   v.recurOnOptionOfListOfTraitType(that.getComprises()),
+                                   v.recurOnListOfBaseType(that.getExcludes()),
+                                   v.recurOnOptionOfListOfBaseType(that.getComprises()),
                                    v.recurOnListOfAbsDecl(that.getDecls()));
     }
 
@@ -214,8 +214,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                 v.recurOnListOfStaticParam(that.getStaticParams()),
                                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                 (WhereClause) that.getWhere().accept(v),
-                                v.recurOnListOfTraitType(that.getExcludes()),
-                                v.recurOnOptionOfListOfTraitType(that.getComprises()),
+                                v.recurOnListOfBaseType(that.getExcludes()),
+                                v.recurOnOptionOfListOfBaseType(that.getComprises()),
                                 v.recurOnListOfDecl(that.getDecls()));
     }
 
@@ -241,7 +241,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                    (WhereClause) that.getWhere().accept(v),
                                    v.recurOnOptionOfListOfParam(that.getParams()),
-                                   v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                                   v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                                    (Contract) that.getContract().accept(v),
                                    v.recurOnListOfAbsDecl(that.getDecls()));
     }
@@ -267,7 +267,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                    (WhereClause) that.getWhere().accept(v),
                                    v.recurOnOptionOfListOfParam(that.getParams()),
-                                   v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                                   v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                                    (Contract) that.getContract().accept(v),
                                    v.recurOnListOfDecl(that.getDecls()));
     }
@@ -291,7 +291,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                 v.recurOnListOfStaticParam(that.getStaticParams()),
                                 v.recurOnListOfParam(that.getParams()),
                                 v.recurOnOptionOfType(that.getReturnType()),
-                                v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                                 (WhereClause) that.getWhere().accept(v),
                                 (Contract) that.getContract().accept(v));
     }
@@ -315,7 +315,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                             v.recurOnListOfStaticParam(that.getStaticParams()),
                             v.recurOnListOfParam(that.getParams()),
                             v.recurOnOptionOfType(that.getReturnType()),
-                            v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                            v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                             (WhereClause) that.getWhere().accept(v),
                             (Contract) that.getContract().accept(v),
                             (Expr) that.getBody().accept(v));
@@ -338,7 +338,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                              v.recurOnListOfParam(that.getParams()),
                              v.recurOnOptionOfType(that.getReturnType()),
                              (WhereClause) that.getWhere().accept(v),
-                             v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                             v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                              (Expr) that.getBody().accept(v));
     }
 

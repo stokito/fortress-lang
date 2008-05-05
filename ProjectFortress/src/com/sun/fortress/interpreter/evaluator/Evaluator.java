@@ -137,7 +137,7 @@ import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
 import com.sun.fortress.nodes.ArgExpr;
@@ -1659,7 +1659,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 Id name = _catch.getName();
                 List<CatchClause> clauses = _catch.getClauses();
                 for (CatchClause clause : clauses) {
-                    TraitType match = clause.getMatch();
+                    BaseType match = clause.getMatch();
                     Block catchBody = clause.getBody();
                     FType foo = EvalType.getFType(match, e);
                     if (excType.subtypeOf(foo)) {
@@ -1673,7 +1673,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     }
                 }
             }
-            for (TraitType forbidType : x.getForbid()) {
+            for (BaseType forbidType : x.getForbid()) {
                 if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
                   FType ftype = e.getTypeNull(WellKnownNames.forbiddenException);
                   List<FValue> args = new ArrayList<FValue>();

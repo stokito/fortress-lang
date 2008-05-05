@@ -19,7 +19,7 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 
 import java.util.List;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -28,7 +28,7 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public abstract class JuxtInfix extends Object implements InfixOpExpr {
    private final Op _op;
-   private final Option<List<TraitType>> _throws;
+   private final Option<List<BaseType>> _throws;
    private int _hashCode;
    private boolean _hasHashCode = false;
 
@@ -43,10 +43,10 @@ public abstract class JuxtInfix extends Object implements InfixOpExpr {
          throw new java.lang.IllegalArgumentException("Parameter 'op' to the JuxtInfix constructor was null. This class may not have null field values.");
       }
       _op = in_op;
-      _throws = Option.<List<TraitType>>none();
+      _throws = Option.<List<BaseType>>none();
    }
 
-   public JuxtInfix(Op in_op, Option<List<TraitType>> in_throws) {
+   public JuxtInfix(Op in_op, Option<List<BaseType>> in_throws) {
       super();
 
       if (in_op == null) {
@@ -60,7 +60,7 @@ public abstract class JuxtInfix extends Object implements InfixOpExpr {
    }
 
    public Op getOp() { return _op; }
-   public Option<List<TraitType>> getThrows() { return _throws; }
+   public Option<List<BaseType>> getThrows() { return _throws; }
 
    public abstract <RetType> RetType accept(OpExprVisitor<RetType> visitor);
    public abstract void accept(OpExprVisitor_void visitor);

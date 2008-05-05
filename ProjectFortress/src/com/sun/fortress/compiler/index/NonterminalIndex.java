@@ -19,7 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.useful.Pair;
@@ -28,43 +28,43 @@ import edu.rice.cs.plt.tuple.Option;
 
 public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
-	private Option<T> ast;
+ private Option<T> ast;
 
-	public NonterminalIndex(Option<T> ast) {
-		this.ast = ast;
-	}
+ public NonterminalIndex(Option<T> ast) {
+  this.ast = ast;
+ }
 
-	public Option<T> ast() {
-		return this.ast;
-	}
+ public Option<T> ast() {
+  return this.ast;
+ }
 
-	public Id getName() {
-		if (this.ast().isSome()) {
+ public Id getName() {
+  if (this.ast().isSome()) {
                     return Option.unwrap(this.ast()).getName();
-		}
-		throw new RuntimeException("Production index without ast and thus no name");
-	}
+  }
+  throw new RuntimeException("Production index without ast and thus no name");
+ }
 
-	public TraitType getType() {
-		if (this.ast().isSome()) {
-			Option<TraitType> type = Option.unwrap(this.ast()).getType();
-			if (type.isSome()) {
-				return Option.unwrap(type);
-			}
-			throw new RuntimeException("Production index without type, type inference is not implemented yet!");
-		}
-		throw new RuntimeException("Production index without ast and thus no type");
-	}
+ public BaseType getType() {
+  if (this.ast().isSome()) {
+   Option<BaseType> type = Option.unwrap(this.ast()).getType();
+   if (type.isSome()) {
+    return Option.unwrap(type);
+   }
+   throw new RuntimeException("Production index without type, type inference is not implemented yet!");
+  }
+  throw new RuntimeException("Production index without ast and thus no type");
+ }
 
-	public T getAst() {
-		if (this.ast().isNone()) {
-			throw new RuntimeException("Ast not found.");
-		}
-		return Option.unwrap(this.ast);
-	}
+ public T getAst() {
+  if (this.ast().isNone()) {
+   throw new RuntimeException("Ast not found.");
+  }
+  return Option.unwrap(this.ast);
+ }
 
-	public boolean isPrivate() {
-		return getAst().getModifier().isSome();
-	}
+ public boolean isPrivate() {
+  return getAst().getModifier().isSome();
+ }
 
 }

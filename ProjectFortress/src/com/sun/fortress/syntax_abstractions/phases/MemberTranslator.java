@@ -35,7 +35,7 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
@@ -44,118 +44,118 @@ import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
 
 public class MemberTranslator {
-	private List<Production> productions;
-	private Collection<StaticError> errors;
-	private GrammarEnv grammarEnv;
+ private List<Production> productions;
+ private Collection<StaticError> errors;
+ private GrammarEnv grammarEnv;
 
-	public class Result extends StaticPhaseResult {
+ public class Result extends StaticPhaseResult {
 
-		public Result(Iterable<? extends StaticError> errors) {
-			super(errors);
-		}
+  public Result(Iterable<? extends StaticError> errors) {
+   super(errors);
+  }
 
-		public Result(Collection<StaticError> errors) {
-			super(errors);
-		}
+  public Result(Collection<StaticError> errors) {
+   super(errors);
+  }
 
-		public List<Production> productions() { return productions; }
+  public List<Production> productions() { return productions; }
 
-	}
+ }
 
-	private MemberTranslator(GrammarEnv grammarEnv) {
-		this.productions = new LinkedList<Production>();
-		this.errors = new LinkedList<StaticError>();
-		this.grammarEnv = grammarEnv;
-	}
+ private MemberTranslator(GrammarEnv grammarEnv) {
+  this.productions = new LinkedList<Production>();
+  this.errors = new LinkedList<StaticError>();
+  this.grammarEnv = grammarEnv;
+ }
 
-	/**
-	 * Translate a collection of grammar members to Rats! productions
-	 * @param
-	 * @param env
-	 * @return
-	 */
-	public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
-		return new MemberTranslator(new GrammarEnv(members)).doTranslate(members);
-	}
+ /**
+  * Translate a collection of grammar members to Rats! productions
+  * @param
+  * @param env
+  * @return
+  */
+ public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+  return new MemberTranslator(new GrammarEnv(members)).doTranslate(members);
+ }
 
-	private Result doTranslate(
-			Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+ private Result doTranslate(
+   Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 
-		for (NonterminalIndex<? extends GrammarMemberDecl> member: members) {
-			this.translate(member);
-		}
+  for (NonterminalIndex<? extends GrammarMemberDecl> member: members) {
+   this.translate(member);
+  }
 
-		return new Result(errors);
-	}
+  return new Result(errors);
+ }
 
-	/**
-	 * Translate a grammar member to a Rats! production
-	 * @param member
-	 * @return
-	 */
-	private Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
-		Collection<StaticError> errors = new LinkedList<StaticError>();
-		NonterminalTranslator nt = new NonterminalTranslator(this.grammarEnv);
-		productions.add(member.getAst().accept(nt));
-		errors.addAll(nt.errors());
-		return new Result(errors);
-	}
+ /**
+  * Translate a grammar member to a Rats! production
+  * @param member
+  * @return
+  */
+ private Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
+  Collection<StaticError> errors = new LinkedList<StaticError>();
+  NonterminalTranslator nt = new NonterminalTranslator(this.grammarEnv);
+  productions.add(member.getAst().accept(nt));
+  errors.addAll(nt.errors());
+  return new Result(errors);
+ }
 
 
 
-	private static class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
-		private Collection<StaticError> errors;
-		private GrammarEnv grammarEnv; 
+ private static class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
+  private Collection<StaticError> errors;
+  private GrammarEnv grammarEnv; 
 
-		public NonterminalTranslator(GrammarEnv grammarEnv) {
-			this.errors = new LinkedList<StaticError>();
-			this.grammarEnv = grammarEnv;
-		}
+  public NonterminalTranslator(GrammarEnv grammarEnv) {
+   this.errors = new LinkedList<StaticError>();
+   this.grammarEnv = grammarEnv;
+  }
 
-		public Collection<StaticError> errors() {
-			return this.errors;
-		}
+  public Collection<StaticError> errors() {
+   return this.errors;
+  }
 
-		@Override
-		public Production forNonterminalDef(NonterminalDef that) {
-			List<Attribute> attr = new LinkedList<Attribute>();
-			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
-			String name = that.getName().toString();
+  @Override
+  public Production forNonterminalDef(NonterminalDef that) {
+   List<Attribute> attr = new LinkedList<Attribute>();
+   BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
+   String name = that.getName().toString();
 
-			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that, this.grammarEnv); 
-			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
-			List<Sequence> sequence = sdtr.alternatives();
+   SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that, this.grammarEnv); 
+   if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
+   List<Sequence> sequence = sdtr.alternatives();
 
-			Production p = new FullProduction(attr, new FortressTypeToJavaType().analyze(type),
-					new NonTerminal(name),
-					new OrderedChoice(sequence));
-			p.name = new NonTerminal(name);
-			return p;
-		}
+   Production p = new FullProduction(attr, new FortressTypeToJavaType().analyze(type),
+     new NonTerminal(name),
+     new OrderedChoice(sequence));
+   p.name = new NonTerminal(name);
+   return p;
+  }
 
-		@Override
-		public Production forNonterminalExtensionDef(NonterminalExtensionDef that) {
-			throw new RuntimeException("Nonterminal extension definition should not appear"+that);
-		}
+  @Override
+  public Production forNonterminalExtensionDef(NonterminalExtensionDef that) {
+   throw new RuntimeException("Nonterminal extension definition should not appear"+that);
+  }
 
-		@Override
-		public Production for_TerminalDef(_TerminalDef that) {
-			List<Attribute> attr = new LinkedList<Attribute>();
-			TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
-			String name = that.getName().toString();
+  @Override
+  public Production for_TerminalDef(_TerminalDef that) {
+   List<Attribute> attr = new LinkedList<Attribute>();
+   BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
+   String name = that.getName().toString();
 
-			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that, this.grammarEnv); 
-			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
-			List<Sequence> sequence = sdtr.alternatives();
+   SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that, this.grammarEnv); 
+   if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
+   List<Sequence> sequence = sdtr.alternatives();
 
-			Production p = new FullProduction(attr,
-											  type.toString(),
-											  new NonTerminal(name),
-											  new OrderedChoice(sequence));
-			p.name = new NonTerminal(name);
-			return p;
-		}
+   Production p = new FullProduction(attr,
+             type.toString(),
+             new NonTerminal(name),
+             new OrderedChoice(sequence));
+   p.name = new NonTerminal(name);
+   return p;
+  }
 
-	}
+ }
 
 }

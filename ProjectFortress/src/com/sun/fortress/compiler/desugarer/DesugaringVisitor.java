@@ -231,7 +231,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<TraitTypeWhere> extendsClause_result = newVisitor.recurOnListOfTraitTypeWhere(that.getExtendsClause());
         WhereClause where_result = (WhereClause) that.getWhere().accept(newVisitor);
         Option<List<Param>> params_result = mangleParams(newVisitor.recurOnOptionOfListOfParam(that.getParams()));
-        Option<List<TraitType>> throwsClause_result = newVisitor.recurOnOptionOfListOfTraitType(that.getThrowsClause());
+        Option<List<BaseType>> throwsClause_result = newVisitor.recurOnOptionOfListOfBaseType(that.getThrowsClause());
         Contract contract_result = (Contract) that.getContract().accept(newVisitor);
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
@@ -248,8 +248,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<StaticParam> staticParams_result = newVisitor.recurOnListOfStaticParam(that.getStaticParams());
         List<TraitTypeWhere> extendsClause_result = newVisitor.recurOnListOfTraitTypeWhere(that.getExtendsClause());
         WhereClause where_result = (WhereClause) that.getWhere().accept(newVisitor);
-        List<TraitType> excludes_result = newVisitor.recurOnListOfTraitType(that.getExcludes());
-        Option<List<TraitType>> comprises_result = newVisitor.recurOnOptionOfListOfTraitType(that.getComprises());
+        List<BaseType> excludes_result = newVisitor.recurOnListOfBaseType(that.getExcludes());
+        Option<List<BaseType>> comprises_result = newVisitor.recurOnOptionOfListOfBaseType(that.getComprises());
         List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
         decls_result.addAll(makeGetters(Option.<List<Param>>none(), that.getDecls()));
@@ -303,28 +303,28 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new Export(that.getSpan(), apis_result);
 //    }
 //
-//    public Node forAbsTraitDeclOnly(AbsTraitDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, List<TraitType> excludes_result, Option<List<TraitType>> comprises_result, List<AbsDecl> decls_result) {
+//    public Node forAbsTraitDeclOnly(AbsTraitDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, List<BaseType> excludes_result, Option<List<BaseType>> comprises_result, List<AbsDecl> decls_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getExtendsClause() == extendsClause_result && that.getWhere() == where_result && that.getExcludes() == excludes_result && that.getComprises() == comprises_result && that.getDecls() == decls_result)
 //            return that;
 //        else
 //            return new AbsTraitDecl(that.getSpan(), mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
 //    }
 //
-//    public Node forTraitDeclOnly(TraitDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, List<TraitType> excludes_result, Option<List<TraitType>> comprises_result, List<Decl> decls_result) {
+//    public Node forTraitDeclOnly(TraitDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, List<BaseType> excludes_result, Option<List<BaseType>> comprises_result, List<Decl> decls_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getExtendsClause() == extendsClause_result && that.getWhere() == where_result && that.getExcludes() == excludes_result && that.getComprises() == comprises_result && that.getDecls() == decls_result)
 //            return that;
 //        else
 //            return new TraitDecl(that.getSpan(), mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
 //    }
 //
-//    public Node forAbsObjectDeclOnly(AbsObjectDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, Option<List<Param>> params_result, Option<List<TraitType>> throwsClause_result, Contract contract_result, List<AbsDecl> decls_result) {
+//    public Node forAbsObjectDeclOnly(AbsObjectDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, Option<List<Param>> params_result, Option<List<BaseType>> throwsClause_result, Contract contract_result, List<AbsDecl> decls_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getExtendsClause() == extendsClause_result && that.getWhere() == where_result && that.getParams() == params_result && that.getThrowsClause() == throwsClause_result && that.getContract() == contract_result && that.getDecls() == decls_result)
 //            return that;
 //        else
 //            return new AbsObjectDecl(that.getSpan(), mods_result, name_result, staticParams_result, extendsClause_result, where_result, params_result, throwsClause_result, contract_result, decls_result);
 //    }
 //
-//    public Node forObjectDeclOnly(ObjectDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, Option<List<Param>> params_result, Option<List<TraitType>> throwsClause_result, Contract contract_result, List<Decl> decls_result) {
+//    public Node forObjectDeclOnly(ObjectDecl that, List<Modifier> mods_result, Id name_result, List<StaticParam> staticParams_result, List<TraitTypeWhere> extendsClause_result, WhereClause where_result, Option<List<Param>> params_result, Option<List<BaseType>> throwsClause_result, Contract contract_result, List<Decl> decls_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getExtendsClause() == extendsClause_result && that.getWhere() == where_result && that.getParams() == params_result && that.getThrowsClause() == throwsClause_result && that.getContract() == contract_result && that.getDecls() == decls_result)
 //            return that;
 //        else
@@ -357,14 +357,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new UnpastingSplit(that.getSpan(), elems_result, that.getDim());
 //    }
 //
-//    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<TraitType>> throwsClause_result, WhereClause where_result, Contract contract_result) {
+//    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, WhereClause where_result, Contract contract_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getParams() == params_result && that.getReturnType() == returnType_result && that.getThrowsClause() == throwsClause_result && that.getWhere() == where_result && that.getContract() == contract_result)
 //            return that;
 //        else
 //            return new AbsFnDecl(that.getSpan(), mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result, that.getSelfName());
 //    }
 //
-//    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<TraitType>> throwsClause_result, WhereClause where_result, Contract contract_result, Expr body_result) {
+//    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, WhereClause where_result, Contract contract_result, Expr body_result) {
 //        if (that.getMods() == mods_result && that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getParams() == params_result && that.getReturnType() == returnType_result && that.getThrowsClause() == throwsClause_result && that.getWhere() == where_result && that.getContract() == contract_result && that.getBody() == body_result)
 //            return that;
 //        else
@@ -425,20 +425,20 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new GrammarDef(that.getSpan(), name_result, extends_result, members_result);
 //    }
 //
-//    public Node forNonterminalDefOnly(NonterminalDef that, QualifiedIdName name_result, Option<TraitType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
+//    public Node forNonterminalDefOnly(NonterminalDef that, QualifiedIdName name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
 //        if (that.getName() == name_result && that.getType() == type_result && that.getModifier() == modifier_result && that.getSyntaxDefs() == syntaxDefs_result)
 //            return that;
 //        else return new NonterminalDef(that.getSpan(), name_result, type_result, modifier_result, syntaxDefs_result);
 //    }
 //
-//    public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that, QualifiedIdName name_result, Option<TraitType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
+//    public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that, QualifiedIdName name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
 //        if (that.getName() == name_result && that.getType() == type_result && that.getModifier() == modifier_result && that.getSyntaxDefs() == syntaxDefs_result)
 //            return that;
 //        else
 //            return new NonterminalExtensionDef(that.getSpan(), name_result, type_result, modifier_result, syntaxDefs_result);
 //    }
 //
-//    public Node for_TerminalDefOnly(_TerminalDef that, QualifiedIdName name_result, Option<TraitType> type_result, Option<? extends Modifier> modifier_result, SyntaxDef syntaxDef_result) {
+//    public Node for_TerminalDefOnly(_TerminalDef that, QualifiedIdName name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, SyntaxDef syntaxDef_result) {
 //        if (that.getName() == name_result && that.getType() == type_result && that.getModifier() == modifier_result && that.getSyntaxDef() == syntaxDef_result)
 //            return that;
 //        else return new _TerminalDef(that.getSpan(), name_result, type_result, modifier_result, syntaxDef_result);
@@ -602,7 +602,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //            return new _RewriteObjectExpr(that.getSpan(), that.isParenthesized(), extendsClause_result, decls_result, that.getImplicitTypeParameters(), that.getGenSymName(), staticParams_result, staticArgs_result, params_result);
 //    }
 //
-//    public Node forTryOnly(Try that, Block body_result, Option<Catch> catchClause_result, List<TraitType> forbid_result, Option<Block> finallyClause_result) {
+//    public Node forTryOnly(Try that, Block body_result, Option<Catch> catchClause_result, List<BaseType> forbid_result, Option<Block> finallyClause_result) {
 //        if (that.getBody() == body_result && that.getCatchClause() == catchClause_result && that.getForbid() == forbid_result && that.getFinallyClause() == finallyClause_result)
 //            return that;
 //        else
@@ -669,7 +669,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new TryAtomicExpr(that.getSpan(), that.isParenthesized(), expr_result);
 //    }
 //
-//    public Node forFnExprOnly(FnExpr that, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, WhereClause where_result, Option<List<TraitType>> throwsClause_result, Expr body_result) {
+//    public Node forFnExprOnly(FnExpr that, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, WhereClause where_result, Option<List<BaseType>> throwsClause_result, Expr body_result) {
 //        if (that.getName() == name_result && that.getStaticParams() == staticParams_result && that.getParams() == params_result && that.getReturnType() == returnType_result && that.getWhere() == where_result && that.getThrowsClause() == throwsClause_result && that.getBody() == body_result)
 //            return that;
 //        else
@@ -771,7 +771,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new ChainExpr(that.getSpan(), that.isParenthesized(), first_result, that.getLinks());
 //    }
 //
-//    public Node forCoercionInvocationOnly(CoercionInvocation that, TraitType type_result, List<StaticArg> staticArgs_result, Expr arg_result) {
+//    public Node forCoercionInvocationOnly(CoercionInvocation that, BaseType type_result, List<StaticArg> staticArgs_result, Expr arg_result) {
 //        if (that.getType() == type_result && that.getStaticArgs() == staticArgs_result && that.getArg() == arg_result)
 //            return that;
 //        else
@@ -1040,7 +1040,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new WhereClause(that.getSpan(), bindings_result, constraints_result);
 //    }
 //
-//    public Node forWhereTypeOnly(WhereType that, Id name_result, List<TraitType> supers_result) {
+//    public Node forWhereTypeOnly(WhereType that, Id name_result, List<BaseType> supers_result) {
 //        if (that.getName() == name_result && that.getSupers() == supers_result) return that;
 //        else return new WhereType(that.getSpan(), name_result, supers_result);
 //    }
@@ -1065,7 +1065,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new WhereUnit(that.getSpan(), name_result);
 //    }
 //
-//    public Node forWhereExtendsOnly(WhereExtends that, Id name_result, List<TraitType> supers_result) {
+//    public Node forWhereExtendsOnly(WhereExtends that, Id name_result, List<BaseType> supers_result) {
 //        if (that.getName() == name_result && that.getSupers() == supers_result) return that;
 //        else return new WhereExtends(that.getSpan(), name_result, supers_result);
 //    }
@@ -1227,7 +1227,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new NatParam(that.getSpan(), name_result);
 //    }
 //
-//    public Node forTypeParamOnly(TypeParam that, Id name_result, List<TraitType> extendsClause_result) {
+//    public Node forTypeParamOnly(TypeParam that, Id name_result, List<BaseType> extendsClause_result) {
 //        if (that.getName() == name_result && that.getExtendsClause() == extendsClause_result) return that;
 //        else return new TypeParam(that.getSpan(), name_result, extendsClause_result, that.isAbsorbs());
 //    }
@@ -1291,7 +1291,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new Catch(that.getSpan(), name_result, clauses_result);
 //    }
 //
-//    public Node forCatchClauseOnly(CatchClause that, TraitType match_result, Block body_result) {
+//    public Node forCatchClauseOnly(CatchClause that, BaseType match_result, Block body_result) {
 //        if (that.getMatch() == match_result && that.getBody() == body_result) return that;
 //        else return new CatchClause(that.getSpan(), match_result, body_result);
 //    }
@@ -1336,7 +1336,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new KeywordType(that.getSpan(), name_result, type_result);
 //    }
 //
-//    public Node forTraitTypeWhereOnly(TraitTypeWhere that, TraitType type_result, WhereClause where_result) {
+//    public Node forTraitTypeWhereOnly(TraitTypeWhere that, BaseType type_result, WhereClause where_result) {
 //        if (that.getType() == type_result && that.getWhere() == where_result) return that;
 //        else return new TraitTypeWhere(that.getSpan(), type_result, where_result);
 //    }
@@ -1453,8 +1453,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
-//        List<TraitType> excludes_result = recurOnListOfTraitType(that.getExcludes());
-//        Option<List<TraitType>> comprises_result = recurOnOptionOfListOfTraitType(that.getComprises());
+//        List<BaseType> excludes_result = recurOnListOfBaseType(that.getExcludes());
+//        Option<List<BaseType>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
 //        List<AbsDecl> decls_result = recurOnListOfAbsDecl(that.getDecls());
 //        return forAbsTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
 //    }
@@ -1465,8 +1465,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
-//        List<TraitType> excludes_result = recurOnListOfTraitType(that.getExcludes());
-//        Option<List<TraitType>> comprises_result = recurOnOptionOfListOfTraitType(that.getComprises());
+//        List<BaseType> excludes_result = recurOnListOfBaseType(that.getExcludes());
+//        Option<List<BaseType>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
 //        List<Decl> decls_result = recurOnListOfDecl(that.getDecls());
 //        return forTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
 //    }
@@ -1478,7 +1478,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
 //        Option<List<Param>> params_result = recurOnOptionOfListOfParam(that.getParams());
-//        Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
+//        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 //        Contract contract_result = (Contract) that.getContract().accept(this);
 //        List<AbsDecl> decls_result = recurOnListOfAbsDecl(that.getDecls());
 //        return forAbsObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, params_result, throwsClause_result, contract_result, decls_result);
@@ -1491,7 +1491,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
 //        Option<List<Param>> params_result = recurOnOptionOfListOfParam(that.getParams());
-//        Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
+//        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 //        Contract contract_result = (Contract) that.getContract().accept(this);
 //        List<Decl> decls_result = recurOnListOfDecl(that.getDecls());
 //        return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, params_result, throwsClause_result, contract_result, decls_result);
@@ -1532,7 +1532,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<Param> params_result = recurOnListOfParam(that.getParams());
 //        Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
-//        Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
+//        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
 //        Contract contract_result = (Contract) that.getContract().accept(this);
 //        return forAbsFnDeclOnly(that, mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result);
@@ -1544,7 +1544,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<Param> params_result = recurOnListOfParam(that.getParams());
 //        Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
-//        Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
+//        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
 //        Contract contract_result = (Contract) that.getContract().accept(this);
 //        Expr body_result = (Expr) that.getBody().accept(this);
@@ -1618,7 +1618,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forNonterminalDef(NonterminalDef that) {
 //        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
-//        Option<TraitType> type_result = recurOnOptionOfTraitType(that.getType());
+//        Option<BaseType> type_result = recurOnOptionOfBaseType(that.getType());
 //        Option<? extends Modifier> modifier_result = recurOnOptionOfModifier(that.getModifier());
 //        List<SyntaxDef> syntaxDefs_result = recurOnListOfSyntaxDef(that.getSyntaxDefs());
 //        return forNonterminalDefOnly(that, name_result, type_result, modifier_result, syntaxDefs_result);
@@ -1626,7 +1626,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
 //        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
-//        Option<TraitType> type_result = recurOnOptionOfTraitType(that.getType());
+//        Option<BaseType> type_result = recurOnOptionOfBaseType(that.getType());
 //        Option<? extends Modifier> modifier_result = recurOnOptionOfModifier(that.getModifier());
 //        List<SyntaxDef> syntaxDefs_result = recurOnListOfSyntaxDef(that.getSyntaxDefs());
 //        return forNonterminalExtensionDefOnly(that, name_result, type_result, modifier_result, syntaxDefs_result);
@@ -1634,7 +1634,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node for_TerminalDef(_TerminalDef that) {
 //        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
-//        Option<TraitType> type_result = recurOnOptionOfTraitType(that.getType());
+//        Option<BaseType> type_result = recurOnOptionOfBaseType(that.getType());
 //        Option<? extends Modifier> modifier_result = recurOnOptionOfModifier(that.getModifier());
 //        SyntaxDef syntaxDef_result = (SyntaxDef) that.getSyntaxDef().accept(this);
 //        return for_TerminalDefOnly(that, name_result, type_result, modifier_result, syntaxDef_result);
@@ -1813,7 +1813,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    public Node forTry(Try that) {
 //        Block body_result = (Block) that.getBody().accept(this);
 //        Option<Catch> catchClause_result = recurOnOptionOfCatch(that.getCatchClause());
-//        List<TraitType> forbid_result = recurOnListOfTraitType(that.getForbid());
+//        List<BaseType> forbid_result = recurOnListOfBaseType(that.getForbid());
 //        Option<Block> finallyClause_result = recurOnOptionOfBlock(that.getFinallyClause());
 //        return forTryOnly(that, body_result, catchClause_result, forbid_result, finallyClause_result);
 //    }
@@ -1888,7 +1888,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        List<Param> params_result = recurOnListOfParam(that.getParams());
 //        Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
-//        Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
+//        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 //        Expr body_result = (Expr) that.getBody().accept(this);
 //        return forFnExprOnly(that, name_result, staticParams_result, params_result, returnType_result, where_result, throwsClause_result, body_result);
 //    }
@@ -2002,7 +2002,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forCoercionInvocation(CoercionInvocation that) {
-//        TraitType type_result = (TraitType) that.getType().accept(this);
+//        BaseType type_result = (BaseType) that.getType().accept(this);
 //        List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
 //        Expr arg_result = (Expr) that.getArg().accept(this);
 //        return forCoercionInvocationOnly(that, type_result, staticArgs_result, arg_result);
@@ -2299,7 +2299,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forWhereType(WhereType that) {
 //        Id name_result = (Id) that.getName().accept(this);
-//        List<TraitType> supers_result = recurOnListOfTraitType(that.getSupers());
+//        List<BaseType> supers_result = recurOnListOfBaseType(that.getSupers());
 //        return forWhereTypeOnly(that, name_result, supers_result);
 //    }
 //
@@ -2325,7 +2325,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forWhereExtends(WhereExtends that) {
 //        Id name_result = (Id) that.getName().accept(this);
-//        List<TraitType> supers_result = recurOnListOfTraitType(that.getSupers());
+//        List<BaseType> supers_result = recurOnListOfBaseType(that.getSupers());
 //        return forWhereExtendsOnly(that, name_result, supers_result);
 //    }
 //
@@ -2500,7 +2500,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forTypeParam(TypeParam that) {
 //        Id name_result = (Id) that.getName().accept(this);
-//        List<TraitType> extendsClause_result = recurOnListOfTraitType(that.getExtendsClause());
+//        List<BaseType> extendsClause_result = recurOnListOfBaseType(that.getExtendsClause());
 //        return forTypeParamOnly(that, name_result, extendsClause_result);
 //    }
 //
@@ -2571,7 +2571,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forCatchClause(CatchClause that) {
-//        TraitType match_result = (TraitType) that.getMatch().accept(this);
+//        BaseType match_result = (BaseType) that.getMatch().accept(this);
 //        Block body_result = (Block) that.getBody().accept(this);
 //        return forCatchClauseOnly(that, match_result, body_result);
 //    }
@@ -2623,7 +2623,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forTraitTypeWhere(TraitTypeWhere that) {
-//        TraitType type_result = (TraitType) that.getType().accept(this);
+//        BaseType type_result = (BaseType) that.getType().accept(this);
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
 //        return forTraitTypeWhereOnly(that, type_result, where_result);
 //    }
@@ -2831,25 +2831,25 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return changed ? (result) : that;
 //    }
 //
-//    public List<TraitType> recurOnListOfTraitType(final List<TraitType> that) {
+//    public List<BaseType> recurOnListOfBaseType(final List<BaseType> that) {
 //        boolean changed = false;
-//        List<TraitType> result = new java.util.ArrayList<TraitType>(0);
-//        for (TraitType elt : that) {
-//            TraitType elt_result = (TraitType) elt.accept(this);
+//        List<BaseType> result = new java.util.ArrayList<BaseType>(0);
+//        for (BaseType elt : that) {
+//            BaseType elt_result = (BaseType) elt.accept(this);
 //            result.add(elt_result);
 //            if (elt != elt_result) changed = true;
 //        }
 //        return changed ? (result) : that;
 //    }
 //
-//    public Option<List<TraitType>> recurOnOptionOfListOfTraitType(final Option<List<TraitType>> that) {
-//        return that.apply(new edu.rice.cs.plt.tuple.OptionVisitor<List<TraitType>, Option<List<TraitType>>>() {
-//            public Option<List<TraitType>> forSome(List<TraitType> elt) {
-//                List<TraitType> elt_result = recurOnListOfTraitType(elt);
+//    public Option<List<BaseType>> recurOnOptionOfListOfBaseType(final Option<List<BaseType>> that) {
+//        return that.apply(new edu.rice.cs.plt.tuple.OptionVisitor<List<BaseType>, Option<List<BaseType>>>() {
+//            public Option<List<BaseType>> forSome(List<BaseType> elt) {
+//                List<BaseType> elt_result = recurOnListOfBaseType(elt);
 //                return (elt == elt_result) ? that : edu.rice.cs.plt.tuple.Option.some(elt_result);
 //            }
 //
-//            public Option<List<TraitType>> forNone() {
+//            public Option<List<BaseType>> forNone() {
 //                return that;
 //            }
 //        });
@@ -2982,14 +2982,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return changed ? (result) : that;
 //    }
 //
-//    public Option<TraitType> recurOnOptionOfTraitType(final Option<TraitType> that) {
-//        return that.apply(new edu.rice.cs.plt.tuple.OptionVisitor<TraitType, Option<TraitType>>() {
-//            public Option<TraitType> forSome(TraitType elt) {
-//                TraitType elt_result = (TraitType) elt.accept(NodeUpdateVisitor.this);
+//    public Option<BaseType> recurOnOptionOfBaseType(final Option<BaseType> that) {
+//        return that.apply(new edu.rice.cs.plt.tuple.OptionVisitor<BaseType, Option<BaseType>>() {
+//            public Option<BaseType> forSome(BaseType elt) {
+//                BaseType elt_result = (BaseType) elt.accept(NodeUpdateVisitor.this);
 //                return (elt == elt_result) ? that : edu.rice.cs.plt.tuple.Option.some(elt_result);
 //            }
 //
-//            public Option<TraitType> forNone() {
+//            public Option<BaseType> forNone() {
 //                return that;
 //            }
 //        });

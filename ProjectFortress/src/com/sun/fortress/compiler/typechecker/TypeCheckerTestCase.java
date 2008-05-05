@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import static com.sun.fortress.compiler.typechecker.Types.BOTTOM;
+import static com.sun.fortress.compiler.Types.BOTTOM;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +42,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
@@ -110,7 +110,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
         List<TraitTypeWhere> extendsClause =
             new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
-            TraitType supT = (TraitType) parseType(sup);
+            BaseType supT = (BaseType) parseType(sup);
             extendsClause.add(new TraitTypeWhere(supT, new WhereClause()));
         }
         TraitAbsDeclOrDecl ast = new TraitDecl(NodeFactory.makeId(name), sparams,

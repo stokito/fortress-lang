@@ -46,6 +46,7 @@ import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
@@ -54,7 +55,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class EvalType extends NodeAbstractVisitor<FType> {
-
+    
     BetterEnv env;
     private EvalIndices ___evalIndices;
     private synchronized EvalIndices evalIndices() {
@@ -101,9 +102,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return et.getFTypeListFromList(l);
     }
 
-    public List<FType> getFTypeListFromOptionList(Option<List<TraitType>> ol) {
-        return ol.apply(new OptionVisitor<List<TraitType>, List<FType>>() {
-            public List<FType> forSome(List<TraitType> l) {
+    public List<FType> getFTypeListFromOptionList(Option<List<BaseType>> ol) {
+        return ol.apply(new OptionVisitor<List<BaseType>, List<FType>>() {
+            public List<FType> forSome(List<BaseType> l) {
                 return getFTypeListFromList(l);
             }
             public List<FType> forNone() { return Collections.emptyList(); }
@@ -450,6 +451,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             throw p.setContext(q,env);
         }
 
+    }
+    
+    public FType forAnyType(AnyType a) {
+        return FTypeTop.ONLY;
     }
 
     public FType forInstantiatedType(InstantiatedType x) {

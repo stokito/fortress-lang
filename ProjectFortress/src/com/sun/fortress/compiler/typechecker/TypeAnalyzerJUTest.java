@@ -30,7 +30,7 @@ import com.sun.fortress.compiler.index.*;
 
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.TRUE;
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.FALSE;
-import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.compiler.Types.*;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
@@ -228,15 +228,11 @@ public class TypeAnalyzerJUTest extends TestCase {
     static {
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
 
-        ApiIndex builtin =
-            api("AnyType",
-                absTrait("Any"),
-                absTrait("Tuple", "AnyType.Any"));
+        ApiIndex builtin = api("AnyType", absTrait("Any"));
         apis.put(builtin.ast().getName(), builtin);
 
         ApiIndex library =
-            api("FortressLibrary",
-                absTrait("Object", "AnyType.Any"));
+            api("FortressLibrary", absTrait("Object", "AnyType.Any"));
         apis.put(library.ast().getName(), library);
 
         GLOBAL_ENV = new GlobalEnvironment.FromMap(apis);
@@ -314,7 +310,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     private static ProperTraitIndex traitHelper(String name, String[] supers, boolean absDecl) {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
-            TraitType supT = (TraitType) parseType(sup);
+            BaseType supT = (BaseType) parseType(sup);
             extendsClause.add(new TraitTypeWhere(supT, new WhereClause()));
         }
         TraitAbsDeclOrDecl ast;

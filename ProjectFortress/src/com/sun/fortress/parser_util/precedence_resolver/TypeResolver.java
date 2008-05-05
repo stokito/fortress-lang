@@ -100,7 +100,7 @@ public class TypeResolver {
     }
 
     private static PureList<TypeInfixFrame>
-        looseInfixStack(Type e, Op op, Option<List<TraitType>> _throws,
+        looseInfixStack(Type e, Op op, Option<List<BaseType>> _throws,
                         PureList<TypeInfixFrame> stack) throws ReadError {
         if (stack.isEmpty()) {
             return PureList.<TypeInfixFrame>make(new TypeLoose(op, _throws, e));
@@ -165,7 +165,7 @@ public class TypeResolver {
     }
 
   private static PureList<TypeInfixFrame>
-      tightInfixStack(Type e, Op op, Option<List<TraitType>> _throws,
+      tightInfixStack(Type e, Op op, Option<List<BaseType>> _throws,
                       PureList<TypeInfixFrame> stack) throws ReadError {
       if (stack.isEmpty()) {
           return PureList.<TypeInfixFrame>make(new TypeTight(op, _throws, e));

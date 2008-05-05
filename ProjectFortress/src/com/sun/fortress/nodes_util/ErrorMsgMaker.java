@@ -254,6 +254,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forVarDecl(VarDecl node) {
         return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().accept(this) + node.getSpan();
     }
+    
+    public String forAnyType(AnyType node) {
+        return "Any";
+    }
 
     public String forBottomType(BottomType node) {
         return "BottomType";

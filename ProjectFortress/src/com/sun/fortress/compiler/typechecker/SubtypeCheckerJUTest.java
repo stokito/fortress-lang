@@ -29,7 +29,7 @@ import com.sun.fortress.compiler.index.*;
 
 import static java.lang.Boolean.TRUE;
 import static java.lang.Boolean.FALSE;
-import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeCheckerTestCase.*;
 
 public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
@@ -383,7 +383,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
     private static ProperTraitIndex traitHelper(String name, String[] supers, boolean absDecl) {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
-            TraitType supT = (TraitType) parseType(sup);
+            BaseType supT = (BaseType) parseType(sup);
             extendsClause.add(new TraitTypeWhere(supT, new WhereClause()));
         }
         TraitAbsDeclOrDecl ast;
@@ -424,7 +424,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         assertEquals(parseType("C"),
                      Option.unwrap(TypesUtil.applicationType(checker,
                                                              arrow1,
-                                                             Arrays.asList(lhs1, rhs1)), Types.BOTTOM));
+                                                             Arrays.asList(lhs1, rhs1)), BOTTOM));
     }
 
 }

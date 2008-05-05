@@ -188,7 +188,7 @@ private FnHeaderClause CoercionClauses =
                                                  Option.<List<Expr>>none(),
                                                  Option.wrap(a2),
                                                  Option.wrap(a3)));
-       yyValue = new FnHeaderClause(Option.<List<TraitType>>none(), a1,
+       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(), a1,
                                     contractClause, Option.<Type>none());
      };
 

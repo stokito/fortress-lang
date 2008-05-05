@@ -747,7 +747,6 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
      public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference, List<Overload> someOverloads) throws Error {
-
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
             bug(loc, "Cannot call before 'setFinished()'");
 
@@ -831,8 +830,9 @@ public class  OverloadedFunction extends Fcn
             FValue a = args.get(j);
             FType t = Useful.clampedGet(l,j).deRest();
             try {
-                if (! t.typeMatch(a))
+                if (! t.typeMatch(a)) {
                     return false;
+                }
             } catch (FortressError e) {
                 return false;
             }

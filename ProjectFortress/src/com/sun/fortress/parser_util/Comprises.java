@@ -25,17 +25,17 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 
 public class Comprises extends TraitClause {
-    private Option<List<TraitType>> comprises = Option.none();
+    private Option<List<BaseType>> comprises = Option.none();
 
-    public Comprises(Span span, List<TraitType> comprises) {
+    public Comprises(Span span, List<BaseType> comprises) {
         super(span);
         this.comprises = Option.some(comprises);
     }
 
-    public Option<List<TraitType>> getComprises() {
+    public Option<List<BaseType>> getComprises() {
         return comprises;
     }
 

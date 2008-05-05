@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeAlias;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereConstraint;
@@ -251,7 +251,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 TypeParam stp = (TypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(stp_name);
-                List<TraitType> oext = stp.getExtendsClause();
+                List<BaseType> oext = stp.getExtendsClause();
                 // pass null, no excludes here.
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.
@@ -269,7 +269,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
             } else if (wc instanceof WhereExtends) {
                 WhereExtends we = (WhereExtends) wc;
                 String we_name = we.getName().getText();
-                List<TraitType> we_supers = we.getSupers();
+                List<BaseType> we_supers = we.getSupers();
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(we_name);
                 st.addExtends(eval_type.getFTypeListFromList(we_supers));
             }

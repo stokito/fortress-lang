@@ -51,7 +51,7 @@ import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.VoidType;
@@ -79,7 +79,7 @@ public class FortressObjectASTVisitor<T> {
     }
 
     public T dispatch(FValue value) {
-    	System.err.println("Val: "+value.getClass());
+        System.err.println("Val: "+value.getClass());
         if (value instanceof FString) {
             return (T) ((FString) value).getString();
         }
@@ -199,7 +199,7 @@ public class FortressObjectASTVisitor<T> {
         FValue v5 = getField(value, "returnType");
         Option<Type> returnType = dispatchMaybe((FObject)v5);
         FValue v6 = getField(value, "throwsClause");
-        Option<List<TraitType>> throwsClause = dispatchMaybe((FObject)v6);
+        Option<List<BaseType>> throwsClause = dispatchMaybe((FObject)v6);
         FValue v7 = getField(value, "whereClause");
         WhereClause whereClause = new FortressObjectASTVisitor<WhereClause>(this.span).dispatch((FObject)v7);
         FValue v8 = getField(value, "acontract");

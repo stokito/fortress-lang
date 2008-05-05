@@ -29,8 +29,8 @@ import com.sun.fortress.nodes.InferenceVarType;
 
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 
-import static com.sun.fortress.compiler.typechecker.Types.ANY;
-import static com.sun.fortress.compiler.typechecker.Types.BOTTOM;
+import static com.sun.fortress.compiler.Types.ANY;
+import static com.sun.fortress.compiler.Types.BOTTOM;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 import static edu.rice.cs.plt.debug.DebugUtil.error;
 

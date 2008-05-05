@@ -26,18 +26,18 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.MagicNumbers;
 
 public class FnHeaderClause {
 
-    private Option<List<TraitType>> throwsClause;
+    private Option<List<BaseType>> throwsClause;
     private WhereClause whereClause;
     private Option<Contract> contractClause;
     private Option<Type> returnType;
 
-    public FnHeaderClause(Option<List<TraitType>> throwsClause,
+    public FnHeaderClause(Option<List<BaseType>> throwsClause,
                           WhereClause whereClause,
                           Option<Contract> contractClause,
                           Option<Type> returnType) {
@@ -47,7 +47,7 @@ public class FnHeaderClause {
         this.returnType = returnType;
     }
 
-    public Option<List<TraitType>> getThrowsClause() {
+    public Option<List<BaseType>> getThrowsClause() {
         return throwsClause;
     }
 

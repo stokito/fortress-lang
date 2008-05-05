@@ -23,17 +23,17 @@ package com.sun.fortress.parser_util;
 
 import java.util.List;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 
 public class Excludes extends TraitClause {
-    private List<TraitType> excludes  = FortressUtil.emptyTraitTypes();
+    private List<BaseType> excludes  = FortressUtil.emptyTraitTypes();
 
-    public Excludes(Span span, List<TraitType> excludes) {
+    public Excludes(Span span, List<BaseType> excludes) {
         super(span);
         this.excludes = excludes;
     }
 
-    public List<TraitType> getExcludes() {
+    public List<BaseType> getExcludes() {
         return excludes;
     }
 

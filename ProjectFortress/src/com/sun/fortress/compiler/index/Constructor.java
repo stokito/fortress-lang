@@ -26,13 +26,13 @@ public class Constructor extends Function {
     private final Id _declaringTrait;
     private final List<StaticParam> _staticParams;
     private final Option<List<Param>> _params;
-    private final Option<List<TraitType>> _throwsClause;
+    private final Option<List<BaseType>> _throwsClause;
     private final WhereClause _where;
 
     public Constructor(Id declaringTrait,
                        List<StaticParam> staticParams,
                        Option<List<Param>> params,
-                       Option<List<TraitType>> throwsClause,
+                       Option<List<BaseType>> throwsClause,
                        WhereClause where)
     {
         _declaringTrait = declaringTrait;
@@ -45,6 +45,6 @@ public class Constructor extends Function {
     public Id declaringTrait() { return _declaringTrait; }
     public List<StaticParam> staticParams() { return _staticParams; }
     public Option<List<Param>> params() { return _params; }
-    public Option<List<TraitType>> throwsClause() { return _throwsClause; }
+    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
     public WhereClause where() { return _where; }
 }

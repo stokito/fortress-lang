@@ -33,7 +33,7 @@ import static java.lang.Boolean.TRUE;
 import static java.lang.Boolean.FALSE;
 import static com.sun.fortress.nodes_util.NodeUtil.getName;
 import static com.sun.fortress.nodes_util.NodeUtil.nameString;
-import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static edu.rice.cs.plt.tuple.Option.*;
 
@@ -310,8 +310,8 @@ public abstract class SubtypeChecker {
         }
     }
 
-    private List<TraitType> getExtends(IdType t) {
-        List<TraitType> _extends = new ArrayList<TraitType>();
+    private List<BaseType> getExtends(IdType t) {
+        List<BaseType> _extends = new ArrayList<BaseType>();
         QualifiedIdName name = t.getName();
         if (name.getApi().isNone()) {
             Option<StaticParam> result = _staticParamEnv.binding(name.getName());
@@ -567,8 +567,8 @@ public abstract class SubtypeChecker {
      *    The following static parameters are checked for the textual equality
      *    of their names ignoring other fields:
      *
-     *            TypeParam(List<TraitType> extendsClause =
-     *                                Collections.<TraitType>emptyList(),
+     *            TypeParam(List<BaseType> extendsClause =
+     *                                Collections.<BaseType>emptyList(),
      *                            boolean absorbs = false);
      *            UnitParam(Option<Type> dim = Option.<Type>none(),
      *                      boolean absorbs = false);
@@ -595,7 +595,7 @@ public abstract class SubtypeChecker {
             // [S-Var]  p; Delta |- ALPHA <: Delta(ALPHA)
             // getExtends(IdType s) returns bounds of s if s is a type parameter
             if (isIdType(s) && !isValidIdType(s)) {
-                for (TraitType ty : getExtends((IdType)s)) {
+                for (BaseType ty : getExtends((IdType)s)) {
                     if (equivalent(t, ty, h)) return true;
                 }
                 return false;
@@ -706,7 +706,7 @@ public abstract class SubtypeChecker {
                     TraitIndex traitIndex = (TraitIndex)index;
                     if (isIdType(s)) {
                         for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
-                            TraitType sup = _sup.getType();
+                            BaseType sup = _sup.getType();
                             if (subtype(sup, t, h)) return TRUE;
                         }
                         return FALSE;
@@ -716,7 +716,7 @@ public abstract class SubtypeChecker {
                                 makeSubst(traitIndex.staticParameters(),
                                           ((InstantiatedType)s).getArgs());
                             for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
-                                TraitType sup = _sup.getType();
+                                BaseType sup = _sup.getType();
                                 if (subtype(subst.value(sup), t, h))
                                     return TRUE;
                             }

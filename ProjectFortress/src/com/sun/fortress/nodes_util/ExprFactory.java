@@ -87,7 +87,7 @@ import com.sun.fortress.nodes.SubscriptingMI;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
 import com.sun.fortress.nodes.TupleExpr;
@@ -210,12 +210,12 @@ public class ExprFactory {
     /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
         return makeFnExpr(span, params, Option.<Type>none(),
-                          Option.<List<TraitType>>none(), body);
+                          Option.<List<BaseType>>none(), body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params,
                                     Option<Type> returnType,
-                                    Option<List<TraitType>> throwsClause,
+                                    Option<List<BaseType>> throwsClause,
                                     Expr body) {
         return new FnExpr(span, false, new AnonymousFnName(span),
                           Collections.<StaticParam>emptyList(), params,
