@@ -74,12 +74,16 @@ public abstract class NativeApp implements Applicable {
      * perform additional sanity checks on the Fortress-side function
      * definition.
      */
-    protected void init(Applicable app) {
+    protected void init(Applicable app, boolean isFunctionalMethod) {
         if (this.a!=null) {
             bug("Duplicate NativeApp.init call.");
         }
         this.a = app;
         int aty = app.getParams().size();
+        // Dock functional methods by 1 for the self parameter.
+        // This lets us treat methods and functional methods identically
+        // on the native Java side, which simplifies life immensely.
+        if (isFunctionalMethod) aty--;
         if (aty != getArity()) {
             error(app, "Arity of type "+aty
                        +" does not match native arity "+getArity());
@@ -129,7 +133,8 @@ public abstract class NativeApp implements Applicable {
      * fails.  The error checking is gratuitously detailed so the
      * library hacker can sort out what is going on when things break.
      */
-    public static Applicable checkAndLoadNative(Applicable defn) {
+    public static Applicable checkAndLoadNative(Applicable defn, 
+                                                boolean isFunctionalMethod) {
         Option<Expr> optBody = NodeUtil.getBody(defn);
         if (optBody.isNone()) return defn;
         Expr body = Option.unwrap(optBody);
@@ -164,7 +169,7 @@ public abstract class NativeApp implements Applicable {
                 // System.err.println("Loading primitive class "+str);
                 Class nativeAct = Class.forName(str);
                 res = (NativeApp)nativeAct.newInstance();
-                res.init(defn);
+                res.init(defn,isFunctionalMethod);
                 cache.put(key, res);
                 return res;
             } catch (java.lang.ClassNotFoundException x) {
@@ -177,6 +182,9 @@ public abstract class NativeApp implements Applicable {
                 return bug(defn,"Native class "+str +" is not a NativeApp.",x);
             }
         }
+    }
+    public static Applicable checkAndLoadNative(Applicable defn) {
+        return checkAndLoadNative(defn, false);
     }
     static public void reset() {
         cache = new Hashtable<Pair<String, Applicable>, NativeApp>();

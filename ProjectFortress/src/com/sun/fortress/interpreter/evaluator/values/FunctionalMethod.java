@@ -73,9 +73,9 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     }
 
     public FunctionalMethod(BetterEnv e, Applicable fndef, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
-        super(e, fndef);
-         selfParameterIndex = self_parameter_index;
-         selfParameterType = self_parameter_type;
+        super(e, fndef, true);
+        selfParameterIndex = self_parameter_index;
+        selfParameterType = self_parameter_type;
         // TODO Auto-generated constructor stub
     }
 

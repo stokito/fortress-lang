@@ -22,18 +22,12 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.glue.NativeMeth;
+import com.sun.fortress.interpreter.glue.NativeMeth1;
 
-public class Foo extends NativeMeth {
+public class Foo extends NativeMeth1 {
 
-    public int getArity() {
-        // Glitch -- the arity must match the SYNTACTIC arity of the method.
-        return 1;
-    }
-
-    public FValue applyMethod(List<FValue> args, FObject selfValue) {
+    public FValue act(FObject selfValue, FValue s) {
         FValue x = selfValue.getSelfEnv().getValue("y");
-        FValue s = args.get(0);
         return FString.make(s.getString() + x.getString());
     }
 

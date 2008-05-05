@@ -119,6 +119,11 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
         def = NativeApp.checkAndLoadNative(fndef);
     }
 
+    public Closure(BetterEnv e, Applicable fndef, boolean isFunctionalMethod) {
+        super(e); // TODO verify that this is the proper environment
+        def = NativeApp.checkAndLoadNative(fndef,isFunctionalMethod);
+    }
+
     protected Closure(BetterEnv e, Applicable fndef, List<FType> args) {
         super(e);
         def = NativeApp.checkAndLoadNative(fndef);
