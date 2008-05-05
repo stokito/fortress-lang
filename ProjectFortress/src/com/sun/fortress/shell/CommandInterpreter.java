@@ -153,7 +153,6 @@ public class CommandInterpreter {
 			System.err.println(e.getMessage()); 
 		}
 		catch (FortressError e) {
-			System.err.print("\n--------Fortress error appears below--------\n");
 			System.err.println(e.getMessage());
 			e.printInterpreterStackTrace(System.err);
 

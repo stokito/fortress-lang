@@ -306,8 +306,8 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
                 objectDefinesAny = true;
             if (isNotADef(sf, too).booleanValue())
                 error(cfn, "Object " + cfn.stringName() +
-                           " does not define method " + sf.getString() +
-                           " declared in " + too.getName());
+                      " does not define an abstract method declared in type "+ 
+                      too.getName() + ":\n  " + sf.getString());
         }
 
         // Plan to iterate over traits at instantiation, and form closures
