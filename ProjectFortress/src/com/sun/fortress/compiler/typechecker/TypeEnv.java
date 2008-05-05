@@ -134,7 +134,7 @@ public abstract class TypeEnv {
                     return new BoolArg(new Span(), new BoolRef(new Span(), that.getName()));
                 }
                 public StaticArg forDimParam(DimParam that) {
-                    return new DimArg(new Span(), new DimRef(new Span(), makeQualifiedIdName(that.getName())));
+                    return new DimArg(new Span(), new DimRef(new Span(), that.getName()));
                 }
                 public StaticArg forIntParam(IntParam that) {
                     return new IntArg(new Span(), new IntRef(new Span(), that.getName()));

@@ -47,7 +47,7 @@ public class TypeAnalyzerUtil {
         final Map<Op, Op> opSubs = new HashMap<Op, Op>();
         final Map<Id, IntExpr> intSubs = new HashMap<Id, IntExpr>();
         final Map<Id, BoolExpr> boolSubs = new HashMap<Id, BoolExpr>();
-        final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
+        final Map<Id, DimExpr> dimSubs = new HashMap<Id, DimExpr>();
         final Map<Id, UnitExpr> unitSubs = new HashMap<Id, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
@@ -72,7 +72,7 @@ public class TypeAnalyzerUtil {
                                  ((BoolArg) a).getBool());
                 }
                 @Override public void forDimParam(DimParam p) {
-                    dimSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                    dimSubs.put(p.getName(),
                                 ((DimArg) a).getDim());
                 }
                 @Override public void forUnitParam(UnitParam p) {
