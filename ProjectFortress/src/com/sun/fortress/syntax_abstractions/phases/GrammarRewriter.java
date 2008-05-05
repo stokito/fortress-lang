@@ -45,6 +45,7 @@ import edu.rice.cs.plt.tuple.Option;
  * 4) Create a terminal declaration for each keyword and token symbols,
  *    and rewrite keyword and token symbols to nonterminal symbols, referring
  *    to the corresponding terminal definitions.
+ * 5) Parse pretemplates and replace with real templates
  */
 public class GrammarRewriter {
 
@@ -74,7 +75,7 @@ public class GrammarRewriter {
 			if (id.errors().isEmpty()) {
 				// Remove whitespace where instructed by non-whitespace symbols
 				WhitespaceElimination we = new WhitespaceElimination();
-				Api sdResult = (Api) idResult.accept(we);
+			 	Api sdResult = (Api) idResult.accept(we);
 
 				// Rewrite escaped characters
 				EscapeRewriter escapeRewriter = new EscapeRewriter();
@@ -83,7 +84,16 @@ public class GrammarRewriter {
 				// Rewrite terminals to be declared using terminal definitions
 				TerminalRewriter terminalRewriter = new TerminalRewriter();
 				Api trResult = (Api) erResult.accept(terminalRewriter);
-				results.add(trResult);
+				
+				/* 
+				 * Parse content of pretemplates and replace pretemplate 
+				 * with a template
+				 */
+				TemplateParser.Result tpr = TemplateParser.parseTemplates(trResult);
+				if (!tpr.isSuccessful()) { return new ApiResult(null, tpr.errors()); }
+				Api tpResult = tpr.api;
+				
+				results.add(tpResult);
 			}
 		}
 		return new ApiResult(results, id.errors());

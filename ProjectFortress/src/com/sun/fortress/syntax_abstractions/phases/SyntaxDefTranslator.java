@@ -66,6 +66,9 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
@@ -75,7 +78,9 @@ import edu.rice.cs.plt.tuple.Option;
 public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
 	private Iterable<? extends StaticError> errors;
-
+	private GrammarEnv grammarEnv;
+	private MemberEnv currentNonterminalEnv;
+	
 	public class Result extends StaticPhaseResult {
 		private List<Sequence> alternatives;
 		private Set<String> keywords;
@@ -100,19 +105,21 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		public Collection<Module> keywordModules() { return this.keywordModules; }
 	}
 
-	public SyntaxDefTranslator() {
+	private SyntaxDefTranslator(GrammarEnv grammarEnv) {
 		this.errors = new LinkedList<StaticError>();
+		this.grammarEnv = grammarEnv;
 	}
 
-	public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
-		return new SyntaxDefTranslator().visit(member.getAst());
+	public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member, 
+			 					   GrammarEnv grammarEnv) {
+		return new SyntaxDefTranslator(grammarEnv).visit(member.getAst());
 	}
 
-	public static Result translate(GrammarMemberDecl member) {
-		return new SyntaxDefTranslator().visit(member);
+	public static Result translate(GrammarMemberDecl member, GrammarEnv grammarEnv) {
+		return new SyntaxDefTranslator(grammarEnv).visit(member);
 	}
 
-	public Result visit(GrammarMemberDecl member) {
+	private Result visit(GrammarMemberDecl member) {
 		List<Sequence> sequence = member.accept(this);
 		return new Result(sequence, new HashSet<String>(), new LinkedList<Module>(), this.errors);
 	}
@@ -121,6 +128,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	public List<Sequence> forNonterminalDef(NonterminalDef that) {
 		TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
 		String name = that.getName().toString();
+		this.currentNonterminalEnv = this.grammarEnv.getMemberEnv(that.getName());
 		return visitSyntaxDefs(that.getSyntaxDefs(), name, type);
 	}
 
@@ -133,6 +141,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	public List<Sequence> for_TerminalDef(_TerminalDef that) {
 		TraitType type = SyntaxAbstractionUtil.unwrap(that.getType());
 		String name = that.getName().toString();
+		this.currentNonterminalEnv = this.grammarEnv.getMemberEnv(that.getName());
 		List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type));
 		return sequences;
 	}
@@ -149,18 +158,20 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, TraitType type) {
 		List<Element> elms = new LinkedList<Element>();
 		// Translate the symbols
-		Collection<PrefixedSymbol> boundVariables = new LinkedList<PrefixedSymbol>();
+		Collection<PrefixedSymbol> locallyBoundVariables = new LinkedList<PrefixedSymbol>();
 		for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
 			elms.addAll(sym.accept(new SymbolTranslator()));
-			boundVariables.addAll(sym.accept(new VariableCollector()));
+			locallyBoundVariables.addAll(sym.accept(new VariableCollector()));
 		}
 		String newName = FreshName.getFreshName(name).toUpperCase();
-		ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, boundVariables);
+		SyntaxDeclEnv sdEnv = Option.unwrap(this.currentNonterminalEnv.getSyntaxDeclEnv(syntaxDef));
+		ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, grammarEnv, sdEnv);
 		if (!acr.isSuccessful()) { new Result(acr.errors()); }
 		elms.add(acr.action());
 		return new Sequence(new SequenceName(newName), elms);
 	}
 
+	
 	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
 
 		private List<Element> mkList(Element e) {
@@ -262,9 +273,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 				if (that.getId().isSome()) {
 					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+Option.unwrap(that.getId()).getText() + " "+that.getSymbol());
 				}
-				else {
-					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
-				}
+				throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
 			}
 			throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
 		}

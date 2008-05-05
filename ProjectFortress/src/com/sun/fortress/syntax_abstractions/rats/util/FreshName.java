@@ -24,4 +24,8 @@ public class FreshName {
 	public static String getFreshName(String s) {
 		return s+(++freshid);
 	}
+
+	public static void reset() {
+		FreshName.freshid = 0;
+	}
 }

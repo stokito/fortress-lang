@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
@@ -103,7 +104,7 @@ public class InterpreterWrapper {
     private static int numThreads = Runtime.getRuntime().availableProcessors();
     static FortressTaskRunnerGroup group;
 
-    public Result evalComponent(Span span, String productionName, String component, Map<String, Object> boundVariables) {
+    public Result evalComponent(Span span, String productionName, String component, Map<String, AbstractNode> boundVariables) {
     	Collection<StaticError> errors = new LinkedList<StaticError>();
         Option<CompilationUnit> cu = Option.none();
         try {
@@ -156,7 +157,7 @@ try {
 
     private Collection<Decl> createVarBindings(
 			Span span, 
-			Map<String, Object> boundVariables,
+			Map<String, AbstractNode> boundVariables,
 			List<Decl> decls) {
     	List<Decl> newDecls = new LinkedList<Decl>();
     	for (Decl d: decls) {

@@ -105,9 +105,7 @@ public class FortressParser {
 						throw new RuntimeException("Unexpected parse result: " + cu);
 					
 				}
-				else {
-					return new Result(new Parser.Error((ParseError) parseResult, p));
-				}
+				return new Result(new Parser.Error((ParseError) parseResult, p));
 			}
 			finally { in.close(); }
 		}

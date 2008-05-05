@@ -30,6 +30,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
 import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
@@ -39,8 +40,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
-	public Result compile(Collection<GrammarEnv> envs, GlobalEnvironment env) {
-				
+	public Result compile(Collection<GlobalGrammarEnv> envs, GlobalEnvironment env) {
+		System.err.println("F1");
 		/*
 		 * Initialize GrammarIndex
 		 */
@@ -52,7 +53,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 */
 		ModuleTranslator.Result mrr = ModuleTranslator.translate(envs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
-		
+
 //		for (Module m: mrr.modules()) {
 //			 System.err.println(m);
 //		}
@@ -62,7 +63,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 */
 		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
 		if (!gtr.isSuccessful()) { return new Result(null, gtr.errors()); }
-		
+
 		/*
 		 * For each changed module write it to a file and run Rats! to 
 		 * generate a temporary parser.

@@ -17,7 +17,6 @@
 
 package com.sun.fortress.compiler;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.compiler.disambiguator.NameEnv;
@@ -81,10 +80,10 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 		Option<Id> oname = nnd.handleNonterminalName(_currentEnv, that.getName());
 		this._errors.addAll(nnd.errors());
 		if (oname.isSome()) {
-                    Id name = Option.unwrap(oname);
-                    return new NonterminalDef(name, that.getType(), that.getModifier(), syntaxDefs_result);
+			Id name = Option.unwrap(oname);
+			return new NonterminalDef(name, that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
 		}
-		return new NonterminalDef(that.getName(), that.getType(), that.getModifier(), syntaxDefs_result);
+		return new NonterminalDef(that.getName(), that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
 	}
 
 
@@ -97,9 +96,9 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 		Option<Id> oname = pnd.handleNonterminalName(_currentEnv, that.getName());
 		this._errors.addAll(pnd.errors());
 		if (oname.isSome()) {
-                    Id name = Option.unwrap(oname);
-                    return new NonterminalExtensionDef(name, that.getType(), that.getModifier(), syntaxDefs_result);
+			Id name = Option.unwrap(oname);
+			return new NonterminalExtensionDef(name, that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
 		}
-		return new NonterminalExtensionDef(that.getName(), that.getType(), that.getModifier(), syntaxDefs_result);
+		return new NonterminalExtensionDef(that.getName(), that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
 	}
 }

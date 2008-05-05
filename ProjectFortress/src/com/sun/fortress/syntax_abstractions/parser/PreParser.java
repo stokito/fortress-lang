@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.syntax_abstractions.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.io.IOUtil;
@@ -49,30 +49,30 @@ import edu.rice.cs.plt.iter.IterUtil;
 public class PreParser {
 
 	   public static class Result extends StaticPhaseResult {
-	        private Collection<GrammarEnv> grammars;
+	        private Collection<GlobalGrammarEnv> grammars;
 	        
-	        public Result(Collection<GrammarEnv> grammars) {
+	        public Result(Collection<GlobalGrammarEnv> grammars) {
 	        	this.grammars = grammars;
 	        }
 
 	        public Result(StaticError error) {
 	            super(IterUtil.singleton(error));
-	            this.grammars = new LinkedList<GrammarEnv>();
+	            this.grammars = new LinkedList<GlobalGrammarEnv>();
 	        }
 	        
 	        public Result(Iterable<? extends StaticError> errors) {
 	            super(errors);
-	            grammars = new LinkedList<GrammarEnv>();
+	            grammars = new LinkedList<GlobalGrammarEnv>();
 	        }
 
 	        public Result(Result r1, Result r2) {
 	            super(r1, r2);
-	            this.grammars = new LinkedList<GrammarEnv>();
+	            this.grammars = new LinkedList<GlobalGrammarEnv>();
 	            grammars.addAll(r1.grammars);
 	            grammars.addAll(r2.grammars);
 	        }
 
-	        public Collection<GrammarEnv> getGrammars() { 
+	        public Collection<GlobalGrammarEnv> getGrammars() { 
 	        	return this.grammars;
 	        }
 	    }
@@ -86,7 +86,7 @@ public class PreParser {
 		// TODO: Check that result only contains at most one component
 
 		ImportedApiCollector namesAndImports = new ImportedApiCollector(env);
-		ImportedApiCollector.Result result = namesAndImports.new Result(new LinkedList<GrammarEnv>());
+		ImportedApiCollector.Result result = namesAndImports.new Result(new LinkedList<GlobalGrammarEnv>());
 		for (Component c: pr.components()) {
 			result = result.add(namesAndImports.collectApis(c));
 			if (!result.grammars().isEmpty()) {

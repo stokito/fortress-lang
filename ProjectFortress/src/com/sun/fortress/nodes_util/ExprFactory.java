@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.nodes.APIName;
@@ -83,6 +84,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptingMI;
+import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitType;
@@ -716,6 +718,9 @@ public class ExprFactory {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),
                                          e.getSubs(), e.getOp());
             }
+            public Expr forTemplateGapExpr(TemplateGapExpr e) {
+                return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getParams());
+            }
             public Expr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
                               " is not a subtype of Expr.");
@@ -761,6 +766,10 @@ public class ExprFactory {
                 Pair.make(lid, Option.wrap(expr)),
                 tc.getClauses(),
                 tc.getElseClause());
+    }
+    
+    public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {
+    	return new TemplateGapExpr(s, id, params);
     }
 
 }

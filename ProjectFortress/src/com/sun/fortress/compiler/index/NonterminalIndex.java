@@ -20,6 +20,9 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -41,13 +44,6 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 		}
 		throw new RuntimeException("Production index without ast and thus no name");
 	}
-
-//	public List<SyntaxDef> getSyntaxDefs() {
-//		if (this.ast().isSome()) {
-//			return Option.unwrap(this.ast()).getSyntaxDefs();
-//		}
-//		throw new RuntimeException("Production index without ast and thus no syntax definitions");
-//	}
 
 	public TraitType getType() {
 		if (this.ast().isSome()) {

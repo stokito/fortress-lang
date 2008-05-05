@@ -81,6 +81,10 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * implemented by trait and object declarations in components or APIs
      */
     interface HasWhere(WhereClause where);
+    /**
+     * templates
+     */
+    interface TemplateGap(Id id, List<Id> params);
 
 /**
  * functional declaration or function expression
@@ -492,8 +496,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * grammar member (nonterminal or terminal) declaration
      */
     abstract GrammarMemberDecl(Id name,
-                               Option<TraitType> type,
-                               Option<? extends Modifier> modifier) implements AbsDecl;
+                            Option<TraitType> type,
+                            Option<? extends Modifier> modifier
+                            List<Pair<Id,Type>> params) implements AbsDecl;
         /**
          * nonterminal declaration
          */
@@ -529,6 +534,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
       */
     abstract TransformationDecl() implements AbsDecl;
         /**
+         * pre template definition in template declarations
+         */
+        TransformationPreTemplateDef(String productionName, String transformation);
+        /**
          * template definition in template declarations
          */
         TransformationTemplateDef(AbstractNode transformation);
@@ -536,10 +545,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * template definition in template declarations
          */
         TransformationExpressionDef(Expr transformation);
-    /**
-      * template gap
-      */
-    TemplateGap(Span span, Id variable);
     /**
       * syntax symbol
       */
@@ -640,6 +645,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * expression
      */
     abstract Expr(boolean parenthesized = false);
+        /**
+         * Template gap for expressions
+         */
+        TemplateGapExpr(Id id, List<Id> params) implements TemplateGap;
         /**
          * expression annotated with a type
          */

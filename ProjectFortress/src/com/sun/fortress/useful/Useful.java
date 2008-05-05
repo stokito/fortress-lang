@@ -28,6 +28,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -629,6 +630,13 @@ public class Useful {
         return new BufferedReader(new InputStreamReader(new FileInputStream(f), Charset.forName("UTF-8")));
     }
 
+    /**
+     * Returns a BufferedReader for the String s.
+     */
+    static public BufferedReader bufferedStringReader(String s) {
+        return new BufferedReader(new StringReader(s));
+    }
+    
     /**
      * Returns a BufferedWriter for the file named s, with encoding assumed to be UTF-8.
      * @throws FileNotFoundException
