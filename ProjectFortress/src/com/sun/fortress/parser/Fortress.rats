@@ -101,7 +101,7 @@ instantiate com.sun.fortress.parser.NoSpaceExpr(Expression, Keyword, Symbol,
                                                 Spacing)
             as NoSpaceExpr;
 instantiate com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
-                                            NoSpaceExpr, Symbol, Spacing)
+                                            NoSpaceExpr, Symbol, Spacing, Identifier)
             as Literal;
 instantiate com.sun.fortress.parser.LocalDecl(Variable, Function, Parameter,
                                               NoNewlineHeader, Type,

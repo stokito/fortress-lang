@@ -38,12 +38,12 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TransformationExpressionDef;
 import com.sun.fortress.nodes.TransformationTemplateDef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
+import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -124,7 +124,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
         // Add the terminal definition to the collection of new terminal definitions
         SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, new TransformationTemplateDef(transformationExpression));
-        this._terminalDefs.add(new _TerminalDef(name, type, Option.<Modifier>none(), syntaxDef));
+        this._terminalDefs.add(new _TerminalDef(name, type, Option.<Modifier>none(), new LinkedList<Pair<Id, Type>>(), syntaxDef));
 
         // Return a new nonterminal reference to the new terminal definition
         return new NonterminalSymbol(NodeFactory.makeId(apiName, id));

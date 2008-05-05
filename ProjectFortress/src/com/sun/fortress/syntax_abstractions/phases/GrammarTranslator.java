@@ -30,11 +30,11 @@ import xtc.parser.ModuleList;
 import xtc.parser.ModuleName;
 import xtc.parser.Production;
 
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
@@ -62,9 +62,9 @@ public class GrammarTranslator {
 	}
 
 	private Result doTranslation(
-			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {
-
-		NonterminalTypeDictionary.addAll(modules);
+			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {	
+		
+		NonterminalTypeDictionary.addAll(modules);		
 
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
 			if (module instanceof FortressModule) {
@@ -99,9 +99,10 @@ public class GrammarTranslator {
 		m.dependencies = mds;
 
 		for (Production p: m.productions) {
+			GrammarEnv grammarEnv = new GrammarEnv(module.getDeclaredNonterminals());
 			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
 				if (member.getName().toString().equals(p.name.name)) {
-					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);
+					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member, grammarEnv);
 					p.choice.alternatives.addAll(ptr.alternatives());
 				}
 			}

@@ -34,7 +34,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.syntax_abstractions.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.ContractedNonterminal;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
@@ -78,10 +78,10 @@ public class ModuleTranslator {
 		_errors.add(StaticError.make(mess, loc));
 	}
 
-	public static Result translate(Collection<GrammarEnv> environments) {
+	public static Result translate(Collection<GlobalGrammarEnv> environments) {
 		_errors = new LinkedList<StaticError>();
 		ModuleEnvironment menv = new ModuleEnvironment();
-		for (GrammarEnv env: environments) {
+		for (GlobalGrammarEnv env: environments) {
 			for (GrammarIndex g: env.getGrammars()) {
 				if (env.isToplevel(g)) {
 					NonterminalContractor nc = new NonterminalContractor();

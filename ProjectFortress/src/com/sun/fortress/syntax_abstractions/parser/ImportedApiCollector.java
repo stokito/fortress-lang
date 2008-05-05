@@ -38,7 +38,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.syntax_abstractions.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -49,28 +49,28 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
 	private boolean isTopLevel;
 	private GlobalEnvironment env;
-	private Collection<GrammarEnv> grammars;
+	private Collection<GlobalGrammarEnv> grammars;
 	private Iterable<? extends StaticError> errors;
 
 	public class Result extends StaticPhaseResult {
-		Collection<GrammarEnv> grammars;
+		Collection<GlobalGrammarEnv> grammars;
 
-		public Result(Collection<GrammarEnv> grammars) {
+		public Result(Collection<GlobalGrammarEnv> grammars) {
 			super();
 			this.grammars = grammars;
 		}
 
-		public Result(Collection<GrammarEnv> grammars,
+		public Result(Collection<GlobalGrammarEnv> grammars,
 				Iterable<? extends StaticError> errors) {
 			super(errors);
 			this.grammars = grammars;
 		}
 
 
-		public Collection<GrammarEnv> grammars() { return grammars; }
+		public Collection<GlobalGrammarEnv> grammars() { return grammars; }
 
 		public Result add(Result otherResult) {
-			Collection<GrammarEnv> grammars = new LinkedList<GrammarEnv>();
+			Collection<GlobalGrammarEnv> grammars = new LinkedList<GlobalGrammarEnv>();
 			Collection<StaticError> errors = new LinkedList<StaticError>();
 			grammars.addAll(this.grammars);
 			grammars.addAll(otherResult.grammars);
@@ -87,7 +87,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 	public ImportedApiCollector(GlobalEnvironment env) {
 		this.env = env;
 		this.isTopLevel = true;
-		this.grammars = new LinkedList<GrammarEnv>();
+		this.grammars = new LinkedList<GlobalGrammarEnv>();
 		this.errors = new LinkedList<StaticError>();
 	}
 
@@ -102,7 +102,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 			if (env.definesApi(apiAlias.getApi())) {
 				ApiIndex api = env.api(apiAlias.getApi());
 				if (!api.grammars().values().isEmpty()) {
-					grammars.add(new GrammarEnv(api .grammars().values(), this.isTopLevel));
+					grammars.add(new GlobalGrammarEnv(api .grammars().values(), this.isTopLevel));
 					getRecursiveImports(apiAlias.getApi());
 				}
 			}
@@ -124,7 +124,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 				}
 			}
 			if (!gs.isEmpty()) {
-				grammars.add(new GrammarEnv(gs, this.isTopLevel));
+				grammars.add(new GlobalGrammarEnv(gs, this.isTopLevel));
 				getRecursiveImports(that.getApi());
 			}
 		}
@@ -137,7 +137,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 	@Override
 	public void forImportNamesOnly(ImportNames that) {
 		if (env.definesApi(that.getApi())) {
-			GrammarEnv grammarEnv = new GrammarEnv();
+			GlobalGrammarEnv grammarEnv = new GlobalGrammarEnv();
 			for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
 				boolean found = false;
 				for (AliasedSimpleName name: that.getAliasedNames()) {
@@ -173,7 +173,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 		this.isTopLevel = isTopLevel;
 	}
 
-	public Collection<GrammarEnv> getGrammars() {
+	public Collection<GlobalGrammarEnv> getGrammars() {
 		return this.grammars;
 	}
 }

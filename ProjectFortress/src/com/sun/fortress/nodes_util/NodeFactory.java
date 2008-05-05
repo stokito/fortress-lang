@@ -1205,4 +1205,19 @@ public class NodeFactory {
         links.add(Pair.make(op, rhs));
         return new ChainExpr(new Span(lhs.getSpan(), rhs.getSpan()), lhs, links);
     }
+
+	public static Import makeImportStar(String apiName) {
+		return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
+	}
+	
+    public static Decl makeFnDecl(String functionName, Id typeName, Expr expression) {
+        Id fnName = new Id(functionName);
+        List<Param> params = new LinkedList<Param>();
+        List<StaticArg> staticArgs = new LinkedList<StaticArg>();
+        Type type = new InstantiatedType(new QualifiedIdName(typeName), staticArgs);
+        params.add(new VarargsParam(new Id("args"), new VarargsType(type)));
+        QualifiedIdName objectTypeName = new QualifiedIdName(typeName);
+        Type returnType = new InstantiatedType(objectTypeName , staticArgs);
+        return new FnDef(fnName, params, Option.some(returnType), expression);
+    }
 }

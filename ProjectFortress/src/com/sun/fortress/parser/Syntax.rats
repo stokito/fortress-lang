@@ -82,46 +82,50 @@ private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma 
 Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
 private GrammarMemberDecl NonterminalDef =
-      m1:(NonTermMod w)? a1:Id (w args:NonterminalArguments)? w void:bar a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
+      m1:(NonTermMod w)? a1:Id params:(w NonterminalArguments)? w void:bar a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
+        if ( params == null) params = new LinkedList<com.sun.fortress.useful.Pair<Id,Type>>();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); }
-    /m1:(NonTermMod w)? a1:Id (w args:NonterminalArguments)? w void:colon a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), a1, type, m1, params, syntaxDefs); }
+    /m1:(NonTermMod w)? a1:Id params:(w NonterminalArguments)? w void:colon a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
+        if ( params == null) params = new LinkedList<com.sun.fortress.useful.Pair<Id,Type>>();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); }
-    / m1:(NonTermMod w)? a1:Id (w args:NonterminalArguments)? w void:colon w a2:TraitType
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), a1, type, m1, params, syntaxDefs); }
+    / m1:(NonTermMod w)? a1:Id params:(w NonterminalArguments)? w void:colon w a2:TraitType
       { Option<TraitType> type = Option.some(a2);
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
         if (m1 == null) m1 = Option.none();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); }
-     /m1:(NonTermMod w)? a1:Id (w args:NonterminalArguments)? w void:bar w a2:TraitType
+        if ( params == null) params = new LinkedList<com.sun.fortress.useful.Pair<Id,Type>>();
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), a1, type, m1, params, syntaxDefs); }
+     /m1:(NonTermMod w)? a1:Id params:(w NonterminalArguments)? w void:bar w a2:TraitType
       { Option<TraitType> type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
+        if ( params == null) params = new LinkedList<com.sun.fortress.useful.Pair<Id,Type>>();
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), a1, type, m1, syntaxDefs); };
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), a1, type, m1, params, syntaxDefs); };
 
 private Option<ModifierPrivate> NonTermMod =
         private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
 
-private List<edu.rice.cs.plt.tuple.Pair<Id,Type>> NonterminalArguments =
+private List<com.sun.fortress.useful.Pair<Id,Type>> NonterminalArguments =
         void:openparen w DeclList w void:closeparen;
 
-private List<edu.rice.cs.plt.tuple.Pair<Id,Type>> DeclList =
+private List<com.sun.fortress.useful.Pair<Id,Type>> DeclList = 
         a1:Decl w comma w a2s:DeclList
         { yyValue = FortressUtil.mkList(a1, a2s); }
      /  a1:Decl
         { yyValue = FortressUtil.mkList(a1); };
 
-private edu.rice.cs.plt.tuple.Pair<Id,Type> Decl =
+private com.sun.fortress.useful.Pair<Id,Type> Decl = 
         a1:Id colon a2:Type
-        { yyValue = new edu.rice.cs.plt.tuple.Pair(a1,a2); };
+        { yyValue = new com.sun.fortress.useful.Pair(a1,a2); };
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDef SyntaxDef =
@@ -147,9 +151,11 @@ TransformationExpressionDef TransformationExpr =
      };
 
 /* TransformationTemplate ::= <[ Expr ]> */
-TransformationTemplateDef TransformationTemplate =
-     leftDelimiter w a1:Expr w rightDelimiter
-     { yyValue = new TransformationTemplateDef(a1); };
+TransformationPreTemplateDef TransformationTemplate =
+     leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
+     { yyValue = new TransformationPreTemplateDef("Expr", a1); };
+
+String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
 List<SyntaxSymbol> SyntaxSymbols =
       a1:SyntaxSymbol a1s:Symbs* &(w (leftDelimiter / do))

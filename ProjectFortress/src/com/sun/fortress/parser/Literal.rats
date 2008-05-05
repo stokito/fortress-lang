@@ -18,14 +18,15 @@
 /*
  * Definition of Fortress literals.
  */
-module com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
-                                       NoSpaceExpr, Symbol, Spacing);
+module com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr, 
+                                       NoSpaceExpr, Symbol, Spacing, Identifier);
 
 import MayNewlineHeader;
 import DelimitedExpr;
 import NoSpaceExpr;
 import Symbol;
 import Spacing;
+import Identifier;
 
 /* LiteralExpr ::=
      ( w )
@@ -34,12 +35,21 @@ import Spacing;
    | StringLiteralExpr
  */
 Expr LiteralExpr =
-     <VOID> openparen w closeparen
+     <GAP> "<!@#$%^&*<" w a1:Id params:ParamList? w ">*&^%$#@!>"
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapExpr(createSpan(yyStart,yyCount), a1, params);
+     }
+   / <VOID> openparen w closeparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); }
    / <NUMERICAL> NumericLiteralExpr
    / <CHAR>CharLiteralExpr
    / <STRING> StringLiteralExpr
    ;
+
+
+List<Id> ParamList = 
+     openparen a1:Id a2s:(w comma w Id)* closeparen
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
 ArrayExpr ArrayExpr =

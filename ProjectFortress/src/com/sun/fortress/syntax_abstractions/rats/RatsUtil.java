@@ -64,9 +64,7 @@ public abstract class RatsUtil {
 			System.exit(1);
 			return null;
 		}
-		else {
-			return Option.unwrap(result);
-		}
+		return Option.unwrap(result);
 	}
 
 	public static Option<Module> parseRatsModule(String filename) {
@@ -82,17 +80,15 @@ public abstract class RatsUtil {
 				Module n = (Module) v.value;
 				return Option.some(n);
 			}
-			else {
-				ParseError err = (ParseError) r;
-				if (-1 == err.index) {
-					System.err.println("  Parse error");
-				}
-				else {
-					System.err.println("  " + parser.location(err.index) + ": "
-							+ err.msg);
-				}
-				return Option.none();
+			ParseError err = (ParseError) r;
+			if (-1 == err.index) {
+				System.err.println("  Parse error");
 			}
+			else {
+				System.err.println("  " + parser.location(err.index) + ": "
+						+ err.msg);
+			}
+			return Option.none();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -225,4 +221,6 @@ public abstract class RatsUtil {
 			}
 		}
 	}
+	
+	
 }

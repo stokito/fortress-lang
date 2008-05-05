@@ -26,16 +26,17 @@ import com.sun.fortress.compiler.index.GrammarTerminalIndex;
 import com.sun.fortress.compiler.index.NonterminalDefIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
+
 
 public class ContractedNonterminal {
 
@@ -81,8 +82,9 @@ public class ContractedNonterminal {
 		}
 		Span span = this.members.get(0).getAst().getSpan();
 		Option<TraitType> type = this.members.get(0).getAst().getType();
-		NonterminalDef nonterminal = new NonterminalDef(span,
-                                                                name, type, Option.<Modifier>none(), syntaxDefs);
+
+		List<Pair<Id, Type>> params = this.members.get(0).getAst().getParams();
+		NonterminalDef nonterminal = new NonterminalDef(span, name, type, Option.<Modifier>none(), params, syntaxDefs);
 		Option<NonterminalDef> nonterminalDef = Option.some(nonterminal);
 		return new NonterminalDefIndex(nonterminalDef);
 	}

@@ -125,9 +125,7 @@ public class Disambiguator {
     
 
 	/**
-	 * First, Disambiguate item symbols to nonterminal, keyword, or token symbols.
-	 * Second, Remove any whitespace as indicated by the ignore-whitespace symbol.
-	 * Third, Rewrite escape sequences.
+	 * Disambiguate the names of nonterminals.
 	 */
     private static List<Api> disambiguateGrammarMembers(Iterable<Api> apis,
     												 List<StaticError> errors,

@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
 import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
 
@@ -44,18 +45,18 @@ import edu.rice.cs.plt.tuple.Option;
 public class GrammarIndexInitializer {
 
 	public static class Result extends StaticPhaseResult {
-		private Collection<GrammarEnv> envs;
+		private Collection<GlobalGrammarEnv> envs;
 
-		public Result(Collection<GrammarEnv> envs,
+		public Result(Collection<GlobalGrammarEnv> envs,
 				Iterable<? extends StaticError> errors) {
 			super(errors);
 			this.envs = envs;
 		}
 
-		public Collection<GrammarEnv> env() { return envs; }
+		public Collection<GlobalGrammarEnv> env() { return envs; }
 	}
 
-	public static Result init(Collection<GrammarEnv> envs) {
+	public static Result init(Collection<GlobalGrammarEnv> envs) {
 		Collection<StaticError> ses = new LinkedList<StaticError>();
 		initGrammarExtends(envs, ses);
 		initNonterminalExtends(envs, ses);
@@ -67,9 +68,9 @@ public class GrammarIndexInitializer {
 	 * @param envs
 	 * @param ses
 	 */
-	private static void initNonterminalExtends(Collection<GrammarEnv> envs,
+	private static void initNonterminalExtends(Collection<GlobalGrammarEnv> envs,
 			Collection<StaticError> ses) {
-		for (GrammarEnv env: envs) {
+		for (GlobalGrammarEnv env: envs) {
 			for (GrammarIndex g: env.getGrammars()) {
 				// Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
 				for (NonterminalIndex /*<? extends GrammarMemberDecl> */ n: g.getDeclaredNonterminals()) {
@@ -92,17 +93,17 @@ public class GrammarIndexInitializer {
 	 * @param envs
 	 * @param ses
 	 */
-	private static void initGrammarExtends(Collection<GrammarEnv> envs,
+	private static void initGrammarExtends(Collection<GlobalGrammarEnv> envs,
 			Collection<StaticError> ses) {
 		// Record all the grammar names and their grammar index
 		Map<Id, GrammarIndex> m = new HashMap<Id, GrammarIndex>();
-		for (GrammarEnv gEnv: envs) {
+		for (GlobalGrammarEnv gEnv: envs) {
 			for (GrammarIndex g: gEnv.getGrammars()) {
 				m.put(g.getName(), g);
 			}
 		}
 		// Make sure that a grammar index has a reference to the grammar index's it extends
-		for (GrammarEnv gEnv: envs) {
+		for (GlobalGrammarEnv gEnv: envs) {
 			for (GrammarIndex g: gEnv.getGrammars()) {
 				// Init nonterminal envs
 				g.setEnv(new NonterminalEnv(g));
