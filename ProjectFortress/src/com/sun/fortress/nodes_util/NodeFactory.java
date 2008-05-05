@@ -193,7 +193,7 @@ public class NodeFactory {
     }
 
     public static DimRef makeDimRef(String name) {
-        return new DimRef(makeQualifiedIdName(name));
+        return new DimRef(makeId(name));
     }
 
     public static UnitArg makeUnitArg(UnitExpr s) {
@@ -1213,7 +1213,7 @@ public class NodeFactory {
 	public static Import makeImportStar(String apiName) {
 		return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
 	}
-	
+
     public static Decl makeFnDecl(String functionName, Id typeName, Expr expression) {
         Id fnName = new Id(functionName);
         List<Param> params = new LinkedList<Param>();

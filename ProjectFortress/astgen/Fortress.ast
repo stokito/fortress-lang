@@ -1176,7 +1176,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * DimExpr ::= QualifiedName
              * e.g.) com.sun.fortress.dim.Length
              */
-            DimRef(QualifiedIdName name);
+            DimRef(Id name);
             /* dimension multiplication
              * DimExpr ::= DimExpr DOT DimExpr
              *           | DimExpr DimExpr
@@ -1314,7 +1314,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
              */
-            FixedPointType(QualifiedIdName name, Type body);
+            FixedPointType(Id name, Type body);
             /**
              * The type of the name given to a label expression.  Used internally.
              */

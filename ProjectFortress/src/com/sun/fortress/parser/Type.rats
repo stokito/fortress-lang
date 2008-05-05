@@ -313,11 +313,9 @@ constant inline Action<Type> IdLeft =
      a1:Id
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Span span = a1.getSpan();
-               DimRef dim = new DimRef(span,
-                                       NodeFactory.makeQualifiedIdName(span,a1));
                return new TaggedDimType(createSpan(yyStart,yyCount), (Type)base,
-                                        dim, Option.<Expr>none());
+                                        new DimRef(a1.getSpan(), a1),
+                                        Option.<Expr>none());
            }};
      };
 

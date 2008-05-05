@@ -190,7 +190,7 @@ public abstract class SubtypeChecker {
         final Map<Op, Op> opSubs = new HashMap<Op, Op>();
         final Map<Id, IntExpr> intSubs = new HashMap<Id, IntExpr>();
         final Map<Id, BoolExpr> boolSubs = new HashMap<Id, BoolExpr>();
-        final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
+        final Map<Id, DimExpr> dimSubs = new HashMap<Id, DimExpr>();
         final Map<Id, UnitExpr> unitSubs = new HashMap<Id, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
@@ -231,7 +231,7 @@ public abstract class SubtypeChecker {
                 }
                 @Override public void forDimParam(DimParam p) {
                     if (isDimArg(a))
-                        dimSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                        dimSubs.put(p.getName(),
                                     ((DimArg)a).getDim());
                     else error("A dimension parameter is instantiated with a " +
                                "non-dimension argument.");
@@ -516,7 +516,7 @@ public abstract class SubtypeChecker {
      *        abstract DimExpr();
      *            ExponentType(Type base, IntExpr power);
      *            BaseDim();
-     *            DimRef(QualifiedIdName name);
+     *            DimRef(Id name);
      *            ProductDim(DimExpr multiplier, DimExpr multiplicand);
      *            QuotientDim(DimExpr numerator, DimExpr denominator);
      *            OpDim(DimExpr val, Op op);
@@ -526,7 +526,7 @@ public abstract class SubtypeChecker {
      *            TaggedUnitType(Expr unit);
      *        AndType(Type first, Type second);
      *        OrType(Type first, Type second);
-     *        FixedPointType(QualifiedIdName name, Type body);
+     *        FixedPointType(Id name, Type body);
      *
      *    if any of the above types appears in s or t,
      *    the subtype checker may return FALSE.

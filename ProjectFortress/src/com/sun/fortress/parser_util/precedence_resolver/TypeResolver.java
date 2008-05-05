@@ -674,7 +674,7 @@ public class TypeResolver {
                     }
                 }
                 public DimExpr forIdType(IdType t) {
-                    return new DimRef(t.getSpan(), t.getName());
+                    return new DimRef(t.getSpan(), t.getName().getName());
                 }
                 public DimExpr defaultCase(Node x) {
                     return error(x, "A dimension is expected but a " +
@@ -718,7 +718,7 @@ public class TypeResolver {
         try {
             return dim.accept(new NodeAbstractVisitor<Type>() {
                 public Type forDimRef(DimRef d) {
-                    return new IdType(d.getSpan(), d.getName());
+                    return new IdType(d.getSpan(), NodeFactory.makeQIdfromId(d.getName()));
                 }
                 public Type forProductDim(ProductDim d) {
                     try {
