@@ -15,26 +15,30 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.typechecker;
+package com.sun.fortress.compiler;
 
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
 import java.util.Collections;
 
-import static com.sun.fortress.nodes_util.NodeFactory.*;
+import static com.sun.fortress.nodes_util.NodeFactory.makeQualifiedIdName;
+import static com.sun.fortress.nodes_util.NodeFactory.makeInstantiatedType;
 
-public class Types {
+public final class Types {
+    
+    private Types() {}
+    
+    public static final QualifiedIdName ANY_NAME = makeQualifiedIdName("AnyType", "Any");
+    public static final Type ANY = new AnyType();
     public static final Type BOTTOM = new BottomType();
-    public static final Type ANY = NodeFactory.makeInstantiatedType("AnyType", "Any");
-    public static final Type OBJECT = NodeFactory.makeInstantiatedType("FortressLibrary", "Object");
+    public static final Type OBJECT = makeInstantiatedType("FortressLibrary", "Object");
     // public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
 
     public static final Type VOID = new VoidType();
-    public static final Type FLOAT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "FloatLiteral");
-    public static final Type INT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "IntLiteral");
-    public static final Type BOOLEAN = NodeFactory.makeInstantiatedType("FortressBuiltin", "Boolean");
-    public static final Type CHAR = NodeFactory.makeInstantiatedType("FortressBuiltin", "Char");
-    public static final Type STRING = NodeFactory.makeInstantiatedType("FortressBuiltin", "String");
-    public static final Type REGION = NodeFactory.makeInstantiatedType("FortressLibrary", "Region");
+    public static final Type FLOAT_LITERAL = makeInstantiatedType("FortressBuiltin", "FloatLiteral");
+    public static final Type INT_LITERAL = makeInstantiatedType("FortressBuiltin", "IntLiteral");
+    public static final Type BOOLEAN = makeInstantiatedType("FortressBuiltin", "Boolean");
+    public static final Type CHAR = makeInstantiatedType("FortressBuiltin", "Char");
+    public static final Type STRING = makeInstantiatedType("FortressBuiltin", "String");
+    public static final Type REGION = makeInstantiatedType("FortressLibrary", "Region");
     public static final Type LABEL = new LabelType();
 }

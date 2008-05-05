@@ -52,7 +52,7 @@ import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
@@ -109,6 +109,10 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * the clever assumption keeps track of which one it actually uses).
  */
 public class Desugarer extends Rewrite {
+    
+    // Distinct from Types.ANY_NAME because qualified names aren't yet supported
+    public final static QualifiedIdName INTERNAL_ANY_NAME =
+        NodeFactory.makeQualifiedIdName("Any");
 
     public final static Id LOOP_NAME =
         NodeFactory.makeId(WellKnownNames.loop);
@@ -719,7 +723,7 @@ public class Desugarer extends Rewrite {
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     AbstractObjectExpr oe = (AbstractObjectExpr) node;
                     List<? extends AbsDeclOrDecl> defs = oe.getDecls();
-                    List<TraitType> xtends = NodeUtil.getTypes(oe.getExtendsClause());
+                    List<BaseType> xtends = NodeUtil.getTypes(oe.getExtendsClause());
                     // TODO wip
 
                     objectNestingDepth++;
@@ -768,7 +772,7 @@ public class Desugarer extends Rewrite {
                     List<? extends AbsDeclOrDecl> defs = od.getDecls();
                     Option<List<Param>> params = od.getParams();
                     List<StaticParam> tparams = od.getStaticParams();
-                    List<TraitType> xtends = NodeUtil.getTypes(od.getExtendsClause());
+                    List<BaseType> xtends = NodeUtil.getTypes(od.getExtendsClause());
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -1104,7 +1108,7 @@ public class Desugarer extends Rewrite {
                 rewrites);
     }
 
-    private void accumulateMembersFromExtends(List<TraitType> xtends, Map<String, Thing> disEnv) {
+    private void accumulateMembersFromExtends(List<BaseType> xtends, Map<String, Thing> disEnv) {
         Set<String> members = new HashSet<String>();
         Set<String> types = new HashSet<String>();
         Set<String> arrow_names = new HashSet<String>();
@@ -1252,7 +1256,7 @@ public class Desugarer extends Rewrite {
      *            (bookkeeping) to prevent revisiting, and possible looping on
      *            bad inputs
      */
-    private void accumulateTraitsAndMethods(List<TraitType> xtends,
+    private void accumulateTraitsAndMethods(List<BaseType> xtends,
             Map<String, Thing> typeEnv, Set<String> members, Set<String> types,
             Set<String> arrow_names, Set<String> not_arrow_names,
             Set<AbstractNode> visited) {
@@ -1264,6 +1268,8 @@ public class Desugarer extends Rewrite {
                     qName = ((InstantiatedType) t).getName();
                 } else if (t instanceof IdType) {
                     qName = ((IdType) t).getName();
+                } else if (t instanceof AnyType) {
+                    qName = INTERNAL_ANY_NAME;
                 } else {
                    // TODO Way too many types; deal with them as necessary.
                     bug(t, errorMsg("Object extends something exciting: ", t));

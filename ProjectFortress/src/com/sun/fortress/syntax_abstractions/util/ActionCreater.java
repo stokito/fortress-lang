@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TransformationDecl;
 import com.sun.fortress.nodes.TransformationExpressionDef;
 import com.sun.fortress.nodes.TransformationTemplateDef;
@@ -74,44 +74,44 @@ public class ActionCreater {
 
     private static final Id ANY = new Id("Any");
 
-	public static Result create(String alternativeName,
-			TransformationDecl transformation,
-			TraitType type,
-			GrammarEnv grammarEnv,
-			SyntaxDeclEnv syntaxDeclEnv) {
-		ActionCreater ac = new ActionCreater();
-		Collection<StaticError> errors = new LinkedList<StaticError>();
-		List<Integer> indents = new LinkedList<Integer>();
-		List<String> code = ActionCreaterUtil.createVariabelBinding(indents, syntaxDeclEnv, BOUND_VARIABLES);
+ public static Result create(String alternativeName,
+   TransformationDecl transformation,
+   BaseType type,
+   GrammarEnv grammarEnv,
+   SyntaxDeclEnv syntaxDeclEnv) {
+  ActionCreater ac = new ActionCreater();
+  Collection<StaticError> errors = new LinkedList<StaticError>();
+  List<Integer> indents = new LinkedList<Integer>();
+  List<String> code = ActionCreaterUtil.createVariabelBinding(indents, syntaxDeclEnv, BOUND_VARIABLES);
 
-		String returnType = new FortressTypeToJavaType().analyze(type);
+  String returnType = new FortressTypeToJavaType().analyze(type);
 
-		if (transformation instanceof TransformationExpressionDef) {
-			Expr e = ((TransformationExpressionDef) transformation).getTransformation();
-			Component component = ac.makeComponent(e, syntaxDeclEnv);
-			String serializedComponent = ac.writeJavaAST(component);
-			code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
+  if (transformation instanceof TransformationExpressionDef) {
+   Expr e = ((TransformationExpressionDef) transformation).getTransformation();
+   Component component = ac.makeComponent(e, syntaxDeclEnv);
+   String serializedComponent = ac.writeJavaAST(component);
+   code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
 
-			addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
-			addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
-		}
-		else if (transformation instanceof TransformationTemplateDef) {
-			AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
-			JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(grammarEnv, syntaxDeclEnv);
-			String yyValue = n.accept(jpp);
-			
-			for (String s: jpp.getCode()) {
-				addCodeLine(s, code, indents);
-			}
+   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
+   addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
+  }
+  else if (transformation instanceof TransformationTemplateDef) {
+   AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
+   JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(grammarEnv, syntaxDeclEnv);
+   String yyValue = n.accept(jpp);
+   
+   for (String s: jpp.getCode()) {
+    addCodeLine(s, code, indents);
+   }
 
-			addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
-			addCodeLine("yyValue = "+yyValue+";", code, indents);
-		}
+   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
+   addCodeLine("yyValue = "+yyValue+";", code, indents);
+  }
 
-		// System.err.println(code);
-		Action a = new Action(code, indents);
-		return ac.new Result(a, errors);
-	}
+  // System.err.println(code);
+  Action a = new Action(code, indents);
+  return ac.new Result(a, errors);
+ }
 
     private static void addCodeLine(String s, List<String> code,
             List<Integer> indents) {
@@ -144,18 +144,18 @@ public class ActionCreater {
         return new Component(span, name, imports, exports, decls);
     }
 
-	public String writeJavaAST(Component component) {
-		try {
-			StringWriter sw = new StringWriter();
-			BufferedWriter bw = new BufferedWriter(sw);
-			ASTIO.writeJavaAst(component, bw);
-			bw.flush();
-			bw.close();
-			//			System.err.println(sw.getBuffer().toString());
-			return sw.getBuffer().toString();
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Unexpected error: "+e.getMessage());
-		}
-	}
+ public String writeJavaAST(Component component) {
+  try {
+   StringWriter sw = new StringWriter();
+   BufferedWriter bw = new BufferedWriter(sw);
+   ASTIO.writeJavaAst(component, bw);
+   bw.flush();
+   bw.close();
+   //   System.err.println(sw.getBuffer().toString());
+   return sw.getBuffer().toString();
+  } catch (IOException e) {
+   e.printStackTrace();
+   throw new RuntimeException("Unexpected error: "+e.getMessage());
+  }
+ }
 }

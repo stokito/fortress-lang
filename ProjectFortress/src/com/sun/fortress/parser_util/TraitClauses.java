@@ -25,7 +25,7 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.MagicNumbers;
 
@@ -33,8 +33,8 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class TraitClauses {
 
-    private List<TraitType>         excludes  = FortressUtil.emptyTraitTypes();
-    private Option<List<TraitType>> comprises = Option.<List<TraitType>>none();
+    private List<BaseType>         excludes  = FortressUtil.emptyTraitTypes();
+    private Option<List<BaseType>> comprises = Option.<List<BaseType>>none();
     private WhereClause             where = FortressUtil.emptyWhereClause();
     private boolean setExcludes  = false;
     private boolean setComprises = false;
@@ -42,11 +42,11 @@ public class TraitClauses {
 
     public TraitClauses() {}
 
-    public List<TraitType> getExcludes() {
+    public List<BaseType> getExcludes() {
         return excludes;
     }
 
-    public Option<List<TraitType>> getComprises() {
+    public Option<List<BaseType>> getComprises() {
         return comprises;
     }
 

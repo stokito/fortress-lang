@@ -101,14 +101,14 @@ public class NodeComparator {
     public final static AnyListComparer<StaticArg> staticArgListComparer =
         new AnyListComparer<StaticArg>(staticArgComparer);
 
-    static class TraitTypeComparer implements Comparator<TraitType> {
-        public int compare(TraitType left, TraitType right) {
+    static class BaseTypeComparer implements Comparator<BaseType> {
+        public int compare(BaseType left, BaseType right) {
             return NodeComparator.compare(left, right);
         }
     }
-    final static TraitTypeComparer traitTypeComparer = new TraitTypeComparer();
-    public final static AnyListComparer<TraitType> traitTypeListComparer =
-        new AnyListComparer<TraitType>(traitTypeComparer);
+    final static BaseTypeComparer traitTypeComparer = new BaseTypeComparer();
+    public final static AnyListComparer<BaseType> traitTypeListComparer =
+        new AnyListComparer<BaseType>(traitTypeComparer);
 
     static class TypeComparer implements Comparator<Type> {
         public int compare(Type left, Type right) {
@@ -355,8 +355,8 @@ public class NodeComparator {
         if (left.isAbsorbs() != right.isAbsorbs()) {
             return left.isAbsorbs() ? 1 : -1;
         }
-        List<TraitType> l = left.getExtendsClause();
-        List<TraitType> ol = right.getExtendsClause();
+        List<BaseType> l = left.getExtendsClause();
+        List<BaseType> ol = right.getExtendsClause();
         return traitTypeListComparer.compare(l, ol);
     }
 

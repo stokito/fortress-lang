@@ -343,9 +343,9 @@ Op DimPostfixOp =
      TraitTypeFront TraitTypeTail+
    | TypeRef
  */
-TraitType TraitType =
+BaseType TraitType =
      seed:TraitTypeFront list:TraitTypeTail+
-     { yyValue = (TraitType)apply(list, seed); }
+     { yyValue = (BaseType)apply(list, seed); }
    / TypeRef ;
 
 /* TraitTypeFront ::=

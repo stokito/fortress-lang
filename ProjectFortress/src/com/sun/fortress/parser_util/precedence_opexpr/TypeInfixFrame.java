@@ -19,7 +19,7 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 
 import java.util.List;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.PureList;
 import edu.rice.cs.plt.tuple.Option;
@@ -30,7 +30,7 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public abstract class TypeInfixFrame extends Object implements InfixFrame {
    private final Op _op;
-   private final Option<List<TraitType>> _throws;
+   private final Option<List<BaseType>> _throws;
    private final Type _arg;
    private int _hashCode;
    private boolean _hasHashCode = false;
@@ -39,7 +39,7 @@ public abstract class TypeInfixFrame extends Object implements InfixFrame {
     * Constructs a TypeInfixFrame.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public TypeInfixFrame(Op in_op, Option<List<TraitType>> in_throws,
+   public TypeInfixFrame(Op in_op, Option<List<BaseType>> in_throws,
                          Type in_arg) {
       super();
       _op = in_op;
@@ -48,7 +48,7 @@ public abstract class TypeInfixFrame extends Object implements InfixFrame {
    }
 
    public Op getOp() { return _op; }
-   public Option<List<TraitType>> getThrows() { return _throws; }
+   public Option<List<BaseType>> getThrows() { return _throws; }
     public Type getArg() { return _arg; }
 
    public abstract <RetType> RetType accept(InfixFrameVisitor<RetType> visitor);

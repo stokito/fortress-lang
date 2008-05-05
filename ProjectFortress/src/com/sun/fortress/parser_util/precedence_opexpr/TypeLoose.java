@@ -19,7 +19,7 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 
 import java.util.List;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.PureList;
 import edu.rice.cs.plt.tuple.Option;
@@ -35,7 +35,7 @@ public class TypeLoose extends TypeInfixFrame {
     * Constructs a TypeLoose.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public TypeLoose(Op in_op, Option<List<TraitType>> in_throws,
+   public TypeLoose(Op in_op, Option<List<BaseType>> in_throws,
                     Type in_arg) {
       super(in_op, in_throws, in_arg);
    }

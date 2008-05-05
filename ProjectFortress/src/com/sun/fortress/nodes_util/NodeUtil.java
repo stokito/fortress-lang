@@ -361,8 +361,8 @@ public class NodeUtil {
     }
 
     /* for TraitTypeWhere **************************************************/
-    public static List<TraitType> getTypes(List<TraitTypeWhere> l) {
-        List<TraitType> t = new ArrayList<TraitType>(l.size());
+    public static List<BaseType> getTypes(List<TraitTypeWhere> l) {
+        List<BaseType> t = new ArrayList<BaseType>(l.size());
         for (TraitTypeWhere tw : l) {
             t.add(tw.getType());
         }

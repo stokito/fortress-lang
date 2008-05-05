@@ -45,7 +45,7 @@ import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
@@ -125,7 +125,7 @@ public class SyntaxAbstractionUtil {
         return makeObjectInstantiation(span, apiName, objectName, args, new LinkedList<StaticArg>());
     }
 
-    public static TraitType unwrap(Option<TraitType> t) {
+    public static BaseType unwrap(Option<BaseType> t) {
         if (t.isNone()) {
             throw new RuntimeException("Grammar member declaration does not have a type, malformed AST");
         }

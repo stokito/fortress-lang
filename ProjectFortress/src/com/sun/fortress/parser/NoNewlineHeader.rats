@@ -52,28 +52,28 @@ private TraitTypeWhere TraitTypeWhere =
      };
 
 /* Extends ::= extends w TraitTypes */
-List<TraitType> Extends = extends w TraitTypes ;
+List<BaseType> Extends = extends w TraitTypes ;
 
 /* Excludes ::= excludes w TraitTypes */
-List<TraitType> Excludes = excludes w TraitTypes ;
+List<BaseType> Excludes = excludes w TraitTypes ;
 
 /* Comprises ::= comprises w TraitTypes */
-List<TraitType> Comprises = comprises w TraitTypes ;
+List<BaseType> Comprises = comprises w TraitTypes ;
 
 /* AbsComprises ::= comprises w ComprisingTypes */
-List<TraitType> AbsComprises = comprises w ComprisingTypes ;
+List<BaseType> AbsComprises = comprises w ComprisingTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
-List<TraitType> TraitTypes =
+List<BaseType> TraitTypes =
      a1:TraitType { yyValue = FortressUtil.mkList(a1); }
    / void:opencurly w TraitTypeList w void:closecurly ;
 
 /* TraitTypeList ::= TraitType (w , w TraitType)* */
-private List<TraitType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
+private List<BaseType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
-private List<TraitType> ComprisingTypes =
+private List<BaseType> ComprisingTypes =
      a1:TraitType { yyValue = FortressUtil.mkList(a1); }
    / void:opencurly w ComprisingTypeList w void:closecurly ;
 
@@ -81,7 +81,7 @@ private List<TraitType> ComprisingTypes =
      ...
    | TraitType (w , w TraitType)* (w , w ...)?
  */
-private List<TraitType> ComprisingTypeList =
+private List<BaseType> ComprisingTypeList =
      ellipses
      { yyValue = FortressUtil.emptyTraitTypes(); }
    / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
@@ -141,7 +141,7 @@ FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsType)? a2:FnClauses
 
 /* FnClauses ::= (w Throws)? (w Where)? Contract */
 FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
-     { Option<List<TraitType>> throwsClause = Option.wrap(a1);
+     { Option<List<BaseType>> throwsClause = Option.wrap(a1);
        if (a2 == null)         a2 = FortressUtil.emptyWhereClause();
        Option<Contract>        contractClause = Option.wrap(a3);
        yyValue = new FnHeaderClause(throwsClause, a2, contractClause,
@@ -149,10 +149,10 @@ FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
      };
 
 /* Throws ::= throws w MayTraitTypes */
-List<TraitType> Throws = throws w MayTraitTypes ;
+List<BaseType> Throws = throws w MayTraitTypes ;
 
 /* MayTraitTypes ::= { w } | TraitTypes  */
-private List<TraitType> MayTraitTypes =
+private List<BaseType> MayTraitTypes =
      opencurly w closecurly { yyValue = FortressUtil.emptyTraitTypes(); }
    / TraitTypes ;
 
@@ -336,7 +336,7 @@ private StaticParam StaticParam =
    / opr  w a1:Op
      { yyValue = new OprParam(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
-     { if (a2 == null) a2 = Collections.<TraitType>emptyList();
+     { if (a2 == null) a2 = Collections.<BaseType>emptyList();
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;

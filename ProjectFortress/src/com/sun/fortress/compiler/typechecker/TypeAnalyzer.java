@@ -32,7 +32,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 
-import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
 import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarType;
 
@@ -48,7 +48,7 @@ public class TypeAnalyzer {
     private static final int MAX_SUBTYPE_EXPANSIONS = 2;
 
     private static final Option<List<Type>> THROWS_BOTTOM =
-        Option.some(Collections.singletonList(Types.BOTTOM));
+        Option.some(Collections.singletonList(BOTTOM));
 
     private final TraitTable _table;
     private final StaticParamEnv _staticParamEnv;
@@ -242,7 +242,7 @@ public class TypeAnalyzer {
                                                                             traitIndex.hiddenParameters());
                                 ConstraintFormula result = ConstraintFormula.FALSE;
                                 for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
-                                    TraitType sup = _sup.getType();
+                                    BaseType sup = _sup.getType();
                                     ConstraintFormula f = ConstraintFormula.TRUE;
                                     for (Pair<Type, Type> c : traitIndex.typeConstraints()) {
                                         f = f.and(sub(subst.value(c.first()), subst.value(c.second()), h), h);
@@ -521,6 +521,10 @@ public class TypeAnalyzer {
                 @Override public ConstraintFormula forType(Type t) {
                     return ConstraintFormula.FALSE;
                 }
+                
+                @Override public ConstraintFormula forAnyType(AnyType t) {
+                    return ConstraintFormula.TRUE;
+                }
 
                 @Override public ConstraintFormula forInferenceVarType(InferenceVarType t) {
                     if (s instanceof InferenceVarType && s.equals(t)) {
@@ -536,6 +540,10 @@ public class TypeAnalyzer {
             if (!result.isTrue()) {
 
                 ConstraintFormula sResult = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                    
+                    @Override public ConstraintFormula forAnyType(AnyType s) {
+                        return ConstraintFormula.FALSE; // t is not Any, because result is not true
+                    }
 
                     @Override public ConstraintFormula forBottomType(BottomType s) {
                         return ConstraintFormula.TRUE;
@@ -565,7 +573,7 @@ public class TypeAnalyzer {
                                 Lambda<Type, Type> subst = makeSubstitution(traitIndex.staticParameters(),
                                                                             s.getArgs(), traitHidden);
                                 for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
-                                    TraitType sup = _sup.getType();
+                                    BaseType sup = _sup.getType();
                                     ConstraintFormula f = ConstraintFormula.TRUE;
                                     for (Pair<Type, Type> c : traitIndex.typeConstraints()) {
                                         SubtypeHistory h2;

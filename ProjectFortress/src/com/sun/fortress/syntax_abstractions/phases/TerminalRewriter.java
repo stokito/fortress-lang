@@ -37,7 +37,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._TerminalDef;
@@ -112,7 +112,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         Id name = NodeFactory.makeId(apiName,id);
 
         // Create a the return type - A StringLiteralExpr
-        Option<TraitType> type = Option.<TraitType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", STRINGLITERALEXPR)));
+        Option<BaseType> type = Option.<BaseType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", STRINGLITERALEXPR)));
 
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();

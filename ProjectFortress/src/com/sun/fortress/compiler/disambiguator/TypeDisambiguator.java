@@ -39,6 +39,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.StaticError;
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -47,7 +48,9 @@ import com.sun.fortress.useful.HasAt;
 /**
  * <p>Eliminates ambiguities in types:
  * <ul>
- * <li>Type names referring to APIs are made fully qualified.
+ * <li>IdTypes (and 0-ary InstantiatedTypes, if they exist) referencing type Any are
+ *     replaced by AnyTypes.</li>
+ * <li>Type names referring to APIs are made fully qualified.</li>
  * <li>IdTypes referring to traits, objects, and aliases become InstantiatedTypes
  *     (with 0 arguments).</li>
  * <li>TypeArgs wrapping IdTypes corresponding to other kinds of parameters (like UnitParams)
@@ -100,8 +103,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                 (WhereClause) that.getWhere().accept(v),
-                v.recurOnListOfTraitType(that.getExcludes()),
-                v.recurOnOptionOfListOfTraitType(that.getComprises()),
+                v.recurOnListOfBaseType(that.getExcludes()),
+                v.recurOnOptionOfListOfBaseType(that.getComprises()),
                 v.recurOnListOfAbsDecl(that.getDecls()));
     }
 
@@ -118,8 +121,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                 (WhereClause) that.getWhere().accept(v),
-                v.recurOnListOfTraitType(that.getExcludes()),
-                v.recurOnOptionOfListOfTraitType(that.getComprises()),
+                v.recurOnListOfBaseType(that.getExcludes()),
+                v.recurOnOptionOfListOfBaseType(that.getComprises()),
                 v.recurOnListOfDecl(that.getDecls()));
     }
 
@@ -138,7 +141,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                 (WhereClause) that.getWhere().accept(v),
                 v.recurOnOptionOfListOfParam(that.getParams()),
-                v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 (Contract) that.getContract().accept(v),
                 v.recurOnListOfAbsDecl(that.getDecls()));
     }
@@ -157,7 +160,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                 (WhereClause) that.getWhere().accept(v),
                 v.recurOnOptionOfListOfParam(that.getParams()),
-                v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 (Contract) that.getContract().accept(v),
                 v.recurOnListOfDecl(that.getDecls()));
     }
@@ -176,7 +179,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfParam(that.getParams()),
                 v.recurOnOptionOfType(that.getReturnType()),
-                v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 (WhereClause) that.getWhere().accept(v),
                 (Contract) that.getContract().accept(v));
     }
@@ -194,7 +197,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfParam(that.getParams()),
                 v.recurOnOptionOfType(that.getReturnType()),
-                v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 (WhereClause) that.getWhere().accept(v),
                 (Contract) that.getContract().accept(v),
                 (Expr) that.getBody().accept(v));
@@ -212,19 +215,19 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         Lambda<QualifiedIdName, Type> typeConsHandler =
             new Lambda<QualifiedIdName, Type>() {
             public Type value(QualifiedIdName n) {
-                TypeConsIndex typeCons = _env.typeConsIndex(n);
-                // System.err.println(that.getSpan()+":");
-                // System.err.println(" that: "+that);
-                // System.err.println(" n: " + n);
-                // System.err.println(" typeCons: " + typeCons);
-                // System.err.println(" _env: "+_env);
-
-                if (!typeCons.staticParameters().isEmpty()) {
-                    error("Type requires static arguments: " + NodeUtil.nameString(n),
-                          that);
-                    return that;
+                if (n.equals(Types.ANY_NAME)) {
+                    return new AnyType(that.getSpan());
                 }
-                return new InstantiatedType(n, Collections.<StaticArg>emptyList());
+                else {
+                    TypeConsIndex typeCons = _env.typeConsIndex(n);
+                    if (!typeCons.staticParameters().isEmpty()) {
+                        error("Type requires static arguments: " + NodeUtil.nameString(n),
+                              that);
+                        return that;
+                    }
+                    return new InstantiatedType(that.getSpan(), n,
+                                                Collections.<StaticArg>emptyList());
+                }
             }
         };
         return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
@@ -240,26 +243,31 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         };
         Lambda<QualifiedIdName, Type> typeConsHandler =
             new Lambda<QualifiedIdName, Type>() {
-            public InstantiatedType value(QualifiedIdName n) {
-                TypeConsIndex typeCons = _env.typeConsIndex(n);
-                List<StaticParam> params = typeCons.staticParameters();
+            public Type value(QualifiedIdName n) {
                 List<StaticArg> args = that.getArgs();
-                if (params.size() != args.size()) {
-                    error("Incorrect number of static arguments for type '" +
-                            NodeUtil.nameString(n) + "': provided " + args.size() +
-                            ", expected " + params.size(), that);
-                    return that;
+                if (n.equals(Types.ANY_NAME) && args.isEmpty()) {
+                    return new AnyType(that.getSpan());
                 }
-                boolean changed = false;
-                List<StaticArg> newArgs = new ArrayList<StaticArg>(args.size());
-                for (Pair<StaticParam, StaticArg> pair :
-                    IterUtil.zip(params, args)) {
-                    StaticArg updated = updateStaticArg(pair.second(), pair.first());
-                    if (updated != pair.second()) { changed = true; }
-                    newArgs.add(updated);
-                }
-                return changed ?
+                else {
+                    TypeConsIndex typeCons = _env.typeConsIndex(n);
+                    List<StaticParam> params = typeCons.staticParameters();
+                    if (params.size() != args.size()) {
+                        error("Incorrect number of static arguments for type '" +
+                              NodeUtil.nameString(n) + "': provided " + args.size() +
+                              ", expected " + params.size(), that);
+                        return that;
+                    }
+                    boolean changed = false;
+                    List<StaticArg> newArgs = new ArrayList<StaticArg>(args.size());
+                    for (Pair<StaticParam, StaticArg> pair :
+                             IterUtil.zip(params, args)) {
+                        StaticArg updated = updateStaticArg(pair.second(), pair.first());
+                        if (updated != pair.second()) { changed = true; }
+                        newArgs.add(updated);
+                    }
+                    return changed ?
                         new InstantiatedType(that.getSpan(), n, newArgs) : that;
+                }
             }
         };
         return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
@@ -283,8 +291,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      *                         exists.
      */
     private Type handleTypeName(Type that, QualifiedIdName n,
-                        Thunk<Type> variableHandler,
-                              Lambda<QualifiedIdName, Type> typeConsHandler) {
+                                Thunk<Type> variableHandler,
+                                Lambda<QualifiedIdName, Type> typeConsHandler) {
         if (n.getApi().isSome()) {
             APIName originalApi = Option.unwrap(n.getApi());
             Option<APIName> realApiOpt = _env.apiName(originalApi);

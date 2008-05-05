@@ -19,7 +19,7 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 
 import java.util.List;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -36,7 +36,7 @@ public class LooseInfix extends JuxtInfix {
       super(in_op);
    }
 
-   public LooseInfix(Op in_op, Option<List<TraitType>> in_throws) {
+   public LooseInfix(Op in_op, Option<List<BaseType>> in_throws) {
       super(in_op, in_throws);
    }
 

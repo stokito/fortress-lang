@@ -93,7 +93,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeAlias;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.VarDecl;
@@ -1164,7 +1164,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @param interior
      */
     public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, BetterEnv interior) {
-        List<TraitType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
+        List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         interior = new BetterEnv(interior, x);
 
         EvalType et = processWhereClauses(x.getWhere(), interior);
@@ -1172,7 +1172,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<FType> extl = et.getFTypeListFromList(extends_);
         List<FType> excl = et.getFTypeListFromList(x.getExcludes());
         ftt.setExtendsAndExcludes(extl, excl, interior);
-        Option<List<TraitType>> comprs = x.getComprises();
+        Option<List<BaseType>> comprs = x.getComprises();
         if (!comprs.isNone()) {
             List<FType> c = et.getFTypeListFromList(Option.unwrap(comprs));
             ftt.setComprises(Useful.<FType>set(c));
@@ -1229,7 +1229,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     WhereExtends we = (WhereExtends) w;
                     Id name = we.getName();
                     String string_name = NodeUtil.nameString(name);
-                    List<TraitType> types = we.getSupers();
+                    List<BaseType> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
                     for (Type t : types) {
                         FType st = et.evalType(t); // t.visit(et);
@@ -1268,17 +1268,17 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     public void finishObjectTrait(ObjectAbsDeclOrDecl x, FTypeObject ftt) {
-        List<TraitType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
+        List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
     }
 
     public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {
-        List<TraitType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
+        List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         // _RewriteObjectExpr has no excludes clause.
         finishObjectTrait(extends_, null, null, ftt, containing, x);
     }
 
-    static public void finishObjectTrait(List<TraitType> extends_,
+    static public void finishObjectTrait(List<BaseType> extends_,
             List<? extends Type> excludes, WhereClause wheres, FTypeObject ftt,
             BetterEnv interior, HasAt x) {
         interior = new BetterEnv(interior, x);

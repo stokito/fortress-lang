@@ -24,7 +24,7 @@ import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -39,7 +39,7 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
     private IdType fortressASTType = new IdType(NodeFactory.makeQualifiedIdName("FortressAst", "Decl"));
     private String fortressASTTypeResult = "Decl";
 
-    private InstantiatedType mkInstantiatedType(String api, String id, TraitType typeArg) {
+    private InstantiatedType mkInstantiatedType(String api, String id, BaseType typeArg) {
         QualifiedIdName name = NodeFactory.makeQualifiedIdName(api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
         args.add(new TypeArg(typeArg));
