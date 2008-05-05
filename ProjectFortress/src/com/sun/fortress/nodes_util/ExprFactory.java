@@ -367,7 +367,7 @@ public class ExprFactory {
     }
 
     public static VarRef makeVarRef(Span span, String s) {
-        return new VarRef(span, false, NodeFactory.makeQualifiedIdName(span, s));
+        return new VarRef(span, false, NodeFactory.makeId(span, s));
     }
 
     public static VarRef makeVarRef(String s) {
@@ -375,33 +375,31 @@ public class ExprFactory {
     }
 
     public static VarRef makeVarRef(Span sp, Id id) {
-        return new VarRef(sp, false,
-                          NodeFactory.makeQualifiedIdName(id));
+        return new VarRef(sp, false, id);
     }
 
     public static VarRef makeVarRef(Id id) {
-        return new VarRef(id.getSpan(), false,
-                          NodeFactory.makeQualifiedIdName(id));
+        return new VarRef(id.getSpan(), false, id);
     }
 
     public static VarRef makeVarRef(Iterable<Id> apiIds, Id name) {
-        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(apiIds, name);
+        Id qName = NodeFactory.makeId(apiIds, name);
         return new VarRef(qName.getSpan(), false, qName);
     }
 
     public static VarRef makeVarRef(Span span, Iterable<Id> apiIds, Id name) {
-        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(span, apiIds, name);
+        Id qName = NodeFactory.makeId(span, apiIds, name);
         return new VarRef(span, false, qName);
     }
 
     /** Assumes {@code ids} is nonempty. */
     public static VarRef makeVarRef(Iterable<Id> ids) {
-        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(ids);
+        Id qName = NodeFactory.makeId(ids);
         return new VarRef(qName.getSpan(), false, qName);
     }
 
     public static VarRef makeVarRef(APIName api, Id name) {
-        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
+        Id qName = NodeFactory.makeId(api, name);
         return new VarRef(qName.getSpan(), false, qName);
     }
 

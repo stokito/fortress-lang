@@ -34,25 +34,32 @@ import static com.sun.fortress.nodes_util.NodeFactory.makeAndType;
 import static com.sun.fortress.nodes_util.NodeFactory.makeGenericArrowType;
 import static edu.rice.cs.plt.tuple.Option.*;
 
-/** 
+/**
  * A type environment whose outermost scope binds local function definitions.
  */
 class FnDefTypeEnv extends TypeEnv {
     private Relation<IdOrOpOrAnonymousName, ? extends FnDef> entries;
     private TypeEnv parent;
-    
+
     FnDefTypeEnv(Relation<IdOrOpOrAnonymousName, ? extends FnDef> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         Set<? extends FnDef> fns = entries.getSeconds(var);
-        if (fns.isEmpty()) { return parent.binding(var); }
+        if (fns.isEmpty()) {
+            if (var instanceof Id) {
+                Id _var = (Id)var;
+                if (_var.getApi().isSome())
+                    return binding(new Id(_var.getSpan(), _var.getText()));
+            }
+            return parent.binding(var);
+        }
 
         LinkedList<Type> overloadedTypes = new LinkedList<Type>();
         for (FnDef fn : fns) {

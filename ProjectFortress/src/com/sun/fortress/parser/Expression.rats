@@ -108,7 +108,7 @@ LHS AssignLeft =
        else yyValue = null;
      }
    / a1:QualifiedName
-     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); };
+     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, NodeFactory.makeId(a1)); };
 
 constant transient Action<Expr> AssignLeftTail =
      SubscriptAssign
@@ -409,9 +409,8 @@ Expr PrimaryFront =
 
 /* VarOrFnRef ::= Id StaticArgs? */
 Expr VarOrFnRef = a1:Id a2:StaticArgs?
-     { QualifiedIdName name = NodeFactory.makeQualifiedIdName(a1.getSpan(), a1);
-       if (a2 == null)
-            yyValue = new VarRef(createSpan(yyStart,yyCount),false,name);
+     { if (a2 == null)
+            yyValue = new VarRef(createSpan(yyStart,yyCount),false,a1);
        else yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount),a1,a2);
      };
 

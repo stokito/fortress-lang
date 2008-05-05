@@ -205,7 +205,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override public Node forTraitDecl(final TraitDecl that) {
         ExprDisambiguator v = this.extend(extractStaticExprVars
-                                              (that.getStaticParams())).
+                                          (that.getStaticParams())).
                                   extendWithSelf(that.getSpan());
 
         return forTraitDeclOnly(that,
@@ -361,9 +361,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
-        QualifiedIdName qname = that.getVar();
-        Option<APIName> api = qname.getApi();
-        Id entity = qname.getName();
+        Id name = that.getVar();
+        Option<APIName> api = name.getApi();
         ConsList<Id> fields = ConsList.empty();
         Expr result = null;
 
@@ -374,22 +373,20 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
             if (realApiNameOpt.isSome()) {
                 APIName realApiName = Option.unwrap(realApiNameOpt);
-                QualifiedIdName newName =
-                    NodeFactory.makeQualifiedIdName(realApiName, entity);
-                Id newId = NodeFactory.makeId(realApiName, entity);
-                if (_env.hasQualifiedVariable(newName)) {
+                Id newId = NodeFactory.makeId(realApiName, name);
+                if (_env.hasQualifiedVariable(newId)) {
                     if (ConsList.isEmpty(fields) && givenApiName == realApiName) {
                         // no change -- no need to recreate the VarRef
                         return that;
                     }
-                    else { result = new VarRef(newName.getSpan(), newName); }
+                    else { result = new VarRef(newId.getSpan(), newId); }
                 }
                 else if (_env.hasQualifiedFunction(newId)) {
                     result = ExprFactory.makeFnRef(newId);
                     // TODO: insert correct number of to-infer arguments?
                 }
                 else {
-                    error("Unrecognized name: " + NodeUtil.nameString(qname), that);
+                    error("Unrecognized name: " + NodeUtil.nameString(name), that);
                     return that;
                 }
             }
@@ -397,8 +394,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             else {
                 // shift all names to the right, and try a smaller api name
                 List<Id> ids = givenApiName.getIds();
-                fields = ConsList.cons(entity, fields);
-                entity = IterUtil.last(ids);
+                fields = ConsList.cons(name, fields);
+                name = IterUtil.last(ids);
                 Iterable<Id> prefix = IterUtil.skipLast(ids);
                 if (IterUtil.isEmpty(prefix)) { api = Option.none(); }
                 else { api = Option.some(NodeFactory.makeAPIName(prefix)); }
@@ -408,18 +405,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // Second, try to interpret it as an unqualified name.
         if (result == null) {
             // api.isNone() must be true
-            Set<QualifiedIdName> vars = _env.explicitVariableNames(entity);
-            Set<Id> fns = _env.explicitFunctionNames(entity);
+            Set<Id> vars = _env.explicitVariableNames(name);
+            Set<Id> fns = _env.explicitFunctionNames(name);
             if (vars.isEmpty() && fns.isEmpty()) {
-                vars = _env.onDemandVariableNames(entity);
-                fns = _env.onDemandFunctionNames(entity);
-                _onDemandImports.add(entity);
+                vars = _env.onDemandVariableNames(name);
+                fns = _env.onDemandFunctionNames(name);
+                _onDemandImports.add(name);
             }
 
             if (vars.size() == 1 && fns.isEmpty()) {
-                QualifiedIdName newName = IterUtil.first(vars);
+                Id newName = IterUtil.first(vars);
 
-                if (newName.getApi().isNone() && newName.getName() == entity &&
+                if (newName.getApi().isNone() && newName == name &&
                     ConsList.isEmpty(fields)) {
                     // no change -- no need to recreate the VarRef
                     return that;
@@ -427,16 +424,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 else { result = new VarRef(newName.getSpan(), newName); }
             }
             else if (vars.isEmpty() && !fns.isEmpty()) {
-                result = new FnRef(entity.getSpan(), IterUtil.asList(fns));
+                result = new FnRef(name.getSpan(), IterUtil.asList(fns));
                 // TODO: insert correct number of to-infer arguments?
             }
             else if (!vars.isEmpty() || !fns.isEmpty()) {
-                Set<QualifiedIdName> qfns = CollectUtil.emptySet();
-                for (Id id : fns) {
-                    qfns.add(NodeFactory.makeQIdfromId(id));
-                }
-                Set<QualifiedIdName> varsAndFns = CollectUtil.union(vars, qfns);
-                error("Name may refer to: " + NodeUtil.namesString(varsAndFns), entity);
+                Set<Id> varsAndFns = CollectUtil.union(vars, fns);
+                error("Name may refer to: " + NodeUtil.namesString(varsAndFns), name);
                 return that;
             }
             else {
@@ -448,10 +441,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     return that;
                 }
                 else {
-                    QualifiedIdName newName = NodeFactory.makeQualifiedIdName(entity);
-                    result = new VarRef(newName.getSpan(), newName);
+                    result = new VarRef(name.getSpan(), name);
                 }
-                // error("Unrecognized name: " + NodeUtil.nameString(qname), that);
+                // error("Unrecognized name: " + NodeUtil.nameString(name), that);
                 // return that;
             }
         }

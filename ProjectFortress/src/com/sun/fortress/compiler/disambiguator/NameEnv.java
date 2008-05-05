@@ -31,7 +31,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * produces an empty set, and an ambiguous reference produces a set of size greater
      * than 1.
      */
-    public abstract Set<QualifiedIdName> explicitVariableNames(Id name);
+    public abstract Set<Id> explicitVariableNames(Id name);
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * function name; on-demand imports are ignored.  An undefined reference
@@ -51,7 +51,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * produces an empty set, and an ambiguous reference produces a set of size
      * greater than 1.
      */
-    public abstract Set<QualifiedIdName> onDemandVariableNames(Id name);
+    public abstract Set<Id> onDemandVariableNames(Id name);
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given function name.  An undefined reference
@@ -69,7 +69,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a variable exists.  Assumes {@code name.getApi().isSome()}.
      */
-    public abstract boolean hasQualifiedVariable(QualifiedIdName name);
+    public abstract boolean hasQualifiedVariable(Id name);
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a function exists.  Assumes {@code name.getApi().isSome()}.

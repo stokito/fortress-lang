@@ -1006,7 +1006,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * Primary ::= self
                  * e.g.) length
                  */
-                VarRef(QualifiedIdName var) implements LHS;
+                VarRef(Id var) implements LHS;
                 /**
                  * field selection expression
                  * Primary ::= Primary . Id

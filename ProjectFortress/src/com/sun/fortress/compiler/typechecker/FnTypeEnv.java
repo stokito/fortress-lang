@@ -54,10 +54,16 @@ class FnTypeEnv extends TypeEnv {
      * (if the given Id is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-        
         Set<? extends Function> fns = entries.getSeconds(var);
-        if (fns.isEmpty()) { return parent.binding(var); }
-        
+        if (fns.isEmpty()) {
+            if (var instanceof Id) {
+                Id _var = (Id)var;
+                if (_var.getApi().isSome())
+                    return binding(new Id(_var.getSpan(), _var.getText()));
+            }
+            return parent.binding(var);
+        }
+
         LinkedList<Type> overloadedTypes = new LinkedList<Type>();
         for (Function fn: fns) {
             if (fn instanceof DeclaredFunction) {
@@ -90,7 +96,7 @@ class FnTypeEnv extends TypeEnv {
                                                                              staticParamsToArgs(_fn.staticParams())),
                                                         _fn.throwsClause(),
                                                         _fn.where()));
-                
+
             }
         }
         return some(new BindingLookup(var, makeAndType(overloadedTypes)));

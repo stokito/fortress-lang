@@ -29,27 +29,34 @@ import java.util.*;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
-/** 
+/**
  * A type environment whose outermost lexical scope consists of a map from IDs
  * to Variables.
  */
 class MethodTypeEnv extends TypeEnv {
     private Relation<IdOrOpOrAnonymousName, Method> entries;
     private TypeEnv parent;
-    
+
     MethodTypeEnv(Relation<IdOrOpOrAnonymousName, Method> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         Set<Method> methods = entries.getSeconds(var);
-        if (methods.isEmpty()) { return parent.binding(var); }
-        
+        if (methods.isEmpty()) {
+            if (var instanceof Id) {
+                Id _var = (Id)var;
+                if (_var.getApi().isSome())
+                    return binding(new Id(_var.getSpan(), _var.getText()));
+            }
+            return parent.binding(var);
+        }
+
         Type type = Types.ANY;
         for (Method method : methods) {
             if (method instanceof DeclaredMethod) {
@@ -68,11 +75,11 @@ class MethodTypeEnv extends TypeEnv {
                 type = makeArrowType(binding.getSpan(),
                                      Types.VOID,
                                      unwrap(binding.getType())); // all types have been filled in at this point
-                
+
             } else { // method instanceof FieldSetterMethod
                 final FieldSetterMethod _method = (FieldSetterMethod)method;
                 LValueBind binding = _method.ast();
-                
+
                 type = makeArrowType(binding.getSpan(),
                                      unwrap(binding.getType()), // all types have been filled in at this point
                                      Types.VOID);

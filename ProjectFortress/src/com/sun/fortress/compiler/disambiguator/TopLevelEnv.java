@@ -41,7 +41,7 @@ public class TopLevelEnv extends NameEnv {
 
     private Map<APIName, ApiIndex> _onDemandImportedApis = new HashMap<APIName, ApiIndex>();
     private Map<Id, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<Id, Set<QualifiedIdName>>();
-    private Map<Id, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<Id, Set<QualifiedIdName>>();
+    private Map<Id, Set<Id>> _onDemandVariableNames = new HashMap<Id, Set<Id>>();
     private Map<Id, Set<Id>> _onDemandFunctionIdNames = new HashMap<Id, Set<Id>>();
     private Map<OpName, Set<OpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<OpName>>();
     private Map<Id, Set<Id>> _onDemandGrammarNames = new HashMap<Id, Set<Id>>();
@@ -103,6 +103,24 @@ public class TopLevelEnv extends NameEnv {
 
     private <T> void initializeEntry(Map.Entry<APIName, ApiIndex> apiEntry,
                                      Map.Entry<Id, T> entry,
+                                     Map<Id, Set<Id>> table) {
+        Id key = entry.getKey();
+        if (table.containsKey(key)) {
+            table.get(key).add(new Id(key.getSpan(),
+                                      Option.some(apiEntry.getKey()),
+                                      key.getText()));
+
+        } else {
+            Set<Id> matches = new HashSet<Id>();
+            matches.add(new Id(key.getSpan(),
+                               Option.some(apiEntry.getKey()),
+                               key.getText()));
+            table.put(key, matches);
+        }
+    }
+
+    private <T> void initializeQualifiedEntry(Map.Entry<APIName, ApiIndex> apiEntry,
+                                     Map.Entry<Id, T> entry,
                                      Map<Id, Set<QualifiedIdName>> table) {
         Id key = entry.getKey();
         if (table.containsKey(key)) {
@@ -125,15 +143,15 @@ public class TopLevelEnv extends NameEnv {
 
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
-                initializeEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
+                initializeQualifiedEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
             }
             // Inject the names of physical units into the set of type cons names.
             for (Map.Entry<Id, Unit> unitEntry: apiEntry.getValue().units().entrySet()) {
-                initializeEntry(apiEntry, unitEntry, _onDemandTypeConsNames);
+                initializeQualifiedEntry(apiEntry, unitEntry, _onDemandTypeConsNames);
             }
             // Inject the names of physical dimensions into the set of type cons names.
             for (Map.Entry<Id, Dimension> dimEntry: apiEntry.getValue().dimensions().entrySet()) {
-                initializeEntry(apiEntry, dimEntry, _onDemandTypeConsNames);
+                initializeQualifiedEntry(apiEntry, dimEntry, _onDemandTypeConsNames);
             }
         }
     }
@@ -233,11 +251,11 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
 
-    public Set<QualifiedIdName> explicitVariableNames(Id name) {
+    public Set<Id> explicitVariableNames(Id name) {
         // TODO: imports
         if (_current.variables().containsKey(name) ||
             _current.units().containsKey(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(_current.ast().getName(), name));
+            return Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
         }
         else { return Collections.emptySet(); }
     }
@@ -270,7 +288,16 @@ public class TopLevelEnv extends NameEnv {
         return Collections.emptySet();
     }
 
-    private Set<QualifiedIdName> onDemandNames(Id name, Map<Id, Set<QualifiedIdName>> table)
+    private Set<Id> onDemandNames(Id name, Map<Id, Set<Id>> table)
+    {
+        if (table.containsKey(name)) {
+            return table.get(name);
+        } else {
+            return new HashSet<Id>();
+        }
+    }
+
+    private Set<QualifiedIdName> onDemandQualifiedNames(Id name, Map<Id, Set<QualifiedIdName>> table)
     {
         if (table.containsKey(name)) {
             return table.get(name);
@@ -280,10 +307,10 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<QualifiedIdName> onDemandTypeConsNames(Id name) {
-        return onDemandNames(name, _onDemandTypeConsNames);
+        return onDemandQualifiedNames(name, _onDemandTypeConsNames);
     }
 
-    public Set<QualifiedIdName> onDemandVariableNames(Id name) {
+    public Set<Id> onDemandVariableNames(Id name) {
         return onDemandNames(name, _onDemandVariableNames);
     }
 
@@ -319,10 +346,10 @@ public class TopLevelEnv extends NameEnv {
         else { return false; }
     }
 
-    public boolean hasQualifiedVariable(QualifiedIdName name) {
+    public boolean hasQualifiedVariable(Id name) {
         APIName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
-            return _globalEnv.api(api).variables().containsKey(name.getName());
+            return _globalEnv.api(api).variables().containsKey(name);
         }
         else { return false; }
     }

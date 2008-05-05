@@ -48,6 +48,11 @@ class LValueTypeEnv extends TypeEnv {
                 return some(new BindingLookup(entry));
             }
         }
+        if (var instanceof Id) {
+            Id _var = (Id)var;
+            if (_var.getApi().isSome())
+                return binding(new Id(_var.getSpan(), _var.getText()));
+        }
         return parent.binding(var);
     }
 

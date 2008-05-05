@@ -29,11 +29,11 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.MathItem;
 import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TightJuxt;
@@ -152,9 +152,8 @@ public abstract class NativeApp implements Applicable {
             return defn;
         if (!(fn instanceof VarRef)) return defn;
         if (!(arg instanceof StringLiteralExpr)) return defn;
-        QualifiedIdName name = ((VarRef)fn).getVar();
-        if (name.getApi().isSome()) return defn;
-        if (!name.getName().getText().equals("builtinPrimitive")) return defn;
+        Id name = ((VarRef)fn).getVar();
+        if (!name.getText().equals("builtinPrimitive")) return defn;
         String str = ((StringLiteralExpr)arg).getText();
         Pair<String, Applicable> key = new Pair<String, Applicable>(str, defn);
         synchronized(cache) {

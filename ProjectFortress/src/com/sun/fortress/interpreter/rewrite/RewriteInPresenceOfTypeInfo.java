@@ -44,13 +44,17 @@ public class RewriteInPresenceOfTypeInfo extends Rewrite {
             if (q.getApi().isSome()) {
                 node = new QualifiedIdName(q.getSpan(), q.getName());
             }
+        } else if (node instanceof Id) {
+            Id q = (Id) node;
+            if (q.getApi().isSome()) {
+                node = new Id(q.getSpan(), q.getText());
+            }
         } else if (node instanceof FnRef) {
 
                 FnRef fr = (FnRef) node;
                 List<Id> fns = fr.getFns();
                 List<StaticArg> sargs = fr.getStaticArgs();
                 Id idn = fns.get(0);
-                QualifiedIdName qidn = NodeFactory.makeQIdfromId(idn);
 
                 if (fns.size() != 1) {
                     return bug("Overloaded function in FnRef " + node.toStringVerbose());
@@ -60,11 +64,11 @@ public class RewriteInPresenceOfTypeInfo extends Rewrite {
                     return visit(new _RewriteFnRef(fr.getSpan(),
                         fr.isParenthesized(),
                                                    new VarRef(idn.getSpan(),
-                                                              qidn),
+                                                              idn),
                         sargs));
 
                 else
-                    return visit(new VarRef(idn.getSpan(), fr.isParenthesized(), qidn));
+                    return visit(new VarRef(idn.getSpan(), fr.isParenthesized(), idn));
 
         } else if (node instanceof InstantiatedType) {
             InstantiatedType it = (InstantiatedType) node;

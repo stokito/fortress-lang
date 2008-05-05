@@ -455,6 +455,10 @@ public class NodeFactory {
 
     /*******************************************************************/
 
+    public static Id makeId(QualifiedIdName name) {
+        return new Id(name.getSpan(), name.getApi(), name.getName().getText());
+    }
+
     public static Id makeId(Span span, String s) {
         return new Id(span, Option.<APIName>none(), s);
     }
@@ -1133,7 +1137,7 @@ public class NodeFactory {
         return new TightJuxt(span, exprs);
     }
 
-    public static VarRef makeVarRef(Span span, QualifiedIdName name) {
+    public static VarRef makeVarRef(Span span, Id name) {
         return new VarRef(span, true, name);
     }
 

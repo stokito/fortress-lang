@@ -442,7 +442,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private void forFnDef1(FnDef x) {
         List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
-
         FValue cl;
 
         if (!optStaticParams.isEmpty()) {
@@ -477,7 +476,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
    protected void forFnDef3(FnDef x) {
        List<StaticParam> optStaticParams = x.getStaticParams();
        String fname = NodeUtil.nameAsMethod(x);
-
        if (!optStaticParams.isEmpty()) {
            // GENERIC
            {
