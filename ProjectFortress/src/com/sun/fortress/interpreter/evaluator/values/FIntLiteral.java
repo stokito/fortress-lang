@@ -39,7 +39,7 @@ public class FIntLiteral extends NativeConstructor.FNativeObject
 
     private static volatile NativeConstructor con;
 
-    public static final FIntLiteral ZERO = new FIntLiteral(BigInteger.valueOf(0));
+    public static final FIntLiteral ZERO = new FIntLiteral(BigInteger.ZERO);
 
     private final BigInteger value;
 
