@@ -22,7 +22,6 @@ import java.util.Collections;
 
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -35,9 +34,9 @@ public class LocalVarEnv extends DelegatingNameEnv {
         _vars = vars;
     }
 
-    @Override public Set<QualifiedIdName> explicitVariableNames(Id name) {
+    @Override public Set<Id> explicitVariableNames(Id name) {
         if (_vars.contains(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
+            return Collections.singleton(name);
         }
         else { return super.explicitVariableNames(name); }
     }

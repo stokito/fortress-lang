@@ -65,7 +65,11 @@ class VarTypeEnv extends TypeEnv {
                 return some(new BindingLookup(makeLValue(
                 		makeLValue(param.getName(), type), param.getMods())));
             }
-        } else { return parent.binding(var); }
+        } else {
+            if (_var.getApi().isSome())
+                return binding(new Id(_var.getSpan(), _var.getText()));
+            return parent.binding(var);
+        }
     }
 
     @Override

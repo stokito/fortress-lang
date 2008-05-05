@@ -28,19 +28,19 @@ import java.util.*;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
-/** 
+/**
  * A type environment whose outermost lexical scope consists of a map from IDs
  * to Variables.
  */
 class LocalVarTypeEnv extends TypeEnv {
     private LocalVarDecl decl;
     private TypeEnv parent;
-    
+
     LocalVarTypeEnv(LocalVarDecl _entries, TypeEnv _parent) {
         decl = _entries;
         parent = _parent;
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
@@ -55,6 +55,11 @@ class LocalVarTypeEnv extends TypeEnv {
             } else {
                 return NI.nyi();
             }
+        }
+        if (var instanceof Id) {
+            Id _var = (Id)var;
+            if (_var.getApi().isSome())
+                return binding(new Id(_var.getSpan(), _var.getText()));
         }
         return parent.binding(var);
     }

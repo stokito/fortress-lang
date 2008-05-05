@@ -82,7 +82,6 @@ public class NodeUtil {
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
         String name = nameString(app.getName());
-
             int spi = selfParameterIndex(app);
             if (spi >= 0)
                 return "rm$" + spi + "$" + name;

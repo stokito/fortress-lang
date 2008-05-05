@@ -99,7 +99,6 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     protected void forFnDef3(FnDef x) {
         List<StaticParam> staticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
-
         if (!staticParams.isEmpty()) {
             // GENERIC
             // This blows up because the type is not instantiated.
@@ -119,7 +118,6 @@ public class BuildTraitEnvironment extends BuildEnvironments {
             // NOT GENERIC
             {
                 Fcn fcn = (Fcn) containing.getValue(fname);
-
                 if (fcn instanceof Closure) {
                     // This is only loosely paired with the
                     // first pass; dealing with overloading tends to

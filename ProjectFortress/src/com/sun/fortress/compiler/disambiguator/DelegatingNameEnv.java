@@ -44,7 +44,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
         return _parent.explicitTypeConsNames(name);
     }
-    public Set<QualifiedIdName> explicitVariableNames(Id name) {
+    public Set<Id> explicitVariableNames(Id name) {
         return _parent.explicitVariableNames(name);
     }
     public Set<Id> explicitFunctionNames(Id name) {
@@ -57,7 +57,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<QualifiedIdName> onDemandTypeConsNames(Id name) {
         return _parent.onDemandTypeConsNames(name);
     }
-    public Set<QualifiedIdName> onDemandVariableNames(Id name) {
+    public Set<Id> onDemandVariableNames(Id name) {
         return _parent.onDemandVariableNames(name);
     }
     public Set<Id> onDemandFunctionNames(Id name) {
@@ -71,7 +71,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public boolean hasQualifiedTypeCons(QualifiedIdName name) {
         return _parent.hasQualifiedTypeCons(name);
     }
-    public boolean hasQualifiedVariable(QualifiedIdName name) {
+    public boolean hasQualifiedVariable(Id name) {
         return _parent.hasQualifiedVariable(name);
     }
     public boolean hasQualifiedFunction(Id name) {

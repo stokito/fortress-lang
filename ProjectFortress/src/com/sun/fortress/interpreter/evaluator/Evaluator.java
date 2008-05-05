@@ -1836,7 +1836,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     /** Assumes {@code x.getIds()} is a list of length 1. */
     @Override
     public FValue forFnRef(FnRef x) {
-        QualifiedIdName name = NodeFactory.makeQIdfromId(x.getFns().get(0));
+        Id name = x.getFns().get(0);
         FValue g = forVarRef(new VarRef(name.getSpan(), name));
         return applyToActualStaticArgs(g,x.getStaticArgs(),x);
     }

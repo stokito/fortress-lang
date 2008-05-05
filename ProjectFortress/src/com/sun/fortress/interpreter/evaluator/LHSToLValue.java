@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.nodes.LValueBind;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.ArgExpr;
@@ -130,9 +129,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     }
 
     public LHS forVarRef(VarRef x) {
-        QualifiedIdName var = x.getVar();
-        if (var.getApi().isNone()) { return x; }
-        else return NI.na("No post-processing of qualified names for VarRef");
+        return x;
     }
 
     /* (non-Javadoc)

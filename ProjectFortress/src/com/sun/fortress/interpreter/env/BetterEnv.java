@@ -561,6 +561,10 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return getValueNull(NodeUtil.nameString(name));
     }
 
+    public FValue getValueNull(Id name) {
+        return getValueNull(NodeUtil.nameString(name));
+    }
+
     public FValue getValueNull(String s) {
         FValue v = get(var_env, s);
         if (v == null)

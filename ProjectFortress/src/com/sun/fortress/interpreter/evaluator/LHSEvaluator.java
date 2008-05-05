@@ -143,25 +143,19 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     FValue value;
 
     public Voidoid forVarRef(VarRef x) {
-        Iterable<Id> names = NodeUtil.getIds(x.getVar());
+        String s = x.getVar().getText();
         Environment e = evaluator.e;
-        if (IterUtil.sizeOf(names) == 1) {
-            String s = IterUtil.first(names).getText();
-            FType ft = e.getVarTypeNull(s);
-            if (ft != null) {
-                // Check that variable can receive type
-                if (!ft.typeMatch(value)) {
-                    String m = errorMsg("Type mismatch assigning ", value, " (type ",
-                                        value.type(), ") to ", s, " (type ", ft, ")");
-                    return error(x, e, m);
-                }
+        FType ft = e.getVarTypeNull(s);
+        if (ft != null) {
+            // Check that variable can receive type
+            if (!ft.typeMatch(value)) {
+                String m = errorMsg("Type mismatch assigning ", value, " (type ",
+                                    value.type(), ") to ", s, " (type ", ft, ")");
+                return error(x, e, m);
             }
-            e.assignValue(x, s, value);
-            return null;
-        } else {
-            return NI.na("wrong processing of QID var-ref");
-            // return forFieldRef(ExprFactory.makeFieldRef(x));
         }
+        e.assignValue(x, s, value);
+        return null;
     }
 
     /* (non-Javadoc)
@@ -282,7 +276,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                         error(x, evaluator.e,
                          errorMsg("RHS expression type ", value.type(),
                                   " is not assignable to LHS type ", outerType));
-                    }
+                         }
                 } else {
                     if (mutable)
                         putOrAssignVariable(x, s);

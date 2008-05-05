@@ -150,7 +150,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
  public String forIdTypeOnly(IdType that, String name_result) {
   String rVarName = FreshName.getFreshName("idType");
   this.code.add("IdType "+rVarName+" = new IdType("+name_result+");");
-  return rVarName;  
+  return rVarName;
  }
 
 
@@ -159,13 +159,13 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 			List<String> body_result, List<String> lhs_result,
 			Option<String> rhs_result) {
 		String rVarName = FreshName.getFreshName("localVarDecl");
-		
+
 		String body = FreshName.getFreshName("body");
 		this.code.addAll(mkList(body_result, body, "Expr"));
-		
+
 		String lhs = FreshName.getFreshName("lhs");
 		this.code.addAll(mkList(lhs_result, lhs, "LValue"));
-		
+
 		String rhs = "";
 		if (rhs_result.isNone()) {
 			rhs = "Option.<Expr>none()";
@@ -190,7 +190,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	public String forLValueBindOnly(LValueBind that, String name_result,
 			Option<String> type_result, List<String> mods_result) {
 		String rVarName = FreshName.getFreshName("lValueBind");
-			
+
 		String type = "";
 		if (type_result.isNone()) {
 			type = "Option.<Type>none()";
@@ -198,14 +198,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 		else {
 			type = "Option.<Type>some("+Option.unwrap(type_result)+")";
 		}
-		
+
 		String mods = FreshName.getFreshName("mods");
 		this.code.addAll(mkList(mods_result, mods, "Modifier"));
-		
+
 		this.code.add("LValueBind "+rVarName+" = new LValueBind("+name_result+", "+type+", "+mods+", "+that.isMutable()+");");
 		return rVarName;
 	}
-	
+
 	@Override
 	public String forQualifiedIdNameOnly(QualifiedIdName that,
 			Option<String> api_result, String name_result) {
@@ -218,7 +218,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 			api = "Option.<APIName>some("+Option.unwrap(api_result)+")";
 		}
 		this.code.add("QualifiedIdName "+rVarName+" = new QualifiedIdName("+api+", "+name_result+");");
-		return rVarName; 
+		return rVarName;
 	}
 
  @Override
@@ -234,14 +234,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
   String rVarName = FreshName.getFreshName("tj");
   this.code.addAll(mkList(exprs_result, varName, "Expr"));
   this.code.add("TightJuxt "+rVarName+" = new TightJuxt("+that.isParenthesized()+", "+varName+");");
-  return rVarName; 
+  return rVarName;
  }
 
  @Override
  public String forTypeArgOnly(TypeArg that, String type_result) {
   String rVarName = FreshName.getFreshName("typeArg");
   this.code.add("TypeArg "+rVarName+" = new TypeArg("+type_result+");");
-  return rVarName; 
+  return rVarName;
  }
 
  @Override
@@ -254,7 +254,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
 	@Override
 	public String forVarRef(VarRef that) {
-		if (this.syntaxDeclEnv.contains(that.getVar().getName())) { //TODO: is it ok to assume that it is not qualified?
+		if (this.syntaxDeclEnv.contains(that.getVar())) { //TODO: is it ok to assume that it is not qualified?
 			return that.getVar().toString();
 		}
 		return super.forVarRef(that);
@@ -275,7 +275,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 			String paramEnv = FreshName.getFreshName("paramEnv");
 			this.code.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
 
-			
+
 			MemberEnv nEnv = getNonterminalEnv(t.getId());
 			for (int inx=0;inx<t.getParams().size();inx++) {
 				System.err.println("T1a");
@@ -316,7 +316,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 		this.code.add(t.getClass().getSimpleName()+" "+varName+" = new "+t.getClass().getSimpleName()+"("+idVarName+", new LinkedList<Id>());");
 		return varName;
 	}
-	
+
 	private MemberEnv getNonterminalEnv(Id var) {
 		Id name = this.syntaxDeclEnv.getNonterminalName(var);
 		return this.grammarEnv.getMemberEnv(name);

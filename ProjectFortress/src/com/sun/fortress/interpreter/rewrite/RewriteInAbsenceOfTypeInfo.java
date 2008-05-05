@@ -29,7 +29,6 @@ import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.MathItem;
 import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.MethodInvocation;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TupleExpr;
@@ -45,26 +44,25 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
     public static RewriteInAbsenceOfTypeInfo Only = new RewriteInAbsenceOfTypeInfo();
 
     static Expr translateQualifiedToFieldRef(VarRef vr) {
-        QualifiedIdName qidn = vr.getVar();
-        if (qidn.getApi().isNone())
+        Id idn = vr.getVar();
+        if (idn.getApi().isNone())
             return vr;
 
-        List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
+        List<Id> ids = Option.unwrap(idn.getApi()).getIds();
 
         return new FieldRef(vr.getSpan(),
                 false,
-                translateQualifiedToFieldRef(ids), qidn.getName());
+                translateQualifiedToFieldRef(ids), idn);
     }
 
     static Expr translateFnRef(FnRef fr) {
         List<Id> fns = fr.getFns();
         List<StaticArg> sargs = fr.getStaticArgs();
         Id idn = fns.get(0);
-        QualifiedIdName qidn = NodeFactory.makeQIdfromId(idn);
         if (sargs.size() == 0) {
             // Call it a var or field ref for now.
             if (idn.getApi().isNone()) {
-                return new VarRef(idn.getSpan(), qidn);
+                return new VarRef(idn.getSpan(), idn);
 
             } else {
                 List<Id> ids = Option.unwrap(idn.getApi()).getIds();
@@ -72,13 +70,13 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
                 return new FieldRef(fr.getSpan(),
                                         false,
                                         translateQualifiedToFieldRef(ids),
-                                        qidn.getName());
+                                        idn);
             }
         } else {
         if (idn.getApi().isNone()) {
             return new _RewriteFnRef(fr.getSpan(),
                     false,
-                    new VarRef(idn.getSpan(), qidn),
+                    new VarRef(idn.getSpan(), idn),
                     sargs);
         } else {
             List<Id> ids = Option.unwrap(idn.getApi()).getIds();
@@ -88,7 +86,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
                         new FieldRef(fr.getSpan(),
                                     false,
                                     translateQualifiedToFieldRef(ids),
-                                    qidn.getName()),
+                                    idn),
                         sargs);
         }
         }
@@ -99,7 +97,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         Id id = ids.get(ids.size()-1);
 
         if (ids.size() == 1) {
-            return new VarRef(id.getSpan(), new QualifiedIdName(id.getSpan(), id));
+            return new VarRef(id.getSpan(), id);
 
         }
         // TODO fix span -- it needs to cover the whole list.
@@ -134,26 +132,26 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
     private AbstractNode translateJuxtOfDotted(Juxt node) {
         List<Expr> exprs = node.getExprs();
         VarRef first = (VarRef) exprs.get(0);
-        QualifiedIdName qidn = first.getVar();
-        List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
+        Id idn = first.getVar();
+        List<Id> ids = Option.unwrap(idn.getApi()).getIds();
 
         return new MethodInvocation(node.getSpan(),
                                 false,
                                 translateQualifiedToFieldRef(ids),
-                                qidn.getName(), exprs.size() == 2 ? exprs.get(1) :
+                                idn, exprs.size() == 2 ? exprs.get(1) :
                                     new TupleExpr(exprs.subList(1, exprs.size())));
     }
 
     private AbstractNode translateJuxtOfDotted(MathPrimary node) {
         List<MathItem> exprs = node.getRest();
         VarRef first = (VarRef) node.getFront();
-        QualifiedIdName qidn = first.getVar();
-        List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
+        Id idn = first.getVar();
+        List<Id> ids = Option.unwrap(idn.getApi()).getIds();
 
         return new MethodInvocation(node.getSpan(),
                                 false,
                                 translateQualifiedToFieldRef(ids),
-                                    qidn.getName(),
+                                    idn,
                                     ((ExprMI)exprs.get(0)).getExpr()
                                     /*
                                     exprs.size() == 1 ? exprs.get(1) :

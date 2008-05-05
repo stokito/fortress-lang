@@ -134,8 +134,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                  new ArrayList<Param>(), param.getType(),
                                                  new WhereClause(param.getSpan()), new Contract(new Span()),
                                                  new VarRef(param.getSpan(), false,
-                                                            new QualifiedIdName(param.getSpan(),
-                                                                                mangleName(param.getName())))));
+                                                            mangleName(param.getName()))));
                         }
                     }
                     public void forVarargsParam(VarargsParam param) {
@@ -146,8 +145,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                  Option.wrap(TypesUtil.fromVarargsType(param.getVarargsType())),
                                                  new WhereClause(param.getSpan()), new Contract(new Span()),
                                                  new VarRef(param.getSpan(), false,
-                                                            new QualifiedIdName(param.getSpan(),
-                                                                                mangleName(param.getName())))));
+                                                            mangleName(param.getName()))));
                         }
                     }
                 });
@@ -164,8 +162,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                  binding.getType(),
                                                  new WhereClause(new Span()), new Contract(new Span()),
                                                  new VarRef(binding.getSpan(), false,
-                                                            new QualifiedIdName(binding.getSpan(),
-                                                                                mangleName(binding.getName())))));
+                                                            mangleName(binding.getName()))));
                         }
                     }
                 }
@@ -210,17 +207,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     /*
      * Recur on VarRef to change to a mangled name if it's a field ref.
      */
-    public Node forVarRefOnly(VarRef that, QualifiedIdName varResult) {
-        // After disambiguation, the QualifiedIdName in a VarRef should have an empty API.
+    public Node forVarRefOnly(VarRef that, Id varResult) {
+        // After disambiguation, the Id in a VarRef should have an empty API.
         assert(varResult.getApi().isNone());
 
-        Id varName = varResult.getName();
-
-        if (fieldsInScope.contains(varResult.getName())) { varName = mangleName(varName); }
+        if (fieldsInScope.contains(varResult)) { varResult = mangleName(varResult); }
 
         return new VarRef(that.getSpan(), that.isParenthesized(),
-                          new QualifiedIdName(varResult.getSpan(), varResult.getApi(),
-                                              mangleName(varResult.getName())));
+                          mangleName(varResult));
     }
 
     public Node forFieldRefOnly(FieldRef that, Expr obj_result, Id field_result) {

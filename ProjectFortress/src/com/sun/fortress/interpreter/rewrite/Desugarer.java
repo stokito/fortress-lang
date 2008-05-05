@@ -163,9 +163,9 @@ public class Desugarer extends Rewrite {
     }
 
 
-    static Id filterQID(QualifiedIdName qid) {
+    static Id filterQID(Id qid) {
         if (qid.getApi().isNone())
-            return qid.getName();
+            return qid;
         return bug("Not yet prepared for QIDs ref'd through self/parent, QID=" + NodeUtil.dump(qid));
     }
 
@@ -1334,7 +1334,7 @@ public class Desugarer extends Rewrite {
     private AbstractNode translateJuxtOfDotted(Juxt node) {
         List<Expr> exprs = node.getExprs();
         VarRef first = (VarRef) exprs.get(0);
-        QualifiedIdName qidn = first.getVar();
+        Id qidn = first.getVar();
 
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general
@@ -1353,7 +1353,7 @@ public class Desugarer extends Rewrite {
 
     private AbstractNode translateJuxtOfDotted(MathPrimary node) {
         VarRef first = (VarRef) node.getFront();
-        QualifiedIdName qidn = first.getVar();
+        Id qidn = first.getVar();
 
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general
@@ -1383,7 +1383,7 @@ public class Desugarer extends Rewrite {
 
         AbstractNode rewrittenExpr =  visit(body);
 
-        Expr in_fn = new VarRef(sp, new QualifiedIdName(new Id("Thread")));
+        Expr in_fn = new VarRef(sp, new Id("Thread"));
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new Id("Any")))));
 
@@ -1480,9 +1480,11 @@ public class Desugarer extends Rewrite {
 
     private boolean looksLikeMethodInvocation(Juxt node) {
         Expr first = node.getExprs().get(0);
+
         if (first instanceof VarRef) {
             VarRef vr = (VarRef) first;
             String s = vrToString(vr);
+
             /*
              * If the var ref will be rewritten to self.var (or self.parent.var,
              * etc) and if the var ref IS NOT an arrow type (a function), then
