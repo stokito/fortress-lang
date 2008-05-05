@@ -25,6 +25,7 @@ package com.sun.fortress.syntax_abstractions.rats;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -126,19 +127,23 @@ public class RatsParserGenerator {
 		}
 
 		private byte[] loadClassData(String classname) {
-			byte[] res = null;
-			try {
-				classname = classname.replaceAll("\\.", ""+File.separatorChar);
-				//System.err.println(classname);
-				File classfile = new File(basedir + classname+".class");
-				if (classfile.exists()) {
-					res = new byte[(int) classfile.length()];
-					new FileInputStream(classfile).read(res);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return res;
-		}
+
+                    byte[] res = null;
+                    classname = classname.replaceAll("\\.", ""+File.separatorChar);
+                    //System.err.println(classname);
+
+                    try {
+                        File classfile = new File(basedir + classname+".class");
+                        if (classfile.exists()) {
+                            res = new byte[(int) classfile.length()];
+                            new FileInputStream(classfile).read(res);
+                        }
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+                    return res;
+                }
 	}
 }

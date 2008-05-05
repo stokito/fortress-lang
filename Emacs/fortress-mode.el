@@ -120,7 +120,7 @@
   (setq 
    fortress-builtin-functions
    (list
-    "println"
+    "println" "print"
 
     ;; mathematical functions
     "sin" "cos" "tan" "cot" "sec" "csc"
@@ -219,6 +219,18 @@
     `("\\(<->\\)"
       1 (progn (compose-region (match-beginning 1) (match-end 1)
                                (fortress-with-unicode-char LEFT-RIGHT-ARROW))
+               nil))
+
+    ;; left list bracket
+    `("\\(<|\\)"
+      1 (progn (compose-region (match-beginning 1) (match-end 1)
+                               "⟨")
+               nil))
+
+    ;; right list bracket
+    `("\\(|>\\)"
+      1 (progn (compose-region (match-beginning 1) (match-end 1)
+                               "⟩")
                nil))
 
     ;; left type bracket

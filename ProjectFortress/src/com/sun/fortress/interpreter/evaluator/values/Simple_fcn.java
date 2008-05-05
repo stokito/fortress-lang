@@ -32,7 +32,7 @@ abstract public class Simple_fcn extends SingleFcn {
     }
 
     public String getString() {
-        return getFnName().toString() + Useful.listInParens(getDomain()) + "@" + at();
+        return getFnName().toString() + Useful.listInParens(getDomain()) + " declared at " + at();
     }
 
     abstract public List<FType> getDomain();

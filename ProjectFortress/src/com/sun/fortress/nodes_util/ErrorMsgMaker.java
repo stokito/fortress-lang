@@ -64,11 +64,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forAbstractNode(AbstractNode node) {
-        return node.getClass().getSimpleName() + "@" + node.getSpan().begin.at();
+        return node.getClass().getSimpleName() + " at " + node.getSpan().begin.at();
     }
 
     public String forAbsVarDecl(AbsVarDecl node) {
-        return "abs " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
+        return "abstract " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
     }
 
     public String forArrowType(ArrowType node) {

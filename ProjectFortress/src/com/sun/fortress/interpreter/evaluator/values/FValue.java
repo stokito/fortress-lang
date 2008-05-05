@@ -46,7 +46,9 @@ public abstract class FValue {
         return getString() + ":" + getClass().getSimpleName();
         //getClass().getSimpleName() + " " + getString();
     }
-    public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
+    public String getString() { 
+        return "No String Representation Implemented for " + getClass().getSimpleName();
+    }
     public abstract FType type();
 
     public FValue getValue() { return this; }
