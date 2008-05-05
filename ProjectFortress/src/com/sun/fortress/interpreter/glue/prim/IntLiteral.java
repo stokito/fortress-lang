@@ -54,7 +54,7 @@ private static BigInteger toB(FValue x) {
     if (x instanceof FIntLiteral) {
         return ((FIntLiteral)x).getLit();
     } else {
-        return error("Non-IntLiteral for IntLiteral primitive");
+        return BigInteger.valueOf(x.getLong());
     }
 }
 
