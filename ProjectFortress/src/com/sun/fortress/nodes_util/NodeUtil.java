@@ -39,17 +39,6 @@ public class NodeUtil {
     public static final String defaultSelfName = WellKnownNames.defaultSelfName;
 
 
-    public static Iterable<Id> getIds(final QualifiedIdName qName) {
-        return qName.getApi().apply(new OptionVisitor<APIName, Iterable<Id>>() {
-            public Iterable<Id> forSome(APIName apiName) {
-                return IterUtil.compose(apiName.getIds(), qName.getName());
-            }
-            public Iterable<Id> forNone() {
-                return IterUtil.singleton(qName.getName());
-            }
-        });
-    }
-
     public static Iterable<Id> getIds(final Id qName) {
         return qName.getApi().apply(new OptionVisitor<APIName, Iterable<Id>>() {
             public Iterable<Id> forSome(APIName apiName) {
@@ -128,7 +117,7 @@ public class NodeUtil {
         @Override public String forAPIName(APIName n) {
             return nameString(n);
             }
-        @Override public String forQualifiedName(QualifiedName n) {
+        @Override public String forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName n) {
             return nameString(n);
             }
         public String forId(Id n) { return nameString(n); }
@@ -150,6 +139,11 @@ public class NodeUtil {
         return n.accept(nameGetter);
     }
 
+    public static String nameString(APIName n) {
+        Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
+        return IterUtil.toString(ns, "", ".", "");
+    }
+
     public static String nameString(Id n) {
         final String last = n.getText();
         Option<APIName> odn = n.getApi();
@@ -160,13 +154,8 @@ public class NodeUtil {
         return n.getText();
     }
 
-    public static String nameString(APIName n) {
-        Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
-        return IterUtil.toString(ns, "", ".", "");
-    }
-
-    public static String nameString(QualifiedName n) {
-        final String last = n.getName().accept(nameGetter);
+    public static String nameString(IdOrOpOrAnonymousName n) {
+        final String last = n.accept(nameGetter);
         Option<APIName> odn = n.getApi();
         return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
     }

@@ -57,29 +57,23 @@ public GrammarDecl GrammarDef =
      grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
-       else {
-           for (QualifiedIdName qid : a2) {
-               ids.add(qid.getName());
-           }
-       }
-/* todotodo
- */
+       else { ids.addAll(a2); }
        yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list()); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
-List<QualifiedIdName> GrammarExtends = extends w QualifiedNames ;
+List<Id> GrammarExtends = extends w QualifiedNames ;
 
 /* QualifiedNames ::= QualifiedName | { w QualifiedNameList w } */
-List<QualifiedIdName> QualifiedNames =
+List<Id> QualifiedNames =
      a1:QualifiedName { yyValue = FortressUtil.mkList(a1); }
    / void:opencurly w QualifiedNameList w void:closecurly ;
 
 /* QualifiedNameList ::= QualifiedName (w , w QualifiedName)* */
-private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedName)*
+private List<Id> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Extends ::= extends w IdName */
-Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
+Option<Id> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
 private GrammarMemberDecl NonterminalDef =
       m1:(NonTermMod w)? a1:Id params:(w NonterminalArguments)? w void:bar a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
@@ -117,13 +111,13 @@ private Option<ModifierPrivate> NonTermMod =
 private List<com.sun.fortress.useful.Pair<Id,Type>> NonterminalArguments =
         void:openparen w DeclList w void:closeparen;
 
-private List<com.sun.fortress.useful.Pair<Id,Type>> DeclList = 
+private List<com.sun.fortress.useful.Pair<Id,Type>> DeclList =
         a1:Decl w comma w a2s:DeclList
         { yyValue = FortressUtil.mkList(a1, a2s); }
      /  a1:Decl
         { yyValue = FortressUtil.mkList(a1); };
 
-private com.sun.fortress.useful.Pair<Id,Type> Decl = 
+private com.sun.fortress.useful.Pair<Id,Type> Decl =
         a1:Id colon a2:Type
         { yyValue = new com.sun.fortress.useful.Pair(a1,a2); };
 

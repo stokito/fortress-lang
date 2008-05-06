@@ -419,26 +419,26 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //            return new ExternalSyntax(that.getSpan(), openExpander_result, name_result, closeExpander_result, expr_result);
 //    }
 //
-//    public Node forGrammarDefOnly(GrammarDef that, QualifiedIdName name_result, List<QualifiedIdName> extends_result, List<GrammarMemberDecl> members_result) {
+//    public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> members_result) {
 //        if (that.getName() == name_result && that.getExtends() == extends_result && that.getMembers() == members_result)
 //            return that;
 //        else return new GrammarDef(that.getSpan(), name_result, extends_result, members_result);
 //    }
 //
-//    public Node forNonterminalDefOnly(NonterminalDef that, QualifiedIdName name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
+//    public Node forNonterminalDefOnly(NonterminalDef that, Id name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
 //        if (that.getName() == name_result && that.getType() == type_result && that.getModifier() == modifier_result && that.getSyntaxDefs() == syntaxDefs_result)
 //            return that;
 //        else return new NonterminalDef(that.getSpan(), name_result, type_result, modifier_result, syntaxDefs_result);
 //    }
 //
-//    public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that, QualifiedIdName name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
+//    public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that, Id name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
 //        if (that.getName() == name_result && that.getType() == type_result && that.getModifier() == modifier_result && that.getSyntaxDefs() == syntaxDefs_result)
 //            return that;
 //        else
 //            return new NonterminalExtensionDef(that.getSpan(), name_result, type_result, modifier_result, syntaxDefs_result);
 //    }
 //
-//    public Node for_TerminalDefOnly(_TerminalDef that, QualifiedIdName name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, SyntaxDef syntaxDef_result) {
+//    public Node for_TerminalDefOnly(_TerminalDef that, Id name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, SyntaxDef syntaxDef_result) {
 //        if (that.getName() == name_result && that.getType() == type_result && that.getModifier() == modifier_result && that.getSyntaxDef() == syntaxDef_result)
 //            return that;
 //        else return new _TerminalDef(that.getSpan(), name_result, type_result, modifier_result, syntaxDef_result);
@@ -507,7 +507,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return that;
 //    }
 //
-//    public Node forNonterminalSymbolOnly(NonterminalSymbol that, QualifiedName nonterminal_result) {
+//    public Node forNonterminalSymbolOnly(NonterminalSymbol that, IdOrOpOrAnonymousName nonterminal_result) {
 //        if (that.getNonterminal() == nonterminal_result) return that;
 //        else return new NonterminalSymbol(that.getSpan(), nonterminal_result);
 //    }
@@ -716,7 +716,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return that;
 //    }
 //
-//    public Node forVarRefOnly(VarRef that, QualifiedIdName var_result) {
+//    public Node forVarRefOnly(VarRef that, Id var_result) {
 //        if (that.getVar() == var_result) return that;
 //        else return new VarRef(that.getSpan(), that.isParenthesized(), var_result);
 //    }
@@ -736,7 +736,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new _RewriteFieldRef(that.getSpan(), that.isParenthesized(), obj_result, field_result);
 //    }
 //
-//    public Node forFnRefOnly(FnRef that, List<QualifiedIdName> fns_result, List<StaticArg> staticArgs_result) {
+//    public Node forFnRefOnly(FnRef that, List<Id> fns_result, List<StaticArg> staticArgs_result) {
 //        if (that.getFns() == fns_result && that.getStaticArgs() == staticArgs_result) return that;
 //        else return new FnRef(that.getSpan(), that.isParenthesized(), fns_result, staticArgs_result);
 //    }
@@ -809,7 +809,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return that;
 //    }
 //
-//    public Node forDimRefOnly(DimRef that, QualifiedIdName name_result) {
+//    public Node forDimRefOnly(DimRef that, Id name_result) {
 //        if (that.getName() == name_result) return that;
 //        else return new DimRef(that.getSpan(), that.isParenthesized(), name_result);
 //    }
@@ -857,7 +857,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new ArrayType(that.getSpan(), that.isParenthesized(), element_result, indices_result);
 //    }
 //
-//    public Node forIdTypeOnly(IdType that, QualifiedIdName name_result) {
+//    public Node forIdTypeOnly(IdType that, Id name_result) {
 //        if (that.getName() == name_result) return that;
 //        else return new IdType(that.getSpan(), that.isParenthesized(), name_result);
 //    }
@@ -871,7 +871,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new MatrixType(that.getSpan(), that.isParenthesized(), element_result, dimensions_result);
 //    }
 //
-//    public Node forInstantiatedTypeOnly(InstantiatedType that, QualifiedIdName name_result, List<StaticArg> args_result) {
+//    public Node forInstantiatedTypeOnly(InstantiatedType that, Id name_result, List<StaticArg> args_result) {
 //        if (that.getName() == name_result && that.getArgs() == args_result) return that;
 //        else return new InstantiatedType(that.getSpan(), that.isParenthesized(), name_result, args_result);
 //    }
@@ -976,7 +976,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new NumberConstraint(that.getSpan(), that.isParenthesized(), val_result);
 //    }
 //
-//    public Node forIntRefOnly(IntRef that, QualifiedIdName name_result) {
+//    public Node forIntRefOnly(IntRef that, Id name_result) {
 //        if (that.getName() == name_result) return that;
 //        else return new IntRef(that.getSpan(), that.isParenthesized(), name_result);
 //    }
@@ -1005,7 +1005,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return that;
 //    }
 //
-//    public Node forBoolRefOnly(BoolRef that, QualifiedIdName name_result) {
+//    public Node forBoolRefOnly(BoolRef that, Id name_result) {
 //        if (that.getName() == name_result) return that;
 //        else return new BoolRef(that.getSpan(), that.isParenthesized(), name_result);
 //    }
@@ -1091,7 +1091,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new WhereWidensCoerces(that.getSpan(), left_result, right_result);
 //    }
 //
-//    public Node forWhereEqualsOnly(WhereEquals that, QualifiedIdName left_result, QualifiedIdName right_result) {
+//    public Node forWhereEqualsOnly(WhereEquals that, Id left_result, Id right_result) {
 //        if (that.getLeft() == left_result && that.getRight() == right_result) return that;
 //        else return new WhereEquals(that.getSpan(), left_result, right_result);
 //    }
@@ -1242,9 +1242,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new APIName(that.getSpan(), ids_result);
 //    }
 //
-//    public Node forQualifiedIdNameOnly(QualifiedIdName that, Option<APIName> api_result, Id name_result) {
+//    public Node forIdOnly(Id that, Option<APIName> api_result, Id name_result) {
 //        if (that.getApi() == api_result && that.getName() == name_result) return that;
-//        else return new QualifiedIdName(that.getSpan(), api_result, name_result);
+//        else return new Id(that.getSpan(), api_result, name_result);
 //    }
 //
 //    public Node forIdOnly(Id that) {
@@ -1610,14 +1610,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forGrammarDef(GrammarDef that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
-//        List<QualifiedIdName> extends_result = recurOnListOfQualifiedIdName(that.getExtends());
+//        Id name_result = (Id) that.getName().accept(this);
+//        List<Id> extends_result = recurOnListOfId(that.getExtends());
 //        List<GrammarMemberDecl> members_result = recurOnListOfGrammarMemberDecl(that.getMembers());
 //        return forGrammarDefOnly(that, name_result, extends_result, members_result);
 //    }
 //
 //    public Node forNonterminalDef(NonterminalDef that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        Option<BaseType> type_result = recurOnOptionOfBaseType(that.getType());
 //        Option<? extends Modifier> modifier_result = recurOnOptionOfModifier(that.getModifier());
 //        List<SyntaxDef> syntaxDefs_result = recurOnListOfSyntaxDef(that.getSyntaxDefs());
@@ -1625,7 +1625,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        Option<BaseType> type_result = recurOnOptionOfBaseType(that.getType());
 //        Option<? extends Modifier> modifier_result = recurOnOptionOfModifier(that.getModifier());
 //        List<SyntaxDef> syntaxDefs_result = recurOnListOfSyntaxDef(that.getSyntaxDefs());
@@ -1633,7 +1633,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node for_TerminalDef(_TerminalDef that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        Option<BaseType> type_result = recurOnOptionOfBaseType(that.getType());
 //        Option<? extends Modifier> modifier_result = recurOnOptionOfModifier(that.getModifier());
 //        SyntaxDef syntaxDef_result = (SyntaxDef) that.getSyntaxDef().accept(this);
@@ -1705,7 +1705,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forNonterminalSymbol(NonterminalSymbol that) {
-//        QualifiedName nonterminal_result = (QualifiedName) that.getNonterminal().accept(this);
+//        IdOrOpOrAnonymousName nonterminal_result = (IdOrOpOrAnonymousName) that.getNonterminal().accept(this);
 //        return forNonterminalSymbolOnly(that, nonterminal_result);
 //    }
 //
@@ -1940,7 +1940,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forVarRef(VarRef that) {
-//        QualifiedIdName var_result = (QualifiedIdName) that.getVar().accept(this);
+//        Id var_result = (Id) that.getVar().accept(this);
 //        return forVarRefOnly(that, var_result);
 //    }
 //
@@ -1963,7 +1963,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forFnRef(FnRef that) {
-//        List<QualifiedIdName> fns_result = recurOnListOfQualifiedIdName(that.getFns());
+//        List<Id> fns_result = recurOnListOfId(that.getFns());
 //        List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
 //        return forFnRefOnly(that, fns_result, staticArgs_result);
 //    }
@@ -2043,7 +2043,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forDimRef(DimRef that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        return forDimRefOnly(that, name_result);
 //    }
 //
@@ -2098,7 +2098,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forIdType(IdType that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        return forIdTypeOnly(that, name_result);
 //    }
 //
@@ -2113,7 +2113,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forInstantiatedType(InstantiatedType that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        List<StaticArg> args_result = recurOnListOfStaticArg(that.getArgs());
 //        return forInstantiatedTypeOnly(that, name_result, args_result);
 //    }
@@ -2225,7 +2225,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forIntRef(IntRef that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        return forIntRefOnly(that, name_result);
 //    }
 //
@@ -2258,7 +2258,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forBoolRef(BoolRef that) {
-//        QualifiedIdName name_result = (QualifiedIdName) that.getName().accept(this);
+//        Id name_result = (Id) that.getName().accept(this);
 //        return forBoolRefOnly(that, name_result);
 //    }
 //
@@ -2355,8 +2355,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forWhereEquals(WhereEquals that) {
-//        QualifiedIdName left_result = (QualifiedIdName) that.getLeft().accept(this);
-//        QualifiedIdName right_result = (QualifiedIdName) that.getRight().accept(this);
+//        Id left_result = (Id) that.getLeft().accept(this);
+//        Id right_result = (Id) that.getRight().accept(this);
 //        return forWhereEqualsOnly(that, left_result, right_result);
 //    }
 //
@@ -2515,10 +2515,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forAPINameOnly(that, ids_result);
 //    }
 //
-//    public Node forQualifiedIdName(QualifiedIdName that) {
+//    public Node forId(Id that) {
 //        Option<APIName> api_result = recurOnOptionOfAPIName(that.getApi());
 //        Id name_result = (Id) that.getName().accept(this);
-//        return forQualifiedIdNameOnly(that, api_result, name_result);
+//        return forIdOnly(that, api_result, name_result);
 //    }
 //
 //    public Node forId(Id that) {
@@ -2960,11 +2960,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return changed ? (result) : that;
 //    }
 //
-//    public List<QualifiedIdName> recurOnListOfQualifiedIdName(final List<QualifiedIdName> that) {
+//    public List<Id> recurOnListOfId(final List<Id> that) {
 //        boolean changed = false;
-//        List<QualifiedIdName> result = new java.util.ArrayList<QualifiedIdName>(0);
-//        for (QualifiedIdName elt : that) {
-//            QualifiedIdName elt_result = (QualifiedIdName) elt.accept(this);
+//        List<Id> result = new java.util.ArrayList<Id>(0);
+//        for (Id elt : that) {
+//            Id elt_result = (Id) elt.accept(this);
 //            result.add(elt_result);
 //            if (elt != elt_result) changed = true;
 //        }

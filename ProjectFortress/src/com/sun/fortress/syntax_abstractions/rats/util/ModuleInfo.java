@@ -27,7 +27,6 @@ import java.util.Set;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -41,19 +40,6 @@ public class ModuleInfo {
 	 * @param memberName
 	 * @return
 	 */
-	public static boolean isFortressModule(QualifiedIdName memberName) {
-		if (memberName.getApi().isNone()) {
-			return false;
-		}
-		APIName api = Option.unwrap(memberName.getApi());
-		if (!api.getIds().get(0).getText().equals("FortressSyntax")) {
-			return false;
-		}
-
-		Set<String> fortressModules = getFortressModuleNames();
-		return fortressModules.contains(api.getIds().get(1).getText());
-	}
-
 	public static boolean isFortressModule(Id memberName) {
 		if (memberName.getApi().isNone()) {
 			return false;

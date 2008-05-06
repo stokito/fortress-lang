@@ -43,7 +43,6 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringComparer;
@@ -549,16 +548,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return get(type_env, name);
     }
 
-    public FType getTypeNull(QualifiedIdName name) {
-        return getTypeNull(NodeUtil.nameString(name));
-    }
-
     public FType getTypeNull(Id name) {
         return getTypeNull(NodeUtil.nameString(name));
-    }
-
-    public FValue getValueNull(QualifiedIdName name) {
-        return getValueNull(NodeUtil.nameString(name));
     }
 
     public FValue getValueNull(Id name) {
@@ -657,7 +648,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         type_env = put(type_env, str, f2, "Type");
     }
 
-    public void putType(QualifiedIdName name, FType x) {
+    public void putType(Id name, FType x) {
         putType(NodeUtil.nameString(name), x);
     }
 
@@ -718,7 +709,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         putValue(str, new ReferenceCell(ft));
     }
 
-    public void putValue(QualifiedIdName name, FValue x) {
+    public void putValue(Id name, FValue x) {
         putValue(NodeUtil.nameString(name), x);
     }
 

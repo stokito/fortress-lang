@@ -24,16 +24,15 @@ import java.util.Map;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 
 public class GrammarEnv {
 
 	Map<Id, MemberEnv> members;
-	
+
 	public GrammarEnv() {
 		this.members = new HashMap<Id, MemberEnv>();
 	}
-	
+
 	public GrammarEnv(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		for (NonterminalIndex<? extends GrammarMemberDecl> member: members) {
 			MemberEnv menv = new MemberEnv(member);
@@ -44,7 +43,7 @@ public class GrammarEnv {
 	public boolean contains(Id name) {
 		return this.members.containsKey(name);
 	}
-	
+
 	public MemberEnv getMemberEnv(Id name) {
 		return this.members.get(name);
 	}

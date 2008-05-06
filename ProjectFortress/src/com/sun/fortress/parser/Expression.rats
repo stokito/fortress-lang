@@ -108,7 +108,7 @@ LHS AssignLeft =
        else yyValue = null;
      }
    / a1:QualifiedName
-     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, NodeFactory.makeId(a1)); };
+     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); };
 
 constant transient Action<Expr> AssignLeftTail =
      SubscriptAssign

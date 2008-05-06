@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.syntax_abstractions.phases.Analyzable;
 
 import edu.rice.cs.plt.tuple.Option;

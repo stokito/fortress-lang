@@ -91,14 +91,9 @@ APIName APIName =
 
 /* QualifiedName ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */
-QualifiedIdName QualifiedName =
-     a1:Id &(w ellipses)
-     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount), a1); }
+Id QualifiedName =
+     yyValue:Id &(w ellipses)
    / a1:Id a2s:(dot Id)* &(w ellipses)
-     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount),
-                                                 a1, a2s.list());
-     }
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount),a1,a2s.list()); }
    / a1:Id a2s:(dot Id)*
-     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount),
-                                                 a1, a2s.list());
-     };
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount),a1,a2s.list()); };

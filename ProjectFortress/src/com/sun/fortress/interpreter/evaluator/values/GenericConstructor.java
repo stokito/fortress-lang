@@ -37,7 +37,6 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -73,8 +72,6 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
         /*
          * Necessary to fake an instantiation expression.
          */
-        //QualifiedIdName qin = NodeFactory.makeQualifiedIdName(odefOrDecl.getSpan(), name);
-        //InstantiatedType inst_type = new InstantiatedType(qin, statics);
         FTypeObject ft = (FTypeObject) gt.make(args, odefOrDecl);
 
             // Use the augmented environment from the specific type.

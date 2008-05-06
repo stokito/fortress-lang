@@ -35,7 +35,6 @@ import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
@@ -309,12 +308,8 @@ class LeafEnv extends CommonEnv {
         return IterUtil.last(d.getIds()).getText();
     }
 
-    protected Environment deDot(QualifiedIdName q) {
+    protected Environment deDot(Id q) {
         return deDot(IterUtil.skipLast(NodeUtil.getIds(q)));
-    }
-
-    protected String last(QualifiedIdName q) {
-        return NodeUtil.nameString(q.getName());
     }
 
     protected String last(Id id) {
@@ -357,24 +352,16 @@ class LeafEnv extends CommonEnv {
 
     /* Type names take the form ID or Api.ID */
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#getType(com.sun.fortress.interpreter.nodes.QualifiedIdName)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#getType(com.sun.fortress.interpreter.nodes.Id)
      */
-    public FType getTypeNull(QualifiedIdName d) {
-        return deDot(d).getType(last(d));
-     }
-
-    protected Environment deDot(Id id) {
-        return deDot(IterUtil.skipLast(NodeUtil.getIds(id)));
-    }
-
     public FType getTypeNull(Id d) {
         return deDot(d).getType(last(d));
      }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putType(com.sun.fortress.interpreter.nodes.QualifiedIdName, com.sun.fortress.interpreter.evaluator.types.FType)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putType(com.sun.fortress.interpreter.nodes.Id, com.sun.fortress.interpreter.evaluator.types.FType)
      */
-    public void putType(QualifiedIdName d, FType x) {
+    public void putType(Id d, FType x) {
         deDot(d).putType(last(d), x);
      }
 
@@ -386,16 +373,16 @@ class LeafEnv extends CommonEnv {
      * These may not ever appear in this form.
      */
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#getValue(com.sun.fortress.interpreter.nodes.QualifiedIdName)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#getValue(com.sun.fortress.interpreter.nodes.Id)
      */
-    public FValue getValueNull(QualifiedIdName d) {
+    public FValue getValueNull(Id d) {
         return deDot(d).getValue(last(d));
      }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(com.sun.fortress.interpreter.nodes.QualifiedIdName, com.sun.fortress.interpreter.evaluator.values.FValue)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(com.sun.fortress.interpreter.nodes.Id, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
-    public void putValue(QualifiedIdName d, FValue x) {
+    public void putValue(Id d, FValue x) {
         deDot(d).putValue(last(d), x);
      }
 

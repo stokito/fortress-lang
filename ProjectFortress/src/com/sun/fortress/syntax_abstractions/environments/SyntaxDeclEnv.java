@@ -26,7 +26,6 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.Type;
@@ -38,16 +37,16 @@ public class SyntaxDeclEnv {
 
 	private Map<Id, Type> varToTypeMap;
 	private Map<Id, Id> varToNonterminalName;
-	
+
 	private SyntaxDeclEnv() {
 		this.varToTypeMap = new HashMap<Id, Type>();
 		this.varToNonterminalName = new HashMap<Id, Id>();
 	}
-	
+
 	public static SyntaxDeclEnv getEnv(SyntaxDef sd) {
 		final SyntaxDeclEnv sdEnv = new SyntaxDeclEnv();
 		for (SyntaxSymbol ss: sd.getSyntaxSymbols()) {
-			
+
 			ss.accept(new NodeDepthFirstVisitor_void() {
 
 				@Override
@@ -64,12 +63,12 @@ public class SyntaxDeclEnv {
 						}
 					}
 					super.forPrefixedSymbolOnly(that);
-				}				
-			}); 
+				}
+			});
 		}
 		return sdEnv;
 	}
-	
+
 	protected void addVarToNonterminal(Id id, Id name) {
 		this.varToNonterminalName.put(id, name);
 	}

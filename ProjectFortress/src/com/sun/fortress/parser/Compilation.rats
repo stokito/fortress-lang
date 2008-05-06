@@ -144,12 +144,11 @@ private List<Import> ImportedNames =
    / a1:QualifiedName a2:(w as w Id)?
      { AliasedSimpleName an;
        APIName api = Option.unwrap(a1.getApi());
-       IdOrOpOrAnonymousName name = a1.getName();
        if (a2 == null)
-           an = NodeFactory.makeAliasedSimpleName(name.getSpan(), name);
+           an = NodeFactory.makeAliasedSimpleName(a1.getSpan(), a1);
        else
-           an = NodeFactory.makeAliasedSimpleName(FortressUtil.spanTwo(name,a2),
-                                                  name, a2);
+           an = NodeFactory.makeAliasedSimpleName(FortressUtil.spanTwo(a1,a2),
+                                                  a1, a2);
        yyValue = FortressUtil.mkList((Import)new ImportNames(
                                              createSpan(yyStart,yyCount),
                                              api, FortressUtil.mkList(an)));

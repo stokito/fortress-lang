@@ -30,26 +30,21 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 public class TraitTable {
     private ComponentIndex currentComponent;
     private GlobalEnvironment globalEnv;
-    
+
     public TraitTable(ComponentIndex _currentComponent, GlobalEnvironment _globalEnv) {
         currentComponent = _currentComponent;
         globalEnv = _globalEnv;
     }
-    
-    public TypeConsIndex typeCons(Id name) { 
-        return currentComponent.typeConses().get(name);
-    }
-    
-    public TypeConsIndex typeCons(QualifiedIdName name) {
-        Id rawName = name.getName();
+
+    public TypeConsIndex typeCons(Id name) {
         Option<APIName> api = name.getApi();
         if (api.isNone() || currentComponent.ast().getName().equals(Option.unwrap(api))) {
-            return currentComponent.typeConses().get(rawName);
+            return currentComponent.typeConses().get(name);
         } else {
-            return globalEnv.api(Option.unwrap(api)).typeConses().get(rawName);
+            return globalEnv.api(Option.unwrap(api)).typeConses().get(name);
         }
     }
-    
+
     public CompilationUnitIndex compilationUnit(APIName name) {
         if (currentComponent.ast().getName().equals(name)) {
             return currentComponent;

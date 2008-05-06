@@ -25,7 +25,6 @@ import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.InstantiatedType;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnRef;
@@ -39,12 +38,7 @@ public class RewriteInPresenceOfTypeInfo extends Rewrite {
 
     @Override
     public AbstractNode visit(AbstractNode node) {
-        if (node instanceof QualifiedIdName) {
-            QualifiedIdName q = (QualifiedIdName) node;
-            if (q.getApi().isSome()) {
-                node = new QualifiedIdName(q.getSpan(), q.getName());
-            }
-        } else if (node instanceof Id) {
+        if (node instanceof Id) {
             Id q = (Id) node;
             if (q.getApi().isSome()) {
                 node = new Id(q.getSpan(), q.getText());

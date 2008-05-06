@@ -28,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -99,14 +98,8 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getTypeNull(com.sun.fortress.interpreter.nodes.QualifiedIdName)
+     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getTypeNull(com.sun.fortress.interpreter.nodes.Id)
      */
-    @Override
-    public FType getTypeNull(QualifiedIdName q) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     @Override
     public FType getTypeNull(Id q) {
         // TODO Auto-generated method stub
@@ -132,10 +125,10 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getValueNull(com.sun.fortress.interpreter.nodes.QualifiedIdName)
+     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getValueNull(com.sun.fortress.interpreter.nodes.Id)
      */
     @Override
-    public FValue getValueNull(QualifiedIdName q) {
+    public FValue getValueNull(Id q) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -215,9 +208,9 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putType(com.sun.fortress.interpreter.nodes.QualifiedIdName, com.sun.fortress.interpreter.evaluator.types.FType)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putType(com.sun.fortress.interpreter.nodes.Id, com.sun.fortress.interpreter.evaluator.types.FType)
      */
-    public void putType(QualifiedIdName q, FType x) {
+    public void putType(Id q, FType x) {
         bug(q, "Empty environment does not support this operation");
 
     }
@@ -235,9 +228,9 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(com.sun.fortress.interpreter.nodes.QualifiedIdName, com.sun.fortress.interpreter.evaluator.values.FValue)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(com.sun.fortress.interpreter.nodes.Id, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
-    public void putValue(QualifiedIdName q, FValue x) {
+    public void putValue(Id q, FValue x) {
         bug(q, "Empty environment does not support this operation");
 
     }
