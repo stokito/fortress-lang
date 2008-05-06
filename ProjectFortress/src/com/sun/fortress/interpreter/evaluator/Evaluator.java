@@ -127,8 +127,6 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.QualifiedName;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
 import com.sun.fortress.nodes.StaticArg;
@@ -1092,15 +1090,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return e.getValue(NodeUtil.nameString(op));
         } catch (FortressError ex) {
             throw ex.setContext(op,e);
-        }
-    }
-
-    public FValue forQualifiedName(QualifiedName n) {
-        if (n.getApi().isSome()) {
-            return NI.nyi("Qualified name");
-        }
-        else {
-            return n.getName().accept(this);
         }
     }
 

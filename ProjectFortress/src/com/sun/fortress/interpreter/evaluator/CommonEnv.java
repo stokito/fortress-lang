@@ -28,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
@@ -157,18 +156,6 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  FType getTypeNull(QualifiedIdName q) ;
-    final public  FType getType(QualifiedIdName q)  {
-        FType x = getTypeNull(q);
-        if (x == null)
-            {
-                // System.err.println(this.toString());
-                return error(errorMsg("Missing type ", q));
-            }
-        else
-            return x;
-    }
-
     abstract public  FType getTypeNull(Id q) ;
     final public  FType getType(Id q)  {
         FType x = getTypeNull(q);
@@ -181,8 +168,8 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  FValue getValueNull(QualifiedIdName q) ;
-    final public  FValue getValue(QualifiedIdName q)  {
+    abstract public  FValue getValueNull(Id q) ;
+    final public  FValue getValue(Id q)  {
         FValue x = getValueNull(q);
         if (x == null)
             return error(errorMsg("Missing value ", q));

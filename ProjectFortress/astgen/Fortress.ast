@@ -1831,17 +1831,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         APIName(List<Id> ids);
         /**
-         * name prefixed by an optional API name
-         */
-        abstract QualifiedName(Option<APIName> api = Option.<APIName>none(),
-                               IdOrOpOrAnonymousName name);
-            /**
-             * qualified id name
-             * QualifiedName ::= Id(.Id)*
-             * e.g.) com.sun.fortress.nodes_util.getName
-             */
-            QualifiedIdName(Id name);
-        /**
          * non-API name
          * SimpleName ::= Id
          *              | opr Op

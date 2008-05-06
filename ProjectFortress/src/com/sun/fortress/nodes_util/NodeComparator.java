@@ -130,25 +130,8 @@ public class NodeComparator {
                                                        NodeUtil.toStrings(right));
     }
 
-    public static int compare(QualifiedName left, QualifiedName right) {
-        if (left.getApi().isNone()) {
-            if (right.getApi().isNone()) { // both are none
-                return compare(left.getName(), right.getName());
-            }
-            else {
-                return -1;
-            }
-        }
-        else {
-            if (right.getApi().isNone()) {
-                return 1;
-            }
-            else { // both are some
-                int result = compare(Option.unwrap(left.getApi()),
-                                     Option.unwrap(right.getApi()));
-                return (result == 0) ? compare(left.getName(), right.getName()) : result;
-            }
-        }
+    public static int compare(Id left, Id right) {
+        return NodeUtil.nameString(left).compareTo(NodeUtil.nameString(right));
     }
 
     public static int compare(ExtentRange left, ExtentRange right) {
@@ -190,10 +173,6 @@ public class NodeComparator {
         else {
             return left.stringName().compareTo(right.stringName());
         }
-    }
-
-    public static int compare(Id left, Id right) {
-        return NodeUtil.nameString(left).compareTo(NodeUtil.nameString(right));
     }
 
     public static int compare(KeywordType left, KeywordType right) {

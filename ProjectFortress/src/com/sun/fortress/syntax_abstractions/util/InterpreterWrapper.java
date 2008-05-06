@@ -56,7 +56,6 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
@@ -73,17 +72,17 @@ import edu.rice.cs.plt.tuple.Option;
 
 /**
  * Class which is a wrapper around the Fortress interpreter.
- * You can feed the wrapper an expression and then it returns a 
+ * You can feed the wrapper an expression and then it returns a
  * Fortress value ({@see com.sun.fortres.interpreter.values.FValue}).
  */
 public class InterpreterWrapper {
-    
+
     FortressRepository repository;
 
     public  InterpreterWrapper() {
         repository = Driver.CURRENT_INTERPRETER_REPOSITORY;
     }
-    
+
     public class Result extends StaticPhaseResult {
 
         private FValue value;
@@ -127,7 +126,7 @@ public class InterpreterWrapper {
         }
         c.getDecls().clear();
         c.getDecls().addAll(decls);
-        
+
 try {
 	System.err.println(writeJavaAST(c));
 } catch (IOException e1) {
@@ -156,7 +155,7 @@ try {
     }
 
     private Collection<Decl> createVarBindings(
-			Span span, 
+			Span span,
 			Map<String, AbstractNode> boundVariables,
 			List<Decl> decls) {
     	List<Decl> newDecls = new LinkedList<Decl>();
@@ -177,7 +176,7 @@ try {
 		return newDecls;
 	}
 
-    
+
 	private FValue runFunction(CompilationUnit compilationUnit) throws Throwable {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null)
@@ -209,7 +208,7 @@ try {
         BufferedReader br = new BufferedReader(sr);
         return ASTIO.readJavaAst(filename, br);
     }
-    
+
 	private String writeJavaAST(Component component) throws IOException {
 		StringWriter sw = new StringWriter();
 		BufferedWriter bw = new BufferedWriter(sw);

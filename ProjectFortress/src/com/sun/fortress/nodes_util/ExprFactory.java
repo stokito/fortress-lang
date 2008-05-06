@@ -77,7 +77,6 @@ import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -765,7 +764,7 @@ public class ExprFactory {
                 tc.getClauses(),
                 tc.getElseClause());
     }
-    
+
     public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {
     	return new TemplateGapExpr(s, id, params);
     }

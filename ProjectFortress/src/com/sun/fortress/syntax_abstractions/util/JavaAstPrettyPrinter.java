@@ -36,7 +36,6 @@ import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateGapExpr;
@@ -132,7 +131,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 			List<String> staticArgs_result) {
 		String rVarName = FreshName.getFreshName("fn");
 		String fns = FreshName.getFreshName("ls");
-		this.code.addAll(mkList(fns_result, fns, "QualifiedIdName"));
+		this.code.addAll(mkList(fns_result, fns, "Id"));
 		String staticArgs = FreshName.getFreshName("ls");
 		this.code.addAll(mkList(staticArgs_result, staticArgs, "StaticArg"));
 		this.code.add("FnRef "+rVarName+" = new FnRef("+that.isParenthesized()+", "+fns+", "+staticArgs+");");
@@ -207,8 +206,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	}
 
 	@Override
-	public String forQualifiedIdNameOnly(QualifiedIdName that,
-			Option<String> api_result, String name_result) {
+	public String forIdOnly(Id that, Option<String> api_result) {
 		String rVarName = FreshName.getFreshName("qIdName");
 		String api = "";
 		if (api_result.isNone()) {
@@ -217,7 +215,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 		else {
 			api = "Option.<APIName>some("+Option.unwrap(api_result)+")";
 		}
-		this.code.add("QualifiedIdName "+rVarName+" = new QualifiedIdName("+api+", "+name_result+");");
+		this.code.add("Id "+rVarName+" = new Id("+api+");");
 		return rVarName;
 	}
 

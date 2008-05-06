@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.useful.HasAt;
 
 
@@ -133,9 +133,9 @@ public interface Environment  {
     public abstract void putApi(APIName d, SApi x);
 
     /* Type names take the form ID or Api.ID */
-    public abstract FType getType(QualifiedIdName d);
+    public abstract FType getType(Id d);
 
-    public abstract void putType(QualifiedIdName d, FType x);
+    public abstract void putType(Id d, FType x);
 
     /* Variables/values -- these are more complex.
      * Api.var
@@ -144,9 +144,9 @@ public interface Environment  {
      *
      * These may not ever appear in this form.
      */
-    public abstract FValue getValue(QualifiedIdName d);
+    public abstract FValue getValue(Id d);
 
-    public abstract void putValue(QualifiedIdName d, FValue x);
+    public abstract void putValue(Id d, FValue x);
 
     public abstract void putComponent(APIName name, SComponent comp);
 
@@ -166,7 +166,7 @@ public interface Environment  {
 
     public abstract Number getNatNull(String s);
 
-    public abstract FType getTypeNull(QualifiedIdName name);
+    public abstract FType getTypeNull(Id name);
 
     public abstract BetterEnv genericLeafEnvHack(BetterEnv genericEnv, HasAt within);
 

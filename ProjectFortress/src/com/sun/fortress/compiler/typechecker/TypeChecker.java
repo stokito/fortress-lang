@@ -354,7 +354,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return new TypeCheckerResult(name, _type);
             } else {
                 // Operators are never qualified in source code, so if 'name' is qualified and not
-                // found, it must be a QualifiedIdName, not a OpName.
+                // found, it must be a Id, not a OpName.
                 StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", name),
                                                    name);
                 return new TypeCheckerResult(name, error);
@@ -384,12 +384,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return new TypeCheckerResult(that);
     }
 
-    public TypeCheckerResult forQualifiedIdName(QualifiedIdName that) {
-        return forQualifiedName(that);
-    }
-
-    private TypeCheckerResult forQualifiedName(QualifiedName that) {
-        IdOrOpOrAnonymousName name = that.getName();
+    private TypeCheckerResult forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName that) {
         Option<APIName> apiName = that.getApi();
         if (apiName.isSome()) {
             APIName api = unwrap(apiName);
@@ -400,7 +395,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
             }
 
-            Option<Type> type = apiTypeEnv.type(name);
+            Option<Type> type = apiTypeEnv.type(that);
             if (type.isSome()) {
                 Type _type = unwrap(type);
                 if (_type instanceof NamedType) { // Do we need to qualify?
@@ -415,31 +410,31 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return new TypeCheckerResult(that, _type);
             } else {
                 // Operators are never qualified in source code, so if 'that' is qualified and not
-                // found, it must be a QualifiedIdName, not a OpName.
+                // found, it must be a Id, not a OpName.
                 StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
                                                    that);
                 return new TypeCheckerResult(that, error);
             }
         }
-        Option<Type> type = typeEnv.type(name);
+        Option<Type> type = typeEnv.type(that);
         if (type.isSome()) {
             Type _type = unwrap(type);
             if (_type instanceof LabelType) { // then name must be an Id
-                return new TypeCheckerResult(that, makeLabelNameError((Id)name));
+                return new TypeCheckerResult(that, makeLabelNameError((Id)that));
             } else {
                 return new TypeCheckerResult(that, _type);
             }
         } else {
             StaticError error;
-            if (name instanceof Id) {
+            if (that instanceof Id) {
                 error = TypeError.make(errorMsg("Variable '", that, "' not found."),
                                        that);
-            } else if (name instanceof Op) {
-                error = TypeError.make(errorMsg("Operator '", OprUtil.decorateOperator((Op)name),
+            } else if (that instanceof Op) {
+                error = TypeError.make(errorMsg("Operator '", OprUtil.decorateOperator((Op)that),
                                                 "' not found."),
                                        that);
             } else { // must be Enclosing
-                error = TypeError.make(errorMsg("Enclosing operator '", (Enclosing)name, "' not found."),
+                error = TypeError.make(errorMsg("Enclosing operator '", (Enclosing)that, "' not found."),
                                        that);
             }
             return new TypeCheckerResult(that, error);
@@ -1282,7 +1277,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
         return new TypeCheckerResult(that, Types.VOID);
     }
-    
+
     public TypeCheckerResult forAnyType(AnyType that) {
         return new TypeCheckerResult(that);
     }
@@ -2312,12 +2307,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forNameOnly(that);
 //    }
 //
-//    public RetType forQualifiedNameOnly(QualifiedName that, Option<RetType> api_result, RetType name_result) {
+//    public RetType forIdOrOpOrAnonymousNameOnly(IdOrOpOrAnonymousName that, Option<RetType> api_result, RetType name_result) {
 //        return forNameOnly(that);
-//    }
-//
-//    public RetType forQualifiedIdNameOnly(QualifiedIdName that, Option<RetType> api_result, RetType name_result) {
-//        return forQualifiedNameOnly(that, api_result, name_result);
 //    }
 //
 //    public RetType forIdOrOpOrAnonymousNameOnly(IdOrOpOrAnonymousName that) {
@@ -2638,7 +2629,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forGrammarDef(GrammarDef that) {
 //        RetType name_result = that.getName().accept(this);
-//        List<RetType> extends_result = recurOnListOfQualifiedIdName(that.getExtends());
+//        List<RetType> extends_result = recurOnListOfId(that.getExtends());
 //        List<RetType> productions_result = recurOnListOfProductionDef(that.getProductions());
 //        return forGrammarDefOnly(that, name_result, extends_result, productions_result);
 //    }
@@ -2647,7 +2638,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        Option<RetType> modifier_result = recurOnOptionOfModifier(that.getModifier());
 //        RetType name_result = that.getName().accept(this);
 //        RetType type_result = that.getType().accept(this);
-//        Option<RetType> extends_result = recurOnOptionOfQualifiedIdName(that.getExtends());
+//        Option<RetType> extends_result = recurOnOptionOfId(that.getExtends());
 //        List<RetType> syntaxDefs_result = recurOnListOfSyntaxDef(that.getSyntaxDefs());
 //        return forProductionDefOnly(that, modifier_result, name_result, type_result, extends_result, syntaxDefs_result);
 //    }
@@ -2926,7 +2917,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    }
 //
 //    public RetType forFnRef(FnRef that) {
-//        List<RetType> fns_result = recurOnListOfQualifiedIdName(that.getFns());
+//        List<RetType> fns_result = recurOnListOfId(that.getFns());
 //        List<RetType> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
 //        return forFnRefOnly(that, fns_result, staticArgs_result);
 //    }
@@ -3417,14 +3408,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forAPINameOnly(that, ids_result);
 //    }
 //
-//    public RetType forQualifiedIdName(QualifiedIdName that) {
+//    public RetType forId(Id that) {
 //        Option<RetType> api_result = recurOnOptionOfAPIName(that.getApi());
 //        RetType name_result = that.getName().accept(this);
-//        return forQualifiedIdNameOnly(that, api_result, name_result);
-//    }
-//
-//    public RetType forId(Id that) {
-//        return forIdOnly(that);
+//        return forIdOnly(that, api_result, name_result);
 //    }
 //
 //    public RetType forOp(Op that) {
