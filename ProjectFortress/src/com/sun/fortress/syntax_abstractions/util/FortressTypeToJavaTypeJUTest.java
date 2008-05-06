@@ -20,9 +20,9 @@ package com.sun.fortress.syntax_abstractions.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.InstantiatedType;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
@@ -34,13 +34,13 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
 
     private FortressTypeToJavaType tt = new FortressTypeToJavaType();
 
-    private IdType stringType = new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", "String"));
+    private IdType stringType = new IdType(NodeFactory.makeId("FortressBuiltin", "String"));
     private String stringTypeResult = "String";
-    private IdType fortressASTType = new IdType(NodeFactory.makeQualifiedIdName("FortressAst", "Decl"));
+    private IdType fortressASTType = new IdType(NodeFactory.makeId("FortressAst", "Decl"));
     private String fortressASTTypeResult = "Decl";
 
     private InstantiatedType mkInstantiatedType(String api, String id, BaseType typeArg) {
-        QualifiedIdName name = NodeFactory.makeQualifiedIdName(api, id);
+        Id name = NodeFactory.makeId(api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
         args.add(new TypeArg(typeArg));
         return new InstantiatedType(name, args);

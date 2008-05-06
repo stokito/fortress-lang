@@ -20,14 +20,14 @@ package com.sun.fortress.compiler;
 import com.sun.fortress.nodes.*;
 import java.util.Collections;
 
-import static com.sun.fortress.nodes_util.NodeFactory.makeQualifiedIdName;
+import static com.sun.fortress.nodes_util.NodeFactory.makeId;
 import static com.sun.fortress.nodes_util.NodeFactory.makeInstantiatedType;
 
 public final class Types {
-    
+
     private Types() {}
-    
-    public static final QualifiedIdName ANY_NAME = makeQualifiedIdName("AnyType", "Any");
+
+    public static final Id ANY_NAME = makeId("AnyType", "Any");
     public static final Type ANY = new AnyType();
     public static final Type BOTTOM = new BottomType();
     public static final Type OBJECT = makeInstantiatedType("FortressLibrary", "Object");

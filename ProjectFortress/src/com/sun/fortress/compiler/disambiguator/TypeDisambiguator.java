@@ -212,9 +212,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
     @Override public Node forIdType(final IdType that) {
         Thunk<Type> varHandler = LambdaUtil.<Type>valueLambda(that);
-        Lambda<QualifiedIdName, Type> typeConsHandler =
-            new Lambda<QualifiedIdName, Type>() {
-            public Type value(QualifiedIdName n) {
+        Lambda<Id, Type> typeConsHandler =
+            new Lambda<Id, Type>() {
+            public Type value(Id n) {
                 if (n.equals(Types.ANY_NAME)) {
                     return new AnyType(that.getSpan());
                 }
@@ -241,9 +241,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 return that;
             }
         };
-        Lambda<QualifiedIdName, Type> typeConsHandler =
-            new Lambda<QualifiedIdName, Type>() {
-            public Type value(QualifiedIdName n) {
+        Lambda<Id, Type> typeConsHandler =
+            new Lambda<Id, Type>() {
+            public Type value(Id n) {
                 List<StaticArg> args = that.getArgs();
                 if (n.equals(Types.ANY_NAME) && args.isEmpty()) {
                     return new AnyType(that.getSpan());
@@ -290,9 +290,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      *                         provided.  May assume that the named type constructor
      *                         exists.
      */
-    private Type handleTypeName(Type that, QualifiedIdName n,
+    private Type handleTypeName(Type that, Id n,
                                 Thunk<Type> variableHandler,
-                                Lambda<QualifiedIdName, Type> typeConsHandler) {
+                                Lambda<Id, Type> typeConsHandler) {
         if (n.getApi().isSome()) {
             APIName originalApi = Option.unwrap(n.getApi());
             Option<APIName> realApiOpt = _env.apiName(originalApi);
@@ -301,9 +301,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 return that;
             }
             APIName realApi = Option.unwrap(realApiOpt);
-            QualifiedIdName newN;
+            Id newN;
             if (originalApi == realApi) { newN = n; }
-            else { newN = NodeFactory.makeQualifiedIdName(realApi, n.getName()); }
+            else { newN = NodeFactory.makeId(realApi, n); }
 
             if (!_env.hasQualifiedTypeCons(newN)) {
                 error("Undefined type: " + NodeUtil.nameString(newN), newN);
@@ -313,15 +313,12 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         }
 
         else {
-            Id id = n.getName();
-            //System.err.println("id: " + id);
-
-            if (_env.hasTypeParam(id)) { return variableHandler.value(); }
+            if (_env.hasTypeParam(n)) { return variableHandler.value(); }
             else {
-                Set<QualifiedIdName> typeConses = _env.explicitTypeConsNames(id);
+                Set<Id> typeConses = _env.explicitTypeConsNames(n);
                 if (typeConses.isEmpty()) {
-                    typeConses = _env.onDemandTypeConsNames(id);
-                    _onDemandImports.add(id);
+                    typeConses = _env.onDemandTypeConsNames(n);
+                    _onDemandImports.add(n);
                 }
 
                 if (typeConses.isEmpty()) {
@@ -333,7 +330,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                             n);
                     return that;
                 }
-                QualifiedIdName qname = IterUtil.first(typeConses);
+                Id qname = IterUtil.first(typeConses);
                 Type result = typeConsHandler.value(qname);
 
                 return result;
@@ -359,7 +356,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 final Type t = a.getType();
                 if (t instanceof IdType) {
                     final Span s = a.getSpan();
-                    final QualifiedIdName name = ((IdType) t).getName();
+                    final Id name = ((IdType) t).getName();
                     return p.accept(new NodeAbstractVisitor<StaticArg>() {
                         @Override public StaticArg forStaticParam(StaticParam p) {
                             mismatch("an identifier");

@@ -196,10 +196,9 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
 /* TypeRef ::= DottedIdChain StaticArgs? */
 /* TypeRef ::= Id StaticArgs? */
 private Type TypeRef = a1:Id a2:StaticArgs?
-     { QualifiedIdName name = NodeFactory.makeQualifiedIdName(a1.getSpan(), a1);
-       if (a2 == null)
-            yyValue = new IdType(createSpan(yyStart,yyCount), name);
-       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),name,a2);
+     { if (a2 == null)
+            yyValue = new IdType(createSpan(yyStart,yyCount), a1);
+       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* VoidType ::= ( w ) */

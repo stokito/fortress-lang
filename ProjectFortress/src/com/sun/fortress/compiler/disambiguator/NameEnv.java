@@ -21,7 +21,6 @@ import java.util.Set;
 
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.QualifiedIdName;
 
 public abstract class NameEnv extends TypeNameEnv {
 

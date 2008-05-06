@@ -1,19 +1,19 @@
 /*******************************************************************************
-  Copyright 2008 Sun Microsystems, Inc.,
-  4150 Network Circle, Santa Clara, California 95054, U.S.A.
-  All rights reserved.
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
-  U.S. Government Rights - Commercial software.
-  Government users are subject to the Sun Microsystems, Inc. standard
-  license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
-  Use is subject to license terms.
+    Use is subject to license terms.
 
-  This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
-  Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-  trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-  ******************************************************************************/
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.compiler.typechecker;
 
@@ -236,22 +236,22 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         TypeArg zzA = NodeFactory.makeTypeArg("ZZ32");
         IntArg zero = NodeFactory.makeIntArgVal("0");
         IntArg three = NodeFactory.makeIntArg("three");
-        QualifiedIdName arrName1 = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Array1");
+        Id arrName1 = NodeFactory.makeId(span, "FortressLibrary", "Array1");
         InstantiatedType arr1 = NodeFactory.makeInstantiatedType(span, false,
                                                                  arrName1, zzA,
                                                                  zero, three);
-        QualifiedIdName arrName2 = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Array2");
+        Id arrName2 = NodeFactory.makeId(span, "FortressLibrary", "Array2");
         InstantiatedType arr2 = NodeFactory.makeInstantiatedType(span, false,
                                                                  arrName2, zzA,
                                                                  zero, three,
                                                                  zero, three);
-        QualifiedIdName arrName3 = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Array3");
+        Id arrName3 = NodeFactory.makeId(span, "FortressLibrary", "Array3");
         InstantiatedType arr3 = NodeFactory.makeInstantiatedType(span, false,
                                                                  arrName3, zzA,
                                                                  zero, three,
                                                                  zero, three,
                                                                  zero, three);
-        QualifiedIdName matName = NodeFactory.makeQualifiedIdName(span, "FortressLibrary", "Matrix");
+        Id matName = NodeFactory.makeId(span, "FortressLibrary", "Matrix");
         InstantiatedType mat  = NodeFactory.makeInstantiatedType(span, false,
                                                                  matName, zzA,
                                                                  three, three);

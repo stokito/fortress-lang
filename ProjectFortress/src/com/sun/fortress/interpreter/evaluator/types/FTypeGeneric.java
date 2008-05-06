@@ -47,7 +47,6 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes.OprArg;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -144,8 +143,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
     public Type getInstantiationForFunctionalMethodInference() {
         List<StaticArg> statics = paramsToArgs();
-        QualifiedIdName qin = NodeFactory.makeQualifiedIdName(def.getSpan(), name);
-        InstantiatedType inst_type = new InstantiatedType(qin, statics);
+        Id in = NodeFactory.makeId(def.getSpan(), name);
+        InstantiatedType inst_type = new InstantiatedType(in, statics);
         return inst_type;
     }
 
@@ -162,8 +161,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         private TypeArg idNameToTypeArg(Id idn) {
             return new TypeArg(idn.getSpan(),
-                     new IdType(idn.getSpan(),
-                             NodeFactory.makeQualifiedIdName(idn)));
+                               new IdType(idn.getSpan(), idn));
         }
 
         @Override

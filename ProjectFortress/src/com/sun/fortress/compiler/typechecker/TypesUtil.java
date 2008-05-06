@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.ArrayList;
@@ -23,7 +40,6 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeId;
-import static com.sun.fortress.nodes_util.NodeFactory.makeQualifiedIdName;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
@@ -50,7 +66,7 @@ public class TypesUtil {
     public static Option<Type> applicationType(final SubtypeChecker checker,
                                                final Type fn,
                                                final Type arg) {
-    
+
         // Make sure domain is an ArgType
         final ArgType domain;
         if (arg instanceof ArgType) {
@@ -60,16 +76,16 @@ public class TypesUtil {
         } else {
             domain = NodeFactory.makeArgType(Collections.singletonList(arg));
         }
-    
+
         // Turn fn into a list of types (i.e. flatten if an intersection)
         final Iterable<Type> arrows =
             (fn instanceof AndType) ? conjuncts((AndType)fn)
                                     : IterUtil.make(fn);
-    
+
         // Get a list of the arrow types that match these arguments
         List<ArrowType> matchingArrows = new ArrayList<ArrowType>();
         for (Type arrow : arrows) {
-    
+
             // Try to form a non-generic ArrowType from this arrow, if it matches the args
             Option<ArrowType> newArrow = arrow.accept(new NodeAbstractVisitor<Option<ArrowType>>() {
                 @Override public Option<ArrowType> forArrowType(ArrowType that) {
@@ -91,7 +107,7 @@ public class TypesUtil {
         if (matchingArrows.isEmpty()) {
             return none();
         }
-    
+
         // Find the most applicable arrow type
         ArrowType minType = matchingArrows.get(0);
         for (int i=1; i<matchingArrows.size(); ++i) {
@@ -131,17 +147,17 @@ public class TypesUtil {
     public static final Type fromVarargsType(VarargsType varargsType) {
         return NodeFactory.makeInstantiatedType(varargsType.getSpan(),
                                                 false,
-                                                makeQualifiedIdName(Arrays.asList(makeId("FortressBuiltin")),
+                                                makeId(Arrays.asList(makeId("FortressBuiltin")),
                                                                     makeId("ImmutableHeapSequence")));
     }
-    
+
     public static Type makeThreadType(Type typeArg) {
-        return new InstantiatedType(NodeFactory.makeQualifiedIdName("FortressBuiltin", "Thread"),
+        return new InstantiatedType(NodeFactory.makeId("FortressBuiltin", "Thread"),
                 Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
     }
-    
+
     public static Type makeGeneratorType(Type typeArg) {
-        return new InstantiatedType(NodeFactory.makeQualifiedIdName("FortressLibrary", "Generator"),
+        return new InstantiatedType(NodeFactory.makeId("FortressLibrary", "Generator"),
                 Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
     }
 }

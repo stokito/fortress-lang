@@ -36,7 +36,6 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.OprParam;
 import com.sun.fortress.nodes.OprArg;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TypeArg;
@@ -96,9 +95,9 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return (Type)t.accept(this); // TODO safe?
     }
 
-    private Node updateNode(Node that, QualifiedIdName name) {
+    private Node updateNode(Node that, Id name) {
         if (name.getApi().isSome()) { return that; }
-        StaticArg arg = parameterMap.get(name.getName());
+        StaticArg arg = parameterMap.get(name);
         if (arg == null) { return that; }
         else {
             // unwrap the StaticArg
@@ -111,12 +110,6 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                 @Override public Node forUnitArg(UnitArg arg) { return arg.getUnit(); }
             });
         }
-    }
-
-    private Node updateNode(Node that, Id name) {
-        if (name.getApi().isSome()) { return that; }
-        StaticArg arg = parameterMap.get(name);
-        return arg == null ? that : arg;
     }
 
     // ----------- VISITOR METHODS ---------------

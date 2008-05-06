@@ -36,7 +36,7 @@ public class FortressTypeToJavaType {
 
             @Override
             public String forIdType(IdType that) {
-                return that.getName().getName().getText();
+                return that.getName().getText();
             }
 
             @Override
@@ -45,16 +45,16 @@ public class FortressTypeToJavaType {
                     throw new RuntimeException("One type argument was expected");
                 }
                 String arg = that.getArgs().get(0).accept(this);
-                if (that.getName().getName().getText().equals("List")) {
+                if (that.getName().getText().equals("List")) {
                     return "List<"+arg+ ">";
                 }
-                if (that.getName().getName().getText().equals("Maybe")) {
+                if (that.getName().getText().equals("Maybe")) {
                     return "Option<"+arg+">";
                 }
-                if (that.getName().getName().getText().equals("Just")) {
+                if (that.getName().getText().equals("Just")) {
                     return "Option<"+arg+">";
                 }
-                if (that.getName().getName().getText().equals("Nothing")) {
+                if (that.getName().getText().equals("Nothing")) {
                     return "Option<"+arg+">";
                 }
                 return "";

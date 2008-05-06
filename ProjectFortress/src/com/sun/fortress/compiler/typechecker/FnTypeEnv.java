@@ -92,7 +92,7 @@ class FnTypeEnv extends TypeEnv {
                 overloadedTypes.add(makeGenericArrowType(_fn.declaringTrait().getSpan(),
                                                         _fn.staticParams(),
                                                         typeFromParams(unwrap(_fn.params())),
-                                                        makeInstantiatedType(makeQualifiedIdName(_fn.declaringTrait()),
+                                                        makeInstantiatedType(_fn.declaringTrait(),
                                                                              staticParamsToArgs(_fn.staticParams())),
                                                         _fn.throwsClause(),
                                                         _fn.where()));

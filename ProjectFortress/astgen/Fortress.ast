@@ -1240,7 +1240,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 /**
                  * named type
                  */
-                abstract NamedType(QualifiedIdName name);
+                abstract NamedType(Id name);
                     /**
                      * type name
                      * TraitType ::= QualifiedName

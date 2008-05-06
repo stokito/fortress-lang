@@ -41,7 +41,6 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TightJuxt;
@@ -72,12 +71,12 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   if (option.isSome()) {
    if (Option.unwrap(option) instanceof InstantiatedType) {
     InstantiatedType it = (InstantiatedType) Option.unwrap(option);
-    if (it.getName().equals(NodeFactory.makeQualifiedIdName("FortressLibrary","Maybe"))) {
+    if (it.getName().equals(NodeFactory.makeId("FortressLibrary","Maybe"))) {
      return handleOption(value, it);
     }
     // or the result of a repetition
     if ((value instanceof Pair) &&
-      it.getName().equals(NodeFactory.makeQualifiedIdName("List","List"))) {
+      it.getName().equals(NodeFactory.makeId("List","List"))) {
      return handleRepetition((Pair) value, it);
     }
    }
@@ -192,7 +191,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  public Expr forFnRefOnly(FnRef that, List<Expr> fns_result,
    List<Expr> staticArgs_result) {
   List<Expr> args = new LinkedList<Expr>();
-  args.add(SyntaxAbstractionUtil.makeList(this.span, fns_result, "QualifiedIdName"));
+  args.add(SyntaxAbstractionUtil.makeList(this.span, fns_result, "Id"));
   args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
   return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "FnRef", args);
  }
@@ -238,16 +237,14 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  }
 
  @Override
- public Expr forQualifiedIdNameOnly(QualifiedIdName that,
-   Option<Expr> api_result, Expr name_result) {
-  return handleQualifiedName("QualifiedIdName", api_result, name_result);
+ public Expr forIdOnly(Id that,
+                       Option<Expr> api_result) {
+  return handleId("Id", api_result);
  }
 
- private Expr handleQualifiedName(String objectName, Option<Expr> api_result,
-   Expr name_result) {
+ private Expr handleId(String objectName, Option<Expr> api_result) {
   List<Expr> args = new LinkedList<Expr>();
   args.add(SyntaxAbstractionUtil.makeMaybe(this.span, api_result, "Expr"));
-  args.add(name_result);
   return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", objectName, args);
  }
 
