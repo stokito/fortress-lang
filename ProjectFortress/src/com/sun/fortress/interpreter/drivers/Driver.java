@@ -471,8 +471,8 @@ public class Driver {
                     /*
                      * Not-yet-implemented because of issues with selectors.
                      */
-                    bug(adi, errorMsg("Import of dotted names from API ",
-                                      adi, "; try import * from instead."));
+                    bug(adi, errorMsg("NYI 'Import api APIName'; ",
+                                      "try 'import APIName.{...}' instead."));
                 }
 
             } else if (i instanceof ImportedNames) {
@@ -583,8 +583,8 @@ public class Driver {
                     /*
                      * Not-yet-implemented because of issues with selectors.
                      */
-                    bug(errorMsg("NYI Import of dotted names ; try 'import * from' instead."));
-
+                bug(errorMsg("NYI 'Import api APIName'; ",
+                             "try 'import APIName.{...}' instead."));
             } else if (i instanceof ImportedNames) {
                 ImportedNames ix = (ImportedNames) i;
                 APIName source = ix.getApi();
@@ -1198,7 +1198,7 @@ public class Driver {
         }
     }
 
-    public static void runProgram(FortressRepository fr, CompilationUnit p, boolean runTests, boolean nolib, 
+    public static void runProgram(FortressRepository fr, CompilationUnit p, boolean runTests, boolean nolib,
             List<String> args) throws Throwable {
         runProgram(fr, p, runTests, false, nolib, args);
     }

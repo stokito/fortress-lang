@@ -60,6 +60,24 @@ public class NodeFactory {
                 throwss, where, contract, selfName);
     }
 
+    public static APIName makeAPIName(Id first, Id rest) {
+        List<Id> ids = new ArrayList<Id>();
+        ids.add(first);
+        if (rest.getApi().isSome()) {
+            ids.addAll(Option.unwrap(rest.getApi()).getIds());
+        }
+        ids.add(new Id(rest.getSpan(), rest.getText()));
+        return new APIName(FortressUtil.spanTwo(first, rest), ids);
+    }
+
+    public static AliasedAPIName makeAliasedAPIName(APIName api) {
+        return new AliasedAPIName(api.getSpan(), api);
+    }
+
+    public static AliasedAPIName makeAliasedAPIName(APIName api, Id alias) {
+        return new AliasedAPIName(FortressUtil.spanTwo(api, alias), api, Option.some(alias));
+    }
+
     public static AliasedSimpleName makeAliasedSimpleName(Span span,
             IdOrOpOrAnonymousName name) {
         return new AliasedSimpleName(span, name, Option.<IdOrOpOrAnonymousName>none());
@@ -1002,7 +1020,7 @@ public class NodeFactory {
             }
         });
     }
-    
+
     public static OpArg makeInParentheses(OpArg arg) {
         return new OpArg(arg.getSpan(), true, arg.getName());
     }
