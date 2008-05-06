@@ -17,19 +17,6 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-if [ "$ANT_HOME" == "" ] ; then
-  export TMPDIR="$$".tmpdir
-  mkdir /tmp/$TMPDIR
-
-  ANT_HOME=`(cd /tmp/$TMPDIR; ant -diagnostics | sed -n -e 's/^ant\.home: //p' | head -1)`
-
-  rmdir /tmp/$TMPDIR
-
-  echo please set ANT_HOME, guessing $ANT_HOME
-else
-  echo ANT_HOME is $ANT_HOME
-fi
-
 #
 # For NetBeans, you should not need to adjust anything to
 # build and test Fortress.
@@ -39,4 +26,35 @@ fi
 # will need to add junit.jar to
 # build.xml -> Run As -> Ant Build... -> Classpath -> User Entries -> Add JARs...
 #
-$ANT_HOME/bin/ant -noclasspath -lib third_party/junit "$@"
+
+find_ant(){
+
+  # if $ANT_HOME is set then search for ant there
+  if [ "x$ANT_HOME" != "x" ]; then
+    if [ -x "$ANT_HOME/bin/ant" ]; then
+      echo $ANT_HOME/bin/ant
+      return
+    else
+      echo "Did not find ant in $ANT_HOME/bin" >&2
+    fi
+  else
+    echo "ANT_HOME is not set" >&2
+  fi
+
+  # Otherwise use whatever is in $PATH
+  result=$(which ant 2>/dev/null)
+  if [ -z "$result" ]; then
+    echo "Could not find ant. You need to install it. See http://ant.apache.org/ for details." >&2
+    exit 1
+  fi
+  echo $result
+  exit 0
+}
+
+ant_exec=$(find_ant)
+n=$?
+if [ $n -ne 0 ]; then
+        exit $n
+fi
+echo "Using $ant_exec"
+$ant_exec -noclasspath -lib third_party/junit "$@"
