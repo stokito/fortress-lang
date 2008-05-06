@@ -103,8 +103,16 @@ NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
     iii) Internal Nodes - stores N keys and N+1 children for N > 0.
     iv)  White Nodes - stores exactly zero keys and one child.
 *)
-trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
-  WhiteNode[\Key,Val\], InternalNode[\Key,Val\]}
+trait Node[\Key,Val\]
+      comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
+                 NonLeafNode[\Key,Val\],
+              (* WhiteNodeHelper[\Key,Val,ChildType\]
+                     where [\ChildType extends Node[\Key,Val\]\],
+                 InternalNodeHelper[\SelfType,Key,Val,ChildType\]
+                     where [\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],
+                             ChildType extends Node[\KeyVal\]\],
+               *)
+                 WhiteNode[\Key,Val\], InternalNode[\Key,Val\]}
 
   (* The height of the current node.  Height = 0 must be a leaf *)
   getter height():ZZ32
@@ -145,19 +153,32 @@ end
 (* There are two types of white nodes:
     a) WhiteLevel1 are white nodes that live at level 1 of the tree.  Their children are leaves.
     b) WhiteLevelN are white nodes that live at level > 1 of the tree. Their children are non-leaves. *)
-trait WhiteNode[\Key,Val\] extends Node[\Key,Val\] excludes InternalNode[\Key,Val\] comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]} end
+trait WhiteNode[\Key,Val\]
+      extends Node[\Key,Val\]
+      excludes InternalNode[\Key,Val\]
+      comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
+end
 
 (* There are two types of internal nodes:
     a) InternalLevel1 are internal nodes that live at level 1 of the tree.  Their children are leaves.
     b) InternalLevelN are internal nodes that live at level > 1 of the tree. Their children are non-leaves. *)
-trait InternalNode[\Key,Val\] extends Node[\Key,Val\] excludes WhiteNode[\Key,Val\] comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]} end
+trait InternalNode[\Key,Val\]
+      extends Node[\Key,Val\]
+      excludes WhiteNode[\Key,Val\]
+      comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]}
+end
 
 (* There are four types of NonLeafNodes and they are the union of the WhiteNode types and InternalNode types *)
-trait NonLeafNode[\Key,Val\] extends Node[\Key,Val\] comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\], InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]} end
+trait NonLeafNode[\Key,Val\]
+      extends Node[\Key,Val\]
+      comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\],
+                 InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]}
+end
 
 (* WhiteNodeHelper is the trait that is used to distinguish between WhiteLevel1 and WhiteLevelN *)
-trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\] extends Node[\Key,Val\]
-  comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
+trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\]
+      extends Node[\Key,Val\]
+      comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
 
   getter child():ChildType
   getter size():ZZ32 = |child|
@@ -181,7 +202,8 @@ end
 
 (* InternalNodeHelper is the trait that is used to distinguish between InternalLevel1 and InternalLevelN *)
 trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],Key,Val,ChildType extends Node[\Key,Val\]\]
-  extends Node[\Key,Val\] comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key,Val\]}
+      extends Node[\Key,Val\]
+      comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key,Val\]}
 
   getter keys():Array[\Key,ZZ32\]
   getter children():Array[\ChildType,ZZ32\]
@@ -323,7 +345,10 @@ end
 (* A white node stores exactly zero keys and contains one child. White nodes are
    used as placeholders to keep the height of all branches identical. A white node
    has a height > 0 *)
-object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key,Val\], WhiteNodeHelper[\Key,Val,LeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]}
+object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\])
+       extends {WhiteNode[\Key,Val\],
+                WhiteNodeHelper[\Key,Val,LeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
 
   getter child():LeafNode[\Key,Val\] = child
 
@@ -384,7 +409,10 @@ end
 (* A white node stores exactly zero keys and contains one child. White nodes are
    used as placeholders to keep the height of all branches identical. A white node
    has a height > 0 *)
-object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\]) extends {WhiteNode[\Key,Val\], WhiteNodeHelper[\Key,Val,NonLeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]}
+object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\])
+       extends {WhiteNode[\Key,Val\],
+                WhiteNodeHelper[\Key,Val,NonLeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
 
   getter child():NonLeafNode[\Key,Val\] = child
 
@@ -423,8 +451,10 @@ end
 (* An internal node stores N keys and N + 1 children where N > 0.
    An internal nodes has a height > 0. *)
 object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
-  children:Array[\LeafNode[\Key,Val\],ZZ32\]) extends {InternalNode[\Key,Val\],
-  InternalNodeHelper[\InternalLevel1[\Key,Val\],Key,Val,LeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]}
+                                 children:Array[\LeafNode[\Key,Val\],ZZ32\])
+       extends {InternalNode[\Key,Val\],
+                InternalNodeHelper[\InternalLevel1[\Key,Val\],Key,Val,LeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
 
   getter keys():Array[\Key,ZZ32\] = keys
   getter children():Array[\LeafNode,ZZ32\] = children
@@ -505,7 +535,10 @@ end
 (* An internal node stores N keys and N + 1 children where N > 0.
    An internal nodes has a height > 0. *)
 object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
-  children:Array[\NonLeafNode[\Key,Val\],ZZ32\]) extends {InternalNode[\Key,Val\], InternalNodeHelper[\InternalLevelN[\Key,Val\],Key,Val,NonLeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]}
+                                 children:Array[\NonLeafNode[\Key,Val\],ZZ32\])
+       extends {InternalNode[\Key,Val\],
+                InternalNodeHelper[\InternalLevelN[\Key,Val\],Key,Val,NonLeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
 
   getter keys():Array[\Key,ZZ32\] = keys
   getter children():Array[\NonLeafNode[\Key,Val\],ZZ32\] = children
@@ -721,7 +754,8 @@ end
 
 (* Leaf nodes are the only nodes that store values.  All leaf
    nodes live at the bottom of the tree, and they all have height 0. *)
-object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\]) extends Node[\Key,Val\]
+object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\])
+       extends Node[\Key,Val\]
 
   getter size():ZZ32 = |values|
   getKey():Key = key
