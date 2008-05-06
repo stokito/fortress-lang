@@ -44,8 +44,8 @@ import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.OprParam;
-import com.sun.fortress.nodes.OprArg;
+import com.sun.fortress.nodes.OpParam;
+import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
@@ -186,8 +186,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         }
 
         @Override
-        public StaticArg forOprParam(OprParam that) {
-            return new OprArg(that.getName());
+        public StaticArg forOpParam(OpParam that) {
+            return new OpArg(that.getName());
         }
 
         @Override
@@ -221,7 +221,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             int oprParamCount = 0;
 
             for (StaticParam param : params) {
-                if (param instanceof OprParam)
+                if (param instanceof OpParam)
                     oprParamCount++;
             }
 
@@ -231,14 +231,14 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 int i = 0;
                 for (StaticParam param : params) {
                     FType arg = args.get(i);
-                    if (param instanceof OprParam) {
+                    if (param instanceof OpParam) {
                         if (arg instanceof FTypeOpr) {
                             FTypeOpr fto = (FTypeOpr) arg;
-                            String s = NodeUtil.nameString(((OprParam)param).getName());
+                            String s = NodeUtil.nameString(((OpParam)param).getName());
                             substitutions.put(s, fto.getName());
                         } else if (arg instanceof SymbolicOprType) {
                             SymbolicOprType fto = (SymbolicOprType) arg;
-                            String s = NodeUtil.nameString(((OprParam)param).getName());
+                            String s = NodeUtil.nameString(((OpParam)param).getName());
                             substitutions.put(s, fto.getName());
                         }
                     } else {

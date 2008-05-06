@@ -855,8 +855,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * comprehension or accumulator
              */
-            abstract BigOprApp(List<StaticArg> staticArgs
-                                   = Collections.<StaticArg>emptyList());
+            abstract BigOpApp(List<StaticArg> staticArgs
+                                  = Collections.<StaticArg>emptyList());
                 /**
                  * summation and other reduction expression
                  * FlowExpr ::= Accumulator StaticArgs?
@@ -968,7 +968,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * expression that is simple or using operators
          * Expr ::= OpExpr
          */
-        abstract OpExpr();
+        abstract SimpleExpr();
             /**
              * subscripting expression
              * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
@@ -1124,8 +1124,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      *           | Primary ExponentOp
                      * e.g.) 3 + 5
                      */
-                    OprExpr(OpRef op,
-                            List<Expr> args = Collections.<Expr>emptyList());
+                    OpExpr(OpRef op,
+                           List<Expr> args = Collections.<Expr>emptyList());
                     /**
                      * chain expression
                      * Certain infix mathematical operators that are
@@ -1393,7 +1393,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * StaticArg ::= Op
          * e.g.) +
          */
-        OprArg(Op name);
+        OpArg(ignoreForEquals boolean parenthesized = false, Op name);
         /**
          * dimension used as static argument
          * StaticArg ::= Type
@@ -1803,7 +1803,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * StaticParam ::= opr Op
          * e.g.) opr ODOT
          */
-        OprParam(Op name);
+        OpParam(Op name);
         /**
          * static parameter with a name field of type Id
          * Names must be unqualified.

@@ -128,8 +128,8 @@ public abstract class TypeEnv {
 
         for (StaticParam param: params) {
             result.add(param.accept(new NodeAbstractVisitor<StaticArg>() {
-                public StaticArg forOprParam(OprParam that) {
-                    return new OprArg(new Span(), that.getName());
+                public StaticArg forOpParam(OpParam that) {
+                    return new OpArg(new Span(), that.getName());
                 }
                 public StaticArg forBoolParam(BoolParam that) {
                     return new BoolArg(new Span(), new BoolRef(new Span(), that.getName()));

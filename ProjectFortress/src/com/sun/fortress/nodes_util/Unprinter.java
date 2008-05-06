@@ -65,7 +65,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * &#064;5:10~12 exprs=[ (VarRef
  * &#064;5:10 var=(Id name="f")) (IntLiteralExpr
  * &#064;5:12 text="7" val=7 props=["parenthesized"])])] fns=[ (FnDecl
- * &#064;4:21 body=(OprExpr
+ * &#064;4:21 body=(OpExpr
  * &#064;4:17~21 op=(Opr
  * &#064;4:19 op=(Op name="+")) args=[ (VarRef
  * &#064;4:17 var=(Id name="y")) (IntLiteralExpr

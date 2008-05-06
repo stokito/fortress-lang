@@ -277,7 +277,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 }
 
-            } else if (p instanceof OprParam) {
+            } else if (p instanceof OpParam) {
                 if (a instanceof FTypeOpr) {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else if (a instanceof SymbolicOprType) {
@@ -311,7 +311,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         env = _env;
     }
 
-    public FType forOprArg(OprArg b) {
+    public FType forOpArg(OpArg b) {
         return FTypeOpr.make(NodeUtil.nameString(b.getName()));
     }
 
@@ -400,12 +400,12 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forOprParam(com.sun.fortress.interpreter.nodes.OprParam)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forOpParam(com.sun.fortress.interpreter.nodes.OpParam)
      */
     @Override
-    public FType forOprParam(OprParam x) {
+    public FType forOpParam(OpParam x) {
         // TODO Auto-generated method stub
-        return super.forOprParam(x);
+        return super.forOpParam(x);
     }
 
     private long nonEmpty(List<? extends Type> value) {

@@ -56,8 +56,8 @@ public class TypeAnalyzerUtil {
                     typeSubs.put(p.getName(),
                                  ((TypeArg) a).getType());
                 }
-                @Override public void forOprParam(OprParam p) {
-                    opSubs.put(p.getName(), ((OprArg) a).getName());
+                @Override public void forOpParam(OpParam p) {
+                    opSubs.put(p.getName(), ((OpArg) a).getName());
                 }
                 @Override public void forIntParam(IntParam p) {
                     intSubs.put(p.getName(),
@@ -99,9 +99,9 @@ public class TypeAnalyzerUtil {
                     }
 
                     /** Handle arguments to opr parameters */
-                    @Override public OprArg forOprArg(OprArg n) {
+                    @Override public OpArg forOpArg(OpArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OprArg(n.getSpan(), opSubs.get(n.getName()));
+                            return new OpArg(n.getSpan(), opSubs.get(n.getName()));
                         }
                         else { return n; }
                     }
@@ -169,7 +169,7 @@ public class TypeAnalyzerUtil {
             @Override public Boolean forTypeArg(TypeArg t) { return t.getType().accept(this); }
             @Override public Boolean forIntArg(IntArg t) { return false; }
             @Override public Boolean forBoolArg(BoolArg t) { return false; }
-            @Override public Boolean forOprArg(OprArg t) { return false; }
+            @Override public Boolean forOpArg(OpArg t) { return false; }
             @Override public Boolean forDimArg(DimArg t) { return false; }
             @Override public Boolean forUnitArg(UnitArg t) { return false; }
         });

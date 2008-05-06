@@ -58,7 +58,7 @@ import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
  * the following:  
  * <ul>
  * <li>All names referring to APIs are made fully qualified (FnRefs
- *     and OprExprs may then contain lists of qualified names referring to
+ *     and OpExprs may then contain lists of qualified names referring to
  *     multiple APIs).</li>
  * <li>VarRefs referring to functions become FnRefs with placeholders
  *     for implicit static arguments filled in (to be replaced later
@@ -109,7 +109,7 @@ public class Disambiguator {
                 new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) api.accept(td);
             if (newErrs.isEmpty()) {
-            	ExprDisambiguator ed = 
+             ExprDisambiguator ed = 
                     new ExprDisambiguator(env, onDemandImports, newErrs);
                 Api edResult = (Api) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
@@ -124,29 +124,29 @@ public class Disambiguator {
     }
     
 
-	/**
-	 * Disambiguate the names of nonterminals.
-	 */
+ /**
+  * Disambiguate the names of nonterminals.
+  */
     private static List<Api> disambiguateGrammarMembers(Iterable<Api> apis,
-    												 List<StaticError> errors,
-    												 GlobalEnvironment globalEnv) {
+                 List<StaticError> errors,
+                 GlobalEnvironment globalEnv) {
         List<Api> results = new ArrayList<Api>();
         for (Api api : apis) {
             ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
             NonterminalDisambiguator pd = new NonterminalDisambiguator(env, globalEnv, newErrs);
-			Api pdResult = (Api) api.accept(pd);
-			results.add(pdResult);
+   Api pdResult = (Api) api.accept(pd);
+   results.add(pdResult);
             if (!newErrs.isEmpty()) { 
                 errors.addAll(newErrs); 
             }
         }
         return results;
-	}
+ }
 
 
-	/** Result of {@link #disambiguateComponents}. */
+ /** Result of {@link #disambiguateComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
         private final Iterable<Component> _components;
         public ComponentResult(Iterable<Component> components,

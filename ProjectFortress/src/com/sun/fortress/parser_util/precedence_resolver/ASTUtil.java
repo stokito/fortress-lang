@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes_util.Span;
@@ -52,27 +52,27 @@ public class ASTUtil {
     // let nofix (span : span) (op : op) : expr =
     //   opr span (node op.node_span (`Opr op)) []
     public static Expr nofix(Span span, Op op) {
-        return ExprFactory.makeOprExpr(span, NodeFactory.makeOpNofix(op));
+        return ExprFactory.makeOpExpr(span, NodeFactory.makeOpNofix(op));
     }
 
     // let infix (span : span) (left : expr) (op : op) (right : expr) : expr =
     //   opr span (node op.node_span (`Opr op)) [left; right]
     public static Expr infix(Span span, Expr left, Op op, Expr right) {
-        return ExprFactory.makeOprExpr(span, NodeFactory.makeOpInfix(op),
+        return ExprFactory.makeOpExpr(span, NodeFactory.makeOpInfix(op),
                                        left, right);
     }
 
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {
-        return ExprFactory.makeOprExpr(arg.getSpan(),
+        return ExprFactory.makeOpExpr(arg.getSpan(),
                                        NodeFactory.makeOpPrefix(op), arg);
     }
 
     // let postfix (span : span) (arg : expr) (op : op) : expr =
     //   opr span (node op.node_span (`Postfix op)) [arg]
     public static Expr postfix(Span span, Expr arg, Op op) {
-        return ExprFactory.makeOprExpr(span, NodeFactory.makeOpPostfix(op), arg);
+        return ExprFactory.makeOpExpr(span, NodeFactory.makeOpPostfix(op), arg);
     }
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =
@@ -87,7 +87,7 @@ public class ASTUtil {
             opr = error(op, "Operator fixity is invalid in its application.");
         OpRef ref = new OpRef(op.getSpan(),
                               Collections.<OpName>singletonList(opr));
-        return new OprExpr(span, false, ref, args);
+        return new OpExpr(span, false, ref, args);
     }
 
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
@@ -105,7 +105,7 @@ public class ASTUtil {
             OpRef ref = new OpRef(s,
                                   Collections.<OpName>singletonList(en),
                                   sargs);
-            return new OprExpr(span, false, ref, args);
+            return new OpExpr(span, false, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +
                          left.getText() + " and " + right.getText());

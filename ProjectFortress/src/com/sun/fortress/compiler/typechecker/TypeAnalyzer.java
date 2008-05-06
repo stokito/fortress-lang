@@ -1057,9 +1057,9 @@ public class TypeAnalyzer {
                 }
                 else { return ConstraintFormula.FALSE; }
             }
-            @Override public ConstraintFormula forOprArg(OprArg a1) {
-                if (a2 instanceof OprArg) {
-                    boolean result = a1.getName().equals(((OprArg) a2).getName());
+            @Override public ConstraintFormula forOpArg(OpArg a1) {
+                if (a2 instanceof OpArg) {
+                    boolean result = a1.getName().equals(((OpArg) a2).getName());
                     return ConstraintFormula.fromBoolean(result);
                 }
                 else { return ConstraintFormula.FALSE; }
@@ -1103,9 +1103,9 @@ public class TypeAnalyzer {
                 }
                 else { return ConstraintFormula.FALSE; }
             }
-            @Override public ConstraintFormula forOprArg(OprArg a1) {
-                if (a2 instanceof OprArg) {
-                    boolean result = a1.getName().equals(((OprArg) a2).getName());
+            @Override public ConstraintFormula forOpArg(OpArg a1) {
+                if (a2 instanceof OpArg) {
+                    boolean result = a1.getName().equals(((OpArg) a2).getName());
                     return ConstraintFormula.fromBoolean(result);
                 }
                 else { return ConstraintFormula.FALSE; }

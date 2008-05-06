@@ -35,10 +35,10 @@ public class WhereClauseEnv extends StaticParamEnv {
     }
 
     private IdOrOpOrAnonymousName paramName(StaticParam param) {
-        // Both OprParams and IdStaticParams have name fields, but they
+        // Both OpParams and IdStaticParams have name fields, but they
         // differ in the types of the fields.
-        if (param instanceof OprParam) {
-            return ((OprParam)param).getName();
+        if (param instanceof OpParam) {
+            return ((OpParam)param).getName();
         } else { // param instanceof IdStaticParam
             return ((IdStaticParam)param).getName();
         }

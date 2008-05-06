@@ -45,7 +45,7 @@ import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
@@ -137,8 +137,8 @@ public class FortressObjectASTVisitor<T> {
             return dispatchLooseJuxt(value);
         } else if (value.type().toString().equals("TightJuxt")) {
             return dispatchTightJuxt(value);
-        } else if (value.type().toString().equals("OprExpr")) {
-            return dispatchOprExpr(value);
+        } else if (value.type().toString().equals("OpExpr")) {
+            return dispatchOpExpr(value);
         } else if (value.type().toString().equals("IntLiteralExpr")) {
             return dispatchInteger(value);
         } else if (value.type().toString().equals("CharLiteralExpr")) {
@@ -241,12 +241,12 @@ public class FortressObjectASTVisitor<T> {
         return (T) NodeFactory.makeTightJuxt(this.span, exprs);
     }
 
-    private T dispatchOprExpr(FObject value) {
+    private T dispatchOpExpr(FObject value) {
         FValue v1 = getField(value, "op");
         OpRef opRef = new FortressObjectASTVisitor<OpRef>(this.span).dispatch((FObject)v1);
         FValue v2 = getField(value, "args");
         List<Expr> exprs = dispatchList((FObject) v2);
-        return (T) new OprExpr(this.span, opRef, exprs);
+        return (T) new OpExpr(this.span, opRef, exprs);
     }
 
     public T dispatchChar(FObject value) {

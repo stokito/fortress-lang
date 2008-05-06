@@ -593,8 +593,8 @@ public class Desugarer extends Rewrite {
                     }
                     Expr update = newName(vre, s);
                     return update;
-                } else if (node instanceof OprExpr) {
-                    node = cleanupOprExpr((OprExpr)node);
+                } else if (node instanceof OpExpr) {
+                    node = cleanupOpExpr((OpExpr)node);
                 } else if (node instanceof _RewriteFnRef) {
 
                     _RewriteFnRef fr = (_RewriteFnRef) node;
@@ -1054,7 +1054,7 @@ public class Desugarer extends Rewrite {
     Expr visitAccumulator(Span span, List<GeneratorClause> gens,
                           OpName op, Expr body, List<StaticArg> staticArgs) {
         body = visitGenerators(span, gens, body);
-        Expr res = ExprFactory.makeOprExpr(span,op,body,staticArgs);
+        Expr res = ExprFactory.makeOpExpr(span,op,body,staticArgs);
         // System.out.println("Desugared to "+res.toStringVerbose());
         return (Expr)visitNode(res);
     }
@@ -1065,11 +1065,11 @@ public class Desugarer extends Rewrite {
                                       Collections.<Param>emptyList(), e);
     }
 
-    private Expr cleanupOprExpr(OprExpr opExp) {
+    private Expr cleanupOpExpr(OpExpr opExp) {
         OpRef ref = opExp.getOp();
         if (ref.getOps().size() != 1) {
             return bug(opExp,
-                errorMsg("OprExpr with multiple operators ",opExp));
+                errorMsg("OpExpr with multiple operators ",opExp));
         }
 
         List<Expr> args = opExp.getArgs();
@@ -1094,7 +1094,7 @@ public class Desugarer extends Rewrite {
             if (suffix) {
                 arg = thunk(arg);
             }
-            res = ExprFactory.makeOprExpr(sp,qop,res,arg);
+            res = ExprFactory.makeOpExpr(sp,qop,res,arg);
         }
         return res;
     }

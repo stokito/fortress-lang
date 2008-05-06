@@ -50,7 +50,7 @@ public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
                                          makeIntArg("-5"),
                                          makeIntArg("m"),
                                          makeBoolArg("true"),
-                                         makeOprArg("-"),
+                                         makeOpArg("-"),
                                          makeDimArg(makeDimRef("Length")),
                                          makeUnitArg(makeUnitRef("ft_")));
 

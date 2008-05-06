@@ -1074,9 +1074,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
-    public TypeCheckerResult forOprExprOnly(OprExpr that,
-                                            TypeCheckerResult op_result,
-                                            List<TypeCheckerResult> args_result) {
+    public TypeCheckerResult forOpExprOnly(OpExpr that,
+                                           TypeCheckerResult op_result,
+                                           List<TypeCheckerResult> args_result) {
         Option<Type> applicationType = none();
         if (op_result.type().isSome()) {
             Type arrowType = unwrap(op_result.type());
@@ -1799,20 +1799,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forExprOnly(that);
 //    }
 //
-//    public RetType forOpExprOnly(OpExpr that) {
+//    public RetType forSimpleExprOnly(SimpleExpr that) {
 //        return forExprOnly(that);
 //    }
 //
-//    public RetType forOprExprOnly(OprExpr that, List<RetType> ops_result, List<RetType> args_result) {
-//        return forOpExprOnly(that);
+//    public RetType forOpExprOnly(OpExpr that, List<RetType> ops_result, List<RetType> args_result) {
+//        return forSimpleExprOnly(that);
 //    }
 //
 //    public RetType forSubscriptExprOnly(SubscriptExpr that, RetType obj_result, List<RetType> subs_result, Option<RetType> op_result) {
-//        return forOpExprOnly(that);
+//        return forSimpleExprOnly(that);
 //    }
 //
 //    public RetType forPrimaryOnly(Primary that) {
-//        return forOpExprOnly(that);
+//        return forSimpleExprOnly(that);
 //    }
 //
 //    public RetType forCoercionInvocationOnly(CoercionInvocation that, RetType type_result, List<RetType> staticArgs_result, RetType arg_result) {
@@ -1967,7 +1967,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forStaticArgOnly(that);
 //    }
 //
-//    public RetType forOprArgOnly(OprArg that, RetType name_result) {
+//    public RetType forOpArgOnly(OpArg that, RetType name_result) {
 //        return forStaticArgOnly(that);
 //    }
 //
@@ -2267,7 +2267,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forAbstractNodeOnly(that);
 //    }
 //
-//    public RetType forOprParamOnly(OprParam that, RetType name_result) {
+//    public RetType forOpParamOnly(OpParam that, RetType name_result) {
 //        return forStaticParamOnly(that);
 //    }
 //
@@ -2859,10 +2859,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forGeneratedExprOnly(that, expr_result, gens_result);
 //    }
 //
-//    public RetType forOprExpr(OprExpr that) {
+//    public RetType forOpExpr(OpExpr that) {
 //        List<RetType> ops_result = recurOnListOfOpName(that.getOps());
 //        List<RetType> args_result = recurOnListOfExpr(that.getArgs());
-//        return forOprExprOnly(that, ops_result, args_result);
+//        return forOpExprOnly(that, ops_result, args_result);
 //    }
 //
 //    public RetType forSubscriptExpr(SubscriptExpr that) {
@@ -3056,9 +3056,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forBoolArgOnly(that, bool_result);
 //    }
 //
-//    public RetType forOprArg(OprArg that) {
+//    public RetType forOpArg(OpArg that) {
 //        RetType name_result = that.getName().accept(this);
-//        return forOprArgOnly(that, name_result);
+//        return forOpArgOnly(that, name_result);
 //    }
 //
 //    public RetType forDimArg(DimArg that) {
@@ -3372,9 +3372,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forModifierWrappedOnly(that);
 //    }
 //
-//    public RetType forOprParam(OprParam that) {
+//    public RetType forOpParam(OpParam that) {
 //        RetType name_result = that.getName().accept(this);
-//        return forOprParamOnly(that, name_result);
+//        return forOpParamOnly(that, name_result);
 //    }
 //
 //    public RetType forBoolParam(BoolParam that) {

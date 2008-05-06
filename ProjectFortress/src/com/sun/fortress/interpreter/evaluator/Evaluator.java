@@ -124,7 +124,7 @@ import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.ArrayComprehension;
@@ -1101,7 +1101,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return getOp(op);
     }
 
-    private boolean isExponentiation(OprExpr expr) {
+    private boolean isExponentiation(OpExpr expr) {
         OpRef ref = expr.getOp();
         if (ref.getOps().size() != 1) return false;
         else {
@@ -1113,12 +1113,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1.  At the
-     * moment it appears that this is true for every OprExpr node that
+     * moment it appears that this is true for every OpExpr node that
      * is ever created. */
-    public FValue forOprExpr(OprExpr x) {
+    public FValue forOpExpr(OpExpr x) {
         OpRef ref = x.getOp();
         if (ref.getOps().size() != 1) {
-            return bug(x, errorMsg("OprExpr with multiple operators ",x));
+            return bug(x, errorMsg("OpExpr with multiple operators ",x));
         }
         OpName op = ref.getOps().get(0);
         List<Expr> args = x.getArgs();
@@ -1136,8 +1136,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // It is a static error if an exponentiation is immediately followed
         // by a non-expression element.  For example, a^b!
             Expr arg = args.get(0);
-            if (arg instanceof OprExpr &&
-                isExponentiation((OprExpr)arg)) { // a^b!
+            if (arg instanceof OpExpr &&
+                isExponentiation((OpExpr)arg)) { // a^b!
                 vargs = error(arg,
                               "It is a static error if an exponentiation is " +
                               "immediately followed by a non-expression " +

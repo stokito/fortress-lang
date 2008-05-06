@@ -139,7 +139,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getUnit().accept(this);
     }
 
-    public String forOprArg(OprArg node) {
+    public String forOpArg(OpArg node) {
         return node.getName().accept(this);
     }
 
@@ -191,7 +191,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(n);
     }
 
-    public String forOprParam(OprParam node) {
+    public String forOpParam(OpParam node) {
         return "opr " + NodeUtil.nameString(node.getName());
     }
 

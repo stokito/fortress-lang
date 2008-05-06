@@ -75,7 +75,7 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
@@ -302,25 +302,25 @@ public class ExprFactory {
         return new OpRef(op.getSpan(), Collections.singletonList(op), staticArgs);
     }
 
-    public static OprExpr makeOprExpr(Span span, OpName op) {
-        return new OprExpr(span, false, makeOpRef(op));
+    public static OpExpr makeOpExpr(Span span, OpName op) {
+        return new OpExpr(span, false, makeOpRef(op));
     }
 
-    public static OprExpr makeOprExpr(Span span, OpName op, Expr arg) {
-        return new OprExpr(span, false, makeOpRef(op),
-                           Collections.singletonList(arg));
+    public static OpExpr makeOpExpr(Span span, OpName op, Expr arg) {
+        return new OpExpr(span, false, makeOpRef(op),
+                          Collections.singletonList(arg));
     }
 
-    public static OprExpr makeOprExpr(Span span, OpName op, Expr first,
+    public static OpExpr makeOpExpr(Span span, OpName op, Expr first,
                                       Expr second) {
-        return new OprExpr(span, false, makeOpRef(op),
-                           Arrays.asList(first, second));
+        return new OpExpr(span, false, makeOpRef(op),
+                          Arrays.asList(first, second));
     }
 
-    public static OprExpr makeOprExpr(Span span, OpName op, Expr arg,
+    public static OpExpr makeOpExpr(Span span, OpName op, Expr arg,
                                       List<StaticArg> staticArgs) {
-        return new OprExpr(span, false, makeOpRef(op, staticArgs),
-                           Collections.singletonList(arg));
+        return new OpExpr(span, false, makeOpRef(op, staticArgs),
+                          Collections.singletonList(arg));
     }
 
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
@@ -649,8 +649,8 @@ public class ExprFactory {
                 return new LocalVarDecl(e.getSpan(), true, e.getBody(),
                                         e.getLhs(), e.getRhs());
             }
-            public Expr forOprExpr(OprExpr e) {
-                return new OprExpr(e.getSpan(), true, e.getOp(), e.getArgs());
+            public Expr forOpExpr(OpExpr e) {
+                return new OpExpr(e.getSpan(), true, e.getOp(), e.getArgs());
             }
             public Expr forArrayElement(ArrayElement e) {
                 return new ArrayElement(e.getSpan(), true, e.getElement());
@@ -766,7 +766,7 @@ public class ExprFactory {
     }
 
     public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {
-    	return new TemplateGapExpr(s, id, params);
+     return new TemplateGapExpr(s, id, params);
     }
 
 }

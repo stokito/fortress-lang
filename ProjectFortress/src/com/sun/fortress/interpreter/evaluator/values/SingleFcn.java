@@ -35,7 +35,7 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
-import com.sun.fortress.nodes.OprParam;
+import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeAlias;
@@ -195,8 +195,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 SymbolicNat sn = new SymbolicNat(np_name);
                 ge.putType(np_name, sn);
                 a.add(sn);
-            } else if (tp instanceof OprParam) {
-                OprParam op = (OprParam) tp;
+            } else if (tp instanceof OpParam) {
+                OpParam op = (OpParam) tp;
                 String sot_name = NodeUtil.getName(tp);
                 SymbolicOprType sot = new SymbolicOprType(sot_name, ge, op);
                 ge.putType(sot_name, sot);
@@ -244,8 +244,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 IntParam np = (IntParam) tp;
                 String np_name = NodeUtil.getName(np);
 
-            } else if (tp instanceof OprParam) {
-                OprParam op = (OprParam) tp;
+            } else if (tp instanceof OpParam) {
+                OpParam op = (OpParam) tp;
 
             } else if (tp instanceof TypeParam) {
                 TypeParam stp = (TypeParam) tp;

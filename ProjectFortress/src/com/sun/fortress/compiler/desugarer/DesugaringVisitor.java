@@ -761,9 +761,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new TightJuxt(that.getSpan(), that.isParenthesized(), exprs_result);
 //    }
 //
-//    public Node forOprExprOnly(OprExpr that, OpRef op_result, List<Expr> args_result) {
+//    public Node forOpExprOnly(OpExpr that, OpRef op_result, List<Expr> args_result) {
 //        if (that.getOp() == op_result && that.getArgs() == args_result) return that;
-//        else return new OprExpr(that.getSpan(), that.isParenthesized(), op_result, args_result);
+//        else return new OpExpr(that.getSpan(), that.isParenthesized(), op_result, args_result);
 //    }
 //
 //    public Node forChainExprOnly(ChainExpr that, Expr first_result) {
@@ -937,9 +937,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new BoolArg(that.getSpan(), that.isParenthesized(), bool_result);
 //    }
 //
-//    public Node forOprArgOnly(OprArg that, Op name_result) {
+//    public Node forOpArgOnly(OpArg that, Op name_result) {
 //        if (that.getName() == name_result) return that;
-//        else return new OprArg(that.getSpan(), that.isParenthesized(), name_result);
+//        else return new OpArg(that.getSpan(), that.isParenthesized(), name_result);
 //    }
 //
 //    public Node forDimArgOnly(DimArg that, DimExpr dim_result) {
@@ -1202,9 +1202,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return that;
 //    }
 //
-//    public Node forOprParamOnly(OprParam that, Op name_result) {
+//    public Node forOpParamOnly(OpParam that, Op name_result) {
 //        if (that.getName() == name_result) return that;
-//        else return new OprParam(that.getSpan(), name_result);
+//        else return new OpParam(that.getSpan(), name_result);
 //    }
 //
 //    public Node forBoolParamOnly(BoolParam that, Id name_result) {
@@ -1990,10 +1990,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forTightJuxtOnly(that, exprs_result);
 //    }
 //
-//    public Node forOprExpr(OprExpr that) {
+//    public Node forOpExpr(OpExpr that) {
 //        OpRef op_result = (OpRef) that.getOp().accept(this);
 //        List<Expr> args_result = recurOnListOfExpr(that.getArgs());
-//        return forOprExprOnly(that, op_result, args_result);
+//        return forOpExprOnly(that, op_result, args_result);
 //    }
 //
 //    public Node forChainExpr(ChainExpr that) {
@@ -2184,9 +2184,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forBoolArgOnly(that, bool_result);
 //    }
 //
-//    public Node forOprArg(OprArg that) {
+//    public Node forOpArg(OpArg that) {
 //        Op name_result = (Op) that.getName().accept(this);
-//        return forOprArgOnly(that, name_result);
+//        return forOpArgOnly(that, name_result);
 //    }
 //
 //    public Node forDimArg(DimArg that) {
@@ -2473,9 +2473,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forModifierWrappedOnly(that);
 //    }
 //
-//    public Node forOprParam(OprParam that) {
+//    public Node forOpParam(OpParam that) {
 //        Op name_result = (Op) that.getName().accept(this);
-//        return forOprParamOnly(that, name_result);
+//        return forOpParamOnly(that, name_result);
 //    }
 //
 //    public Node forBoolParam(BoolParam that) {

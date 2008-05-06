@@ -720,8 +720,8 @@ public class NodeFactory {
         return new TypeParam(s, new Id(s, name), supers);
     }
 
-    public static OprParam makeOprParam(String name) {
-        return new OprParam(new Span(), makeOp(name));
+    public static OpParam makeOpParam(String name) {
+        return new OpParam(new Span(), makeOp(name));
     }
 
     public static BoolParam makeBoolParam(String name) {
@@ -818,8 +818,8 @@ public class NodeFactory {
         return new IntArg(new Span(), makeIntVal(i));
     }
 
-    public static OprArg makeOprArg(String string) {
-        return new OprArg(new Span(), makeOp(string));
+    public static OpArg makeOpArg(String string) {
+        return new OpArg(new Span(), makeOp(string));
     }
 
     public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
@@ -1002,6 +1002,10 @@ public class NodeFactory {
             }
         });
     }
+    
+    public static OpArg makeInParentheses(OpArg arg) {
+        return new OpArg(arg.getSpan(), true, arg.getName());
+    }
 
     public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformationDecl transformation) {
         return new SyntaxDef(s, syntaxSymbols, transformation);
@@ -1114,9 +1118,9 @@ public class NodeFactory {
         return new ChainExpr(new Span(lhs.getSpan(), rhs.getSpan()), lhs, links);
     }
 
-	public static Import makeImportStar(String apiName) {
-		return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
-	}
+ public static Import makeImportStar(String apiName) {
+  return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
+ }
 
     public static Decl makeFnDecl(String functionName, Id typeName, Expr expression) {
         Id fnName = new Id(functionName);

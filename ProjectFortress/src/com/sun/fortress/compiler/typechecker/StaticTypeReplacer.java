@@ -34,8 +34,8 @@ import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.OprParam;
-import com.sun.fortress.nodes.OprArg;
+import com.sun.fortress.nodes.OpParam;
+import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TypeArg;
@@ -81,8 +81,8 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         for (int i=0; i<n; ++i) {
             IdOrOpOrAnonymousName name;
             StaticParam p = params.get(i);
-            if (p instanceof OprParam) {
-                name = ((OprParam)p).getName();
+            if (p instanceof OpParam) {
+                name = ((OpParam)p).getName();
                 //                System.err.printf("put op: %s\n", name);
             } else {
                 name = ((IdStaticParam)p).getName();
@@ -105,7 +105,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                 @Override public Node forTypeArg(TypeArg arg) { return arg.getType(); }
                 @Override public Node forIntArg(IntArg arg) { return arg.getVal(); }
                 @Override public Node forBoolArg(BoolArg arg) { return arg.getBool(); }
-                @Override public Node forOprArg(OprArg arg) { return arg.getName(); }
+                @Override public Node forOpArg(OpArg arg) { return arg.getName(); }
                 @Override public Node forDimArg(DimArg arg) { return arg.getDim(); }
                 @Override public Node forUnitArg(UnitArg arg) { return arg.getUnit(); }
             });
@@ -120,9 +120,9 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forOprArg(OprArg that) {
+    public Node forOpArg(OpArg that) {
         StaticArg arg = parameterMap.get(that.getName());
-        //        System.err.printf("forOprArg lookup: %s\n", arg);
+        //        System.err.printf("forOpArg lookup: %s\n", arg);
         return arg == null ? that : arg;
     }
 

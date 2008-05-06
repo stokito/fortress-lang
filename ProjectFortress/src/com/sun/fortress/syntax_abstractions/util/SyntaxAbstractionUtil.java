@@ -41,7 +41,7 @@ import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.BaseType;
@@ -158,7 +158,7 @@ public class SyntaxAbstractionUtil {
             args.add(0, new AsIfExpr(args.remove(0), type));
             exprs.add(new TupleExpr(args));
         }
-        return new OprExpr(span, opRef, exprs );
+        return new OpExpr(span, opRef, exprs );
     }
 
     private static Expr makeLocalVarDecl(Span span, String freshName, String lastFreshName, List<StaticArg> staticArgs, Expr expr, List<Expr> newBody) {
