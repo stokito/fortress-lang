@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TightJuxt;
@@ -141,7 +141,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
    }
    args.add(e);
   }
-  return new OprExpr(new OpRef(ops), args);
+  return new OpExpr(new OpRef(ops), args);
  }
 
  @Override
@@ -228,12 +228,12 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  }
 
  @Override
- public Expr forOprExprOnly(OprExpr that, Expr op_result,
+ public Expr forOpExprOnly(OpExpr that, Expr op_result,
    List<Expr> args_result) {
   List<Expr> args = new LinkedList<Expr>();
   args.add(op_result);
   args.add(SyntaxAbstractionUtil.makeList(this.span, args_result, "Expr"));
-  return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "OprExpr", args);
+  return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "OpExpr", args);
  }
 
  @Override

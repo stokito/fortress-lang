@@ -43,7 +43,7 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * of entity a name refers to.  This class assumes all types in declarations have been
  * resolved, and specifically handles the following:
  * <ul>
- * <li>All names referring to APIs are made fully qualified (FnRefs and OprExprs may then
+ * <li>All names referring to APIs are made fully qualified (FnRefs and OpExprs may then
  *     contain lists of qualified names referring to multiple APIs).
  * <li>VarRefs referring to functions become FnRefs with placeholders for implicit static
  *     arguments filled in (to be replaced later during type inference).</li>

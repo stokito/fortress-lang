@@ -334,7 +334,7 @@ private StaticParam StaticParam =
                                derived, absorbs);
      }
    / opr  w a1:Op
-     { yyValue = new OprParam(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new OpParam(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
      { if (a2 == null) a2 = Collections.<BaseType>emptyList();
        boolean absorbs;

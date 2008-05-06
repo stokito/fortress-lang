@@ -401,8 +401,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 return a;
             }
 
-            @Override public StaticArg forOprArg(OprArg a) {
-                if (!(p instanceof OprParam)) { mismatch("an operator"); }
+            @Override public StaticArg forOpArg(OpArg a) {
+                if (!(p instanceof OpParam)) { mismatch("an operator"); }
                 return a;
             }
 
@@ -419,7 +419,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
             private void mismatch(String given) {
                 String expected = p.accept(new NodeAbstractVisitor<String>() {
-                    @Override public String forOprParam(OprParam p) {
+                    @Override public String forOpParam(OpParam p) {
                         return "an operator";
                     }
                     @Override public String forBoolParam(BoolParam p) {

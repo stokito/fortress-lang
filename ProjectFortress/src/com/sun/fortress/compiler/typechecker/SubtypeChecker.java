@@ -194,9 +194,9 @@ public abstract class SubtypeChecker {
                     else error("A type parameter is instantiated with a " +
                                "non-type argument.");
                 }
-                @Override public void forOprParam(OprParam p) {
-                    if (isOprArg(a))
-                        opSubs.put(p.getName(), ((OprArg)a).getName());
+                @Override public void forOpParam(OpParam p) {
+                    if (isOpArg(a))
+                        opSubs.put(p.getName(), ((OpArg)a).getName());
                     else error("An operator parameter is instantiated with a " +
                                "non-operator argument.");
                 }
@@ -251,9 +251,9 @@ public abstract class SubtypeChecker {
                     }
 
                     /** Handle arguments to opr parameters */
-                    @Override public OprArg forOprArg(OprArg n) {
+                    @Override public OpArg forOpArg(OpArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OprArg(n.getSpan(), opSubs.get(n.getName()));
+                            return new OpArg(n.getSpan(), opSubs.get(n.getName()));
                         }
                         else { return n; }
                     }
@@ -369,8 +369,8 @@ public abstract class SubtypeChecker {
     private boolean isBoolArg(StaticArg t) {
         return (t instanceof BoolArg);
     }
-    private boolean isOprArg(StaticArg t) {
-        return (t instanceof OprArg);
+    private boolean isOpArg(StaticArg t) {
+        return (t instanceof OpArg);
     }
     private boolean isDimArg(StaticArg t) {
         return (t instanceof DimArg);
@@ -379,8 +379,8 @@ public abstract class SubtypeChecker {
         return (t instanceof UnitArg);
     }
 
-    private boolean isOprParam(StaticParam t) {
-        return (t instanceof OprParam);
+    private boolean isOpParam(StaticParam t) {
+        return (t instanceof OpParam);
     }
     private boolean isBoolParam(StaticParam t) {
         return (t instanceof BoolParam);
@@ -403,7 +403,7 @@ public abstract class SubtypeChecker {
 
     private boolean sameKindStaticParams(StaticParam s, StaticParam t) {
         return ((isTypeParam(s) && isTypeParam(t)) ||
-                (isOprParam(s)  && isOprParam(t))  ||
+                (isOpParam(s)  && isOpParam(t))  ||
                 (isBoolParam(s) && isBoolParam(t)) ||
                 (isIntParam(s)  && isIntParam(t))  ||
                 (isNatParam(s)  && isNatParam(t))  ||
@@ -431,8 +431,8 @@ public abstract class SubtypeChecker {
     private boolean equivalent(StaticArg s, StaticArg t, SubtypeHistory h) {
         if (isTypeArg(s) && isTypeArg(t)) {
             return equivalent(((TypeArg)s).getType(), ((TypeArg)t).getType(), h);
-        } else if (isOprArg(s) && isOprArg(t)) {
-            return nameString(((OprArg)s).getName()).equals(((OprArg)t).getName());
+        } else if (isOpArg(s) && isOpArg(t)) {
+            return nameString(((OpArg)s).getName()).equals(((OpArg)t).getName());
         } else {
             return false;
         }
@@ -531,7 +531,7 @@ public abstract class SubtypeChecker {
      *
      *        abstract StaticArg();
      *            TypeArg(Type type);
-     *            OprArg(Op name);
+     *            OpArg(Op name);
      *
      *    if any of the above static arguments appears in s or t,
      *    the subtype checker checks the textual equality of them.
@@ -549,7 +549,7 @@ public abstract class SubtypeChecker {
      * 4) The following static parameters are checked for the textual equality:
      *
      *        abstract StaticParam();
-     *            OprParam(Op name);
+     *            OpParam(Op name);
      *            abstract IdStaticParam(Id name);
      *                BoolParam();
      *                DimParam();

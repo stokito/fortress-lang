@@ -195,7 +195,7 @@ public class NodeUtil {
             public String forNatParam(NatParam p) {
                 return p.getName().getText();
             }
-            public String forOprParam(OprParam p) {
+            public String forOpParam(OpParam p) {
                 return nameString(p.getName());
             }
             public String forTypeParam(TypeParam p) {

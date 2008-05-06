@@ -34,7 +34,7 @@ public class StaticParamEnvJUTest extends TestCase {
     private final IntParam Z = makeIntParam("z");
     private final UnitParam M_ = makeUnitParam("m_");
     private final DimParam LENGTH = makeDimParam("Length");
-    private final OprParam AND = makeOprParam("AND");
+    private final OpParam AND = makeOpParam("AND");
 
     private final StaticParamEnv NIL = StaticParamEnv.make();
 

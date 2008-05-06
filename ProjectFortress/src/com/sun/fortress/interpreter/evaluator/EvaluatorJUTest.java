@@ -46,35 +46,35 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
     }
 
     class TestTask extends BaseTask {
-	public void print() {
-	    System.out.println("TestTask");
-	}
+ public void print() {
+     System.out.println("TestTask");
+ }
 
-	public void compute() {
-	    FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-	    runner.setCurrentTask(this);
+ public void compute() {
+     FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+     runner.setCurrentTask(this);
 
-	    try {
-		BetterEnv e = BetterEnv.primitive();
-		e.bless();
-		BetterEnv s = new BetterEnv(e, "s");
-		s.bless();
-		BetterEnv s1 = new BetterEnv(s, "s1");
-		s1.putVariable("x", FInt.make(0));
-		s1.bless();
-		BetterEnv s2 = new BetterEnv(s1, "s2");
-		s2.putValue("y", FInt.make(10));
-		s2.bless();
-		BetterEnv s3 = new BetterEnv(s2, "s3");
-		s3.bless();
-		HasAt at = new HasAt.FromString("EvaluatorJUTest assignValue");
-		s3.assignValue(at,"x", FInt.make(1));
-		assertTrue(s2.getValue("x").getInt() == 1);
-		s3.dump(System.out);
-	    } catch (IOException e) {
-		throw new RuntimeException(e);
-	    }
-	}
+     try {
+  BetterEnv e = BetterEnv.primitive();
+  e.bless();
+  BetterEnv s = new BetterEnv(e, "s");
+  s.bless();
+  BetterEnv s1 = new BetterEnv(s, "s1");
+  s1.putVariable("x", FInt.make(0));
+  s1.bless();
+  BetterEnv s2 = new BetterEnv(s1, "s2");
+  s2.putValue("y", FInt.make(10));
+  s2.bless();
+  BetterEnv s3 = new BetterEnv(s2, "s3");
+  s3.bless();
+  HasAt at = new HasAt.FromString("EvaluatorJUTest assignValue");
+  s3.assignValue(at,"x", FInt.make(1));
+  assertTrue(s2.getValue("x").getInt() == 1);
+  s3.dump(System.out);
+     } catch (IOException e) {
+  throw new RuntimeException(e);
+     }
+ }
     }
 
   public void testEnvironment2() throws IOException {
@@ -160,7 +160,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 //      "     name=(Fun" +
 //      "      name_=(Id @8:4 name=\"g1\")))])" +
 //      "  (FnDecl @11:17" +
-//      "   body=(OprExpr @11:13~17" +
+//      "   body=(OpExpr @11:13~17" +
 //      "    op=(Opr @11:15 op=(Op name=\"+\"))" +
 //      "    args=[" +
 //      "     (VarRef @11:13 var=(Id name=\"aVar\"))" +
@@ -230,12 +230,12 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
   //   // x + y
   //   String s = "(Block \n" +
   //     " exprs=[ \n" +
-  //     " (OprExpr \n " +
+  //     " (OpExpr \n " +
   //     " op=(Opr op=(Op name=\"*\")) \n " +
   //     " args=[ \n " +
   //     " (VarRef var=(Id name=\"x\")) \n " +
   //     " (VarRef var=(Id name=\"y\"))]) \n " +
-  //     " (OprExpr \n " +
+  //     " (OpExpr \n " +
   //     " op=(Opr op=(Op name=\"+\")) \n " +
   //     " args=[ \n " +
   //     " (VarRef var=(Id name=\"x\")) \n " +

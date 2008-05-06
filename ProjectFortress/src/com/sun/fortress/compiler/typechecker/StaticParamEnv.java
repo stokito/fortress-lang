@@ -60,7 +60,7 @@ public abstract class StaticParamEnv {
     }
 
 
-//    public abstract Option<OprParam> oprParam(Op name);
+//    public abstract Option<OpParam> oprParam(Op name);
 //    public abstract Option<BoolParam> boolParam(Id name);
 //    public abstract Option<DimParam> dimParam(Id name);
 //    public abstract Option<IntParam> intParam(Id name);

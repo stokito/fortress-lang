@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.NatParam;
-import com.sun.fortress.nodes.OprParam;
+import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
@@ -162,8 +162,8 @@ public class GenericMethod extends MethodClosure implements
                 DimParam dp = (DimParam) tp;
             } else if (tp instanceof NatParam) {
                 NatParam np = (NatParam) tp;
-            } else if (tp instanceof OprParam) {
-                OprParam op = (OprParam) tp;
+            } else if (tp instanceof OpParam) {
+                OpParam op = (OpParam) tp;
             } else if (tp instanceof TypeParam) {
                 TypeParam stp = (TypeParam) tp;
             } else {
@@ -221,7 +221,7 @@ public class GenericMethod extends MethodClosure implements
             return Useful.compareClasses(left, right);
         } else {
             throw new InterpreterBug(left, "NodeComparator.compare(" +
-				     left.getClass() + ", " + right.getClass());
+         left.getClass() + ", " + right.getClass());
         }
     }
 

@@ -424,8 +424,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* StaticArg ::=
-     Op
-   | ( StaticArg )
+     OpArg
    | IntExpr
    | BoolExpr
    | Type
@@ -433,8 +432,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | UnitExpr
  */
 StaticArg StaticArg =
-     a1:Op
-     { yyValue = new OprArg(createSpan(yyStart,yyCount), a1); }
+     OpArg
    / "Unity"
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new DimArg(span, new BaseDim(span));
@@ -486,3 +484,15 @@ StaticArg StaticArg =
    / a1:UnitExpr
      { yyValue = new UnitArg(createSpan(yyStart,yyCount), a1); }
    ;
+
+/* OpArg ::=
+     Op
+   | ( OpArg )
+*/
+OpArg OpArg =
+    a1:Op
+    { yyValue = new OpArg(createSpan(yyStart,yyCount), a1); }
+  / openparen w a1:OpArg w closeparen
+    { yyValue = NodeFactory.makeInParentheses(a1); }
+  ;
+   

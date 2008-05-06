@@ -299,7 +299,7 @@ public class NodeComparator {
                                                right.getDimensions());
     }
 
-    static int compare(OprArg left, OprArg right) {
+    static int compare(OpArg left, OpArg right) {
         return compare(left.getName(), right.getName());
     }
 
@@ -363,8 +363,8 @@ public class NodeComparator {
             //return compare((DimArg) left, (DimArg) right);
         } else if (left instanceof IntArg) {
             return compare((IntArg) left, (IntArg) right);
-        } else if (left instanceof OprArg) {
-            return compare((OprArg) left, (OprArg) right);
+        } else if (left instanceof OpArg) {
+            return compare((OpArg) left, (OpArg) right);
         } else if (left instanceof TypeArg) {
             return compare((TypeArg) left, (TypeArg) right);
         } else if (left instanceof UnitArg) {

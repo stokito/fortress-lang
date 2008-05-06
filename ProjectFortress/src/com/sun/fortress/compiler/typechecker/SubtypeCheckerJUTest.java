@@ -44,7 +44,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
                               NodeFactory.makeBoolParam("b"),
                               NodeFactory.makeIntParam("i"),
                               NodeFactory.makeNatParam("n"),
-                              NodeFactory.makeOprParam("ODOT")),
+                              NodeFactory.makeOpParam("ODOT")),
                   "D");
 
     InstantiatedType instE =
@@ -53,7 +53,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
                                                    NodeFactory.makeBoolArg("trueV"),
                                                    NodeFactory.makeIntArg("two"),
                                                    NodeFactory.makeIntArg("three"),
-                                                   NodeFactory.makeOprArg("+")));
+                                                   NodeFactory.makeOpArg("+")));
 
     InstantiatedType instEp =
         NodeFactory.makeInstantiatedType("E",
@@ -61,7 +61,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
                                                    NodeFactory.makeBoolArg("falseV"),
                                                    NodeFactory.makeIntArg("two"),
                                                    NodeFactory.makeIntArg("two"),
-                                                   NodeFactory.makeOprArg("+")));
+                                                   NodeFactory.makeOpArg("+")));
 
     SubtypeChecker checker = makeAnalyzer(trait("Number"),
                                           trait("ZZ32", "Number"),
