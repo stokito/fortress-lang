@@ -147,6 +147,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract ImportedNames(APIName api);
             /**
              * e.g.) import Set.{...} except {opr UNION, union}
+             * Names must be unqualified.
              */
             ImportStar(List<IdOrOpOrAnonymousName> except);
             /**
@@ -164,6 +165,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      *                     | opr EncloserPair (as EncloserPair)?
      * EncloserPair ::= (LeftEncloser | Encloser) (RightEncloser | Encloser)
      * e.g.) longComplexName as shortName
+     * Names and aliases must be unqualified.
      */
     AliasedSimpleName(IdOrOpOrAnonymousName name,
                       Option<IdOrOpOrAnonymousName> alias = Option.<IdOrOpOrAnonymousName>none());
@@ -171,6 +173,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * aliased API name used in import statements
      * AliasedAPIName ::= APIName (as Id)?
      * e.g.) com.sun.fortress.parser.precedence.resolver as precedence_resolver
+     * Alias must be unqualified.
      */
     AliasedAPIName(APIName api,
                    Option<Id> alias = Option.<Id>none());
@@ -182,6 +185,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     Export(List<APIName> apis);
     /**
      * trait or object declaration in components or APIs
+     * Name must be unqualified.
      */
     abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
                                           = Collections.<Modifier>emptyList(),
@@ -332,6 +336,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract LValue();
         /**
          * e.g.) var x: ZZ32
+         * Name must be unqualified.
          */
         LValueBind(Id name, Option<Type> type = Option.<Type>none(),
                    List<Modifier> mods = Collections.<Modifier>emptyList(),
@@ -347,6 +352,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *                 | Unpasting
              * UnpastingDim ::= ExtentRange (BY ExtentRange)+
              * e.g.) squareShape[m BY m]
+             * Names must be unqualified.
              */
             UnpastingBind(Id name, List<ExtentRange> dim);
             /**
@@ -358,6 +364,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             UnpastingSplit(List<Unpasting> elems, int dim);
     /**
      * functional declaration in components or APIs
+     * Names must be unqualified.
      */
     abstract FnAbsDeclOrDecl(List<Modifier> mods
                                  = Collections.<Modifier>emptyList(),
@@ -404,6 +411,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) x: ZZ32 = 3
      * e.g.) self
      * e.g.) transient x: String
+     * Names must be unqualified.
      */
     abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
                    Id name);
@@ -437,11 +445,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract DimUnitDecl() implements Decl, AbsDecl;
         /**
          * dimension declaration
+         * Names for dim and default must be unqualified.
          */
         DimDecl(Id dim, Option<Type> derived = Option.<Type>none(),
                 Option<Id> default = Option.<Id>none());
         /**
          * unit declaration
+         * Names of units must be unqualified.
          */
         UnitDecl(boolean si_unit = false,
                  List<Id> units = Collections.<Id>emptyList(),
@@ -451,6 +461,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * test declaration
      * TestDecl ::= test Id [ GeneratorClauseList ] = Expr
      * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
+     * Names must be unqualified.
      */
     TestDecl(Id name, List<GeneratorClause> gens, Expr expr)
             implements Decl, AbsDecl;
@@ -458,11 +469,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * property declaration
      * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
      * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
+     * Names must be unqualified.
      */
     PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
                  Expr expr) implements Decl, AbsDecl;
     /**
      * syntax expanders declaration in components or APIs
+     * Names and expanders must be unqualified.
      */
     abstract ExternalSyntaxAbsDeclOrDecl(IdOrOpOrAnonymousName openExpander, Id name,
                                          IdOrOpOrAnonymousName closeExpander)
@@ -486,6 +499,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         ExternalSyntax(Expr expr) implements Decl;
     /**
      * grammar declaration
+     * Names (but not extends elements) must be unqualified.
      */
     abstract GrammarDecl(Id name, List<Id> extends) implements AbsDecl;
         /**
@@ -494,6 +508,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         GrammarDef(List<GrammarMemberDecl> members);
     /**
      * grammar member (nonterminal or terminal) declaration
+     * Names and params must be unqualified.
      */
     abstract GrammarMemberDecl(Id name,
                                Option<BaseType> type,
@@ -747,6 +762,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         else x32A
              *         end
              *       end I_95
+             * Names must be unqualified.
              */
             Label(Id name, Block body);
             /**
@@ -820,6 +836,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         Number => x + 3
              *         Object => yogiBerraAutograph
              *       end
+             * Names in bind must be unqualified.
              */
             Typecase(Pair<List<Id>, Option<Expr>> bind,
                      List<TypecaseClause> clauses,
@@ -868,6 +885,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * exiting labeled expressions
              * FlowExpr ::= exit Id? (with Expr)?
              * e.g.) exit I_95 with x32B
+             * Targets must be unqualified.
              */
             Exit(Option<Id> target = Option.<Id>none(),
                  Option<Expr> returnExpr = Option.<Expr>none());
@@ -893,6 +911,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * function expression
          * Expr ::= fn ValParam IsType? Throws? => Expr
          * e.g.) fn x => x + 2
+         * Names must be unqualified.
          */
         FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
                boolean parenthesized = false,
@@ -1015,11 +1034,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 abstract AbstractFieldRef(Expr obj) implements LHS;
                     /**
                      * A field selection, unless it is a method reference
+                     * Names of "field" must be unqualified.
                      */
                     FieldRef(Id field);
                     /**
                      * A field selection, for sure
                      * (though its implementation might be a getter/setter)
+                     * Names of "field" must be unqualified.
                      */
                     FieldRefForSure(Id field);
                     /**
@@ -1032,6 +1053,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * If the reference to outer scope can be "fixed" (there is
                      * only one out scope) then it might be good to narrow this
                      * back down to an Id.
+                     * 
+                     * Names of "field" must be unqualified.
                      */
                     _RewriteFieldRef(Name field);
                 /**
@@ -1124,6 +1147,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * a method invocation
                      * some are created by parsing, while others require later
                      * static analysis to disambiguate from function applications
+                     * 
+                     * Names of "method" must be unqualified.
                      */
                     MethodInvocation(Expr obj, Id method,
                                      List<StaticArg> staticArgs
@@ -1317,6 +1342,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             OrType(Type first, Type second);
             /**
              * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
+             * Names must be unqualified.
              */
             FixedPointType(Id name, Type body);
             /**
@@ -1544,6 +1570,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     = Collections.<WhereConstraint>emptyList());
     /**
      * hidden type variable binding declared in where clauses
+     * Names must be unqualified.
      */
     abstract WhereBinding(Id name);
         /**
@@ -1616,7 +1643,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         WhereWidensCoerces(Type left, Type right);
         /**
-         * DootedId equality constraint declared in where clauses
+         * DottedId equality constraint declared in where clauses
          * WhereConstraint ::= QualifiedName = QualifiedName
          * e.g.) m = n
          */
@@ -1779,6 +1806,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         OprParam(Op name);
         /**
          * static parameter with a name field of type Id
+         * Names must be unqualified.
          */
         abstract IdStaticParam(Id name);
            /**
@@ -1828,6 +1856,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * unstructured sequence of ids naming an API or component
          * APIName ::= Id(.Id)*
          * e.g.) com.sun.fortress.nodes_util
+         * Names in the list must be unqualified.
          */
         APIName(List<Id> ids);
         /**
@@ -1863,6 +1892,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * EncloserPair ::= (LeftEncloser | Encloser)
                      *                    (RightEncloser | Encloser)
                      * e.g.) </ />
+                     * Opening and closing Ops must be unqualified.
                      */
                     Enclosing(Op open, Op close);
             /**
@@ -1896,6 +1926,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * keyword expression used in argument expressions
      * KeywordExpr ::= BindId = Expr
      * e.g.) x = myLoser.myField
+     * Names must be unqualified.
      */
     KeywordExpr(Id name, Expr init);
     /**
@@ -1908,6 +1939,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * catch clause used in try expressions
      * Catch ::= catch BindId CatchClauses
      * e.g.) catch e IOException => throw ForbiddenException(e)
+     * Names must be unqualified.
      */
     Catch(Id name, List<CatchClause> clauses);
     /**
@@ -1953,6 +1985,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * GeneratorClause ::= GeneratorBinding
      *                   | Expr
      * e.g.) (i, j) <- my2DArray.indices
+     * Names must be unqualified.
      */
     GeneratorClause(List<Id> bind, Expr init);
     /**
@@ -1971,6 +2004,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * keyword type used in tuple types
      * KeywordType ::= BindId = Type
      * e.g.) x = String
+     * Names must be unqualified.
      */
     KeywordType(Id name, Type type);
     /**
