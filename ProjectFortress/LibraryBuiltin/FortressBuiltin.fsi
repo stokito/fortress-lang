@@ -18,6 +18,8 @@
 api FortressBuiltin
 
 value object Float extends RR64
+    opr =(self, b:ZZ32):Boolean
+    opr <(self, b:ZZ32):Boolean
 end
 
 object FloatLiteral extends RR64
@@ -30,6 +32,12 @@ value object Long extends ZZ64
 end
 
 object IntLiteral extends Integral
+    opr =(self, b: IntLiteral):Boolean
+    opr <(self, other:String): Boolean
+    opr <=(self, other:String): Boolean
+    opr >(self, other:String): Boolean
+    opr >=(self, other:String): Boolean
+    opr CMP(self, other:String): TotalComparison
 end
 
 object Boolean

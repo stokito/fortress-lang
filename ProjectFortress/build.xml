@@ -203,7 +203,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     	<delete dir="${cache7}"/>
     	<delete dir="${cache8}"/>
     	<delete dir="${cache9}"/>
-    	    	       
+
     </target>
 
     <!-- Generation of Operators.java depends only on the files listed below.
@@ -504,7 +504,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 </fileset>
             </batchtest>
         </junit>
-        <fail message="Tests expected to fail are failing!" if="tests.failed"/>        
+        <fail message="Tests expected to fail are failing!" if="tests.failed"/>
     </target>
 
     <target name="testSystem" depends="compile"
@@ -532,7 +532,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 </fileset>
             </batchtest>
       </junit>
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
     <target name="testSyntaxAbs" depends="compile"
@@ -561,7 +561,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 </fileset>
             </batchtest>
       </junit>
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
     <target name="testDemos" depends="compile"
@@ -589,7 +589,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                  </fileset>
              </batchtest>
         </junit>
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
      </target>
 
     <target name="testAll" depends="test, testNotPassing, testDemos, reportNotPassing"

@@ -187,12 +187,24 @@ trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
     opr >=(self, other:Self): Boolean
 end
 
+(** %StandardPartialOrderWithClosure% is a %StandardPartialOrder%,
+    but with %MIN% and %MAX% operators that respect ordering when it exists.
+    So if %a <= b% then %a MIN b = a% and %a MAX b = b%; further,
+    %NOT (a MIN b > a)% and %NOT (a MAX b < a)% under any circumstances.  Finally,
+    %a MIN b = b MIN a% and %a MAX b = b MAX a%.
+ **)
+trait StandardPartialOrderWithClosure[\S extends StandardPartialOrderWithClosure[\S\]\]
+        extends StandardPartialOrder[\S\]
+    abstract opr MIN(self, other:S): S
+    abstract opr MAX(self, other:S): S
+end
+
 (** StandardTotalOrder is the usual total order using %<%,%>%,%<=%,%>=%,%=%, and %CMP%.
     Most values that define a comparison should do so using this.
     Minimal complete definition: either %CMP% or %<% (it is advisable to
     define %=% in the latter case). **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends StandardPartialOrder[\Self\]
+        extends StandardPartialOrderWithClosure[\Self\]
         excludes { Number } (* Until Number is an actual type. *)
     opr CMP(self, other:Self): Comparison
     opr >=(self, other:Self): Boolean
@@ -213,13 +225,25 @@ assert(x:Any, y:Any, failMsg: Any...): ()
 * \subsection*{Numeric hierarchy}
 ************************************************************)
 
-trait  Number comprises { RR64 }
+trait Number extends StandardPartialOrderWithClosure[\Number\] comprises { RR64 }
+    opr =(self, b:Number):Boolean
+    opr =/=(self, b:Number):Boolean
+    opr <(self, b:Number):Boolean
+    opr <=(self, b:Number):Boolean
+    opr >(self, b:Number):Boolean
+    opr >=(self, b:Number):Boolean
+    opr CMP(self, b:Number):Comparison
+    opr MIN(self, b:Number):Number
+    opr MAX(self, b:Number):Number
 end
 
 trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
 end
 
-trait  Integral extends RR64 comprises { ZZ64, IntLiteral }
+trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
+        comprises { ZZ64, IntLiteral }
+    opr =(self, b:Integral):Boolean
+    opr <(self, b:Integral):Boolean
 end
 
 trait ZZ64 extends Integral comprises { Long, ZZ32 }

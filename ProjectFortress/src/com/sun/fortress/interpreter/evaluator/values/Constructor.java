@@ -37,6 +37,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
+import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.Applicable;
@@ -304,10 +305,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
 
             if (too instanceof FTypeObject)
                 objectDefinesAny = true;
-            if (isNotADef(sf, too).booleanValue())
-                error(cfn, "Object " + cfn.stringName() +
-                      " does not define an abstract method declared in type "+ 
-                      too.getName() + ":\n  " + sf.getString());
+            checkForDef(sf,too);
         }
 
         // Plan to iterate over traits at instantiation, and form closures
@@ -437,22 +435,24 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     }
 
     /**
-      * Returns true iff the function sf defined in trait-or-object
-      * too is NOT a definition.
+      * Checks for definition of sf from supertrait too, fails if absent.
       * @param sf
       * @param too
       * @return
       */
-    private Boolean isNotADef(SingleFcn sf, FTraitOrObject too) {
-        if (too instanceof FTypeObject) return new Boolean(false);
+    private void checkForDef(SingleFcn sf, FTraitOrObject too) {
+        if (too instanceof FTypeObject) return;
         if (sf instanceof MethodClosure) {
             MethodClosure pdm = (MethodClosure) sf;
             Applicable a = pdm.getDef();
-            if (a instanceof FnDef)
-                return new Boolean(false);
-            return new Boolean(true);
+            if (a instanceof FnDef || a instanceof NativeApp) return;
+            error(cfn, errorMsg("Object ",cfn.stringName(),
+                  " does not define an abstract method declared in type ",
+                                too.getName(), ":\n  ", sf.getString(),
+                                "\n   instead found: ",a," class ",a.getClass()));
         }
-        return bug(errorMsg("Unexpected symbolic method binding ", sf));
+        bug(errorMsg("Unexpected symbolic method binding ", sf));
+        return;
     }
 
     /**

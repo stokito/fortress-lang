@@ -23,11 +23,14 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
+import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.glue.NativeMeth1;
 
 
 /**
@@ -43,6 +46,13 @@ protected FNativeObject makeNativeObject(List<FValue> args,
                                          NativeConstructor con) {
     FLong.setConstructor(this);
     return FLong.ZERO;
+}
+
+static private abstract class LL2B extends NativeMeth1 {
+    protected abstract boolean f(long x, long y);
+    protected final FValue act(FObject x, FValue y) {
+        return FBool.make(f(x.getLong(),y.getLong()));
+    }
 }
 
 public static final class Negate extends Util.L2L {
@@ -112,11 +122,11 @@ public static final class RShift extends Util.LL2L {
 public static final class BitNot extends Util.L2L {
     protected long f(long x) { return ~x; }
 }
-public static final class Eq extends Util.LL2B {
+public static final class Eq extends LL2B {
     protected boolean f(long x, long y) { return x==y; }
 }
-public static final class LessEq extends Util.LL2B {
-    protected boolean f(long x, long y) { return x<=y; }
+public static final class Less extends LL2B {
+    protected boolean f(long x, long y) { return x<y; }
 }
 public static final class Pow extends NativeFn2 {
     protected FValue act(FValue x, FValue y) {
