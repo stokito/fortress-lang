@@ -43,7 +43,7 @@ public class TypeAnalyzerUtil {
     public static Lambda<Type, Type> makeSubstitution(Iterable<? extends StaticParam> params,
                                                       Iterable<? extends StaticArg> args,
                                                       Iterable<? extends Id> hiddenParams) {
-        final Map<QualifiedIdName, Type> typeSubs = new HashMap<QualifiedIdName, Type>();
+        final Map<Id, Type> typeSubs = new HashMap<Id, Type>();
         final Map<Op, Op> opSubs = new HashMap<Op, Op>();
         final Map<Id, IntExpr> intSubs = new HashMap<Id, IntExpr>();
         final Map<Id, BoolExpr> boolSubs = new HashMap<Id, BoolExpr>();
@@ -53,7 +53,7 @@ public class TypeAnalyzerUtil {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
                 @Override public void forTypeParam(TypeParam p) {
-                    typeSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                    typeSubs.put(p.getName(),
                                  ((TypeArg) a).getType());
                 }
                 @Override public void forOprParam(OprParam p) {
@@ -83,8 +83,7 @@ public class TypeAnalyzerUtil {
             });
         }
         for (Id id : hiddenParams) {
-            typeSubs.put(NodeFactory.makeQualifiedIdName(id),
-                         NodeFactory.makeInferenceVarType());
+            typeSubs.put(id, NodeFactory.makeInferenceVarType());
         }
 
         return new Lambda<Type, Type>() {
@@ -151,7 +150,7 @@ public class TypeAnalyzerUtil {
             }
             @Override public Boolean forBottomType(BottomType t) { return false; }
             @Override public Boolean forIdType(IdType t) {
-                return t.getName().getApi().isNone() && names.contains(t.getName().getName());
+                return t.getName().getApi().isNone() && names.contains(t.getName());
             }
             @Override public Boolean forInstantiatedType(InstantiatedType t) {
                 for (StaticArg arg : t.getArgs()) {

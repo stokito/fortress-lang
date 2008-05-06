@@ -68,8 +68,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return t.accept(this);
     }
 
-    public FType evalType(QualifiedIdName t) {
-        return forQualifiedIdName(t);
+    public FType evalType(Id t) {
+        return forId(t);
     }
 
     public static FType getFTypeFromOption(Option<Type> t, final BetterEnv e, final FType ifMissing) {
@@ -443,7 +443,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         }
     }
 
-    public FType forQualifiedIdName(QualifiedIdName q) {
+    public FType forId(Id q) {
         try {
             FType result = env.getType(q);
             return result;
@@ -458,7 +458,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forInstantiatedType(InstantiatedType x) {
-       FType ft1 = forQualifiedIdName(x.getName());
+       FType ft1 = forId(x.getName());
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);

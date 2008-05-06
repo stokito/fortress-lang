@@ -210,41 +210,37 @@ public class NodeFactory {
     }
 
     public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
-            QualifiedIdName name, List<StaticArg> args) {
+                                                        Id name, List<StaticArg> args) {
         return new InstantiatedType(span, isParenthesized, name, args);
     }
 
     public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
-            QualifiedIdName name, StaticArg... args) {
+            Id name, StaticArg... args) {
         return makeInstantiatedType(span, isParenthesized, name, Arrays.asList(args));
     }
 
-    public static InstantiatedType makeInstantiatedType(QualifiedIdName name, List<StaticArg> args) {
-        return makeInstantiatedType(new Span(), false, name, args);
-    }
-
-    public static InstantiatedType makeInstantiatedType(QualifiedIdName name, StaticArg... args) {
+    public static InstantiatedType makeInstantiatedType(Id name, StaticArg... args) {
         return makeInstantiatedType(new Span(), false, name, Arrays.asList(args));
     }
 
     /** Signature separates the first element in order to guarantee a non-empty arg list. */
     public static InstantiatedType makeInstantiatedType(String nameFirst, String... nameRest) {
-        return makeInstantiatedType(new Span(), false, makeQualifiedIdName(nameFirst, nameRest),
+        return makeInstantiatedType(new Span(), false, makeId(nameFirst, nameRest),
                 Collections.<StaticArg>emptyList());
     }
 
     public static InstantiatedType makeInstantiatedType(String name,
             List<StaticArg> sargs) {
-        return new InstantiatedType(new Span(),makeQualifiedIdName(name),sargs);
+        return new InstantiatedType(new Span(),makeId(name),sargs);
     }
 
     public static InstantiatedType makeInstantiatedType(Id name,
-            List<StaticArg> sargs) {
-        return new InstantiatedType(name.getSpan(), new QualifiedIdName(name), sargs);
+                                                        List<StaticArg> sargs) {
+        return new InstantiatedType(name.getSpan(), name, sargs);
     }
 
     public static InstantiatedType makeInstantiatedType(Id name) {
-        return new InstantiatedType(name.getSpan(), new QualifiedIdName(name), Collections.<StaticArg>emptyList());
+        return new InstantiatedType(name.getSpan(), name, Collections.<StaticArg>emptyList());
     }
 
     public static Type inArrowType(Type type) {
@@ -559,11 +555,7 @@ public class NodeFactory {
     }
 
     public static IdType makeIdType(Span span, Id id) {
-        return new IdType(span, makeQualifiedIdName(id));
-    }
-
-    public static IdType makeIdType(Span span, QualifiedIdName name) {
-        return new IdType(span, name);
+        return new IdType(span, id);
     }
 
     public static LValueBind makeLValue(String name, String type) {
@@ -879,13 +871,13 @@ public class NodeFactory {
     }
 
     public static TypeArg makeTypeArg(Span span, String string) {
-        return new TypeArg(span, new IdType(span, makeQualifiedIdName(span, string)));
+        return new TypeArg(span, new IdType(span, makeId(span, string)));
     }
 
     public static TypeArg makeTypeArg(String string) {
         Span span = new Span();
         return new TypeArg(span,
-                new IdType(span, makeQualifiedIdName(span, string)));
+                new IdType(span, makeId(span, string)));
     }
 
     public static BoolRef makeBoolRef(String string) {
@@ -1158,18 +1150,18 @@ public class NodeFactory {
         if (type instanceof IdType) {
             return new IdType(type.getSpan(),
                               type.isParenthesized(),
-                              makeQualifiedIdName(api, type.getName().getName()));
+                              makeId(api, type.getName()));
         } else { // type instanceof InstantiatedType
             InstantiatedType _type = (InstantiatedType)type;
             return new InstantiatedType(_type.getSpan(),
                                         _type.isParenthesized(),
-                                        makeQualifiedIdName(api, _type.getName().getName()),
+                                        makeId(api, _type.getName()),
                                         _type.getArgs());
         }
     }
 
     public static _RewriteGenericSingletonType makeGenericSingletonType(Id name, List<StaticParam> params) {
-        return new _RewriteGenericSingletonType(name.getSpan(), new QualifiedIdName(name), params);
+        return new _RewriteGenericSingletonType(name.getSpan(), name, params);
     }
 
 
@@ -1218,10 +1210,9 @@ public class NodeFactory {
         Id fnName = new Id(functionName);
         List<Param> params = new LinkedList<Param>();
         List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-        Type type = new InstantiatedType(new QualifiedIdName(typeName), staticArgs);
+        Type type = new InstantiatedType(typeName, staticArgs);
         params.add(new VarargsParam(new Id("args"), new VarargsType(type)));
-        QualifiedIdName objectTypeName = new QualifiedIdName(typeName);
-        Type returnType = new InstantiatedType(objectTypeName , staticArgs);
+        Type returnType = new InstantiatedType(typeName , staticArgs);
         return new FnDef(fnName, params, Option.some(returnType), expression);
     }
 }

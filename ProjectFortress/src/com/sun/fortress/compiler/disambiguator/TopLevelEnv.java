@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;
@@ -40,7 +41,7 @@ public class TopLevelEnv extends NameEnv {
     private List<StaticError> _errors;
 
     private Map<APIName, ApiIndex> _onDemandImportedApis = new HashMap<APIName, ApiIndex>();
-    private Map<Id, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<Id, Set<QualifiedIdName>>();
+    private Map<Id, Set<Id>> _onDemandTypeConsNames = new HashMap<Id, Set<Id>>();
     private Map<Id, Set<Id>> _onDemandVariableNames = new HashMap<Id, Set<Id>>();
     private Map<Id, Set<Id>> _onDemandFunctionIdNames = new HashMap<Id, Set<Id>>();
     private Map<OpName, Set<OpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<OpName>>();
@@ -119,39 +120,21 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
-    private <T> void initializeQualifiedEntry(Map.Entry<APIName, ApiIndex> apiEntry,
-                                     Map.Entry<Id, T> entry,
-                                     Map<Id, Set<QualifiedIdName>> table) {
-        Id key = entry.getKey();
-        if (table.containsKey(key)) {
-            table.get(key).add(new QualifiedIdName(key.getSpan(),
-                                                   Option.some(apiEntry.getKey()),
-                                                   key));
-
-        } else {
-            Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
-            matches.add(new QualifiedIdName(key.getSpan(),
-                                            Option.some(apiEntry.getKey()),
-                                            key));
-            table.put(key, matches);
-        }
-    }
-
     private void initializeOnDemandTypeConsNames() {
         // For now, we support only on demand imports.
         // TODO: Fix to support explicit imports and api imports.
 
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
-                initializeQualifiedEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
+                initializeEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
             }
             // Inject the names of physical units into the set of type cons names.
             for (Map.Entry<Id, Unit> unitEntry: apiEntry.getValue().units().entrySet()) {
-                initializeQualifiedEntry(apiEntry, unitEntry, _onDemandTypeConsNames);
+                initializeEntry(apiEntry, unitEntry, _onDemandTypeConsNames);
             }
             // Inject the names of physical dimensions into the set of type cons names.
             for (Map.Entry<Id, Dimension> dimEntry: apiEntry.getValue().dimensions().entrySet()) {
-                initializeQualifiedEntry(apiEntry, dimEntry, _onDemandTypeConsNames);
+                initializeEntry(apiEntry, dimEntry, _onDemandTypeConsNames);
             }
         }
     }
@@ -241,12 +224,12 @@ public class TopLevelEnv extends NameEnv {
     }
 
 
-    public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
+    public Set<Id> explicitTypeConsNames(Id name) {
         // TODO: imports
         if (_current.typeConses().containsKey(name) ||
             _current.dimensions().containsKey(name) ||
             _current.units().containsKey(name)) {
-            return Collections.singleton(NodeFactory.makeQualifiedIdName(_current.ast().getName(), name));
+            return Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
         }
         else { return Collections.emptySet(); }
     }
@@ -297,17 +280,8 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
-    private Set<QualifiedIdName> onDemandQualifiedNames(Id name, Map<Id, Set<QualifiedIdName>> table)
-    {
-        if (table.containsKey(name)) {
-            return table.get(name);
-        } else {
-            return new HashSet<QualifiedIdName>();
-        }
-    }
-
-    public Set<QualifiedIdName> onDemandTypeConsNames(Id name) {
-        return onDemandQualifiedNames(name, _onDemandTypeConsNames);
+    public Set<Id> onDemandTypeConsNames(Id name) {
+        return onDemandNames(name, _onDemandTypeConsNames);
     }
 
     public Set<Id> onDemandVariableNames(Id name) {
@@ -338,7 +312,7 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
-    public boolean hasQualifiedTypeCons(QualifiedIdName name) {
+    public boolean hasQualifiedTypeCons(Id name) {
         APIName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).typeConses().containsKey(name);
@@ -370,7 +344,7 @@ public class TopLevelEnv extends NameEnv {
         else { return false; }
     }
 
-    public TypeConsIndex typeConsIndex(final QualifiedIdName name) {
+    public TypeConsIndex typeConsIndex(final Id name) {
         Option<APIName> api = name.getApi();
         APIName actualApi;
         // If no API in name or it's the current API, use its own typeCons.
@@ -381,14 +355,19 @@ public class TopLevelEnv extends NameEnv {
             actualApi = Option.unwrap(api);
         }
         if (api.isNone() || _current.ast().getName().equals(actualApi)) {
-            TypeConsIndex res = _current.typeConses().get(name.getName());
+            TypeConsIndex res = _current.typeConses().get(ignoreApi(name));
             if (res != null) return res;
-            System.err.println("Lookup of "+name.getName()+" in current api was null!\n  Trying qualified lookup, api = "+api);
+            System.err.println("Lookup of "+name+" in current api was null!\n  Trying qualified lookup, api = "+api);
         }
-        TypeConsIndex res = _globalEnv.api(actualApi).typeConses().get(name.getName());
+
+        TypeConsIndex res = _globalEnv.api(actualApi).typeConses().get(ignoreApi(name));
         if (res != null) return res;
-        System.err.println("Still couldn't find "+name.getName());
+        System.err.println("Still couldn't find "+name);
         return null;
+    }
+
+    private Id ignoreApi(Id id) {
+        return new Id(id.getSpan(), id.getText());
     }
 
     public Option<GrammarIndex> grammarIndex(final Id name) {

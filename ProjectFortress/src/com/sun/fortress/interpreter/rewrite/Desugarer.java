@@ -109,10 +109,10 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * the clever assumption keeps track of which one it actually uses).
  */
 public class Desugarer extends Rewrite {
-    
+
     // Distinct from Types.ANY_NAME because qualified names aren't yet supported
-    public final static QualifiedIdName INTERNAL_ANY_NAME =
-        NodeFactory.makeQualifiedIdName("Any");
+    public final static Id INTERNAL_ANY_NAME =
+        NodeFactory.makeId("Any");
 
     public final static Id LOOP_NAME =
         NodeFactory.makeId(WellKnownNames.loop);
@@ -1262,21 +1262,21 @@ public class Desugarer extends Rewrite {
             Set<AbstractNode> visited) {
 
             for (Type t : xtends) {
-                QualifiedIdName qName = null;
+                Id name = null;
                 // First de-parameterize the type
                 if (t instanceof InstantiatedType) {
-                    qName = ((InstantiatedType) t).getName();
+                    name = ((InstantiatedType) t).getName();
                 } else if (t instanceof IdType) {
-                    qName = ((IdType) t).getName();
+                    name = ((IdType) t).getName();
                 } else if (t instanceof AnyType) {
-                    qName = INTERNAL_ANY_NAME;
+                    name = INTERNAL_ANY_NAME;
                 } else {
                    // TODO Way too many types; deal with them as necessary.
                     bug(t, errorMsg("Object extends something exciting: ", t));
                 }
-                if (qName.getApi().isNone()) {
+                if (name.getApi().isNone()) {
                     // TODO we've got to generalize this to qualified names.
-                    String s = qName.getName().getText();
+                    String s = name.getText();
                     Thing th;
                     try {
                         th = typeEnv.get(s);
@@ -1391,7 +1391,7 @@ public class Desugarer extends Rewrite {
 
         Expr in_fn = new VarRef(sp, new Id("Thread"));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new Id("Any")))));
+        args.add(new TypeArg(new IdType(sp, new Id("Any"))));
 
         _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
 

@@ -80,7 +80,7 @@ public abstract class SubtypeChecker {
      *    MatrixType(Type element, List<ExtentRange> dimensions)
      *    trait Matrix[\T extends Number, nat s0, nat s1\]
      *
-     *    InstantiatedType(QualifiedIdName name, List<StaticArg> args)
+     *    InstantiatedType(Id name, List<StaticArg> args)
      *
      */
     public static Type normalize(Type t) {
@@ -93,9 +93,7 @@ public abstract class SubtypeChecker {
             try {
                 if (dims.size() == 1) {
                     ExtentRange first = dims.get(0);
-                    QualifiedIdName name =
-                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
-                                                        "Array1");
+                    Id name = NodeFactory.makeId(span, "FortressLibrary", "Array1");
                     StaticArg base;
                     if (first.getBase().isSome())
                          base = Option.unwrap(first.getBase());
@@ -106,9 +104,7 @@ public abstract class SubtypeChecker {
                 } else if (dims.size() == 2) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
-                    QualifiedIdName name =
-                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
-                                                    "Array2");
+                    Id name = NodeFactory.makeId(span, "FortressLibrary", "Array2");
                     StaticArg base1;
                     StaticArg base2;
                     if (first.getBase().isSome())
@@ -126,9 +122,7 @@ public abstract class SubtypeChecker {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
                     ExtentRange third  = dims.get(2);
-                    QualifiedIdName name =
-                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
-                                                        "Array3");
+                    Id name = NodeFactory.makeId(span, "FortressLibrary", "Array3");
                     StaticArg base1;
                     StaticArg base2;
                     StaticArg base3;
@@ -166,9 +160,7 @@ public abstract class SubtypeChecker {
                 if (first.getBase().isNone() && second.getBase().isNone() &&
                     first.getSize().isSome() && second.getSize().isSome()) {
                     Span span = tt.getSpan();
-                    QualifiedIdName name =
-                        NodeFactory.makeQualifiedIdName(span, "FortressLibrary",
-                                                        "Matrix");
+                    Id name = NodeFactory.makeId(span, "FortressLibrary", "Matrix");
                     return NodeFactory.makeInstantiatedType(span, false, name,
                                                             NodeFactory.makeTypeArg(tt.getElement()),
                                                             Option.unwrap(first.getSize()),
@@ -186,7 +178,7 @@ public abstract class SubtypeChecker {
             return error("Mismatched static parameters and static arguments.");
         }
 
-        final Map<QualifiedIdName, Type> typeSubs = new HashMap<QualifiedIdName, Type>();
+        final Map<Id, Type> typeSubs = new HashMap<Id, Type>();
         final Map<Op, Op> opSubs = new HashMap<Op, Op>();
         final Map<Id, IntExpr> intSubs = new HashMap<Id, IntExpr>();
         final Map<Id, BoolExpr> boolSubs = new HashMap<Id, BoolExpr>();
@@ -197,7 +189,7 @@ public abstract class SubtypeChecker {
             pair.first().accept(new NodeAbstractVisitor_void() {
                 @Override public void forTypeParam(TypeParam p) {
                     if (isTypeArg(a))
-                        typeSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
+                        typeSubs.put(p.getName(),
                                      ((TypeArg) a).getType());
                     else error("A type parameter is instantiated with a " +
                                "non-type argument.");
@@ -303,18 +295,18 @@ public abstract class SubtypeChecker {
     }
 
     private boolean isStaticParam(IdType t) {
-        QualifiedIdName name = t.getName();
+        Id name = t.getName();
         if (name.getApi().isSome()) return false;
         else { // name.getApi().isNone()
-            return _staticParamEnv.binding(name.getName()).isSome();
+            return _staticParamEnv.binding(name).isSome();
         }
     }
 
     private List<BaseType> getExtends(IdType t) {
         List<BaseType> _extends = new ArrayList<BaseType>();
-        QualifiedIdName name = t.getName();
+        Id name = t.getName();
         if (name.getApi().isNone()) {
-            Option<StaticParam> result = _staticParamEnv.binding(name.getName());
+            Option<StaticParam> result = _staticParamEnv.binding(name);
             if (result.isSome()) {
                 StaticParam sparam = Option.unwrap(result);
                 if (isTypeParam(sparam)) {

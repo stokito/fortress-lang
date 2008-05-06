@@ -23,7 +23,6 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class DelegatingNameEnv extends NameEnv {
@@ -41,7 +40,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
         return _parent.hasTypeParam(name);
     }
 
-    public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
+    public Set<Id> explicitTypeConsNames(Id name) {
         return _parent.explicitTypeConsNames(name);
     }
     public Set<Id> explicitVariableNames(Id name) {
@@ -54,7 +53,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
         return _parent.explicitFunctionNames(name);
     }
 
-    public Set<QualifiedIdName> onDemandTypeConsNames(Id name) {
+    public Set<Id> onDemandTypeConsNames(Id name) {
         return _parent.onDemandTypeConsNames(name);
     }
     public Set<Id> onDemandVariableNames(Id name) {
@@ -68,7 +67,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     }
 
 
-    public boolean hasQualifiedTypeCons(QualifiedIdName name) {
+    public boolean hasQualifiedTypeCons(Id name) {
         return _parent.hasQualifiedTypeCons(name);
     }
     public boolean hasQualifiedVariable(Id name) {
@@ -78,7 +77,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
         return _parent.hasQualifiedFunction(name);
     }
 
-    public TypeConsIndex typeConsIndex(QualifiedIdName name) {
+    public TypeConsIndex typeConsIndex(Id name) {
         return _parent.typeConsIndex(name);
     }
 

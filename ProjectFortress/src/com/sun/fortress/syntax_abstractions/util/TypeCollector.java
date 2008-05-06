@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -28,7 +29,6 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.StaticArg;
@@ -69,20 +69,20 @@ public class TypeCollector extends NodeDepthFirstVisitor<Option<Type>> {
 		return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
 	}
 
-	@Override 
+	@Override
 	public Option<Type> forNonterminalSymbol(NonterminalSymbol that) {
 		return NonterminalTypeDictionary.getType(that.getNonterminal().getText());
 	}
 
 	@Override
 	public Option<Type> forKeywordSymbol(KeywordSymbol that) {
-		QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+		Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
 		return Option.<Type>some(new IdType(string));
 	}
 
 	@Override
 	public Option<Type> forTokenSymbol(TokenSymbol that) {
-		QualifiedIdName string = NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+		Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
 		return Option.<Type>some(new IdType(string));
 	}
 
@@ -92,7 +92,7 @@ public class TypeCollector extends NodeDepthFirstVisitor<Option<Type>> {
 			return t;
 		}
 		Type type = Option.unwrap(t);
-		QualifiedIdName list = NodeFactory.makeQualifiedIdName(api, id);
+		Id list = NodeFactory.makeId(api, id);
 		List<StaticArg> args = new LinkedList<StaticArg>();
 		args.add(new TypeArg(type));
 		return Option.<Type>some(new InstantiatedType(list, args));

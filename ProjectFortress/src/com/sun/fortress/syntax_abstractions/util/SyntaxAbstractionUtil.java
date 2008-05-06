@@ -42,7 +42,6 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.BaseType;
@@ -76,12 +75,12 @@ public class SyntaxAbstractionUtil {
      * E.g. api: Foo.Bar, grammar name Baz, and member Gnu gives
      * APIName: Foo.Bar.Baz and id: Gnu.
      */
-    public static QualifiedIdName qualifyMemberName(APIName api, Id grammarName, Id memberName) {
+    public static Id qualifyMemberName(APIName api, Id grammarName, Id memberName) {
         Collection<Id> names = new LinkedList<Id>();
         names.addAll(api.getIds());
         names.add(grammarName);
         APIName apiGrammar = NodeFactory.makeAPIName(names);
-        return NodeFactory.makeQualifiedIdName(apiGrammar, memberName);
+        return NodeFactory.makeId(apiGrammar, memberName);
     }
 
     public static Id memberName(APIName api, Id grammarName, Id memberName) {
@@ -138,7 +137,7 @@ public class SyntaxAbstractionUtil {
         ops.add(opName);
 
         List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-        Type type = new IdType(span, NodeFactory.makeQualifiedIdName(typeName));
+        Type type = new IdType(span, NodeFactory.makeId(typeName));
         staticArgs.add(new TypeArg(type));
 
         OpRef opRef = new OpRef(span, ops, staticArgs);
@@ -157,7 +156,7 @@ public class SyntaxAbstractionUtil {
     private static Expr makeLocalVarDecl(Span span, String freshName, String lastFreshName, List<StaticArg> staticArgs, Expr expr, List<Expr> newBody) {
         List<LValue> lhs = new LinkedList<LValue>();
         Id freshVar = NodeFactory.makeId(freshName);
-        Option<Type> type = Option.<Type>some(new InstantiatedType(NodeFactory.makeQualifiedIdName("List", "List"), staticArgs));
+        Option<Type> type = Option.<Type>some(new InstantiatedType(NodeFactory.makeId("List", "List"), staticArgs));
         lhs.add(new LValueBind(span, freshVar, type , false));
 
         Id name = NodeFactory.makeId(lastFreshName, "addRight");
@@ -173,7 +172,7 @@ public class SyntaxAbstractionUtil {
 
     public static Expr makeMaybe(Span span, Option<Expr> op, String typeArg) {
         List<StaticArg> maybeStaticArgs = new LinkedList<StaticArg>();
-        maybeStaticArgs.add(new TypeArg(new IdType(NodeFactory.makeQualifiedIdName(FORTRESSAST, typeArg))));
+        maybeStaticArgs.add(new TypeArg(new IdType(NodeFactory.makeId(FORTRESSAST, typeArg))));
         if (op.isSome()) {
             List<Expr> justArgs = new LinkedList<Expr>();
             justArgs.add(Option.unwrap(op));

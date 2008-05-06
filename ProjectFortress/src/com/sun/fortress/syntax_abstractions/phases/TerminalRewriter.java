@@ -112,7 +112,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         Id name = NodeFactory.makeId(apiName,id);
 
         // Create a the return type - A StringLiteralExpr
-        Option<BaseType> type = Option.<BaseType>some(new IdType(NodeFactory.makeQualifiedIdName("FortressBuiltin", STRINGLITERALEXPR)));
+        Option<BaseType> type = Option.<BaseType>some(new IdType(NodeFactory.makeId("FortressBuiltin", STRINGLITERALEXPR)));
 
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();

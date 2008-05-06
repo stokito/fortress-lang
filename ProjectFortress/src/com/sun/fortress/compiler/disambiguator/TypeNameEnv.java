@@ -23,7 +23,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -46,26 +45,26 @@ public abstract class TypeNameEnv {
      * produces an empty set, and an ambiguous reference produces a set of size greater
      * than 1.
      */
-    public abstract Set<QualifiedIdName> explicitTypeConsNames(Id name);
+    public abstract Set<Id> explicitTypeConsNames(Id name);
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given type constructor name.  An undefined reference
      * produces an empty set, and an ambiguous reference produces a set of size
      * greater than 1.
      */
-    public abstract Set<QualifiedIdName> onDemandTypeConsNames(Id name);
+    public abstract Set<Id> onDemandTypeConsNames(Id name);
 
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a type constructor exists.  Assumes
      * {@code name.getApi().isSome()}.
      */
-    public abstract boolean hasQualifiedTypeCons(QualifiedIdName name);
+    public abstract boolean hasQualifiedTypeCons(Id name);
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * provide the corresponding TypeConsIndex (assumed to exist).
      */
-    public abstract TypeConsIndex typeConsIndex(QualifiedIdName name);
+    public abstract TypeConsIndex typeConsIndex(Id name);
     /**
      * Returns a list of implicitly imported APIS.
      */

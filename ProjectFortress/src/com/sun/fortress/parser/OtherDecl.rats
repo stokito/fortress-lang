@@ -49,7 +49,7 @@ List<DimUnitDecl> DimUnitDecl =
        List<Id> ids = new ArrayList<Id>();
        ids.add(a4);
        for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
-       Type ty = new IdType(a1.getSpan(), NodeFactory.makeQualifiedIdName(a1));
+       Type ty = new IdType(a1.getSpan(), a1);
        UnitDecl unit = new UnitDecl(span, si_unit, ids, Option.some(ty),
                                     Option.wrap(a6));
        yyValue = FortressUtil.mkList(dim, unit);
