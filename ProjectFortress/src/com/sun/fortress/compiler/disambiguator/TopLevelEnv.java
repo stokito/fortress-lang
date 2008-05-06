@@ -34,6 +34,7 @@ import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.parser_util.FortressUtil;
 
 public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;
@@ -371,10 +372,11 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Option<GrammarIndex> grammarIndex(final Id name) {
-        if (name.getApi().isSome()) {
+    	Id unqualifiedName = NodeFactory.makeId(name.getText());
+    	if (name.getApi().isSome()) {
             APIName n = Option.unwrap(name.getApi());
             if (_globalEnv.definesApi(n)) {
-                return Option.some(_globalEnv.api(n).grammars().get(name));
+            	return Option.some(_globalEnv.api(n).grammars().get(unqualifiedName));
             }
             else {
                 return Option.none();

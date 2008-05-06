@@ -47,6 +47,7 @@ import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -65,6 +66,7 @@ import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes._TerminalDef;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
@@ -77,283 +79,287 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
- private Iterable<? extends StaticError> errors;
- private GrammarEnv grammarEnv;
- private MemberEnv currentNonterminalEnv;
- 
- public class Result extends StaticPhaseResult {
-  private List<Sequence> alternatives;
-  private Set<String> keywords;
-  private Collection<Module> keywordModules;
+	private Iterable<? extends StaticError> errors;
+	private GrammarEnv grammarEnv;
+	private MemberEnv currentNonterminalEnv;
 
-  public Result(List<Sequence> alternatives, Set<String> keywords,
-    Collection<Module> keywordModules, Iterable<? extends StaticError> errors) {
-   super(errors);
-   this.alternatives = alternatives;
-   this.keywords = keywords;
-   this.keywordModules = keywordModules;
-  }
+	public class Result extends StaticPhaseResult {
+		private List<Sequence> alternatives;
+		private Set<String> keywords;
+		private Collection<Module> keywordModules;
 
-  public Result(Iterable<? extends StaticError> errors) {
-   super(errors);
-  }
+		public Result(List<Sequence> alternatives, Set<String> keywords,
+				Collection<Module> keywordModules, Iterable<? extends StaticError> errors) {
+			super(errors);
+			this.alternatives = alternatives;
+			this.keywords = keywords;
+			this.keywordModules = keywordModules;
+		}
 
-  public List<Sequence> alternatives() { return alternatives; }
+		public Result(Iterable<? extends StaticError> errors) {
+			super(errors);
+		}
 
-  public Set<String> keywords() { return keywords; }
+		public List<Sequence> alternatives() { return alternatives; }
 
-  public Collection<Module> keywordModules() { return this.keywordModules; }
- }
+		public Set<String> keywords() { return keywords; }
 
- private SyntaxDefTranslator(GrammarEnv grammarEnv) {
-  this.errors = new LinkedList<StaticError>();
-  this.grammarEnv = grammarEnv;
- }
+		public Collection<Module> keywordModules() { return this.keywordModules; }
+	}
 
- public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member, 
-            GrammarEnv grammarEnv) {
-  return new SyntaxDefTranslator(grammarEnv).visit(member.getAst());
- }
+	private SyntaxDefTranslator(GrammarEnv grammarEnv) {
+		this.errors = new LinkedList<StaticError>();
+		this.grammarEnv = grammarEnv;
+	}
 
- public static Result translate(GrammarMemberDecl member, GrammarEnv grammarEnv) {
-  return new SyntaxDefTranslator(grammarEnv).visit(member);
- }
+	public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member, 
+			GrammarEnv grammarEnv) {
+		return new SyntaxDefTranslator(grammarEnv).visit(member.getAst());
+	}
 
- private Result visit(GrammarMemberDecl member) {
-  List<Sequence> sequence = member.accept(this);
-  return new Result(sequence, new HashSet<String>(), new LinkedList<Module>(), this.errors);
- }
+	public static Result translate(GrammarMemberDecl member, GrammarEnv grammarEnv) {
+		return new SyntaxDefTranslator(grammarEnv).visit(member);
+	}
 
- @Override
- public List<Sequence> forNonterminalDef(NonterminalDef that) {
-  BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
-  String name = that.getName().toString();
-  this.currentNonterminalEnv = this.grammarEnv.getMemberEnv(that.getName());
-  return visitSyntaxDefs(that.getSyntaxDefs(), name, type);
- }
+	private Result visit(GrammarMemberDecl member) {
+		List<Sequence> sequence = member.accept(this);
+		return new Result(sequence, new HashSet<String>(), new LinkedList<Module>(), this.errors);
+	}
 
- @Override
- public List<Sequence> forNonterminalExtensionDef(NonterminalExtensionDef that) {
-  throw new RuntimeException("Nonterminal extension definitions should have been eliminated by now");
- }
+	@Override
+	public List<Sequence> forNonterminalDef(NonterminalDef that) {
+		BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
+		String name = getName(that.getName().toString());
+		this.currentNonterminalEnv = this.grammarEnv.getMemberEnv(that.getName());
+		return visitSyntaxDefs(that.getSyntaxDefs(), name, type);
+	}
 
- @Override
- public List<Sequence> for_TerminalDef(_TerminalDef that) {
-  BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
-  String name = that.getName().toString();
-  this.currentNonterminalEnv = this.grammarEnv.getMemberEnv(that.getName());
-  List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type));
-  return sequences;
- }
+	@Override
+	public List<Sequence> forNonterminalExtensionDef(NonterminalExtensionDef that) {
+		throw new RuntimeException("Nonterminal extension definitions should have been eliminated by now");
+	}
 
- private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs,
-   String name, BaseType type) {
-  List<Sequence> sequence = new LinkedList<Sequence>();
-  for (SyntaxDef syntaxDef: syntaxDefs) {
-   sequence.add(visitSyntaxDef(syntaxDef, name, type));
-  }
-  return sequence;
- }
+	@Override
+	public List<Sequence> for_TerminalDef(_TerminalDef that) {
+		BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
+		String name = that.getName().getText();
+		this.currentNonterminalEnv = this.grammarEnv.getMemberEnv(that.getName());
+		List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type));
+		return sequences;
+	}
 
- private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type) {
-  List<Element> elms = new LinkedList<Element>();
-  // Translate the symbols
-  Collection<PrefixedSymbol> locallyBoundVariables = new LinkedList<PrefixedSymbol>();
-  for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
-   elms.addAll(sym.accept(new SymbolTranslator()));
-   locallyBoundVariables.addAll(sym.accept(new VariableCollector()));
-  }
-  String newName = FreshName.getFreshName(name).toUpperCase();
-  SyntaxDeclEnv sdEnv = Option.unwrap(this.currentNonterminalEnv.getSyntaxDeclEnv(syntaxDef));
-  ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, grammarEnv, sdEnv);
-  if (!acr.isSuccessful()) { new Result(acr.errors()); }
-  elms.add(acr.action());
-  return new Sequence(new SequenceName(newName), elms);
- }
+	private String getName(String name) {
+		return name.replaceAll("\\.", "");
+	}
 
- 
- private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
+	private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs,
+			String name, BaseType type) {
+		List<Sequence> sequence = new LinkedList<Sequence>();
+		for (SyntaxDef syntaxDef: syntaxDefs) {
+			sequence.add(visitSyntaxDef(syntaxDef, name, type));
+		}
+		return sequence;
+	}
 
-  private List<Element> mkList(Element e) {
-   List<Element> els = new LinkedList<Element>();
-   els.add(e);
-   return els;
-  }
+	private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type) {
+		List<Element> elms = new LinkedList<Element>();
+		// Translate the symbols
+		Collection<PrefixedSymbol> locallyBoundVariables = new LinkedList<PrefixedSymbol>();
+		for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
+			elms.addAll(sym.accept(new SymbolTranslator()));
+			locallyBoundVariables.addAll(sym.accept(new VariableCollector()));
+		}
+		String newName = FreshName.getFreshName(name).toUpperCase();
+		SyntaxDeclEnv sdEnv = Option.unwrap(this.currentNonterminalEnv.getSyntaxDeclEnv(syntaxDef));
+		ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, grammarEnv, sdEnv);
+		if (!acr.isSuccessful()) { new Result(acr.errors()); }
+		elms.add(acr.action());
+		return new Sequence(new SequenceName(newName), elms);
+	}
 
-  @Override
-  public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
-   return mkList(new NonTerminal(that.getNonterminal().stringName()));
-  }
 
-  @Override
-  public List<Element> forKeywordSymbol(KeywordSymbol that) {
-   return mkList(new xtc.parser.StringLiteral(that.getToken()));
-  }
+	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
 
-  @Override
-  public List<Element> forTokenSymbol(TokenSymbol that) {
-   return mkList(new xtc.parser.StringLiteral(that.getToken()));
-  }
+		private List<Element> mkList(Element e) {
+			List<Element> els = new LinkedList<Element>();
+			els.add(e);
+			return els;
+		}
 
-  @Override
-  public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
-   return mkList(new NonTerminal("w"));
-  }
+		@Override
+		public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
+			return mkList(new NonTerminal(that.getNonterminal().getText()));
+		}
 
-  @Override
-  public List<Element> forBreaklineSymbol(BreaklineSymbol that) {
-   return mkList(new NonTerminal("br"));
-  }
+		@Override
+		public List<Element> forKeywordSymbol(KeywordSymbol that) {
+			return mkList(new xtc.parser.StringLiteral(that.getToken()));
+		}
 
-  @Override
-  public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
-   return mkList(new NonTerminal("backspace"));
-  }
+		@Override
+		public List<Element> forTokenSymbol(TokenSymbol that) {
+			return mkList(new xtc.parser.StringLiteral(that.getToken()));
+		}
 
-  @Override
-  public List<Element> forNewlineSymbol(NewlineSymbol that) {
-   return mkList(new NonTerminal("newline"));
-  }
+		@Override
+		public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
+			return mkList(new NonTerminal("w"));
+		}
 
-  @Override
-  public List<Element> forCarriageReturnSymbol(CarriageReturnSymbol that) {
-   return mkList(new NonTerminal("return"));
-  }
+		@Override
+		public List<Element> forBreaklineSymbol(BreaklineSymbol that) {
+			return mkList(new NonTerminal("br"));
+		}
 
-  @Override
-  public List<Element> forFormfeedSymbol(FormfeedSymbol that) {
-   return mkList(new NonTerminal("formfeed"));
-  }
+		@Override
+		public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
+			return mkList(new NonTerminal("backspace"));
+		}
 
-  @Override
-  public List<Element> forTabSymbol(TabSymbol that) {
-   return mkList(new NonTerminal("tab"));
-  }
+		@Override
+		public List<Element> forNewlineSymbol(NewlineSymbol that) {
+			return mkList(new NonTerminal("newline"));
+		}
 
-  @Override
-  public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
-   List<CharRange> crs = new LinkedList<CharRange>();
-   final String mess = "Incorrect escape rewrite: ";
-   for (CharacterSymbol c: that.getCharacters()) {
-    // TODO: Error when begin < end
-    CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
-     @Override
-     public CharRange forCharacterInterval(CharacterInterval that) {
-      if (that.getBegin().length() != 1) {
-       new RuntimeException(mess +that.getBegin());
-      }
-      if (that.getEnd().length() != 1) {
-       new RuntimeException(mess+that.getEnd());
-      }
-      return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
-     }
+		@Override
+		public List<Element> forCarriageReturnSymbol(CarriageReturnSymbol that) {
+			return mkList(new NonTerminal("return"));
+		}
 
-     @Override
-     public CharRange forCharSymbol(CharSymbol that) {
-      if (that.getString().length() != 1) {
-       new RuntimeException(mess+that.getString());
-      }
-      return new CharRange(that.getString().charAt(0));
-     }
-    });
-    crs.add(cr);
-   }
-   return mkList(new CharClass(crs));
-  }
+		@Override
+		public List<Element> forFormfeedSymbol(FormfeedSymbol that) {
+			return mkList(new NonTerminal("formfeed"));
+		}
 
-  @Override
-  public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that,
-    Option<List<Element>> id_result, List<Element> symbol_result) {
-   if (symbol_result.size() == 1) {
-    Element e = symbol_result.remove(0);
-    symbol_result.add(new Binding(Option.unwrap(that.getId()).getText(), e));
-    return symbol_result;
-   }
-   if (symbol_result.isEmpty()) {
-    if (that.getId().isSome()) {
-     throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+Option.unwrap(that.getId()).getText() + " "+that.getSymbol());
-    }
-    throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
-   }
-   throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
-  }
+		@Override
+		public List<Element> forTabSymbol(TabSymbol that) {
+			return mkList(new NonTerminal("tab"));
+		}
 
-  @Override
-  public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
-    List<Element> symbol_result) {
-   if (symbol_result.size() == 1) {
-    Element e = symbol_result.remove(0);
-    symbol_result.add(new xtc.parser.Option(e));
-    return symbol_result;
-   }
-   if (symbol_result.isEmpty()) {
-    throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
-   }
-   throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
-  }
+		@Override
+		public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
+			List<CharRange> crs = new LinkedList<CharRange>();
+			final String mess = "Incorrect escape rewrite: ";
+			for (CharacterSymbol c: that.getCharacters()) {
+				// TODO: Error when begin < end
+				CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
+					@Override
+					public CharRange forCharacterInterval(CharacterInterval that) {
+						if (that.getBegin().length() != 1) {
+							new RuntimeException(mess +that.getBegin());
+						}
+						if (that.getEnd().length() != 1) {
+							new RuntimeException(mess+that.getEnd());
+						}
+						return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
+					}
 
-  @Override
-  public List<Element> forRepeatOneOrMoreSymbolOnly(
-    RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
-   if (symbol_result.size() == 1) {
-    Element e = symbol_result.remove(0);
-    symbol_result.add(new xtc.parser.Repetition(true, e));
-    return symbol_result;
-   }
-   if (symbol_result.isEmpty()) {
-    throw new RuntimeException("Malformed repeat-one-or-more symbol, not bound to any symbol: ");
-   }
-   throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
-  }
+					@Override
+					public CharRange forCharSymbol(CharSymbol that) {
+						if (that.getString().length() != 1) {
+							new RuntimeException(mess+that.getString());
+						}
+						return new CharRange(that.getString().charAt(0));
+					}
+				});
+				crs.add(cr);
+			}
+			return mkList(new CharClass(crs));
+		}
 
-  @Override
-  public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
-    List<Element> symbol_result) {
-   if (symbol_result.size() == 1) {
-    Element e = symbol_result.remove(0);
-    symbol_result.add(new xtc.parser.Repetition(false, e));
-    return symbol_result;
-   }
-   if (symbol_result.isEmpty()) {
-    throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
-   }
-   throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
-  }
+		@Override
+		public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that,
+				Option<List<Element>> id_result, List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new Binding(Option.unwrap(that.getId()).getText(), e));
+				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				if (that.getId().isSome()) {
+					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+Option.unwrap(that.getId()).getText() + " "+that.getSymbol());
+				}
+				throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
+			}
+			throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
+		}
 
-  @Override
-  public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
-    List<Element> symbol_result) {
-   if (symbol_result.size() == 1) {
-    Element e = symbol_result.remove(0);
-    symbol_result.add(new FollowedBy(e));
-    return symbol_result;
-   }
-   if (symbol_result.isEmpty()) {
-    throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
-   }
-   throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
-  }
+		@Override
+		public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new xtc.parser.Option(e));
+				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
+			}
+			throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
+		}
 
-  @Override
-  public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
-    List<Element> symbol_result) {
-   if (symbol_result.size() == 1) {
-    Element e = symbol_result.remove(0);
-    symbol_result.add(new NotFollowedBy(e));
-    return symbol_result;
-   }
-   if (symbol_result.isEmpty()) {
-    throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
-   }
-   throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
-  }
+		@Override
+		public List<Element> forRepeatOneOrMoreSymbolOnly(
+				RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new xtc.parser.Repetition(true, e));
+				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed repeat-one-or-more symbol, not bound to any symbol: ");
+			}
+			throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
+		}
 
-  @Override
-  public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
-   return new LinkedList<Element>();
-  }
+		@Override
+		public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new xtc.parser.Repetition(false, e));
+				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
+			}
+			throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
+		}
 
- }
+		@Override
+		public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new FollowedBy(e));
+				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
+			}
+			throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
+		}
+
+		@Override
+		public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new NotFollowedBy(e));
+				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
+			}
+			throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
+		}
+
+		@Override
+		public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
+			return new LinkedList<Element>();
+		}
+
+	}
 
 
 }

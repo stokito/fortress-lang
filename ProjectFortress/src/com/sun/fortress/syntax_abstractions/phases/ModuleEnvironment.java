@@ -49,11 +49,11 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ModuleEnvironment {
 
-	private Map<Id, Module> modules;
+	private Map<String, Module> modules;
 	private Map<Id, Id> contractedNames;
 
 	public ModuleEnvironment() {
-		this.modules = new HashMap<Id, Module>();
+		this.modules = new HashMap<String, Module>();
 		this.contractedNames = new HashMap<Id, Id>();
 	}
 
@@ -84,7 +84,7 @@ public class ModuleEnvironment {
 	 * @param cnt
 	 * @return
 	 */
-	private Option<Module> getRelated(Id name) {
+	private Option<Module> getRelated(String name) {
 		if (this.modules.keySet().contains(name)) {
 			return Option.some(this.modules.get(name));
 		}
@@ -159,10 +159,10 @@ public class ModuleEnvironment {
 		if (ModuleInfo.isFortressModule(nt.getName())) {
 			APIName apiName = Option.unwrap(nt.getName().getApi());
 			Id newName = apiName.getIds().get(1);
-			m = new FortressModule(newName, ls);
+			m = new FortressModule(newName.toString(), ls);
 		}
 		else {
-			m = new UserModule(nt.getName(), ls);
+			m = new UserModule(nt.getName().toString(), ls);
 			// Add extra depencides
 			if (!m.getTokens().isEmpty() || !m.getKeywords().isEmpty()) {
 				ModuleName identifier = new ModuleName("Identifier");

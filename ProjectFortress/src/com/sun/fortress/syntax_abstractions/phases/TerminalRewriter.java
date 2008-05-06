@@ -55,15 +55,14 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
     private static final String STRINGLITERALEXPR = "StringLiteralExpr";
     private Collection<_TerminalDef> _terminalDefs;
-    private List<Id> _apiName;
+    private List<Id> apiName;
     private String var;
 
     @Override
     public Node forGrammarDef(GrammarDef that) {
         this._terminalDefs = new LinkedList<_TerminalDef>();
-        this._apiName = new LinkedList<Id>();
-        this._apiName.addAll(Option.unwrap(that.getName().getApi()).getIds());
-        this._apiName.add(that.getName());
+        this.apiName = new LinkedList<Id>();
+        this.apiName.addAll(Option.unwrap(that.getName().getApi()).getIds());
         return super.forGrammarDef(that);
     }
 
@@ -107,9 +106,9 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         else {
             var = FreshName.getFreshName("T");
         }
-        APIName apiName = NodeFactory.makeAPIName(this._apiName);
-        Id id = NodeFactory.makeId(var);
-        Id name = NodeFactory.makeId(apiName,id);
+        APIName apiName = NodeFactory.makeAPIName(this.apiName);
+        Id id = NodeFactory.makeId(that.getSpan(), var);
+        Id name = NodeFactory.makeId(that.getSpan(), apiName, id);
 
         // Create a the return type - A StringLiteralExpr
         Option<BaseType> type = Option.<BaseType>some(new IdType(NodeFactory.makeId("FortressBuiltin", STRINGLITERALEXPR)));

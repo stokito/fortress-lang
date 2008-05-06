@@ -505,7 +505,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             APIName realApi = Option.unwrap(realApiOpt);
             Id newN;
             if (originalApi == realApi) { newN = name; }
-            else { newN = NodeFactory.makeId(realApi, name); }
+            else { newN = NodeFactory.makeId(name.getSpan(), realApi, name); }
 
             if (!_env.hasQualifiedGrammar(newN)) {
                 error("Undefined grammar: " + NodeUtil.nameString(newN), newN);

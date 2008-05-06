@@ -61,7 +61,7 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 			Id name, Analyzable<T> a) {
 		Set<NonterminalIndex<? extends GrammarMemberDecl>> rs = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
 		for (NonterminalIndex<? extends GrammarMemberDecl> n: getPotentiallyInheritedSet(a)) {
-			if (n.getName().equals(name)) {
+			if (n.getName().getText().equals(name.getText())) {
 				rs.add(n);
 			}
 		}

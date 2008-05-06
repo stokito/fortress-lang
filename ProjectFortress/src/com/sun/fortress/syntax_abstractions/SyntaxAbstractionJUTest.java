@@ -29,7 +29,7 @@ public class SyntaxAbstractionJUTest extends TestSuite {
 
 	public static TestSuite suite() {
 		TestSuite suite = new TestSuite();
-		String filename = "SyntaxTestUse.fss";
+		String filename = "SyntaxHelloWorldUse.fss";
 		File f = new File(STATIC_TESTS_DIR + filename );
 		suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
 		return suite;

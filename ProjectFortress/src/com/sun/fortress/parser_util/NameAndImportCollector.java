@@ -35,10 +35,6 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 
-/**
- * Created by fagidiot on 22/10/2007
- * @author fagidiot
- */
 public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> {
 
 	private NameAndImportCollection namesAndImports;

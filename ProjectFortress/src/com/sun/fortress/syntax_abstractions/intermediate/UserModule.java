@@ -29,7 +29,7 @@ import com.sun.fortress.nodes.Id;
  */
 public class UserModule extends Module {
 
-	public UserModule(Id name,
+	public UserModule(String name,
                           Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		super(name, members);
 	}
