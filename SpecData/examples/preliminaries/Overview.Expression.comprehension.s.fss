@@ -25,7 +25,7 @@ export Executable
 run(args:String...) = do
   t:Set[\ZZ32\] = {0, 1, 2, 3, 4}
 (** EXAMPLE **)
-  s = {x/2 | x <- t}
+  s = { x DIV 2 | x <- t}
 (** END EXAMPLE **)
 end
 

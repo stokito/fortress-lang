@@ -40,7 +40,7 @@ export Executable
  * results of the additional rounds.
  *
  * Note, though, that the histogram appears to be *very* sparse.
- * This'd be a great test of sparse concurrent bit-backed arrays.
+ * This is a great test of sparse concurrent bit-backed arrays.
  **)
 
 rounds : ZZ32 = 20

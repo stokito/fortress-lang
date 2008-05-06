@@ -227,24 +227,36 @@ trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
     opr >=(self, other:Self): Boolean = (self = other OR: self > other)
 end
 
-(** %StandardPartialOrderWithClosure% is a %StandardPartialOrder%,
-    but with %MIN% and %MAX% operators that respect ordering when it exists.
-    So if %a <= b% then %a MIN b = a% and %a MAX b = b%; further,
-    %NOT (a MIN b > a)% and %NOT (a MAX b < a)% under any circumstances.  Finally,
-    %a MIN b = b MIN a% and %a MAX b = b MAX a%.
- **)
-trait StandardPartialOrderWithClosure[\S extends StandardPartialOrderWithClosure[\S\]\]
-        extends StandardPartialOrder[\S\]
-    opr MIN(self, other:S): S
-    opr MAX(self, other:S): S
+(** %StandardMin% is a MIN operator; most types that implement %MIN%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MIN b = a% when %a <= b% and that
+    %a MIN b = b MIN a%. **)
+trait StandardMin[\T extends StandardMin[\T\]\]
+    opr MIN(self, other:T): T
 end
 
-(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and CMP.
-    Most values that define a comparison should do so using this.
-    Minimal complete definition: either CMP or < (it's advisable to
-    define = in the latter case). **)
+(** %StandardMax% is a MAX operator; most types that implement %MAX%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MAX b = a% when %a <= b% and that
+    %a MAX b = b MAX a%. **)
+trait StandardMax[\T extends StandardMax[\T\]\]
+    opr MAX(self, other:T): T
+end
+
+(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and
+    CMP.  Most values that define a comparison should do so using
+    this.  Minimal complete definition: either CMP or < (it's
+    advisable to define = in the latter case).  As noted above, %MIN%
+    and %MAX% respect the total order and are defined in the obvious
+    way. **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends StandardPartialOrderWithClosure[\Self\]
+        extends { StandardPartialOrder[\Self\], StandardMin[\Self\], StandardMax[\Self\] }
     opr CMP(self, other:Self): Comparison =
         if self < other then LessThan
         elif other < self then GreaterThan
@@ -276,7 +288,12 @@ assert(x:Any, y:Any, failMsg: Any...): () =
 * Numeric hierarchy
 ************************************************************)
 
-trait Number extends StandardPartialOrderWithClosure[\Number\] comprises { RR64 }
+(** The use of StandardTotalOrder here is a lie; it will have to suffice
+    until we can deal gracefully with NaNs disobeying the ordering rules
+    (and even the equivalence rules for = and =/=). **)
+trait Number
+        extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\] }
+        comprises { RR64 }
     opr =(self, b:Number):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
     opr =/=(self, b:Number):Boolean =
@@ -295,6 +312,8 @@ trait Number extends StandardPartialOrderWithClosure[\Number\] comprises { RR64 
         elif self=b then EqualTo
         else Unordered
         end
+    (** In case of NaN, %MIN% and %MAX% return a NaN, otherwise it respects the
+        total order. **)
     opr MIN(self, b:Number):Number =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
     opr MAX(self, b:Number):Number =
@@ -302,6 +321,54 @@ trait Number extends StandardPartialOrderWithClosure[\Number\] comprises { RR64 
 end
 
 trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
+    (** returns true if the value is an IEEE NaN **)
+    getter isNaN(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isNaN")
+    (** returns true if the value is an IEEE infinity **)
+    getter isInfinite(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isInfinite")
+    (** returns true if the value is a valid number (not NaN) **)
+    getter isNumber(): Boolean = NOT self.isNaN()
+    (** returns true if the value is finite **)
+    getter isFinite(): Boolean = NOT (self.isInfinite() OR self.isNaN())
+    (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
+    getter check(): Maybe[\RR64\] =
+        if self.isFinite() then Just[\RR64\](self) else Nothing[\RR64\] end
+    (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
+    getter check_star(): Maybe[\RR64\] =
+        if self.isNaN() then Nothing[\RR64\] else Just[\RR64\](self) end
+    (** obtain the raw bits of the IEEE floating-point representation of this value. **)
+    getter rawBits():ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$RawBits")
+    (** next higher IEEE float **)
+    getter nextUp():RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextUp")
+    (** next lower IEEE float **)
+    getter nextDown():RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextDown")
+    (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
+        Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
+        that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
+    opr MINNUM(self, b:RR64):RR64 = do
+        r = self MIN b
+        if r.isNaN() then
+            if self.isNumber() then self
+            elif b.isNumber() then b
+            else r end
+        else
+            r
+        end
+      end
+    opr MAXNUM(self, b:RR64):RR64 = do
+        r = self MAX b
+        if r.isNaN() then
+            if self.isNumber() then self
+            elif b.isNumber() then b
+            else r end
+        else
+            r
+        end
+      end
 end
 
 trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
@@ -312,7 +379,11 @@ trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
 end
 
-trait ZZ64 extends Integral comprises { Long, ZZ32 }
+trait ZZ64 extends { StandardTotalOrder[\ZZ64\], Integral } comprises { Long, ZZ32 }
+    opr =(self, b:ZZ64):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
+    opr <(self, b:ZZ64):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
 end
 
 (************************************************************
@@ -567,6 +638,8 @@ value trait MaybeType extends Equality[\MaybeType\] excludes Number
     getter holds() : Boolean
     opr =(self, other:MaybeType): Boolean = false
 end
+
+just(t:Any):MaybeType = Just(t)
 
 (** %Maybe% represents either %Nothing% or a single element of type
     %T% (%Just[\T\]%), which may be retrieved by calling %get%.  An
@@ -1967,46 +2040,53 @@ end
 opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
     g(ProdReduction,cast[\Number\])
 
-object NoMin extends UncheckedException end
-
-(* Hack to permit both Numbers and TotalOrders to work. *)
-object MinReduction extends Reduction[\Any\]
+object MinReduction[\T extends StandardMin[\T\]\]
+        extends Reduction[\MaybeType\]
     getter toString() = "MinReduction"
-    empty(): Any = NoMin
-    join(a: Any, b: Any): Any =
-        typecase _ = (a,b) of
-            (NoMin,Any) => b
-            (Any,NoMin) => a
-            else => a MIN b
+    empty(): MaybeType = Nothing[\T\]
+    join(a:MaybeType,b:MaybeType): MaybeType =
+        if aa <- a then
+            if bb <- b then
+                just(aa MIN bb)
+            else
+                a
+            end
+        else
+            b
         end
 end
 
-(* Again, type information is notoriously non-specific to permit
-   either TotalOrder or Number types. *)
-opr BIG MIN[\T\](g:(Reduction[\Any\],T->Any)->Any): Any =
-    typecase x = g(MinReduction,identity[\Any\]) of
-        NoMin => throw x
-        else => x
-    end
+opr BIG MIN[\T extends StandardMin[\T\]\]
+           (g:(MinReduction[\T\],T->MaybeType)->MaybeType): T =
+        g(MinReduction[\T\],just).get()
 
-object NoMax extends UncheckedException end
-
-object MaxReduction extends Reduction[\Any\]
+object MaxReduction[\T extends StandardMax[\T\]\]
+        extends Reduction[\MaybeType\]
     getter toString() = "MaxReduction"
-    empty(): Any = NoMax
-    join(a: Any, b: Any): Any =
-        typecase _ = (a,b) of
-            (NoMax,Any) => b
-            (Any,NoMax) => a
-            else => a MAX b
+    empty(): MaybeType = Nothing[\T\]
+    join(a:MaybeType,b:MaybeType): MaybeType =
+        if aa <- a then
+            if bb <- b then
+                just(aa MAX bb)
+            else
+                a
+            end
+        else
+            b
         end
 end
 
-opr BIG MAX[\T\](g:(Reduction[\Any\],T->Any)->Any): Any =
-    typecase x = g(MaxReduction,identity[\Any\]) of
-        NoMax => throw x
-        else => x
-    end
+opr BIG MAX[\T extends StandardMax[\T\]\]
+           (g:(MaxReduction[\T\],T->MaybeType)->MaybeType): T =
+        g(MaxReduction[\T\],just).get()
+
+opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64 =
+    g(MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MINNUM b, 0.0/0.0),
+      identity[\RR64\])
+
+opr BIG MAXNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64 =
+    g(MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MINNUM b, 0.0/0.0),
+      identity[\RR64\])
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction extends Reduction[\Boolean\]
@@ -2883,9 +2963,6 @@ opr |\a:Number/| : ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.pr
 ceiling(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Ceiling")
 opr |/a:Number\| : ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
 truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
-nextUp(a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextUp")
-nextDown(a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextDown")
-rawBits(a:RR64):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$RawBits")
 fromRawBits(a:ZZ64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$FromRawBits")
 random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
 

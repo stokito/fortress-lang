@@ -27,7 +27,7 @@ end
 object FloatLiteral extends RR64
 end
 
-value object ZZ32 extends ZZ64
+value object ZZ32 extends { StandardTotalOrder[\ZZ32\], ZZ64 }
     opr =(self, b:ZZ32):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Eq")
     opr <(self, b:ZZ32):Boolean =
@@ -40,11 +40,11 @@ end
 object IntLiteral extends Integral
     opr =(self, b: IntLiteral):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Eq")
-    opr <(self, other:String): Boolean = self.cmp(other) < 0
-    opr <=(self, other:String): Boolean = self.cmp(other) <= 0
-    opr >(self, other:String): Boolean = self.cmp(other) > 0
-    opr >=(self, other:String): Boolean = self.cmp(other) >= 0
-    opr CMP(self, other:String): TotalComparison = self.cmp(other) CMP 0
+    opr <(self, other:IntLiteral): Boolean = self.cmp(other) < 0
+    opr <=(self, other:IntLiteral): Boolean = self.cmp(other) <= 0
+    opr >(self, other:IntLiteral): Boolean = self.cmp(other) > 0
+    opr >=(self, other:IntLiteral): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other:IntLiteral): TotalComparison = self.cmp(other) CMP 0
     cmp(b:IntLiteral): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Cmp")
 end
