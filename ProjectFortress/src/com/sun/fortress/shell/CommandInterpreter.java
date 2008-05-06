@@ -38,7 +38,7 @@ import java.io.*;
 public class CommandInterpreter {
 	private Shell shell;
 
-	boolean debug;
+	public static boolean debug;
 	boolean test;
 	boolean nolib;
 

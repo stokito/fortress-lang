@@ -47,6 +47,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.shell.CommandInterpreter;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
@@ -92,7 +93,9 @@ public class ActionCreater {
    String serializedComponent = ac.writeJavaAST(component);
    code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
 
-   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
+   if (CommandInterpreter.debug) {
+	   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
+   }
    addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
   }
   else if (transformation instanceof TransformationTemplateDef) {
@@ -104,7 +107,9 @@ public class ActionCreater {
     addCodeLine(s, code, indents);
    }
 
-   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
+   if (CommandInterpreter.debug) {
+	   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
+   }
    addCodeLine("yyValue = "+yyValue+";", code, indents);
   }
 

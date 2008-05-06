@@ -49,6 +49,7 @@ public class MemberEnv {
 	}
 	
 	public MemberEnv(NonterminalIndex<? extends GrammarMemberDecl> member) {
+		this();
 		if (member.getAst() instanceof NonterminalDecl) {
 			NonterminalDecl nd = (NonterminalDecl) member.getAst();
 			initEnv(nd.getParams(), nd.getSyntaxDefs());

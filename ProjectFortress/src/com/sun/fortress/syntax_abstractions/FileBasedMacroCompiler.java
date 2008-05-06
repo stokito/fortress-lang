@@ -41,13 +41,13 @@ import edu.rice.cs.plt.tuple.Option;
 public class FileBasedMacroCompiler implements MacroCompiler {
 
 	public Result compile(Collection<GlobalGrammarEnv> envs, GlobalEnvironment env) {
-		System.err.println("F1");
+
 		/*
 		 * Initialize GrammarIndex
 		 */
 		GrammarIndexInitializer.Result geir = GrammarIndexInitializer.init(envs); 
 		if (!geir.isSuccessful()) { return new Result(null, geir.errors()); }
-		
+	
 		/* 
 		 * Resolve grammar extensions and extensions of nonterminal definitions.
 		 */

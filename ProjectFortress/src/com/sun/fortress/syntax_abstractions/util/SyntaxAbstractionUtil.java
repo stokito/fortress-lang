@@ -52,6 +52,7 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
@@ -83,12 +84,19 @@ public class SyntaxAbstractionUtil {
         return NodeFactory.makeId(apiGrammar, memberName);
     }
 
-    public static Id memberName(APIName api, Id grammarName, Id memberName) {
+    /**
+     * We assume that the grammar name has been disambiguated and
+     * thus has an api.
+     * @param grammarName
+     * @param memberName
+     * @return
+     */
+    public static Id memberName(Id grammarName, Id memberName) {
         Collection<Id> names = new LinkedList<Id>();
-        names.addAll(api.getIds());
-        names.add(grammarName);
+        names.addAll(Option.unwrap(grammarName.getApi()).getIds());
+        names.add(NodeFactory.makeId(grammarName.getText()));
         APIName apiGrammar = NodeFactory.makeAPIName(names);
-        return NodeFactory.makeId(apiGrammar, memberName);
+        return NodeFactory.makeId(memberName.getSpan(), apiGrammar, NodeFactory.makeId(memberName.getText()));
     }
 
     /**

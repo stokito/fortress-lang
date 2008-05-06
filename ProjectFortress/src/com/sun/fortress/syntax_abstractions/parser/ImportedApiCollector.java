@@ -34,12 +34,14 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -141,7 +143,9 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 			for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
 				boolean found = false;
 				for (AliasedSimpleName name: that.getAliasedNames()) {
-					if (name.getName().toString().equals(Option.unwrap(grammar.ast()).getName().getText())) {
+					String importedNonterminalName = name.getName().toString();
+					String nonterminalName = Option.unwrap(grammar.ast()).getName().toString();
+					if (importedNonterminalName.equals(nonterminalName )) {
 						found  = true;
 						break;
 					}

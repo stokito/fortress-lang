@@ -34,6 +34,7 @@ public class GrammarEnv {
 	}
 
 	public GrammarEnv(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+		this();
 		for (NonterminalIndex<? extends GrammarMemberDecl> member: members) {
 			MemberEnv menv = new MemberEnv(member);
 			this.members.put(member.getName(), menv);

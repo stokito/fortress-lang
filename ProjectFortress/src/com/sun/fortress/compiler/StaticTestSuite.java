@@ -31,6 +31,7 @@ import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.shell.CacheBasedRepository;
+import com.sun.fortress.useful.Path;
 
 public final class StaticTestSuite extends TestSuite {
     
@@ -190,9 +191,8 @@ public final class StaticTestSuite extends TestSuite {
         }
         
         private Iterable<? extends StaticError> compile(File f) throws IOException {
-            //Fortress fortress = new Fortress(new FileBasedRepository(baseDir, staticTests + "lib"));
             Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
-            return fortress.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());
+            return fortress.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());           
         }
     }
 }

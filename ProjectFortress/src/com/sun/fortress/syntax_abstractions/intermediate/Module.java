@@ -47,7 +47,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public abstract class Module implements Analyzable<Module> {
 
-	protected Id name;
+	protected String name;
 	private boolean isTopLevel;
 
 	private Map<String, Set<SyntaxSymbol>> tokenMap;
@@ -67,7 +67,7 @@ public abstract class Module implements Analyzable<Module> {
 		this.dependencies = new LinkedHashSet<ModuleDependency>();
 	}
 
-	public Module(Id name,Collection<NonterminalIndex<? extends GrammarMemberDecl>> declaredMembers) {
+	public Module(String name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> declaredMembers) {
 		this();
 		this.name = name;
 		this.declaredMembers.addAll(declaredMembers);
@@ -81,11 +81,11 @@ public abstract class Module implements Analyzable<Module> {
 		return this.isTopLevel;
 	}
 
-	public Id getName() {
+	public String getName() {
 		return this.name;
 	}
 
-	public void setName(Id name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 

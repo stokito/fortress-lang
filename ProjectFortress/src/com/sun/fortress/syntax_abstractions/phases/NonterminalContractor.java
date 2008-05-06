@@ -53,7 +53,6 @@ public class NonterminalContractor {
 	public Collection<ContractedNonterminal> getContractionList(GrammarIndex g) {
 		Collection<ContractedNonterminal> result = new LinkedList<ContractedNonterminal>();
 		GrammarAnalyzer<GrammarIndex> analyzer = new GrammarAnalyzer<GrammarIndex>();
-
 		for (NonterminalIndex<? extends GrammarMemberDecl> n: analyzer.getContainedSet(g)) {
 			DependencyCollector dc = new DependencyCollector();
 			n.getAst().accept(dc);
@@ -63,7 +62,6 @@ public class NonterminalContractor {
 
 				List<NonterminalIndex<? extends GrammarMemberDecl>> ls = getCollapsedNonterminal(n.getName(), g);
 				dependencies.addAll(getDependencies(ls));
-
 				result.add(new ContractedNonterminal(ls, dependencies));
 			}
 			else {

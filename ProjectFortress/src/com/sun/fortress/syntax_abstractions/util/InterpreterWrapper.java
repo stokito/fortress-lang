@@ -67,6 +67,7 @@ import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.shell.CommandInterpreter;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -77,137 +78,140 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class InterpreterWrapper {
 
-    FortressRepository repository;
+	FortressRepository repository;
 
-    public  InterpreterWrapper() {
-        repository = Driver.CURRENT_INTERPRETER_REPOSITORY;
-    }
+	public  InterpreterWrapper() {
+		repository = Driver.CURRENT_INTERPRETER_REPOSITORY;
+	}
 
-    public class Result extends StaticPhaseResult {
+	public class Result extends StaticPhaseResult {
 
-        private FValue value;
+		private FValue value;
 
-        Result(FValue value, Iterable<? extends StaticError> errors) {
-            super(errors);
-            this.value = value;
-        }
+		Result(FValue value, Iterable<? extends StaticError> errors) {
+			super(errors);
+			this.value = value;
+		}
 
-        public FValue value() { return value; }
-    }
+		public FValue value() { return value; }
+	}
 
-    public static final String FUNCTIONNAME = "transformation";
-    private static final boolean test = false;
-    private static final boolean libraryTest = false;
-    private static final boolean woLibrary = false;
-    private List<String> listArgs;
-    private static int numThreads = Runtime.getRuntime().availableProcessors();
-    static FortressTaskRunnerGroup group;
+	public static final String FUNCTIONNAME = "transformation";
+	private static final boolean test = false;
+	private static final boolean libraryTest = false;
+	private static final boolean woLibrary = false;
+	private List<String> listArgs;
+	private static int numThreads = Runtime.getRuntime().availableProcessors();
+	static FortressTaskRunnerGroup group;
 
-    public Result evalComponent(Span span, String productionName, String component, Map<String, AbstractNode> boundVariables) {
-    	Collection<StaticError> errors = new LinkedList<StaticError>();
-        Option<CompilationUnit> cu = Option.none();
-        try {
-            cu = readAST(productionName, component);
-        } catch (IOException e1) {
-            errors.add(StaticError.make("Could not read transformation expression from file: "+productionName+" "+e1.getMessage(), productionName));
-            return new Result(null, errors);
-        }
-        if (cu.isNone()) {
-            errors.add(StaticError.make("Could not read transformation expression from file: "+productionName, productionName));
-            return new Result(null, errors);
-        }
+	public Result evalComponent(Span span, String productionName, String component, Map<String, AbstractNode> boundVariables) {
+		Collection<StaticError> errors = new LinkedList<StaticError>();
+		Option<CompilationUnit> cu = Option.none();
+		try {
+			cu = readAST(productionName, component);
+		} catch (IOException e1) {
+			errors.add(StaticError.make("Could not read transformation expression from file: "+productionName+" "+e1.getMessage(), productionName));
+			return new Result(null, errors);
+		}
+		if (cu.isNone()) {
+			errors.add(StaticError.make("Could not read transformation expression from file: "+productionName, productionName));
+			return new Result(null, errors);
+		}
 
-        Component c = (Component) Option.unwrap(cu);
-        Collection<Decl> decls = createVarBindings(span, boundVariables, c.getDecls());
-        for (Decl d: c.getDecls()) {
-        	if (!(d instanceof VarDecl)) {
-        		decls.add(d);
-        	}
-        }
-        c.getDecls().clear();
-        c.getDecls().addAll(decls);
+		Component c = (Component) Option.unwrap(cu);
+		Collection<Decl> decls = createVarBindings(span, boundVariables, c.getDecls());
+		for (Decl d: c.getDecls()) {
+			if (!(d instanceof VarDecl)) {
+				decls.add(d);
+			}
+		}
+		c.getDecls().clear();
+		c.getDecls().addAll(decls);
 
-try {
-	System.err.println(writeJavaAST(c));
-} catch (IOException e1) {
-	// TODO Auto-generated catch block
-	e1.printStackTrace();
-}
-        try {
-        	System.err.println("Running interpreter...");
+		//		try {
+		//			System.err.println(writeJavaAST(c));
+		//		} catch (IOException e1) {
+		//			// TODO Auto-generated catch block
+		//			e1.printStackTrace();
+		//		}
+		try {
+			if (CommandInterpreter.debug) {
+				System.err.println("Running interpreter...");
+			}
 
-            return new Result(runFunction(c), errors);
-        }	catch (FortressError e) {
-            System.err.println("\n--------Fortress error appears below--------\n");
-            e.printInterpreterStackTrace(System.err);
-            e.printStackTrace();
-            System.err.println();
-            System.err.println(e.getMessage());
-            System.err.println();
-            System.err.println("Turn on -debug for Java-level error dump.");
-            System.exit(1);
-        } catch (Throwable e) {
-            // TODO Auto-generated catch block
-        	System.err.println("Throwable...");
-            e.printStackTrace();
-        }
-        return new Result(null, errors);
-    }
 
-    private Collection<Decl> createVarBindings(
+			return new Result(runFunction(c), errors);
+		}	catch (FortressError e) {
+			System.err.println("\n--------Fortress error appears below--------\n");
+			e.printInterpreterStackTrace(System.err);
+			e.printStackTrace();
+			System.err.println();
+			System.err.println(e.getMessage());
+			System.err.println();
+			System.err.println("Turn on -debug for Java-level error dump.");
+			System.exit(1);
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			System.err.println("Throwable...");
+			e.printStackTrace();
+		}
+		return new Result(null, errors);
+	}
+
+	private Collection<Decl> createVarBindings(
 			Span span,
 			Map<String, AbstractNode> boundVariables,
 			List<Decl> decls) {
-    	List<Decl> newDecls = new LinkedList<Decl>();
-    	for (Decl d: decls) {
-    		if (d instanceof VarDecl) {
-    			VarDecl vd = (VarDecl) d;
-    			if (vd.getLhs().size() == 1) {
-    				LValueBind vb = vd.getLhs().get(0);
-    				Object o = boundVariables.get(vb.getName().getText());
-    				Expr n = new JavaASTToFortressAST(span).dispatch(o, vb.getType());
-    				newDecls.add(new VarDecl(vd.getLhs(), n));
-    			}
-    			else {
-    				newDecls.add(d);
-    			}
-    		}
-    	}
+		List<Decl> newDecls = new LinkedList<Decl>();
+		for (Decl d: decls) {
+			if (d instanceof VarDecl) {
+				VarDecl vd = (VarDecl) d;
+				if (vd.getLhs().size() == 1) {
+					LValueBind vb = vd.getLhs().get(0);
+					Object o = boundVariables.get(vb.getName().getText());
+					Expr n = new JavaASTToFortressAST(span).dispatch(o, vb.getType());
+					newDecls.add(new VarDecl(vd.getLhs(), n));
+				}
+				else {
+					newDecls.add(d);
+				}
+			}
+		}
 		return newDecls;
 	}
 
 
 	private FValue runFunction(CompilationUnit compilationUnit) throws Throwable {
-        String numThreadsString = System.getenv("FORTRESS_THREADS");
-        if (numThreadsString != null)
-            numThreads = Integer.parseInt(numThreadsString);
+		String numThreadsString = System.getenv("FORTRESS_THREADS");
+		if (numThreadsString != null)
+			numThreads = Integer.parseInt(numThreadsString);
 
-        if (group == null)
-            group = new FortressTaskRunnerGroup(numThreads);
+		if (group == null)
+			group = new FortressTaskRunnerGroup(numThreads);
 
-        if (listArgs == null) {
-            listArgs = new LinkedList<String>();
-        }
+		if (listArgs == null) {
+			listArgs = new LinkedList<String>();
+		}
 
-        EvaluatorTask evTask = new EvaluatorTask(repository, compilationUnit, test, woLibrary, FUNCTIONNAME, listArgs);
-        try {
-            group.invoke(evTask);
-        }
-        finally {
-//          group.interruptAll();
-        }
-        if (evTask.causedException()) {
-            throw evTask.taskException();
-        }
-        System.err.println("EvTask: "+evTask.result());
-        return evTask.result();
-    }
+		EvaluatorTask evTask = new EvaluatorTask(repository, compilationUnit, test, woLibrary, FUNCTIONNAME, listArgs);
+		try {
+			group.invoke(evTask);
+		}
+		finally {
+			//          group.interruptAll();
+		}
+		if (evTask.causedException()) {
+			throw evTask.taskException();
+		}
+		System.err.println("EvTask: "+evTask.result());
+		return evTask.result();
+	}
 
-    private Option<CompilationUnit> readAST(String filename, String component) throws IOException {
-        StringReader sr = new StringReader(component);
-        BufferedReader br = new BufferedReader(sr);
-        return ASTIO.readJavaAst(filename, br);
-    }
+	private Option<CompilationUnit> readAST(String filename, String component) throws IOException {
+		StringReader sr = new StringReader(component);
+		BufferedReader br = new BufferedReader(sr);
+		return ASTIO.readJavaAst(filename, br);
+	}
 
 	private String writeJavaAST(Component component) throws IOException {
 		StringWriter sw = new StringWriter();

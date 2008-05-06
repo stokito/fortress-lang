@@ -31,7 +31,7 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class FortressModule extends Module {
 
-	public FortressModule(Id name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+	public FortressModule(String name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		super(name, members);
 		initialize();
 	}

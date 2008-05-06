@@ -97,10 +97,10 @@ public class ModuleTranslator {
 	}
 
 	private static void renameModulesToFreshName(ModuleEnvironment menv) {
-		Map<String, Id> moduleNames = new HashMap<String, Id>();
+		Map<String, String> moduleNames = new HashMap<String, String>();
 		for (Module module: menv.getModules()) {
 			if (module instanceof UserModule) {
-				Id freshName = getFreshName(module.getName().toString(), moduleNames);
+				String freshName = getFreshName(module.getName().toString(), moduleNames);
 				module.setName(freshName);
 			}
 			Set<ModuleName> ls = new LinkedHashSet<ModuleName>();
@@ -143,25 +143,22 @@ public class ModuleTranslator {
 	 * @return
 	 */
 	private static String renameModule(String nm,
-			Map<String, Id> moduleNames) {
+			Map<String, String> moduleNames) {
 		if (ModuleInfo.getFortressModuleNames().contains(nm)) {
 			return nm;
 		}
 		return getFreshName(nm, moduleNames).toString();
 	}
 
-	private static Id getFreshName(String name,
-			Map<String, Id> moduleNames) {
-		Id freshName;
+	private static String getFreshName(String name, Map<String, String> moduleNames) {
+		String freshName;
 		if (moduleNames.containsKey(name)) {
 			freshName = moduleNames.get(name);
 		}
 		else {
-			String fn = FreshName.getFreshName(name.toString().replace('.', '_'));
-			freshName = new Id(fn);
+			freshName = FreshName.getFreshName(name.replace('.', '_'));
 			moduleNames.put(name, freshName);
 		}
 		return freshName;
 	}
-
 }

@@ -54,13 +54,6 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 	}
 
 	public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
-//		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
-//		for (ProductionIndex<? extends GrammarMemberDecl> g: this.members) {
-//			if ((g instanceof ProductionDefIndex) ||
-//			    (g instanceof ProductionExtendIndex)) {
-//				nonterminals.add((ProductionIndex) g); // Raw type used because of bug in javac Java 1.5 on Solaris
-//			}
-//		}
 		return this.members;
 	}
 

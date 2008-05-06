@@ -101,7 +101,7 @@ public class GrammarTranslator {
 		for (Production p: m.productions) {
 			GrammarEnv grammarEnv = new GrammarEnv(module.getDeclaredNonterminals());
 			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
-				if (member.getName().toString().equals(p.name.name)) {
+				if (member.getName().getText().equals(p.name.name)) {
 					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member, grammarEnv);
 					p.choice.alternatives.addAll(ptr.alternatives());
 				}
