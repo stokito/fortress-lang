@@ -21,7 +21,10 @@ import Set.{...}
 import Map.{...}
 export Executable
 
-trait A end
+trait A extends StandardTotalOrder[\A\]
+    opr =(self, other:A): Boolean = true
+    opr <(self, other:A): Boolean = false
+end
 object B extends A end
 
 foo(xs: List[\A\]) = ()

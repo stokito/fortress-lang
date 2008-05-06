@@ -16,6 +16,9 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+
+import java.lang.Double;
+
 import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 
 public class FFloatLiteral extends NativeConstructor.FNativeObject {
@@ -36,8 +39,11 @@ public class FFloatLiteral extends NativeConstructor.FNativeObject {
         // HACK that's only sort-of correct.  If we care about all the digits,
         // there must be some sort of normalization.
         if (!(v instanceof NativeConstructor.FNativeObject)) return false;
-        if (v instanceof FFloat || v instanceof FFloatLiteral ||
-            v instanceof FInt   || v instanceof FIntLiteral   ||
+        if (v instanceof FFloat || v instanceof FFloatLiteral) {
+            return (Double.doubleToRawLongBits(getFloat()) ==
+                    Double.doubleToRawLongBits(v.getFloat()));
+        }
+        if (v instanceof FInt   || v instanceof FIntLiteral   ||
             v instanceof FLong) {
             return (getFloat() == v.getFloat());
         }

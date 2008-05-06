@@ -178,7 +178,6 @@ end
     This is primarily for floating-point values.  Minimal complete
     definition: %CMP% or %{ <, = }%. **)
 trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
-        excludes { Number } (* Until Number is an actual type. *)
     opr CMP(self, other:Self): Comparison
     opr <(self, other:Self): Boolean
     opr >(self, other:Self): Boolean
@@ -187,25 +186,36 @@ trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
     opr >=(self, other:Self): Boolean
 end
 
-(** %StandardPartialOrderWithClosure% is a %StandardPartialOrder%,
-    but with %MIN% and %MAX% operators that respect ordering when it exists.
-    So if %a <= b% then %a MIN b = a% and %a MAX b = b%; further,
-    %NOT (a MIN b > a)% and %NOT (a MAX b < a)% under any circumstances.  Finally,
-    %a MIN b = b MIN a% and %a MAX b = b MAX a%.
- **)
-trait StandardPartialOrderWithClosure[\S extends StandardPartialOrderWithClosure[\S\]\]
-        extends StandardPartialOrder[\S\]
-    abstract opr MIN(self, other:S): S
-    abstract opr MAX(self, other:S): S
+(** %StandardMin% is the %MIN% operator; most types that implement %MIN%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MIN b = a% when %a <= b% and that
+    %a MIN b = b MIN a%. **)
+trait StandardMin[\T extends StandardMin[\T\]\]
+    opr MIN(self, other:T): T
+end
+
+(** %StandardMax% is the %MAX% operator; most types that implement %MAX%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MAX b = a% when %a <= b% and that
+    %a MAX b = b MAX a%. **)
+trait StandardMax[\T extends StandardMax[\T\]\]
+    opr MAX(self, other:T): T
 end
 
 (** StandardTotalOrder is the usual total order using %<%,%>%,%<=%,%>=%,%=%, and %CMP%.
     Most values that define a comparison should do so using this.
     Minimal complete definition: either %CMP% or %<% (it is advisable to
-    define %=% in the latter case). **)
+    define %=% in the latter case).  As noted above, %MIN%
+    and %MAX% respect the total order and are defined in the obvious
+    way. **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends StandardPartialOrderWithClosure[\Self\]
-        excludes { Number } (* Until Number is an actual type. *)
+        extends { StandardPartialOrder[\Self\], StandardMin[\Self\], StandardMax[\Self\] }
     opr CMP(self, other:Self): Comparison
     opr >=(self, other:Self): Boolean
 end
@@ -225,7 +235,9 @@ assert(x:Any, y:Any, failMsg: Any...): ()
 * \subsection*{Numeric hierarchy}
 ************************************************************)
 
-trait Number extends StandardPartialOrderWithClosure[\Number\] comprises { RR64 }
+trait Number
+      extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\] }
+      comprises { RR64 }
     opr =(self, b:Number):Boolean
     opr =/=(self, b:Number):Boolean
     opr <(self, b:Number):Boolean
@@ -233,11 +245,33 @@ trait Number extends StandardPartialOrderWithClosure[\Number\] comprises { RR64 
     opr >(self, b:Number):Boolean
     opr >=(self, b:Number):Boolean
     opr CMP(self, b:Number):Comparison
+    (** In case of NaN, %MIN% and %MAX% return a NaN, otherwise it respects the
+        total order. **)
     opr MIN(self, b:Number):Number
     opr MAX(self, b:Number):Number
 end
 
 trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
+    (** returns true if the value is an IEEE NaN **)
+    getter isNaN(): Boolean
+    (** returns true if the value is an IEEE infinity **)
+    getter isInfinite(): Boolean
+    (** returns true if the value is a valid number (not NaN) **)
+    getter isNumber(): Boolean
+    (** returns true if the value is finite **)
+    getter isFinite(): Boolean
+    (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
+    getter check(): Maybe[\RR64\]
+    (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
+    getter check_star(): Maybe[\RR64\]
+    (** obtain the raw bits of the IEEE floating-point representation of this value. **)
+    getter rawBits():ZZ64
+    (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
+        Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
+        that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
+    opr MINNUM(self, b:RR64):RR64
+    opr MAXNUM(self, b:RR64):RR64
+    opr SEQV(self, b:RR64):Boolean
 end
 
 trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
@@ -450,6 +484,8 @@ value trait MaybeType extends Equality[\MaybeType\] excludes Number
     abstract getter holds() : Boolean
     opr =(self, other:MaybeType): Boolean
 end
+
+just(t:Any):MaybeType
 
 (** %Maybe% represents either %Nothing% or a single element of type
     %T% (%Just[\T\]%), which may be retrieved by calling %get%.  An
@@ -1278,27 +1314,29 @@ end
 
 opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
 
-(** Hack to permit both %Number% and %TotalOrder% to work. **)
-object MinReduction extends Reduction[\Any\]
+object MinReduction[\T extends StandardMin[\T\]\]
+        extends Reduction[\MaybeType\]
     getter toString()
-    empty(): Any
-    join(a: Any, b: Any): Any
+    empty(): MaybeType
+    join(a:MaybeType,b:MaybeType): MaybeType
 end
 
-(** Again, type information is notoriously non-specific to permit
-   either %TotalOrder% or %Number% types. **)
-opr BIG MIN[\T\](g:(Reduction[\Any\],T->Any)->Any): Any
+opr BIG MIN[\T extends StandardMin[\T\]\]
+           (g:(MinReduction[\T\],T->MaybeType)->MaybeType): T
 
-object NoMax extends UncheckedException end
-
-(** Hack to permit both %Number% and %TotalOrder% to work. **)
-object MaxReduction extends Reduction[\Any\]
+object MaxReduction[\T extends StandardMax[\T\]\]
+        extends Reduction[\MaybeType\]
     getter toString()
-    empty(): Any
-    join(a: Any, b: Any): Any
+    empty(): MaybeType
+    join(a:MaybeType,b:MaybeType): MaybeType
 end
 
-opr BIG MAX[\T\](g:(Reduction[\Any\],T->Any)->Any): Any
+opr BIG MAX[\T extends StandardMax[\T\]\]
+           (g:(MaxReduction[\T\],T->MaybeType)->MaybeType): T
+
+opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
+
+opr BIG MAXNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
 
 (** %AndReduction% and %OrReduction% take advantage of natural zeroes for early exit. **)
 object AndReduction extends Reduction[\Boolean\]
@@ -1618,9 +1656,6 @@ opr |\a:Number/| : ZZ64
 ceiling(a:Number):RR64
 opr |/a:Number\| : ZZ64
 truncate(a:Number):ZZ64
-nextUp(a:RR64):RR64
-nextDown(a:RR64):RR64
-rawBits(a:RR64):ZZ64
 fromRawBits(a:ZZ64):RR64
 random(a:Number):RR64
 

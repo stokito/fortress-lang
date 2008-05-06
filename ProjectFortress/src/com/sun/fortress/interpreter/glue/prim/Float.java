@@ -25,9 +25,11 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.GenericWithParams;
 
@@ -46,6 +48,24 @@ protected FNativeObject makeNativeObject(List<FValue> args,
     return FFloat.ZERO;
 }
 
+static private abstract class R2B extends NativeMeth0 {
+    protected abstract boolean f(double x);
+    protected final FValue act(FObject x) {
+        return FBool.make(f(x.getFloat()));
+    }
+}
+static private abstract class R2R extends NativeMeth0 {
+    protected abstract double f(double x);
+    protected final FValue act(FObject x) {
+        return FFloat.make(f(x.getFloat()));
+    }
+}
+static private abstract class R2L extends NativeMeth0 {
+    protected abstract long f(double x);
+    protected final FValue act(FObject x) {
+        return FLong.make(f(x.getFloat()));
+    }
+}
 static private abstract class RR2B extends NativeMeth1 {
     protected abstract boolean f(double x, double y);
     protected final FValue act(FObject x, FValue y) {
@@ -181,14 +201,14 @@ public static final class Truncate extends Util.R2L {
 public static final class Abs extends Util.R2R {
     protected double f(double x) { return Math.abs(x); }
 }
-public static final class NextUp extends Util.R2R {
+public static final class NextUp extends R2R {
     protected double f(double x) { return DirectedRounding.nextUp(x); }
 }
-public static final class NextDown extends Util.R2R {
+public static final class NextDown extends R2R {
     protected double f(double x) { return DirectedRounding.nextDown(x); }
 }
-public static final class RawBits extends Util.R2L {
-    protected long f(double x) { return Double.doubleToLongBits(x); }
+public static final class RawBits extends R2L {
+    protected long f(double x) { return Double.doubleToRawLongBits(x); }
 }
 public static final class FromRawBits extends Util.L2R {
     protected double f(long x) { return Double.longBitsToDouble(x); }
@@ -196,6 +216,14 @@ public static final class FromRawBits extends Util.L2R {
 
 public static final class Random extends Util.R2R {
     protected double f(double scale) { return scale*Math.random(); }
+}
+
+public static final class isInfinite extends R2B {
+    protected boolean f(double x) { return Double.isInfinite(x); }
+}
+
+public static final class isNaN extends R2B {
+    protected boolean f(double x) { return Double.isNaN(x); }
 }
 
 }

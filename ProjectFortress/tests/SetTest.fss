@@ -38,18 +38,18 @@ cmp(a:Set[\ZZ32\], b:Set[\ZZ32\], c:Comparison): () = do
 
 run(args:String...):() = do
     a: Set[\ZZ32\] = set[\ZZ32\]()
-    b: Set[\ZZ32\] = set[\ZZ32\](1#10)
+    b: Set[\ZZ32\] = set(1#10)
     c: Set[\ZZ32\] = { 1 1, 2, 4, 5, 6, 7, 8, 9, 10, 3 }
     d: Set[\ZZ32\] = { e | i <- 1#5, e <- {2 i, 2 i - 1} }
     e: Set[\ZZ32\] = { 7, 9, 2, 3, 4, 6, 1 1, 8, 5, 10, 9, 8, 7 }
-    f: Set[\ZZ32\] = set[\ZZ32\](6#10)
+    f: Set[\ZZ32\] = set(6#10)
 
     u = b UNION f
-    assert(u, set[\ZZ32\](1#15), " union")
+    assert(u, set(1#15), " union")
     i = b INTERSECTION f
-    assert(i, set[\ZZ32\](6#5), " intersection")
+    assert(i, set(6#5), " intersection")
     df = b DIFFERENCE f
-    assert(df, set[\ZZ32\](1#5), " difference")
+    assert(df, set(1#5), " difference")
 
     cmp(a,a,EqualTo)
     cmp(a,u,LessThan)
@@ -79,7 +79,7 @@ run(args:String...):() = do
     end
     assert(a[:], set[\ZZ32\](), "subscript operator[:] incorrect for empty set")
     assert(b[:], b, "subscript operator[:] incorrect for tree set")
-    assert(b[5:], set[\ZZ32\](6#5), "subscript operator[x:] incorrect for tree set")
+    assert(b[5:], set(6#5), "subscript operator[x:] incorrect for tree set")
     assert(b[9:9], singleton[\ZZ32\](10), "subscript operator[y:y] incorrect for tree set")
   end
 

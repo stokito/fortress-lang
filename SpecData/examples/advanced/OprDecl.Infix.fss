@@ -22,11 +22,11 @@ component OprDecl.Infix
 export Executable
 
 (** EXAMPLE **)
-opr MAX[\T extends String\](x: T, y: T):T = if x > y then x else y end
+opr SMAX[\T extends String\](x: T, y: T):T = if x > y then x else y end
 (** END EXAMPLE **)
 
 run(args:String...) = do
-  assert(("2" MAX "3") = "3")
+  assert(("2" SMAX "3") = "3")
   println("OprDecl.Infix.fss passed.")
 end
 

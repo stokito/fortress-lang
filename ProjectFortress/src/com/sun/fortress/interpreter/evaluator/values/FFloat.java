@@ -16,6 +16,9 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+
+import java.lang.Double;
+
 import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 
 public class FFloat extends NativeConstructor.FNativeObject {
@@ -38,8 +41,11 @@ public class FFloat extends NativeConstructor.FNativeObject {
     }
     public boolean seqv(FValue v) {
         if (!(v instanceof NativeConstructor.FNativeObject)) return false;
-        if (v instanceof FFloat || v instanceof FFloatLiteral ||
-            v instanceof FInt   || v instanceof FIntLiteral   ||
+        if (v instanceof FFloat || v instanceof FFloatLiteral) {
+            return (Double.doubleToRawLongBits(getFloat()) ==
+                    Double.doubleToRawLongBits(v.getFloat()));
+        }
+        if (v instanceof FInt   || v instanceof FIntLiteral   ||
             v instanceof FLong) {
             return (getFloat() == v.getFloat());
         }
