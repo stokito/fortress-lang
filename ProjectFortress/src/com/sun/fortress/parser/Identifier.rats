@@ -90,6 +90,7 @@ APIName APIName =
      };
 
 /* QualifiedName ::= Id(.Id)* */
+/* Maybe a qualified name; includes an unqualified name */
 /* This says that if we find ellipses, the dot doesn't count */
 Id QualifiedName =
      yyValue:Id &(w ellipses)

@@ -141,17 +141,18 @@ private List<Import> ImportedNames =
                                Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
      }
-   / a1:QualifiedName a2:(w as w Id)?
-     { AliasedSimpleName an;
-       APIName api = Option.unwrap(a1.getApi());
-       if (a2 == null)
-           an = NodeFactory.makeAliasedSimpleName(a1.getSpan(), a1);
-       else
-           an = NodeFactory.makeAliasedSimpleName(FortressUtil.spanTwo(a1,a2),
-                                                  a1, a2);
-       yyValue = FortressUtil.mkList((Import)new ImportNames(
-                                             createSpan(yyStart,yyCount),
-                                             api, FortressUtil.mkList(an)));
+   / a1:Id dot a2:QualifiedName a3:(w as w Id)?
+     { APIName api = NodeFactory.makeAPIName(a1, a2);
+       AliasedAPIName an;
+       if (a3 == null) an = NodeFactory.makeAliasedAPIName(api);
+       else            an = NodeFactory.makeAliasedAPIName(api, a3);
+       Import imp = new ImportApi(createSpan(yyStart,yyCount),
+                                  FortressUtil.mkList(an));
+       yyValue = FortressUtil.mkList(imp);
+     }
+   / a1:Id a2:(w as w Id)?    // Error production
+     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
+                       "Syntax error: try 'import api APIName'");
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
