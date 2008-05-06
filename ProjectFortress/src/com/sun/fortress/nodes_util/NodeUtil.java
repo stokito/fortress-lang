@@ -121,21 +121,23 @@ public class NodeUtil {
             return nameString(n);
             }
         public String forId(Id n) { return nameString(n); }
-        public String forOp(Op n) { return OprUtil.fixityDecorator(n.getFixity(), n.getText()); }
-        public String forEnclosing(Enclosing n) {
-            return n.getOpen().getText() + " " + n.getClose().getText();
-        }
+        public String forOp(Op n) { return nameString(n); }
+        public String forEnclosing(Enclosing n) { return nameString(n); }
         public String forAnonymousFnName(AnonymousFnName n) {
-            return n.getSpan().toString();
+            return nameString(n);
         }
         public String forConstructorFnName(ConstructorFnName n) {
-        // TODO Auto-generated method stub
-        return stringName(n.getDef());
+            // TODO Auto-generated method stub
+            return nameString(n);
         }
     };
 
     /* nameString *************************************************************/
     public static String nameString(Name n) {
+        return n.accept(nameGetter);
+    }
+
+    public static String nameString(IdOrOpOrAnonymousName n) {
         return n.accept(nameGetter);
     }
 
@@ -151,14 +153,27 @@ public class NodeUtil {
     }
 
     public static String nameString(Op n) {
-        return n.getText();
+        return OprUtil.fixityDecorator(n.getFixity(), n.getText());
     }
 
+    public static String nameString(Enclosing n) {
+        return n.getOpen().getText() + " " + n.getClose().getText();
+    }
+    public static String nameString(AnonymousFnName n) {
+        return n.getSpan().toString();
+    }
+    public static String nameString(ConstructorFnName n) {
+        // TODO Auto-generated method stub
+        return stringName(n.getDef());
+    }
+
+    /*
     public static String nameString(IdOrOpOrAnonymousName n) {
         final String last = n.accept(nameGetter);
         Option<APIName> odn = n.getApi();
         return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
     }
+    */
 
     public static String namesString(Iterable<? extends Name> names) {
         return IterUtil.toString(IterUtil.map(names, NameToStringFn), "", ", ", "");

@@ -23,9 +23,9 @@ import java.util.Arrays;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.drivers.*;
+import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Api;
 
 import static com.sun.fortress.shell.ConvenientStrings.*;
 
@@ -74,7 +74,7 @@ public final class Shell {
         //System.err.println("  " + UPGRADE_PATTERN);
         System.err.println(" help");
     }
-    
+
     private void printHelpMessage() {
         System.err.println
         ("Invoked as script: fortress args\n"+
@@ -113,7 +113,7 @@ public final class Shell {
                 interpreter.run(Arrays.asList(tokens));
             } else if (what.equals("help")) {
                 printHelpMessage();
-                
+
             } else { printUsageMessage(); }
         }
         catch (UserError error) {
