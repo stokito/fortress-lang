@@ -214,7 +214,6 @@ end
     This is primarily for floating-point values.  Minimal complete
     definition: CMP or { <, = }. **)
 trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
-        excludes { Number } (** Until Number is an actual type. **)
     opr CMP(self, other:Self): Comparison =
         if self < other then LessThan
         elif other > self then GreaterThan
@@ -228,19 +227,32 @@ trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
     opr >=(self, other:Self): Boolean = (self = other OR: self > other)
 end
 
+(** %StandardPartialOrderWithClosure% is a %StandardPartialOrder%,
+    but with %MIN% and %MAX% operators that respect ordering when it exists.
+    So if %a <= b% then %a MIN b = a% and %a MAX b = b%; further,
+    %NOT (a MIN b > a)% and %NOT (a MAX b < a)% under any circumstances.  Finally,
+    %a MIN b = b MIN a% and %a MAX b = b MAX a%.
+ **)
+trait StandardPartialOrderWithClosure[\S extends StandardPartialOrderWithClosure[\S\]\]
+        extends StandardPartialOrder[\S\]
+    opr MIN(self, other:S): S
+    opr MAX(self, other:S): S
+end
+
 (** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and CMP.
     Most values that define a comparison should do so using this.
     Minimal complete definition: either CMP or < (it's advisable to
     define = in the latter case). **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends StandardPartialOrder[\Self\]
-        excludes { Number } (** Until Number is an actual type. **)
+        extends StandardPartialOrderWithClosure[\Self\]
     opr CMP(self, other:Self): Comparison =
         if self < other then LessThan
         elif other < self then GreaterThan
         else EqualTo
         end
     opr >=(self, other:Self): Boolean = NOT (self < other)
+    opr MIN(self, other:Self): Self = if other < self then other else self end
+    opr MAX(self, other:Self): Self = if self < other then other else self end
 end
 
 (** Assertion *)
@@ -264,13 +276,40 @@ assert(x:Any, y:Any, failMsg: Any...): () =
 * Numeric hierarchy
 ************************************************************)
 
-trait  Number comprises { RR64 }
+trait Number extends StandardPartialOrderWithClosure[\Number\] comprises { RR64 }
+    opr =(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
+    opr =/=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NEq")
+    opr <(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Less")
+    opr <=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$LessEq")
+    opr >(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Greater")
+    opr >=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$GreaterEq")
+    opr CMP(self, b:Number):Comparison =
+        if self<b then LessThan
+        elif self>b then GreaterThan
+        elif self=b then EqualTo
+        else Unordered
+        end
+    opr MIN(self, b:Number):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
+    opr MAX(self, b:Number):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
 end
 
 trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
 end
 
-trait  Integral extends RR64 comprises { ZZ64, IntLiteral }
+trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
+        comprises { ZZ64, IntLiteral }
+    opr =(self, b:Integral):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
+    opr <(self, b:Integral):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
 end
 
 trait ZZ64 extends Integral comprises { Long, ZZ32 }
@@ -2753,8 +2792,6 @@ opr BITXOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.
 opr LSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$LShift")
 opr RSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$RShift")
 opr BITNOT(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitNot")
-opr =(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Eq")
-opr <=(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$LessEq")
 opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Pow")
 widen(a:ZZ32):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToLong")
 partitionL(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Partition")
@@ -2790,8 +2827,6 @@ opr BITXOR(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.
 opr LSHIFT(a: IntLiteral,b:Integral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LShift")
 opr RSHIFT(a: IntLiteral,b:Integral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$RShift")
 opr BITNOT(a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitNot")
-opr =(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Eq")
-opr <=(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LessEq")
 opr ^(a: IntLiteral, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
 
 opr -(a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
@@ -2811,18 +2846,8 @@ opr BITXOR(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.inte
 opr LSHIFT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LShift")
 opr RSHIFT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
 opr BITNOT(a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
-opr =(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
-opr <=(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LessEq")
 opr ^(a:ZZ64, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
 narrow(a:ZZ64):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$FromLong")
-
-opr   <(a:Integral, b:Integral):Boolean = NOT (b <= a)
-opr   >(a:Integral, b:Integral):Boolean = NOT (a <= b)
-opr  >=(a:Integral, b:Integral):Boolean = b <= a
-opr CMP(a:Integral, b:Integral):TotalComparison =
-    if a<b then LessThan elif a>b then GreaterThan else EqualTo end
-opr MIN[\I extends Integral\](a:I, b:I):I = if a <= b then a else b end
-opr MAX[\I extends Integral\](a:I, b:I):I = if b <= a then a else b end
 
 opr -(a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
 opr +(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
@@ -2842,20 +2867,6 @@ opr MINUS_DOWN(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.inte
 opr DOT_DOWN(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulDown")
 opr SLASH_DOWN(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
 opr SQRT_DOWN(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtDown")
-opr =(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
-opr =/=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NEq")
-opr <(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Less")
-opr <=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$LessEq")
-opr >(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Greater")
-opr >=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$GreaterEq")
-opr CMP(a:Number, b:Number):Comparison =
-    if a<b then LessThan
-    elif a>b then GreaterThan
-    elif a=b then EqualTo
-    else Unordered
-    end
-opr MIN(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
-opr MAX(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
 opr |a:RR64| : RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
 opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
 sin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")

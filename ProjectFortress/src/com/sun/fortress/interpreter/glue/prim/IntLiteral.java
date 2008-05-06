@@ -28,10 +28,12 @@ import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.glue.NativeMeth1;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
@@ -70,10 +72,16 @@ public static abstract class KK2K extends NativeFn2 {
         return FIntLiteral.make(f(toB(x),toB(y)));
     }
 }
-public static abstract class KK2B extends NativeFn2 {
+public static abstract class KK2B extends NativeMeth1 {
     protected abstract boolean f(BigInteger x, BigInteger y);
-    protected final FValue act(FValue x, FValue y) {
+    protected final FValue act(FObject x, FValue y) {
         return FBool.make(f(toB(x),toB(y)));
+    }
+}
+public static abstract class KK2I extends NativeMeth1 {
+    protected abstract int f(BigInteger x, BigInteger y);
+    protected final FValue act(FObject x, FValue y) {
+        return FInt.make(f(toB(x),toB(y)));
     }
 }
 public static abstract class KL2K extends NativeFn2 {
@@ -169,8 +177,8 @@ public static final class BitNot extends K2K {
 public static final class Eq extends KK2B {
     protected boolean f(BigInteger x, BigInteger y) { return x.equals(y); }
 }
-public static final class LessEq extends KK2B {
-    protected boolean f(BigInteger x, BigInteger y) { return x.compareTo(y)<=0; }
+public static final class Cmp extends KK2I {
+    protected int f(BigInteger x, BigInteger y) { return x.compareTo(y); }
 }
 public static final class Pow extends KL2N {
     protected FValue f(BigInteger u, long v) {

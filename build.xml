@@ -13,4 +13,10 @@
     <target name="clean">
         <ant target="clean"/>
     </target>
+    <target name="cleanCache">
+        <ant target="cleanCache"/>
+    </target>
+    <target name="testSystem">
+        <ant target="testSystem"/>
+    </target>
 </project>

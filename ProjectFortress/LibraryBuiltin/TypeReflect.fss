@@ -38,18 +38,17 @@ trait ReflectedType extends StandardPartialOrder[\ReflectedType\]
           else Unordered
           end
       end
-  opr =(self, other:ReflectedType): Boolean = eq(self,other)
+  opr =(self, other:ReflectedType): Boolean = false
 end
 
-eq[\T,U\](a:Reflect[\T\], b:Reflect[\U\]): Boolean =
-    typecase b of
-        Reflect[\T\] => true
-        else => false
-    end
-
 value object Reflect[\T\]() extends ReflectedType
-  getter toString(): String =
-    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$ToString")
+    getter toString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$ToString")
+    opr =(self, other:ReflectedType): Boolean =
+        typecase other of
+            Reflect[\T\] => true
+            else => false
+        end
 end
 
 joinReflected(ty:ReflectedType, tys:ReflectedType...):() =

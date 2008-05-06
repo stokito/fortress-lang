@@ -27,10 +27,12 @@ import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.glue.NativeMeth1;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
@@ -47,6 +49,13 @@ protected FNativeObject makeNativeObject(List<FValue> args,
                                          NativeConstructor con) {
     FInt.setConstructor(this);
     return FInt.ZERO;
+}
+
+static public abstract class ZZ2B extends NativeMeth1 {
+    protected abstract boolean f(int x, int y);
+    protected final FValue act(FObject x, FValue y) {
+        return FBool.make(f(x.getInt(),y.getInt()));
+    }
 }
 
 public static final class Negate extends Util.Z2Z {
@@ -116,11 +125,11 @@ public static final class RShift extends Util.ZL2Z {
 public static final class BitNot extends Util.Z2Z {
     protected int f(int x) { return ~x; }
 }
-public static final class Eq extends Util.ZZ2B {
+public static final class Eq extends ZZ2B {
     protected boolean f(int x, int y) { return x==y; }
 }
-public static final class LessEq extends Util.ZZ2B {
-    protected boolean f(int x, int y) { return x<=y; }
+public static final class Less extends ZZ2B {
+    protected boolean f(int x, int y) { return x<y; }
 }
 public static final class Partition extends Util.Z2Z {
     protected int f(int u) {

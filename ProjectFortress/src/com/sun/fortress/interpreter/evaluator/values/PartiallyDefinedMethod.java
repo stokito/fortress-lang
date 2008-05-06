@@ -23,10 +23,13 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * Trait methods are only partially defined.
@@ -73,15 +76,9 @@ public class PartiallyDefinedMethod extends MethodClosure {
     }
 
     @Override
-    public FValue applyMethod(List<FValue> args0, FObject selfValue, HasAt loc, BetterEnv envForInference) {
-        List<FValue> args = conditionallyUnwrapTupledArgs(args0);
-        // TraitMethods do not get their environment from the object.
-        Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(evaluationEnv, args, loc));
-        eval.e.putValue(selfName(), selfValue);
-        return eval.eval(getBody());
-     }
-
-
+    protected BetterEnv envForApplication(FObject selfValue) {
+        return getEvalEnv();
+    }
 
     public static Hasher<PartiallyDefinedMethod> signatureEquivalence = new Hasher<PartiallyDefinedMethod>() {
 

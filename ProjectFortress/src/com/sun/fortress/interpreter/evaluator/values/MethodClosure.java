@@ -31,6 +31,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class MethodClosure extends Closure implements Method {
@@ -63,6 +64,13 @@ public class MethodClosure extends Closure implements Method {
         return selfParameterIndex == -1 ? params2 :  Useful.removeIndex(selfParameterIndex, params2);
     }
 
+    // The choice of evaluation environment is the only difference between applying
+    // a MethodClosure and applying its subclass, a PartiallyDefinedMethod (which
+    // appears to actually represent some piece of a functional method in practice).
+    protected BetterEnv envForApplication(FObject selfValue) {
+        return selfValue.getLexicalEnv();
+    }
+
     public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc,
             BetterEnv envForInference) {
         args = conditionallyUnwrapTupledArgs(args);
@@ -78,8 +86,9 @@ public class MethodClosure extends Closure implements Method {
             // environment is the
             // instantiation of some generic? It seems like signatures etc will
             // depend on this.
-            Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(selfValue
-                    .getLexicalEnv(), args, loc));
+            Evaluator eval =
+                new Evaluator(buildEnvFromEnvAndParams(envForApplication(selfValue),
+                                                       args, loc));
             // selfName() was rewritten to our special "$self", and
             // we don't care about shadowing here.
             eval.e.putValueUnconditionally(selfName(), selfValue);
@@ -88,8 +97,8 @@ public class MethodClosure extends Closure implements Method {
             return ((Method) def).applyMethod(args, selfValue, loc,
                     envForInference);
         } else
-            return bug("MethodClosure " + this
-		       + " has neither body nor def instanceof Method");
+            return bug(loc,errorMsg("MethodClosure ",this,
+                                    " has neither body nor def instanceof Method"));
 
     }
     public boolean isMethod() {
