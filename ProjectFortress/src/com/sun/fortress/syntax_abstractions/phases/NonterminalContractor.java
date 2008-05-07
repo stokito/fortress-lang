@@ -41,67 +41,67 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class NonterminalContractor {
 
-	private Collection<GrammarIndex> visitedGrammars;
+ private Collection<GrammarIndex> visitedGrammars;
 
-	/**
-	 * Given a grammar index g, return a collection of contained terminals and nonterminals where
-	 * each overriding nonterminal has been contracted so it contains all the alternatives
-	 * of the nonterminals it overrides.
-	 * @param g
-	 * @return A collection of grammar member declarations
-	 */
-	public Collection<ContractedNonterminal> getContractionList(GrammarIndex g) {
-		Collection<ContractedNonterminal> result = new LinkedList<ContractedNonterminal>();
-		GrammarAnalyzer<GrammarIndex> analyzer = new GrammarAnalyzer<GrammarIndex>();
-		for (NonterminalIndex<? extends GrammarMemberDecl> n: analyzer.getContainedSet(g)) {
-			DependencyCollector dc = new DependencyCollector();
-			n.getAst().accept(dc);
-			Set<Id> dependencies = dc.getResult();
-			if (n.getAst() instanceof NonterminalExtensionDef) {
-				visitedGrammars = new LinkedList<GrammarIndex>();
+ /**
+  * Given a grammar index g, return a collection of contained terminals and nonterminals where
+  * each overriding nonterminal has been contracted so it contains all the alternatives
+  * of the nonterminals it overrides.
+  * @param g
+  * @return A collection of grammar member declarations
+  */
+ public Collection<ContractedNonterminal> getContractionList(GrammarIndex g) {
+  Collection<ContractedNonterminal> result = new LinkedList<ContractedNonterminal>();
+  GrammarAnalyzer<GrammarIndex> analyzer = new GrammarAnalyzer<GrammarIndex>();
+  for (NonterminalIndex<? extends GrammarMemberDecl> n: analyzer.getContainedSet(g)) {
+   DependencyCollector dc = new DependencyCollector();
+   n.getAst().accept(dc);
+   Set<Id> dependencies = dc.getResult();
+   if (n.getAst() instanceof NonterminalExtensionDef) {
+    visitedGrammars = new LinkedList<GrammarIndex>();
 
-				List<NonterminalIndex<? extends GrammarMemberDecl>> ls = getCollapsedNonterminal(n.getName(), g);
-				dependencies.addAll(getDependencies(ls));
-				result.add(new ContractedNonterminal(ls, dependencies));
-			}
-			else {
-				result.add(new ContractedNonterminal(n, dependencies));
-			}
-		}
-		return result;
-	}
+    List<NonterminalIndex<? extends GrammarMemberDecl>> ls = getCollapsedNonterminal(n.getName(), g);
+    dependencies.addAll(getDependencies(ls));
+    result.add(new ContractedNonterminal(ls, dependencies));
+   }
+   else {
+    result.add(new ContractedNonterminal(n, dependencies));
+   }
+  }
+  return result;
+ }
 
-	private Set<Id> getDependencies(
-			List<NonterminalIndex<? extends GrammarMemberDecl>> ls) {
-		Set<Id> s = new HashSet<Id>();
-		for (NonterminalIndex<? extends GrammarMemberDecl> m: ls) {
-			DependencyCollector dc = new DependencyCollector();
-			m.getAst().accept(dc);
-			s.addAll(dc.getResult());
-		}
-		return s ;
-	}
+ private Set<Id> getDependencies(
+   List<NonterminalIndex<? extends GrammarMemberDecl>> ls) {
+  Set<Id> s = new HashSet<Id>();
+  for (NonterminalIndex<? extends GrammarMemberDecl> m: ls) {
+   DependencyCollector dc = new DependencyCollector();
+   m.getAst().accept(dc);
+   s.addAll(dc.getResult());
+  }
+  return s ;
+ }
 
-	/**
-	 * Returns a set of all the members which the member with the given name
-	 * overrides.
-	 * @param name
-	 * @param a
-	 * @return
-	 */
-	private List<NonterminalIndex<? extends GrammarMemberDecl>> getCollapsedNonterminal(Id name, GrammarIndex g) {
-		visitedGrammars.add(g);
-		List<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-		for (GrammarIndex gi: g.getExtended()) {
-			if (!visitedGrammars.contains(gi)) {
-				ls.addAll(getCollapsedNonterminal(name, gi));
-			}
-		}
-		Option<GrammarNonterminalIndex<? extends NonterminalDecl>> cnd = g.getNonterminalDecl(name);
-		if (cnd.isSome()) {
-			ls.add(Option.unwrap(cnd));
-		}
-		return ls;
-	}
+ /**
+  * Returns a set of all the members which the member with the given name
+  * overrides.
+  * @param name
+  * @param a
+  * @return
+  */
+ private List<NonterminalIndex<? extends GrammarMemberDecl>> getCollapsedNonterminal(Id name, GrammarIndex g) {
+  visitedGrammars.add(g);
+  List<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+  for (GrammarIndex gi: g.getExtended()) {
+   if (!visitedGrammars.contains(gi)) {
+    ls.addAll(getCollapsedNonterminal(name, gi));
+   }
+  }
+  Option<GrammarNonterminalIndex<? extends NonterminalDecl>> cnd = g.getNonterminalDecl(name);
+  if (cnd.isSome()) {
+   ls.add(cnd.unwrap());
+  }
+  return ls;
+ }
 
 }

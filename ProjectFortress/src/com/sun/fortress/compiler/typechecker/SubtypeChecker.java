@@ -35,7 +35,6 @@ import static com.sun.fortress.nodes_util.NodeUtil.getName;
 import static com.sun.fortress.nodes_util.NodeUtil.nameString;
 import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 public abstract class SubtypeChecker {
 
@@ -96,11 +95,11 @@ public abstract class SubtypeChecker {
                     Id name = NodeFactory.makeId(span, "FortressLibrary", "Array1");
                     StaticArg base;
                     if (first.getBase().isSome())
-                         base = Option.unwrap(first.getBase());
+                         base = first.getBase().unwrap();
                     else base = zero;
                     return NodeFactory.makeInstantiatedType(span, false, name,
                                                             elem, base,
-                                                            Option.unwrap(first.getSize()));
+                                                            first.getSize().unwrap());
                 } else if (dims.size() == 2) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
@@ -108,16 +107,16 @@ public abstract class SubtypeChecker {
                     StaticArg base1;
                     StaticArg base2;
                     if (first.getBase().isSome())
-                         base1 = Option.unwrap(first.getBase());
+                         base1 = first.getBase().unwrap();
                     else base1 = zero;
                     if (second.getBase().isSome())
-                         base2 = Option.unwrap(first.getBase());
+                         base2 = first.getBase().unwrap();
                     else base2 = zero;
                     return NodeFactory.makeInstantiatedType(span, false, name,
                                                             elem, base1,
-                                                            Option.unwrap(first.getSize()),
+                                                            first.getSize().unwrap(),
                                                             base2,
-                                                            Option.unwrap(second.getSize()));
+                                                            second.getSize().unwrap());
                 } else if (dims.size() == 3) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
@@ -127,21 +126,21 @@ public abstract class SubtypeChecker {
                     StaticArg base2;
                     StaticArg base3;
                     if (first.getBase().isSome())
-                         base1 = Option.unwrap(first.getBase());
+                         base1 = first.getBase().unwrap();
                     else base1 = zero;
                     if (second.getBase().isSome())
-                         base2 = Option.unwrap(first.getBase());
+                         base2 = first.getBase().unwrap();
                     else base2 = zero;
                     if (third.getBase().isSome())
-                         base3 = Option.unwrap(first.getBase());
+                         base3 = first.getBase().unwrap();
                     else base3 = zero;
                     return NodeFactory.makeInstantiatedType(span, false, name,
                                                             elem, base1,
-                                                            Option.unwrap(first.getSize()),
+                                                            first.getSize().unwrap(),
                                                             base2,
-                                                            Option.unwrap(second.getSize()),
+                                                            second.getSize().unwrap(),
                                                             base3,
-                                                            Option.unwrap(third.getSize()));
+                                                            third.getSize().unwrap());
 
                 }
                 return error("Desugaring " + t + " to InstantiatedType is not " +
@@ -163,8 +162,8 @@ public abstract class SubtypeChecker {
                     Id name = NodeFactory.makeId(span, "FortressLibrary", "Matrix");
                     return NodeFactory.makeInstantiatedType(span, false, name,
                                                             NodeFactory.makeTypeArg(tt.getElement()),
-                                                            Option.unwrap(first.getSize()),
-                                                            Option.unwrap(second.getSize()));
+                                                            first.getSize().unwrap(),
+                                                            second.getSize().unwrap());
                 }
             }
             return error("Desugaring " + t + " to InstantiatedType is not yet " +
@@ -308,7 +307,7 @@ public abstract class SubtypeChecker {
         if (name.getApi().isNone()) {
             Option<StaticParam> result = _staticParamEnv.binding(name);
             if (result.isSome()) {
-                StaticParam sparam = Option.unwrap(result);
+                StaticParam sparam = result.unwrap();
                 if (isTypeParam(sparam)) {
                     return ((TypeParam)sparam).getExtendsClause();
                 } else return _extends;
@@ -458,7 +457,7 @@ public abstract class SubtypeChecker {
                                SubtypeHistory h) {
         if (s.isSome()) {
             if (t.isSome()) {
-                return equivalent(Option.unwrap(s), Option.unwrap(t), h);
+                return equivalent(s.unwrap(), t.unwrap(), h);
             } else { // t.isNone()
                 return false;
             }
@@ -573,7 +572,7 @@ public abstract class SubtypeChecker {
 
     private Boolean subtype(final Type s, final Type t, SubtypeHistory history) {
         Option<Boolean> cached = cacheContains(s, t);
-        if (cached.isSome()) { return Option.unwrap(cached); }
+        if (cached.isSome()) { return cached.unwrap(); }
         else if (history.contains(s, t)) { return FALSE; }
         else {
             final SubtypeHistory h = history.extend(s, t);
@@ -634,9 +633,9 @@ public abstract class SubtypeChecker {
                     List<Type> stypes = ss.getElements();
                     List<Type> ttypes = tt.getElements();
                     int padLength = Math.max(stypes.size(), ttypes.size());
-                    List<Type> spadded = (ss.getVarargs().isSome()) ? pad(stypes, unwrap(ss.getVarargs()).getType(), padLength)
+                    List<Type> spadded = (ss.getVarargs().isSome()) ? pad(stypes, ss.getVarargs().unwrap().getType(), padLength)
                                                                     : stypes;
-                    List<Type> tpadded = (tt.getVarargs().isSome()) ? pad(ttypes, unwrap(tt.getVarargs()).getType(), padLength)
+                    List<Type> tpadded = (tt.getVarargs().isSome()) ? pad(ttypes, tt.getVarargs().unwrap().getType(), padLength)
                                                                     : ttypes;
                     for (Pair<Type, Type> p : IterUtil.zip(spadded, tpadded)) {
                         if (!subtype(p.first(), p.second(), history)) {
@@ -645,7 +644,7 @@ public abstract class SubtypeChecker {
                     }
                     // Check that varargs are subtypes
                     if (ss.getVarargs().isSome() && tt.getVarargs().isSome()) {
-                        if (!subtype(unwrap(ss.getVarargs()).getType(), unwrap(tt.getVarargs()).getType())) {
+                        if (!subtype(ss.getVarargs().unwrap().getType(), tt.getVarargs().unwrap().getType())) {
                             return FALSE;
                         }
                     }
@@ -800,7 +799,7 @@ public abstract class SubtypeChecker {
             Pair<Type, Type> types = Pair.make(s, t);
             if (subtypeCache.containsKey(types))
                 return Option.some(subtypeCache.get(types));
-            else return Option.<Boolean>none();
+            else return Option.none();
         }
     }
 }

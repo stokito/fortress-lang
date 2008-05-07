@@ -36,26 +36,26 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class DependencyCollector extends NodeDepthFirstVisitor_void {
 
-	private Set<Id> result;
+ private Set<Id> result;
 
-	public DependencyCollector() {
-		this.result = new HashSet<Id>();
-	}
+ public DependencyCollector() {
+  this.result = new HashSet<Id>();
+ }
 
-	@Override
-	public void forNonterminalSymbolOnly(NonterminalSymbol that) {
-		// We know that fortress modules are on the form FortressSyntax.moduleName.nonterminal
-		if (ModuleInfo.isFortressModule(that.getNonterminal())) {
-			Id id = Option.unwrap(that.getNonterminal().getApi()).getIds().get(1);
-			result.add(id);
-		}
-		else {
-			result.add(that.getNonterminal());
-		}
-	}
+ @Override
+ public void forNonterminalSymbolOnly(NonterminalSymbol that) {
+  // We know that fortress modules are on the form FortressSyntax.moduleName.nonterminal
+  if (ModuleInfo.isFortressModule(that.getNonterminal())) {
+   Id id = that.getNonterminal().getApi().unwrap().getIds().get(1);
+   result.add(id);
+  }
+  else {
+   result.add(that.getNonterminal());
+  }
+ }
 
-	public Set<Id> getResult() {
-		return this.result;
-	}
+ public Set<Id> getResult() {
+  return this.result;
+ }
 
 }

@@ -502,13 +502,13 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         Option<StaticArg> s = extent.getSize();
         FTypeNat natB, natS;
         if (b.isSome()) {
-            FType bt = Option.unwrap(b).accept(this);
+            FType bt = b.unwrap().accept(this);
             if (bt instanceof IntNat || bt instanceof SymbolicNat) {
                 natB = (FTypeNat)bt;
             } else {
-                natB = error(Option.unwrap(b),
+                natB = error(b.unwrap(),
                              errorMsg(extent,env,"Bad base ",
-                                      Option.unwrap(b),"=",
+                                      b.unwrap(),"=",
                                       bt.getClass().getName(), " ", bt));
             }
         } else {
@@ -516,13 +516,13 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         }
 
         if (s.isSome()) {
-            FType st = Option.unwrap(s).accept(this);
+            FType st = s.unwrap().accept(this);
             if (st instanceof IntNat || st instanceof SymbolicNat) {
                 natS = (FTypeNat)st;
             } else {
-                natS = error(Option.unwrap(s),
+                natS = error(s.unwrap(),
                              errorMsg(extent,env,"Bad size ",
-                                      Option.unwrap(s), "=",
+                                      s.unwrap(), "=",
                                       st.getClass().getName(), " ", st));
             }
         } else {

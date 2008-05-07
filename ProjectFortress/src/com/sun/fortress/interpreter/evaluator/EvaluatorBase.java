@@ -232,7 +232,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                                     "Parameter needs type for generic resolution");
                         }
                     } else {
-                        Type ty = Option.unwrap(t);
+                        Type ty = t.unwrap();
                         if (DUMP_INFERENCE)
                             System.err.println("Unifying "+at+" and "+ty);
                         at.unify(e, tp_set, abm, ty);
@@ -271,7 +271,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         Option<Type> opt_rt = bar.getReturnType();
 
         if (opt_rt.isSome())
-            Option.unwrap(opt_rt).accept(mis);
+            opt_rt.unwrap().accept(mis);
 
         if (DUMP_INFERENCE)
             System.err.println("ABM 2={" + abm + "}");

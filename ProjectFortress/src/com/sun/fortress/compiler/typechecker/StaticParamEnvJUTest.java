@@ -20,9 +20,9 @@ package com.sun.fortress.compiler.typechecker;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Useful;
 import junit.framework.TestCase;
+import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 public class StaticParamEnvJUTest extends TestCase {
     private final StaticParam FOO = makeTypeParam("Foo");
@@ -45,23 +45,23 @@ public class StaticParamEnvJUTest extends TestCase {
 
     public void testEmptyStaticParamEnv() {
 
-        assertEquals(none(), NIL.binding("blah"));
+        assertEquals(Option.none(), NIL.binding("blah"));
     }
 
     public void testBinding() {
-        assertEquals(FOO, unwrap(extended.binding("Foo")));
-        assertEquals(BAZ, unwrap(extended.binding("Baz")));
-        assertEquals(BAR, unwrap(extended.binding("Bar")));
+        assertEquals(FOO, extended.binding("Foo").unwrap());
+        assertEquals(BAZ, extended.binding("Baz").unwrap());
+        assertEquals(BAR, extended.binding("Bar").unwrap());
 
-        assertEquals(none(), extended.binding("goo"));
+        assertEquals(Option.none(), extended.binding("goo"));
     }
 
     public void testBindingExtended() {
-        assertEquals(P, unwrap(moreExtended.binding("p")));
-        assertEquals(N, unwrap(moreExtended.binding("n")));
-        assertEquals(Z, unwrap(moreExtended.binding("z")));
-        assertEquals(M_, unwrap(moreExtended.binding("m_")));
-        assertEquals(LENGTH, unwrap(moreExtended.binding("Length")));
-        assertEquals(AND, unwrap(moreExtended.opBinding("AND")));
+        assertEquals(P, moreExtended.binding("p").unwrap());
+        assertEquals(N, moreExtended.binding("n").unwrap());
+        assertEquals(Z, moreExtended.binding("z").unwrap());
+        assertEquals(M_, moreExtended.binding("m_").unwrap());
+        assertEquals(LENGTH, moreExtended.binding("Length").unwrap());
+        assertEquals(AND, moreExtended.opBinding("AND").unwrap());
     }
 }

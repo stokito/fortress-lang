@@ -294,13 +294,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                                 Thunk<Type> variableHandler,
                                 Lambda<Id, Type> typeConsHandler) {
         if (n.getApi().isSome()) {
-            APIName originalApi = Option.unwrap(n.getApi());
+            APIName originalApi = n.getApi().unwrap();
             Option<APIName> realApiOpt = _env.apiName(originalApi);
             if (realApiOpt.isNone()) {
                 error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
                 return that;
             }
-            APIName realApi = Option.unwrap(realApiOpt);
+            APIName realApi = realApiOpt.unwrap();
             Id newN;
             if (originalApi == realApi) { newN = n; }
             else { newN = NodeFactory.makeId(realApi, n); }
@@ -458,7 +458,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
             Option<GrammarIndex> gi = this._env.grammarIndex(nname);
             if (gi.isSome()) {
-                gs.add(Option.unwrap(gi));
+                gs.add(gi.unwrap());
             }
             else {
                 error("Undefined grammar: " + NodeUtil.nameString(nname), name);
@@ -479,7 +479,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         List<StaticError> newErrs = new ArrayList<StaticError>();
         Option<GrammarIndex> grammar = this._env.grammarIndex(name);
         if (grammar.isSome()) {
-            GrammarIndex g = Option.unwrap(grammar);
+            GrammarIndex g = grammar.unwrap();
             g.setAst(disambiguatedGrammar);
             g.setExtended(p.second());
             g.setAst(disambiguatedGrammar);
@@ -496,13 +496,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
     private Id handleGrammarName(Id name) {
         if (name.getApi().isSome()) {
-            APIName originalApi = Option.unwrap(name.getApi());
+            APIName originalApi = name.getApi().unwrap();
             Option<APIName> realApiOpt = _env.apiName(originalApi);
             if (realApiOpt.isNone()) {
                 error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
                 return name;
             }
-            APIName realApi = Option.unwrap(realApiOpt);
+            APIName realApi = realApiOpt.unwrap();
             Id newN;
             if (originalApi == realApi) { newN = name; }
             else { newN = NodeFactory.makeId(name.getSpan(), realApi, name); }

@@ -84,16 +84,16 @@ public class FnHeaderClause {
         StringBuffer sb = new StringBuffer();
         if (throwsClause.isSome()) {
             sb.append("throws { ");
-            sb.append(Option.unwrap(throwsClause));
+            sb.append(throwsClause.unwrap());
             sb.append(" } ");
         }
         sb.append("where...");
         if (contractClause.isSome()) {
-            sb.append(Option.unwrap(contractClause));
+            sb.append(contractClause.unwrap());
         }
         if (returnType.isSome()) {
             sb.append(":");
-            sb.append(Option.unwrap(returnType));
+            sb.append(returnType.unwrap());
         }
         return sb.toString();
     }

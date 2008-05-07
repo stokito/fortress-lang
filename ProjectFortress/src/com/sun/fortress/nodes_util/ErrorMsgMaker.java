@@ -77,7 +77,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             + "->"
             + node.getRange().accept(this)
             + (node.getThrowsClause().isSome() ?
-                   (" throws " + Useful.listInCurlies(mapSelf(Option.unwrap(node.getThrowsClause())))) :
+                   (" throws " + Useful.listInCurlies(mapSelf(node.getThrowsClause().unwrap()))) :
                    "")
             + (node.isIo()? " io" : "");
     }
@@ -102,7 +102,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName())
                 + (node.getStaticParams().size() > 0 ? Useful.listInOxfords(mapSelf(node.getStaticParams())) : "")
                 + Useful.listInParens(mapSelf(node.getParams()))
-                + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(this)) : "")
+                + (node.getReturnType().isSome() ? (":" + node.getReturnType().unwrap().accept(this)) : "")
                 ;//+ "@" + NodeUtil.getAt(node.getFnName());
     }
 
@@ -178,7 +178,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forLValueBind(LValueBind node) {
         String r = "";
         if (node.getType().isSome()) {
-            r = ":" + Option.unwrap(node.getType()).accept(this);
+            r = ":" + node.getType().unwrap().accept(this);
         }
         return NodeUtil.nameString(node.getName()) + r;
     }
@@ -200,11 +200,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         sb.append(NodeUtil.nameString(node.getName()));
         if (node.getType().isSome()) {
             sb.append(":");
-            sb.append(Option.unwrap(node.getType()).accept(this));
+            sb.append(node.getType().unwrap().accept(this));
         }
         if (node.getDefaultExpr().isSome()) {
             sb.append("=");
-            sb.append(Option.unwrap(node.getDefaultExpr()).accept(this));
+            sb.append(node.getDefaultExpr().unwrap().accept(this));
         }
         return sb.toString();
     }
@@ -289,7 +289,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         Option oid = item.getId();
         SyntaxSymbol sym = item.getSymbol();
         if (oid.isSome()) {
-            return Option.unwrap(oid).toString() + "!FIXME!" + sym.toString();
+            return oid.unwrap().toString() + "!FIXME!" + sym.toString();
         } else {
             return sym.toString();
         }

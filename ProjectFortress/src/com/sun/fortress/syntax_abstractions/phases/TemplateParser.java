@@ -54,118 +54,115 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class TemplateParser extends NodeUpdateVisitor {
 
-	/**
-	 * Result of the module translation
-	 */
-	public static class Result extends StaticPhaseResult {
-		Api api;
+ /**
+  * Result of the module translation
+  */
+ public static class Result extends StaticPhaseResult {
+  Api api;
 
-		public Result(Api api, 
-				Collection<StaticError> errors) {
-			super(errors);
-			this.api = api;
-		}
+  public Result(Api api, 
+    Collection<StaticError> errors) {
+   super(errors);
+   this.api = api;
+  }
 
-		public Result(Api api,
-				Iterable<? extends StaticError> errors) {
-			super(errors);
-			this.api = api;
-		}
+  public Result(Api api,
+    Iterable<? extends StaticError> errors) {
+   super(errors);
+   this.api = api;
+  }
 
-		public Api modules() { return api; }
-	}
-	
-	private Collection<Parser.Error> errors;
-	private Collection<String> vars;
-	private LinkedList<String> syntaxDefVars;
-	
-	public TemplateParser() {
-		this.errors = new LinkedList<Parser.Error>();
-	}
+  public Api modules() { return api; }
+ }
+ 
+ private Collection<Parser.Error> errors;
+ private Collection<String> vars;
+ private LinkedList<String> syntaxDefVars;
+ 
+ public TemplateParser() {
+  this.errors = new LinkedList<Parser.Error>();
+ }
 
-	private Collection<? extends StaticError> getErrors() {
-		return this.errors;
-	}
+ private Collection<? extends StaticError> getErrors() {
+  return this.errors;
+ }
 
-	private boolean isSuccessfull() {
-		return this.errors.isEmpty();
-	}
+ private boolean isSuccessfull() {
+  return this.errors.isEmpty();
+ }
 
-	public static Result parseTemplates(Api api) {
-		TemplateParser templateParser = new TemplateParser();
-		Api a = (Api) api.accept(templateParser);
-		if (!templateParser.isSuccessfull()) {
-			return new Result(a, templateParser.getErrors());
-		}
-		return new Result(a, Collections.<StaticError>emptyList());
-	}	
-	
-	@Override
-	public Node forNonterminalDef(NonterminalDef that) {
-		this.vars = new LinkedList<String>();
-		for (Pair<Id, Type> p: that.getParams()) {
-			this.vars.add(p.getA().toString());
-		}
-		return super.forNonterminalDef(that);
-	}
+ public static Result parseTemplates(Api api) {
+  TemplateParser templateParser = new TemplateParser();
+  Api a = (Api) api.accept(templateParser);
+  if (!templateParser.isSuccessfull()) {
+   return new Result(a, templateParser.getErrors());
+  }
+  return new Result(a, Collections.<StaticError>emptyList());
+ } 
+ 
+ @Override
+ public Node forNonterminalDef(NonterminalDef that) {
+  this.vars = new LinkedList<String>();
+  for (Pair<Id, Type> p: that.getParams()) {
+   this.vars.add(p.getA().toString());
+  }
+  return super.forNonterminalDef(that);
+ }
 
-	@Override
-	public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
-		this.vars = new LinkedList<String>();
-		for (Pair<Id, Type> p: that.getParams()) {
-			this.vars.add(p.getA().toString());
-		}
-		return super.forNonterminalExtensionDef(that);
-	}
+ @Override
+ public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
+  this.vars = new LinkedList<String>();
+  for (Pair<Id, Type> p: that.getParams()) {
+   this.vars.add(p.getA().toString());
+  }
+  return super.forNonterminalExtensionDef(that);
+ }
 
-	@Override
-	public Node forSyntaxDef(SyntaxDef that) {
-		this.syntaxDefVars = new LinkedList<String>();
-		return super.forSyntaxDef(that);
-	}
+ @Override
+ public Node forSyntaxDef(SyntaxDef that) {
+  this.syntaxDefVars = new LinkedList<String>();
+  return super.forSyntaxDef(that);
+ }
 
-	@Override
-	public Node forPrefixedSymbol(PrefixedSymbol that) {
-		// We assume that all prefixed symbols have an identifier.
-		// If that is not the case then it is an error in the disambiguation and not here.
-		this.syntaxDefVars.add(Option.unwrap(that.getId()).toString());
-		return super.forPrefixedSymbol(that);
-	}
+ @Override
+ public Node forPrefixedSymbol(PrefixedSymbol that) {
+  // We assume that all prefixed symbols have an identifier.
+  // If that is not the case then it is an error in the disambiguation and not here.
+  this.syntaxDefVars.add(that.getId().unwrap().toString());
+  return super.forPrefixedSymbol(that);
+ }
 
-	@Override
-	public Node forTransformationPreTemplateDefOnly(TransformationPreTemplateDef that) {
-		TemplateVarRewriter tvs = new TemplateVarRewriter();
-		List<String> vs = new LinkedList<String>();
-		vs.addAll(this.vars);
-		vs.addAll(this.syntaxDefVars);
-		String p = tvs.rewriteVars(vs, that.getTransformation());
-		System.err.println("TP: "+p);
-		Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
-		if (res.isSome()) {
-			return Option.unwrap(res);
-		}
-		return that;
-	}
+ @Override
+ public Node forTransformationPreTemplateDefOnly(TransformationPreTemplateDef that) {
+  TemplateVarRewriter tvs = new TemplateVarRewriter();
+  List<String> vs = new LinkedList<String>();
+  vs.addAll(this.vars);
+  vs.addAll(this.syntaxDefVars);
+  String p = tvs.rewriteVars(vs, that.getTransformation());
+  System.err.println("TP: "+p);
+  Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
+  return res.unwrap(that);
+ }
 
-	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
-		BufferedReader in = Useful.bufferedStringReader(transformation);
-		com.sun.fortress.parser.Fortress p =
+ private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
+  BufferedReader in = Useful.bufferedStringReader(transformation);
+  com.sun.fortress.parser.Fortress p =
             new com.sun.fortress.parser.Fortress(in, "FooBar");
 //        try {
-//        	xtc.parser.Result parseResult = p.pExpression$Expr(0);
-//        	if (parseResult.hasValue()) {
+//         xtc.parser.Result parseResult = p.pExpression$Expr(0);
+//         if (parseResult.hasValue()) {
 //                Object cu = ((SemanticValue) parseResult).value;
 //                if (cu instanceof AbstractNode) {
 //                    return Option.<Node>some(new TransformationTemplateDef(span, (AbstractNode) cu));
 //                } 
 //                throw new RuntimeException("Unexpected parse result: " + cu);
 //            } 
-//        	this.errors.add(new Parser.Error((ParseError) parseResult, p));
-        	return Option.none();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//			throw new RuntimeException(e.getMessage());
-//		}
-	}
+//         this.errors.add(new Parser.Error((ParseError) parseResult, p));
+         return Option.none();
+//  } catch (IOException e) {
+//   e.printStackTrace();
+//   throw new RuntimeException(e.getMessage());
+//  }
+ }
 
 }

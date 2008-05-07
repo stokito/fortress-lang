@@ -25,6 +25,7 @@ import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
 public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
@@ -40,16 +41,16 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
  public Id getName() {
   if (this.ast().isSome()) {
-                    return Option.unwrap(this.ast()).getName();
+                    return this.ast().unwrap().getName();
   }
   throw new RuntimeException("Production index without ast and thus no name");
  }
 
  public BaseType getType() {
   if (this.ast().isSome()) {
-   Option<BaseType> type = Option.unwrap(this.ast()).getType();
+   Option<BaseType> type = this.ast().unwrap().getType();
    if (type.isSome()) {
-    return Option.unwrap(type);
+    return type.unwrap();
    }
    throw new RuntimeException("Production index without type, type inference is not implemented yet!");
   }
@@ -57,10 +58,8 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
  }
 
  public T getAst() {
-  if (this.ast().isNone()) {
-   throw new RuntimeException("Ast not found.");
-  }
-  return Option.unwrap(this.ast);
+  try { return this.ast.unwrap(); }
+  catch (OptionUnwrapException e) { throw new RuntimeException("Ast not found."); }
  }
 
  public boolean isPrivate() {

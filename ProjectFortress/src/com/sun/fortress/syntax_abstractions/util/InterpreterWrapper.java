@@ -119,7 +119,7 @@ public class InterpreterWrapper {
    return new Result(null, errors);
   }
 
-  Component c = (Component) Option.unwrap(cu);
+  Component c = (Component) cu.unwrap();
   Collection<Decl> decls = createVarBindings(span, boundVariables, c.getDecls());
   for (Decl d: c.getDecls()) {
    if (!(d instanceof VarDecl)) {

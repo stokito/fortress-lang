@@ -149,7 +149,7 @@ public class NodeUtil {
     public static String nameString(Id n) {
         final String last = n.getText();
         Option<APIName> odn = n.getApi();
-        return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
+        return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
     }
 
     public static String nameString(Op n) {
@@ -171,7 +171,7 @@ public class NodeUtil {
     public static String nameString(IdOrOpOrAnonymousName n) {
         final String last = n.accept(nameGetter);
         Option<APIName> odn = n.getApi();
-        return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
+        return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
     }
     */
 

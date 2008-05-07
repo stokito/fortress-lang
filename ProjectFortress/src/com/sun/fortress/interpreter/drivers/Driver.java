@@ -455,9 +455,9 @@ public class Driver {
                     Option<Id> alias = adi.getAlias();
                     Option<APIName> as;
                     if (alias.isSome())
-                        as = Option.some(NodeFactory.makeAPIName(Option.unwrap(alias)));
+                        as = Option.some(NodeFactory.makeAPIName(alias.unwrap()));
                     else as = Option.none();
-                    String known_as = NodeUtil.nameString(Option.unwrap(as, id));
+                    String known_as = NodeUtil.nameString(as.unwrap(id));
 
                     ComponentWrapper from_cw = linker.get(from_apiname);
 
@@ -607,7 +607,7 @@ public class Driver {
                          * it with plain old name.
                          */
                         /* probable bug: need to insert into ownNonFunction names */
-                        change |= cw.desugarer.injectAtTopLevel(Option.unwrap(alias, name).stringName(),
+                        change |= cw.desugarer.injectAtTopLevel(alias.unwrap(name).stringName(),
                                 name.stringName(),
                                 api_cw.desugarer,
                                 cw.excludedImportNames);
@@ -1014,7 +1014,7 @@ public class Driver {
         String s = NodeUtil.nameString(name);
         String add_as = s;
         if (alias.isSome()) {
-            add_as = NodeUtil.nameString(Option.unwrap(alias));
+            add_as = NodeUtil.nameString(alias.unwrap());
         }
 
         importer.ownNames.add(add_as);

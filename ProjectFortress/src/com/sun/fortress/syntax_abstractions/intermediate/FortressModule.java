@@ -31,26 +31,26 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class FortressModule extends Module {
 
-	public FortressModule(String name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
-		super(name, members);
-		initialize();
-	}
+ public FortressModule(String name, Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+  super(name, members);
+  initialize();
+ }
 
-	private void initialize() {
-		Option<xtc.parser.Module> om = RatsUtil.parseRatsModule(RatsUtil.getParserPath()+name+".rats");
-		if (om.isSome()) {
-			xtc.parser.Module m = Option.unwrap(om);
-		}
-	}
+ private void initialize() {
+  Option<xtc.parser.Module> om = RatsUtil.parseRatsModule(RatsUtil.getParserPath()+name+".rats");
+  if (om.isSome()) {
+   xtc.parser.Module m = om.unwrap();
+  }
+ }
 
-	public String toString() {
-		String indentation = "  ";
-		String s = super.toString();
-		return s+= indentation+"* Fortress core";
-	}
+ public String toString() {
+  String indentation = "  ";
+  String s = super.toString();
+  return s+= indentation+"* Fortress core";
+ }
 
-	public void addNonterminal(
-			NonterminalIndex<? extends GrammarMemberDecl> member) {
-		this.declaredMembers.add(member);
-	}
+ public void addNonterminal(
+   NonterminalIndex<? extends GrammarMemberDecl> member) {
+  this.declaredMembers.add(member);
+ }
 }

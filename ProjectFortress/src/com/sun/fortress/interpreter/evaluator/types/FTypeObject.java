@@ -70,7 +70,7 @@ public class FTypeObject extends FTraitOrObject {
                     fields.add(lhs.getName());
                 }
                 if (params.isSome()) {
-                    for (Param p : Option.unwrap(params)) {
+                    for (Param p : params.unwrap()) {
                         if (!NodeUtil.isTransient(p))
                             fields.add(p.getName());
                     }

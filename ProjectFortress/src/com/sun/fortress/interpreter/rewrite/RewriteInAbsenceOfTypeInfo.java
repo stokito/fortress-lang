@@ -37,8 +37,6 @@ import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 
-import edu.rice.cs.plt.tuple.Option;
-
 public class RewriteInAbsenceOfTypeInfo extends Rewrite {
 
     public static RewriteInAbsenceOfTypeInfo Only = new RewriteInAbsenceOfTypeInfo();
@@ -48,7 +46,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         if (idn.getApi().isNone())
             return vr;
 
-        List<Id> ids = Option.unwrap(idn.getApi()).getIds();
+        List<Id> ids = idn.getApi().unwrap().getIds();
 
         return new FieldRef(vr.getSpan(),
                 false,
@@ -65,7 +63,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
                 return new VarRef(idn.getSpan(), idn);
 
             } else {
-                List<Id> ids = Option.unwrap(idn.getApi()).getIds();
+                List<Id> ids = idn.getApi().unwrap().getIds();
 
                 return new FieldRef(fr.getSpan(),
                                         false,
@@ -79,7 +77,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
                     new VarRef(idn.getSpan(), idn),
                     sargs);
         } else {
-            List<Id> ids = Option.unwrap(idn.getApi()).getIds();
+            List<Id> ids = idn.getApi().unwrap().getIds();
 
             return new _RewriteFnRef(fr.getSpan(),
                         false,
@@ -133,7 +131,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         List<Expr> exprs = node.getExprs();
         VarRef first = (VarRef) exprs.get(0);
         Id idn = first.getVar();
-        List<Id> ids = Option.unwrap(idn.getApi()).getIds();
+        List<Id> ids = idn.getApi().unwrap().getIds();
 
         return new MethodInvocation(node.getSpan(),
                                 false,
@@ -146,7 +144,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         List<MathItem> exprs = node.getRest();
         VarRef first = (VarRef) node.getFront();
         Id idn = first.getVar();
-        List<Id> ids = Option.unwrap(idn.getApi()).getIds();
+        List<Id> ids = idn.getApi().unwrap().getIds();
 
         return new MethodInvocation(node.getSpan(),
                                 false,

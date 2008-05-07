@@ -103,7 +103,7 @@ abstract public class Visit extends NodeReflection {
      * VisitObject the value of the Option (if it exists).
      */
     protected void visitOption(Option<?> opt) {
-        if (opt.isSome()) { visitObject(Option.unwrap(opt)); }
+        if (opt.isSome()) { visitObject(opt.unwrap()); }
     }
 
     /**

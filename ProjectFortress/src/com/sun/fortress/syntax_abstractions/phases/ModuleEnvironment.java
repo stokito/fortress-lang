@@ -49,167 +49,167 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ModuleEnvironment {
 
-	private Map<String, Module> modules;
-	private Map<Id, Id> contractedNames;
+ private Map<String, Module> modules;
+ private Map<Id, Id> contractedNames;
 
-	public ModuleEnvironment() {
-		this.modules = new HashMap<String, Module>();
-		this.contractedNames = new HashMap<Id, Id>();
-	}
+ public ModuleEnvironment() {
+  this.modules = new HashMap<String, Module>();
+  this.contractedNames = new HashMap<Id, Id>();
+ }
 
-	/**
-	 * Returns the collection of modules in the environment
-	 * @return
-	 */
-	public Collection<Module> getModules() {
-		return this.modules.values();
-	}
+ /**
+  * Returns the collection of modules in the environment
+  * @return
+  */
+ public Collection<Module> getModules() {
+  return this.modules.values();
+ }
 
-	/**
-	 * Given a contracted nonterminal, decide whether to add the alternative to an existing
-	 * module or create a new module.
-	 * @param member
-	 */
-	public void add(ContractedNonterminal cnt) {
-		Module module = makeNewModule(cnt);
-		Option<Module> om = this.getRelated(module.getName());
-		if (om.isSome()) {
-			module = this.merge(Option.unwrap(om), module);
-		}
-		this.modules.put(module.getName(), module);
-	}
+ /**
+  * Given a contracted nonterminal, decide whether to add the alternative to an existing
+  * module or create a new module.
+  * @param member
+  */
+ public void add(ContractedNonterminal cnt) {
+  Module module = makeNewModule(cnt);
+  Option<Module> om = this.getRelated(module.getName());
+  if (om.isSome()) {
+   module = this.merge(om.unwrap(), module);
+  }
+  this.modules.put(module.getName(), module);
+ }
 
-	/**
-	 * Two modules are related if they have the same name.
-	 * @param cnt
-	 * @return
-	 */
-	private Option<Module> getRelated(String name) {
-		if (this.modules.keySet().contains(name)) {
-			return Option.some(this.modules.get(name));
-		}
-		return Option.none();
-	}
+ /**
+  * Two modules are related if they have the same name.
+  * @param cnt
+  * @return
+  */
+ private Option<Module> getRelated(String name) {
+  if (this.modules.keySet().contains(name)) {
+   return Option.some(this.modules.get(name));
+  }
+  return Option.none();
+ }
 
-	private Module merge(Module m1, Module m2) {
-		if ((m1 instanceof FortressModule) &&
-				(m2 instanceof FortressModule)) {
-			return merge((FortressModule) m1, (FortressModule) m2);
-		}
-		else if ((m1 instanceof UserModule) &&
-				(m2 instanceof UserModule)) {
-			return merge((UserModule) m1, (UserModule) m2);
-		}
-		return m1;
-	}
+ private Module merge(Module m1, Module m2) {
+  if ((m1 instanceof FortressModule) &&
+    (m2 instanceof FortressModule)) {
+   return merge((FortressModule) m1, (FortressModule) m2);
+  }
+  else if ((m1 instanceof UserModule) &&
+    (m2 instanceof UserModule)) {
+   return merge((UserModule) m1, (UserModule) m2);
+  }
+  return m1;
+ }
 
-	private UserModule merge(UserModule m1, UserModule m2) {
-		NonterminalIndex<? extends GrammarMemberDecl> member1 = IterUtil.first(m1.getDeclaredNonterminals());
-		NonterminalIndex<? extends GrammarMemberDecl> member2 = IterUtil.first(m2.getDeclaredNonterminals());
+ private UserModule merge(UserModule m1, UserModule m2) {
+  NonterminalIndex<? extends GrammarMemberDecl> member1 = IterUtil.first(m1.getDeclaredNonterminals());
+  NonterminalIndex<? extends GrammarMemberDecl> member2 = IterUtil.first(m2.getDeclaredNonterminals());
 
-		if ((member1 instanceof GrammarNonterminalIndex) &&
-				(member2 instanceof GrammarNonterminalIndex)) {
-			GrammarNonterminalIndex<? extends NonterminalDecl> cni1 = (GrammarNonterminalIndex) member1;
-			GrammarNonterminalIndex<? extends NonterminalDecl> cni2 = (GrammarNonterminalIndex) member2;
-			for (SyntaxDef s: cni2.getSyntaxDefs()) {
-				if (!cni1.getSyntaxDefs().contains(s)) {
-					cni1.getSyntaxDefs().add(s);
-				}
-			}
-			m1.getDependencies().addAll(m2.getDependencies());
-			m1.getParameters().addAll(m2.getParameters());
-			return m1;
-		}
-		return m1;
-	}
+  if ((member1 instanceof GrammarNonterminalIndex) &&
+    (member2 instanceof GrammarNonterminalIndex)) {
+   GrammarNonterminalIndex<? extends NonterminalDecl> cni1 = (GrammarNonterminalIndex) member1;
+   GrammarNonterminalIndex<? extends NonterminalDecl> cni2 = (GrammarNonterminalIndex) member2;
+   for (SyntaxDef s: cni2.getSyntaxDefs()) {
+    if (!cni1.getSyntaxDefs().contains(s)) {
+     cni1.getSyntaxDefs().add(s);
+    }
+   }
+   m1.getDependencies().addAll(m2.getDependencies());
+   m1.getParameters().addAll(m2.getParameters());
+   return m1;
+  }
+  return m1;
+ }
 
-	private FortressModule merge(FortressModule m1, FortressModule m2) {
-		for (NonterminalIndex<? extends GrammarMemberDecl> member2: m2.getDeclaredNonterminals()) {
-			boolean found = false;
-			for (NonterminalIndex<? extends GrammarMemberDecl> member1: m1.getDeclaredNonterminals()) {
-				if (member2.getName().equals(member1.getName())) {
-					if ((member1 instanceof GrammarNonterminalIndex) &&
-						(member2 instanceof GrammarNonterminalIndex)) {
-						GrammarNonterminalIndex<? extends NonterminalDecl> cni1 = (GrammarNonterminalIndex) member1;
-						GrammarNonterminalIndex<? extends NonterminalDecl> cni2 = (GrammarNonterminalIndex) member2;
-						// We may inherit the same alternative from multiple parents
-						// which is not allowed
-						for (SyntaxDef s: cni2.getSyntaxDefs()) {
-							if (!cni1.getSyntaxDefs().contains(s)) {
-								cni1.getSyntaxDefs().add(s);
-							}
-						}
-						m1.getDependencies().addAll(m2.getDependencies());
-						m1.getParameters().addAll(m2.getParameters());
-						found = true;
-					}
-				}
-			}
-			if (!found) {
-				m1.addNonterminal(member2);
-			}
-		}
-		return m1;
-	}
+ private FortressModule merge(FortressModule m1, FortressModule m2) {
+  for (NonterminalIndex<? extends GrammarMemberDecl> member2: m2.getDeclaredNonterminals()) {
+   boolean found = false;
+   for (NonterminalIndex<? extends GrammarMemberDecl> member1: m1.getDeclaredNonterminals()) {
+    if (member2.getName().equals(member1.getName())) {
+     if ((member1 instanceof GrammarNonterminalIndex) &&
+      (member2 instanceof GrammarNonterminalIndex)) {
+      GrammarNonterminalIndex<? extends NonterminalDecl> cni1 = (GrammarNonterminalIndex) member1;
+      GrammarNonterminalIndex<? extends NonterminalDecl> cni2 = (GrammarNonterminalIndex) member2;
+      // We may inherit the same alternative from multiple parents
+      // which is not allowed
+      for (SyntaxDef s: cni2.getSyntaxDefs()) {
+       if (!cni1.getSyntaxDefs().contains(s)) {
+        cni1.getSyntaxDefs().add(s);
+       }
+      }
+      m1.getDependencies().addAll(m2.getDependencies());
+      m1.getParameters().addAll(m2.getParameters());
+      found = true;
+     }
+    }
+   }
+   if (!found) {
+    m1.addNonterminal(member2);
+   }
+  }
+  return m1;
+ }
 
-	private Module makeNewModule(ContractedNonterminal nt) {
-		Collection<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-		ls.add(nt.getNonterminal());
-		Module m;
-		if (ModuleInfo.isFortressModule(nt.getName())) {
-			APIName apiName = Option.unwrap(nt.getName().getApi());
-			Id newName = apiName.getIds().get(1);
-			m = new FortressModule(newName.toString(), ls);
-		}
-		else {
-			m = new UserModule(nt.getName().toString(), ls);
-			// Add extra depencides
-			if (!m.getTokens().isEmpty() || !m.getKeywords().isEmpty()) {
-				ModuleName identifier = new ModuleName("Identifier");
-				m.getDependencies().add(new ModuleImport(identifier ));
-				m.getParameters().add(identifier);
-			}
-			// Spacing is actually only needed if whitespace is used.
-			ModuleName spacing = new ModuleName("Spacing");
-			m.getDependencies().add(new ModuleImport(spacing));
-			m.getParameters().add(spacing);
-		}
-		m.getParameters().addAll(makeParameters(nt.getDependencies()));
-		m.getDependencies().addAll(makeDependencies(nt.getDependencies()));
-		addToNameContractionMap(nt.getContractedNames(), nt.getName());
-		return m;
-	}
+ private Module makeNewModule(ContractedNonterminal nt) {
+  Collection<NonterminalIndex<? extends GrammarMemberDecl>> ls = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+  ls.add(nt.getNonterminal());
+  Module m;
+  if (ModuleInfo.isFortressModule(nt.getName())) {
+   APIName apiName = nt.getName().getApi().unwrap();
+   Id newName = apiName.getIds().get(1);
+   m = new FortressModule(newName.toString(), ls);
+  }
+  else {
+   m = new UserModule(nt.getName().toString(), ls);
+   // Add extra depencides
+   if (!m.getTokens().isEmpty() || !m.getKeywords().isEmpty()) {
+    ModuleName identifier = new ModuleName("Identifier");
+    m.getDependencies().add(new ModuleImport(identifier ));
+    m.getParameters().add(identifier);
+   }
+   // Spacing is actually only needed if whitespace is used.
+   ModuleName spacing = new ModuleName("Spacing");
+   m.getDependencies().add(new ModuleImport(spacing));
+   m.getParameters().add(spacing);
+  }
+  m.getParameters().addAll(makeParameters(nt.getDependencies()));
+  m.getDependencies().addAll(makeDependencies(nt.getDependencies()));
+  addToNameContractionMap(nt.getContractedNames(), nt.getName());
+  return m;
+ }
 
-	private Collection<ModuleName> makeParameters(Set<Id> dependencies) {
-		Collection<ModuleName> dep = new LinkedList<ModuleName>();
-		for (Id q: dependencies) {
-			dep.add(new ModuleName(q.toString()));
-		}
-		return dep;
-	}
+ private Collection<ModuleName> makeParameters(Set<Id> dependencies) {
+  Collection<ModuleName> dep = new LinkedList<ModuleName>();
+  for (Id q: dependencies) {
+   dep.add(new ModuleName(q.toString()));
+  }
+  return dep;
+ }
 
-	private Collection<ModuleImport> makeDependencies(
-			Set<Id> dependencies) {
-		Collection<ModuleImport> dep = new LinkedList<ModuleImport>();
-		for (Id q: dependencies) {
-			dep.add(new ModuleImport(new ModuleName(q.toString())));
-		}
-		return dep;
-	}
+ private Collection<ModuleImport> makeDependencies(
+   Set<Id> dependencies) {
+  Collection<ModuleImport> dep = new LinkedList<ModuleImport>();
+  for (Id q: dependencies) {
+   dep.add(new ModuleImport(new ModuleName(q.toString())));
+  }
+  return dep;
+ }
 
-	private void addToNameContractionMap(
-			List<Id> contractedNames, Id name) {
-		for (Id n: contractedNames) {
-			this.contractedNames.put(n, name);
-		}
-	}
+ private void addToNameContractionMap(
+   List<Id> contractedNames, Id name) {
+  for (Id n: contractedNames) {
+   this.contractedNames.put(n, name);
+  }
+ }
 
-	public Option<Id> getContractedName(Id name) {
-		Id n = this.contractedNames.get(name);
-		if (n != null) {
-			return Option.some(n);
-		}
-		return Option.none();
-	}
+ public Option<Id> getContractedName(Id name) {
+  Id n = this.contractedNames.get(name);
+  if (n != null) {
+   return Option.some(n);
+  }
+  return Option.none();
+ }
 
 }

@@ -20,7 +20,6 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.*;
 
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
@@ -314,7 +313,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedTypeCons(Id name) {
-        APIName api = Option.unwrap(name.getApi());
+        APIName api = name.getApi().unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).typeConses().containsKey(name);
         }
@@ -322,7 +321,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedVariable(Id name) {
-        APIName api = Option.unwrap(name.getApi());
+        APIName api = name.getApi().unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).variables().containsKey(name);
         }
@@ -330,7 +329,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedFunction(Id name) {
-        APIName api = Option.unwrap(name.getApi());
+        APIName api = name.getApi().unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).functions().containsFirst(name);
         }
@@ -338,7 +337,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedGrammar(Id name) {
-        APIName api = Option.unwrap(name.getApi());
+        APIName api = name.getApi().unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).grammars().containsKey(name);
         }
@@ -353,7 +352,7 @@ public class TopLevelEnv extends NameEnv {
         if (api.isNone()) {
             actualApi = _current.ast().getName();
         } else {
-            actualApi = Option.unwrap(api);
+            actualApi = api.unwrap();
         }
         if (api.isNone() || _current.ast().getName().equals(actualApi)) {
             TypeConsIndex res = _current.typeConses().get(ignoreApi(name));
@@ -372,11 +371,11 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Option<GrammarIndex> grammarIndex(final Id name) {
-    	Id unqualifiedName = NodeFactory.makeId(name.getText());
-    	if (name.getApi().isSome()) {
-            APIName n = Option.unwrap(name.getApi());
+     Id unqualifiedName = NodeFactory.makeId(name.getText());
+     if (name.getApi().isSome()) {
+            APIName n = name.getApi().unwrap();
             if (_globalEnv.definesApi(n)) {
-            	return Option.some(_globalEnv.api(n).grammars().get(unqualifiedName));
+             return Option.some(_globalEnv.api(n).grammars().get(unqualifiedName));
             }
             else {
                 return Option.none();

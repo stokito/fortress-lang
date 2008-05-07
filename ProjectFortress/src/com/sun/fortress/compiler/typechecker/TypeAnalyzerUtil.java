@@ -30,7 +30,6 @@ import com.sun.fortress.nodes_util.NodeFactory;
 
 import static com.sun.fortress.compiler.StaticError.errorMsg;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeAnalyzerUtil {
 
@@ -181,7 +180,7 @@ public class TypeAnalyzerUtil {
     }
 
     public static Type throwsType(ArrowType t) {
-        return IterUtil.first(Option.unwrap(t.getThrowsClause()));
+        return IterUtil.first(t.getThrowsClause().unwrap());
     }
 
     public static Iterable<Type> keywordTypes(Iterable<? extends KeywordType> keys) {

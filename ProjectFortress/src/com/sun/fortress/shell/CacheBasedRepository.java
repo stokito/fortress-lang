@@ -76,8 +76,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
             throw new RepositoryError(
                     "Could not deserialize contents of repository file " + s);
         }
-        ci = IndexBuilder.builder.buildApiIndex((Api) Option
-                .unwrap(candidate), f.lastModified());
+        ci = IndexBuilder.builder.buildApiIndex((Api) candidate.unwrap(), f.lastModified());
         apis.put(name, ci);
         return ci;
     }
@@ -95,7 +94,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         if (candidate.isNone()) {
             throw new RepositoryError("Could not deserialize contents of repository file " + s);
         }
-        ci = IndexBuilder.builder.buildComponentIndex((Component) Option.unwrap(candidate), f.lastModified());
+        ci = IndexBuilder.builder.buildComponentIndex((Component) candidate.unwrap(), f.lastModified());
         components.put(name, ci);
         return ci;
         

@@ -137,7 +137,7 @@ public abstract class NativeApp implements Applicable {
                                                 boolean isFunctionalMethod) {
         Option<Expr> optBody = NodeUtil.getBody(defn);
         if (optBody.isNone()) return defn;
-        Expr body = Option.unwrap(optBody);
+        Expr body = optBody.unwrap();
         Expr fn;
         Expr arg;
         if (body instanceof TightJuxt) {

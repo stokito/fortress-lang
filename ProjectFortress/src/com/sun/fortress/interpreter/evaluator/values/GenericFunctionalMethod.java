@@ -34,8 +34,6 @@ import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.Useful;
 
-import edu.rice.cs.plt.tuple.Option;
-
 public class GenericFunctionalMethod extends FGenericFunction implements HasSelfParameter {
 
 
@@ -102,7 +100,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
         return selfParameterType.toString() + Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams())) + "." + NodeUtil.nameString(node.getName())
         //+ Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams()))
         + Useful.listInParens(ErrorMsgMaker.ONLY.mapSelf(node.getParams()))
-        + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(ErrorMsgMaker.ONLY)) : "") + fndef.at();
+        + (node.getReturnType().isSome() ? (":" + node.getReturnType().unwrap().accept(ErrorMsgMaker.ONLY)) : "") + fndef.at();
     }
 
 }

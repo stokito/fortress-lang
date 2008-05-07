@@ -69,8 +69,8 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  public Expr dispatch(Object value, Option<Type> option) {
   // It is either the result of a optional
   if (option.isSome()) {
-   if (Option.unwrap(option) instanceof InstantiatedType) {
-    InstantiatedType it = (InstantiatedType) Option.unwrap(option);
+   if (option.unwrap() instanceof InstantiatedType) {
+    InstantiatedType it = (InstantiatedType) option.unwrap();
     if (it.getName().equals(NodeFactory.makeId("FortressLibrary","Maybe"))) {
      return handleOption(value, it);
     }

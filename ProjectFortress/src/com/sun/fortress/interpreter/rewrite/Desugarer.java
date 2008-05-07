@@ -288,7 +288,7 @@ public class Desugarer extends Rewrite {
         }
 
         private Boolean optionTypeIsArrow(Option<Type> ot) {
-            return (ot.isSome() && Option.unwrap(ot) instanceof ArrowType);
+            return ot.unwrap(null) instanceof ArrowType;
         }
 
     }
@@ -538,7 +538,7 @@ public class Desugarer extends Rewrite {
 //                    for (AliasedAPIName adn : ladn) {
 //                        APIName dn = adn.getApi();
 //                        Option<APIName> odn = adn.getAlias();
-//                        dn = odn.isSome() ? Option.unwrap(odn, dn) : dn;
+//                        dn = odn.unwrap(dn);
 //                        packages.add(NodeUtil.nameString(dn));
 //                    }
 //                }
@@ -931,7 +931,7 @@ public class Desugarer extends Rewrite {
     private Expr visitIf(If i) {
         Expr result = null;
         if (i.getElseClause().isSome()) {
-            result = Option.unwrap(i.getElseClause());
+            result = i.getElseClause().unwrap();
         }
         List<IfClause> clauses = i.getClauses();
         int n = clauses.size();
@@ -1210,7 +1210,7 @@ public class Desugarer extends Rewrite {
      */
     private void paramsToMembers(Option<List<Param>> params) {
         if (params.isSome())
-            for (Param d : Option.unwrap(params)) {
+            for (Param d : params.unwrap()) {
                 String s = d.getName().getText();
                 rewrites.put(s, new Member(NodeUtil.isTransient(d)));
                 if (d.accept(isAnArrowName))
@@ -1407,7 +1407,7 @@ public class Desugarer extends Rewrite {
     }
 
     private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
-        List<Expr> r = Option.unwrap(_requires);
+        List<Expr> r = _requires.unwrap();
         for (Expr e : r) {
             Span sp = e.getSpan();
             GeneratorClause cond =
@@ -1420,7 +1420,7 @@ public class Desugarer extends Rewrite {
     }
 
     private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
-        List<EnsuresClause> es = Option.unwrap(_ensures);
+        List<EnsuresClause> es = _ensures.unwrap();
         for (EnsuresClause e : es) {
             Span sp = e.getSpan();
             Id t1 = gensymId("t1");
@@ -1442,23 +1442,15 @@ public class Desugarer extends Rewrite {
                                         ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"result")));
             LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"result"), b, _if);
             Option<Expr> _pre = e.getPre();
-            LocalVarDecl provided_lvd;
-            if (_pre.isSome()) {
-                provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, Option.unwrap(_pre),
-                                                            ExprFactory.makeBlock(sp, r));
-            } else {
-                provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, ExprFactory.makeVarRef("true"),
-                                                            ExprFactory.makeBlock(sp, r));
-            }
-
+            LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef("true")),
+                                                                     ExprFactory.makeBlock(sp, r));
             b = ExprFactory.makeBlock(sp, provided_lvd);
         }
         return b;
     }
 
     private Block translateInvariants(Option<List<Expr>> _invariants, Block b) {
-        List<Expr> invariants = Option.unwrap(_invariants);
-        for (Expr e : invariants) {
+        for (Expr e : _invariants.unwrap()) {
             Span sp = e.getSpan();
             Id t1 = gensymId("t1");
             Id t_result = gensymId("result");

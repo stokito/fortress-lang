@@ -123,8 +123,7 @@ ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w en
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
-       Contract contract = Option.unwrap(fhc.getContractClause(),
-                                         FortressUtil.emptyContract());
+       Contract contract = fhc.getContractClause().unwrap(FortressUtil.emptyContract());
        yyValue = new ObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
@@ -303,8 +302,7 @@ AbsObjectDecl AbsObjectDecl =
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
-       Contract contract = Option.unwrap(fhc.getContractClause(),
-                                         FortressUtil.emptyContract());
+       Contract contract = fhc.getContractClause().unwrap(FortressUtil.emptyContract());
        yyValue = new AbsObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),

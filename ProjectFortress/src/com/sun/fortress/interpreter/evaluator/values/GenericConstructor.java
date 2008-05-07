@@ -80,7 +80,7 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
         // Build the constructor
         //            Option<List<Param>> params = odefOrDecl.getParams();
         //            List<Parameter> fparams =
-        //                EvalType.paramsToParameters(clenv, Option.unwrap(params));
+        //                EvalType.paramsToParameters(clenv, params.unwrap());
 
         Constructor cl = makeAConstructor(clenv, ft,  odefOrDecl.getParams());
         FTypeGeneric.flushPendingTraitFMs();
@@ -225,7 +225,7 @@ public List<StaticParam> getStaticParams() {
 
 public List<Param> getParams() {
     // TODO Auto-generated method stub
-    return Option.unwrap(odefOrDecl.getParams());
+    return odefOrDecl.getParams().unwrap();
 }
 
 public Option<Type> getReturnType() {
