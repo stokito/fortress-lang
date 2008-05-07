@@ -60,6 +60,18 @@ public class NodeFactory {
                 throwss, where, contract, selfName);
     }
 
+    public static APIName makeAPINameSkipLast(Id first, Id rest) {
+        List<Id> ids = new ArrayList<Id>();
+        Id last = first;
+        ids.add(first);
+        if (rest.getApi().isSome()) {
+            List<Id> apiNames = Option.unwrap(rest.getApi()).getIds();
+            ids.addAll(apiNames);
+            if (!IterUtil.isEmpty(apiNames)) last = IterUtil.last(apiNames);
+        }
+        return new APIName(FortressUtil.spanTwo(first, last), ids);
+    }
+
     public static APIName makeAPIName(Id first, Id rest) {
         List<Id> ids = new ArrayList<Id>();
         ids.add(first);
@@ -70,12 +82,24 @@ public class NodeFactory {
         return new APIName(FortressUtil.spanTwo(first, rest), ids);
     }
 
+    public static Id makeIdFromLast(Id id) {
+        return new Id(id.getSpan(), id.getText());
+    }
+
     public static AliasedAPIName makeAliasedAPIName(APIName api) {
         return new AliasedAPIName(api.getSpan(), api);
     }
 
     public static AliasedAPIName makeAliasedAPIName(APIName api, Id alias) {
         return new AliasedAPIName(FortressUtil.spanTwo(api, alias), api, Option.some(alias));
+    }
+
+    public static AliasedSimpleName makeAliasedSimpleName(Id id) {
+        return new AliasedSimpleName(id.getSpan(), id);
+    }
+
+    public static AliasedSimpleName makeAliasedSimpleName(Id id, Id alias) {
+        return new AliasedSimpleName(id.getSpan(), id, Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span,
