@@ -44,7 +44,7 @@ public class FnHeaderFront {
         this.staticParams = staticParams;
         this.params = params;
         if (param.isSome())
-            this.params.add(0, Option.unwrap(param));
+            this.params.add(0, param.unwrap());
     }
 
     public FnHeaderFront(Option<Id> receiver, IdOrOpOrAnonymousName name,
@@ -104,7 +104,7 @@ public class FnHeaderFront {
     public String toString() {
         StringBuffer sb = new StringBuffer();
         if (receiver.isSome()) {
-            sb.append(Option.unwrap(receiver));
+            sb.append(receiver.unwrap());
             sb.append(".");
         }
         sb.append(String.valueOf(name));

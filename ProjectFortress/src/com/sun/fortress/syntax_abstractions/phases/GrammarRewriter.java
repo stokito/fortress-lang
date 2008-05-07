@@ -49,78 +49,78 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class GrammarRewriter {
 
-	/** Result of {@link #disambiguateApis}. */
-	public static class ApiResult extends StaticPhaseResult {
-		private final Iterable<Api> _apis;
+ /** Result of {@link #disambiguateApis}. */
+ public static class ApiResult extends StaticPhaseResult {
+  private final Iterable<Api> _apis;
 
-		public ApiResult(Iterable<Api> apis,
-				Iterable<? extends StaticError> errors) {
-			super(errors);
-			_apis = apis;
-		}
+  public ApiResult(Iterable<Api> apis,
+    Iterable<? extends StaticError> errors) {
+   super(errors);
+   _apis = apis;
+  }
 
-		public Iterable<Api> apis() { return _apis; }
-	}
+  public Iterable<Api> apis() { return _apis; }
+ }
 
-	public static ApiResult rewriteApis(Map<APIName, ApiIndex> map, GlobalEnvironment env) {
-		Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
-		apis.addAll(map.values());
-		apis.addAll(env.apis().values());
-		initializeGrammarIndexExtensions(apis);
+ public static ApiResult rewriteApis(Map<APIName, ApiIndex> map, GlobalEnvironment env) {
+  Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
+  apis.addAll(map.values());
+  apis.addAll(env.apis().values());
+  initializeGrammarIndexExtensions(apis);
 
-		List<Api> results = new ArrayList<Api>();
-		ItemDisambiguator id = new ItemDisambiguator(env);
+  List<Api> results = new ArrayList<Api>();
+  ItemDisambiguator id = new ItemDisambiguator(env);
 
-		for (ApiIndex api: apis) {
-			Api idResult = (Api) api.ast().accept(id);
-			if (id.errors().isEmpty()) {
-				// Remove whitespace where instructed by non-whitespace symbols
-				WhitespaceElimination we = new WhitespaceElimination();
-			 	Api sdResult = (Api) idResult.accept(we);
+  for (ApiIndex api: apis) {
+   Api idResult = (Api) api.ast().accept(id);
+   if (id.errors().isEmpty()) {
+    // Remove whitespace where instructed by non-whitespace symbols
+    WhitespaceElimination we = new WhitespaceElimination();
+     Api sdResult = (Api) idResult.accept(we);
 
-				// Rewrite escaped characters
-				EscapeRewriter escapeRewriter = new EscapeRewriter();
-				Api erResult = (Api) sdResult.accept(escapeRewriter);
+    // Rewrite escaped characters
+    EscapeRewriter escapeRewriter = new EscapeRewriter();
+    Api erResult = (Api) sdResult.accept(escapeRewriter);
 
-				// Rewrite terminals to be declared using terminal definitions
-				TerminalRewriter terminalRewriter = new TerminalRewriter();
-				Api trResult = (Api) erResult.accept(terminalRewriter);
-				
-				/* 
-				 * Parse content of pretemplates and replace pretemplate 
-				 * with a template
-				 */
-				TemplateParser.Result tpr = TemplateParser.parseTemplates(trResult);
-				if (!tpr.isSuccessful()) { return new ApiResult(null, tpr.errors()); }
-				Api tpResult = tpr.api;
-				
-				results.add(tpResult);
-			}
-		}
+    // Rewrite terminals to be declared using terminal definitions
+    TerminalRewriter terminalRewriter = new TerminalRewriter();
+    Api trResult = (Api) erResult.accept(terminalRewriter);
+    
+    /* 
+     * Parse content of pretemplates and replace pretemplate 
+     * with a template
+     */
+    TemplateParser.Result tpr = TemplateParser.parseTemplates(trResult);
+    if (!tpr.isSuccessful()) { return new ApiResult(null, tpr.errors()); }
+    Api tpResult = tpr.api;
+    
+    results.add(tpResult);
+   }
+  }
 
-		return new ApiResult(results, id.errors());
-	}
+  return new ApiResult(results, id.errors());
+ }
 
-	private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
-		Map<Id, GrammarIndex> grammars = new HashMap<Id, GrammarIndex>();
-		for (ApiIndex a2: apis) {
-			for (Entry<Id,GrammarIndex> e: a2.grammars().entrySet()) {
-				grammars.put(e.getKey(), e.getValue());
-			}
-		}
+ private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+  Map<Id, GrammarIndex> grammars = new HashMap<Id, GrammarIndex>();
+  for (ApiIndex a2: apis) {
+   for (Entry<Id,GrammarIndex> e: a2.grammars().entrySet()) {
+    grammars.put(e.getKey(), e.getValue());
+   }
+  }
 
-		for (ApiIndex a1: apis) {
-			for (Entry<Id,GrammarIndex> e: a1.grammars().entrySet()) {
-				Option<GrammarDef> og = e.getValue().ast();
-				if (og.isSome()) {
-					List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-					for (Id n: Option.unwrap(og).getExtends()) {
-						ls.add(grammars.get(n));
-					}
-					e.getValue().setExtended(ls);
-				}
-			}
-		}
-	}
+  for (ApiIndex a1: apis) {
+   for (Entry<Id,GrammarIndex> e: a1.grammars().entrySet()) {
+    Option<GrammarDef> og = e.getValue().ast();
+    if (og.isSome()) {
+     List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
+     for (Id n: og.unwrap().getExtends()) {
+      ls.add(grammars.get(n));
+     }
+     e.getValue().setExtended(ls);
+    }
+   }
+  }
+ }
 
 }

@@ -354,7 +354,7 @@ public class IndexBuilder {
 
         Option<Constructor> constructor;
         if (ast.getParams().isSome()) {
-            for (Param p : Option.unwrap(ast.getParams())) {
+            for (Param p : ast.getParams().unwrap()) {
                 fields.put(p.getName(), new ParamVariable(p));
             }
             Constructor c = new Constructor(name,
@@ -550,31 +550,31 @@ public class IndexBuilder {
 
 
     private Set<NonterminalIndex<? extends GrammarMemberDecl>> buildMembers(List<GrammarMemberDecl> members) {
-    	Set<NonterminalIndex<? extends GrammarMemberDecl>> result = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
-    	Set<Id> names = new HashSet<Id>();
-    	for (GrammarMemberDecl m: members) {
+     Set<NonterminalIndex<? extends GrammarMemberDecl>> result = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
+     Set<Id> names = new HashSet<Id>();
+     for (GrammarMemberDecl m: members) {
             if (names.contains(m.getName())) {
                 error("Nonterminal declared twice: "+m.getName(), m);
             }
             names.add(m.getName());
             result.add(m.accept(new NodeDepthFirstVisitor<NonterminalIndex<? extends GrammarMemberDecl>>(){
 
-				@Override
-				public NonterminalIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
-					return new NonterminalDefIndex(Option.wrap(that));
-				}
+    @Override
+    public NonterminalIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
+     return new NonterminalDefIndex(Option.wrap(that));
+    }
 
-				@Override
-				public NonterminalIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
-						NonterminalExtensionDef that) {
-					return new NonterminalExtendIndex(Option.wrap(that));
-				}
+    @Override
+    public NonterminalIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
+      NonterminalExtensionDef that) {
+     return new NonterminalExtendIndex(Option.wrap(that));
+    }
 
-				@Override
-				public NonterminalIndex<_TerminalDef> for_TerminalDef(
-						_TerminalDef that) {
-					return new GrammarTerminalIndex(Option.wrap(that));
-				}
+    @Override
+    public NonterminalIndex<_TerminalDef> for_TerminalDef(
+      _TerminalDef that) {
+     return new GrammarTerminalIndex(Option.wrap(that));
+    }
 
             }));
         }

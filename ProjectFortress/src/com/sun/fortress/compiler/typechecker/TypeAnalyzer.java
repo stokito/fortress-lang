@@ -88,7 +88,7 @@ public class TypeAnalyzer {
                 // fix newThrows so that it is a singleton list
                 if (newThrows.isNone()) { newThrows = THROWS_BOTTOM; }
                 else {
-                    List<Type> throwsList = Option.unwrap(newThrows);
+                    List<Type> throwsList = newThrows.unwrap();
                     if (throwsList.isEmpty()) { newThrows = THROWS_BOTTOM; }
                     else if (throwsList.size() > 1) {
                         Type union = null;
@@ -132,7 +132,7 @@ public class TypeAnalyzer {
         debug.logStart(new String[]{"s", "t"}, s, t);
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
         if (cached.isSome()) {
-            ConstraintFormula result = Option.unwrap(cached);
+            ConstraintFormula result = cached.unwrap();
             debug.logEnd("cached result", result);
             return result;
         }
@@ -301,9 +301,9 @@ public class TypeAnalyzer {
                                 if (f.isFalse()) { break; }
                             }
                             if (!f.isFalse() && infVarargs1.isSome()) {
-                                Type varargs = Option.unwrap(s.getVarargs()).getType();
-                                Type inf1 = Option.unwrap(infVarargs1).getType();
-                                Type inf2 = Option.unwrap(infVarargs1).getType();
+                                Type varargs = s.getVarargs().unwrap().getType();
+                                Type inf1 = infVarargs1.unwrap().getType();
+                                Type inf2 = infVarargs1.unwrap().getType();
                                 f = f.and(equiv(varargs, new AndType(inf1, inf2), h), h);
                             }
                             for (Triple<KeywordType, KeywordType, KeywordType> ks :
@@ -455,8 +455,8 @@ public class TypeAnalyzer {
                                         }
                                         Option<VarargsType> andVarargs;
                                         if (infVarargs1.isSome()) {
-                                            AndType vt = new AndType(Option.unwrap(infVarargs1).getType(),
-                                                                     Option.unwrap(infVarargs2).getType());
+                                            AndType vt = new AndType(infVarargs1.unwrap().getType(),
+                                                                     infVarargs2.unwrap().getType());
                                             andVarargs = Option.some(new VarargsType(vt));
                                         }
                                         else { andVarargs = Option.none(); }
@@ -497,7 +497,7 @@ public class TypeAnalyzer {
         //debug.logStack();
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
         if (cached.isSome()) {
-            ConstraintFormula result = Option.unwrap(cached);
+            ConstraintFormula result = cached.unwrap();
             debug.logEnd("cached result", result);
             return result;
         }
@@ -656,9 +656,9 @@ public class TypeAnalyzer {
                                 if (f.isFalse()) { break; }
                             }
                             if (!f.isFalse() && infVarargs1.isSome()) {
-                                Type varargs = Option.unwrap(s.getVarargs()).getType();
-                                Type inf1 = Option.unwrap(infVarargs1).getType();
-                                Type inf2 = Option.unwrap(infVarargs1).getType();
+                                Type varargs = s.getVarargs().unwrap().getType();
+                                Type inf1 = infVarargs1.unwrap().getType();
+                                Type inf2 = infVarargs1.unwrap().getType();
                                 f = f.and(equivalent(varargs, new AndType(inf1, inf2), h), h);
                             }
                             for (Triple<KeywordType, KeywordType, KeywordType> ks :
@@ -877,8 +877,8 @@ public class TypeAnalyzer {
                                     }
                                     Option<VarargsType> andVarargs;
                                     if (infVarargs1.isSome()) {
-                                        AndType vt = new AndType(Option.unwrap(infVarargs1).getType(),
-                                                                 Option.unwrap(infVarargs2).getType());
+                                        AndType vt = new AndType(infVarargs1.unwrap().getType(),
+                                                                 infVarargs2.unwrap().getType());
                                         andVarargs = Option.some(new VarargsType(vt));
                                     }
                                     else { andVarargs = Option.none(); }
@@ -1186,7 +1186,7 @@ public class TypeAnalyzer {
     private ConstraintFormula subtype(Option<VarargsType> v1, Option<VarargsType> v2,
                                       SubtypeHistory history) {
         if (v1.isSome()) {
-            return subtype(Option.unwrap(v1).getType(), Option.unwrap(v2).getType(), history);
+            return subtype(v1.unwrap().getType(), v2.unwrap().getType(), history);
         }
         else { return ConstraintFormula.TRUE; }
     }
@@ -1195,7 +1195,7 @@ public class TypeAnalyzer {
     private ConstraintFormula sub(Option<VarargsType> v1, Option<VarargsType> v2,
                                   SubtypeHistory history) {
         if (v1.isSome()) {
-            return sub(Option.unwrap(v1).getType(), Option.unwrap(v2).getType(), history);
+            return sub(v1.unwrap().getType(), v2.unwrap().getType(), history);
         }
         else { return ConstraintFormula.TRUE; }
     }

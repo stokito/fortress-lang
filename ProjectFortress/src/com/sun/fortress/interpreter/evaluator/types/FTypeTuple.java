@@ -337,7 +337,7 @@ public class FTypeTuple extends FType {
             }
             while (varargs.isSome() && ftIterator.hasNext()) {
                 ft = ftIterator.next();
-                ft.unify(env, tp_set, abm, Option.unwrap(varargs));
+                ft.unify(env, tp_set, abm, varargs.unwrap());
             }
             while (ft instanceof FTypeRest && trIterator.hasNext()) {
                 tr = trIterator.next();

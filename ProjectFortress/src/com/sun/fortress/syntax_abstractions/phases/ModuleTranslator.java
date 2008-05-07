@@ -51,114 +51,114 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ModuleTranslator {
 
-	/**
-	 * Result of the module translation
-	 */
-	public static class Result extends StaticPhaseResult {
-		Collection<Module> modules;
+ /**
+  * Result of the module translation
+  */
+ public static class Result extends StaticPhaseResult {
+  Collection<Module> modules;
 
-		public Result(Collection<Module> modules,
-				Collection<StaticError> errors) {
-			super(errors);
-			this.modules = modules;
-		}
+  public Result(Collection<Module> modules,
+    Collection<StaticError> errors) {
+   super(errors);
+   this.modules = modules;
+  }
 
-		public Result(Collection<Module> modules,
-				Iterable<? extends StaticError> errors) {
-			super(errors);
-			this.modules = modules;
-		}
+  public Result(Collection<Module> modules,
+    Iterable<? extends StaticError> errors) {
+   super(errors);
+   this.modules = modules;
+  }
 
-		public Collection<Module> modules() { return modules; }
-	}
+  public Collection<Module> modules() { return modules; }
+ }
 
-	private static Collection<StaticError> _errors;
+ private static Collection<StaticError> _errors;
 
-	private static void error(String mess, HasAt loc) {
-		_errors.add(StaticError.make(mess, loc));
-	}
+ private static void error(String mess, HasAt loc) {
+  _errors.add(StaticError.make(mess, loc));
+ }
 
-	public static Result translate(Collection<GlobalGrammarEnv> environments) {
-		_errors = new LinkedList<StaticError>();
-		ModuleEnvironment menv = new ModuleEnvironment();
-		for (GlobalGrammarEnv env: environments) {
-			for (GrammarIndex g: env.getGrammars()) {
-				if (env.isToplevel(g)) {
-					NonterminalContractor nc = new NonterminalContractor();
-					for (ContractedNonterminal cnt: nc.getContractionList(g)) {
-						menv.add(cnt);
-					}
-				}
-			}
-		}
+ public static Result translate(Collection<GlobalGrammarEnv> environments) {
+  _errors = new LinkedList<StaticError>();
+  ModuleEnvironment menv = new ModuleEnvironment();
+  for (GlobalGrammarEnv env: environments) {
+   for (GrammarIndex g: env.getGrammars()) {
+    if (env.isToplevel(g)) {
+     NonterminalContractor nc = new NonterminalContractor();
+     for (ContractedNonterminal cnt: nc.getContractionList(g)) {
+      menv.add(cnt);
+     }
+    }
+   }
+  }
 
-		renameModulesToFreshName(menv);
-		return new Result(menv.getModules(), _errors);
-	}
+  renameModulesToFreshName(menv);
+  return new Result(menv.getModules(), _errors);
+ }
 
-	private static void renameModulesToFreshName(ModuleEnvironment menv) {
-		Map<String, String> moduleNames = new HashMap<String, String>();
-		for (Module module: menv.getModules()) {
-			if (module instanceof UserModule) {
-				String freshName = getFreshName(module.getName().toString(), moduleNames);
-				module.setName(freshName);
-			}
-			Set<ModuleName> ls = new LinkedHashSet<ModuleName>();
-			for (ModuleName mn: module.getParameters()) {
-				String name = getFreshName(mn.name, menv);
-				ls.add(new ModuleName(renameModule(name, moduleNames)));
-			}
-			module.setParameters(ls);
-			Set<ModuleDependency> ms = new LinkedHashSet<ModuleDependency>();
-			for (ModuleDependency mp: module.getDependencies()) {
-				String name = getFreshName(mp.module.name, menv);
-				ms.add(new ModuleImport(new ModuleName(renameModule(name, moduleNames))));
-			}
-			module.setDependencies(ms);
-		}
-	}
+ private static void renameModulesToFreshName(ModuleEnvironment menv) {
+  Map<String, String> moduleNames = new HashMap<String, String>();
+  for (Module module: menv.getModules()) {
+   if (module instanceof UserModule) {
+    String freshName = getFreshName(module.getName().toString(), moduleNames);
+    module.setName(freshName);
+   }
+   Set<ModuleName> ls = new LinkedHashSet<ModuleName>();
+   for (ModuleName mn: module.getParameters()) {
+    String name = getFreshName(mn.name, menv);
+    ls.add(new ModuleName(renameModule(name, moduleNames)));
+   }
+   module.setParameters(ls);
+   Set<ModuleDependency> ms = new LinkedHashSet<ModuleDependency>();
+   for (ModuleDependency mp: module.getDependencies()) {
+    String name = getFreshName(mp.module.name, menv);
+    ms.add(new ModuleImport(new ModuleName(renameModule(name, moduleNames))));
+   }
+   module.setDependencies(ms);
+  }
+ }
 
-	private static String getFreshName(String name, ModuleEnvironment menv) {
-		APIName apiName = NodeFactory.makeAPIName(name);
-		Id id = apiName.getIds().remove(apiName.getIds().size()-1);
-		Id qName = NodeFactory.makeId(apiName, id);
-		Option<Id> on = menv.getContractedName(qName);
-		String nm = name;
-		if (on.isSome()) {
-			if (ModuleInfo.isFortressModule(Option.unwrap(on))) {
-				return Option.unwrap(Option.unwrap(on).getApi()).getIds().get(1).toString();
-			}
-			else {
-				return Option.unwrap(on).toString();
-			}
-		}
-		return nm;
-	}
+ private static String getFreshName(String name, ModuleEnvironment menv) {
+  APIName apiName = NodeFactory.makeAPIName(name);
+  Id id = apiName.getIds().remove(apiName.getIds().size()-1);
+  Id qName = NodeFactory.makeId(apiName, id);
+  Option<Id> on = menv.getContractedName(qName);
+  String nm = name;
+  if (on.isSome()) {
+   if (ModuleInfo.isFortressModule(on.unwrap())) {
+    return on.unwrap().getApi().unwrap().getIds().get(1).toString();
+   }
+   else {
+    return on.unwrap().toString();
+   }
+  }
+  return nm;
+ }
 
-	/**
-	 * Renames the given module name to a fresh name,
-	 * if it is not the name of a core Fortress module.
-	 * @param nm
-	 * @param moduleNames
-	 * @return
-	 */
-	private static String renameModule(String nm,
-			Map<String, String> moduleNames) {
-		if (ModuleInfo.getFortressModuleNames().contains(nm)) {
-			return nm;
-		}
-		return getFreshName(nm, moduleNames).toString();
-	}
+ /**
+  * Renames the given module name to a fresh name,
+  * if it is not the name of a core Fortress module.
+  * @param nm
+  * @param moduleNames
+  * @return
+  */
+ private static String renameModule(String nm,
+   Map<String, String> moduleNames) {
+  if (ModuleInfo.getFortressModuleNames().contains(nm)) {
+   return nm;
+  }
+  return getFreshName(nm, moduleNames).toString();
+ }
 
-	private static String getFreshName(String name, Map<String, String> moduleNames) {
-		String freshName;
-		if (moduleNames.containsKey(name)) {
-			freshName = moduleNames.get(name);
-		}
-		else {
-			freshName = FreshName.getFreshName(name.replace('.', '_'));
-			moduleNames.put(name, freshName);
-		}
-		return freshName;
-	}
+ private static String getFreshName(String name, Map<String, String> moduleNames) {
+  String freshName;
+  if (moduleNames.containsKey(name)) {
+   freshName = moduleNames.get(name);
+  }
+  else {
+   freshName = FreshName.getFreshName(name.replace('.', '_'));
+   moduleNames.put(name, freshName);
+  }
+  return freshName;
+ }
 }

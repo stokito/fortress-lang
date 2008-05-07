@@ -93,7 +93,7 @@ public final class FortressUtil {
     }
 
     public static <T> List<T> getListVal(Option<List<T>> o) {
-        return Option.unwrap(o, Collections.<T>emptyList());
+        return o.unwrap(Collections.<T>emptyList());
     }
 
     public static <U, T extends U> List<U> mkList(T first) {
@@ -500,7 +500,7 @@ public final class FortressUtil {
                                         FnHeaderFront fhf, FnHeaderClause fhc) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         WhereClause where_ = fhc.getWhereClause();
-        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
+        Contract contract = fhc.getContractClause().unwrap(emptyContract());
         return NodeFactory.makeAbsFnDecl(span, mods, receiver, fhf.getName(),
                                          fhf.getStaticParams(), fhf.getParams(),
                                          fhc.getReturnType(), throws_, where_,
@@ -518,7 +518,7 @@ public final class FortressUtil {
                                         FnHeaderClause fhc) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         WhereClause where_ = fhc.getWhereClause();
-        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
+        Contract contract = fhc.getContractClause().unwrap(emptyContract());
         return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
                                          sparams, params,
                                          Option.<Type>none(), throws_,
@@ -540,7 +540,7 @@ public final class FortressUtil {
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         WhereClause where_ = fhc.getWhereClause();
-        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
+        Contract contract = fhc.getContractClause().unwrap(emptyContract());
         return NodeFactory.makeFnDecl(span, mods, receiver, fhf.getName(),
                                       fhf.getStaticParams(), fhf.getParams(),
                                       fhc.getReturnType(), throws_, where_,
@@ -552,7 +552,7 @@ public final class FortressUtil {
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         WhereClause where_ = fhc.getWhereClause();
-        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
+        Contract contract = fhc.getContractClause().unwrap(emptyContract());
         return NodeFactory.makeFnDecl(span, mods, Option.<Id>none(), name,
                                       sparams, params, Option.<Type>none(),
                                       throws_, where_, contract, expr);

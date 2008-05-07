@@ -47,120 +47,120 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class SyntaxSymbolPrinter extends NodeDepthFirstVisitor<String> {
 
-	@Override
-	public String forBreaklineSymbol(BreaklineSymbol that) {
-		return "BreaklineSymbol()";
-	}
+ @Override
+ public String forBreaklineSymbol(BreaklineSymbol that) {
+  return "BreaklineSymbol()";
+ }
 
-	@Override
-	public String forCarriageReturnSymbol(CarriageReturnSymbol that) {
-		return "CarriageReturnSymbol()";
-	}
+ @Override
+ public String forCarriageReturnSymbol(CarriageReturnSymbol that) {
+  return "CarriageReturnSymbol()";
+ }
 
 
-	@Override
-	public String forCharacterClassSymbolOnly(CharacterClassSymbol that,
-			List<String> characters_result) {
-		return "CharacterClassSymbol("+characters_result+")";
-	}
+ @Override
+ public String forCharacterClassSymbolOnly(CharacterClassSymbol that,
+   List<String> characters_result) {
+  return "CharacterClassSymbol("+characters_result+")";
+ }
 
-	@Override
-	public String forCharacterInterval(CharacterInterval that) {
-		return "CharacterInterval("+that.getBegin()+":"+that.getEnd()+")";
-	}
+ @Override
+ public String forCharacterInterval(CharacterInterval that) {
+  return "CharacterInterval("+that.getBegin()+":"+that.getEnd()+")";
+ }
 
-	@Override
-	public String forCharSymbol(CharSymbol that) {
-		return "CharSymbol("+that.getString()+")";
-	}
+ @Override
+ public String forCharSymbol(CharSymbol that) {
+  return "CharSymbol("+that.getString()+")";
+ }
 
-	@Override
-	public String forFormfeedSymbol(FormfeedSymbol that) {
-		return "FormfeedSymbol()";
-	}
+ @Override
+ public String forFormfeedSymbol(FormfeedSymbol that) {
+  return "FormfeedSymbol()";
+ }
 
-	@Override
-	public String forId(Id that) {
-		return that.getText();
-	}
+ @Override
+ public String forId(Id that) {
+  return that.getText();
+ }
 
-	@Override
-	public String forItemSymbolOnly(ItemSymbol that) {
-		return "ItemSymbol("+that.getItem()+")";
-	}
+ @Override
+ public String forItemSymbolOnly(ItemSymbol that) {
+  return "ItemSymbol("+that.getItem()+")";
+ }
 
-	@Override
-	public String forKeywordSymbol(KeywordSymbol that) {
-		return "KeywordSymbol("+that.getToken()+")";
-	}
+ @Override
+ public String forKeywordSymbol(KeywordSymbol that) {
+  return "KeywordSymbol("+that.getToken()+")";
+ }
 
-	@Override
-	public String forNewlineSymbol(NewlineSymbol that) {
-		return "NewlineSymbol()";
-	}
+ @Override
+ public String forNewlineSymbol(NewlineSymbol that) {
+  return "NewlineSymbol()";
+ }
 
-	@Override
-	public String forNonterminalSymbol(NonterminalSymbol that) {
-		return "NonterminalSymbol("+that.getNonterminal()+")";
-	}
-	
-	@Override
-	public String forAndPredicateSymbolOnly(AndPredicateSymbol that,
-			String symbol_result) {
-		return "AndPredicateSymbol("+symbol_result+")";
-	}
+ @Override
+ public String forNonterminalSymbol(NonterminalSymbol that) {
+  return "NonterminalSymbol("+that.getNonterminal()+")";
+ }
+ 
+ @Override
+ public String forAndPredicateSymbolOnly(AndPredicateSymbol that,
+   String symbol_result) {
+  return "AndPredicateSymbol("+symbol_result+")";
+ }
 
-	@Override
-	public String forNotPredicateSymbolOnly(NotPredicateSymbol that,
-			String symbol_result) {
-		return "NotPredicateSymbol("+symbol_result+")";
-	}
+ @Override
+ public String forNotPredicateSymbolOnly(NotPredicateSymbol that,
+   String symbol_result) {
+  return "NotPredicateSymbol("+symbol_result+")";
+ }
 
-	@Override
-	public String forNoWhitespaceSymbol(NoWhitespaceSymbol that) {
-		return "NoWhitespaceSymbol()";
-	}
+ @Override
+ public String forNoWhitespaceSymbol(NoWhitespaceSymbol that) {
+  return "NoWhitespaceSymbol()";
+ }
 
-	@Override
-	public String forOptionalSymbolOnly(OptionalSymbol that,
-			String symbol_result) {
-		return "OptionalSymbol("+symbol_result+")";
-	}
+ @Override
+ public String forOptionalSymbolOnly(OptionalSymbol that,
+   String symbol_result) {
+  return "OptionalSymbol("+symbol_result+")";
+ }
 
-	
-	@Override
-	public String forPrefixedSymbolOnly(PrefixedSymbol that,
-			Option<String> id_result, String symbol_result) {
-		if (id_result.isSome()) {
-			return "PrefixedSymbol("+Option.unwrap(id_result)+":"+symbol_result+")";
-		}
-		return "PrefixedSymbol("+symbol_result+")"; 
-	}
+ 
+ @Override
+ public String forPrefixedSymbolOnly(PrefixedSymbol that,
+   Option<String> id_result, String symbol_result) {
+  if (id_result.isSome()) {
+   return "PrefixedSymbol("+id_result.unwrap()+":"+symbol_result+")";
+  }
+  return "PrefixedSymbol("+symbol_result+")"; 
+ }
 
-	@Override
-	public String forRepeatOneOrMoreSymbolOnly(RepeatOneOrMoreSymbol that,
-			String symbol_result) {
-		return "RepeatOneOrMoreSymbol("+symbol_result+")";
-	}
+ @Override
+ public String forRepeatOneOrMoreSymbolOnly(RepeatOneOrMoreSymbol that,
+   String symbol_result) {
+  return "RepeatOneOrMoreSymbol("+symbol_result+")";
+ }
 
-	@Override
-	public String forRepeatSymbolOnly(RepeatSymbol that, String symbol_result) {
-		return "RepeatSymbol("+symbol_result+")";
-	}
+ @Override
+ public String forRepeatSymbolOnly(RepeatSymbol that, String symbol_result) {
+  return "RepeatSymbol("+symbol_result+")";
+ }
 
-	@Override
-	public String forTabSymbol(TabSymbol that) {
-		return "TabSymbol()";
-	}
+ @Override
+ public String forTabSymbol(TabSymbol that) {
+  return "TabSymbol()";
+ }
 
-	@Override
-	public String forTokenSymbol(TokenSymbol that) {
-		return "TokenSymbol("+that.getToken()+")";
-	}
-	
-	@Override
-	public String forWhitespaceSymbol(WhitespaceSymbol that) {
-		return "WhitespaceSymbol()";
-	}
+ @Override
+ public String forTokenSymbol(TokenSymbol that) {
+  return "TokenSymbol("+that.getToken()+")";
+ }
+ 
+ @Override
+ public String forWhitespaceSymbol(WhitespaceSymbol that) {
+  return "WhitespaceSymbol()";
+ }
 
 }

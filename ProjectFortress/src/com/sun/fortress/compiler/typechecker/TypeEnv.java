@@ -104,9 +104,9 @@ public abstract class TypeEnv {
 
                 if (maybeType.isSome()) { // An explicit type is declared.
                     if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
-                        keywordTypes.add(makeKeywordType(_param.getName(), unwrap(maybeType)));
+                        keywordTypes.add(makeKeywordType(_param.getName(), maybeType.unwrap()));
                     } else { // We have an ordinary param.
-                        paramTypes.add(unwrap(maybeType));
+                        paramTypes.add(maybeType.unwrap());
                     }
                 } else { // No type is explicitly declared for this parameter.
                     if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
@@ -169,7 +169,7 @@ public abstract class TypeEnv {
     public final Option<Type> type(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> _binding = binding(var);
         if (_binding.isSome()) {
-            Option<Type> type = unwrap(_binding).getType();
+            Option<Type> type = _binding.unwrap().getType();
             if (type.isSome()) {
                 return type;
             } else {
@@ -193,7 +193,7 @@ public abstract class TypeEnv {
     public final Option<List<Modifier>> mods(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> binding = binding(var);
 
-        if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
+        if (binding.isSome()) { return wrap(binding.unwrap().getMods()); }
         else { return Option.none(); }
     }
 
@@ -204,7 +204,7 @@ public abstract class TypeEnv {
     public final Option<Boolean> mutable(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> binding = binding(var);
 
-        if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }
+        if (binding.isSome()) { return wrap(binding.unwrap().isMutable()); }
         else { return Option.none(); }
     }
 
@@ -298,7 +298,7 @@ public abstract class TypeEnv {
 
     public final TypeEnv extend(Option<List<Param>> params) {
         if (params.isNone()) { return this; }
-        else { return extendWithParams(unwrap(params)); }
+        else { return extendWithParams(params.unwrap()); }
     }
 
     public final TypeEnv extend(Param param) {
@@ -335,7 +335,7 @@ public abstract class TypeEnv {
             type = wrap((Type)makeGenericArrowType(decl.getSpan(),
                     decl.getStaticParams(),
                     typeFromParams(decl.getParams()),
-                    unwrap(decl.getReturnType()), // all types have been filled in at this point
+                    decl.getReturnType().unwrap(), // all types have been filled in at this point
                     decl.getThrowsClause(),
                     decl.getWhere()));
             mods = decl.getMods();
@@ -351,7 +351,7 @@ public abstract class TypeEnv {
                         makeGenericArrowType(decl.getSpan(),
                                 decl.getStaticParams(),
                                 typeFromParams(decl.getParams()),
-                                unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                decl.getReturnType().unwrap(), // all types have been filled in at this point
                                 decl.getThrowsClause(),
                                 decl.getWhere()));
                 mods.addAll(decl.getMods());

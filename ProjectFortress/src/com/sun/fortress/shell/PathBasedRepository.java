@@ -99,7 +99,7 @@ public class PathBasedRepository extends StubRepository implements FortressRepos
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {
-            CompilationUnit cu = Option.unwrap(ocu);
+            CompilationUnit cu = ocu.unwrap();
             if (cu instanceof Api) {
                 Api component = (Api) cu;
                 ApiIndex ci = builder.buildApiIndex(component, fdot.lastModified());
@@ -143,7 +143,7 @@ public class PathBasedRepository extends StubRepository implements FortressRepos
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {
-            CompilationUnit cu = Option.unwrap(ocu);
+            CompilationUnit cu = ocu.unwrap();
             return cu;
         }
     }

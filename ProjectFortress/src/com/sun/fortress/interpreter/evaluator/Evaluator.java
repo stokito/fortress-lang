@@ -265,7 +265,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (possOp.isSome()) {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
-            Op opr = Option.unwrap(possOp);
+            Op opr = possOp.unwrap();
             Fcn fcn = (Fcn) opr.accept(this);
             FValue lhsValue;
             if (lhsSize > 1) {
@@ -368,7 +368,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (s == 1) {
             DoFront f = x.getFronts().get(0);
             if (f.getLoc().isSome()) {
-                Expr regionExp = Option.unwrap(f.getLoc());
+                Expr regionExp = f.getLoc().unwrap();
                 FValue region = regionExp.accept(this);
             }
             if (f.isAtomic())
@@ -382,7 +382,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
        for (int i = 0; i < s; i++) {
            DoFront f = x.getFronts().get(i);
            if (f.getLoc().isSome()) {
-               locs.add(Option.unwrap(f.getLoc()));
+               locs.add(f.getLoc().unwrap());
            }
            if (f.isAtomic())
                tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
@@ -544,19 +544,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (param.isNone()) {
             Option<Op> compare = x.getCompare();
             if (compare.isSome()) {
-                String op = NodeUtil.nameString(Option.unwrap(compare));
+                String op = NodeUtil.nameString(compare.unwrap());
                 return forBlock(findExtremum(x,(Fcn) e.getValue(op)).getBody());
             } else
                 return error(x,errorMsg("Missing operator for the extremum ",
                                         "expression ", x));
         } else {
             // Evaluate the parameter
-            FValue paramValue = Option.unwrap(param).accept(this);
+            FValue paramValue = param.unwrap().accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue("=");
             Option<Op> compare = x.getCompare();
             if (compare.isSome())
-                fcn = (Fcn) e.getValue(NodeUtil.nameString(Option.unwrap(compare)));
+                fcn = (Fcn) e.getValue(NodeUtil.nameString(compare.unwrap()));
 
             // Iterate through the cases
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
@@ -577,7 +577,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Option<Block> _else = x.getElseClause();
             if (_else.isSome()) {
                 // TODO need an Else node to hang a location on
-                return forBlock(Option.unwrap(_else));
+                return forBlock(_else.unwrap());
             }
             FObject f = (FObject) e.getValue(WellKnownNames.matchFailureException);
             FortressException f_exc = new FortressException(f);
@@ -631,7 +631,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private boolean isShadow(Option<String> var, String name) {
         if (var.isSome()) {
-            return Option.unwrap(var).equals(name);
+            return var.unwrap().equals(name);
         } else { // var.isNone()
             return false;
         }
@@ -660,7 +660,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 res.add(val.type());
             }
         } else { // exprOpt.isSome()
-            expr = Option.unwrap(exprOpt);
+            expr = exprOpt.unwrap();
             if (bindIds.size() == 1) {
                 FValue val = expr.accept(ev);
                 String name = bindIds.get(0).getText();
@@ -768,13 +768,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         LabelException e;
 
         if (returnExpr.isSome()) {
-            res = Option.unwrap(returnExpr).accept(new Evaluator(this));
+            res = returnExpr.unwrap().accept(new Evaluator(this));
         } else {
             res = FVoid.V;
         }
 
         if (target.isSome()) {
-            String t = Option.unwrap(target).getText();
+            String t = target.unwrap().getText();
             e = new NamedLabelException(x, t, res);
         } else {
             e = new LabelException(x,res);
@@ -949,7 +949,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         Option<Block> else_ = x.getElseClause();
         if (else_.isSome()) {
-            return Option.unwrap(else_).accept(this);
+            return else_.unwrap().accept(this);
         }
         else {
             return FVoid.V;
@@ -1214,7 +1214,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FObject array = (FObject) arr;
         String opString;
         if (op.isSome()) {
-            opString = NodeUtil.nameString(Option.unwrap(op));
+            opString = NodeUtil.nameString(op.unwrap());
         } else {
             opString = "[]";
         }
@@ -1335,7 +1335,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Option<Expr> expr = expo.getExpr();
             Fcn fcn = (Fcn)fvalue;
             if (expr.isSome()) { // ^ Exponent
-                FValue exponent = Option.unwrap(expr).accept(this);
+                FValue exponent = expr.unwrap().accept(this);
                 return functionInvocation(Useful.list(front, exponent), fcn, op);
             } else { // ExponentOp
                 return functionInvocation(Useful.list(front), fcn, op);
@@ -1644,7 +1644,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FType excType = exc.getException().type();
             Option<Catch> _catchClause = x.getCatchClause();
             if (_catchClause.isSome()) {
-                Catch _catch = Option.unwrap(_catchClause);
+                Catch _catch = _catchClause.unwrap();
                 Id name = _catch.getName();
                 List<CatchClause> clauses = _catch.getClauses();
                 for (CatchClause clause : clauses) {
@@ -1680,7 +1680,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } finally {
             Option<Block> finallyClause = x.getFinallyClause();
             if (finallyClause.isSome()) {
-                Block b = Option.unwrap(finallyClause);
+                Block b = finallyClause.unwrap();
                 b.accept(this);
             }
         }
@@ -1722,7 +1722,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         Option<Block> el = x.getElseClause();
         if (el.isSome()) {
-            Block elseClauses = Option.unwrap(el);
+            Block elseClauses = el.unwrap();
             result = evalExprList(elseClauses.getExprs(), elseClauses, ev);
             return result;
         } else {

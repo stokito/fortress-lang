@@ -187,7 +187,7 @@ public class fs {
                 String astFile = basename(s) + "." + ProjectProperties.astSuffixForSource(s);
                 if (verbose) { System.err.println("Writing ast to " + astFile); }
                 BufferedWriter fout = Useful.utf8BufferedFileWriter(astFile);
-                try { new Printer(true, true, true).dump(Option.unwrap(p), fout, 0); }
+                try { new Printer(true, true, true).dump(p.unwrap(), fout, 0); }
                 finally { fout.close(); }
             }
 
@@ -196,7 +196,7 @@ public class fs {
                 System.exit(1);
             }
             else if (!parseOnly) {
-                CompilationUnit _p = Option.unwrap(p);
+                CompilationUnit _p = p.unwrap();
 
                 if (verbose) {
                   if (test) { System.err.println("Running Tests"); }

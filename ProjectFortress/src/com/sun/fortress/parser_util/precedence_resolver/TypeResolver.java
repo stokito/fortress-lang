@@ -614,7 +614,7 @@ public class TypeResolver {
                 }
                 Option<VarargsType> varargs = t.getVarargs();
                 if (varargs.isSome()) {
-                    VarargsType ty = Option.unwrap(varargs);
+                    VarargsType ty = varargs.unwrap();
                     varargs = Option.some(new VarargsType(ty.getSpan(),
                                                           typeToType(ty.getType())));
                 }

@@ -810,7 +810,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 FTypeObject fto = (FTypeObject) ft;
                 HasFinishInitializing cl = (HasFinishInitializing) containing.getValue(fname);
 //                List<Parameter> fparams = EvalType.paramsToParameters(
-//                        containing, Option.unwrap(params));
+//                        containing, params.unwrap());
 //                cl.setParams(fparams);
                 cl.finishInitializing();
             }
@@ -976,7 +976,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 String sname = NodeUtil.nameString(name);
 
                 FType ft = type.isSome() ?
-                        (new EvalType(containing)).evalType(Option.unwrap(type))
+                        (new EvalType(containing)).evalType(type.unwrap())
                                 : null;
 
                 if (lvb.isMutable()) {
@@ -1174,7 +1174,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         ftt.setExtendsAndExcludes(extl, excl, interior);
         Option<List<BaseType>> comprs = x.getComprises();
         if (!comprs.isNone()) {
-            List<FType> c = et.getFTypeListFromList(Option.unwrap(comprs));
+            List<FType> c = et.getFTypeListFromList(comprs.unwrap());
             ftt.setComprises(Useful.<FType>set(c));
         }
         List<? extends AbsDeclOrDecl> fns = x.getDecls();

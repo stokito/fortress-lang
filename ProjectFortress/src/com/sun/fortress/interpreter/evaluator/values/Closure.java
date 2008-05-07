@@ -188,12 +188,12 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
      */
     public Expr getBody() {
         Option<Expr> optBody = NodeUtil.getBody(def);
-        return Option.unwrap(optBody);
+        return optBody.unwrap();
     }
 
     public Expr getBodyNull() {
         Option<Expr> optBody = NodeUtil.getBody(def);
-        return Option.unwrap(optBody, (Expr) null);
+        return optBody.unwrap(null);
     }
 
 

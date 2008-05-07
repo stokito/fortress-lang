@@ -96,11 +96,11 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
         Evaluator new_eval = new Evaluator(containing);
         if (rhs.isSome()) {
             if (lhs.size() == 1) {
-                FValue val = Option.unwrap(rhs).accept(new_eval);
+                FValue val = rhs.unwrap().accept(new_eval);
                 LHSEvaluator lhs_eval = new LHSEvaluator(new_eval, val);
                 lhs.get(0).accept(lhs_eval);
             } else {
-                FValue val = Option.unwrap(rhs).accept(new_eval);
+                FValue val = rhs.unwrap().accept(new_eval);
 
                 if (!(val instanceof FTuple)) {
                     error(x, containing,
@@ -122,7 +122,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
                     error(lval, containing, errorMsg("Extra lvalue"));
                 } else if (j.hasNext()) {
                     FValue rval = j.next();
-                    error(Option.unwrap(rhs), containing, errorMsg("Extra rvalue"));
+                    error(rhs.unwrap(), containing, errorMsg("Extra rvalue"));
                 }
             }
         } else {
@@ -132,7 +132,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
                     LValueBind lvb = (LValueBind) lval;
                     if (lvb.isMutable()) {
                         FValue fv = lval.accept(new_eval);
-                        FType fvt = Option.unwrap(lvb.getType()).accept(eval_type);
+                        FType fvt = lvb.getType().unwrap().accept(eval_type);
                         containing.putVariable(fv.getString(),fvt);
                     } else {
                         containing.putValue(lval.accept(new_eval), new IndirectionCell());

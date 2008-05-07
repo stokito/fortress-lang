@@ -71,7 +71,7 @@ AbsFnDecl FnSig =
            public void forArgType(ArgType that) {
                for (AbstractNode i : that.getElements()) { i.accept(this); }
                if (that.getVarargs().isSome())
-                   Option.unwrap(that.getVarargs()).accept(this);
+                   that.getVarargs().unwrap().accept(this);
                assert(that.getKeywords().isEmpty()): "Keyword parameters present"
                                                      + " in a FnSig: " + that;
            }

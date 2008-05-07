@@ -68,7 +68,7 @@ public class FileBasedRepository extends CacheBasedRepository implements Fortres
                                                file.getCanonicalPath());
                 }
                 else {
-                    CompilationUnit _candidate = Option.unwrap(candidate);
+                    CompilationUnit _candidate = candidate.unwrap();
 
                     if (_candidate instanceof Api) {
                         ArrayList<Api> _candidates = new ArrayList<Api>();

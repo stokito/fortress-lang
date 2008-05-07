@@ -34,7 +34,6 @@ import edu.rice.cs.plt.tuple.Pair;
 import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
  * A type environment whose outermost lexical scope consists of a map from IDs
@@ -72,7 +71,7 @@ class FnTypeEnv extends TypeEnv {
                 overloadedTypes.add(makeGenericArrowType(decl.getSpan(),
                                                         decl.getStaticParams(),
                                                         typeFromParams(decl.getParams()),
-                                                        unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                                        decl.getReturnType().unwrap(), // all types have been filled in at this point
                                                         decl.getThrowsClause(),
                                                         decl.getWhere()));
             } else if (fn instanceof FunctionalMethod) {
@@ -81,7 +80,7 @@ class FnTypeEnv extends TypeEnv {
                 overloadedTypes.add(makeGenericArrowType(decl.getSpan(),
                                                         decl.getStaticParams(),
                                                         typeFromParams(decl.getParams()),
-                                                        unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                                        decl.getReturnType().unwrap(), // all types have been filled in at this point
                                                         decl.getThrowsClause(),
                                                         decl.getWhere()));
             } else { // fn instanceof Constructor
@@ -91,7 +90,7 @@ class FnTypeEnv extends TypeEnv {
                 // Otherwise, _fn should not have been in entries.
                 overloadedTypes.add(makeGenericArrowType(_fn.declaringTrait().getSpan(),
                                                         _fn.staticParams(),
-                                                        typeFromParams(unwrap(_fn.params())),
+                                                        typeFromParams(_fn.params().unwrap()),
                                                         makeInstantiatedType(_fn.declaringTrait(),
                                                                              staticParamsToArgs(_fn.staticParams())),
                                                         _fn.throwsClause(),
@@ -99,7 +98,7 @@ class FnTypeEnv extends TypeEnv {
 
             }
         }
-        return some(new BindingLookup(var, makeAndType(overloadedTypes)));
+        return Option.some(new BindingLookup(var, makeAndType(overloadedTypes)));
     }
 
     @Override
@@ -108,7 +107,7 @@ class FnTypeEnv extends TypeEnv {
         for (IdOrOpOrAnonymousName name : entries.firstSet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
-                result.add(unwrap(element));
+                result.add(element.unwrap());
             }
         }
         result.addAll(parent.contents());

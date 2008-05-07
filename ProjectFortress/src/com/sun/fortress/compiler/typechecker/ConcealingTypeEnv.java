@@ -63,7 +63,7 @@ class ConcealingTypeEnv extends TypeEnv {
         for (IdOrOpOrAnonymousName name : entries) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
-                result.add(unwrap(element));
+                result.add(element.unwrap());
             }
         }
         result.addAll(parent.contents());

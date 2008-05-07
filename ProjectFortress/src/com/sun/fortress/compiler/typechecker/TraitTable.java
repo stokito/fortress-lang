@@ -38,10 +38,10 @@ public class TraitTable {
 
     public TypeConsIndex typeCons(Id name) {
         Option<APIName> api = name.getApi();
-        if (api.isNone() || currentComponent.ast().getName().equals(Option.unwrap(api))) {
+        if (api.isNone() || currentComponent.ast().getName().equals(api.unwrap())) {
             return currentComponent.typeConses().get(name);
         } else {
-            return globalEnv.api(Option.unwrap(api)).typeConses().get(name);
+            return globalEnv.api(api.unwrap()).typeConses().get(name);
         }
     }
 

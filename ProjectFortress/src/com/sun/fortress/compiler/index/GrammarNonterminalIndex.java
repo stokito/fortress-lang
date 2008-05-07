@@ -26,14 +26,14 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class GrammarNonterminalIndex<T extends NonterminalDecl> extends NonterminalIndex<T>{
 
-	public GrammarNonterminalIndex(Option<T> ast) {
-		super(ast);	
-	}
+ public GrammarNonterminalIndex(Option<T> ast) {
+  super(ast); 
+ }
 
-	public Collection<SyntaxDef> getSyntaxDefs() {
-		if (this.ast().isNone()) {
-			throw new RuntimeException("Ast not found.");
-		}
-		return Option.unwrap(this.ast()).getSyntaxDefs();
-	}
+ public Collection<SyntaxDef> getSyntaxDefs() {
+  if (this.ast().isNone()) {
+   throw new RuntimeException("Ast not found.");
+  }
+  return this.ast().unwrap().getSyntaxDefs();
+ }
 }

@@ -138,7 +138,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
 //    static public void addParamsToCollection(
 //          Option<List<Param>> opt_params, Collection<String> parameterNames) {
 //        if (opt_params.isSome()) {
-//            addParamsToCollection(Option.unwrap(opt_params), parameterNames);
+//            addParamsToCollection(opt_params.unwrap(), parameterNames);
 //        }
 //    }
 //    static public void addParamsToCollection(
@@ -156,7 +156,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
 //    static public void removeParamsFromCollection(
 //          Option<List<Param>> opt_params, Collection<String> parameterNames) {
 //        if (opt_params.isSome()) {
-//            removeParamsFromCollection(Option.unwrap(opt_params), parameterNames);
+//            removeParamsFromCollection(opt_params.unwrap(), parameterNames);
 //        }
 //    }
 //    static public void removeParamsFromCollection(
@@ -186,7 +186,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         // overloading, shadowing, etc.  First puts win.
         if (params.isSome()) {
             List<Parameter> fparams = EvalType.paramsToParameters(
-                    getWithin(), Option.unwrap(params));
+                    getWithin(), params.unwrap());
             setParams(fparams);
         } else {
             setParams(Collections.<Parameter> emptyList());

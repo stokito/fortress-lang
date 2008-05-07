@@ -34,7 +34,7 @@ public class NodeComparator {
             return a.isSome() ? 1 : -1;
         }
         if (a.isSome()) {
-            return compare(Option.unwrap(a), Option.unwrap(b));
+            return compare(a.unwrap(), b.unwrap());
         }
         return 0;
     }
@@ -45,7 +45,7 @@ public class NodeComparator {
             return a.isSome() ? 1 : -1;
         }
         if (a.isSome()) {
-            return compare(Option.unwrap(a), Option.unwrap(b));
+            return compare(a.unwrap(), b.unwrap());
         }
         return 0;
     }
@@ -260,8 +260,8 @@ public class NodeComparator {
         if (left.getThrowsClause().isSome() != right.getThrowsClause().isSome())
             return left.getThrowsClause().isSome() ? 1 : -1;
         if (left.getThrowsClause().isSome())
-            return typeListComparer.compare(Option.unwrap(left.getThrowsClause()),
-                                            Option.unwrap(right.getThrowsClause()));
+            return typeListComparer.compare(left.getThrowsClause().unwrap(),
+                                            right.getThrowsClause().unwrap());
         return 0;
     }
 

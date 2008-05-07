@@ -53,8 +53,7 @@ public final class OprUtil {
     }
 
     private static boolean isPostfix(Op name) {
-        return (name.getFixity().isSome() &&
-                Option.unwrap(name.getFixity()) instanceof PostFixity);
+        return name.getFixity().unwrap(null) instanceof PostFixity;
     }
 
     public static boolean isPostfix(OpName name) {
@@ -154,7 +153,7 @@ public final class OprUtil {
         if (of.isNone()) {
             return s;
         }
-        return Option.<Fixity>unwrap(of).accept(new NodeAbstractVisitor<String>() {
+        return of.unwrap().accept(new NodeAbstractVisitor<String>() {
 //            @Override public String forInFixity(InFixity that) {
 //                return "infix "+s;
 //            }

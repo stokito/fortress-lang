@@ -158,7 +158,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private Set<Id> extractParamNames(Option<List<Param>> params) {
         Set<Id> result = new HashSet<Id>();
         if (params.isNone()) { return new HashSet<Id>(); }
-        else { return extractParamNames(Option.unwrap(params)); }
+        else { return extractParamNames(params.unwrap()); }
     }
 
     /**
@@ -368,11 +368,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         // First, try to interpret it as a qualified name
         while (result == null && api.isSome()) {
-            APIName givenApiName = Option.unwrap(api);
+            APIName givenApiName = api.unwrap();
             Option<APIName> realApiNameOpt = _env.apiName(givenApiName);
 
             if (realApiNameOpt.isSome()) {
-                APIName realApiName = Option.unwrap(realApiNameOpt);
+                APIName realApiName = realApiNameOpt.unwrap();
                 Id newId = NodeFactory.makeId(realApiName, name);
                 if (_env.hasQualifiedVariable(newId)) {
                     if (ConsList.isEmpty(fields) && givenApiName == realApiName) {

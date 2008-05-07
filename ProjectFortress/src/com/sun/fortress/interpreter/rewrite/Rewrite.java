@@ -194,7 +194,7 @@ public abstract class Rewrite extends NodeReflection {
      */
     protected <T> Option<T> visitOption(Option<T> opt) {
         if (opt.isSome()) {
-            T updated = visitObject(Option.unwrap(opt));
+            T updated = visitObject(opt.unwrap());
             if (updated != null) {
                 return Option.some(updated);
             }

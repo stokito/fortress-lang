@@ -34,67 +34,67 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class GrammarIndex implements Analyzable<GrammarIndex> {
 
-	private Option<GrammarDef> ast;
+ private Option<GrammarDef> ast;
 
-	private Collection<NonterminalIndex<? extends GrammarMemberDecl>> members;
+ private Collection<NonterminalIndex<? extends GrammarMemberDecl>> members;
 
-	private Collection<GrammarIndex> extendedGrammars;
+ private Collection<GrammarIndex> extendedGrammars;
 
-//	private NonterminalEnv env;
+// private NonterminalEnv env;
 
-	public GrammarIndex(Option<GrammarDef> ast, Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
-		this.ast = ast;
-		this.extendedGrammars = new LinkedList<GrammarIndex>();
-		this.members = members;
-//		this.env = new NonterminalEnv(this);
-	}
+ public GrammarIndex(Option<GrammarDef> ast, Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+  this.ast = ast;
+  this.extendedGrammars = new LinkedList<GrammarIndex>();
+  this.members = members;
+//  this.env = new NonterminalEnv(this);
+ }
 
-	public Option<GrammarDef> ast() {
-		return this.ast;
-	}
+ public Option<GrammarDef> ast() {
+  return this.ast;
+ }
 
-	public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
-		return this.members;
-	}
+ public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
+  return this.members;
+ }
 
-	public void setAst(GrammarDef g) {
-		this.ast = Option.wrap(g);
-	}
+ public void setAst(GrammarDef g) {
+  this.ast = Option.wrap(g);
+ }
 
-	public void setExtended(Collection<GrammarIndex> gs) {
-		this.extendedGrammars = gs;
-	}
+ public void setExtended(Collection<GrammarIndex> gs) {
+  this.extendedGrammars = gs;
+ }
 
-	public Collection<GrammarIndex> getExtended() {
-		return this.extendedGrammars;
-	}
+ public Collection<GrammarIndex> getExtended() {
+  return this.extendedGrammars;
+ }
 
-//	public void setEnv(NonterminalEnv env) {
-//		this.env = env;
-//	}
+// public void setEnv(NonterminalEnv env) {
+//  this.env = env;
+// }
 //
-//	public NonterminalEnv env() {
-//		return this.env;
-//	}
+// public NonterminalEnv env() {
+//  return this.env;
+// }
 
-	public Id getName() {
-		if (this.ast().isSome()) {
-			return Option.unwrap(this.ast()).getName();
-		}
-		throw new RuntimeException("No name for grammar: "+this.hashCode());
-	}
+ public Id getName() {
+  if (this.ast().isSome()) {
+   return this.ast().unwrap().getName();
+  }
+  throw new RuntimeException("No name for grammar: "+this.hashCode());
+ }
 
-	public Option<GrammarNonterminalIndex<? extends NonterminalDecl>> getNonterminalDecl(Id name) {
-		for (NonterminalIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
-			if (name.getText().equals(m.getName().getText())) {
-				if (m.ast().isSome()) {
-					if (m instanceof GrammarNonterminalIndex) {
-						return Option.<GrammarNonterminalIndex<? extends NonterminalDecl>>some((GrammarNonterminalIndex) m);
-					}
-				}
-			}
-		}
-		return Option.none();
-	}
+ public Option<GrammarNonterminalIndex<? extends NonterminalDecl>> getNonterminalDecl(Id name) {
+  for (NonterminalIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
+   if (name.getText().equals(m.getName().getText())) {
+    if (m.ast().isSome()) {
+     if (m instanceof GrammarNonterminalIndex) {
+      return Option.<GrammarNonterminalIndex<? extends NonterminalDecl>>some((GrammarNonterminalIndex) m);
+     }
+    }
+   }
+  }
+  return Option.none();
+ }
 
 }

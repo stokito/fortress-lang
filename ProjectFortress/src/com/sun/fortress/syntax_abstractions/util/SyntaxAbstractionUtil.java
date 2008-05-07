@@ -93,7 +93,7 @@ public class SyntaxAbstractionUtil {
      */
     public static Id memberName(Span span, Id grammarName, String memberName) {
         Collection<Id> names = new LinkedList<Id>();
-        names.addAll(Option.unwrap(grammarName.getApi()).getIds());
+        names.addAll(grammarName.getApi().unwrap().getIds());
         names.add(NodeFactory.makeId(grammarName.getText()));
         APIName apiGrammar = NodeFactory.makeAPIName(names);
         return NodeFactory.makeId(span, apiGrammar, memberName);
@@ -136,7 +136,7 @@ public class SyntaxAbstractionUtil {
         if (t.isNone()) {
             throw new RuntimeException("Grammar member declaration does not have a type, malformed AST");
         }
-        return Option.unwrap(t);
+        return t.unwrap();
     }
 
     public static Expr makeList(Span span, List<Expr> args, String typeName) {
@@ -183,7 +183,7 @@ public class SyntaxAbstractionUtil {
         maybeStaticArgs.add(new TypeArg(new IdType(NodeFactory.makeId(FORTRESSAST, typeArg))));
         if (op.isSome()) {
             List<Expr> justArgs = new LinkedList<Expr>();
-            justArgs.add(Option.unwrap(op));
+            justArgs.add(op.unwrap());
             return SyntaxAbstractionUtil.makeObjectInstantiation(span, FORTRESSAST, JUST, justArgs, maybeStaticArgs);
         }
         else {

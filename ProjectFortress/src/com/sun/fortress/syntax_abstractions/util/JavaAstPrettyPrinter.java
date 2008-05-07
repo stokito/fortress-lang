@@ -53,16 +53,16 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
-	private List<String> code;
-	private SyntaxDeclEnv syntaxDeclEnv;
-	private GrammarEnv grammarEnv;
+ private List<String> code;
+ private SyntaxDeclEnv syntaxDeclEnv;
+ private GrammarEnv grammarEnv;
 
 
-	public JavaAstPrettyPrinter(GrammarEnv grammarEnv, SyntaxDeclEnv env) {
-		this.code = new LinkedList<String>();
-		this.grammarEnv = grammarEnv;
-		this.syntaxDeclEnv = env;
-	}
+ public JavaAstPrettyPrinter(GrammarEnv grammarEnv, SyntaxDeclEnv env) {
+  this.code = new LinkedList<String>();
+  this.grammarEnv = grammarEnv;
+  this.syntaxDeclEnv = env;
+ }
 
  public Collection<? extends String> getCode() {
   return this.code;
@@ -93,50 +93,50 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
   return rVarName;
  }
 
-	@Override
-	public String forBlockOnly(Block that, List<String> exprs_result) {
-		String rVarName = FreshName.getFreshName("block");
-		String exprsName = FreshName.getFreshName("exprs");
-		this.code.addAll(mkList(exprs_result, exprsName, "Expr"));
-		this.code.add("Block "+rVarName+" = new Block("+exprsName+");");
-		return rVarName;
-	}
+ @Override
+ public String forBlockOnly(Block that, List<String> exprs_result) {
+  String rVarName = FreshName.getFreshName("block");
+  String exprsName = FreshName.getFreshName("exprs");
+  this.code.addAll(mkList(exprs_result, exprsName, "Expr"));
+  this.code.add("Block "+rVarName+" = new Block("+exprsName+");");
+  return rVarName;
+ }
 
-	@Override
-	public String forDoFrontOnly(DoFront that, Option<String> loc_result,
-			String expr_result) {
-		String rVarName = FreshName.getFreshName("doFront");
-		String loc = "";
-		if (loc_result.isNone()) {
-			loc = "Option.<Expr>none()";
-		}
-		else {
-			loc = "Option.<Expr>some("+Option.unwrap(loc_result)+")";
-		}
-		this.code.add("DoFront "+rVarName+" = new DoFront("+loc+", "+that.isAtomic()+", "+expr_result+");");
-		return rVarName;
-	}
+ @Override
+ public String forDoFrontOnly(DoFront that, Option<String> loc_result,
+   String expr_result) {
+  String rVarName = FreshName.getFreshName("doFront");
+  String loc = "";
+  if (loc_result.isNone()) {
+   loc = "Option.<Expr>none()";
+  }
+  else {
+   loc = "Option.<Expr>some("+loc_result.unwrap()+")";
+  }
+  this.code.add("DoFront "+rVarName+" = new DoFront("+loc+", "+that.isAtomic()+", "+expr_result+");");
+  return rVarName;
+ }
 
-	@Override
-	public String forDoOnly(Do that, List<String> fronts_result) {
-		String rVarName = FreshName.getFreshName("aDo");
-		String exprsName = FreshName.getFreshName("exprs");
-		this.code.addAll(mkList(fronts_result, exprsName, "DoFront"));
-		this.code.add("Do "+rVarName+" = new Do("+exprsName+");");
-		return rVarName;
-	}
+ @Override
+ public String forDoOnly(Do that, List<String> fronts_result) {
+  String rVarName = FreshName.getFreshName("aDo");
+  String exprsName = FreshName.getFreshName("exprs");
+  this.code.addAll(mkList(fronts_result, exprsName, "DoFront"));
+  this.code.add("Do "+rVarName+" = new Do("+exprsName+");");
+  return rVarName;
+ }
 
-	@Override
-	public String forFnRefOnly(FnRef that, List<String> fns_result,
-			List<String> staticArgs_result) {
-		String rVarName = FreshName.getFreshName("fn");
-		String fns = FreshName.getFreshName("ls");
-		this.code.addAll(mkList(fns_result, fns, "Id"));
-		String staticArgs = FreshName.getFreshName("ls");
-		this.code.addAll(mkList(staticArgs_result, staticArgs, "StaticArg"));
-		this.code.add("FnRef "+rVarName+" = new FnRef("+that.isParenthesized()+", "+fns+", "+staticArgs+");");
-		return rVarName;
-	}
+ @Override
+ public String forFnRefOnly(FnRef that, List<String> fns_result,
+   List<String> staticArgs_result) {
+  String rVarName = FreshName.getFreshName("fn");
+  String fns = FreshName.getFreshName("ls");
+  this.code.addAll(mkList(fns_result, fns, "Id"));
+  String staticArgs = FreshName.getFreshName("ls");
+  this.code.addAll(mkList(staticArgs_result, staticArgs, "StaticArg"));
+  this.code.add("FnRef "+rVarName+" = new FnRef("+that.isParenthesized()+", "+fns+", "+staticArgs+");");
+  return rVarName;
+ }
 
  @Override
  public String forId(Id that) {
@@ -153,71 +153,71 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
  }
 
 
-	@Override
-	public String forLocalVarDeclOnly(LocalVarDecl that,
-			List<String> body_result, List<String> lhs_result,
-			Option<String> rhs_result) {
-		String rVarName = FreshName.getFreshName("localVarDecl");
+ @Override
+ public String forLocalVarDeclOnly(LocalVarDecl that,
+   List<String> body_result, List<String> lhs_result,
+   Option<String> rhs_result) {
+  String rVarName = FreshName.getFreshName("localVarDecl");
 
-		String body = FreshName.getFreshName("body");
-		this.code.addAll(mkList(body_result, body, "Expr"));
+  String body = FreshName.getFreshName("body");
+  this.code.addAll(mkList(body_result, body, "Expr"));
 
-		String lhs = FreshName.getFreshName("lhs");
-		this.code.addAll(mkList(lhs_result, lhs, "LValue"));
+  String lhs = FreshName.getFreshName("lhs");
+  this.code.addAll(mkList(lhs_result, lhs, "LValue"));
 
-		String rhs = "";
-		if (rhs_result.isNone()) {
-			rhs = "Option.<Expr>none()";
-		}
-		else {
-			rhs = "Option.<Expr>some("+Option.unwrap(rhs_result)+")";
-		}
-		this.code.add("LocalVarDecl "+rVarName+" = new LocalVarDecl("+body+", "+lhs+", "+rhs+");");
-		return rVarName;
-	}
+  String rhs = "";
+  if (rhs_result.isNone()) {
+   rhs = "Option.<Expr>none()";
+  }
+  else {
+   rhs = "Option.<Expr>some("+rhs_result.unwrap()+")";
+  }
+  this.code.add("LocalVarDecl "+rVarName+" = new LocalVarDecl("+body+", "+lhs+", "+rhs+");");
+  return rVarName;
+ }
 
-	@Override
-	public String forLooseJuxtOnly(LooseJuxt that, List<String> exprs_result) {
-		String rVarName = FreshName.getFreshName("lj");
-		String args = FreshName.getFreshName("ls");
-		this.code.addAll(mkList(exprs_result, args, "Expr"));
-		this.code.add("LooseJuxt "+rVarName+" = new LooseJuxt("+that.isParenthesized()+", "+args+");");
-		return rVarName;
-	}
+ @Override
+ public String forLooseJuxtOnly(LooseJuxt that, List<String> exprs_result) {
+  String rVarName = FreshName.getFreshName("lj");
+  String args = FreshName.getFreshName("ls");
+  this.code.addAll(mkList(exprs_result, args, "Expr"));
+  this.code.add("LooseJuxt "+rVarName+" = new LooseJuxt("+that.isParenthesized()+", "+args+");");
+  return rVarName;
+ }
 
-	@Override
-	public String forLValueBindOnly(LValueBind that, String name_result,
-			Option<String> type_result, List<String> mods_result) {
-		String rVarName = FreshName.getFreshName("lValueBind");
+ @Override
+ public String forLValueBindOnly(LValueBind that, String name_result,
+   Option<String> type_result, List<String> mods_result) {
+  String rVarName = FreshName.getFreshName("lValueBind");
 
-		String type = "";
-		if (type_result.isNone()) {
-			type = "Option.<Type>none()";
-		}
-		else {
-			type = "Option.<Type>some("+Option.unwrap(type_result)+")";
-		}
+  String type = "";
+  if (type_result.isNone()) {
+   type = "Option.<Type>none()";
+  }
+  else {
+   type = "Option.<Type>some("+type_result.unwrap()+")";
+  }
 
-		String mods = FreshName.getFreshName("mods");
-		this.code.addAll(mkList(mods_result, mods, "Modifier"));
+  String mods = FreshName.getFreshName("mods");
+  this.code.addAll(mkList(mods_result, mods, "Modifier"));
 
-		this.code.add("LValueBind "+rVarName+" = new LValueBind("+name_result+", "+type+", "+mods+", "+that.isMutable()+");");
-		return rVarName;
-	}
+  this.code.add("LValueBind "+rVarName+" = new LValueBind("+name_result+", "+type+", "+mods+", "+that.isMutable()+");");
+  return rVarName;
+ }
 
-	@Override
-	public String forIdOnly(Id that, Option<String> api_result) {
-		String rVarName = FreshName.getFreshName("qIdName");
-		String api = "";
-		if (api_result.isNone()) {
-			api = "Option.<APIName>none()";
-		}
-		else {
-			api = "Option.<APIName>some("+Option.unwrap(api_result)+")";
-		}
-		this.code.add("Id "+rVarName+" = new Id("+api+");");
-		return rVarName;
-	}
+ @Override
+ public String forIdOnly(Id that, Option<String> api_result) {
+  String rVarName = FreshName.getFreshName("qIdName");
+  String api = "";
+  if (api_result.isNone()) {
+   api = "Option.<APIName>none()";
+  }
+  else {
+   api = "Option.<APIName>some("+api_result.unwrap()+")";
+  }
+  this.code.add("Id "+rVarName+" = new Id("+api+");");
+  return rVarName;
+ }
 
  @Override
  public String forStringLiteralExpr(StringLiteralExpr that) {
@@ -250,74 +250,74 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
  }
 
 
-	@Override
-	public String forVarRef(VarRef that) {
-		if (this.syntaxDeclEnv.contains(that.getVar())) { //TODO: is it ok to assume that it is not qualified?
-			return that.getVar().toString();
-		}
-		return super.forVarRef(that);
-	}
+ @Override
+ public String forVarRef(VarRef that) {
+  if (this.syntaxDeclEnv.contains(that.getVar())) { //TODO: is it ok to assume that it is not qualified?
+   return that.getVar().toString();
+  }
+  return super.forVarRef(that);
+ }
 
-	@Override
-	public String forTemplateGapExpr(TemplateGapExpr that) {
-		return handleTemplateGap(that);
-	}
+ @Override
+ public String forTemplateGapExpr(TemplateGapExpr that) {
+  return handleTemplateGap(that);
+ }
 
-	private String handleTemplateGap(TemplateGap t) {
-		// Is the template t and instance of a template application
-		// or a template variable?
-		Id id = t.getId();
-		if (!t.getParams().isEmpty()) {
-			String className = t.getClass().getSimpleName();
+ private String handleTemplateGap(TemplateGap t) {
+  // Is the template t and instance of a template application
+  // or a template variable?
+  Id id = t.getId();
+  if (!t.getParams().isEmpty()) {
+   String className = t.getClass().getSimpleName();
 
-			String paramEnv = FreshName.getFreshName("paramEnv");
-			this.code.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
+   String paramEnv = FreshName.getFreshName("paramEnv");
+   this.code.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
 
 
-			MemberEnv nEnv = getNonterminalEnv(t.getId());
-			for (int inx=0;inx<t.getParams().size();inx++) {
-				System.err.println("T1a");
-				try { // TODO: We should look up the nonterminal env associated with the template being applied
-					System.err.println("this.nonterminalEnv.toString()");
-				this.code.add(paramEnv+".put(\""+nEnv.getParameter(inx)+"\", "+t.getParams().get(inx)+");");
-				} catch(Exception e) {
-					e.printStackTrace();
-				}
-				System.err.println("T1b");
-			}
+   MemberEnv nEnv = getNonterminalEnv(t.getId());
+   for (int inx=0;inx<t.getParams().size();inx++) {
+    System.err.println("T1a");
+    try { // TODO: We should look up the nonterminal env associated with the template being applied
+     System.err.println("this.nonterminalEnv.toString()");
+    this.code.add(paramEnv+".put(\""+nEnv.getParameter(inx)+"\", "+t.getParams().get(inx)+");");
+    } catch(Exception e) {
+     e.printStackTrace();
+    }
+    System.err.println("T1b");
+   }
 
-			String rVarName = FreshName.getFreshName("rs");
-			Type type = this.syntaxDeclEnv.getType(id);
-			String typeName = type.toString();
-			this.code.add(typeName+" "+rVarName+" = ("+typeName+") "+id+".accept(new NodeUpdateVisitor() {");
-			this.code.add("  @Override");
-			this.code.add("  public Node for"+className +"("+className+" that) {");
-			this.code.add("    Node n = null;");
-			this.code.add("    String id = that.getId().getText();");
-			this.code.add("    System.err.println(\"Looking up: \"+id);");
-			this.code.add("    if (null != (n = "+paramEnv+".get(id))) {");
-			this.code.add("      System.err.println(\"Subs\");");
-			this.code.add("      return n;");
-			this.code.add("    }");
-			this.code.add("    System.err.println(\"No subs\");");
-			this.code.add("    return super.for"+className+"(that);");
-			this.code.add("  }");
-			this.code.add("});");
-			return rVarName;
-		}
-		if (this.syntaxDeclEnv.contains(id)) {
-			return id.getText();
-		}
-		String varName = FreshName.getFreshName("template");
-		String idVarName = FreshName.getFreshName("id");
-		this.code.add("Id "+idVarName+" = new Id(\""+id+"\");");
-		this.code.add(t.getClass().getSimpleName()+" "+varName+" = new "+t.getClass().getSimpleName()+"("+idVarName+", new LinkedList<Id>());");
-		return varName;
-	}
+   String rVarName = FreshName.getFreshName("rs");
+   Type type = this.syntaxDeclEnv.getType(id);
+   String typeName = type.toString();
+   this.code.add(typeName+" "+rVarName+" = ("+typeName+") "+id+".accept(new NodeUpdateVisitor() {");
+   this.code.add("  @Override");
+   this.code.add("  public Node for"+className +"("+className+" that) {");
+   this.code.add("    Node n = null;");
+   this.code.add("    String id = that.getId().getText();");
+   this.code.add("    System.err.println(\"Looking up: \"+id);");
+   this.code.add("    if (null != (n = "+paramEnv+".get(id))) {");
+   this.code.add("      System.err.println(\"Subs\");");
+   this.code.add("      return n;");
+   this.code.add("    }");
+   this.code.add("    System.err.println(\"No subs\");");
+   this.code.add("    return super.for"+className+"(that);");
+   this.code.add("  }");
+   this.code.add("});");
+   return rVarName;
+  }
+  if (this.syntaxDeclEnv.contains(id)) {
+   return id.getText();
+  }
+  String varName = FreshName.getFreshName("template");
+  String idVarName = FreshName.getFreshName("id");
+  this.code.add("Id "+idVarName+" = new Id(\""+id+"\");");
+  this.code.add(t.getClass().getSimpleName()+" "+varName+" = new "+t.getClass().getSimpleName()+"("+idVarName+", new LinkedList<Id>());");
+  return varName;
+ }
 
-	private MemberEnv getNonterminalEnv(Id var) {
-		Id name = this.syntaxDeclEnv.getNonterminalName(var);
-		return this.grammarEnv.getMemberEnv(name);
-	}
+ private MemberEnv getNonterminalEnv(Id var) {
+  Id name = this.syntaxDeclEnv.getNonterminalName(var);
+  return this.grammarEnv.getMemberEnv(name);
+ }
 
 }

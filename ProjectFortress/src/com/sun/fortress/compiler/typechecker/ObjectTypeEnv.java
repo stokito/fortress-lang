@@ -27,7 +27,6 @@ import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
  * A type environment whose outermost lexical scope consists of a map from IDs
@@ -65,7 +64,7 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // No static params, some normal params
                 type = new ArrowType(var.getSpan(),
-                        typeFromParams(unwrap(decl.getParams())),
+                        typeFromParams(decl.getParams().unwrap()),
                         NodeFactory.makeInstantiatedType(_var));
             }
         } else {
@@ -77,12 +76,12 @@ class ObjectTypeEnv extends TypeEnv {
                 // TODO: handle type variables bound in where clause
                 type = NodeFactory.makeGenericArrowType(decl.getSpan(),
                         decl.getStaticParams(),
-                        typeFromParams(unwrap(decl.getParams())),
+                        typeFromParams(decl.getParams().unwrap()),
                         NodeFactory.makeInstantiatedType(_var));
             }
         }
 
-        return some(new BindingLookup(var, type, decl.getMods()));   
+        return Option.some(new BindingLookup(var, type, decl.getMods()));   
     }
 
     @Override
@@ -91,7 +90,7 @@ class ObjectTypeEnv extends TypeEnv {
         for (IdOrOpOrAnonymousName name : entries.keySet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
-                result.add(unwrap(element));
+                result.add(element.unwrap());
             }
         }
         result.addAll(parent.contents());

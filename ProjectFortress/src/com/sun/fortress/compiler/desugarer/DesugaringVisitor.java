@@ -32,7 +32,6 @@ import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
-import static edu.rice.cs.plt.tuple.Option.unwrap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +91,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<Id> newScope = new ArrayList<Id>();
 
         if (params.isSome()) {
-            for (Param param: Option.unwrap(params)) {
+            for (Param param: params.unwrap()) {
                 newScope.add(param.getName());
             }
         }
@@ -125,7 +124,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private List<Decl> makeGetters(Option<List<Param>> params, List<Decl> decls) {
         final List<Decl> result = new ArrayList<Decl>();
         if (params.isSome()) {
-            for (Param param : Option.unwrap(params)) {
+            for (Param param : params.unwrap()) {
                 param.accept(new NodeAbstractVisitor_void() {
                     public void forNormalParam(NormalParam param) {
                         if (! hidden(param)) {

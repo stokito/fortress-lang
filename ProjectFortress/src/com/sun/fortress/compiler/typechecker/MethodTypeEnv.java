@@ -27,7 +27,6 @@ import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
  * A type environment whose outermost lexical scope consists of a map from IDs
@@ -66,7 +65,7 @@ class MethodTypeEnv extends TypeEnv {
                                    makeGenericArrowType(decl.getSpan(),
                                                         decl.getStaticParams(),
                                                         typeFromParams(decl.getParams()),
-                                                        unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                                        decl.getReturnType().unwrap(), // all types have been filled in at this point
                                                         decl.getThrowsClause(),
                                                         decl.getWhere()));
             } else if (method instanceof FieldGetterMethod) {
@@ -74,18 +73,18 @@ class MethodTypeEnv extends TypeEnv {
                 LValueBind binding = _method.ast();
                 type = makeArrowType(binding.getSpan(),
                                      Types.VOID,
-                                     unwrap(binding.getType())); // all types have been filled in at this point
+                                     binding.getType().unwrap()); // all types have been filled in at this point
 
             } else { // method instanceof FieldSetterMethod
                 final FieldSetterMethod _method = (FieldSetterMethod)method;
                 LValueBind binding = _method.ast();
 
                 type = makeArrowType(binding.getSpan(),
-                                     unwrap(binding.getType()), // all types have been filled in at this point
+                                     binding.getType().unwrap(), // all types have been filled in at this point
                                      Types.VOID);
             }
         }
-        return some(new BindingLookup(var, type));
+        return Option.some(new BindingLookup(var, type));
     }
 
     @Override
@@ -94,7 +93,7 @@ class MethodTypeEnv extends TypeEnv {
         for (IdOrOpOrAnonymousName name : entries.firstSet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
-                result.add(unwrap(element));
+                result.add(element.unwrap());
             }
         }
         result.addAll(parent.contents());

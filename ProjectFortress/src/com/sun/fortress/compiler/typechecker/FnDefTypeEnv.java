@@ -32,7 +32,7 @@ import java.util.Set;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeAndType;
 import static com.sun.fortress.nodes_util.NodeFactory.makeGenericArrowType;
-import static edu.rice.cs.plt.tuple.Option.*;
+import static edu.rice.cs.plt.tuple.Option.some;
 
 /**
  * A type environment whose outermost scope binds local function definitions.
@@ -66,7 +66,7 @@ class FnDefTypeEnv extends TypeEnv {
             overloadedTypes.add(makeGenericArrowType(fn.getSpan(),
                     fn.getStaticParams(),
                     typeFromParams(fn.getParams()),
-                    unwrap(fn.getReturnType()), // all types have been filled in at this point
+                    fn.getReturnType().unwrap(), // all types have been filled in at this point
                     fn.getThrowsClause(),
                     fn.getWhere()));
         }
@@ -79,7 +79,7 @@ class FnDefTypeEnv extends TypeEnv {
         for (IdOrOpOrAnonymousName name : entries.firstSet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
-                result.add(unwrap(element));
+                result.add(element.unwrap());
             }
         }
         result.addAll(parent.contents());

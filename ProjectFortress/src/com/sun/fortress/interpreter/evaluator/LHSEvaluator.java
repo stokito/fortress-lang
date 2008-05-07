@@ -86,7 +86,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         FObject array = (FObject) obj.accept(evaluator);
         String opString;
         if (op.isSome()) {
-            opString = NodeUtil.nameString(Option.unwrap(op));
+            opString = NodeUtil.nameString(op.unwrap());
         } else {
             opString = "[]=";
         }
@@ -191,7 +191,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             FType outerType = null;
             // Perhaps the LHS has a type?
             if (type.isSome()) {
-                Type t = Option.unwrap(type);
+                Type t = type.unwrap();
                 outerType = EvalType.getFType(t, evaluator.e);
 
 //                if (outerType instanceof FAggregateType) {
@@ -268,7 +268,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             // Perhaps the LHS has a type?
             try {
                 if (type.isSome()) {
-                    Type t = Option.unwrap(type);
+                    Type t = type.unwrap();
                     outerType = EvalType.getFType(t, evaluator.e);
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);

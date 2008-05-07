@@ -101,7 +101,7 @@ public class TypesUtil {
                 }
             });
             if (newArrow.isSome()) {
-                matchingArrows.add(unwrap(newArrow));
+                matchingArrows.add(newArrow.unwrap());
             }
         }
         if (matchingArrows.isEmpty()) {

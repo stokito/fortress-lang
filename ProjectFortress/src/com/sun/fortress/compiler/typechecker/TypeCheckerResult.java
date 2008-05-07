@@ -69,7 +69,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
         if (results.isSome()) {
             return new TypeCheckerResult(_ast,
                                          Option.<Type>none(),
-                                         collectErrors(Option.unwrap(results)));
+                                         collectErrors(results.unwrap()));
         } else {
             return new TypeCheckerResult(_ast);
         }

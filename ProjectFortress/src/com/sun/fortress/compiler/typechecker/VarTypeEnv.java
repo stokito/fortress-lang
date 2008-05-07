@@ -46,8 +46,8 @@ class VarTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	if (!(var instanceof Id)) {	return parent.binding(var); }
-    	Id _var = (Id)var;
+     if (!(var instanceof Id)) { return parent.binding(var); }
+     Id _var = (Id)var;
         if (entries.containsKey(_var)) {
             Variable result = entries.get(_var);
             if (result instanceof DeclaredVariable) {
@@ -63,7 +63,7 @@ class VarTypeEnv extends TypeEnv {
                 Option<Type> type = typeFromParam(param);
 
                 return some(new BindingLookup(makeLValue(
-                		makeLValue(param.getName(), type), param.getMods())));
+                  makeLValue(param.getName(), type), param.getMods())));
             }
         } else {
             if (_var.getApi().isSome())
@@ -78,7 +78,7 @@ class VarTypeEnv extends TypeEnv {
         for (IdOrOpOrAnonymousName name : entries.keySet()) {
             Option<BindingLookup> element = binding(name);
             if (element.isSome()) {
-                result.add(unwrap(element));
+                result.add(element.unwrap());
             }
         }
         result.addAll(parent.contents());

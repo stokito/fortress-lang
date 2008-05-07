@@ -53,25 +53,25 @@ public class TypeEnvJUTest extends TestCase {
     }
 
     public void testLookupType() {
-        assertEquals(FOO, unwrap(extended.type("x")));
-        assertEquals(BAZ, unwrap(extended.type("y")));
-        assertEquals(BAR, unwrap(extended.type("z")));
+        assertEquals(FOO, extended.type("x").unwrap());
+        assertEquals(BAZ, extended.type("y").unwrap());
+        assertEquals(BAR, extended.type("z").unwrap());
 
-        assert(! (BAR.equals(unwrap(extended.type("x")))));
+        assert(! (BAR.equals(extended.type("x").unwrap())));
     }
 
     public void testLookupMods() {
-        assertEquals(0, unwrap(moreExtended.mods("x")).size());
+        assertEquals(0, moreExtended.mods("x").unwrap().size());
         assertEquals(Useful.<Modifier>list(new ModifierAbstract()),
-                     unwrap(moreExtended.mods("b")));
+                     moreExtended.mods("b").unwrap());
     }
 
     public void testLookupMutable() {
-        assertTrue("Variable a should not be mutable", unwrap(moreExtended.mutable("a")));
-        assertTrue("Variable c should not be mutable", unwrap(moreExtended.mutable("c")));
-        assertFalse("Variable b should not be mutable", unwrap(moreExtended.mutable("b")));
+        assertTrue("Variable a should not be mutable", moreExtended.mutable("a").unwrap());
+        assertTrue("Variable c should not be mutable", moreExtended.mutable("c").unwrap());
+        assertFalse("Variable b should not be mutable", moreExtended.mutable("b").unwrap());
 
-        assertFalse("Variable x should not be mutable", unwrap(moreExtended.mutable("x")));
+        assertFalse("Variable x should not be mutable", moreExtended.mutable("x").unwrap());
 
         assertEquals("Variable d does not exist", none(), moreExtended.mutable("d"));
     }

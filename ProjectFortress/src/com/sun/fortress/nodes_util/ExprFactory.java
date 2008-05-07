@@ -734,7 +734,7 @@ public class ExprFactory {
             Option<Expr> expr = expo.getExpr();
             if (expr.isSome()) // ^ Exponent
                 return ASTUtil.infix(span, front, expo.getOp(),
-                                     Option.unwrap(expr));
+                                     expr.unwrap());
             else // ExponentOp
                 return ASTUtil.postfix(span, front, expo.getOp());
         } else { // mi instanceof SubscriptingMI
