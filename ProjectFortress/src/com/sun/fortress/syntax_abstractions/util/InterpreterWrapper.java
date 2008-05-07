@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.fs;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
@@ -135,7 +136,7 @@ public class InterpreterWrapper {
   //   e1.printStackTrace();
   //  }
   try {
-   if (CommandInterpreter.debug) {
+   if (ProjectProperties.debug) {
     System.err.println("Running interpreter...");
    }
 
