@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.Parser.Result;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -57,33 +58,38 @@ public class FortressParser {
 		try {
 			BufferedReader in = Useful.utf8BufferedFileReader(f);
 			try {
-				
-				PreParser.Result ppr = PreParser.parse(f, env);
-				if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
 
 				xtc.parser.Result parseResult = null; 
 				ParserBase p = null;
-			
-				if (verbose)
-				    System.err.println("Parsing files: "+f.getName());
-				if (!ppr.getGrammars().isEmpty()) {
-					
-					// Compile the syntax abstractions and create a temporary parser
-					MacroCompiler macroCompiler = new FileBasedMacroCompiler();
-					MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
-					if (!tr.isSuccessful()) { return new Result(tr.errors()); }
-					Class<?> temporaryParserClass = tr.getParserClass(); 
+				
+				if (!ProjectProperties.noPreparse) {
+					PreParser.Result ppr = PreParser.parse(f, env);
+					if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
 
-					try {
-						p = ParserMediator.getParser(temporaryParserClass, in, f.toString());
-						parseResult = ParserMediator.parse();
-					} catch (Exception e) {
-						String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
-						e.printStackTrace();
-						if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-						return new Result(StaticError.make(desc, f.toString()));
-					} 
+					if (verbose)
+						System.err.println("Parsing files: "+f.getName());
+					if (!ppr.getGrammars().isEmpty()) {
 
+						// Compile the syntax abstractions and create a temporary parser
+						MacroCompiler macroCompiler = new FileBasedMacroCompiler();
+						MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
+						if (!tr.isSuccessful()) { return new Result(tr.errors()); }
+						Class<?> temporaryParserClass = tr.getParserClass(); 
+
+						try {
+							p = ParserMediator.getParser(temporaryParserClass, in, f.toString());
+							parseResult = ParserMediator.parse();
+						} catch (Exception e) {
+							String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
+							e.printStackTrace();
+							if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
+							return new Result(StaticError.make(desc, f.toString()));
+						} 
+					}
+					else {
+						p = new com.sun.fortress.parser.Fortress(in, f.toString());
+						parseResult = ((com.sun.fortress.parser.Fortress) p).pFile(0);
+					}
 				}
 				else {
 					p = new com.sun.fortress.parser.Fortress(in, f.toString());
@@ -93,17 +99,17 @@ public class FortressParser {
 				if (parseResult.hasValue()) {
 					Object cu = ((SemanticValue) parseResult).value;
 					if (cu instanceof CompilationUnit) {
-					    
-					    if (cu instanceof Api) {
-					        return new Result((Api) cu, f.lastModified());
-					    }
-					    else if (cu instanceof Component) {
-					    	return new Result((Component) cu, f.lastModified());
-					    }
+
+						if (cu instanceof Api) {
+							return new Result((Api) cu, f.lastModified());
+						}
+						else if (cu instanceof Component) {
+							return new Result((Component) cu, f.lastModified());
+						}
 					}
-					
-						throw new RuntimeException("Unexpected parse result: " + cu);
-					
+
+					throw new RuntimeException("Unexpected parse result: " + cu);
+
 				}
 				return new Result(new Parser.Error((ParseError) parseResult, p));
 			}
@@ -141,16 +147,16 @@ public class FortressParser {
 		Set<File> result = new HashSet<File>();
 		for (APIName n : importedApis) {
 			if (!env.definesApi(n)) {
-			    try {
-				File f = canonicalRepresentation(fileForApiName(n, p));
-				// Believe this test is redundant with thrown exception,
-				// but leave it for now.
-				if (IOUtil.attemptExists(f)) {
-				    result.add(f);
+				try {
+					File f = canonicalRepresentation(fileForApiName(n, p));
+					// Believe this test is redundant with thrown exception,
+					// but leave it for now.
+					if (IOUtil.attemptExists(f)) {
+						result.add(f);
+					}
+				} catch (FileNotFoundException ex) {
+					// do nothing?
 				}
-			    } catch (FileNotFoundException ex) {
-			        // do nothing?
-			    }
 			}
 		}
 		return result;
@@ -158,7 +164,7 @@ public class FortressParser {
 
 	/** Get the filename in which the given API should be defined. */
 	private static File fileForApiName(APIName api, Path p) throws FileNotFoundException {
-	    
+
 		return p.findFile(NodeUtil.nameString(api) + ".fsi");
 	}
 

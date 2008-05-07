@@ -29,6 +29,7 @@ import xtc.parser.Action;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Component;
@@ -93,7 +94,7 @@ public class ActionCreater {
    String serializedComponent = ac.writeJavaAST(component);
    code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
 
-   if (CommandInterpreter.debug) {
+   if (ProjectProperties.debug) {
 	   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
    }
    addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
@@ -107,7 +108,7 @@ public class ActionCreater {
     addCodeLine(s, code, indents);
    }
 
-   if (CommandInterpreter.debug) {
+   if (ProjectProperties.debug) {
 	   addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
    }
    addCodeLine("yyValue = "+yyValue+";", code, indents);

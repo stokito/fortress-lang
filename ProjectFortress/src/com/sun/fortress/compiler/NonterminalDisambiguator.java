@@ -58,7 +58,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 	@Override
 	public Node forGrammarDef(GrammarDef that) {
 		if (this._env.grammarIndex(that.getName()).isSome()) {
-			this._currentEnv = Option.unwrap(this._env.grammarIndex(that.getName())).env();
+			this._currentEnv = new NonterminalEnv(Option.unwrap(_env.grammarIndex(that.getName())));
 		}
 		else {
 			error("Undefined grammar: " + NodeUtil.nameString(that.getName()), that.getName());

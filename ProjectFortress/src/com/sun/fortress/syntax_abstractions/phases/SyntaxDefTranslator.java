@@ -129,7 +129,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	@Override
 	public List<Sequence> forNonterminalDef(NonterminalDef that) {
 		BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
-		String name = getName(that.getName().toString());
+		String name = that.getName().getText();
 		this.currentNonterminalEnv = this.grammarEnv.getMemberEnv(that.getName());
 		return visitSyntaxDefs(that.getSyntaxDefs(), name, type);
 	}

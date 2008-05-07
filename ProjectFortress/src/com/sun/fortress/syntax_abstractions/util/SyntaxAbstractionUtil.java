@@ -91,12 +91,12 @@ public class SyntaxAbstractionUtil {
      * @param memberName
      * @return
      */
-    public static Id memberName(Id grammarName, Id memberName) {
+    public static Id memberName(Span span, Id grammarName, String memberName) {
         Collection<Id> names = new LinkedList<Id>();
         names.addAll(Option.unwrap(grammarName.getApi()).getIds());
         names.add(NodeFactory.makeId(grammarName.getText()));
         APIName apiGrammar = NodeFactory.makeAPIName(names);
-        return NodeFactory.makeId(memberName.getSpan(), apiGrammar, NodeFactory.makeId(memberName.getText()));
+        return NodeFactory.makeId(span, apiGrammar, memberName);
     }
 
     /**

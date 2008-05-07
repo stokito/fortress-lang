@@ -77,7 +77,7 @@ public class GrammarIndexInitializer {
 					if (n instanceof NonterminalExtendIndex) {
 						Id name = n.getName();
 						GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-						Collection<NonterminalIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name, g);
+						Collection<NonterminalIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name.getText(), g);
 						if (s.isEmpty()) {
 							ses.add(StaticError.make("Unknown extended nonterminal: "+name+" in grammar: "+g.getName(), n.getAst()));
 						}
@@ -105,8 +105,8 @@ public class GrammarIndexInitializer {
 		// Make sure that a grammar index has a reference to the grammar index's it extends
 		for (GlobalGrammarEnv gEnv: envs) {
 			for (GrammarIndex g: gEnv.getGrammars()) {
-				// Init nonterminal envs
-				g.setEnv(new NonterminalEnv(g));
+//				// Init nonterminal envs
+//				g.setEnv(new NonterminalEnv(g));
 				if (g.ast().isSome()) {
 					List<GrammarIndex> gs = new LinkedList<GrammarIndex>();
 					for (Id otherName: Option.unwrap(g.ast()).getExtends()) {

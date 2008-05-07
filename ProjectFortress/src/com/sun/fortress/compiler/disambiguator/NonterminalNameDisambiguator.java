@@ -114,9 +114,10 @@ public class NonterminalNameDisambiguator {
 			return Option.some(newN);
 		}
 		else { // Unqualified name
+			String uqname = name.getText();
 			// Is it defined in the current grammar?
-			if (currentEnv.hasNonterminal(name)) {
-				Set<Id> names = currentEnv.declaredNonterminalNames(name);
+			if (currentEnv.hasNonterminal(uqname)) {
+				Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
 				if (names.size() > 1) {
 					error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
 					return Option.none();
@@ -129,16 +130,17 @@ public class NonterminalNameDisambiguator {
 				return Option.some(qname);
 			}
 			else {
-				Set<Id> names = currentEnv.declaredNonterminalNames(name);
+				Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
+				System.err.println("names: "+names);
 				// If the nonterminal is not defined in the current grammar then look
 				// among the inherited nonterminal names
 				if (names.isEmpty()) {
-					names = currentEnv.inheritedNonterminalNames(name);
+					names = currentEnv.inheritedNonterminalNames(uqname);
 				}
 
 				// if not there it is undefined
 				if (names.isEmpty()) {
-					error("Undefined nonterminal: " + NodeUtil.nameString(name), name);
+					error("Undefined nonterminalBBB: " + uqname, name);
 					return Option.none();
 				}
 

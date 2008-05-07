@@ -23,6 +23,7 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
+import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
@@ -125,12 +126,12 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
 			Id name = makeId(item.getSpan(), item.getItem());
 			NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-			Option<Id> oname = nnd.handleNonterminalName(this._currentGrammarIndex.env(), name);
+			System.err.println("Name: "+name);
+			Option<Id> oname = nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
 
 			if (oname.isSome()) {
 				name = Option.unwrap(oname);
-
-				Set<Id> setOfNonterminals = ga.getContained(name, this._currentGrammarIndex);
+				Set<Id> setOfNonterminals = ga.getContained(name.getText(), this._currentGrammarIndex);
 
 				if (setOfNonterminals.size() == 1) {
 					this._errors.addAll(nnd.errors());
@@ -149,10 +150,12 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	}
 
 	private NonterminalSymbol makeNonterminal(ItemSymbol that, Id name) {
+		System.err.println("new nonterminal: "+name);
 		return new NonterminalSymbol(that.getSpan(), name);
 	}
 
 	private KeywordSymbol makeKeywordSymbol(ItemSymbol item) {
+		System.err.println("new keyword: "+item.getItem());
 		return new KeywordSymbol(item.getSpan(), item.getItem());
 	}
 

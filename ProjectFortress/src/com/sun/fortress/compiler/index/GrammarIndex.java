@@ -40,13 +40,13 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 
 	private Collection<GrammarIndex> extendedGrammars;
 
-	private NonterminalEnv env;
+//	private NonterminalEnv env;
 
 	public GrammarIndex(Option<GrammarDef> ast, Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
 		this.ast = ast;
 		this.extendedGrammars = new LinkedList<GrammarIndex>();
 		this.members = members;
-		this.env = new NonterminalEnv(this);
+//		this.env = new NonterminalEnv(this);
 	}
 
 	public Option<GrammarDef> ast() {
@@ -69,13 +69,13 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 		return this.extendedGrammars;
 	}
 
-	public void setEnv(NonterminalEnv env) {
-		this.env = env;
-	}
-
-	public NonterminalEnv env() {
-		return this.env;
-	}
+//	public void setEnv(NonterminalEnv env) {
+//		this.env = env;
+//	}
+//
+//	public NonterminalEnv env() {
+//		return this.env;
+//	}
 
 	public Id getName() {
 		if (this.ast().isSome()) {

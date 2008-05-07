@@ -38,7 +38,7 @@ import java.io.*;
 public class CommandInterpreter {
 	private Shell shell;
 
-	public static boolean debug;
+//	public static boolean debug;
 	boolean test;
 	boolean nolib;
 
@@ -115,9 +115,10 @@ public class CommandInterpreter {
 		List<String> rest = args.subList(1, args.size());
 
 		if (s.startsWith("-")) {
-			if (s.equals("-debug")) debug = true;
+			if (s.equals("-debug")) ProjectProperties.debug = true;
 			if (s.equals("-test")) test= true;
 			if (s.equals("-nolib")) nolib= true;
+			if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
 			run(rest);
 		} else {
 			run(s, rest);
@@ -143,7 +144,8 @@ public class CommandInterpreter {
 				fileName = fileName.substring(0, fileName.length() - ProjectProperties.COMP_SOURCE_SUFFIX.length());
 			}
 
-			Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, debug, nolib, args);
+			Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, nolib, args);
+
 			for (StaticError error: errors) {
 				System.err.println(error);
 			}
@@ -156,7 +158,7 @@ public class CommandInterpreter {
 			System.err.println(e.getMessage());
 			e.printInterpreterStackTrace(System.err);
 
-			if (debug) {
+			if (ProjectProperties.debug) {
 				e.printStackTrace();
 			} else {
 				System.err.println("Turn on -debug for Java-level error dump.");

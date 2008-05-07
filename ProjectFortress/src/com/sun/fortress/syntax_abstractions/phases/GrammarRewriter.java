@@ -70,6 +70,7 @@ public class GrammarRewriter {
 
 		List<Api> results = new ArrayList<Api>();
 		ItemDisambiguator id = new ItemDisambiguator(env);
+
 		for (ApiIndex api: apis) {
 			Api idResult = (Api) api.ast().accept(id);
 			if (id.errors().isEmpty()) {
@@ -96,6 +97,7 @@ public class GrammarRewriter {
 				results.add(tpResult);
 			}
 		}
+
 		return new ApiResult(results, id.errors());
 	}
 

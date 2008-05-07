@@ -18,14 +18,19 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import xtc.parser.ParseError;
+import xtc.parser.SemanticValue;
+
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
@@ -35,6 +40,7 @@ import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TransformationPreTemplateDef;
+import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Pair;
@@ -133,7 +139,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 		vs.addAll(this.vars);
 		vs.addAll(this.syntaxDefVars);
 		String p = tvs.rewriteVars(vs, that.getTransformation());
-		System.err.println("R: "+p);
+		System.err.println("TP: "+p);
 		Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
 		if (res.isSome()) {
 			return Option.unwrap(res);

@@ -47,7 +47,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 */
 		GrammarIndexInitializer.Result geir = GrammarIndexInitializer.init(envs); 
 		if (!geir.isSuccessful()) { return new Result(null, geir.errors()); }
-	
+		
 		/* 
 		 * Resolve grammar extensions and extensions of nonterminal definitions.
 		 */

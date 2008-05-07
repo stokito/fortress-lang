@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.APIName;
@@ -85,7 +86,7 @@ public class Fortress {
 
 		BatchCachingAnalyzingRepository bcr = Driver.fssRepository(path, _repository);
 
-		Parser.Result result = compileInner(bcr, false, files);
+		Parser.Result result = compileInner(bcr, files);
 
 		// Parser.Result pr = Parser.parse(files, env);
 		if (!result.isSuccessful()) { return result.errors(); }
@@ -98,7 +99,7 @@ public class Fortress {
 		return IterUtil.empty();
 	}
 
-	private Parser.Result compileInner(BatchCachingAnalyzingRepository bcr, boolean debug, 
+	private Parser.Result compileInner(BatchCachingAnalyzingRepository bcr, 
 			String... files) {
 		Parser.Result result = new Parser.Result();
 
@@ -122,7 +123,7 @@ public class Fortress {
 			} catch (ProgramError pe) {
 				Iterable<? extends StaticError> se = pe.getStaticErrors();
 				if (se == null) {
-					result = new Parser.Result(result, new Parser.Result(new WrappedException(pe, debug)));
+					result = new Parser.Result(result, new Parser.Result(new WrappedException(pe, ProjectProperties.debug)));
 				}
 				else {
 					result = new Parser.Result(result, new Parser.Result(se));
@@ -130,7 +131,7 @@ public class Fortress {
 			} catch (RepositoryError ex) {
 				throw ex;
 			} catch (Exception ex) {
-				result = addExceptionToResult(result, ex, debug);
+				result = addExceptionToResult(result, ex);
 			}
 		}
 
@@ -140,7 +141,7 @@ public class Fortress {
 					System.err.println("Adding api " + name);
 				result = addApiToResult(bcr, result, name);
 			} catch (Exception ex) {
-				result = addExceptionToResult(result, ex, debug);
+				result = addExceptionToResult(result, ex);
 			}
 		}
 
@@ -150,7 +151,7 @@ public class Fortress {
 					System.err.println("Adding component " + name);
 				result = addComponentToResult(bcr, result, name);
 			} catch (Exception ex) {
-				result = addExceptionToResult(result, ex, debug);
+				result = addExceptionToResult(result, ex);
 			}
 		}
 
@@ -158,8 +159,8 @@ public class Fortress {
 	}
 
 	private Parser.Result addExceptionToResult(
-			Parser.Result result, Exception ex, boolean debug) {
-		result = new Parser.Result(result, new Parser.Result(new WrappedException(ex, debug)));
+			Parser.Result result, Exception ex) {
+		result = new Parser.Result(result, new Parser.Result(new WrappedException(ex, ProjectProperties.debug)));
 		return result;
 	}
 
@@ -285,7 +286,7 @@ public class Fortress {
 		return IterUtil.empty();
 	}
 
-	public Iterable<? extends StaticError>  run(Path path, String componentName, boolean test, boolean debug, boolean nolib, List<String> args) {
+	public Iterable<? extends StaticError>  run(Path path, String componentName, boolean test, boolean nolib, List<String> args) {
 		BatchCachingRepository _bcr = Driver.specificRepository(path);
 
 		if (! (_bcr instanceof BatchCachingAnalyzingRepository) ) {
@@ -293,8 +294,8 @@ public class Fortress {
 		}
 
 		BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
-		bcr.setVerbose(debug);
-		Parser.Result result = compileInner(bcr, debug, componentName);
+		bcr.setVerbose(ProjectProperties.debug);
+		Parser.Result result = compileInner(bcr, componentName);
 		if (!result.isSuccessful()) { return result.errors(); }
 
 		if (bcr.verbose())
@@ -315,7 +316,7 @@ public class Fortress {
 				throw (RuntimeException) th;
 			if (th instanceof Error)
 				throw (Error) th;
-			throw new WrappedException(th, debug);
+			throw new WrappedException(th, ProjectProperties.debug);
 		}
 
 		return IterUtil.empty();

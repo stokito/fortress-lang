@@ -531,7 +531,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 }
 
                 if (grammars.isEmpty()) {
-                    error("Undefined grammar: " + NodeUtil.nameString(name), name);
+                    error("Undefined grammarDDD: " + NodeUtil.nameString(name), name);
                     return name;
                 }
                 if (grammars.size() > 1) {
