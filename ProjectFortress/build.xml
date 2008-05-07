@@ -77,9 +77,18 @@
  <property name="test.results" location="${basedir}/TEST-RESULTS"/>
 <!-- other setting -->
  <property name="junitMem" value="768m"/>
- <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${jsr166y}/jsr166y.jar:${plt}/plt.jar:${junit}/junit.jar"/>
  <property name="junit.dir" value="junit-results"/>
  <property environment="env"/>
+ 
+ <path id="compile.classpath">
+    <pathelement location="${java.home}/lib/tools.jar"/>
+    <pathelement location="${build}"/>
+    <pathelement location="${xtc}/xtc.jar"/>
+    <pathelement location="${jsr166y}/jsr166y.jar"/>
+    <pathelement location="${plt}/plt.jar"/>
+    <pathelement location="${junit}/junit.jar"/>
+    <pathelement location="${ant.home}/lib/ant.jar"/>
+</path>
 
  <property name="blahblahblah" value="com/sun/fortress"/>
 
@@ -286,12 +295,13 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             destdir="${build}"
             source="1.5"
             debug="true"
+            includeantruntime="false"
             fork="true"
-            memorymaximumsize="256M"
-            classpath="${compile.classpath}">
+            memorymaximumsize="256M">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
             <!-- <compilerarg value="-Xlint:unchecked"/> -->
+            <classpath refid="compile.classpath"/>
             <include name="**/*.java"/>
             <exclude name="${usefulPackage}/*.java"/>
             <exclude name="${unicodePackage}/*.java"/>
@@ -309,11 +319,12 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             destdir="${build}"
             source="1.5"
             debug="true"
+            includeantruntime="false"
             fork="true"
-            memorymaximumsize="256M"
-            classpath="${compile.classpath}">
+            memorymaximumsize="256M">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
+            <classpath refid="compile.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>
             <include name="**/*.java"/>
             <exclude name="${usefulPackage}/*.java"/>
@@ -332,12 +343,13 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
              destdir="${build}"
              source="1.5"
              debug="true"
-             fork="true"
-             classpath="${compile.classpath}">
+             includeantruntime="false"
+             fork="true">
 
              <!-- Uncomment the following line to print unchecked warnings
                   (here and in the 'compile' target. -->
              <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+            <classpath refid="compile.classpath"/>
 <!--
              <include name="${usefulPackage}/*.java"/>
              <include name="${unicodePackage}/*.java"/>
@@ -358,14 +370,15 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
              destdir="${build}"
              source="1.5"
              debug="true"
-             fork="true"
-             classpath="${compile.classpath}">
+             includeantruntime="false"
+             fork="true">
 
              <!-- Uncomment the following line to print unchecked warnings
                   (here and in the 'compile' target. -->
-             <compilerarg value="-Xlint:unchecked"/>
-             <include name="${usefulPackage}/*.java"/>
-             <include name="${unicodePackage}/*.java"/>
+            <classpath refid="compile.classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
+            <include name="${usefulPackage}/*.java"/>
+            <include name="${unicodePackage}/*.java"/>
          </javac>
      </target>
 
@@ -389,13 +402,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
-            <classpath>
-                <pathelement location="${build}"/>
-                <pathelement location="${xtc}/xtc.jar"/>
-                <pathelement location="${jsr166y}/jsr166y.jar"/>
-                <pathelement location="${plt}/plt.jar"/>
-                <pathelement location="${junit}/junit.jar"/>
-            </classpath>
+            <classpath refid="compile.classpath"/>
             <formatter type="plain" usefile="false"/>
             <syspropertyset>
                 <propertyref prefix="plt." />
@@ -424,13 +431,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
-            <classpath>
-             <pathelement location="${build}"/>
-             <pathelement location="${xtc}/xtc.jar"/>
-             <pathelement location="${jsr166y}/jsr166y.jar"/>
-             <pathelement location="${plt}/plt.jar"/>
-                <pathelement location="${junit}/junit.jar"/>
-            </classpath>
+            <classpath refid="compile.classpath"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -456,13 +457,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
-            <classpath>
-             <pathelement location="${build}"/>
-             <pathelement location="${xtc}/xtc.jar"/>
-             <pathelement location="${jsr166y}/jsr166y.jar"/>
-             <pathelement location="${plt}/plt.jar"/>
-                <pathelement location="${junit}/junit.jar"/>
-            </classpath>
+            <classpath refid="compile.classpath"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${junit.dir}">
                 <formatter type="brief" usefile="false" />
@@ -490,13 +485,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
-            <classpath>
-             <pathelement location="${build}"/>
-             <pathelement location="${jsr166y}/jsr166y.jar"/>
-             <pathelement location="${xtc}/xtc.jar"/>
-             <pathelement location="${plt}/plt.jar"/>
-                <pathelement location="${junit}/junit.jar"/>
-            </classpath>
+            <classpath refid="compile.classpath"/>
             <formatter type="brief" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -518,13 +507,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
-            <classpath>
-             <pathelement location="${build}"/>
-             <pathelement location="${xtc}/xtc.jar"/>
-             <pathelement location="${jsr166y}/jsr166y.jar"/>
-             <pathelement location="${plt}/plt.jar"/>
-                <pathelement location="${junit}/junit.jar"/>
-            </classpath>
+            <classpath refid="compile.classpath"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -546,13 +529,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
-            <classpath>
-             <pathelement location="${build}"/>
-             <pathelement location="${xtc}/xtc.jar"/>
-             <pathelement location="${jsr166y}/jsr166y.jar"/>
-             <pathelement location="${plt}/plt.jar"/>
-                <pathelement location="${junit}/junit.jar"/>
-            </classpath>
+            <classpath refid="compile.classpath"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -575,13 +552,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 maxmemory="${junitMem}"
                 errorProperty="tests.failed"
                 failureProperty="tests.failed">
-             <classpath>
-              <pathelement location="${build}"/>
-              <pathelement location="${jsr166y}/jsr166y.jar"/>
-              <pathelement location="${xtc}/xtc.jar"/>
-              <pathelement location="${plt}/plt.jar"/>
-                <pathelement location="${junit}/junit.jar"/>
-             </classpath>
+             <classpath refid="compile.classpath"/>
              <formatter type="brief" usefile="true"/>
              <batchtest fork="true" todir="${test.results}">
                  <fileset dir="${build}">
@@ -690,30 +661,29 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     </target>
 
     <target name="doc" depends="compile">
-      <javadoc overview="${src}/overview.html" destdir="${docs}" classpath="${compile.classpath}">
- <packageset dir="${src}">
-   <include name="**/*"/>
- </packageset>
+        <javadoc overview="${src}/overview.html" destdir="${docs}" maxmemory="256M">
+            <classpath refid="compile.classpath"/>
+            <packageset dir="${src}">
+                <include name="**/*"/>
+            </packageset>
 
- <header><![CDATA[Fortress Interpreter]]></header>
- <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
- <group title="Evaluator Packages"
-	packages="com.sun.fortress.interpreter.evaluator.*"/>
+            <header><![CDATA[Fortress Interpreter]]></header>
+            <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
+            <group title="Evaluator Packages" packages="com.sun.fortress.interpreter.evaluator.*"/>
 
- <link href="http://junit.org/junit/javadoc/3.8.1/"/>
- <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
- <link href="http://drjava.org/javadoc/plt/"/>
-      </javadoc>
+            <link href="http://junit.org/junit/javadoc/3.8.1/"/>
+            <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
+            <link href="http://drjava.org/javadoc/plt/"/>
+        </javadoc>
 
     </target>
 
     <target name="interpreter" depends="compile">
-      <echo message="fortressArgs: ${fortressArgs}"/>
-      <java fork="yes"
-	    classname="com.sun.fortress.interpreter.drivers.fs"
-	    classpath="${compile.classpath}">
-	<arg line="${fortressArgs}"/>
-      </java>
+        <echo message="fortressArgs: ${fortressArgs}"/>
+        <java fork="yes" classname="com.sun.fortress.interpreter.drivers.fs">
+            <classpath refid="compile.classpath"/>
+            <arg line="${fortressArgs}"/>
+        </java>
     </target>
 
 
@@ -813,8 +783,10 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
   </target>
 
     <target name="testNPY" description="Graphically run all tests that are not yet expected to pass">
-        <java classname="junit.swingui.TestRunner" classpath="${compile.classpath}" fork="true" maxmemory="320m" spawn="yes">
-	    <arg value="com.sun.fortress.interpreter.drivers.NotPassingYet"/>
+        <java classname="junit.swingui.TestRunner" fork="true" maxmemory="320m" spawn="yes">
+            <classpath refid="compile.classpath"/>
+            <arg value="com.sun.fortress.interpreter.drivers.NotPassingYet"/>
         </java>
     </target>
+    
 </project>
