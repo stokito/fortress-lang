@@ -190,8 +190,8 @@ public class IndexBuilder {
         final Map<Id, Dimension> dimensions =
             new HashMap<Id, Dimension>();
         final Map<Id, Unit> units = new HashMap<Id, Unit>();
-        final Map<Id, GrammarIndex> grammars =
-            new HashMap<Id, GrammarIndex>();
+        final Map<String, GrammarIndex> grammars =
+            new HashMap<String, GrammarIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsTraitDecl(AbsTraitDecl d) {
                 buildTrait(d, typeConses, functions);
@@ -539,11 +539,11 @@ public class IndexBuilder {
     /**
      * Create a Grammar and put it in the given map.
      */
-    private void buildGrammar(GrammarDef ast, Map<Id, GrammarIndex> grammars) {
-        final Id name = ast.getName();
+    private void buildGrammar(GrammarDef ast, Map<String, GrammarIndex> grammars) {
+        String name = ast.getName().getText();
         GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {
-            error("Grammar declared twice: "+name, ast);
+            error("Grammar declared twice in same API: "+name, ast);
         }
         grammars.put(name, grammar);
     }

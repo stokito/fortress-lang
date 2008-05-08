@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -135,36 +136,37 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
  }
 
 
- @Override
- public void forImportNamesOnly(ImportNames that) {
-  if (env.definesApi(that.getApi())) {
-   GlobalGrammarEnv grammarEnv = new GlobalGrammarEnv();
-   for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
-    boolean found = false;
-    for (AliasedSimpleName name: that.getAliasedNames()) {
-     String importedNonterminalName = name.getName().toString();
-     String nonterminalName = grammar.ast().unwrap().getName().toString();
-     if (importedNonterminalName.equals(nonterminalName )) {
-      found  = true;
-      break;
-     }
-    }
-    if (found) {
-     grammarEnv.addGrammar(grammar, this.isTopLevel);
-    }
-    else {
-     grammarEnv.addGrammar(grammar, false);
-    }
-   }
-   if (!grammarEnv.getGrammars().isEmpty()) {
-    grammars.add(grammarEnv);
-    getRecursiveImports(that.getApi());
-   }
-  }
-  else {
-   StaticError.make("Undefined api: "+that.getApi(), that);
-  }
- }
+	@Override
+	public void forImportNamesOnly(ImportNames that) {
+		if (env.definesApi(that.getApi())) {
+			GlobalGrammarEnv grammarEnv = new GlobalGrammarEnv();
+			for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
+				String grammarName = grammar.ast().unwrap().getName().toString();
+				boolean found = false;
+				for (AliasedSimpleName name: that.getAliasedNames()) {
+					Id tmp = NodeFactory.makeId(name.getSpan(), that.getApi(), name.getName().toString());
+					String importedGrammarName = tmp.toString();					
+					if (importedGrammarName.equals(grammarName)) {
+						found  = true;
+						break;
+					}
+				}
+				if (found) {
+					grammarEnv.addGrammar(grammar, this.isTopLevel);
+				}
+				else {
+					grammarEnv.addGrammar(grammar, false);
+				}
+			}
+			if (!grammarEnv.getGrammars().isEmpty()) {
+				grammars.add(grammarEnv);
+				getRecursiveImports(that.getApi());
+			}
+		}
+		else {
+			StaticError.make("Undefined api: "+that.getApi(), that);
+		}
+	}
 
  /**
   * @param that

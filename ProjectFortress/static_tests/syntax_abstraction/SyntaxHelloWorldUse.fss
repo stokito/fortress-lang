@@ -17,7 +17,7 @@
 
 component SyntaxHelloWorldUse
 
-import SyntaxHelloWorld.helloworld
+import SyntaxHelloWorld.{helloworld}
 
 export Executable
 

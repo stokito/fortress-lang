@@ -514,8 +514,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             return newN;
         }
         else {
-            if (_env.hasGrammar(name)) {
-                Set<Id> grammars = _env.explicitGrammarNames(name);
+        	String uqname = name.getText();
+            if (_env.hasGrammar(uqname)) {
+                Set<Id> grammars = _env.explicitGrammarNames(uqname);
                 if (grammars.size() > 1) {
                     error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
                     return name;
@@ -524,14 +525,14 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 return qname;
             }
             else {
-                Set<Id> grammars = _env.explicitGrammarNames(name);
+                Set<Id> grammars = _env.explicitGrammarNames(uqname);
                 if (grammars.isEmpty()) {
-                    grammars = _env.onDemandGrammarNames(name);
+                    grammars = _env.onDemandGrammarNames(uqname);
                     _onDemandImports.add(name);
                 }
 
                 if (grammars.isEmpty()) {
-                    error("Undefined grammarDDD: " + NodeUtil.nameString(name), name);
+                    error("Undefined grammar: " + NodeUtil.nameString(name), name);
                     return name;
                 }
                 if (grammars.size() > 1) {

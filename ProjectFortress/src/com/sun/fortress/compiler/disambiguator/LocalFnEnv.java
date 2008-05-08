@@ -51,12 +51,12 @@ public class LocalFnEnv extends DelegatingNameEnv {
     }
 
 	@Override
-	public Set<Id> explicitGrammarNames(Id name) {
+	public Set<Id> explicitGrammarNames(String name) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public boolean hasGrammar(Id name) {
+	public boolean hasGrammar(String name) {
 		return false;
 	}
 
@@ -66,7 +66,7 @@ public class LocalFnEnv extends DelegatingNameEnv {
 	}
 
 	@Override
-	public Set<Id> onDemandGrammarNames(Id name) {
+	public Set<Id> onDemandGrammarNames(String name) {
 		return Collections.emptySet();
 	}
 

@@ -101,26 +101,25 @@ public class GrammarRewriter {
   return new ApiResult(results, id.errors());
  }
 
- private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
-  Map<Id, GrammarIndex> grammars = new HashMap<Id, GrammarIndex>();
-  for (ApiIndex a2: apis) {
-   for (Entry<Id,GrammarIndex> e: a2.grammars().entrySet()) {
-    grammars.put(e.getKey(), e.getValue());
-   }
-  }
-
-  for (ApiIndex a1: apis) {
-   for (Entry<Id,GrammarIndex> e: a1.grammars().entrySet()) {
-    Option<GrammarDef> og = e.getValue().ast();
-    if (og.isSome()) {
-     List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-     for (Id n: og.unwrap().getExtends()) {
-      ls.add(grammars.get(n));
-     }
-     e.getValue().setExtended(ls);
-    }
-   }
-  }
- }
+	private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+		Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
+		for (ApiIndex a2: apis) {
+			for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+				grammars.put(e.getKey(), e.getValue());
+			}
+		}
+		for (ApiIndex a1: apis) {
+			for (Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
+				Option<GrammarDef> og = e.getValue().ast();
+				if (og.isSome()) {
+					List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
+					for (Id n: og.unwrap().getExtends()) {
+						ls.add(grammars.get(n.getText()));
+					}
+					e.getValue().setExtended(ls);
+				}
+			}
+		}
+	}
 
 }

@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 
 public class TopLevelEnv extends NameEnv {
@@ -45,7 +46,7 @@ public class TopLevelEnv extends NameEnv {
     private Map<Id, Set<Id>> _onDemandVariableNames = new HashMap<Id, Set<Id>>();
     private Map<Id, Set<Id>> _onDemandFunctionIdNames = new HashMap<Id, Set<Id>>();
     private Map<OpName, Set<OpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<OpName>>();
-    private Map<Id, Set<Id>> _onDemandGrammarNames = new HashMap<Id, Set<Id>>();
+    private Map<String, Set<Id>> _onDemandGrammarNames = new HashMap<String, Set<Id>>();
 
     private static class TypeIndex {
         private APIName _api;
@@ -182,18 +183,15 @@ public class TopLevelEnv extends NameEnv {
 
     private void initializeOnDemandGrammarNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-            for (Map.Entry<Id, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
-                Id key = grammarEntry.getKey();
+            for (Map.Entry<String, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
+                Span span = grammarEntry.getValue().getName().getSpan();
+            	String key = grammarEntry.getKey();
+            	Id id = NodeFactory.makeId(span, apiEntry.getKey(), key);
                 if (_onDemandGrammarNames.containsKey(key)) {
-                    _onDemandGrammarNames.get(key).add(new Id(key.getSpan(),
-                                                              Option.some(apiEntry.getKey()),
-                                                              key.getText()));
-
+					_onDemandGrammarNames.get(key).add(id);
                 } else {
                     Set<Id> matches = new HashSet<Id>();
-                    matches.add(new Id(key.getSpan(),
-                                       Option.some(apiEntry.getKey()),
-                                       key.getText()));
+                    matches.add(id);
                     _onDemandGrammarNames.put(key, matches);
                 }
             }
@@ -214,7 +212,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     @Override
-    public boolean hasGrammar(Id name) {
+    public boolean hasGrammar(String name) {
         if (_current instanceof ApiIndex) {
             if (((ApiIndex) _current).grammars().containsKey(name)) {
                 return true;
@@ -222,7 +220,6 @@ public class TopLevelEnv extends NameEnv {
         }
         return false;
     }
-
 
     public Set<Id> explicitTypeConsNames(Id name) {
         // TODO: imports
@@ -260,12 +257,16 @@ public class TopLevelEnv extends NameEnv {
     }
 
     @Override
-    public Set<Id> explicitGrammarNames(Id name) {
+    public Set<Id> explicitGrammarNames(String name) {
         // TODO: imports
         if (_current instanceof ApiIndex) {
-            if (((ApiIndex)_current).grammars().containsKey(name)) {
-                APIName api = ((ApiIndex)_current).ast().getName();
-                return Collections.singleton(NodeFactory.makeId(api, name));
+            ApiIndex apiIndex = (ApiIndex) _current;
+			if (apiIndex.grammars().containsKey(name)) {
+                GrammarIndex g = apiIndex.grammars().get(name);
+                Span span = g.getName().getSpan();
+				APIName api = apiIndex.ast().getName();
+				Id qname = NodeFactory.makeId(span , api , g.getName().getText());
+                return Collections.singleton(qname);
             }
         }
         return Collections.emptySet();
@@ -304,7 +305,7 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
-    public Set<Id> onDemandGrammarNames(Id name) {
+    public Set<Id> onDemandGrammarNames(String name) {
         if (_onDemandGrammarNames.containsKey(name)) {
             return _onDemandGrammarNames.get(name);
         } else {
@@ -339,7 +340,7 @@ public class TopLevelEnv extends NameEnv {
     public boolean hasQualifiedGrammar(Id name) {
         APIName api = name.getApi().unwrap();
         if (_globalEnv.definesApi(api)) {
-            return _globalEnv.api(api).grammars().containsKey(name);
+            return _globalEnv.api(api).grammars().containsKey(name.getText());
         }
         else { return false; }
     }
@@ -371,22 +372,21 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Option<GrammarIndex> grammarIndex(final Id name) {
-     Id unqualifiedName = NodeFactory.makeId(name.getText());
-     if (name.getApi().isSome()) {
+    	String uqname = name.getText();
+    	if (name.getApi().isSome()) {
             APIName n = name.getApi().unwrap();
             if (_globalEnv.definesApi(n)) {
-             return Option.some(_globalEnv.api(n).grammars().get(unqualifiedName));
+            	return Option.some(_globalEnv.api(n).grammars().get(uqname));
             }
             else {
                 return Option.none();
             }
         }
         if (_current instanceof ApiIndex) {
-            return Option.some(((ApiIndex) _current).grammars().get(name));
+            return Option.some(((ApiIndex) _current).grammars().get(uqname));
         }
         else {
-            _errors.add(StaticError.make("Attempt to get grammar definition from a component: " + name,
-                                         name.getSpan().toString()));
+            _errors.add(StaticError.make("Attempt to get grammar definition from a component: " + name, name));
             return Option.none();
         }
     }

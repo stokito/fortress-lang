@@ -56,5 +56,4 @@ n=$?
 if [ $n -ne 0 ]; then
         exit $n
 fi
-echo "Using $ant_exec"
 $ant_exec -noclasspath -lib third_party/junit "$@"

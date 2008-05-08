@@ -60,10 +60,12 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forGrammarDef(GrammarDef that) {
-     System.err.println("Visiting grammar: "+that.getName());
         this._terminalDefs = new LinkedList<_TerminalDef>();
         this.apiName = new LinkedList<Id>();
-        this.apiName.addAll(that.getName().getApi().unwrap().getIds());
+
+        Id name = that.getName();
+		this.apiName.addAll(name.getApi().unwrap().getIds());
+        this.apiName.add(NodeFactory.makeId(name.getSpan(), name.getText()));
         return super.forGrammarDef(that);
     }
 
@@ -71,7 +73,6 @@ public class TerminalRewriter extends NodeUpdateVisitor {
     public Node forGrammarDefOnly(GrammarDef that, Id name_result,
             List<Id> extends_result,
             List<GrammarMemberDecl> members_result) {
-     System.err.println("leaving grammar: "+that.getName()+", n: "+this._terminalDefs.size());
         members_result.addAll(this._terminalDefs);
         return super.forGrammarDefOnly(that, name_result, extends_result,
                 members_result);
@@ -85,14 +86,12 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forNonterminalSymbol(NonterminalSymbol that) {
-     System.err.println("Nt: "+that.getNonterminal());
-     return super.forNonterminalSymbol(that);
+    	return super.forNonterminalSymbol(that);
     }
 
     
     @Override
     public Node forKeywordSymbol(KeywordSymbol that) {
-     System.err.println("Keyw: "+that.getToken());
         return handleTerminal(that, that.getToken());
     }
 
