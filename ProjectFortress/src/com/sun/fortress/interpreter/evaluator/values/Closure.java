@@ -96,8 +96,6 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
     }
 
     public String toString() {
-        String name = getFnName().toString();
-
         return ((instArgs == null ? s(def) :
             (s(def) + Useful.listInOxfords(instArgs))) + " " +
             (type() != null ? type() : "NULL")) + def.at();

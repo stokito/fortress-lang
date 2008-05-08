@@ -33,6 +33,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -60,15 +61,15 @@ private static BigInteger toB(FValue x) {
     }
 }
 
-public static abstract class K2K extends NativeFn1 {
+public static abstract class K2K extends NativeMeth0 {
     protected abstract BigInteger f(BigInteger x);
-    protected final FValue act(FValue x) {
+    protected final FValue act(FObject x) {
         return FIntLiteral.make(f(toB(x)));
     }
 }
-public static abstract class KK2K extends NativeFn2 {
+public static abstract class KK2K extends NativeMeth1 {
     protected abstract BigInteger f(BigInteger x, BigInteger y);
-    protected final FValue act(FValue x, FValue y) {
+    protected final FValue act(FObject x, FValue y) {
         return FIntLiteral.make(f(toB(x),toB(y)));
     }
 }
@@ -84,15 +85,15 @@ public static abstract class KK2I extends NativeMeth1 {
         return FInt.make(f(toB(x),toB(y)));
     }
 }
-public static abstract class KL2K extends NativeFn2 {
+public static abstract class KL2K extends NativeMeth1 {
     protected abstract BigInteger f(BigInteger x, long y);
-    protected final FValue act(FValue x, FValue y) {
+    protected final FValue act(FObject x, FValue y) {
         return FIntLiteral.make(f(toB(x),y.getLong()));
     }
 }
-public static abstract class KL2N extends NativeFn2 {
+public static abstract class KL2N extends NativeMeth1 {
     protected abstract FValue f(BigInteger x, long y);
-    protected final FValue act(FValue x, FValue y) {
+    protected final FValue act(FObject x, FValue y) {
         return f(toB(x),y.getLong());
     }
 }

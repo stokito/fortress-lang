@@ -387,7 +387,7 @@ object FConsts[\nat k\]
                r0 : RR64[k,k], rp : RR64[k,k]
                )
     leaf = Leaf[\RR64[k],2\]()
-    zero = vector[\RR64, k\](0.0)
+    z = vector[\RR64, k\](0.0)
 end
 
 autorefine : Boolean := true
@@ -455,7 +455,7 @@ object Function[\nat k\]
     end
 
   down_s(s0:RR64[k]):(RR64[k],RR64[k]) =
-      split[\k\](c.hgT merge[\k\](s0,c.zero))
+      split[\k\](c.hgT merge[\k\](s0,c.z))
 
   mul(n : ZZ32, s_a:RR64[k], s_b:RR64[k]):LLeaf[\RR64[k],2\] = do
       scale = SQRT (2.0^n)
@@ -577,7 +577,7 @@ object Function[\nat k\]
     result = self.copy()
     ss = makeNeighborTree(s)
     s = diffNeighborTree(ss)
-    ss.neighbors(c.zero, diff3)
+    ss.neighbors(c.z, diff3)
   end
 
 end

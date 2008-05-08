@@ -235,6 +235,42 @@ assert(x:Any, y:Any, failMsg: Any...): ()
 * \subsection*{Numeric hierarchy}
 ************************************************************)
 
+(** Additive group making use of %+%.  Must define %+% and
+    either unary or binary %-%. **)
+trait AdditiveGroup[\Self extends AdditiveGroup[\Self\]\]
+    getter zero(): Self
+    abstract opr +(self, other: Self): Self
+    opr -(self, other: Self): Self
+    opr -(self) : Self
+end
+
+(** Top-level factory for zeroes.  Overload this if you declare an AdditiveGroup.
+    This ought to be done via coercion eventually. **)
+zero[\Number\](): Number
+
+(** Place holder for exclusions of MultiplicativeRing **)
+trait AnyMultiplicativeRing end
+
+(** Multiplicative ring using TIMES and juxtaposition.
+    Define opr TIMES; juxtaposition is defined in terms of TIMES. **)
+trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
+        extends { AdditiveGroup[\Self\], AnyMultiplicativeRing }
+    abstract getter one(): Self
+    abstract opr TIMES(self, other:Self): Self
+    opr juxtaposition(self, other:Self): Self
+    (** Exponentiation need only deal with natural exponents. **)
+    opr ^(self, other:Integral): Self
+end
+
+(** Top-level factory for ones.  Overload this if you declare a Ring.
+    This ought to be done via coercion eventually. **)
+one[\Number\](): Number
+
+(** Conversion of IntLiteral into Ring.  Canonically should
+    perform repeated addition of one.  This is almost never the right way to
+    actually do it, of course.  This ought to be done via coercion eventually. **)
+fromIntegral[\Number\](x:Integral): Number
+
 trait Number
       extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\] }
       comprises { RR64 }
@@ -249,6 +285,42 @@ trait Number
         total order. **)
     opr MIN(self, b:Number):Number
     opr MAX(self, b:Number):Number
+
+    opr -(self):RR64
+    opr +(self,b:Number):RR64
+    opr -(self,b:Number):RR64
+    opr DOT(self,b:Number):RR64
+    opr TIMES(self,b:Number):RR64
+    opr juxtaposition
+         (self,b:Number):RR64
+    opr /(self,b:Number):RR64
+    opr SQRT(self):RR64
+    opr PLUS_UP(self,b:Number):RR64
+    opr MINUS_UP(self,b:Number):RR64
+    opr DOT_UP(self,b:Number):RR64
+    opr SLASH_UP(self,b:Number):RR64
+    opr SQRT_UP(self):RR64
+    opr PLUS_DOWN(self,b:Number):RR64
+    opr MINUS_DOWN(self,b:Number):RR64
+    opr DOT_DOWN(self,b:Number):RR64
+    opr SLASH_DOWN(self,b:Number):RR64
+    opr SQRT_DOWN(self):RR64
+    opr |a:RR64| : RR64
+    opr ^(self, b:Number):RR64
+    sin(self):RR64
+    cos(self):RR64
+    tan(self):RR64
+    asin(self):RR64
+    acos(self):RR64
+    atan(self):RR64
+    atan2(y:Number,x:Number):RR64
+    log(self):RR64
+    exp(self):RR64
+    floor(self):RR64
+    opr |\self/| : ZZ64
+    ceiling(self):RR64
+    opr |/self\| : ZZ64
+    truncate(self):ZZ64
 end
 
 trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
@@ -271,13 +343,33 @@ trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
         that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
     opr MINNUM(self, b:RR64):RR64
     opr MAXNUM(self, b:RR64):RR64
-    opr SEQV(self, b:RR64):Boolean
 end
 
 trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
         comprises { ZZ64, IntLiteral }
     opr =(self, b:Integral):Boolean
     opr <(self, b:Integral):Boolean
+
+    opr -(self):ZZ64
+    opr +(self,b:Integral):ZZ64
+    opr -(self,b:Integral):ZZ64
+    opr DOT(self,b:Integral):ZZ64
+    opr TIMES(self,b:Integral):ZZ64
+    opr juxtaposition(self,b:Integral):ZZ64
+    opr DIV(self,b:Integral):ZZ64
+    opr REM(self,b:Integral):ZZ64
+    opr MOD(self,b:Integral):ZZ64
+    opr GCD(self,b:Integral):ZZ64
+    opr LCM(self,b:Integral):ZZ64
+    opr CHOOSE(self,b:Integral):ZZ64
+    opr BITAND(self,b:Integral):ZZ64
+    opr BITOR(self,b:Integral):ZZ64
+    opr BITXOR(self,b:Integral):ZZ64
+    opr LSHIFT(self,b:Integral):ZZ64
+    opr RSHIFT(self,b:Integral):ZZ64
+    opr BITNOT(self):ZZ64
+    opr ^(self, b:Integral):Number
+    narrow(self):ZZ32
 end
 
 trait ZZ64 extends Integral comprises { Long, ZZ32 }
@@ -479,13 +571,13 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\]
 
 ** This trait makes excludes work without where clauses, and allows opr =
    to remain non-parametric. *)
-value trait MaybeType extends Equality[\MaybeType\] excludes Number
+value trait AnyMaybe extends Equality[\AnyMaybe\] excludes Number
         (** not yet: ``%comprises Maybe[\T\] where [\T\]%'' *)
     abstract getter holds() : Boolean
-    opr =(self, other:MaybeType): Boolean
+    opr =(self, other:AnyMaybe): Boolean
 end
 
-just(t:Any):MaybeType
+just(t:Any):AnyMaybe
 
 (** %Maybe% represents either %Nothing% or a single element of type
     %T% (%Just[\T\]%), which may be retrieved by calling %get%.  An
@@ -496,7 +588,7 @@ just(t:Any):MaybeType
     Thus, %Just[\T\]% can be used as a single-element generator, and
     %Nothing% can be used as an empty generator. *)
 value trait Maybe[\T\]
-        extends { MaybeType, Condition[\T\], ZeroIndexed[\T\] }
+        extends { AnyMaybe, Condition[\T\], ZeroIndexed[\T\] }
         comprises { Nothing[\T\], Just[\T\] }
 end
 
@@ -646,7 +738,7 @@ end
 * \subsection*{Array support}
 ************************************************************)
 
-trait HasRank extends Equality[\HasRank\] excludes { Number, MaybeType }
+trait HasRank extends Equality[\HasRank\] excludes { Number, AnyMaybe }
   (** not yet: ``% comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] }%'' *)
   abstract rank():ZZ32
   opr =(self, other:HasRank): Boolean
@@ -1315,24 +1407,24 @@ end
 opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
 
 object MinReduction[\T extends StandardMin[\T\]\]
-        extends Reduction[\MaybeType\]
+        extends Reduction[\AnyMaybe\]
     getter toString()
-    empty(): MaybeType
-    join(a:MaybeType,b:MaybeType): MaybeType
+    empty(): AnyMaybe
+    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe
 end
 
 opr BIG MIN[\T extends StandardMin[\T\]\]
-           (g:(MinReduction[\T\],T->MaybeType)->MaybeType): T
+           (g:(MinReduction[\T\],T->AnyMaybe)->AnyMaybe): T
 
 object MaxReduction[\T extends StandardMax[\T\]\]
-        extends Reduction[\MaybeType\]
+        extends Reduction[\AnyMaybe\]
     getter toString()
-    empty(): MaybeType
-    join(a:MaybeType,b:MaybeType): MaybeType
+    empty(): AnyMaybe
+    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe
 end
 
 opr BIG MAX[\T extends StandardMax[\T\]\]
-           (g:(MaxReduction[\T\],T->MaybeType)->MaybeType): T
+           (g:(MaxReduction[\T\],T->AnyMaybe)->AnyMaybe): T
 
 opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
 
@@ -1517,35 +1609,6 @@ opr :(): OpenRange[\Any\]
 * \subsection{Top-level primitives}
 ************************************************************)
 
-opr |[\ N extends Integral \]x:N|
-
-opr -(a:ZZ32):ZZ32
-opr +(a:ZZ32,b:ZZ32):ZZ32
-opr -(a:ZZ32,b:ZZ32):ZZ32
-opr DOT(a:ZZ32,b:ZZ32):ZZ32
-opr juxtaposition
-     (a:ZZ32,b:ZZ32):ZZ32
-opr DIV(a:ZZ32,b:ZZ32):ZZ32
-opr REM(a:ZZ32,b:ZZ32):ZZ32
-opr MOD(a:ZZ32,b:ZZ32):ZZ32
-opr GCD(a:ZZ32,b:ZZ32):ZZ32
-opr LCM(a:ZZ32,b:ZZ32):ZZ32
-opr CHOOSE(a:ZZ32,b:ZZ32):ZZ32
-opr BITAND(a:ZZ32,b:ZZ32):ZZ32
-opr BITOR(a:ZZ32,b:ZZ32):ZZ32
-opr BITXOR(a:ZZ32,b:ZZ32):ZZ32
-opr LSHIFT(a:ZZ32,b:Integral):ZZ32
-opr RSHIFT(a:ZZ32,b:Integral):ZZ32
-opr BITNOT(a:ZZ32):ZZ32
-opr =(a:ZZ32, b:ZZ32):Boolean
-opr <=(a:ZZ32, b:ZZ32):Boolean
-opr ^(a:ZZ32, b:Integral):Number
-(** %widen% converts a %ZZ32% into a valid %ZZ64% quantity. **)
-widen(a:ZZ32):ZZ64
-(** %partitionL% returns the highest power of %2 < a%, used to
-    partition iteration spaces for arrays and ranges. **)
-partitionL(a:ZZ32):ZZ32
-
 (** %nanoTime% returns the current time in nanoseconds.  Currently,
     this only supports taking differences of results of %nanoTime%
     to produce an elapsed time interval. **)
@@ -1557,106 +1620,8 @@ printTaskTrace():()
 recordTime(dummy: Any): ()
 printTime(dummy: Any): ()
 
-opr -(a: IntLiteral): IntLiteral
-opr +(a: IntLiteral,b: IntLiteral): IntLiteral
-opr -(a: IntLiteral,b: IntLiteral): IntLiteral
-opr DOT(a: IntLiteral,b: IntLiteral): IntLiteral
-opr juxtaposition
-     (a: IntLiteral,b: IntLiteral): IntLiteral
-opr DIV(a: IntLiteral,b: IntLiteral): IntLiteral
-opr REM(a: IntLiteral,b: IntLiteral): IntLiteral
-opr MOD(a: IntLiteral,b: IntLiteral): IntLiteral
-opr GCD(a: IntLiteral,b: IntLiteral): IntLiteral
-opr LCM(a: IntLiteral,b: IntLiteral): IntLiteral
-opr CHOOSE(a: IntLiteral,b: IntLiteral): IntLiteral
-opr BITAND(a: IntLiteral,b: IntLiteral): IntLiteral
-opr BITOR(a: IntLiteral,b: IntLiteral): IntLiteral
-opr BITXOR(a: IntLiteral,b: IntLiteral): IntLiteral
-opr LSHIFT(a: IntLiteral,b:Integral): IntLiteral
-opr RSHIFT(a: IntLiteral,b:Integral): IntLiteral
-opr BITNOT(a: IntLiteral): IntLiteral
-opr =(a: IntLiteral, b: IntLiteral):Boolean
-opr <=(a: IntLiteral, b: IntLiteral):Boolean
-opr ^(a: IntLiteral, b:Integral):Number
-
-opr -[\ T extends Number, nat n, nat m \]
-     (a:Integral):ZZ64
-opr +[\ T extends Number, nat n, nat m \]
-     (a:Integral,b:Integral):ZZ64
-opr -[\ T extends Number, nat n, nat m \]
-     (a:Integral,b:Integral):ZZ64
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-     (a:Integral,b:Integral):ZZ64
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:Integral,b:Integral):ZZ64
-opr DIV(a:Integral,b:Integral):ZZ64
-opr REM(a:Integral,b:Integral):ZZ64
-opr MOD(a:Integral,b:Integral):ZZ64
-opr GCD(a:Integral,b:Integral):ZZ64
-opr LCM(a:Integral,b:Integral):ZZ64
-opr CHOOSE(a:Integral,b:Integral):ZZ64
-opr BITAND(a:Integral,b:Integral):ZZ64
-opr BITOR(a:Integral,b:Integral):ZZ64
-opr BITXOR(a:Integral,b:Integral):ZZ64
-opr LSHIFT(a:Integral,b:Integral):ZZ64
-opr RSHIFT(a:Integral,b:Integral):ZZ64
-opr BITNOT(a:Integral):ZZ64
-opr =(a:Integral, b:Integral):Boolean
-opr <=(a:Integral, b:Integral):Boolean
-opr ^(a:ZZ64, b:Integral):Number
-narrow(a:ZZ64):ZZ32
-
-opr   <(a:Integral, b:Integral):Boolean
-opr   >(a:Integral, b:Integral):Boolean
-opr  >=(a:Integral, b:Integral):Boolean
-opr CMP(a:Integral, b:Integral):TotalComparison
-opr MIN[\I extends Integral\](a:I, b:I):I
-opr MAX[\I extends Integral\](a:I, b:I):I
-
-opr -(a:RR64):RR64
-opr +(a:Number,b:Number):RR64
-opr -(a:Number,b:Number):RR64
-opr DOT(a:Number,b:Number):RR64
-opr juxtaposition
-     (a:Number,b:Number):RR64
-opr /(a:Number,b:Number):RR64
-opr SQRT(a:Number):RR64
-opr PLUS_UP(a:Number,b:Number):RR64
-opr MINUS_UP(a:Number,b:Number):RR64
-opr DOT_UP(a:Number,b:Number):RR64
-opr SLASH_UP(a:Number,b:Number):RR64
-opr SQRT_UP(a:Number):RR64
-opr PLUS_DOWN(a:Number,b:Number):RR64
-opr MINUS_DOWN(a:Number,b:Number):RR64
-opr DOT_DOWN(a:Number,b:Number):RR64
-opr SLASH_DOWN(a:Number,b:Number):RR64
-opr SQRT_DOWN(a:Number):RR64
-opr =(a:Number, b:Number):Boolean
-opr =/=(a:Number, b:Number):Boolean
-opr <(a:Number, b:Number):Boolean
-opr <=(a:Number, b:Number):Boolean
-opr >(a:Number, b:Number):Boolean
-opr >=(a:Number, b:Number):Boolean
-opr CMP(a:Number, b:Number):Comparison
-opr MIN(a:Number, b:Number):Boolean
-opr MAX(a:Number, b:Number):Boolean
-opr |a:RR64| : RR64
-opr ^(a:Number, b:Number):RR64
-sin(a:Number):RR64
-cos(a:Number):RR64
-tan(a:Number):RR64
-asin(a:Number):RR64
-acos(a:Number):RR64
-atan(a:Number):RR64
-atan2(y:Number,x:Number):RR64
-log(a:Number):RR64
-exp(a:Number):RR64
-floor(a:Number):RR64
-opr |\a:Number/| : ZZ64
-ceiling(a:Number):RR64
-opr |/a:Number\| : ZZ64
-truncate(a:Number):ZZ64
 fromRawBits(a:ZZ64):RR64
+
 random(a:Number):RR64
 
 (** %char% converts an integer unicode code point into the

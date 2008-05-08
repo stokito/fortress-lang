@@ -19,7 +19,7 @@ component XXXflatTest
 export Executable
 
 two(x:ZZ32) = (x, x+x)
-zero():() = ()
+ident():() = ()
 
 (* Full-fledged recursive tuple flattening is no longer a part of the
  * language, and the interpreter has been fixed accordingly. *)
@@ -30,7 +30,7 @@ takesFour(w:ZZ32, x:ZZ32, y:ZZ32, z:ZZ32):ZZ32 =
 t(b:Boolean) = println (if b then "pass" else "fail" end)
 
 run(args:String...):()=do
-  t(( 9=takesFour( zero(), two(1), zero(), two(2), zero() ) ))
+  t(( 9=takesFour( ident(), two(1), ident(), two(2), ident() ) ))
 end
 
 end

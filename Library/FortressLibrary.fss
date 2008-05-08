@@ -288,12 +288,52 @@ assert(x:Any, y:Any, failMsg: Any...): () =
 * Numeric hierarchy
 ************************************************************)
 
+(** Additive group making use of +.  Must define + and either unary or binary -. **)
+trait AdditiveGroup[\Self extends AdditiveGroup[\Self\]\]
+    getter zero(): Self = self - self
+    opr +(self, other: Self): Self
+    opr -(self, other: Self): Self = self + (-other)
+    opr -(self) : Self = self.zero() - self
+end
+
+(** Top-level factory for zeroes.  Overload this if you declare an AdditiveGroup.
+    This ought to be done via coercion eventually. **)
+zero[\Number\](): Number = 0
+
+(** Place holder for exclusions of MultiplicativeRing **)
+trait AnyMultiplicativeRing end
+
+(** Multiplicative ring using TIMES and juxtaposition.
+    Define opr TIMES; juxtaposition is defined in terms of TIMES. **)
+trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
+        extends { AdditiveGroup[\Self\], AnyMultiplicativeRing }
+    getter one(): Self
+    opr TIMES(self, other:Self): Self
+    opr juxtaposition(self, other:Self): Self = self TIMES other
+    (** Exponentiation need only deal with natural exponents. **)
+    opr ^(self, other:Integral): Self
+end
+
+(** Top-level factory for ones.  Overload this if you declare a Ring.
+    This ought to be done via coercion eventually. **)
+one[\Number\](): Number = 1
+
+(** Conversion of IntLiteral into Ring.  Canonically should
+    perform repeated addition of one.  This is almost never the right way to
+    actually do it, of course.  This ought to be done via coercion eventually. **)
+fromIntegral[\Number\](x:Integral): Number = x
+
 (** The use of StandardTotalOrder here is a lie; it will have to suffice
     until we can deal gracefully with NaNs disobeying the ordering rules
     (and even the equivalence rules for = and =/=). **)
 trait Number
-        extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\] }
+        extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\],
+                  AdditiveGroup[\Number\], MultiplicativeRing[\Number\] }
         comprises { RR64 }
+    getter zero(): Number = 0.0
+    getter one(): Number = 1.0
+    opr |self| : Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
     opr =(self, b:Number):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
     opr =/=(self, b:Number):Boolean =
@@ -318,6 +358,77 @@ trait Number
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
     opr MAX(self, b:Number):Number =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
+
+    opr -(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
+    opr +(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
+    opr -(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
+    opr DOT(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+    opr TIMES(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+    opr juxtaposition
+         (self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+    opr /(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Div")
+    opr SQRT(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
+    opr PLUS_UP(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddUp")
+    opr MINUS_UP(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubUp")
+    opr DOT_UP(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulUp")
+    opr SLASH_UP(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivUp")
+    opr SQRT_UP(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtUp")
+    opr PLUS_DOWN(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddDown")
+    opr MINUS_DOWN(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubDown")
+    opr DOT_DOWN(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulDown")
+    opr SLASH_DOWN(self,b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
+    opr SQRT_DOWN(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtDown")
+    opr ^(self, b:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    (** Shouldn't need this extra declaration. **)
+    opr ^(self, b:Integral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    sin(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
+    cos(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")
+    tan(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Tan")
+    asin(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ASin")
+    acos(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ACos")
+    atan(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan")
+    atan2(self,x:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan2")
+    log(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Log")
+    exp(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Exp")
+    floor(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Floor")
+    opr |\self/| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$IFloor")
+    ceiling(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Ceiling")
+    opr |/self\| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
+    truncate(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
 end
 
 trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
@@ -373,13 +484,59 @@ end
 
 trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
         comprises { ZZ64, IntLiteral }
+    getter zero(): Number = widen(0)
+    getter one(): Number = widen(1)
+
     opr =(self, b:Integral):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
     opr <(self, b:Integral):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
+
+    opr -(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
+    opr +(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
+    opr -(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
+    opr DOT(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr TIMES(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr juxtaposition(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr DIV(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
+    opr REM(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
+    opr MOD(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mod")
+    opr GCD(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Gcd")
+    opr LCM(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Lcm")
+    opr CHOOSE(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Choose")
+    opr BITAND(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitAnd")
+    opr BITOR(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitOr")
+    opr BITXOR(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitXor")
+    opr LSHIFT(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LShift")
+    opr RSHIFT(self,b:Integral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
+    opr BITNOT(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
+    opr ^(self, b:Integral):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
+    narrow(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$FromLong")
 end
 
 trait ZZ64 extends { StandardTotalOrder[\ZZ64\], Integral } comprises { Long, ZZ32 }
+    opr |x:ZZ64| : ZZ64 = if x>=0 then x else -x end
+
     opr =(self, b:ZZ64):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
     opr <(self, b:ZZ64):Boolean =
@@ -495,8 +652,8 @@ trait Generator[\E\]
     (** mapReduce is equivalent to generate, but takes an explicit join
         and zero which can have any type.  It still assumes join is
         associative and that zero is the identity of join. **)
-    mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
-        generate[\R\](MapReduceReduction[\R\](join,zero), body)
+    mapReduce[\R\](body: E->R, join:(R,R)->R, id:R): R =
+        generate[\R\](MapReduceReduction[\R\](join,id), body)
     (** reduce works much like generate or mapReduce,
         but has no body expression **)
     reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
@@ -606,8 +763,8 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         cond[\G\](fn (e:E):Generator[\(E,G)\] => g.map[\(E,G)\](fn (g:G):(E,G) => (e,g)),
                fn () => Nothing[\(E,G)\])
-    mapReduce[\R\](body: E->R, _:(R,R)->R, zero:R): R =
-        cond[\G\](body, fn () => zero)
+    mapReduce[\R\](body: E->R, _:(R,R)->R, id:R): R =
+        cond[\G\](body, fn () => id)
     reduce(_:(E,E)->E, z:E):E = cond[\E\](identity[\E\], fn ():E => z)
     reduce(r: Reduction[\E\]):E = cond[\E\](identity[\E\], fn ():E => r.empty())
     loop(f:E->()): () = cond[\G\](f,fn ():() => ())
@@ -633,13 +790,13 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
 (* This makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
-value trait MaybeType extends Equality[\MaybeType\] excludes Number
+value trait AnyMaybe extends Equality[\AnyMaybe\] excludes Number
         (** \vspace{-4ex} NOT YET: %comprises Maybe[\T\] where [\T\]% *)
     getter holds() : Boolean
-    opr =(self, other:MaybeType): Boolean = false
+    opr =(self, other:AnyMaybe): Boolean = false
 end
 
-just(t:Any):MaybeType = Just(t)
+just(t:Any):AnyMaybe = Just(t)
 
 (** %Maybe% represents either %Nothing% or a single element of type
     %T% (%Just[\T\]%), which may be retrieved by calling %get%.  An
@@ -650,7 +807,7 @@ just(t:Any):MaybeType = Just(t)
     Thus, %Just[\T\]% can be used as a single-element generator, and
     %Nothing% can be used as an empty generator. *)
 value trait Maybe[\T\]
-        extends { MaybeType, Condition[\T\] }
+        extends { AnyMaybe, Condition[\T\] }
         comprises { Nothing[\T\], Just[\T\] }
 end
 
@@ -808,7 +965,7 @@ oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
    fail("Index of dimension " s " out of bounds; got " got " which is not in " l "#" sz);
 end
 
-trait HasRank extends Equality[\HasRank\] excludes { Number, MaybeType }
+trait HasRank extends Equality[\HasRank\] excludes { Number, AnyMaybe }
   (** \vspace{-4ex} NOT YET: %comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] }% *)
   rank():ZZ32
   opr =(self, other:HasRank): Boolean = false
@@ -991,8 +1148,8 @@ trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     seq(self): SequentialGenerator[\E\] = seq(generator())
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         generator().cross[\G\](g)
-    mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
-        generator().mapReduce[\R\](body,join,zero)
+    mapReduce[\R\](body: E->R, join:(R,R)->R, id:R): R =
+        generator().mapReduce[\R\](body,join,id)
     reduce(j:(E,E)->E, z:E):E = generator().reduce(j,z)
     reduce(r: Reduction[\E\]):E = generator().reduce(r)
     loop(f:E->()): () = generator().loop(f)
@@ -1412,12 +1569,14 @@ object __ImmutableSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
       end
 end
 
-trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
-    add(v:Vector[\T,s0\]): Vector[\T,s0\] =
+trait Vector[\T extends Number, nat s0\]
+        extends { Array1[\T,0,s0\], AdditiveGroup[\Vector[\T,s0\]\] }
+        excludes { AnyMultiplicativeRing }
+    opr +(self, v:Vector[\T,s0\]): Vector[\T,s0\] =
         ivmap[\T\](fn (i:ZZ32, e: T):T => e + v.get(i))
-    subtract(v:Vector[\T,s0\]): Vector[\T,s0\] =
+    opr -(self, v:Vector[\T,s0\]): Vector[\T,s0\] =
         ivmap[\T\](fn (i:ZZ32, e: T):T => e - v.get(i))
-    negate(): Vector[\T,s0\] = map[\T\](fn (e: T):T => - e)
+    opr -(self): Vector[\T,s0\] = map[\T\](fn (e: T):T => - e)
     scale(t: T): Vector[\T,s0\] = map[\T\](fn (v) => t v)
     pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
         ivmap[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
@@ -1480,17 +1639,6 @@ vector[\T extends Number, nat s0\](v:T):Vector[\T,s0\] =
     vector[\T,s0\]().fill(v)
 vector[\T extends Number, nat s0\](f:ZZ32->T):Vector[\T,s0\] =
     vector[\T,s0\]().fill(f)
-
-
-opr +[\ T extends Number, nat n \]
-     (me : Vector[\T,n\], other : Vector[\T,n\]):Vector[\T,n\] = me.add(other)
-
-opr -[\ T extends Number, nat n \]
-     (me : Vector[\T,n\], other : Vector[\T,n\]):Vector[\T,n\] =
-    me.subtract(other)
-
-opr -[\ T extends Number, nat n \]
-     (me : Vector[\T,n\]):Vector[\T,n\] = me.negate()
 
 pmul[\ T extends Number, nat k \]
     (a : Vector[\T,k\], b : Vector[\T,k\]):Vector[\T,k\] = a.pmul(b)
@@ -1664,12 +1812,14 @@ object SubArray2[\T, nat b0, nat s0, nat b1, nat s1,
     get(t:(ZZ32,ZZ32)): T = mem.get(index(t))
 end
 
-trait Matrix[\T extends Number, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
-    add(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
+trait Matrix[\T extends Number, nat s0, nat s1\]
+        extends { Array2[\T, 0, s0, 0, s1\], AdditiveGroup[\Matrix[\T,s0,s1\]\] }
+        excludes { AnyMultiplicativeRing }
+    opr +(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
         ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get(i))
-    subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
+    opr -(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
         ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get(i))
-    negate(): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => - e)
+    opr -(self): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => - e)
     scale(t: T): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => t e)
     mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
         res = matrix[\T,s0,s2\]()
@@ -1786,18 +1936,6 @@ matrix[\T extends Number, nat s0, nat s1\]():Matrix[\T,s0,s1\] =
   __DefaultMatrix[\T,s0,s1\]()
 matrix[\T extends Number, nat s0, nat s1\](v:T):Matrix[\T,s0,s1\] =
   array2[\T,s0,s1\]().fill(fn (x:ZZ32,y:ZZ32):T => if x=y then v else 0 end)
-
-opr +[\ T extends Number, nat n, nat m \]
-     (me:Matrix[\T,n,m\], other:Matrix[\T,n,m\]): Matrix[\T,n,m\] =
-        me.add(other)
-
-opr -[\ T extends Number, nat n, nat m \]
-     (me:Matrix[\T,n,m\], other:Matrix[\T,n,m\]) : Matrix[\T,n,m\] =
-        me.subtract(other)
-
-opr -[\ T extends Number, nat n, nat m \]
-     (me:Matrix[\T,n,m\]): Matrix[\T,n,m\] =
-        me.negate()
 
 (* Matrix multiplication; used to use a cache-oblivious algorithm, but
    we ran into trouble due to lack of support for atomic increment of
@@ -2041,10 +2179,10 @@ opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
     g(ProdReduction,cast[\Number\])
 
 object MinReduction[\T extends StandardMin[\T\]\]
-        extends Reduction[\MaybeType\]
+        extends Reduction[\AnyMaybe\]
     getter toString() = "MinReduction"
-    empty(): MaybeType = Nothing[\T\]
-    join(a:MaybeType,b:MaybeType): MaybeType =
+    empty(): AnyMaybe = Nothing[\T\]
+    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe =
         if aa <- a then
             if bb <- b then
                 just(aa MIN bb)
@@ -2057,14 +2195,14 @@ object MinReduction[\T extends StandardMin[\T\]\]
 end
 
 opr BIG MIN[\T extends StandardMin[\T\]\]
-           (g:(MinReduction[\T\],T->MaybeType)->MaybeType): T =
+           (g:(MinReduction[\T\],T->AnyMaybe)->AnyMaybe): T =
         g(MinReduction[\T\],just).get()
 
 object MaxReduction[\T extends StandardMax[\T\]\]
-        extends Reduction[\MaybeType\]
+        extends Reduction[\AnyMaybe\]
     getter toString() = "MaxReduction"
-    empty(): MaybeType = Nothing[\T\]
-    join(a:MaybeType,b:MaybeType): MaybeType =
+    empty(): AnyMaybe = Nothing[\T\]
+    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe =
         if aa <- a then
             if bb <- b then
                 just(aa MAX bb)
@@ -2077,7 +2215,7 @@ object MaxReduction[\T extends StandardMax[\T\]\]
 end
 
 opr BIG MAX[\T extends StandardMax[\T\]\]
-           (g:(MaxReduction[\T\],T->MaybeType)->MaybeType): T =
+           (g:(MaxReduction[\T\],T->AnyMaybe)->AnyMaybe): T =
         g(MaxReduction[\T\],just).get()
 
 opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64 =
@@ -2235,10 +2373,10 @@ trait NestedGenerator[\E,F\] extends Generator[\F\]
     getter toString(): String
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         g().generate[\R\](r,fn (e:E):R => (f())(e).generate[\R\](r,m))
-    mapReduce[\R\](body: F->R, join:(R,R)->R, zero:R): R =
+    mapReduce[\R\](body: F->R, join:(R,R)->R, id:R): R =
         g().mapReduce[\R\](
-            fn (e:E): R => (f())(e).mapReduce[\R\](body,join,zero),
-            join, zero)
+            fn (e:E): R => (f())(e).mapReduce[\R\](body,join,id),
+            join, id)
     reduce(r: Reduction[\F\]): F =
         g().generate[\F\](r,fn (e:E):F => (f())(e).reduce(r))
     reduce(j:(F,F)->F, z:F):F =
@@ -2850,32 +2988,6 @@ opr :() : OpenRange[\Any\] = OpenRange[\Any\]
 * Numeric primitives
 ************************************************************)
 
-opr |x:ZZ32| : ZZ32 = if x>=0 then x else -x end
-opr |x:ZZ64| : ZZ64 = if x>=0 then x else -x end
-opr |x:IntLiteral| : IntLiteral = if x>=0 then x else -x end
-
-opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Negate")
-opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Add")
-opr -(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Sub")
-opr DOT(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
-opr juxtaposition
-     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
-opr DIV(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Div")
-opr REM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Rem")
-opr MOD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mod")
-opr GCD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Gcd")
-opr LCM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Lcm")
-opr CHOOSE(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Choose")
-opr BITAND(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitAnd")
-opr BITOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitOr")
-opr BITXOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitXor")
-opr LSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$LShift")
-opr RSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$RShift")
-opr BITNOT(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitNot")
-opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Pow")
-widen(a:ZZ32):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToLong")
-partitionL(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Partition")
-
 nanoTime():ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$NanoTime")
 printTaskTrace():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintTaskTrace")
 
@@ -2889,81 +3001,8 @@ printTime(dummy: Any): () = do
     println("Operation took " secs "ms")
   end
 
-opr -(a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
-opr +(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Add")
-opr -(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Sub")
-opr DOT(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
-opr juxtaposition
-     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
-opr DIV(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Div")
-opr REM(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Rem")
-opr MOD(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mod")
-opr GCD(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Gcd")
-opr LCM(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Lcm")
-opr CHOOSE(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Choose")
-opr BITAND(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitAnd")
-opr BITOR(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitOr")
-opr BITXOR(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitXor")
-opr LSHIFT(a: IntLiteral,b:Integral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LShift")
-opr RSHIFT(a: IntLiteral,b:Integral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$RShift")
-opr BITNOT(a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitNot")
-opr ^(a: IntLiteral, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
-
-opr -(a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
-opr +(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
-opr -(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
-opr DOT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
-opr juxtaposition(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
-opr DIV(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
-opr REM(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
-opr MOD(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mod")
-opr GCD(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Gcd")
-opr LCM(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Lcm")
-opr CHOOSE(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Choose")
-opr BITAND(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitAnd")
-opr BITOR(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitOr")
-opr BITXOR(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitXor")
-opr LSHIFT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LShift")
-opr RSHIFT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
-opr BITNOT(a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
-opr ^(a:ZZ64, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
-narrow(a:ZZ64):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$FromLong")
-
-opr -(a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
-opr +(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
-opr -(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
-opr DOT(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
-opr juxtaposition
-     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
-opr /(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Div")
-opr SQRT(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
-opr PLUS_UP(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddUp")
-opr MINUS_UP(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubUp")
-opr DOT_UP(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulUp")
-opr SLASH_UP(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivUp")
-opr SQRT_UP(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtUp")
-opr PLUS_DOWN(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddDown")
-opr MINUS_DOWN(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubDown")
-opr DOT_DOWN(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulDown")
-opr SLASH_DOWN(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
-opr SQRT_DOWN(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtDown")
-opr |a:RR64| : RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
-opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
-sin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
-cos(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")
-tan(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Tan")
-asin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ASin")
-acos(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ACos")
-atan(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan")
-atan2(y:Number,x:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan2")
-log(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Log")
-exp(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Exp")
-floor(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Floor")
-opr |\a:Number/| : ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$IFloor")
-ceiling(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Ceiling")
-opr |/a:Number\| : ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
-truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
 fromRawBits(a:ZZ64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$FromRawBits")
+
 random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
 
 char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")

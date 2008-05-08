@@ -26,12 +26,14 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
+import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -51,78 +53,103 @@ protected FNativeObject makeNativeObject(List<FValue> args,
     return FInt.ZERO;
 }
 
-static public abstract class ZZ2B extends NativeMeth1 {
+static private abstract class ZZ2B extends NativeMeth1 {
     protected abstract boolean f(int x, int y);
     protected final FValue act(FObject x, FValue y) {
         return FBool.make(f(x.getInt(),y.getInt()));
     }
 }
 
-public static final class Negate extends Util.Z2Z {
+static private abstract class Z2Z extends NativeMeth0 {
+    protected abstract int f(int x);
+    protected final FValue act(FObject x) {
+        return FInt.make(f(x.getInt()));
+    }
+}
+static private abstract class Z2L extends NativeMeth0 {
+    protected abstract long f(int x);
+    protected final FValue act(FObject x) {
+        return FLong.make(f(x.getInt()));
+    }
+}
+static private abstract class ZZ2Z extends NativeMeth1 {
+    protected abstract int f(int x, int y);
+    protected final FValue act(FObject x, FValue y) {
+        return FInt.make(f(x.getInt(),y.getInt()));
+    }
+}
+static private abstract class ZL2Z extends NativeMeth1 {
+    protected abstract int f(int x, long y);
+    protected final FValue act(FObject x, FValue y) {
+        return FInt.make(f(x.getInt(),y.getLong()));
+    }
+}
+
+public static final class Negate extends Z2Z {
     protected int f(int x) { return -x; }
 }
-public static final class Add extends Util.ZZ2Z {
+public static final class Add extends ZZ2Z {
     protected int f(int x, int y) { return x + y; }
 }
-public static final class Sub extends Util.ZZ2Z {
+public static final class Sub extends ZZ2Z {
     protected int f(int x, int y) { return x - y; }
 }
-public static final class Mul extends Util.ZZ2Z {
+public static final class Mul extends ZZ2Z {
     protected int f(int x, int y) { return x * y; }
 }
-public static final class Div extends Util.ZZ2Z {
+public static final class Div extends ZZ2Z {
     protected int f(int x, int y) { return x / y; }
 }
-public static final class Rem extends Util.ZZ2Z {
+public static final class Rem extends ZZ2Z {
     protected int f(int x, int y) { return x % y; }
 }
-public static final class Gcd extends Util.ZZ2Z {
+public static final class Gcd extends ZZ2Z {
     protected int f(int u, int v) {
         return (int)gcd(u,v);
     }
 }
-public static final class Lcm extends Util.ZZ2Z {
+public static final class Lcm extends ZZ2Z {
     protected int f(int u, int v) {
         int g = (int)gcd(u,v);
         return (u/g)*v;
     }
 }
-public static final class Choose extends Util.ZZ2Z {
+public static final class Choose extends ZZ2Z {
     protected int f(int u, int v) {
         return rc(choose(u,v));
     }
 }
-public static final class Mod extends Util.ZZ2Z {
+public static final class Mod extends ZZ2Z {
     protected int f(int u, int v) {
         return (int)mod(u,v);
     }
 }
-public static final class BitAnd extends Util.ZZ2Z {
+public static final class BitAnd extends ZZ2Z {
     protected int f(int u, int v) {
         return u & v;
     }
 }
-public static final class BitOr extends Util.ZZ2Z {
+public static final class BitOr extends ZZ2Z {
     protected int f(int u, int v) {
         return u | v;
     }
 }
-public static final class BitXor extends Util.ZZ2Z {
+public static final class BitXor extends ZZ2Z {
     protected int f(int u, int v) {
         return u ^ v;
     }
 }
-public static final class LShift extends Util.ZL2Z {
+public static final class LShift extends ZL2Z {
     protected int f(int u, long v) {
         return ((v&~31)==0)?(u << (int)v):0;
     }
 }
-public static final class RShift extends Util.ZL2Z {
+public static final class RShift extends ZL2Z {
     protected int f(int u, long v) {
         return ((v&~31)==0)?(u >> (int)v):(u>>31);
     }
 }
-public static final class BitNot extends Util.Z2Z {
+public static final class BitNot extends Z2Z {
     protected int f(int x) { return ~x; }
 }
 public static final class Eq extends ZZ2B {
@@ -131,7 +158,7 @@ public static final class Eq extends ZZ2B {
 public static final class Less extends ZZ2B {
     protected boolean f(int x, int y) { return x<y; }
 }
-public static final class Partition extends Util.Z2Z {
+public static final class Partition extends Z2Z {
     protected int f(int u) {
         int m = (u-1) >> 1;
         m |= m >> 1;
@@ -142,8 +169,8 @@ public static final class Partition extends Util.Z2Z {
         return m+1;
     }
 }
-public static final class Pow extends NativeFn2 {
-    protected FValue act(FValue x, FValue y) {
+public static final class Pow extends NativeMeth1 {
+    protected FValue act(FObject x, FValue y) {
         int base = x.getInt();
         long exp = y.getLong();
         if (exp < 0) {
@@ -153,8 +180,8 @@ public static final class Pow extends NativeFn2 {
         }
     }
 }
-public static final class FromLong extends Util.L2Z {
-    protected int f(long x) { return ZZ32.rc(x); }
+public static final class ToLong extends Z2L {
+    protected long f(int x) { return (long)x; }
 }
 
 public static int rc(long i) {

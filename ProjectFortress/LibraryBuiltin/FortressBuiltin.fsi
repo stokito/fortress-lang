@@ -18,14 +18,35 @@
 api FortressBuiltin
 
 value object Float extends RR64
-    opr =(self, b:ZZ32):Boolean
-    opr <(self, b:ZZ32):Boolean
 end
 
 object FloatLiteral extends RR64
 end
 
 value object ZZ32 extends ZZ64
+    opr =(self, b:ZZ32):Boolean
+    opr <(self, b:ZZ32):Boolean
+
+    opr -(self):ZZ32
+    opr +(self,b:ZZ32):ZZ32
+    opr -(self,b:ZZ32):ZZ32
+    opr DOT(self,b:ZZ32):ZZ32
+    opr juxtaposition(self,b:ZZ32):ZZ32
+    opr DIV(self,b:ZZ32):ZZ32
+    opr REM(self,b:ZZ32):ZZ32
+    opr MOD(self,b:ZZ32):ZZ32
+    opr GCD(self,b:ZZ32):ZZ32
+    opr LCM(self,b:ZZ32):ZZ32
+    opr CHOOSE(self,b:ZZ32):ZZ32
+    opr BITAND(self,b:ZZ32):ZZ32
+    opr BITOR(self,b:ZZ32):ZZ32
+    opr BITXOR(self,b:ZZ32):ZZ32
+    opr LSHIFT(self,b:Integral):ZZ32
+    opr RSHIFT(self,b:Integral):ZZ32
+    opr BITNOT(self):ZZ32
+    opr ^(self, b:Integral):Number
+    widen(self):ZZ64
+    partitionL(self):ZZ32
 end
 
 value object Long extends ZZ64
@@ -38,6 +59,25 @@ object IntLiteral extends Integral
     opr >(self, other:String): Boolean
     opr >=(self, other:String): Boolean
     opr CMP(self, other:String): TotalComparison
+
+    opr -(self): IntLiteral
+    opr +(self, b: IntLiteral): IntLiteral
+    opr -(self, b: IntLiteral): IntLiteral
+    opr DOT(self, b: IntLiteral): IntLiteral
+    opr juxtaposition(self, b: IntLiteral): IntLiteral
+    opr DIV(self, b: IntLiteral): IntLiteral
+    opr REM(self, b: IntLiteral): IntLiteral
+    opr MOD(self, b: IntLiteral): IntLiteral
+    opr GCD(self, b: IntLiteral): IntLiteral
+    opr LCM(self, b: IntLiteral): IntLiteral
+    opr CHOOSE(self, b: IntLiteral): IntLiteral
+    opr BITAND(self, b: IntLiteral): IntLiteral
+    opr BITOR(self, b: IntLiteral): IntLiteral
+    opr BITXOR(self, b: IntLiteral): IntLiteral
+    opr LSHIFT(self, b:Integral): IntLiteral
+    opr RSHIFT(self, b:Integral): IntLiteral
+    opr BITNOT(self): IntLiteral
+    opr ^(self, b:Integral):Number
 end
 
 object Boolean

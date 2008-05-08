@@ -840,68 +840,16 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forMethodInvocation(MethodInvocation x) {
         Expr obj = x.getObj();
         Id method = x.getMethod();
+        String mname = NodeUtil.nameString(method);
         List<StaticArg> sargs = x.getStaticArgs();
         Expr arg = x.getArg();
 
-        FValue fobj = obj.accept(this);
-        FObject fobject;
-        BetterEnv selfEnv;
-
-        // TODO Need to distinguish between public/private
-        // methods/fields
-        if (fobj.getValue() instanceof FObject) {
-            fobject = (FObject) fobj.getValue();
-            if (fobj.type() instanceof FTypeTrait) {
-                // fobj instanceof FAsIf, and nontrivial type()
-                selfEnv = ((FTypeTrait)fobj.type()).getMembers();
-            } else {
-                selfEnv = fobject.getSelfEnv();
-            }
+        FValue self = obj.accept(this);
+        List<FValue> args = argList(arg.accept(this));
+        if (sargs.isEmpty()) {
+            return invokeMethod(self,mname,args,x);
         } else {
-            return error(x, errorMsg("Unexpected receiver in method ",
-                                               "invocation, ", fobj));
-        }
-        FValue cl = selfEnv.getValueNull(NodeUtil.nameString(method));
-        if (cl == null) {
-            // TODO Environment is split, might not be best choice
-            // for error printing.
-            String msg = errorMsg("undefined method ", NodeUtil.nameString(method));
-            return error(x, selfEnv, msg);
-        } else if (sargs.isEmpty() && cl instanceof Method) {
-            List<FValue> args = argList(arg.accept(this));
-                //evalInvocationArgs(java.util.Arrays.asList(null, arg));
-            try {
-                return ((Method) cl).applyMethod(args, fobject, x, e);
-            } catch (FortressError ex) {
-                throw ex.setContext(x, selfEnv);
-            } catch (StackOverflowError soe) {
-                return error(x,selfEnv, errorMsg("Stack overflow on ",x));
-            }
-        } else if (cl instanceof OverloadedMethod) {
-            return bug(x, selfEnv,   "Don't actually resolve overloading of " +
-                                     "generic methods yet.");
-        } else if (cl instanceof MethodInstance) {
-            // What gets retrieved is the symbolic instantiation of
-            // the generic method.
-            // This is ever-so-slightly wrong -- we need to not
-            // create an "instance"
-            // if the parameters are non-symbolic.
-            GenericMethod gm = ((MethodInstance) cl).getGenerator();
-            List<FValue> args = argList(arg.accept(this));
-                //evalInvocationArgs(java.util.Arrays.asList(null, arg));
-            try {
-                return (gm.typeApply(sargs, e, x)).
-                        applyMethod(args, fobject, x, e);
-            } catch (FortressError ex) {
-                throw ex.setContext(x,selfEnv);
-            } catch (StackOverflowError soe) {
-                return error(x,selfEnv, errorMsg("Stack overflow on ",x));
-            }
-        } else {
-            return error(x, selfEnv,
-                           errorMsg("Unexpected method value in method ",
-                                    "invocation, ", cl.toString() + "\n" +
-                                    NodeUtil.dump(x)));
+            return invokeGenericMethod(self,mname,sargs,args,x);
         }
     }
 
@@ -1208,39 +1156,106 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Option<Enclosing> op = x.getOp();
         // Should evaluate obj.[](subs, getText)
         FValue arr = obj.accept(this);
-        if (!(arr instanceof FObject)) {
-            error(obj, errorMsg("Value should be an object; got ", arr));
-        }
-        FObject array = (FObject) arr;
-        String opString;
+        String opString = "[]";
         if (op.isSome()) {
             opString = NodeUtil.nameString(op.unwrap());
-        } else {
-            opString = "[]";
         }
-        FValue ixing = array.getSelfEnv().getValueNull(opString);
-        if (ixing == null || !(ixing instanceof Method)) {
-            error(x,errorMsg("Could not find appropriate definition of opr [] on ",
-                             array));
-        }
-        Method cl = (Method) ixing;
-        List<FValue> subscripts = evalExprListParallel(subs);
-        return cl.applyMethod(subscripts, array, x, e);
+        return invokeMethod(arr,opString,evalExprListParallel(subs),x);
     }
 
-    public FValue invokeGenericMethod(FObject fobject, Name fld, List<StaticArg> args, List<Expr> exprs, HasAt x) {
-        FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(fld));
-        if (cl == null) {
-            // TODO Environment is split, might not be best choice
-            // for error printing.
-            return error(x, fobject.getSelfEnv(),
-                         errorMsg("undefined method/field ",
-                                  NodeUtil.nameString(fld)));
-        } else if (cl instanceof OverloadedMethod) {
+    private static FObject findSelf(FValue receiver, String prettyName, HasAt x) {
+        // TODO Need to distinguish between public/private
+        // methods/fields
+        FValue selfVal = receiver.getValue();
+        if (!(selfVal instanceof FObject)) {
+            return error(x, errorMsg("Non-object receiver ",receiver,
+                                     " trying to invoke method ",prettyName));
+        }
+        return (FObject)selfVal;
+    }
 
-            return bug(x, fobject.getSelfEnv(),
+    private static BetterEnv findSelfEnv(FValue receiver, FObject self,
+                                         String mname, HasAt x) {
+        if (!(receiver.type() instanceof FTypeTrait)) return self.getSelfEnv();
+        FTypeTrait tr = (FTypeTrait)receiver.type();
+
+        // fobj instanceof FAsIf, nontrivial type() Since getMembers()
+        // on traits only returns the immediately defined methods and
+        // fields, we need to walk the transitive extends hierarchy in
+        // order to find the method we're looking for.  Open question:
+        // Is this right or sufficient?  What happens if multiple
+        // overloadings of given method are obtained from different
+        // supertraits---will we actually get an overloaded method
+        // closure, or will the world simply break?
+        for (FType t : tr.getTransitiveExtends()) {
+            if (!(t instanceof FTypeTrait)) continue;
+            BetterEnv selfEnv = ((FTypeTrait)t).getMembers();
+            if (selfEnv.getValueNull(mname) != null) return selfEnv;
+        }
+        // We're going to fail, try to give a meaningful selfEnv.
+        return tr.getMembers();
+    }
+
+    private static Method findMethodClosure(FValue receiver, BetterEnv selfEnv,
+                                            String mname, String prettyName, HasAt x) {
+        FValue cl = selfEnv.getValueNull(mname);
+        if (cl==null) {
+            return error(x, selfEnv,
+                         errorMsg("Cannot find definition for method ",prettyName,
+                                  " given receiver ",receiver));
+        }
+        if (cl instanceof Method) return (Method)cl;
+        return error(x, selfEnv,
+                     errorMsg("Unexpected method value ",cl.toString(),
+                              " when invoking method ",prettyName,
+                              " given receiver ",receiver));
+    }
+
+    private static FValue actualMethodApplication(Method cl,
+                                                  FObject self, List<FValue> args,
+                                                  BetterEnv envForInference,
+                                                  BetterEnv selfEnv, HasAt x) {
+        try {
+            return cl.applyMethod(args, self, x, envForInference);
+        } catch (FortressError ex) {
+            throw ex.setContext(x, selfEnv);
+        } catch (StackOverflowError soe) {
+            return error(x,selfEnv, errorMsg("Stack overflow on ",x));
+        }
+    }
+
+    public static FValue invokeMethod(FValue receiver, String prettyName,
+                                      String mname, List<FValue> args,
+                                      HasAt x, BetterEnv envForInference) {
+        FObject self = findSelf(receiver,prettyName,x);
+        BetterEnv selfEnv = findSelfEnv(receiver,self,mname,x);
+        Method cl = findMethodClosure(receiver,selfEnv,mname,prettyName,x);
+        return actualMethodApplication(cl,self,args,envForInference,selfEnv,x);
+    }
+
+    // Non-static version provides the obvious arguments.
+    public FValue invokeMethod(FValue receiver, String mname, List<FValue> args,
+                               HasAt x) {
+        return invokeMethod(receiver,mname,mname,args,x,e);
+    }
+
+    // Version that evaluates arguments first.
+    public FValue evalAndInvokeMethod(FValue receiver, String mname, List<Expr> args,
+                                      HasAt x) {
+        return invokeMethod(receiver,mname,evalInvocationArgs(args),x);
+    }
+
+    public FValue invokeGenericMethod(FValue receiver, String mname,
+                                      List<StaticArg> sargs, List<FValue> exprs,
+                                      HasAt x) {
+
+        FObject self = findSelf(receiver,mname,x);
+        BetterEnv selfEnv = findSelfEnv(receiver,self,mname,x);
+        Method cl = findMethodClosure(receiver,selfEnv,mname,mname,x);
+
+        if (cl instanceof OverloadedMethod) {
+            return bug(x, self.getSelfEnv(),
                        "Don't actually resolve overloading of generic methods yet.");
-
         } else if (cl instanceof MethodInstance) {
             // What gets retrieved is the symbolic instantiation of
             // the generic method.
@@ -1248,11 +1263,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // create an "instance"
             // if the parameters are non-symbolic.
             GenericMethod gm = ((MethodInstance) cl).getGenerator();
-            return (gm.typeApply(args, e, x)).applyMethod(
-                        evalInvocationArgs(exprs), fobject, x, e);
-
+            MethodClosure actual = gm.typeApply(sargs,e,x);
+            return actualMethodApplication(actual,self,exprs,e,selfEnv,x);
         } else {
-            return error(x, fobject.getSelfEnv(),
+            return error(x, self.getSelfEnv(),
                          errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
                                   cl));
         }
@@ -1342,18 +1356,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         } else { // opr instanceof SubscriptingMI
             SubscriptingMI sub = (SubscriptingMI)opr;
-            Enclosing op = sub.getOp();
-            List<Expr> subs = sub.getExprs();
-            if (!(front instanceof FObject))
-                error(loc, errorMsg("Value should be an object; got ", front));
-            FObject array = (FObject)front;
-            String opString = NodeUtil.nameString(op);
-            FValue ixing = array.getSelfEnv().getValueNull(opString);
-            if (ixing == null || !(ixing instanceof Method))
-                error(loc, errorMsg("Could not find appropriate definition of ",
-                                    "the operator ", opString, " on ", array));
-            return ((Method)ixing).applyMethod(evalExprListParallel(subs), array,
-                                               loc, e);
+            String opString = NodeUtil.nameString(sub.getOp());
+            return evalAndInvokeMethod(front,opString,sub.getExprs(),loc);
         }
     }
 
@@ -1512,15 +1516,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (fn instanceof AbstractFieldRef) {
                 AbstractFieldRef arf = (AbstractFieldRef) fn;
                 FValue fobj = arf.getObj().accept(this);
-                if (fobj instanceof FObject) {
-                    try {
-                        return invokeGenericMethod((FObject) fobj, fldName(arf), args, exprs, x);
-                    } catch (FortressError ex) {
-                        throw ex.setContext(x,e);
-                    }
-                } else {
-                    error(x,errorMsg("Non-Object target ",fobj," of method call ",x));
-                }
+                return invokeGenericMethod(fobj,
+                                           NodeUtil.nameString(fldName(arf)),
+                                           args, evalInvocationArgs(exprs), x);
             } else if (fn instanceof VarRef) {
                 // FALL OUT TO REGULAR FUNCTION CASE!
             } else {
@@ -1552,6 +1550,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     /**
+     * Unlike invokeMethod, must handle case where we have a closure-valued field.
      * @param x
      * @param fobj
      * @param fld
@@ -1561,39 +1560,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     private FValue juxtMemberSelection(TightJuxt x, FValue fobj, Id fld,
                                        List<Expr> exprs) throws ProgramError {
+        String mname = NodeUtil.nameString(fld);
         if (fobj instanceof FObject) {
             FObject fobject = (FObject) fobj;
             // TODO Need to distinguish between public/private methods/fields
-            FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(fld));
-            if (cl == null)
-                // TODO Environment is split, might not be best choice for error
-                // printing.
-                return error(x, fobject.getSelfEnv(),
-                             errorMsg("undefined method/field ",
-                                      NodeUtil.nameString(fld)));
-            else if (cl instanceof Method) {
-                try {
-                    return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
-                                                     fobject, x, e);
-                } catch (FortressError fe) {
-                    throw fe.setContext(x,e);
-                }
-            } else if (cl instanceof Fcn) {
+            FValue cl = fobject.getSelfEnv().getValueNull(mname);
+            if (cl != null && !(cl instanceof Method) && cl instanceof Fcn) {
                 Fcn fcl = (Fcn) cl;
                 // Ordinary closure, assigned to a field.
                 return finishFunctionInvocation(exprs, fcl, x);
-            } else {
-                // TODO seems like we could be multiplying, too.
-                String msg = errorMsg("Tight juxtaposition of non-function ",
-                                      NodeUtil.nameString(fld));
-                return error(x, fobject.getSelfEnv(), msg);
             }
-        } else {
-            // TODO Could be a fragment of a component/api name, too.
-            return error(x,
-                    errorMsg("", fobj, ".", fld,
-                             " but not object.something"));
         }
+        return evalAndInvokeMethod(fobj, mname, exprs, x);
     }
 
     /**

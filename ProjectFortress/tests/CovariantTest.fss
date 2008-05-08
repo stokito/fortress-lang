@@ -24,7 +24,7 @@ chk[\T\](_:Reflect[\T\]): () = ()
 
 run(args:String...):() = do
     chk[\RR64\](joinReflected(Reflect[\ZZ32\](),Reflect[\RR64\]()))
-    chk[\MaybeType\](joinReflected(Reflect[\Nothing[\ZZ32\]\](),
+    chk[\AnyMaybe\](joinReflected(Reflect[\Nothing[\ZZ32\]\](),
                                    Reflect[\Nothing[\RR64\]\](),
                                    Reflect[\Just[\ZZ64\]\]()))
     println(joinReflected(Reflect[\Array1[\ZZ32,0,1\]\](),

@@ -26,7 +26,11 @@ export Executable
 propAsif[\T extends Foo\](x:T, y:T): Boolean =
     (x = (y asif T))
 
-trait Foo extends Equality[\Foo\]
+trait Quux
+    passQuux(): Boolean = true
+end
+
+trait Foo extends { Quux, Equality[\Foo\] }
     passFoo(): Boolean = true
     passBar(): Boolean = false
     opr =(self, x:Foo): Boolean = false
@@ -36,12 +40,14 @@ object Bar extends Foo
     toString(): String = "Bar"
     passFoo(): Boolean = false
     passBar(): Boolean = true
+    passQuux(): Boolean = false
     opr =(self, x:Bar): Boolean = true
 end
 
 object Baz extends Foo
     toString(): String = "Baz"
     passFoo(): Boolean = false
+    passQuux(): Boolean = false
     opr =(self, x:Baz): Boolean = true
 end
 
@@ -56,13 +62,6 @@ run(args:String...):() = do
     y : List[\Foo\] = <| Baz asif Foo, Baz |>
     (* Now appending the two ought to work. *)
     println(x.append(y))
-
-    (* Mixed generic and overloaded method, at supertype. *)
-    typecase z = (3 asif RR64) + 17 of
-        Integral => println("FAIL, got ZZ32 " z)
-        RR64 => println("PASS, got RR64 " z)
-        else => println("Got unknown typed " z)
-    end
 
     (* Top-level overloading *)
     a : List[\RR64\] = <| 1.0 asif RR64, 2.0, 3.0, 4.0 |>
@@ -94,14 +93,23 @@ run(args:String...):() = do
     assert(Bar.passBar(), true, "NOT Bar.passBar()")
     assert(Baz.passBar(), false, "Baz.passBar()")
     assert(Bar.passFoo(), false, "Bar.passFoo()")
+    assert(Bar.passQuux(), false, "Bar.passQuux()")
     assert((Bar asif Foo).passFoo(), true, "NOT Foo.passFoo()")
     assert((Bar asif Foo).passBar(), false, "NOT Foo.passFoo()")
+    assert((Bar asif Foo).passQuux(), true, "NOT Bar.passQuux()")
 
     (* Propagation *)
     assert(propAsif(Bar, Bar), true, "NOT propAsif(Bar,Bar)")
     assert(propAsif(Baz, Bar), false, "propAsif(Baz,Bar)")
     assert(propAsif(Bar asif Foo, Bar), false, "propAsif(Foo,Bar)")
     assert(propAsif(Bar, Bar asif Foo), false, "propAsif(Bar,Foo)")
+
+    (* Mixed generic and overloaded method, at supertype. *)
+    typecase z = (3 asif RR64) + 17 of
+        Integral => println("FAIL, got ZZ32 " z)
+        RR64 => println("PASS, got RR64 " z)
+        else => println("Got unknown typed " z)
+    end
 
     (* Comprehension
     b : List[\Foo\] = <| Bar asif Foo | _ <- 0#3 |>

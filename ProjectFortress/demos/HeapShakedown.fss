@@ -25,8 +25,8 @@ appending[\T\](xs: List[\T\]...): List[\T\] =
 
 showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
     n = |headers|
-    for one <- data do
-        sz = |one|
+    for datum <- data do
+        sz = |datum|
         if (sz < n) then
             fail("FAIL: only " sz " data points, expected " n)
         elif (n < sz) then
