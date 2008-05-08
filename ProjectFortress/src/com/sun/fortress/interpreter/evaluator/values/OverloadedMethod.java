@@ -57,10 +57,10 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
 
            List<Overload>  someOverloads = overloads;
            int best = bestMatchIndex(args, loc, envForInference, someOverloads);
-        lastBest = best;
+           lastBest = best;
 
-        best_f = ((Method)someOverloads.get(best).getFn());
-        mcache.syncPut(args, best_f);
+           best_f = ((Method)someOverloads.get(best).getFn());
+           mcache.syncPut(args, best_f);
        }
        return best_f.applyMethod(args, selfValue, loc, envForInference);
     }

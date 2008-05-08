@@ -18,7 +18,7 @@
 component oddJuxtComp
 export oddJuxtComp
 
-trait T excludes {HasRank, String} end
+trait T excludes { HasRank, String, AnyMultiplicativeRing } end
 
 opr juxtaposition[\L extends T, R extends T\](l: L, r: R): () =
     fail("wrong juxtaposition")

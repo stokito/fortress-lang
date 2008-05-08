@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -44,32 +45,10 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         FValue selfVal = args.get(selfParameterIndex);
-        FObject self;
-        BetterEnv selfEnv;
-        String mname = NodeUtil.nameAsMethod(getDef());
-        if (selfVal.getValue() instanceof FObject) {
-            self = (FObject)selfVal.getValue();
-            if (selfVal.type() instanceof FTypeTrait) {
-                // selfVal instanceof FAsIf, and nontrivial type()
-                selfEnv = ((FTypeTrait)selfVal.type()).getMembers();
-            } else {
-                selfEnv = self.getSelfEnv();
-            }
-        } else {
-            return error(loc, errorMsg("Unexpected self parameter ",selfVal,
-                                       " when applying functional method ",
-                                       mname, " to ", args));
-        }
-        // Not quite right
         args = Useful.removeIndex(selfParameterIndex, args);
-        FValue cl = selfEnv.getValueNull(mname);
-
-        // TODO need to common this up with other method dispatch in Evaluator
-
-        if (cl instanceof Method) {
-            return ((Method) cl).applyMethod(args, self, loc, envForInference);
-        }
-        return bug(loc, errorMsg("Functional method apply, method = ", cl));
+        String mname = NodeUtil.nameAsMethod(getDef());
+        return Evaluator.invokeMethod(selfVal, s(def), mname, args,
+                                      loc, envForInference);
     }
 
     public FunctionalMethod(BetterEnv e, Applicable fndef, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
@@ -91,7 +70,7 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     public List<Parameter> getParameters() {
         Parameter selfParam = new Parameter("self", selfParameterType, false, false);
         return new AssignedList<Parameter>(super.getParameters(), selfParameterIndex, selfParam);
-     }
+    }
 
     public int hashCode() {
         return def.hashCode() + selfParameterType.hashCode() +
@@ -119,8 +98,16 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     }
 
     public String toString() {
-        return selfParameterType.toString() + "." + super.toString();
+        String res = s(def)+
+                     "fn meth(self "+selfParameterIndex+")";
+        if (instArgs != null)
+            res += Useful.listInOxfords(instArgs);
+        if (type() != null) {
+            res += ":" + type();
+        } else {
+            res += " [no type]";
+        }
+        return res+" ("+def.at()+")";
     }
-
 
 }

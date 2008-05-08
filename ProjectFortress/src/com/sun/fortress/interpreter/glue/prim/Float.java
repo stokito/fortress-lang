@@ -79,52 +79,52 @@ static private abstract class RR2R extends NativeMeth1 {
     }
 }
 
-public static final class Negate extends Util.R2R {
+public static final class Negate extends R2R {
     protected double f(double x) { return -x; }
 }
-public static final class Add extends Util.RR2R {
+public static final class Add extends RR2R {
     protected double f(double x, double y) { return x + y; }
 }
-public static final class Sub extends Util.RR2R {
+public static final class Sub extends RR2R {
     protected double f(double x, double y) { return x - y; }
 }
-public static final class Mul extends Util.RR2R {
+public static final class Mul extends RR2R {
     protected double f(double x, double y) { return x * y; }
 }
-public static final class Div extends Util.RR2R {
+public static final class Div extends RR2R {
     protected double f(double x, double y) { return x / y; }
 }
-public static final class Sqrt extends Util.R2R {
+public static final class Sqrt extends R2R {
     protected double f(double x) { return Math.sqrt(x); }
 }
-public static final class AddUp extends Util.RR2R {
+public static final class AddUp extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.addUp(x,y); }
 }
-public static final class SubUp extends Util.RR2R {
+public static final class SubUp extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.subtractUp(x,y); }
 }
-public static final class MulUp extends Util.RR2R {
+public static final class MulUp extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.multiplyUp(x,y); }
 }
-public static final class DivUp extends Util.RR2R {
+public static final class DivUp extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.divideUp(x,y); }
 }
-public static final class SqrtUp extends Util.R2R {
+public static final class SqrtUp extends R2R {
     protected double f(double x) { return DirectedRounding.sqrtUp(x); }
 }
-public static final class AddDown extends Util.RR2R {
+public static final class AddDown extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.addDown(x,y); }
 }
-public static final class SubDown extends Util.RR2R {
+public static final class SubDown extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.subtractDown(x,y);}
 }
-public static final class MulDown extends Util.RR2R {
+public static final class MulDown extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.multiplyDown(x,y);}
 }
-public static final class DivDown extends Util.RR2R {
+public static final class DivDown extends RR2R {
     protected double f(double x, double y) { return DirectedRounding.divideDown(x,y); }
 }
-public static final class SqrtDown extends Util.R2R {
+public static final class SqrtDown extends R2R {
     protected double f(double x) { return DirectedRounding.sqrtDown(x); }
 }
 public static final class Eq extends RR2B {
@@ -151,54 +151,54 @@ public static final class Min extends RR2R {
 public static final class Max extends RR2R {
     protected double f(double x, double y) { return Math.max(x,y); }
 }
-public static final class Pow extends Util.RR2R {
+public static final class Pow extends RR2R {
     protected double f(double x, double y) {
         return Math.pow(x,y);
     }
 }
-public static final class Sin extends Util.R2R {
+public static final class Sin extends R2R {
     protected double f(double x) { return Math.sin(x); }
 }
-public static final class Cos extends Util.R2R {
+public static final class Cos extends R2R {
     protected double f(double x) { return Math.cos(x); }
 }
-public static final class Tan extends Util.R2R {
+public static final class Tan extends R2R {
     protected double f(double x) { return Math.tan(x); }
 }
-public static final class ASin extends Util.R2R {
+public static final class ASin extends R2R {
     protected double f(double x) { return Math.asin(x); }
 }
-public static final class ACos extends Util.R2R {
+public static final class ACos extends R2R {
     protected double f(double x) { return Math.acos(x); }
 }
-public static final class ATan extends Util.R2R {
+public static final class ATan extends R2R {
     protected double f(double x) { return Math.atan(x); }
 }
-public static final class ATan2 extends Util.RR2R {
+public static final class ATan2 extends RR2R {
     protected double f(double y, double x) { return Math.atan2(y,x); }
 }
-public static final class Log extends Util.R2R {
+public static final class Log extends R2R {
     protected double f(double x) { return Math.log(x); }
 }
-public static final class Exp extends Util.R2R {
+public static final class Exp extends R2R {
     protected double f(double x) { return Math.exp(x); }
 }
-public static final class Ceiling extends Util.R2R {
+public static final class Ceiling extends R2R {
     protected double f(double x) { return Math.ceil(x); }
 }
-public static final class Floor extends Util.R2R {
+public static final class Floor extends R2R {
     protected double f(double x) { return Math.floor(x); }
 }
-public static final class ICeiling extends Util.R2L {
+public static final class ICeiling extends R2L {
     protected long f(double x) { return (long)Math.ceil(x); }
 }
-public static final class IFloor extends Util.R2L {
+public static final class IFloor extends R2L {
     protected long f(double x) { return (long)Math.floor(x); }
 }
-public static final class Truncate extends Util.R2L {
+public static final class Truncate extends R2L {
     protected long f(double x) { return (long)x; }
 }
-public static final class Abs extends Util.R2R {
+public static final class Abs extends R2R {
     protected double f(double x) { return Math.abs(x); }
 }
 public static final class NextUp extends R2R {

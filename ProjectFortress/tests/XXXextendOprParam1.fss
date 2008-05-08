@@ -20,13 +20,13 @@ export Executable
 
 trait Monoidish[\ T, opr OPLUS \]
   where { T extends Monoidish[\ T, OPLUS \] }
-    zero() : T
+    ident() : T
     opr OPLUS(self, other:T):T
 end
 
 value object Chicken extends Monoidish[\ Chicken, OVUM \]
   opr EGG(self, other:Chicken) = Chicken
-  zero() = Chicken
+  ident() = Chicken
   isChicken() = true
 end
 

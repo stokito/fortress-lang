@@ -22,6 +22,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -30,6 +31,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 
 
@@ -55,71 +57,90 @@ static private abstract class LL2B extends NativeMeth1 {
     }
 }
 
-public static final class Negate extends Util.L2L {
+static private abstract class L2L extends NativeMeth0 {
+    protected abstract long f(long x);
+    protected final FValue act(FObject x) {
+        return FLong.make(f(x.getLong()));
+    }
+}
+static private abstract class L2Z extends NativeMeth0 {
+    protected abstract int f(long x);
+    protected final FValue act(FObject x) {
+        return FInt.make(f(x.getLong()));
+    }
+}
+static private abstract class LL2L extends NativeMeth1 {
+    protected abstract long f(long x, long y);
+    protected final FValue act(FObject x, FValue y) {
+        return FLong.make(f(x.getLong(),y.getLong()));
+    }
+}
+
+public static final class Negate extends L2L {
     protected long f(long x) { return -x; }
 }
-public static final class Add extends Util.LL2L {
+public static final class Add extends LL2L {
     protected long f(long x, long y) { return x + y; }
 }
-public static final class Sub extends Util.LL2L {
+public static final class Sub extends LL2L {
     protected long f(long x, long y) { return x - y; }
 }
-public static final class Mul extends Util.LL2L {
+public static final class Mul extends LL2L {
     protected long f(long x, long y) { return x * y; }
 }
-public static final class Div extends Util.LL2L {
+public static final class Div extends LL2L {
     protected long f(long x, long y) { return x / y; }
 }
-public static final class Rem extends Util.LL2L {
+public static final class Rem extends LL2L {
     protected long f(long x, long y) { return x % y; }
 }
-public static final class Gcd extends Util.LL2L {
+public static final class Gcd extends LL2L {
     protected long f(long u, long v) {
         return ZZ32.gcd(u,v);
     }
 }
-public static final class Lcm extends Util.LL2L {
+public static final class Lcm extends LL2L {
     protected long f(long u, long v) {
         long g = ZZ32.gcd(u,v);
         return (u/g)*v;
     }
 }
-public static final class Choose extends Util.LL2L {
+public static final class Choose extends LL2L {
     protected long f(long u, long v) {
         return ZZ32.choose(u,v);
     }
 }
-public static final class Mod extends Util.LL2L {
+public static final class Mod extends LL2L {
     protected long f(long u, long v) {
         return ZZ32.mod(u,v);
     }
 }
-public static final class BitAnd extends Util.LL2L {
+public static final class BitAnd extends LL2L {
     protected long f(long u, long v) {
         return u & v;
     }
 }
-public static final class BitOr extends Util.LL2L {
+public static final class BitOr extends LL2L {
     protected long f(long u, long v) {
         return u | v;
     }
 }
-public static final class BitXor extends Util.LL2L {
+public static final class BitXor extends LL2L {
     protected long f(long u, long v) {
         return u ^ v;
     }
 }
-public static final class LShift extends Util.LL2L {
+public static final class LShift extends LL2L {
     protected long f(long u, long v) {
         return ((v&~63)==0)?(u << (int)v):0;
     }
 }
-public static final class RShift extends Util.LL2L {
+public static final class RShift extends LL2L {
     protected long f(long u, long v) {
         return ((v&~63)==0)?(u >> (int)v):(u>>63);
     }
 }
-public static final class BitNot extends Util.L2L {
+public static final class BitNot extends L2L {
     protected long f(long x) { return ~x; }
 }
 public static final class Eq extends LL2B {
@@ -128,8 +149,8 @@ public static final class Eq extends LL2B {
 public static final class Less extends LL2B {
     protected boolean f(long x, long y) { return x<y; }
 }
-public static final class Pow extends NativeFn2 {
-    protected FValue act(FValue x, FValue y) {
+public static final class Pow extends NativeMeth1 {
+    protected FValue act(FObject x, FValue y) {
         long base = x.getLong();
         long exp = y.getLong();
         if (exp < 0) {
@@ -139,8 +160,8 @@ public static final class Pow extends NativeFn2 {
         }
     }
 }
-public static final class ToLong extends Util.Z2L {
-    protected long f(int x) { return (long)x; }
+public static final class FromLong extends L2Z {
+    protected int f(long x) { return ZZ32.rc(x); }
 }
 
 public static final class NanoTime extends NativeFn0 {

@@ -20,19 +20,19 @@ export Executable
 
 trait Monoidish[\ T, opr OPLUS \]
   where { T extends Monoidish[\ T, OPLUS \] }
-    zero() : T
+    ident() : T
     opr OPLUS(self, other:T):T
 end
 
 trait Altoid[\ T, opr OPLUS \]
   where { T extends Monoidish[\ T, OPLUS \] }
-    zero() : T
+    ident() : T
     opr OPLUS(self, other:T):T
 end
 
 value object Chicken extends Altoid[\ Chicken, EGG \]
   opr EGG(self, other:Chicken) = Chicken
-  zero() = Chicken
+  ident() = Chicken
   isChicken() = true
 end
 

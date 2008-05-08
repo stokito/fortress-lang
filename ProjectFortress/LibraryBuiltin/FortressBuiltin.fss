@@ -28,16 +28,62 @@ object FloatLiteral extends RR64
 end
 
 value object ZZ32 extends { StandardTotalOrder[\ZZ32\], ZZ64 }
+    getter zero(): Number = 0
+    getter one(): Number = 1
+
+    opr |self| : ZZ32 = if self>=0 then self else -self end
     opr =(self, b:ZZ32):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Eq")
     opr <(self, b:ZZ32):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Less")
+
+    opr -(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Negate")
+    opr +(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Add")
+    opr -(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Sub")
+    opr DOT(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
+    opr juxtaposition(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
+    opr DIV(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Div")
+    opr REM(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Rem")
+    opr MOD(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mod")
+    opr GCD(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Gcd")
+    opr LCM(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Lcm")
+    opr CHOOSE(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Choose")
+    opr BITAND(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitAnd")
+    opr BITOR(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitOr")
+    opr BITXOR(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitXor")
+    opr LSHIFT(self,b:Integral):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$LShift")
+    opr RSHIFT(self,b:Integral):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$RShift")
+    opr BITNOT(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitNot")
+    opr ^(self, b:Integral):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Pow")
+    widen(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$ToLong")
+    partitionL(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Partition")
 end
 
 value object Long extends ZZ64
 end
 
 object IntLiteral extends Integral
+    opr |self| : ZZ32 = if self>=0 then self else -self end
     opr =(self, b: IntLiteral):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Eq")
     opr <(self, other:IntLiteral): Boolean = self.cmp(other) < 0
@@ -47,6 +93,43 @@ object IntLiteral extends Integral
     opr CMP(self, other:IntLiteral): TotalComparison = self.cmp(other) CMP 0
     cmp(b:IntLiteral): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Cmp")
+
+    opr -(self): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
+    opr +(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Add")
+    opr -(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Sub")
+    opr DOT(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+    opr juxtaposition(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+    opr DIV(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Div")
+    opr REM(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Rem")
+    opr MOD(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mod")
+    opr GCD(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Gcd")
+    opr LCM(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Lcm")
+    opr CHOOSE(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Choose")
+    opr BITAND(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitAnd")
+    opr BITOR(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitOr")
+    opr BITXOR(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitXor")
+    opr LSHIFT(self, b:Integral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LShift")
+    opr RSHIFT(self, b:Integral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$RShift")
+    opr BITNOT(self): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitNot")
+    opr ^(self, b:Integral):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
 end
 
 object Boolean
@@ -146,10 +229,14 @@ object String
 end
 
 object Thread[\T\] (fcn:()->T)
-  val():T         = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$val")
-  wait():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$wait")
-  ready():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$ready")
-  stop():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$stop")
+    val():T         =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$val")
+    wait():()       =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$wait")
+    ready():Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$ready")
+    stop():()       =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$stop")
 end
 
 abort():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$abort")
