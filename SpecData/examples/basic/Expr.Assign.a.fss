@@ -24,7 +24,7 @@ export Executable
 object b
   var x: ZZ32 = 0
 end
-var c = 0
+var c: ZZ32 = 0
 
 f(x,y,z) = (x,y,z)
 f(x,y) = (x,y)
