@@ -18,8 +18,8 @@
 /*
  * Definition of Fortress variable declarations.
  */
-module com.sun.fortress.parser.Variable(NoNewlineHeader, MayNewlineHeader, Type, NoNewlineExpr, Identifier,
-                                        Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Variable(NoNewlineHeader, MayNewlineHeader, Type,
+                                        NoNewlineExpr, Identifier, Keyword, Symbol, Spacing);
 
 import NoNewlineHeader;
 import MayNewlineHeader;
@@ -32,7 +32,7 @@ import Spacing;
 
 /* VarDecl ::=
      VarMods? VarWTypes w InitVal
-   | VarMods? BindIdOrBindIdTuple w = w NoNewlineExpr
+   | VarImmutableMods? BindIdOrBindIdTuple w = w NoNewlineExpr
    | VarMods? BindIdOrBindIdTuple w : w Type w ... w InitVal
    | VarMods? BindIdOrBindIdTuple w : w TupleType w InitVal
  */
@@ -46,7 +46,7 @@ VarDecl VarDecl =
        }
        yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, a3.getA());
      }
-   / a1:VarMods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
+   / a1:VarImmutableMods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
      { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1);
        else lvs = FortressUtil.ids2Lvs(a2);
@@ -77,6 +77,10 @@ VarDecl VarDecl =
            else           lvs = FortressUtil.ids2Lvs(a2, tys, false);
        }
        yyValue = new VarDecl(span, lvs, a4.getA());
+     }
+   / var w BindIdOrBindIdTuple w equals w NoNewlineExpr // Error production
+     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
+                       "Mutable variables should be declared with their types.");
      };
 
 /* Each modifier cannot appear more than once. */
@@ -86,9 +90,21 @@ List<Modifier> VarMods = a1s:(VarMod w)+
        FortressUtil.noDuplicate(yyValue);
      };
 
+/* Each modifier cannot appear more than once. */
+/* VarImmutableMods ::= (VarImmutableMod w)+ */
+List<Modifier> VarImmutableMods = a1s:(VarImmutableMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
 /* VarMod ::= AbsVarMod | private */
 private Modifier VarMod =
      AbsVarMod
+   / a1:private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+
+/* VarImmutableMod ::= AbsVarImmutableMod | private */
+private Modifier VarImmutableMod =
+     AbsVarImmutableMod
    / a1:private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
 
 /* VarWTypes ::=
@@ -150,3 +166,7 @@ List<Modifier> AbsVarMods = a1s:(AbsVarMod w)+
 private Modifier AbsVarMod =
      a1:var  { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
    / a1:test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
+
+/* AbsVarImmutableMod ::= test */
+private Modifier AbsVarImmutableMod =
+     a1:test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };

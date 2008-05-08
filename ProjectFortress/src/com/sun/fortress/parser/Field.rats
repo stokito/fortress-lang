@@ -29,7 +29,7 @@ import Spacing;
 
 /* FldDecl ::=
      FldMods? FldWTypes w InitVal
-   | FldMods? BindIdOrBindIdTuple w = w NoNewlineExpr
+   | FldImmutableMods? BindIdOrBindIdTuple w = w NoNewlineExpr
    | FldMods? BindIdOrBindIdTuple w : w Type w ... w InitVal
    | FldMods? BindIdOrBindIdTuple w : w TupleType w InitVal
    FldWTypes ::=
@@ -40,3 +40,5 @@ import Spacing;
 VarDecl FldDecl = VarDecl ;
 
 List<Modifier> VarMods := FldMods ;
+
+List<Modifier> VarImmutableMods := FldImmutableMods ;
