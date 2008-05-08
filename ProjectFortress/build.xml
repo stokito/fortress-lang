@@ -290,7 +290,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
          destdir="${build}"
          closure="yes"
          cache="${basedir}/.dependencies"/>
-<echo>Embed another:${java.home}/lib/tools.jar</echo>
         <javac
             srcdir="${src}"
             destdir="${build}"
