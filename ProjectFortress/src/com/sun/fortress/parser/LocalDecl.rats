@@ -90,7 +90,7 @@ private FnDef LocalFnDecl =
 /* LocalVarDecl ::=
      (var w)? LocalVarWTypes s InitVal
    | (var w)? NoNewlineLocalVarWTypes
-   | (var w)? LocalVarWoTypes s = w NoNewlineExpr
+   |          LocalVarWoTypes s = w NoNewlineExpr
    | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
    | (var w)? LocalVarWoTypes s : s TupleType (s InitVal)?
    NoNewlineLocalVarWTypes ::=
@@ -121,11 +121,8 @@ LocalVarDecl LocalVarDecl =
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
                                              FortressUtil.toLValueList(a2));
      }
-   / a1:(var w)? a2:VarWoTypes s equals w a3:NoNewlineExpr
-     { if (a1 != null) a2 = FortressUtil.setMutableLValue(a2,
-                                                          createSpan(yyStart,3));
-       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a2,a3);
-     }
+   / a1:VarWoTypes s equals w a2:NoNewlineExpr
+     { yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a1,a2); }
    / a1:(var w)? a2:VarWoTypes s colon s a3:Type s ellipses a4:(s InitVal)?
      { Option<Expr> init;
        if (a1 != null) {
@@ -166,6 +163,10 @@ LocalVarDecl LocalVarDecl =
            }
        }
        yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
+     }
+   / var w VarWoTypes s equals w NoNewlineExpr
+     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
+                       "Mutable variables should be declared with their types.");
      };
 
 LValueBind VarWType := a1:BindId s colon s a2:Type

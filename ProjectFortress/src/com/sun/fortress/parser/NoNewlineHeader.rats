@@ -255,10 +255,9 @@ List<Modifier> ParamFldMods = a1s:(ParamFldMod w)+
        FortressUtil.noDuplicate(yyValue);
      };
 
-/* ParamFldMod ::= var | hidden | settable | wrapped */
+/* ParamFldMod ::= hidden | settable | wrapped */
 private Modifier ParamFldMod =
-     var      { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
-   / hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
+     hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
    / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
    / wrapped  { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); };
 
@@ -269,10 +268,20 @@ List<Modifier> FldMods = a1s:(FldMod w)+
        FortressUtil.noDuplicate(yyValue);
      };
 
+/* Each modifier cannot appear more than once. */
+/* FldImmutableMods ::= (FldImmutableMod w)+ */
+List<Modifier> FldImmutableMods = a1s:(FldImmutableMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
 /* FldMod ::= var | AbsFldMod */
 private Modifier FldMod =
      var { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
    / AbsFldMod ;
+
+/* FldImmutableMod ::= AbsFldMod */
+private Modifier FldImmutableMod = AbsFldMod ;
 
 /* Each modifier cannot appear more than once. */
 /* AbsFldMods ::= (AbsFldMod w)+ */
