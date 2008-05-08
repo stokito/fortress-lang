@@ -24,9 +24,9 @@ f(x) = 0
 
 g() = do
 var x: ZZ32
-var a = 1
-var b = 3
-var c = 5
+var a: ZZ32 = 1
+var b: ZZ32 = 3
+var c: ZZ32 = 5
 l = array1[\ZZ32, 2\](2)
 m = array1[\ZZ32, 2\](3)
 n = array1[\ZZ32, 2\](4)
