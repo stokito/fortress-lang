@@ -332,7 +332,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
                             traitMap,
                             CollectUtil.<Id, Dimension>emptyMap(),
                             CollectUtil.<Id, Unit>emptyMap(),
-                            Collections.<Id, GrammarIndex>emptyMap(),
+                            Collections.<String, GrammarIndex>emptyMap(),
                             0);
     }
 

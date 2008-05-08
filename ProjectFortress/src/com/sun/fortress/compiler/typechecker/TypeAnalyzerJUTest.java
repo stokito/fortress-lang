@@ -259,7 +259,7 @@ public class TypeAnalyzerJUTest extends TestCase {
                             traitMap,
                             CollectUtil.<Id, Dimension>emptyMap(),
                             CollectUtil.<Id, Unit>emptyMap(),
-                            Collections.<Id, GrammarIndex>emptyMap(),
+                            Collections.<String, GrammarIndex>emptyMap(),
                             0);
     }
 

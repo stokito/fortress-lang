@@ -26,17 +26,15 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.Collection;
-import java.util.Map;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
 import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 
-import edu.rice.cs.plt.tuple.Option;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
@@ -47,17 +45,19 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 */
 		GrammarIndexInitializer.Result geir = GrammarIndexInitializer.init(envs); 
 		if (!geir.isSuccessful()) { return new Result(null, geir.errors()); }
-		
+
 		/* 
 		 * Resolve grammar extensions and extensions of nonterminal definitions.
 		 */
 		ModuleTranslator.Result mrr = ModuleTranslator.translate(envs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 
-//		for (Module m: mrr.modules()) {
-//			 System.err.println(m);
-//		}
-		
+		if (ProjectProperties.debug) {
+			for (Module m: mrr.modules()) {
+				System.err.println(m);
+			}
+		}
+
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */

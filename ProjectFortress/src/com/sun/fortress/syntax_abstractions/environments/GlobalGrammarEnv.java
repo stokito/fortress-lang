@@ -38,8 +38,8 @@ public class GlobalGrammarEnv {
 		}
 	}
 
-	public void addGrammar(GrammarIndex grammar, boolean isTopLevel) {
-		this.grammars.put(grammar, isTopLevel);
+	public void addGrammar(GrammarIndex g, boolean isTopLevel) {
+		this.grammars.put(g, isTopLevel);
 	}
 
 	public Collection<GrammarIndex> getGrammars() {
