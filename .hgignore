@@ -19,6 +19,7 @@ ProjectFortress/TEST-RESULTS/*
 *.yy.cc
 *~
 *.jst
+*.out
 ProjectFortress/*.tfs
 ProjectFortress/*.tfi
 fortress_*.zip
