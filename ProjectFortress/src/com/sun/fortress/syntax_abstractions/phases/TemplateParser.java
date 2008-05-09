@@ -147,6 +147,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 		BufferedReader in = Useful.bufferedStringReader(transformation);
 		com.sun.fortress.parser.Fortress p =
 			new com.sun.fortress.parser.Fortress(in, "FooBar");
+		/*
 		try {
 			xtc.parser.Result parseResult = p.pExpression$Expr(0);
 			if (parseResult.hasValue()) {
@@ -162,6 +163,8 @@ public class TemplateParser extends NodeUpdateVisitor {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		}
+		*/
+		return Option.none();
 	}
 
 }
