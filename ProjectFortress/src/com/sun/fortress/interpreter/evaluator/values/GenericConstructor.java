@@ -159,20 +159,20 @@ public static ArrayList<FType> argsToTypes(List<StaticArg> args,
 }
 
 @Override
-    public String at() {
+public String at() {
     // TODO Auto-generated method stub
     return odefOrDecl.at();
 }
 
 @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
     // TODO Auto-generated method stub
     Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
     return foo.apply(args, loc, envForInference);
 }
 
 @Override
-    public IdOrOpOrAnonymousName getFnName() {
+public IdOrOpOrAnonymousName getFnName() {
     // TODO Auto-generated method stub
     return cfn;
 }
@@ -188,7 +188,7 @@ public String stringName() {
  * Cut and paste from FGenericFunction
  */
 @Override
-    public List<FType> getDomain() {
+public List<FType> getDomain() {
     if (symbolicInstantiation == null) {
         synchronized (this) {
             if (symbolicInstantiation == null) {

@@ -40,6 +40,11 @@ abstract public class Fcn extends FValue {
      */
     private volatile FType ftype;
 
+    protected Fcn(BetterEnv within) {
+        this.within = within;
+        within.bless();
+    }
+
     public BetterEnv getWithin() {
         return within;
     }
@@ -71,11 +76,6 @@ abstract public class Fcn extends FValue {
         this.ftype = ftype;
     }
 
-    protected Fcn(BetterEnv within) {
-        this.within = within;
-        within.bless();
-    }
-
     final public FValue apply(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
@@ -90,10 +90,6 @@ abstract public class Fcn extends FValue {
             }
             throw u;
         }
-    }
-
-    public boolean isMethod() {
-        return false;
     }
 
     protected List<FValue> conditionallyUnwrapTupledArgs(List<FValue> args) {

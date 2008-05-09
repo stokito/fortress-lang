@@ -60,6 +60,43 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
     protected List<FType> instArgs;
     protected Applicable def;
 
+    public Closure(BetterEnv e, Applicable fndef) {
+        super(e); // TODO verify that this is the proper environment
+        def = NativeApp.checkAndLoadNative(fndef);
+    }
+
+    public Closure(BetterEnv e, Applicable fndef, boolean isFunctionalMethod) {
+        super(e); // TODO verify that this is the proper environment
+        def = NativeApp.checkAndLoadNative(fndef,isFunctionalMethod);
+    }
+
+    protected Closure(BetterEnv e, Applicable fndef, List<FType> args) {
+        super(e);
+        def = NativeApp.checkAndLoadNative(fndef);
+        instArgs = args;
+    }
+
+    /*
+     * Just like the PartiallyDefinedMethod, but used a specific environemnt
+     */
+    public Closure(PartiallyDefinedMethod method, BetterEnv environment) {
+        super(environment);
+        def = NativeApp.checkAndLoadNative(method.def);
+        instArgs = method.instArgs;
+        setParamsAndReturnType(method.getParameters(), method.returnType);
+    }
+
+//    public Closure(BetterEnv e, FnExpr x, Option<Type> return_type,
+//            List<Param> params) {
+//        super(e);
+//        def = NativeApp.checkAndLoadNative(x);
+//        EvalType et = new EvalType(e);
+//        setParamsAndReturnType(
+//                et.paramsToParameters(e, params),
+//                return_type.isPresent() ? et.evalType(return_type.getVal()) : BottomType.ONLY
+//                );
+//    }
+
     @Override
     public boolean isOverride() {
         if (def instanceof FnAbsDeclOrDecl) {
@@ -112,22 +149,6 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
         return false;
     }
 
-    public Closure(BetterEnv e, Applicable fndef) {
-        super(e); // TODO verify that this is the proper environment
-        def = NativeApp.checkAndLoadNative(fndef);
-    }
-
-    public Closure(BetterEnv e, Applicable fndef, boolean isFunctionalMethod) {
-        super(e); // TODO verify that this is the proper environment
-        def = NativeApp.checkAndLoadNative(fndef,isFunctionalMethod);
-    }
-
-    protected Closure(BetterEnv e, Applicable fndef, List<FType> args) {
-        super(e);
-        def = NativeApp.checkAndLoadNative(fndef);
-        instArgs = args;
-    }
-
     public int hashCode() {
         return def.hashCode() +
         System.identityHashCode(getEnv()) +
@@ -145,27 +166,6 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
         }
         return false;
     }
-
-    /*
-     * Just like the PartiallyDefinedMethod, but used a specific environemnt
-     */
-    public Closure(PartiallyDefinedMethod method, BetterEnv environment) {
-        super(environment);
-        def = NativeApp.checkAndLoadNative(method.def);
-        instArgs = method.instArgs;
-        setParamsAndReturnType(method.getParameters(), method.returnType);
-    }
-
-//    public Closure(BetterEnv e, FnExpr x, Option<Type> return_type,
-//            List<Param> params) {
-//        super(e);
-//        def = NativeApp.checkAndLoadNative(x);
-//        EvalType et = new EvalType(e);
-//        setParamsAndReturnType(
-//                et.paramsToParameters(e, params),
-//                return_type.isPresent() ? et.evalType(return_type.getVal()) : BottomType.ONLY
-//                );
-//    }
 
     private void setReturnType(FType rt) {
         // TODO need to get this test right
@@ -201,9 +201,6 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
             args = typecheckParams(args,loc);
             try {
                 return ((NativeApp)def).applyToArgs(args);
-            } catch (FortressError ex) {
-                /* Wrap all other errors, but not these. */
-                throw ex.setWhere(loc);
             } catch (RuntimeException ex) {
                 return error(loc, errorMsg("Wrapped exception ", ex.toString()), ex);
             } catch (Error ex) {

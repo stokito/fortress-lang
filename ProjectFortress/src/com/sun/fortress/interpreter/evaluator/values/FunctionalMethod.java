@@ -20,10 +20,10 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.AssignedList;
@@ -38,6 +38,42 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
 
     final private int selfParameterIndex;
     final private FTraitOrObjectOrGeneric selfParameterType;
+    final private String mname;
+
+    public FunctionalMethod(BetterEnv e, Applicable fndef, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
+        super(e, fndef, true);
+        selfParameterIndex = self_parameter_index;
+        selfParameterType = self_parameter_type;
+        mname = NodeUtil.nameAsMethod(getDef());
+        // TODO Auto-generated constructor stub
+    }
+
+    protected FunctionalMethod(BetterEnv e, Applicable fndef, List<FType> static_args, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
+        super(e, fndef, static_args);
+        selfParameterIndex = self_parameter_index;
+        selfParameterType = self_parameter_type;
+        mname = NodeUtil.nameAsMethod(getDef());
+        // TODO Auto-generated constructor stub
+    }
+
+    public MethodClosure getApplicableClosure(List<FValue> args0,
+                                              HasAt loc, BetterEnv envForInference) {
+        FValue selfVal = args0.get(selfParameterIndex);
+        DottedMethodApplication ma =
+            DottedMethodApplication.make(selfVal,s(def),mname,loc);
+        Method cl = ma.getMethod();
+        if (cl instanceof MethodClosure) {
+            return (MethodClosure)cl;
+        } else if (cl instanceof OverloadedMethod) {
+            List<FValue> args = Useful.removeIndex(selfParameterIndex,args0);
+            OverloadedMethod om = (OverloadedMethod)cl;
+            return om.getApplicableMethod(args,loc,envForInference);
+        } else {
+            return bug(loc,envForInference,
+                       errorMsg("Functional method resolution for ",this,args0,
+                                " yields non-MethodClosure ",cl));
+        }
+    }
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Closure#applyInner(java.util.List, com.sun.fortress.interpreter.useful.HasAt, com.sun.fortress.interpreter.env.BetterEnv)
@@ -46,25 +82,9 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         FValue selfVal = args.get(selfParameterIndex);
         args = Useful.removeIndex(selfParameterIndex, args);
-        String mname = NodeUtil.nameAsMethod(getDef());
-        return Evaluator.invokeMethod(selfVal, s(def), mname, args,
-                                      loc, envForInference);
+        return DottedMethodApplication.invokeMethod(selfVal, s(def), mname, args,
+                                                    loc, envForInference);
     }
-
-    public FunctionalMethod(BetterEnv e, Applicable fndef, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
-        super(e, fndef, true);
-        selfParameterIndex = self_parameter_index;
-        selfParameterType = self_parameter_type;
-        // TODO Auto-generated constructor stub
-    }
-
-    protected FunctionalMethod(BetterEnv e, Applicable fndef, List<FType> static_args, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
-        super(e, fndef, static_args);
-         selfParameterIndex = self_parameter_index;
-         selfParameterType = self_parameter_type;
-        // TODO Auto-generated constructor stub
-    }
-
 
     @Override
     public List<Parameter> getParameters() {

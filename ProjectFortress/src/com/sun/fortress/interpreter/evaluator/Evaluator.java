@@ -40,6 +40,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
+import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
 import com.sun.fortress.interpreter.evaluator.values.FAsIf;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FChar;
@@ -806,46 +807,34 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressError,
             ProgramError {
+        String fname = NodeUtil.nameString(fld);
         Expr obj = x.getObj();
-
         FValue fobj = obj.accept(this);
-        if (fobj instanceof Selectable) {
-            Selectable selectable = (Selectable) fobj;
-            /*
-             * Selectable was introduced to make it not necessary to know
-             * whether a.b was field b of object a, or member b of api a (or api
-             * name prefix, extended).
-             */
-            // TODO Need to distinguish between public/private methods/fields
-            try {
-                return selectable.select(NodeUtil.nameString(fld));
-            } catch (FortressError ex) {
-                throw ex.setContext(x, e);
+        FValue gv = fobj.getValue();
+        try {
+            if (gv instanceof Selectable) {
+                FValue res = ((Selectable)gv).select(fname);
+                if (!(res instanceof Method)) return res;
+                // If it's a method, fall through and make dotted method app.
+            } else {
+                return error(errorMsg("Non-object ",fobj," cannot have field ",
+                                      NodeUtil.nameString(fld)));
             }
-            // } else if (fobj instanceof FObject) {
-            // FObject fobject = (FObject) fobj;
-            // // TODO Need to distinguish between public/private methods/fields
-            // try {
-            // return fobject.getSelfEnv().getValue(fld.getName());
-            // } catch (FortressError ex) {
-            // throw ex.setContext(x,e);
-            //        }
-        } else {
-           return error(x, e,
-                         errorMsg("Non-object cannot have field ",
-                                  NodeUtil.nameString(fld)));
+        } catch (FortressError ex) {
+            throw ex.setContext(x,e);
         }
+        return DottedMethodApplication.make(fobj,fname,fname,x);
     }
 
     public FValue forMethodInvocation(MethodInvocation x) {
         Expr obj = x.getObj();
+        FValue self = obj.accept(this);
+        Expr arg = x.getArg();
+        List<FValue> args = argList(arg.accept(this));
+
         Id method = x.getMethod();
         String mname = NodeUtil.nameString(method);
         List<StaticArg> sargs = x.getStaticArgs();
-        Expr arg = x.getArg();
-
-        FValue self = obj.accept(this);
-        List<FValue> args = argList(arg.accept(this));
         if (sargs.isEmpty()) {
             return invokeMethod(self,mname,args,x);
         } else {
@@ -1152,91 +1141,21 @@ public class Evaluator extends EvaluatorBase<FValue> {
     @Override
     public FValue forSubscriptExpr(SubscriptExpr x) {
         Expr obj = x.getObj();
-        List<Expr> subs = x.getSubs();
+        FValue arr = obj.accept(this);
+        List<FValue> subs = evalExprListParallel(x.getSubs());
         Option<Enclosing> op = x.getOp();
         // Should evaluate obj.[](subs, getText)
-        FValue arr = obj.accept(this);
         String opString = "[]";
         if (op.isSome()) {
             opString = NodeUtil.nameString(op.unwrap());
         }
-        return invokeMethod(arr,opString,evalExprListParallel(subs),x);
-    }
-
-    private static FObject findSelf(FValue receiver, String prettyName, HasAt x) {
-        // TODO Need to distinguish between public/private
-        // methods/fields
-        FValue selfVal = receiver.getValue();
-        if (!(selfVal instanceof FObject)) {
-            return error(x, errorMsg("Non-object receiver ",receiver,
-                                     " trying to invoke method ",prettyName));
-        }
-        return (FObject)selfVal;
-    }
-
-    private static BetterEnv findSelfEnv(FValue receiver, FObject self,
-                                         String mname, HasAt x) {
-        if (!(receiver.type() instanceof FTypeTrait)) return self.getSelfEnv();
-        FTypeTrait tr = (FTypeTrait)receiver.type();
-
-        // fobj instanceof FAsIf, nontrivial type() Since getMembers()
-        // on traits only returns the immediately defined methods and
-        // fields, we need to walk the transitive extends hierarchy in
-        // order to find the method we're looking for.  Open question:
-        // Is this right or sufficient?  What happens if multiple
-        // overloadings of given method are obtained from different
-        // supertraits---will we actually get an overloaded method
-        // closure, or will the world simply break?
-        for (FType t : tr.getTransitiveExtends()) {
-            if (!(t instanceof FTypeTrait)) continue;
-            BetterEnv selfEnv = ((FTypeTrait)t).getMembers();
-            if (selfEnv.getValueNull(mname) != null) return selfEnv;
-        }
-        // We're going to fail, try to give a meaningful selfEnv.
-        return tr.getMembers();
-    }
-
-    private static Method findMethodClosure(FValue receiver, BetterEnv selfEnv,
-                                            String mname, String prettyName, HasAt x) {
-        FValue cl = selfEnv.getValueNull(mname);
-        if (cl==null) {
-            return error(x, selfEnv,
-                         errorMsg("Cannot find definition for method ",prettyName,
-                                  " given receiver ",receiver));
-        }
-        if (cl instanceof Method) return (Method)cl;
-        return error(x, selfEnv,
-                     errorMsg("Unexpected method value ",cl.toString(),
-                              " when invoking method ",prettyName,
-                              " given receiver ",receiver));
-    }
-
-    private static FValue actualMethodApplication(Method cl,
-                                                  FObject self, List<FValue> args,
-                                                  BetterEnv envForInference,
-                                                  BetterEnv selfEnv, HasAt x) {
-        try {
-            return cl.applyMethod(args, self, x, envForInference);
-        } catch (FortressError ex) {
-            throw ex.setContext(x, selfEnv);
-        } catch (StackOverflowError soe) {
-            return error(x,selfEnv, errorMsg("Stack overflow on ",x));
-        }
-    }
-
-    public static FValue invokeMethod(FValue receiver, String prettyName,
-                                      String mname, List<FValue> args,
-                                      HasAt x, BetterEnv envForInference) {
-        FObject self = findSelf(receiver,prettyName,x);
-        BetterEnv selfEnv = findSelfEnv(receiver,self,mname,x);
-        Method cl = findMethodClosure(receiver,selfEnv,mname,prettyName,x);
-        return actualMethodApplication(cl,self,args,envForInference,selfEnv,x);
+        return invokeMethod(arr,opString,subs,x);
     }
 
     // Non-static version provides the obvious arguments.
     public FValue invokeMethod(FValue receiver, String mname, List<FValue> args,
                                HasAt x) {
-        return invokeMethod(receiver,mname,mname,args,x,e);
+        return DottedMethodApplication.invokeMethod(receiver,mname,mname,args,x,e);
     }
 
     // Version that evaluates arguments first.
@@ -1246,30 +1165,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue invokeGenericMethod(FValue receiver, String mname,
-                                      List<StaticArg> sargs, List<FValue> exprs,
+                                      List<StaticArg> sargs, List<FValue> args,
                                       HasAt x) {
-
-        FObject self = findSelf(receiver,mname,x);
-        BetterEnv selfEnv = findSelfEnv(receiver,self,mname,x);
-        Method cl = findMethodClosure(receiver,selfEnv,mname,mname,x);
-
-        if (cl instanceof OverloadedMethod) {
-            return bug(x, self.getSelfEnv(),
-                       "Don't actually resolve overloading of generic methods yet.");
-        } else if (cl instanceof MethodInstance) {
-            // What gets retrieved is the symbolic instantiation of
-            // the generic method.
-            // This is ever-so-slightly wrong -- we need to not
-            // create an "instance"
-            // if the parameters are non-symbolic.
-            GenericMethod gm = ((MethodInstance) cl).getGenerator();
-            MethodClosure actual = gm.typeApply(sargs,e,x);
-            return actualMethodApplication(actual,self,exprs,e,selfEnv,x);
-        } else {
-            return error(x, self.getSelfEnv(),
-                         errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-                                  cl));
-        }
+        DottedMethodApplication app0 =
+            DottedMethodApplication.make(receiver,mname,mname,x);
+        DottedMethodApplication app = app0.applyToStaticArgs(sargs,x,e);
+        return app.apply(args,x,e);
     }
 
     private boolean isFunction(FValue val) { return (val instanceof Fcn); }
@@ -1560,18 +1461,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     private FValue juxtMemberSelection(TightJuxt x, FValue fobj, Id fld,
                                        List<Expr> exprs) throws ProgramError {
+        List<FValue> args = evalInvocationArgs(exprs);
         String mname = NodeUtil.nameString(fld);
         if (fobj instanceof FObject) {
             FObject fobject = (FObject) fobj;
             // TODO Need to distinguish between public/private methods/fields
-            FValue cl = fobject.getSelfEnv().getValueNull(mname);
+            BetterEnv se = fobject.getSelfEnv();
+            FValue cl = se.getValueNull(mname);
             if (cl != null && !(cl instanceof Method) && cl instanceof Fcn) {
-                Fcn fcl = (Fcn) cl;
                 // Ordinary closure, assigned to a field.
-                return finishFunctionInvocation(exprs, fcl, x);
+                return functionInvocation(args,(Fcn)cl, x);
             }
         }
-        return evalAndInvokeMethod(fobj, mname, exprs, x);
+        return invokeMethod(fobj, mname, args, x);
     }
 
     /**

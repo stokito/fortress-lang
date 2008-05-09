@@ -80,7 +80,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         return d;
 
     }
-    
+
     /**
      * This is just like getNormalizedDomain, except that the method version
      * of functional methods appends a "nat" Type indicating the position of

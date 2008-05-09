@@ -33,8 +33,8 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class OverloadedMethod extends OverloadedFunction implements Method {
 
-    BATreeEC<List<FValue>, List<FType>, Method> mcache =
-        new BATreeEC<List<FValue>, List<FType>, Method>(FValue.asTypesList);
+    BATreeEC<List<FValue>, List<FType>, MethodClosure> mcache =
+        new BATreeEC<List<FValue>, List<FType>, MethodClosure>(FValue.asTypesList);
 
 
     public OverloadedMethod(String fnName, BetterEnv within) {
@@ -43,33 +43,43 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
     }
 
     public OverloadedMethod(String fnName, Set<? extends Simple_fcn> ssf,
-            BetterEnv within) {
+                            BetterEnv within) {
         super(NodeFactory.makeId(fnName), ssf, within);
         // TODO Auto-generated constructor stub
     }
 
-   static int lastBest;
+    // ??? This appears to be for debugging purposes???
+    static int lastBest;
 
-   public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
+    /** We separate out getApplicableMethod so that overloaded
+     *  functional method invocations can perform end-to-end caching
+     *  of the applicable method.
+     */
+    public MethodClosure getApplicableMethod(List<FValue> args, HasAt loc,
+                                             BetterEnv envForInference) {
+        MethodClosure best_f = mcache.get(args);
+        if (best_f == null) {
+            List<Overload>  someOverloads = overloads;
+            int best = bestMatchIndex(args, loc, envForInference, someOverloads);
+            lastBest = best;
 
-       Method best_f = mcache.get(args);
-       if (best_f == null) {
-
-           List<Overload>  someOverloads = overloads;
-           int best = bestMatchIndex(args, loc, envForInference, someOverloads);
-           lastBest = best;
-
-           best_f = ((Method)someOverloads.get(best).getFn());
-           mcache.syncPut(args, best_f);
-       }
-       return best_f.applyMethod(args, selfValue, loc, envForInference);
+            best_f = ((MethodClosure)someOverloads.get(best).getFn());
+            mcache.syncPut(args, best_f);
+        }
+        return best_f;
     }
 
-       public void bless() {
-           overloads = pendingOverloads;
-           pendingOverloads = new ArrayList<Overload>();
-           super.bless();
-       }
+    public FValue applyMethod(List<FValue> args, FObject selfValue,
+                              HasAt loc, BetterEnv envForInference) {
+        Method best_f = getApplicableMethod(args,loc,envForInference);
+        return best_f.applyMethod(args, selfValue, loc, envForInference);
+    }
+
+    public void bless() {
+        overloads = pendingOverloads;
+        pendingOverloads = new ArrayList<Overload>();
+        super.bless();
+    }
 
 
 }

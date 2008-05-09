@@ -263,6 +263,7 @@ trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
         else EqualTo
         end
     opr >=(self, other:Self): Boolean = NOT (self < other)
+    opr <=(self, other:Self): Boolean = NOT (other < self)
     opr MIN(self, other:Self): Self = if other < self then other else self end
     opr MAX(self, other:Self): Self = if self < other then other else self end
 end
@@ -489,6 +490,8 @@ trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
 
     opr =(self, b:Integral):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
+    opr =/=(self, b:Integral): Boolean = NOT (self=b)
+
     opr <(self, b:Integral):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
 
@@ -2771,7 +2774,7 @@ trait ScalarRange[\N extends Integral\]
     getter bounds():FullRange[\N\] = 0#extent()
     getter upper():N = lower() + extent() - 1
     getter size():ZZ32 = |self|
-    opr |self| : ZZ32 = narrow(|\extent()/|)
+    opr |self| : ZZ32 = narrow(extent())
     opr[i:N]: N =
         if 0 <= i < extent() then
             i + lower()
