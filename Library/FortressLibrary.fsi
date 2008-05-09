@@ -332,9 +332,9 @@ trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
     getter isNumber(): Boolean
     (** returns true if the value is finite **)
     getter isFinite(): Boolean
-    (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
+    (** %check% returns %Just(its argument)% if it is finite, otherwise %Nothing%. **)
     getter check(): Maybe[\RR64\]
-    (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
+    (** %check_star% returns %Just(its argument)% if it is non-NaN, otherwise %Nothing%. **)
     getter check_star(): Maybe[\RR64\]
     (** obtain the raw bits of the IEEE floating-point representation of this value. **)
     getter rawBits():ZZ64

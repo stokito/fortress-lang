@@ -89,7 +89,7 @@ object Char extends { StandardTotalOrder[\Char\] }
         It is always the case that %c = char(c.ord())% for %c : Char%. **)
     getter ord(): ZZ32
 
-    (** %|c|% means the same as %c.chr()%; it's unclear if this is
+    (** |c| means the same as %c.chr()%; it's unclear if this is
         actually a good idea, and we solicit feedback on the subject. **)
     opr |self| : ZZ32
 

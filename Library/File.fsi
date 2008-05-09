@@ -40,7 +40,7 @@ object FileReadStream(transient filename:String) extends { FileStream, ReadStrea
      **)
     readLine():String
 
-    (** Returns the next available character from the stream, or %'\0'% on EOF.
+    (** Returns the next available character from the stream, or '\\0' on EOF.
      **)
     readChar():Char
 
@@ -123,7 +123,7 @@ object FileWriteStream(fileName:String) extends { FileStream }
     print(x:Any...):()
 
     (** %println% is a varargs function that works much like %writes%,
-        but in addition appends a final newline character "\n" at the
+        but in addition appends a final newline character "\\n" at the
         same time. **)
     println(x:Any...):()
 
