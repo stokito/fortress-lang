@@ -98,7 +98,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 			return new Result(a, templateParser.getErrors());
 		}
 		return new Result(a, Collections.<StaticError>emptyList());
-	} 
+	}
 
 	@Override
 	public Node forNonterminalDef(NonterminalDef that) {
@@ -147,21 +147,21 @@ public class TemplateParser extends NodeUpdateVisitor {
 		BufferedReader in = Useful.bufferedStringReader(transformation);
 		com.sun.fortress.parser.Fortress p =
 			new com.sun.fortress.parser.Fortress(in, "FooBar");
-//		try {
-//			xtc.parser.Result parseResult = p.pExpression$Expr(0);
-//			if (parseResult.hasValue()) {
-//				Object cu = ((SemanticValue) parseResult).value;
-//				if (cu instanceof AbstractNode) {
-//					return Option.<Node>some(new TransformationTemplateDef(span, (AbstractNode) cu));
-//				} 
-//				throw new RuntimeException("Unexpected parse result: " + cu);
-//			} 
-//			this.errors.add(new Parser.Error((ParseError) parseResult, p));
+		try {
+			xtc.parser.Result parseResult = p.pExpression$Expr(0);
+			if (parseResult.hasValue()) {
+				Object cu = ((SemanticValue) parseResult).value;
+				if (cu instanceof AbstractNode) {
+					return Option.<Node>some(new TransformationTemplateDef(span, (AbstractNode) cu));
+				} 
+				throw new RuntimeException("Unexpected parse result: " + cu);
+			} 
+			this.errors.add(new Parser.Error((ParseError) parseResult, p));
 			return Option.none();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//			throw new RuntimeException(e.getMessage());
-//		}
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 }
