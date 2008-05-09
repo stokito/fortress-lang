@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import java.lang.reflect.Method;
+
 import xtc.parser.ParseError;
 import xtc.parser.SemanticValue;
 
@@ -143,13 +145,58 @@ public class TemplateParser extends NodeUpdateVisitor {
 		return res.unwrap(that);
 	}
 
+	/** 
+	 * Find the method that would parse a given production, such as
+	 * pExpression$Expr when given "Expr".
+	 */ 
+	private Method lookupExpression(Class parser, String production){
+		try{
+			/* This is a Rats! specific naming convention. Move it
+			 * elsewhere?
+			 */
+			String fullName = "pExpression$" + production;
+			Method found = parser.getDeclaredMethod(fullName, int.class);
+
+			/* method is private by default so we have to make
+			 * it accessible
+			 */
+			if ( found != null ){
+				found.setAccessible(true);
+			}
+			return found;
+		} catch (NoSuchMethodException e){
+			throw new RuntimeException(e);
+		} catch (SecurityException e){
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Wraps the invoked method to return a xtc.parser.Result and also throws
+	 * IOException.
+	 */
+	private xtc.parser.Result invokeParseMethod( com.sun.fortress.parser.Fortress parser, Method method, int num ) throws IOException {
+		try{
+			return (xtc.parser.Result) method.invoke(parser, num);
+		} catch (IllegalAccessException e){
+			throw new RuntimeException(e);
+		} catch (java.lang.reflect.InvocationTargetException e){
+			throw new RuntimeException(e);
+		}
+	}
+
 	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
 		BufferedReader in = Useful.bufferedStringReader(transformation);
-		com.sun.fortress.parser.Fortress p =
+		com.sun.fortress.parser.Fortress parser =
 			new com.sun.fortress.parser.Fortress(in, "FooBar");
-		/*
+		Method parse = lookupExpression(parser.getClass(), productionName);
+		if ( parse == null ){
+			System.err.println( "Did not find method " + productionName );
+			return Option.none();
+		}
+
 		try {
-			xtc.parser.Result parseResult = p.pExpression$Expr(0);
+			xtc.parser.Result parseResult = invokeParseMethod(parser,parse,0);
 			if (parseResult.hasValue()) {
 				Object cu = ((SemanticValue) parseResult).value;
 				if (cu instanceof AbstractNode) {
@@ -157,14 +204,11 @@ public class TemplateParser extends NodeUpdateVisitor {
 				} 
 				throw new RuntimeException("Unexpected parse result: " + cu);
 			} 
-			this.errors.add(new Parser.Error((ParseError) parseResult, p));
+			this.errors.add(new Parser.Error((ParseError) parseResult, parser));
 			return Option.none();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		}
-		*/
-		return Option.none();
 	}
-
 }
