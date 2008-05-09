@@ -133,7 +133,7 @@ public abstract class NativeApp implements Applicable {
      * fails.  The error checking is gratuitously detailed so the
      * library hacker can sort out what is going on when things break.
      */
-    public static Applicable checkAndLoadNative(Applicable defn, 
+    public static Applicable checkAndLoadNative(Applicable defn,
                                                 boolean isFunctionalMethod) {
         Option<Expr> optBody = NodeUtil.getBody(defn);
         if (optBody.isNone()) return defn;

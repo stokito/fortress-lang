@@ -95,10 +95,6 @@ public abstract class NonPrimitive extends Simple_fcn {
 
     abstract protected void setValueType();
 
-    public boolean isMethod() {
-        return false;
-    }
-
     /**
      * @return Returns the params.
      */

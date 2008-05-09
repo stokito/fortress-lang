@@ -42,15 +42,6 @@ public class PartiallyDefinedMethod extends MethodClosure {
         return evaluationEnv;
     }
 
-//    public MethodClosure completeClosure(BetterEnv com.sun.fortress.interpreter.env) {
-//        return this;
-//        //return new TraitMethod(this, evaluationEnv, selfName());
-//    }
-
-    public boolean isMethod() {
-        return false;
-    }
-
     public String toString() {
         return (instArgs == null ?
                 s(def) : (s(def) + Useful.listInOxfords(instArgs))) + def.at();
@@ -71,12 +62,8 @@ public class PartiallyDefinedMethod extends MethodClosure {
 
     }
 
-    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
-        return super.applyInner(args, loc, envForInference);
-    }
-
     @Override
-    protected BetterEnv envForApplication(FObject selfValue) {
+    protected BetterEnv envForApplication(FObject selfValue, HasAt loc) {
         return getEvalEnv();
     }
 

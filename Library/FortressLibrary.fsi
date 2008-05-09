@@ -1138,10 +1138,12 @@ trait Array1[\T, nat b0, nat s0\]
     ivmap[\R\](f:(ZZ32,T)->R): Array1[\R,b0,s0\]
 end
 
-trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
-    add(v:Vector[\T,s0\]): Vector[\T,s0\]
-    subtract(v:Vector[\T,s0\]): Vector[\T,s0\]
-    negate(): Vector[\T,s0\]
+trait Vector[\T extends Number, nat s0\]
+        extends { Array1[\T,0,s0\], AdditiveGroup[\Vector[\T,s0\]\] }
+        excludes { AnyMultiplicativeRing }
+    opr +(self, v:Vector[\T,s0\]): Vector[\T,s0\]
+    opr -(self, v:Vector[\T,s0\]): Vector[\T,s0\]
+    opr -(self): Vector[\T,s0\]
     scale(t: T): Vector[\T,s0\]
     pmul(v: Vector[\T,s0\]): Vector[\T,s0\]
     dot(v: Vector[\T,s0\]): T
@@ -1251,15 +1253,17 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   freeze():ImmutableArray[\T,(ZZ32,ZZ32)\]
 end
 
-trait Matrix[\T extends Number, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
-    abstract add(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
-    abstract subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
-    abstract negate(): Matrix[\T,s0,s1\]
-    abstract scale(t: T): Matrix[\T,s0,s1\]
-    abstract mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\]
-    abstract rmul(v: Vector[\T,s1\]): Vector[\T,s0\]
-    abstract lmul(v: Vector[\T,s0\]): Vector[\T,s1\]
-    abstract t(): Matrix[\T,s1,s0\]
+trait Matrix[\T extends Number, nat s0, nat s1\]
+        extends { Array2[\T, 0, s0, 0, s1\], AdditiveGroup[\Matrix[\T,s0,s1\]\] }
+        excludes { AnyMultiplicativeRing }
+    opr +(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
+    opr -(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
+    opr -(self): Matrix[\T,s0,s1\]
+    scale(t: T): Matrix[\T,s0,s1\]
+    mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\]
+    rmul(v: Vector[\T,s1\]): Vector[\T,s0\]
+    lmul(v: Vector[\T,s0\]): Vector[\T,s1\]
+    t(): Matrix[\T,s1,s0\]
 end
 
 __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\]

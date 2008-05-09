@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
@@ -30,7 +30,7 @@ import com.sun.fortress.useful.HasAt;
  * Its environment is unusual.
  * @author chase
  */
-public class MethodClosureInstance extends MethodClosure  implements MethodInstance {
+public class MethodClosureInstance extends MethodClosure implements MethodInstance {
 
     GenericMethod generator;
     BetterEnv genericEnv;
@@ -43,25 +43,21 @@ public class MethodClosureInstance extends MethodClosure  implements MethodInsta
             System.out.println("Creating a MethodClosureInstance for "+fndef+args+
                                "with unblessed genericEnv "+genericEnv);
         }
-   }
+    }
 
     public BetterEnv getEvalEnv() {
         return genericEnv;
     }
 
+    // The choice of evaluation environment is the only difference between applying
+    // a MethodClosure and applying its subclass, a PartiallyDefinedMethod (which
+    // appears to actually represent some piece of a functional method in practice).
     @Override
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
-        args = conditionallyUnwrapTupledArgs(args);
-        // This is a little over-tricky.  In theory, all instances of objectExpr from the same
-        // "place" are environment-free, and instead they snag their environments from self.
-        // This might be wrong; what about the case where the surrounding environment is the
-        // instantiation of some generic?  It seems like signatures etc will depend on this.
-        Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(selfValue.getLexicalEnv().genericLeafEnvHack(genericEnv, loc), args, loc));
-        eval.e.putValue(selfName(), selfValue);
-         return eval.eval(getBody());
-     }
+    protected BetterEnv envForApplication(FObject selfValue, HasAt loc) {
+        return selfValue.getLexicalEnv().genericLeafEnvHack(genericEnv, loc);
+    }
 
-     public GenericMethod getGenerator() {
+    public GenericMethod getGenerator() {
         return generator;
     }
 

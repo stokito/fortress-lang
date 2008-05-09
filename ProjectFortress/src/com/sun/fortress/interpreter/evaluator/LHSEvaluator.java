@@ -80,22 +80,18 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     @Override
     public Voidoid forSubscriptExpr(SubscriptExpr x) {
         Expr obj = x.getObj();
-        List<Expr> subs = x.getSubs();
+        FValue arr = obj.accept(evaluator);
+        List<FValue> indices = evaluator.evalExprListParallel(x.getSubs());
+        List<FValue> args = new ArrayList<FValue>(1+indices.size());
+        args.add(value);
+        args.addAll(indices);
         Option<Enclosing> op = x.getOp();
         // Should evaluate obj.[](subs, value)
-        FObject array = (FObject) obj.accept(evaluator);
-        String opString;
+        String opString = "[]=";
         if (op.isSome()) {
             opString = NodeUtil.nameString(op.unwrap());
-        } else {
-            opString = "[]=";
         }
-        Method cl = (Method) array.getSelfEnv().getValue(opString);
-        ArrayList<FValue> subscriptsAndValue = new ArrayList<FValue>(1+subs.size());
-        subscriptsAndValue.add(value);
-        evaluator.evalExprList(subs, subscriptsAndValue);
-        // TODO verify that 'e' is proper inference environment
-        cl.applyMethod(subscriptsAndValue, array, x, evaluator.e);
+        evaluator.invokeMethod(arr,opString,args,x);
         return null;
     }
 

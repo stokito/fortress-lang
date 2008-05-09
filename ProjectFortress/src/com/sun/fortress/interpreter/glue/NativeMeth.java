@@ -51,11 +51,7 @@ public abstract class NativeMeth extends NativeApp implements Method {
      *  is thrown. */
     public final FValue applyMethod(List<FValue> args, FObject selfValue,
                                     HasAt loc, BetterEnv envForInference) {
-        try {
-            return applyMethod(args,selfValue);
-        } catch (FortressError e) {
-            throw e.setWhere(loc);
-        }
+        return applyMethod(args,selfValue);
     }
 
     protected abstract FValue applyMethod(List<FValue> args, FObject selfValue);

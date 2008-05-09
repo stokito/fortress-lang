@@ -718,22 +718,26 @@ public class  OverloadedFunction extends Fcn
 
     }
 
+    // TODO continue audit of functions in here.
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
 
         SingleFcn best_f = cache.get(args);
 
         if (best_f == null) {
-//            if (getFnName().toString().equals("seq")) {
-//                System.err.println("Resolving seq from " + this );
-//            }
-
             List<Overload>  someOverloads = overloads;
-            // System.err.println("Overloaded " + fnName + " cache.size = " + cache.size());
 
             int best = bestMatchIndex(args, loc, envForInference, someOverloads);
 
             best_f = someOverloads.get(best).getFn();
+
+            if (best_f instanceof FunctionalMethod) {
+                FunctionalMethod fm = (FunctionalMethod)best_f;
+                if (debugMatch)
+                    System.err.print("\nRefining functional method "+ best_f);
+                best_f = fm.getApplicableClosure(args,loc,envForInference);
+                // System.err.println(" picked "+best_f+" for args " + args);
+            }
             if (debugMatch)
                 System.err.println("Choosing " + best_f + " for args " + args);
             cache.syncPut(args, best_f);
