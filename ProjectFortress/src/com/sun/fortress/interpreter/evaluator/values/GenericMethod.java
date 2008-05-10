@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
+// import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
@@ -201,32 +201,32 @@ public class GenericMethod extends MethodClosure implements
 
     static final GenericComparer genComparer = new GenericComparer();
 
-    static class GenericFullComparer implements Comparator<GenericMethod> {
+    // static class GenericFullComparer implements Comparator<GenericMethod> {
 
-        public int compare(GenericMethod arg0, GenericMethod arg1) {
-            return compare(arg0.getDef(), arg1.getDef());
-        }
+    //     public int compare(GenericMethod arg0, GenericMethod arg1) {
+    //         return compare(arg0.getDef(), arg1.getDef());
+    //     }
 
-        int compare(Applicable left, Applicable right) {
-        if (left instanceof FnExpr) {
-            int x = Useful.compareClasses(left, right);
-            if (x != 0) return x;
-            return NodeUtil.nameString(((FnExpr)left).getName())
-                .compareTo(NodeUtil.nameString(((FnExpr)right).getName()));
-        } else if (left instanceof FnAbsDeclOrDecl) {
-            int x = Useful.compareClasses(left, right);
-            if (x != 0) return x;
-            return compare(left, (FnAbsDeclOrDecl)right);
-        } else if (left instanceof NativeApp) {
-            return Useful.compareClasses(left, right);
-        } else {
-            throw new InterpreterBug(left, "NodeComparator.compare(" +
-         left.getClass() + ", " + right.getClass());
-        }
-    }
+    //     int compare(Applicable left, Applicable right) {
+    //         if (left instanceof FnExpr) {
+    //             int x = Useful.compareClasses(left, right);
+    //             if (x != 0) return x;
+    //             return NodeUtil.nameString(((FnExpr)left).getName())
+    //                 .compareTo(NodeUtil.nameString(((FnExpr)right).getName()));
+    //         } else if (left instanceof FnAbsDeclOrDecl) {
+    //             int x = Useful.compareClasses(left, right);
+    //             if (x != 0) return x;
+    //             return compare(left, (FnAbsDeclOrDecl)right);
+    //         } else if (left instanceof NativeApp) {
+    //             return Useful.compareClasses(left, right);
+    //         } else {
+    //             throw new InterpreterBug(left, "NodeComparator.compare(" +
+    //                                      left.getClass() + ", " + right.getClass());
+    //         }
+    //     }
 
-    }
-    static final GenericFullComparer genFullComparer = new GenericFullComparer();
+    // }
+    // static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
     public IdOrOpOrAnonymousName getName() {
         return getDef().getName();

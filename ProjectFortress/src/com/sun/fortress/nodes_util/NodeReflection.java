@@ -213,9 +213,10 @@ abstract public class NodeReflection {
         while (icl != AbstractNode.class && icl != Object.class) {
             fields = icl.getDeclaredFields();
             for (int i = 0; i < fields.length; i++) {
-                if ((fields[i].getModifiers() & java.lang.reflect.Modifier.STATIC) == 0
+                if ((fields[i].getModifiers() &
+                     (java.lang.reflect.Modifier.STATIC |
+                      java.lang.reflect.Modifier.TRANSIENT)) == 0) {
                         // && (fields[i].getModifiers() & java.lang.reflect.Modifier.PRIVATE) == 0
-                        && (fields[i].getModifiers() & java.lang.reflect.Modifier.TRANSIENT) == 0) {
                     Field f = fields[i];
                     f.setAccessible(true);
                     fal.add(f);

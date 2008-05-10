@@ -56,7 +56,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             }
             return b;
         }
-        
+
         public void visit(Visitor2<? super T, ? super U> v) {
             if (left != null) left.visit(v);
             v.visit(key, data);
@@ -90,11 +90,11 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                 throw new Error("Right too heavy");
 
         }
-        T key;
-        U data;
-        int weight;
-        BATreeNode<T,U> left;
-        BATreeNode<T,U> right;
+        final T key;
+        final U data;
+        final int weight;
+        final BATreeNode<T,U> left;
+        final BATreeNode<T,U> right;
         int leftWeight() {
             return weight(left);
         }
@@ -117,6 +117,8 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
         public BATreeNode(T k, U d) {
             key = k;
             data = d;
+            left = null;
+            right = null;
             weight = 1;
         }
 
@@ -200,7 +202,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                     BATreeNode<T,U> nl = l.add(k,d, comp);
                     return leftWeightIncreased(nl, r);
                 }
-                
+
             } else if (c > 0) {
                 // right
                 if (r == null) {
@@ -210,19 +212,19 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                     BATreeNode<T,U> nr = r.add(k,d, comp);
                     return rightWeightIncreased(l, nr);
                 }
-                
+
             } else {
                 // Update value.
                 return new BATreeNode<T,U>(k,d,l,r);
             }
         }
-        
-        
+
+
         private BATreeNode<T,U> leftWeightIncreased(BATreeNode<T,U> l, BATreeNode<T,U> r) {
             // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
             int rw = weight(r);
             int lw = weight(l);
-            if (lw  > rw << 1) {
+            if (lw  > rw << 2) {
                 // Must rotate.
                 int lrw = l.rightWeight();
                 int llw = l.leftWeight();
@@ -232,7 +234,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                     return assembleLeft(l.left, l, l.right, this, r);
                 } else {
                     // LR to root
-                    
+
                     return assemble(l.left, l, lr.left, lr, lr.right, this, r);
                 }
             }
@@ -243,7 +245,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
            // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
             int rw = weight(r);
             int lw = weight(l);
-           if (rw > lw << 1) {
+           if (rw > lw << 2) {
                 // Must rotate.
                 int rrw = r.rightWeight();
                 int rlw = r.leftWeight();
@@ -260,7 +262,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                 return new BATreeNode<T,U>(this,l,r);
             }
         }
-        
+
         BATreeNode<T,U> deleteMin(BATreeNode<T,U>[] deleted) {
             BATreeNode<T,U> l = left;
             if (l == null) {
@@ -272,7 +274,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                 return rightWeightIncreased(l, r);
             }
         }
-        
+
         BATreeNode<T,U> deleteMax(BATreeNode<T,U>[] deleted) {
             BATreeNode<T,U> r = right;
             if (r == null) {
@@ -284,7 +286,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                 return leftWeightIncreased(l, r);
             }
         }
-        
+
         public BATreeNode<T,U> delete(T k, Comparator<T> comp) {
             int c = comp.compare(k,key);
             BATreeNode<T,U> l = left;
@@ -318,10 +320,10 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                 return leftWeightIncreased(l, nr);
             }
         }
-        
 
-        
-        
+
+
+
         private BATreeNode<T,U> assembleLeft(BATreeNode<T, U> ll, BATreeNode<T, U> l, BATreeNode<T, U> lr, BATreeNode<T, U> old, BATreeNode<T, U> r) {
             return new BATreeNode<T,U>(l,
                     ll,

@@ -239,14 +239,14 @@ public class FGenericFunction extends SingleFcn
 
     // static final GenericComparer genComparer = new GenericComparer();
 
-    static class GenericFullComparer implements Comparator<FGenericFunction> {
+    // static class GenericFullComparer implements Comparator<FGenericFunction> {
 
-        public int compare(FGenericFunction arg0, FGenericFunction arg1) {
-            return NodeComparator.compare(arg0.fndef, arg1.fndef);
+    //     public int compare(FGenericFunction arg0, FGenericFunction arg1) {
+    //         return NodeComparator.compare(arg0.fndef, arg1.fndef);
 
-        }
-    }
-    static final GenericFullComparer genFullComparer = new GenericFullComparer();
+    //     }
+    // }
+    // static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
     public Option<Type> getReturnType() {
          return fndef.getReturnType();

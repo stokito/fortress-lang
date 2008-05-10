@@ -32,7 +32,7 @@ import java.util.SortedSet;
  */
 public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
-     static class BASnode<T> {
+     static final class BASnode<T> {
 
         public String toString() {
             return toStringBuffer(new StringBuffer()).toString();
@@ -90,10 +90,10 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                 throw new Error("Right too heavy");
 
         }
-        T key;
-        int weight;
-        BASnode<T> left;
-        BASnode<T> right;
+        final T key;
+        final int weight;
+        final BASnode<T> left;
+        final BASnode<T> right;
         int leftWeight() {
             return weight(left);
         }
@@ -109,11 +109,13 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             key = k;
             left = l;
             right = r;
-            combine(l, r);
+            weight = combine(l, r);
         }
 
         BASnode(T k) {
             key = k;
+            left = null;
+            right = null;
             weight = 1;
         }
 
@@ -121,11 +123,10 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             key = n.key;
             left = l;
             right = r;
-            combine(l, r);
+            weight = combine(l, r);
         }
 
-        private void combine(BASnode<T> l, BASnode<T> r) {
-            
+        private int combine(BASnode<T> l, BASnode<T> r) {
             int lw = weight(l);
             int rw = weight(r);
             if (lw >> 2 > rw)
@@ -133,7 +134,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             if (rw >> 2 > lw)
                 throw new Error("Right too heavy "+ lw + " " + rw);
 
-            weight = lw + rw + 1;
+            return lw + rw + 1;
         }
 
         // Index 0 is leftmost.
@@ -227,7 +228,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
             int rw = weight(r);
             int lw = weight(l);
-            if (lw  > rw << 1) {
+            if (lw  > rw << 2) {
                 // Must rotate.
                 int lrw = l.rightWeight();
                 int llw = l.leftWeight();
@@ -237,7 +238,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                     return assembleLeft(l.left, l, l.right, this, r);
                 } else {
                     // LR to root
-                    
+
                     return assemble(l.left, l, lr.left, lr, lr.right, this, r);
                 }
             }
@@ -248,7 +249,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
            // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
             int rw = weight(r);
             int lw = weight(l);
-           if (rw > lw << 1) {
+           if (rw > lw << 2) {
                 // Must rotate.
                 int rrw = r.rightWeight();
                 int rlw = r.leftWeight();
@@ -259,14 +260,14 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
                 } else {
                     // RL to root
-                    
+
                     return assemble(l, this, rl.left, rl, rl.right, r, r.right);
                 }
             } else {
                 return new BASnode<T>(this,l,r);
             }
         }
-        
+
         BASnode<T> deleteMin(BASnode<T>[] deleted) {
             BASnode<T> l = left;
             if (l == null) {
@@ -278,7 +279,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                 return rightWeightIncreased(l, r);
             }
         }
-        
+
         BASnode<T> deleteMax(BASnode<T>[] deleted) {
             BASnode<T> r = right;
             if (r == null) {
@@ -290,7 +291,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                 return leftWeightIncreased(l, r);
             }
         }
-        
+
         BASnode<T> delete(T k, Comparator<T> comp) {
             int c = comp.compare(k,key);
             BASnode<T> l = left;
@@ -324,7 +325,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                 return leftWeightIncreased(l, nr);
             }
         }
-        
+
         private BASnode<T> assembleLeft(BASnode<T> ll, BASnode<T> l, BASnode<T> lr, BASnode<T> old, BASnode<T> r) {
             return new BASnode<T>(l,
                     ll,
@@ -473,7 +474,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
     public boolean remove(Object k) {
         if (root == null)
             return false;
-        
+
         BASnode<T> old = root;
         root = root.delete((T)k, comp);
 
@@ -482,7 +483,16 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
         return false;
     }
-    
+
+    @Override
+    public boolean contains(Object k) {
+        BASnode<T> r = root;
+        if (r == null) return false;
+
+        r = r.getObject((T)k, comp);
+        return (r != null);
+    }
+
     public void clear() {
         root = null;
     }

@@ -736,7 +736,6 @@ public class  OverloadedFunction extends Fcn
                 if (debugMatch)
                     System.err.print("\nRefining functional method "+ best_f);
                 best_f = fm.getApplicableClosure(args,loc,envForInference);
-                // System.err.println(" picked "+best_f+" for args " + args);
             }
             if (debugMatch)
                 System.err.println("Choosing " + best_f + " for args " + args);

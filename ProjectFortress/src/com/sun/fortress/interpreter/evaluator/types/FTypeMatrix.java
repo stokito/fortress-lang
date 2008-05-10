@@ -22,8 +22,8 @@ import java.util.List;
 import com.sun.fortress.useful.Useful;
 
 public class FTypeMatrix extends FAggregateType {
-    FType elementType;
-    List<TypeRange> bounds;
+    final FType elementType;
+    final List<TypeRange> bounds;
 
     public FTypeMatrix(FType element_type, List<TypeRange> bounds) {
         super("Matrix");
@@ -37,6 +37,23 @@ public class FTypeMatrix extends FAggregateType {
             lazyName = "Matrix " + Useful.inOxfords(elementType.getName())
                 + "^" + Useful.listInDelimiters("(", bounds, ")");
         return lazyName;
+    }
+
+    public String toString() {
+        return getName();
+    }
+
+    public boolean subtypeOf(FType other) {
+        if (!(other instanceof FTypeMatrix)) return super.subtypeOf(other);
+        FTypeMatrix m = (FTypeMatrix) other;
+        if (!elementType.subtypeOf(m.elementType)) return false;
+        List<TypeRange> obounds = m.bounds;
+        int sz = bounds.size();
+        if (sz!=obounds.size()) return false;
+        for (int i = 0; i < sz; i++) {
+            if (!(bounds.get(i).compatible(obounds.get(i)))) return false;
+        }
+        return true;
     }
 
     @Override
