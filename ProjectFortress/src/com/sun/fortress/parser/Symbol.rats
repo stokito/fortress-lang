@@ -34,7 +34,7 @@ option setOfString(FORTRESS_KEYWORDS);
 Op Encloser = a1:encloser
      { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
-Op LeftEncloser = a1:leftEncloser
+Op LeftEncloser = !(opendoublesquare) a1:leftEncloser
      { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
 Op RightEncloser = a1:rightEncloser
@@ -71,7 +71,7 @@ private String greaters = ">" (sd ">")*;
 private String encloser = !(bar) bars !([*.>/\\] / "->") ;
 
 private String leftEncloser =
-      leftEncloserMulti &{ PrecedenceMap.ONLY.isLeft(yyValue) }
+     leftEncloserMulti &{PrecedenceMap.ONLY.isLeft(yyValue)}
    / c:_ &{c != '|' && PrecedenceMap.ONLY.isLeft(""+c)} { yyValue = ""+c; }
    ;
 
@@ -129,11 +129,7 @@ private String compOp =
 private String condOp =
      ":::"                 // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "::: is not a valid operator in Fortress.");
-     }
-   / "::"                  // Error production
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             ":: is not a valid operator in Fortress.");
+                             "Three or more colons are not valid operators in Fortress.");
      }
    / a1:":" a2:op a3:colon { yyValue = a1+a2+a3; }
    / a1:op a2:colon        { yyValue = a1+a2; };
@@ -154,6 +150,7 @@ private String multiOp =
    / ">>"
    / "<<"
    / "!!"
+   / "::"
    / !(rightEncloserMulti) "///"
    / !(rightEncloserMulti) "//"
    ;
@@ -193,7 +190,7 @@ String colonOp = ":":singleOp;
 String closecurly = "}";
 String opencurly = "{":leftEncloser;
 String closesquare = "]";
-String opensquare = "[":leftEncloser;
+String opensquare = !(opendoublesquare) "[":leftEncloser;
 String ellipses = "...";
 
 String lessthanequal    = "<=":op / "LE":op;

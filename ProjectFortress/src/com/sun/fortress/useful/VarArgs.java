@@ -161,5 +161,21 @@ public class VarArgs {
         return a;
     }
 
-   
+    public static <T> Iterable<T> make(T x1, T x2, T x3, T x4, T x5, T x6, T x7, T x8, T x9, T x10, T x11, T x12, T x13) {
+        List<T> a = new ArrayList<T>(13);
+        a.add(x1);
+        a.add(x2);
+        a.add(x3);
+        a.add(x4);
+        a.add(x5);
+        a.add(x6);
+        a.add(x7);
+        a.add(x8);
+        a.add(x9);
+        a.add(x10);
+        a.add(x11);
+        a.add(x12);
+        a.add(x13);
+        return a;
+    }
 }
