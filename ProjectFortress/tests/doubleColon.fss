@@ -15,13 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXmultipleColons
+component doubleColon
 export Executable
 
-opr :::(x: Any, y: Any) = (x,y)
-
-run(args) = do
- 1 ::: 2
- ()
+opr :(a: String, b: String) = "(" a ":" b ")"
+opr ::(a:String, b: String) = "(" a "::" b ")"
+run(args:String...) = do
+  assert("infix":"test"::"mine", "((infix:test)::mine)")
+  assert("infix"::"test":"mine", "(infix::(test:mine))")
 end
+
 end

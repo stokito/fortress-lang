@@ -592,8 +592,10 @@ public class PrecedenceMap {
 
     @SuppressWarnings("unchecked") // varargs of generic
     static Set<String> c_3() {
-        return Useful.union(VarArgs.make( c_3_1(), c_3_2(), c_3_3(), c_3_4(),
-                             c_3_5(), c_3_6(), c_3_7(), c_3_8()));
+        return Useful.union(VarArgs.make( c_3_1(), c_3_2(),
+                                          Operators.p_double_colon,
+                                          c_3_3(), c_3_4(),
+                                          c_3_5(), c_3_6(), c_3_7(), c_3_8()));
     }
 
     static Set<String> boolean_misc() {
@@ -660,6 +662,7 @@ public class PrecedenceMap {
                 Operators.p_boolean_disjunction);
         ordPrec(c_2(), c_3_1());
         ordPrec(c_2_123(), c_3_2());
+        ordPrec(c_3_2(), Operators.p_double_colon);
         ordPrec(c_2_4(), c_3_3());
         ordPrec(c_2_5(), c_3_4());
         ordPrec(c_2_6(), c_3_5());
@@ -745,6 +748,7 @@ public class PrecedenceMap {
                              Operators.p_misc_set,
                              Operators.p_inequivalence_operators,
                              Operators.p_plain_comparison,
+                             Useful.set(Operators.p_double_colon),
                              Operators.p_misc_set_comparison,
                              Operators.p_square_misc,
                              Operators.p_curly_misc,

@@ -319,6 +319,9 @@ plain_comparison
   number sign, #
   colon, :
 
+double_colon
+  proportion, ::
+
 subset_comparison_operators
   subset of, subset
   subset of or equal to, subseteq
@@ -714,7 +717,6 @@ other_operators
   therefore
   because
   ratio
-  proportion
   excess
   geometric proportion
   homothetic
