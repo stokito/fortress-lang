@@ -78,6 +78,10 @@ public class ReferenceCell extends IndirectionCell {
         readers = new ReadSet();
     }
 
+    public String toString() {
+        return node.toString();
+    }
+    
     private void debugPrint(String s) {
 	System.out.println(Thread.currentThread().getName() + s);
     }
@@ -139,6 +143,9 @@ public class ReferenceCell extends IndirectionCell {
 
         public void backup() { oldVal = val; }
         public void recover() { val = oldVal; }
+        public String toString() {
+            return String.valueOf(val);
+            }
     }
 
     public void storeValue(FValue f2) {
