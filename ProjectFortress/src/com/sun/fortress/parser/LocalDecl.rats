@@ -165,8 +165,8 @@ LocalVarDecl LocalVarDecl =
        yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
      }
    / var w VarWoTypes s equals w NoNewlineExpr // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "Mutable variables should be declared with their types.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Mutable variables should be declared with their types.");
      };
 
 LValueBind VarWType := a1:BindId s colon s a2:Type

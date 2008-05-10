@@ -128,8 +128,8 @@ WhereBinding WhereBinding =
        yyValue = new WhereType(createSpan(yyStart,yyCount), a1, a2);
      }
    / opendoublesquare   // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "White square bracket is not a valid where-clause binding.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "White square bracket is not a valid where-clause binding.");
      };
 
 /* FnHeaderClause ::= (w NoNewlineIsType)? FnClauses */
@@ -352,6 +352,6 @@ private StaticParam StaticParam =
        yyValue = new TypeParam(createSpan(yyStart,yyCount), a1, a2, absorbs);
      }
    / opendoublesquare   // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "White square bracket is not a valid static parameter.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "White square bracket is not a valid static parameter.");
      };

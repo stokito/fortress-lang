@@ -159,8 +159,8 @@ private List<Import> ImportedNames =
        yyValue = FortressUtil.mkList(imp);
      }
    / a1:Id a2:(w as w Id)?    // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "Syntax error: try 'import api APIName'");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Syntax error: try 'import api APIName'");
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */

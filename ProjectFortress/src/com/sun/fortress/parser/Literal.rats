@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress literals.
  */
-module com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr, 
+module com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
                                        NoSpaceExpr, Symbol, Spacing, Identifier);
 
 import MayNewlineHeader;
@@ -47,7 +47,7 @@ Expr LiteralExpr =
    ;
 
 
-List<Id> ParamList = 
+List<Id> ParamList =
      openparen a1:Id a2s:(w comma w Id)* closeparen
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
@@ -56,6 +56,12 @@ ArrayExpr ArrayExpr =
      void:opensquare a1:StaticArgs? w a2:RectElements w void:closesquare
      { if (a1 == null) yyValue = a2;
        else            yyValue = FortressUtil.addStaticArgsToArrayExpr(a1, a2);
+       /*
+     }
+   / void:opensquare w a1:StaticArgs? w a2:RectElements w void:closesquare
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately before left white square bracket.");
+       */
      };
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
