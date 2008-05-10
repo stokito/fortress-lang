@@ -42,6 +42,7 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class BuildNativeEnvironment extends BuildEnvironments {
@@ -60,15 +61,19 @@ public class BuildNativeEnvironment extends BuildEnvironments {
             // cl must extend Constructor,
             // cl must have a constructor BetterEnv env, FTypeObject selfType,
             // GenericWithParams def
-            if (Constructor.class.isAssignableFrom(cl)) {
-                java.lang.reflect.Constructor ccl = cl.getDeclaredConstructor(
-                        BetterEnv.class, FTypeObject.class,
-                        GenericWithParams.class);
-                return (Constructor) ccl.newInstance(containing, ft, x);
-            } else {
-                return error("Native class " + classname + " must extend Constructor");
-            }
-
+            java.lang.reflect.Constructor ccl = cl.getDeclaredConstructor(
+                    BetterEnv.class, FTypeObject.class,
+                    GenericWithParams.class);
+            return (Constructor)ccl.newInstance(containing, ft, x);
+        } catch (ClassCastException e) {
+            return bug(x,containing,
+                       errorMsg("Native class ",classname," must extend Constructor"),
+                       e);
+        } catch (InstantiationException e) {
+            return bug(x,containing,
+                       errorMsg("Native class must have constructor ", classname,
+                                "(BetterEnv, FTypeObject, GenericWithParams)"),
+                       e);
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -82,10 +87,6 @@ public class BuildNativeEnvironment extends BuildEnvironments {
             e.printStackTrace();
             throw new Error(e);
         } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            throw new Error(e);
-        } catch (InstantiationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             throw new Error(e);

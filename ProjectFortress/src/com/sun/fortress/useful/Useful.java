@@ -671,14 +671,14 @@ public class Useful {
         return !resultFile.exists() || (resultFile.lastModified() < inputFileDate);
     }
 
-    public static int compareClasses(Object x, Object y) {
-        Class<? extends Object> a = x.getClass();
-        Class<? extends Object> b = y.getClass();
-        if (a == b) return 0;
-        if (a.isAssignableFrom(b)) return -1;
-        if (b.isAssignableFrom(a)) return 1;
-        return a.getName().compareTo(b.getName());
-    }
+    // public static int compareClasses(Object x, Object y) {
+    //     Class<? extends Object> a = x.getClass();
+    //     Class<? extends Object> b = y.getClass();
+    //     if (a == b) return 0;
+    //     if (a.isAssignableFrom(b)) return -1;
+    //     if (b.isAssignableFrom(a)) return 1;
+    //     return a.getName().compareTo(b.getName());
+    // }
 
     public final static Pattern envVar = Pattern
             .compile("[$][{][-A-Za-z0-9_.]+[}]");
