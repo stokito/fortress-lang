@@ -407,10 +407,20 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         }
     }
 
-    public void assignValue(HasAt loc, String str, FValue f2) {
+    public void assignValue(HasAt loc, String str, FValue value) {
         FValue v = get(var_env, str);
         if (v instanceof ReferenceCell) {
-            ((ReferenceCell)v).assignValue(f2);
+            ReferenceCell rc = (ReferenceCell) v;
+            FType ft = rc.getType();
+            if (ft != null) {
+                if (!ft.typeMatch(value)) {
+                    String m = errorMsg("Type mismatch assigning ", value, " (type ",
+                                        value.type(), ") to ", str, " (type ", ft, ")");
+                    error(loc, m);
+                    return;
+                } 
+            }
+            rc.assignValue(value);
             return;
         }
         if (v == null)
