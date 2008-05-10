@@ -36,11 +36,16 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public final class FortressUtil {
+    public static <T> T syntaxError(Span span, String msg) {
+        return ProgramError.<T>error(new VoidLiteralExpr(span), msg);
+    }
+
     public static void println(String arg) {
         System.out.println(arg);
     }

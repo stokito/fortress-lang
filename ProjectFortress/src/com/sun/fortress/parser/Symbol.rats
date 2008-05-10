@@ -128,12 +128,12 @@ private String compOp =
 
 private String condOp =
      ":::"                 // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "::: is not a valid operator in Fortress.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "::: is not a valid operator in Fortress.");
      }
    / "::"                  // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       ":: is not a valid operator in Fortress.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             ":: is not a valid operator in Fortress.");
      }
    / a1:":" a2:op a3:colon { yyValue = a1+a2+a3; }
    / a1:op a2:colon        { yyValue = a1+a2; };

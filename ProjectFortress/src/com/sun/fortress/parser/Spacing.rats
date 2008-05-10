@@ -30,16 +30,16 @@ transient void EndOfFile  = !_ ;
 private String Whitespace =
      Space
    / "\t"              // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "Tab characters are not allowed in Fortress programs except in comments.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Tab characters are not allowed in Fortress programs except in comments.");
      }
    / Newline ;
 private String Space      =
      " "
    / "\f"
    / "\t"              // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "Tab characters are not allowed in Fortress programs except in comments.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Tab characters are not allowed in Fortress programs except in comments.");
      }
    / NoNewlineComment ;
 private String Newline    = "\r\n" / "\r" / "\n" / NewlineComment ;

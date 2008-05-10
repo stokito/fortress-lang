@@ -192,12 +192,12 @@ NormalParam Param :=
        yyValue = NodeFactory.makeParam(a1, mods);
      }
    / var w transient w PlainParam // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "Mutable variables should be declared with their types.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Mutable variables should be declared with their types.");
      }
    / (transient w)? var w PlainParam // Error production
-     { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "Mutable variables should be declared with their types.");
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Mutable variables should be declared with their types.");
      };
 
 /* ParamWType ::= BindId w IsType */
