@@ -375,7 +375,31 @@ private constant inline Action<UnitExpr> ExponentUnitExpr =
 
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
 Contract Contract =
-     a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
+     w Requires w ExtendsWhere (w Ensures)? (w Invariant)? // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before throws/where/contract clauses.");
+     }
+   / w Requires w Ensures w ExtendsWhere (w Invariant)? // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before throws/where/contract clauses.");
+     }
+   / w Requires w Ensures w Invariant w ExtendsWhere // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before throws/where/contract clauses.");
+     }
+   / w Ensures w ExtendsWhere (w Invariant)? // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before throws/where/contract clauses.");
+     }
+   / w Ensures w Invariant w ExtendsWhere // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before throws/where/contract clauses.");
+     }
+   / w Invariant w ExtendsWhere // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before throws/where/contract clauses.");
+     }
+   / a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
      { Option<List<Expr>> requires = Option.wrap(a1);
        Option<List<EnsuresClause>> ensures = Option.wrap(a2);
        Option<List<Expr>> invariant = Option.wrap(a3);
@@ -385,7 +409,7 @@ Contract Contract =
      };
 
 /* Requires ::= requires w { (w ExprList)? w } */
-private List<Expr> Requires = requires w opencurly a1:(w ExprList)? w closecurly
+List<Expr> Requires = requires w opencurly a1:(w ExprList)? w closecurly
      { if (a1 == null) yyValue = FortressUtil.emptyExprs();
        else            yyValue = a1;
      };
@@ -495,4 +519,3 @@ OpArg OpArg =
   / openparen w a1:OpArg w closeparen
     { yyValue = NodeFactory.makeInParentheses(a1); }
   ;
-   
