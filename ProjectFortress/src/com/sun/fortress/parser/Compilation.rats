@@ -35,6 +35,15 @@ import Spacing;
  */
 public CompilationUnit File =
      w CompilationUnit w EndOfFile
+   / w Exports w semicolon? w Imports w semicolon?
+     (w Decls w semicolon?)? w EndOfFile    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Import statements should come before export statements.");
+     }
+   / (w Imports w semicolon?)? w Decls w semicolon? w EndOfFile    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Components should have at least one export statement.");
+     }
    / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w semicolon?
      a3:(w yyValue:Decls w semicolon?)? w EndOfFile
      { if (a1 == null) a1 = Collections.<Import>emptyList();
@@ -72,7 +81,17 @@ private CompilationUnit CompilationUnit =
      (w Decls w ;?)? w end
  */
 private Component Component =
-     a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w
+     (native w)? component w APIName w Exports w semicolon?
+     w Imports w semicolon? (w Decls w semicolon?)? w end    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Import statements should come before export statements.");
+     }
+   / (native w)? component w APIName (w Imports w semicolon?)?
+     w Decls w semicolon? w end    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Components should have at least one export statement.");
+     }
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w
      a4:Exports w semicolon? a5:(w yyValue:Decls w semicolon?)? w end
      { if (a3 == null) a3 = Collections.<Import>emptyList();
        if (a5 == null) a5 = Collections.<Decl>emptyList();
@@ -87,15 +106,20 @@ private Component Component =
      (native w)? api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
  */
 private Api Api =
-     a1:(native w)? api w a2:APIName a3:(w yyValue:Imports w semicolon?)?
-     a4:(w yyValue:AbsDecls w semicolon?)? w end
-     { if (a3 == null) a3 = Collections.<Import>emptyList();
-       if (a4 == null) a4 = Collections.<AbsDecl>emptyList();
+     native w api w APIName (w Imports w semicolon?)?
+     (w AbsDecls w semicolon?)? w end    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "The native modifier is only for components not for APIs.");
+     }
+   / api w a1:APIName a2:(w yyValue:Imports w semicolon?)?
+     a3:(w yyValue:AbsDecls w semicolon?)? w end
+     { if (a2 == null) a2 = Collections.<Import>emptyList();
+       if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        if (a1 == null)
-           yyValue = new Api(span, a2, a3, a4);
+           yyValue = new Api(span, a1, a2, a3);
        else
-           yyValue = new Api(span, true, a2, a3, a4);
+           yyValue = new Api(span, true, a1, a2, a3);
      };
 
 /* Imports ::= Import (br Import)* */
