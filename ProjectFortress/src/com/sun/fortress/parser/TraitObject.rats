@@ -69,7 +69,11 @@ private TraitClauses TraitClauses = a1s:(w TraitClause)*
 private TraitClause TraitClause =
      a1:Excludes  { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
    / a1:Comprises { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
-   / a1:Where     { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
+   / a1:Where     { yyValue = new Where(createSpan(yyStart,yyCount), a1); }
+   / ExtendsWhere // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before excludes/comprises/where clauses.");
+     };
 
 /* GoInATrait ::=
      (Coercions br)? GoFrontInATrait (br GoBackInATrait)?
@@ -175,9 +179,15 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
                  |   (transient w)? var w ParamWType
                  |   transient w Param
  */
-VarargsParam Varargs := transient w a1:VarargsParam
+VarargsParam Varargs :=
+     transient w a1:VarargsParam
      { yyValue = NodeFactory.makeVarargsParam(a1, FortressUtil.mkList(
-                    (Modifier)new ModifierTransient(createSpan(yyStart,9)))); };
+                    (Modifier)new ModifierTransient(createSpan(yyStart,9))));
+     }
+   / VarargsParam    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Varargs parameters of objects should be transient.");
+     };
 
 NormalParam Param :=
      a1:ParamFldMods? a2:PlainParam
@@ -314,7 +324,11 @@ private TraitClause AbsTraitClause =
    / a1:AbsComprises
      { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
    / a1:Where
-     { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new Where(createSpan(yyStart,yyCount), a1); }
+   / ExtendsWhere // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Extends clauses should come before excludes/comprises/where clauses.");
+     };
 
 /* AbsGoInATrait ::=
      (AbsCoercions br)? AbsGoFrontInATrait (br AbsGoBackInATrait)?
