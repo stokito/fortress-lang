@@ -77,7 +77,27 @@ private TraitClause TraitClause =
    | Coercions
  */
 private List<Decl> GoInATrait =
-     a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
+     a1:Coercions
+     { yyValue = new ArrayList<Decl>();
+       yyValue.addAll(a1);
+     }
+   / GoFrontInATrait br Coercions (br GoBackInATrait)?    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / GoFrontInATrait br GoBackInATrait br Coercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / GoBackInATrait br Coercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / GoBackInATrait br GoFrontInATrait    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Field/getter/setter declarations should come before method declarations.");
+     }
+   / a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
      { yyValue = new ArrayList<Decl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
@@ -87,10 +107,6 @@ private List<Decl> GoInATrait =
      { yyValue = new ArrayList<Decl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
-     }
-   / a1:Coercions
-     { yyValue = new ArrayList<Decl>();
-       yyValue.addAll(a1);
      };
 
 /* Coercions ::= Coercion (br Coercion)* */
@@ -211,7 +227,27 @@ private NormalParam PlainParamWType =
    | Coercions
  */
 List<Decl> GoInAnObject =
-     a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
+     a1:Coercions
+     { yyValue = new ArrayList<Decl>();
+       yyValue.addAll(a1);
+     }
+   / GoFrontInAnObject br Coercions (br GoBackInAnObject)?    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / GoFrontInAnObject br GoBackInAnObject br Coercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / GoBackInAnObject br Coercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / GoBackInAnObject br GoFrontInAnObject    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Field/getter/setter declarations should come before method declarations.");
+     }
+   / a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
      { yyValue = new ArrayList<Decl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
@@ -221,10 +257,6 @@ List<Decl> GoInAnObject =
      { yyValue = new ArrayList<Decl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
-     }
-   / a1:Coercions
-     { yyValue = new ArrayList<Decl>();
-       yyValue.addAll(a1);
      };
 
 /* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
@@ -290,7 +322,27 @@ private TraitClause AbsTraitClause =
    | AbsCoercions
  */
 private List<AbsDecl> AbsGoInATrait =
-     a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
+     a1:AbsCoercions
+     { yyValue = new ArrayList<AbsDecl>();
+       yyValue.addAll(a1);
+     }
+   / AbsGoFrontInATrait br AbsCoercions (br AbsGoBackInATrait)?    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / AbsGoFrontInATrait br AbsGoBackInATrait br AbsCoercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / AbsGoBackInATrait br AbsCoercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / AbsGoBackInATrait br AbsGoFrontInATrait    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Field/getter/setter declarations should come before method declarations.");
+     }
+   / a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
      { yyValue = new ArrayList<AbsDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
@@ -300,10 +352,6 @@ private List<AbsDecl> AbsGoInATrait =
      { yyValue = new ArrayList<AbsDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
-     }
-   / a1:AbsCoercions
-     { yyValue = new ArrayList<AbsDecl>();
-       yyValue.addAll(a1);
      };
 
 /* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
@@ -350,7 +398,27 @@ AbsObjectDecl AbsObjectDecl =
    | AbsCoercions
  */
 List<AbsDecl> AbsGoInAnObject =
-     a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
+     a1:AbsCoercions
+     { yyValue = new ArrayList<AbsDecl>();
+       yyValue.addAll(a1);
+     }
+   / AbsGoFrontInAnObject br AbsCoercions (br AbsGoBackInAnObject)?    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / AbsGoFrontInAnObject br AbsGoBackInAnObject br AbsCoercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / AbsGoBackInAnObject br AbsCoercions    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Coercion declarations should come first.");
+     }
+   / AbsGoBackInAnObject br AbsGoFrontInAnObject    // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Field/getter/setter declarations should come before method declarations.");
+     }
+   / a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
      { yyValue = new ArrayList<AbsDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
@@ -360,10 +428,6 @@ List<AbsDecl> AbsGoInAnObject =
      { yyValue = new ArrayList<AbsDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
-     }
-   / a1:AbsCoercions
-     { yyValue = new ArrayList<AbsDecl>();
-       yyValue.addAll(a1);
      };
 
 /* AbsGoFrontInAnObject ::=
