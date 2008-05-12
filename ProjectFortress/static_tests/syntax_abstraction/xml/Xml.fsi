@@ -20,21 +20,21 @@ api Xml
 
     XExpr :Expr:=
       b:XmlStart c:XmlContent e:XmlEnd
-      <[ b "" c "" e ]>
-    | x:XmlComplete <[ x ]>
+      <[ "<" b ">" c "</" e ">" ]>
+    | x:XmlComplete <[ "<" x "/>" ]>
 
     XmlComplete :Expr:=
       OpenBracket# s:String Slash# CloseBracket
       <[ s ]>
-    | OpenBracket# s:String Attributes Slash# CloseBracket
-      <[ s ]>
+    | OpenBracket# s:String a:Attributes Slash# CloseBracket
+      <[ s " " a ]>
 
     Attributes :Expr:=
-      Attribute Attributes <[ "" ]>
-    | Attribute <[ "" ]>
+      a:Attribute r:Attributes <[ a "" r ]>
+    | a:Attribute <[ a ]>
 
     Attribute :Expr:=
-      key:String = " val:Strings " <[ key ]>
+      key:String = " val:Strings " <[ key "='" val "'" ]>
 
     XmlStart :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
@@ -47,11 +47,11 @@ api Xml
 
     XmlContent :Expr:=
       s:Strings <[ s ]>
-    | x:XExpr <[ "xml: " x ]>
+    | x:XExpr <[ x ]>
     (* do StringLiteralExpr( "xml: " x.isParenthesized.toString ) end *)
 
     Strings :Expr:=
-      s1:String s2:Strings <[ s1 s2 ]>
+      s1:String s2:Strings <[ s1 " " s2 ]>
     | s1:String <[ s1 ]>
 
     XmlEnd :Expr:=
