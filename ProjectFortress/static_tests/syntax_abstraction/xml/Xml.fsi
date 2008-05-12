@@ -18,25 +18,25 @@ api Xml
     | xml s:String <[ s ]>
     *)
 
-    XExpr :StringLiteralExpr:=
+    XExpr :Expr:=
       b:XmlStart c:XmlContent e:XmlEnd
-      <[ c ]>
+      <[ b "" c "" e ]>
     | x:XmlComplete <[ x ]>
 
-    XmlComplete :StringLiteralExpr:=
+    XmlComplete :Expr:=
       OpenBracket# s:String Slash# CloseBracket
       <[ s ]>
     | OpenBracket# s:String Attributes Slash# CloseBracket
       <[ s ]>
 
-    Attributes :StringLiteralExpr:=
+    Attributes :Expr:=
       Attribute Attributes <[ "" ]>
     | Attribute <[ "" ]>
 
-    Attribute :StringLiteralExpr:=
+    Attribute :Expr:=
       key:String = " val:Strings " <[ key ]>
 
-    XmlStart :StringLiteralExpr:=
+    XmlStart :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
       <[ s ]>
     | o1:OpenBracket# s:String Attributes o2:CloseBracket
@@ -45,15 +45,16 @@ api Xml
       <[ "--" s "++" ]>
       *)
 
-    XmlContent :StringLiteralExpr:=
+    XmlContent :Expr:=
       s:Strings <[ s ]>
-    | x:XExpr do StringLiteralExpr( "xml: " x.val ) end
+    | x:XExpr <[ "xml: " x ]>
+    (* do StringLiteralExpr( "xml: " x.isParenthesized.toString ) end *)
 
-    Strings :StringLiteralExpr:=
-      s1:String s2:Strings <[ s1 ]>
+    Strings :Expr:=
+      s1:String s2:Strings <[ s1 s2 ]>
     | s1:String <[ s1 ]>
 
-    XmlEnd :StringLiteralExpr:=
+    XmlEnd :Expr:=
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
       <[ s ]>
       (*
@@ -63,13 +64,15 @@ api Xml
     Slash :StringLiteralExpr:=
       / <[ "/" ]>
 
-    String :StringLiteralExpr:=
-      x:AnyChar# String <[ x ]>
-    | x:AnyChar <[ x ]>
+    String :Expr:=
+      x:AnyChar# y:String <[ x y ]>
+    | x:AnyChar <[ x "" ]>
 
-    StringRest :StringLiteralExpr:=
+    (*
+    StringRest :Expr:=
       l <[ "" ]>
     | x:AnyChar# rest:StringRest <[ x ]>
+    *)
 
     (* There must be a simpler way to do this *)
     AnyChar :StringLiteralExpr:=
@@ -100,10 +103,10 @@ api Xml
     | x:z <[ x ]>
 
     (* Shouldn't need [] around < and > *)
-    OpenBracket :StringLiteralExpr:=
+    OpenBracket :Expr:=
       [<] <[ "<" ]>
 
-    CloseBracket :StringLiteralExpr:=
+    CloseBracket :Expr:=
       [>] <[ ">" ]>
 
   end
