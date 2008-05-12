@@ -89,12 +89,12 @@ class FnTypeEnv extends TypeEnv {
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
                 overloadedTypes.add(makeGenericArrowType(_fn.declaringTrait().getSpan(),
-                                                        _fn.staticParams(),
-                                                        typeFromParams(_fn.params().unwrap()),
-                                                        makeInstantiatedType(_fn.declaringTrait(),
-                                                                             staticParamsToArgs(_fn.staticParams())),
-                                                        _fn.throwsClause(),
-                                                        _fn.where()));
+                                                         _fn.staticParams(),
+                                                         typeFromParams(_fn.params().unwrap()),
+                                                         makeTraitType(_fn.declaringTrait(),
+                                                                       staticParamsToArgs(_fn.staticParams())),
+                                                         _fn.throwsClause(),
+                                                         _fn.where()));
 
             }
         }

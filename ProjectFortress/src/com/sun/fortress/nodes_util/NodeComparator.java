@@ -248,7 +248,7 @@ public class NodeComparator {
 
     /* subtypeCompareTo **************************************************/
     static int compare(ArrayType left, ArrayType right) {
-        return compare(left.getElement(), right.getElement(),
+        return compare(left.getType(), right.getType(),
                        left.getIndices(), right.getIndices());
     }
 
@@ -282,7 +282,7 @@ public class NodeComparator {
             .compare(left.getExtents(), right.getExtents());
     }
 
-    static int compare(IdType left, IdType right) {
+    static int compare(VarType left, VarType right) {
         return compare(left.getName(), right.getName());
     }
 
@@ -293,7 +293,7 @@ public class NodeComparator {
     }
 
     static int compare(MatrixType left, MatrixType right) {
-        int y = compare(left.getElement(), right.getElement());
+        int y = compare(left.getType(), right.getType());
         if (y != 0) return y;
         return extentRangeListComparer.compare(left.getDimensions(),
                                                right.getDimensions());
@@ -303,7 +303,7 @@ public class NodeComparator {
         return compare(left.getName(), right.getName());
     }
 
-    static int compare(InstantiatedType left, InstantiatedType right) {
+    static int compare(TraitType left, TraitType right) {
         int c = compare(left.getName(), right.getName());
         if (c != 0) return c;
         return staticArgListComparer.compare(left.getArgs(),
@@ -395,10 +395,10 @@ public class NodeComparator {
             return compare((TaggedUnitType) left, (TaggedUnitType) right);
         } else if (left instanceof ArrayType) {
             return compare((ArrayType) left, (ArrayType) right);
-        } else if (left instanceof IdType) {
-            return compare((IdType) left, (IdType) right);
-        } else if (left instanceof InstantiatedType) {
-            return compare((InstantiatedType) left, (InstantiatedType) right);
+        } else if (left instanceof VarType) {
+            return compare((VarType) left, (VarType) right);
+        } else if (left instanceof TraitType) {
+            return compare((TraitType) left, (TraitType) right);
         } else if (left instanceof MatrixType) {
             return compare((MatrixType) left, (MatrixType) right);
         } else {

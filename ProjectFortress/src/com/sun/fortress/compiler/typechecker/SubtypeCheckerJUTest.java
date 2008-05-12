@@ -34,8 +34,8 @@ import static com.sun.fortress.compiler.typechecker.TypeCheckerTestCase.*;
 
 public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
 
-    Type alpha = NodeFactory.makeIdType("ALPHA");
-    Type beta  = NodeFactory.makeIdType("BETA");
+    Type alpha = NodeFactory.makeVarType("ALPHA");
+    Type beta  = NodeFactory.makeVarType("BETA");
 
     // trait E[\T extends Number, bool b, int i, nat n, opr ODOT\] extends B end
     ProperTraitIndex traitE =
@@ -47,21 +47,21 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
                               NodeFactory.makeOpParam("ODOT")),
                   "D");
 
-    InstantiatedType instE =
-        NodeFactory.makeInstantiatedType("E",
-                                         makeSargs(NodeFactory.makeTypeArg("ZZ32"),
-                                                   NodeFactory.makeBoolArg("trueV"),
-                                                   NodeFactory.makeIntArg("two"),
-                                                   NodeFactory.makeIntArg("three"),
-                                                   NodeFactory.makeOpArg("+")));
+    TraitType instE =
+        NodeFactory.makeTraitType("E",
+                                  makeSargs(NodeFactory.makeTypeArg("ZZ32"),
+                                            NodeFactory.makeBoolArg("trueV"),
+                                            NodeFactory.makeIntArg("two"),
+                                            NodeFactory.makeIntArg("three"),
+                                            NodeFactory.makeOpArg("+")));
 
-    InstantiatedType instEp =
-        NodeFactory.makeInstantiatedType("E",
-                                         makeSargs(NodeFactory.makeTypeArg("ZZ32"),
-                                                   NodeFactory.makeBoolArg("falseV"),
-                                                   NodeFactory.makeIntArg("two"),
-                                                   NodeFactory.makeIntArg("two"),
-                                                   NodeFactory.makeOpArg("+")));
+    TraitType instEp =
+        NodeFactory.makeTraitType("E",
+                                  makeSargs(NodeFactory.makeTypeArg("ZZ32"),
+                                            NodeFactory.makeBoolArg("falseV"),
+                                            NodeFactory.makeIntArg("two"),
+                                            NodeFactory.makeIntArg("two"),
+                                            NodeFactory.makeOpArg("+")));
 
     SubtypeChecker checker = makeAnalyzer(trait("Number"),
                                           trait("ZZ32", "Number"),
@@ -237,24 +237,24 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         IntArg zero = NodeFactory.makeIntArgVal("0");
         IntArg three = NodeFactory.makeIntArg("three");
         Id arrName1 = NodeFactory.makeId(span, "FortressLibrary", "Array1");
-        InstantiatedType arr1 = NodeFactory.makeInstantiatedType(span, false,
-                                                                 arrName1, zzA,
-                                                                 zero, three);
+        TraitType arr1 = NodeFactory.makeTraitType(span, false,
+                                                   arrName1, zzA,
+                                                   zero, three);
         Id arrName2 = NodeFactory.makeId(span, "FortressLibrary", "Array2");
-        InstantiatedType arr2 = NodeFactory.makeInstantiatedType(span, false,
-                                                                 arrName2, zzA,
-                                                                 zero, three,
-                                                                 zero, three);
+        TraitType arr2 = NodeFactory.makeTraitType(span, false,
+                                                   arrName2, zzA,
+                                                   zero, three,
+                                                   zero, three);
         Id arrName3 = NodeFactory.makeId(span, "FortressLibrary", "Array3");
-        InstantiatedType arr3 = NodeFactory.makeInstantiatedType(span, false,
-                                                                 arrName3, zzA,
-                                                                 zero, three,
-                                                                 zero, three,
-                                                                 zero, three);
+        TraitType arr3 = NodeFactory.makeTraitType(span, false,
+                                                   arrName3, zzA,
+                                                   zero, three,
+                                                   zero, three,
+                                                   zero, three);
         Id matName = NodeFactory.makeId(span, "FortressLibrary", "Matrix");
-        InstantiatedType mat  = NodeFactory.makeInstantiatedType(span, false,
-                                                                 matName, zzA,
-                                                                 three, three);
+        TraitType mat  = NodeFactory.makeTraitType(span, false,
+                                                   matName, zzA,
+                                                   three, three);
 
         List<ExtentRange> ext1 = new ArrayList<ExtentRange>(1);
         ext1.add(makeExtentRange(three));

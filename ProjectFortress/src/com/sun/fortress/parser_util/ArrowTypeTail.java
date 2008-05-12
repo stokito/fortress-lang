@@ -24,20 +24,20 @@ package com.sun.fortress.parser_util;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.NonArrowType;
 
 public class ArrowTypeTail {
 
-    NonArrowType range;
+    Type range;
     Option<List<BaseType>> throwsClause;
 
-    public ArrowTypeTail(NonArrowType in_range,
+    public ArrowTypeTail(Type in_range,
                          Option<List<BaseType>> in_throws) {
         this.range = in_range;
         this.throwsClause = in_throws;
     }
 
-    public NonArrowType getRange() { return range; }
+    public Type getRange() { return range; }
     public Option<List<BaseType>> getThrows() { return throwsClause; }
 }

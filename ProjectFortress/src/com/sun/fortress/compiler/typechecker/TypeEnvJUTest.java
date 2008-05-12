@@ -27,9 +27,9 @@ import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeEnvJUTest extends TestCase {
-    private final Type FOO = makeIdType("Foo");
-    private final Type BAZ = makeIdType("Baz");
-    private final Type BAR = makeIdType("Bar");
+    private final Type FOO = makeVarType("Foo");
+    private final Type BAZ = makeVarType("Baz");
+    private final Type BAR = makeVarType("Bar");
 
     private final TypeEnv extended = TypeEnv.make(makeLValue("x", FOO),
                                                   makeLValue("y", BAZ),

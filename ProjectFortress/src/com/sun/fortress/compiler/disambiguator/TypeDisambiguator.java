@@ -48,12 +48,12 @@ import com.sun.fortress.useful.HasAt;
 /**
  * <p>Eliminates ambiguities in types:
  * <ul>
- * <li>IdTypes (and 0-ary InstantiatedTypes, if they exist) referencing type Any are
+ * <li>VarTypes (and 0-ary TraitTypes, if they exist) referencing type Any are
  *     replaced by AnyTypes.</li>
  * <li>Type names referring to APIs are made fully qualified.</li>
- * <li>IdTypes referring to traits, objects, and aliases become InstantiatedTypes
+ * <li>VarTypes referring to traits, objects, and aliases become TraitTypes
  *     (with 0 arguments).</li>
- * <li>TypeArgs wrapping IdTypes corresponding to other kinds of parameters (like UnitParams)
+ * <li>TypeArgs wrapping VarTypes corresponding to other kinds of parameters (like UnitParams)
        are converted to the corresponding kind of arg (like UnitArg).</li>
  * <li>TODO: UnitArgs corresponding to DimParams are converted to DimArgs.</li>
  * <li>TODO: TaggedUnitTypes for types that absorb dimensions become TaggedDimTypes.</li>
@@ -210,7 +210,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         return that;
     }
 
-    @Override public Node forIdType(final IdType that) {
+    @Override public Node forVarType(final VarType that) {
         Thunk<Type> varHandler = LambdaUtil.<Type>valueLambda(that);
         Lambda<Id, Type> typeConsHandler =
             new Lambda<Id, Type>() {
@@ -225,7 +225,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                               that);
                         return that;
                     }
-                    return new InstantiatedType(that.getSpan(), n,
+                    return new TraitType(that.getSpan(), n,
                                                 Collections.<StaticArg>emptyList());
                 }
             }
@@ -233,7 +233,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
     }
 
-    @Override public Node forInstantiatedType(final InstantiatedType that) {
+    @Override public Node forTraitType(final TraitType that) {
         Thunk<Type> varHandler = new Thunk<Type>() {
             public Type value() {
                 error("Type parameter cannot be parameterized: " +
@@ -266,7 +266,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                         newArgs.add(updated);
                     }
                     return changed ?
-                        new InstantiatedType(that.getSpan(), n, newArgs) : that;
+                        new TraitType(that.getSpan(), n, newArgs) : that;
                 }
             }
         };
@@ -274,8 +274,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     /**
-     * Generalization of name handling in {@code forIdType} and
-     * {@code forInstantiatedType}.  Disambiguate the given type name,
+     * Generalization of name handling in {@code forVarType} and
+     * {@code forTraitType}.  Disambiguate the given type name,
      * determine whether it is a variable or a type constructor, and delegate to the
      * appropriate handler.
      * @param that  The type that is being translated (used as a result when errors
@@ -354,9 +354,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
             @Override public StaticArg forTypeArg(final TypeArg a) {
                 final Type t = a.getType();
-                if (t instanceof IdType) {
+                if (t instanceof VarType) {
                     final Span s = a.getSpan();
-                    final Id name = ((IdType) t).getName();
+                    final Id name = ((VarType) t).getName();
                     return p.accept(new NodeAbstractVisitor<StaticArg>() {
                         @Override public StaticArg forStaticParam(StaticParam p) {
                             mismatch("an identifier");
@@ -514,7 +514,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             return newN;
         }
         else {
-        	String uqname = name.getText();
+         String uqname = name.getText();
             if (_env.hasGrammar(uqname)) {
                 Set<Id> grammars = _env.explicitGrammarNames(uqname);
                 if (grammars.size() > 1) {

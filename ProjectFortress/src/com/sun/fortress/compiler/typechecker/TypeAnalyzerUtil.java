@@ -90,7 +90,7 @@ public class TypeAnalyzerUtil {
                 return (Type) t.accept(new NodeUpdateVisitor() {
 
                     /** Handle type variables */
-                    @Override public Type forIdType(IdType n) {
+                    @Override public Type forVarType(VarType n) {
                         if (typeSubs.containsKey(n.getName())) {
                             return typeSubs.get(n.getName());
                         }
@@ -148,10 +148,10 @@ public class TypeAnalyzerUtil {
                     throwsType(t).accept(this);
             }
             @Override public Boolean forBottomType(BottomType t) { return false; }
-            @Override public Boolean forIdType(IdType t) {
+            @Override public Boolean forVarType(VarType t) {
                 return t.getName().getApi().isNone() && names.contains(t.getName());
             }
-            @Override public Boolean forInstantiatedType(InstantiatedType t) {
+            @Override public Boolean forTraitType(TraitType t) {
                 for (StaticArg arg : t.getArgs()) {
                     if (arg.accept(this)) { return true; }
                 }

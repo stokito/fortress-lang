@@ -34,7 +34,7 @@ import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -84,7 +84,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
             return NodeFactory.makeTupleType(types);
         }
         else {
-            return NodeFactory.makeIdType(s);
+            return NodeFactory.makeVarType(s);
         }
     }
 

@@ -359,10 +359,10 @@ public class TypeAnalyzerJUTest extends TestCase {
             return new InferenceVarType(s);
         }
         else if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {
-            return NodeFactory.makeIdType(s);
+            return NodeFactory.makeVarType(s);
         }
         else {
-            return NodeFactory.makeInstantiatedType(s);
+            return NodeFactory.makeTraitType(s);
         }
     }
 

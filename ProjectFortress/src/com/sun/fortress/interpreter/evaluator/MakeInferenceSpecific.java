@@ -24,13 +24,12 @@ import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.ArrayType;
 import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.IdType;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.nodes.NonArrowType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.FnRef;
@@ -89,20 +88,20 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forInstantiatedType(com.sun.fortress.nodes.InstantiatedType)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTraitType(com.sun.fortress.nodes.TraitType)
      */
     @Override
-    public void forInstantiatedType(InstantiatedType that) {
+    public void forTraitType(TraitType that) {
         // TODO For now, do nothing....
         // I think this will require an environment, so "that" can be looked up,
         // and its where clauses interpreted for constraints on specificity.
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forIdType(com.sun.fortress.nodes.IdType)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVarType(com.sun.fortress.nodes.VarType)
      */
     @Override
-    public void forIdType(IdType that) {
+    public void forVarType(VarType that) {
         String s = NodeUtil.nameString(that.getName());
         if (doClamp) { // True if COVARIANT
             FType t = abm.get(s); // originally, most general type.
@@ -119,7 +118,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forArrayType(ArrayType that) {
-        that.getElement().accept(this);
+        that.getType().accept(this);
         // Skip indices, not yet dealing with numerical constraints.
     }
 
@@ -137,7 +136,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forMatrixType(MatrixType that) {
-        that.getElement().accept(this);
+        that.getType().accept(this);
     }
 
     /* (non-Javadoc)

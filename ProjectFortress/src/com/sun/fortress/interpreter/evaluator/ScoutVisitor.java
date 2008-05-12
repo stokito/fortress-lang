@@ -28,8 +28,8 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
@@ -129,21 +129,21 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forIdType(com.sun.fortress.nodes.IdType)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVarType(com.sun.fortress.nodes.VarType)
      */
     @Override
-    public void forIdType(IdType that) {
+    public void forVarType(VarType that) {
         // TODO Auto-generated method stub
-        super.forIdType(that);
+        super.forVarType(that);
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forInstantiatedType(com.sun.fortress.nodes.InstantiatedType)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTraitType(com.sun.fortress.nodes.TraitType)
      */
     @Override
-    public void forInstantiatedType(InstantiatedType that) {
+    public void forTraitType(TraitType that) {
         // TODO Auto-generated method stub
-        super.forInstantiatedType(that);
+        super.forTraitType(that);
     }
 
     /* (non-Javadoc)

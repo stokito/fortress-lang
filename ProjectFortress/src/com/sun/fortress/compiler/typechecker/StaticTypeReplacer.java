@@ -28,8 +28,8 @@ import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdStaticParam;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
@@ -115,7 +115,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     // ----------- VISITOR METHODS ---------------
 
     @Override
-    public Node forIdType(IdType that) {
+    public Node forVarType(VarType that) {
         return updateNode(that, that.getName());
     }
 

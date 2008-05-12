@@ -64,7 +64,7 @@ public abstract class SubtypeChecker {
      * Convert the type to a normal form.
      * A normalized type has the following properties:
      *
-     * 1) The ArrowType and MatrixType are desugared into InstantiatedType.
+     * 1) The ArrowType and MatrixType are desugared into TraitType.
      *
      *    ArrayType ::= Type [ ExtentRange(, ExtentRange)* ]
      *    ArrayType(Type element, Indicies indices)
@@ -79,14 +79,14 @@ public abstract class SubtypeChecker {
      *    MatrixType(Type element, List<ExtentRange> dimensions)
      *    trait Matrix[\T extends Number, nat s0, nat s1\]
      *
-     *    InstantiatedType(Id name, List<StaticArg> args)
+     *    TraitType(Id name, List<StaticArg> args)
      *
      */
     public static Type normalize(Type t) {
         if (isArray(t)) {
             ArrayType tt = (ArrayType)t;
             Span span = tt.getSpan();
-            TypeArg elem = NodeFactory.makeTypeArg(tt.getElement());
+            TypeArg elem = NodeFactory.makeTypeArg(tt.getType());
             IntArg zero = NodeFactory.makeIntArgVal("0");
             List<ExtentRange> dims = tt.getIndices().getExtents();
             try {
@@ -97,9 +97,9 @@ public abstract class SubtypeChecker {
                     if (first.getBase().isSome())
                          base = first.getBase().unwrap();
                     else base = zero;
-                    return NodeFactory.makeInstantiatedType(span, false, name,
-                                                            elem, base,
-                                                            first.getSize().unwrap());
+                    return NodeFactory.makeTraitType(span, false, name,
+                                                     elem, base,
+                                                     first.getSize().unwrap());
                 } else if (dims.size() == 2) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
@@ -112,11 +112,11 @@ public abstract class SubtypeChecker {
                     if (second.getBase().isSome())
                          base2 = first.getBase().unwrap();
                     else base2 = zero;
-                    return NodeFactory.makeInstantiatedType(span, false, name,
-                                                            elem, base1,
-                                                            first.getSize().unwrap(),
-                                                            base2,
-                                                            second.getSize().unwrap());
+                    return NodeFactory.makeTraitType(span, false, name,
+                                                     elem, base1,
+                                                     first.getSize().unwrap(),
+                                                     base2,
+                                                     second.getSize().unwrap());
                 } else if (dims.size() == 3) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
@@ -134,19 +134,19 @@ public abstract class SubtypeChecker {
                     if (third.getBase().isSome())
                          base3 = first.getBase().unwrap();
                     else base3 = zero;
-                    return NodeFactory.makeInstantiatedType(span, false, name,
-                                                            elem, base1,
-                                                            first.getSize().unwrap(),
-                                                            base2,
-                                                            second.getSize().unwrap(),
-                                                            base3,
-                                                            third.getSize().unwrap());
+                    return NodeFactory.makeTraitType(span, false, name,
+                                                     elem, base1,
+                                                     first.getSize().unwrap(),
+                                                     base2,
+                                                     second.getSize().unwrap(),
+                                                     base3,
+                                                     third.getSize().unwrap());
 
                 }
-                return error("Desugaring " + t + " to InstantiatedType is not " +
+                return error("Desugaring " + t + " to TraitType is not " +
                              "yet supported.");
             } catch (Exception x) {
-                return error("Desugaring " + t + " to InstantiatedType is not " +
+                return error("Desugaring " + t + " to TraitType is not " +
                              "yet supported.");
             }
         } else if (isMatrix(t)) {
@@ -160,13 +160,13 @@ public abstract class SubtypeChecker {
                     first.getSize().isSome() && second.getSize().isSome()) {
                     Span span = tt.getSpan();
                     Id name = NodeFactory.makeId(span, "FortressLibrary", "Matrix");
-                    return NodeFactory.makeInstantiatedType(span, false, name,
-                                                            NodeFactory.makeTypeArg(tt.getElement()),
-                                                            first.getSize().unwrap(),
-                                                            second.getSize().unwrap());
+                    return NodeFactory.makeTraitType(span, false, name,
+                                                     NodeFactory.makeTypeArg(tt.getType()),
+                                                     first.getSize().unwrap(),
+                                                     second.getSize().unwrap());
                 }
             }
-            return error("Desugaring " + t + " to InstantiatedType is not yet " +
+            return error("Desugaring " + t + " to TraitType is not yet " +
                          "supported.");
         } return t;
     }
@@ -242,7 +242,7 @@ public abstract class SubtypeChecker {
                 return (Type) t.accept(new NodeUpdateVisitor() {
 
                     /** Handle type variables */
-                    @Override public Type forIdType(IdType n) {
+                    @Override public Type forVarType(VarType n) {
                         if (typeSubs.containsKey(n.getName())) {
                             return typeSubs.get(n.getName());
                         }
@@ -293,7 +293,7 @@ public abstract class SubtypeChecker {
         };
     }
 
-    private boolean isStaticParam(IdType t) {
+    private boolean isStaticParam(VarType t) {
         Id name = t.getName();
         if (name.getApi().isSome()) return false;
         else { // name.getApi().isNone()
@@ -301,7 +301,7 @@ public abstract class SubtypeChecker {
         }
     }
 
-    private List<BaseType> getExtends(IdType t) {
+    private List<BaseType> getExtends(VarType t) {
         List<BaseType> _extends = new ArrayList<BaseType>();
         Id name = t.getName();
         if (name.getApi().isNone()) {
@@ -315,9 +315,9 @@ public abstract class SubtypeChecker {
         } else return _extends;
     }
 
-    private boolean isValidIdType(Type t) {
-        if (isIdType(t)) {
-            TypeConsIndex index = _table.typeCons(((IdType)t).getName());
+    private boolean isValidVarType(Type t) {
+        if (isVarType(t)) {
+            TypeConsIndex index = _table.typeCons(((VarType)t).getName());
             return (index instanceof TraitIndex ||
                     index instanceof TypeAliasIndex);
         } else return false;
@@ -331,8 +331,8 @@ public abstract class SubtypeChecker {
         } else return (t instanceof AbbreviatedType);
     }
 
-    private boolean isIdType(Type t) {
-        return (t instanceof IdType);
+    private boolean isVarType(Type t) {
+        return (t instanceof VarType);
     }
     private boolean isArrow(Type t) {
         return (t instanceof AbstractArrowType);
@@ -341,7 +341,7 @@ public abstract class SubtypeChecker {
         return (t instanceof AbstractTupleType);
     }
     private boolean isInst(Type t) {
-        return (t instanceof InstantiatedType);
+        return (t instanceof TraitType);
     }
     private static boolean isArray(Type t) {
         return (t instanceof ArrayType);
@@ -584,9 +584,9 @@ public abstract class SubtypeChecker {
             // [S-Refl] p; Delta |- s <: s
             if (s.equals(t)) { return TRUE; }
             // [S-Var]  p; Delta |- ALPHA <: Delta(ALPHA)
-            // getExtends(IdType s) returns bounds of s if s is a type parameter
-            if (isIdType(s) && !isValidIdType(s)) {
-                for (BaseType ty : getExtends((IdType)s)) {
+            // getExtends(VarType s) returns bounds of s if s is a type parameter
+            if (isVarType(s) && !isValidVarType(s)) {
+                for (BaseType ty : getExtends((VarType)s)) {
                     if (equivalent(t, ty, h)) return true;
                 }
                 return false;
@@ -683,19 +683,19 @@ public abstract class SubtypeChecker {
             //          p; Delta |- T[\s...\] <: [X...|->s...]T'[\t...\]_i
             if (isValidTraitType(s) && isValidTraitType(t)) {
                 // equivalent named types without static arguments
-                if (isValidIdType(s) && isValidIdType(t) &&
-                    nameString(((IdType)s).getName()).equals(nameString(((IdType)t).getName())))
+                if (isValidVarType(s) && isValidVarType(t) &&
+                    nameString(((VarType)s).getName()).equals(nameString(((VarType)t).getName())))
                     return TRUE;
                 if (isInst(s) && isInst(t)) {
-                    InstantiatedType ss = (InstantiatedType)s;
-                    InstantiatedType tt = (InstantiatedType)t;
+                    TraitType ss = (TraitType)s;
+                    TraitType tt = (TraitType)t;
                     if (nameString(ss.getName()).equals(nameString(tt.getName())))
                         return equivalentStaticArgs(ss.getArgs(),tt.getArgs(),h);
                 }
                 TypeConsIndex index = _table.typeCons(((NamedType)s).getName());
                 if (index instanceof TraitIndex) {
                     TraitIndex traitIndex = (TraitIndex)index;
-                    if (isIdType(s)) {
+                    if (isVarType(s)) {
                         for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
                             BaseType sup = _sup.getType();
                             if (subtype(sup, t, h)) return TRUE;
@@ -705,7 +705,7 @@ public abstract class SubtypeChecker {
                         try {
                             Lambda<Type, Type> subst =
                                 makeSubst(traitIndex.staticParameters(),
-                                          ((InstantiatedType)s).getArgs());
+                                          ((TraitType)s).getArgs());
                             for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
                                 BaseType sup = _sup.getType();
                                 if (subtype(subst.value(sup), t, h))

@@ -856,9 +856,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new ArrayType(that.getSpan(), that.isParenthesized(), element_result, indices_result);
 //    }
 //
-//    public Node forIdTypeOnly(IdType that, Id name_result) {
+//    public Node forVarTypeOnly(VarType that, Id name_result) {
 //        if (that.getName() == name_result) return that;
-//        else return new IdType(that.getSpan(), that.isParenthesized(), name_result);
+//        else return new VarType(that.getSpan(), that.isParenthesized(), name_result);
 //    }
 //
 //    public Node forInferenceVarTypeOnly(InferenceVarType that) {
@@ -870,9 +870,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new MatrixType(that.getSpan(), that.isParenthesized(), element_result, dimensions_result);
 //    }
 //
-//    public Node forInstantiatedTypeOnly(InstantiatedType that, Id name_result, List<StaticArg> args_result) {
+//    public Node forTraitTypeOnly(TraitType that, Id name_result, List<StaticArg> args_result) {
 //        if (that.getName() == name_result && that.getArgs() == args_result) return that;
-//        else return new InstantiatedType(that.getSpan(), that.isParenthesized(), name_result, args_result);
+//        else return new TraitType(that.getSpan(), that.isParenthesized(), name_result, args_result);
 //    }
 //
 //    public Node forTupleTypeOnly(TupleType that, List<Type> elements_result) {
@@ -2096,9 +2096,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forArrayTypeOnly(that, element_result, indices_result);
 //    }
 //
-//    public Node forIdType(IdType that) {
+//    public Node forVarType(VarType that) {
 //        Id name_result = (Id) that.getName().accept(this);
-//        return forIdTypeOnly(that, name_result);
+//        return forVarTypeOnly(that, name_result);
 //    }
 //
 //    public Node forInferenceVarType(InferenceVarType that) {
@@ -2111,10 +2111,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forMatrixTypeOnly(that, element_result, dimensions_result);
 //    }
 //
-//    public Node forInstantiatedType(InstantiatedType that) {
+//    public Node forTraitType(TraitType that) {
 //        Id name_result = (Id) that.getName().accept(this);
 //        List<StaticArg> args_result = recurOnListOfStaticArg(that.getArgs());
-//        return forInstantiatedTypeOnly(that, name_result, args_result);
+//        return forTraitTypeOnly(that, name_result, args_result);
 //    }
 //
 //    public Node forTupleType(TupleType that) {

@@ -26,7 +26,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
@@ -64,7 +64,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         this.apiName = new LinkedList<Id>();
 
         Id name = that.getName();
-		this.apiName.addAll(name.getApi().unwrap().getIds());
+  this.apiName.addAll(name.getApi().unwrap().getIds());
         this.apiName.add(NodeFactory.makeId(name.getSpan(), name.getText()));
         return super.forGrammarDef(that);
     }
@@ -86,7 +86,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forNonterminalSymbol(NonterminalSymbol that) {
-    	return super.forNonterminalSymbol(that);
+     return super.forNonterminalSymbol(that);
     }
 
     
@@ -120,14 +120,14 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         Id name = NodeFactory.makeId(that.getSpan(), apiName, id);
 
         // Create a the return type - A StringLiteralExpr
-        Option<BaseType> type = Option.<BaseType>some(new IdType(NodeFactory.makeId("FortressBuiltin", STRINGLITERALEXPR)));
+        Option<BaseType> type = Option.<BaseType>some(new VarType(NodeFactory.makeId("FortressBuiltin", STRINGLITERALEXPR)));
 
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
         syntaxSymbols.add(that);
-	if ( maybeId ){
-		syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeId("FortressSyntax", "Identifier", "idrest"))));
-	}
+ if ( maybeId ){
+  syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeId("FortressSyntax", "Identifier", "idrest"))));
+ }
 
         // Create the transformation expression
         Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);

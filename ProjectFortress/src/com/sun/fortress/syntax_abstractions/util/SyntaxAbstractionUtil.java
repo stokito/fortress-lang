@@ -32,8 +32,8 @@ import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
@@ -145,7 +145,7 @@ public class SyntaxAbstractionUtil {
         ops.add(opName);
 
         List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-        Type type = new IdType(span, NodeFactory.makeId(typeName));
+        Type type = new VarType(span, NodeFactory.makeId(typeName));
         staticArgs.add(new TypeArg(type));
 
         OpRef opRef = new OpRef(span, ops, staticArgs);
@@ -164,7 +164,7 @@ public class SyntaxAbstractionUtil {
     private static Expr makeLocalVarDecl(Span span, String freshName, String lastFreshName, List<StaticArg> staticArgs, Expr expr, List<Expr> newBody) {
         List<LValue> lhs = new LinkedList<LValue>();
         Id freshVar = NodeFactory.makeId(freshName);
-        Option<Type> type = Option.<Type>some(new InstantiatedType(NodeFactory.makeId("List", "List"), staticArgs));
+        Option<Type> type = Option.<Type>some(new TraitType(NodeFactory.makeId("List", "List"), staticArgs));
         lhs.add(new LValueBind(span, freshVar, type , false));
 
         Id name = NodeFactory.makeId(lastFreshName, "addRight");
@@ -180,7 +180,7 @@ public class SyntaxAbstractionUtil {
 
     public static Expr makeMaybe(Span span, Option<Expr> op, String typeArg) {
         List<StaticArg> maybeStaticArgs = new LinkedList<StaticArg>();
-        maybeStaticArgs.add(new TypeArg(new IdType(NodeFactory.makeId(FORTRESSAST, typeArg))));
+        maybeStaticArgs.add(new TypeArg(new VarType(NodeFactory.makeId(FORTRESSAST, typeArg))));
         if (op.isSome()) {
             List<Expr> justArgs = new LinkedList<Expr>();
             justArgs.add(op.unwrap());

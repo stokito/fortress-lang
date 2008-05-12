@@ -31,8 +31,8 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Node;
@@ -69,8 +69,8 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  public Expr dispatch(Object value, Option<Type> option) {
   // It is either the result of a optional
   if (option.isSome()) {
-   if (option.unwrap() instanceof InstantiatedType) {
-    InstantiatedType it = (InstantiatedType) option.unwrap();
+   if (option.unwrap() instanceof TraitType) {
+    TraitType it = (TraitType) option.unwrap();
     if (it.getName().equals(NodeFactory.makeId("FortressLibrary","Maybe"))) {
      return handleOption(value, it);
     }
@@ -112,7 +112,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   return value.accept(this);
  }
 
- private Expr handleOption(Object value, InstantiatedType it) {
+ private Expr handleOption(Object value, TraitType it) {
   if (value == null) {
    return SyntaxAbstractionUtil.makeNoParamObjectInstantiation(this.span, SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.NOTHING, it.getArgs());
   }
@@ -121,7 +121,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.JUST, args, it.getArgs());
  }
 
- private Expr handleRepetition(Pair value, InstantiatedType type) {
+ private Expr handleRepetition(Pair value, TraitType type) {
   if (value.list().isEmpty()) {
    return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
   }

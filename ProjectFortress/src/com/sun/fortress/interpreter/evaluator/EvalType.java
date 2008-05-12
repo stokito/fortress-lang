@@ -329,7 +329,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return Bool.make(b.isBool());
     }
 
-    public FType forIdType(IdType i) {
+    public FType forVarType(VarType i) {
         try {
             FType result = env.getType(i.getName());
             return result;
@@ -457,15 +457,15 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return FTypeTop.ONLY;
     }
 
-    public FType forInstantiatedType(InstantiatedType x) {
+    public FType forTraitType(TraitType x) {
        FType ft1 = forId(x.getName());
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
         } else {
-            // It isn't necessarily an error if an InstantiatedType doesn't refer
+            // It isn't necessarily an error if a TraitType doesn't refer
             // to an FTypeGeneric. After disambiguation, all trait type references are
-            // InstantiatedTypes (possibly with zero arguments). EricAllen 11/5/2007
+            // TraitTypes (possibly with zero arguments). EricAllen 11/5/2007
             return ft1;
 //            return error(x, env, errorMsg("Expected generic type, got ", ft1,
 //                                          " instead"));
@@ -477,7 +477,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forArrayType(ArrayType x) {
-        FType elt_type = x.getElement().accept(this);
+        FType elt_type = x.getType().accept(this);
         Indices indices = x.getIndices();
 
         TypeFixedDimIndices f_indices = (TypeFixedDimIndices) indices.accept(evalIndices());
@@ -487,7 +487,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     @Override
     public FType forMatrixType(MatrixType x) {
-        FType elt_type = x.getElement().accept(this);
+        FType elt_type = x.getType().accept(this);
         List<ExtentRange> dimensions = x.getDimensions();
         List<TypeRange> typeRanges = new ArrayList<TypeRange>();
         for (ExtentRange extent : dimensions) {

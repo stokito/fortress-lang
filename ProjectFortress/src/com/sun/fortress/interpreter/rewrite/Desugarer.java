@@ -621,8 +621,8 @@ public class Desugarer extends Rewrite {
                         Id newId = new Id(id.getSpan(), "_$" + id.getSpan());
                         return NodeFactory.makeLValue(lvb, newId);
                     }
-                } else if (node instanceof IdType) {
-                    IdType vre = (IdType) node;
+                } else if (node instanceof VarType) {
+                    VarType vre = (VarType) node;
                     String s = NodeUtil.nameString(vre.getName());
                     StaticParam tp = visibleGenericParameters.get(s);
                     if (tp != null) {
@@ -1264,10 +1264,10 @@ public class Desugarer extends Rewrite {
             for (Type t : xtends) {
                 Id name = null;
                 // First de-parameterize the type
-                if (t instanceof InstantiatedType) {
-                    name = ((InstantiatedType) t).getName();
-                } else if (t instanceof IdType) {
-                    name = ((IdType) t).getName();
+                if (t instanceof TraitType) {
+                    name = ((TraitType) t).getName();
+                } else if (t instanceof VarType) {
+                    name = ((VarType) t).getName();
                 } else if (t instanceof AnyType) {
                     name = INTERNAL_ANY_NAME;
                 } else {
@@ -1391,7 +1391,7 @@ public class Desugarer extends Rewrite {
 
         Expr in_fn = new VarRef(sp, new Id("Thread"));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(new IdType(sp, new Id("Any"))));
+        args.add(new TypeArg(new VarType(sp, new Id("Any"))));
 
         _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
 

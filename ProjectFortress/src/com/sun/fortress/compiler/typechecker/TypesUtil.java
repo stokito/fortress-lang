@@ -25,7 +25,7 @@ import java.util.List;
 import com.sun.fortress.nodes.AndType;
 import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.OrType;
@@ -143,21 +143,21 @@ public class TypesUtil {
                 (left instanceof OrType) ? disjuncts((OrType)left) : IterUtil.make(left),
                 (right instanceof OrType) ? disjuncts((OrType)right) : IterUtil.make(right));
     }
-
+    
     public static final Type fromVarargsType(VarargsType varargsType) {
-        return NodeFactory.makeInstantiatedType(varargsType.getSpan(),
-                                                false,
-                                                makeId(Arrays.asList(makeId("FortressBuiltin")),
-                                                                    makeId("ImmutableHeapSequence")));
+        return NodeFactory.makeTraitType(varargsType.getSpan(),
+                                         false,
+                                         makeId(Arrays.asList(makeId("FortressBuiltin")),
+                                                makeId("ImmutableHeapSequence")));
     }
-
+    
     public static Type makeThreadType(Type typeArg) {
-        return new InstantiatedType(NodeFactory.makeId("FortressBuiltin", "Thread"),
-                Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
+        return new TraitType(NodeFactory.makeId("FortressBuiltin", "Thread"),
+                             Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
     }
-
+    
     public static Type makeGeneratorType(Type typeArg) {
-        return new InstantiatedType(NodeFactory.makeId("FortressLibrary", "Generator"),
-                Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
+        return new TraitType(NodeFactory.makeId("FortressLibrary", "Generator"),
+                             Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
     }
 }

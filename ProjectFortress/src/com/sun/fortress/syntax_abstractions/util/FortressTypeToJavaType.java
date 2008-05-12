@@ -17,8 +17,8 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
@@ -35,12 +35,12 @@ public class FortressTypeToJavaType {
         return t.accept(new NodeDepthFirstVisitor<String>() {
 
             @Override
-            public String forIdType(IdType that) {
+            public String forVarType(VarType that) {
                 return that.getName().getText();
             }
 
             @Override
-            public String forInstantiatedType(InstantiatedType that) {
+            public String forTraitType(TraitType that) {
                 if (that.getArgs().size() != 1) {
                     throw new RuntimeException("One type argument was expected");
                 }

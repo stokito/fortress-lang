@@ -119,7 +119,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getOpen().getText() + node.getClose().getText();
     }
 
-    public String forIdType(IdType node) {
+    public String forVarType(VarType node) {
         return node.getName().accept(this);
     }
 
@@ -218,7 +218,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return sb.toString();
     }
 
-    public String forInstantiatedType(InstantiatedType node) {
+    public String forTraitType(TraitType node) {
         return NodeUtil.nameString(node.getName()) +
             Useful.listInOxfords(mapSelf(node.getArgs()));
     }

@@ -60,12 +60,12 @@ class ObjectTypeEnv extends TypeEnv {
         if (decl.getStaticParams().isEmpty()) {
             if (decl.getParams().isNone()) {
                 // No static params, no normal params
-                type = NodeFactory.makeInstantiatedType(_var);
+                type = NodeFactory.makeTraitType(_var);
             } else {
                 // No static params, some normal params
                 type = new ArrowType(var.getSpan(),
                         typeFromParams(decl.getParams().unwrap()),
-                        NodeFactory.makeInstantiatedType(_var));
+                        NodeFactory.makeTraitType(_var));
             }
         } else {
             if (decl.getParams().isNone()) {
@@ -77,7 +77,7 @@ class ObjectTypeEnv extends TypeEnv {
                 type = NodeFactory.makeGenericArrowType(decl.getSpan(),
                         decl.getStaticParams(),
                         typeFromParams(decl.getParams().unwrap()),
-                        NodeFactory.makeInstantiatedType(_var));
+                        NodeFactory.makeTraitType(_var));
             }
         }
 
