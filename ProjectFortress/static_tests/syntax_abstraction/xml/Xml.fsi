@@ -16,6 +16,10 @@ api Xml
       <[ "<" b "></" e ">" ]>
     | x:XmlComplete <[ "<" x "/>" ]>
 
+    XExprs :Expr:=
+      x:XExpr y:XExprs <[ x y ]>
+    | x:XExpr <[ x ]>
+
     XmlComplete :Expr:=
       OpenBracket# s:String Slash# CloseBracket
       <[ s ]>
@@ -37,7 +41,7 @@ api Xml
 
     XmlContent :Expr:=
       s:Strings <[ s ]>
-    | x:XExpr <[ x ]>
+    | x:XExprs <[ x ]>
 
     Strings :Expr:=
       s1:String s2:Strings <[ s1 " " s2 ]>

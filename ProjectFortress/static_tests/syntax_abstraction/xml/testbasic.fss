@@ -14,9 +14,17 @@ run(args:String...) = do
   println "Answer is " (xml <hello attr="foobar"><world>hi mom</world></hello>)
   println "Answer is " (xml <hello attr="foobar" more="blah"><world>hi mom</world></hello>)
 
-(*
   println "Xml: " (xml
   <note>hi</note>)
+
+  println "Xml: " (xml
+    <note>
+      <to>Tove</to>
+    </note>
+  )
+
+  println "Xml: " (xml
+    <from>Jani</from>)
 
   println "Xml: " (xml
   <note>
@@ -26,7 +34,6 @@ run(args:String...) = do
   <body>Dont forget me this weekend</body>
   </note>
   )
-  *)
 
   (*
   println "Answer is " (xml <aaal> <aaaal> aal </aaaal> </aaal>)
