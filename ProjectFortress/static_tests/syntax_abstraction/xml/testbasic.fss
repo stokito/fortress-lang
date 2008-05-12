@@ -11,6 +11,7 @@ run(args:String...) = do
   println "Answer is " (xml <aaa><aa>aa</aa></aaa>)
   println "Answer is " (xml <hello><world>hi mom</world></hello>)
   println "Answer is " (xml <hello attr="foobar"><world>hi mom</world></hello>)
+  println "Answer is " (xml <hello attr="foobar" more="blah"><world>hi mom</world></hello>)
   (*
   println "Answer is " (xml <aaal> <aaaal> aal </aaaal> </aaal>)
   println "Answer is " (xml <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)

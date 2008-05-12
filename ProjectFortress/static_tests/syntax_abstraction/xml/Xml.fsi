@@ -7,16 +7,7 @@ api Xml
 
   grammar xml extends Literal
     LiteralExpr |Expr:=
-      xml x:XExpr <[ "Xml string " x ]>
-    (*
-      xml o1:OpenBracket# o2:OpenBracket
-        do StringLiteralExpr( o1.val ) end
-    | xml o:OpenBracket# s:String# c:CloseBracket
-      <[ "Xml string: " s ]>
-    | xml s1:String# s2:String
-            do StringLiteralExpr( s1.val "" s2.val ) end
-    | xml s:String <[ s ]>
-    *)
+      xml x:XExpr <[ x ]>
 
     XExpr :Expr:=
       b:XmlStart c:XmlContent e:XmlEnd
@@ -30,7 +21,7 @@ api Xml
       <[ s " " a ]>
 
     Attributes :Expr:=
-      a:Attribute r:Attributes <[ a "" r ]>
+      a:Attribute r:Attributes <[ a " " r ]>
     | a:Attribute <[ a ]>
 
     Attribute :Expr:=
@@ -39,16 +30,12 @@ api Xml
     XmlStart :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
       <[ s ]>
-    | o1:OpenBracket# s:String Attributes o2:CloseBracket
-      <[ s ]>
-      (*
-      <[ "--" s "++" ]>
-      *)
+    | o1:OpenBracket# s:String a:Attributes o2:CloseBracket
+      <[ s " " a ]>
 
     XmlContent :Expr:=
       s:Strings <[ s ]>
     | x:XExpr <[ x ]>
-    (* do StringLiteralExpr( "xml: " x.isParenthesized.toString ) end *)
 
     Strings :Expr:=
       s1:String s2:Strings <[ s1 " " s2 ]>
@@ -57,9 +44,6 @@ api Xml
     XmlEnd :Expr:=
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
       <[ s ]>
-      (*
-      <[ "++" s "--" ]>
-      *)
 
     Slash :StringLiteralExpr:=
       / <[ "/" ]>
@@ -67,12 +51,6 @@ api Xml
     String :Expr:=
       x:AnyChar# y:String <[ x y ]>
     | x:AnyChar <[ x "" ]>
-
-    (*
-    StringRest :Expr:=
-      l <[ "" ]>
-    | x:AnyChar# rest:StringRest <[ x ]>
-    *)
 
     (* There must be a simpler way to do this *)
     AnyChar :StringLiteralExpr:=
