@@ -290,8 +290,8 @@ public class TypeAnalyzer {
                             // split to an And
                             List<Type> infElements1 = makeInferenceVarTypes(s.getElements().size());
                             List<Type> infElements2 = makeInferenceVarTypes(s.getElements().size());
-                            Option<VarargsType> infVarargs1 = newInferenceVar(s.getVarargs());
-                            Option<VarargsType> infVarargs2 = newInferenceVar(s.getVarargs());
+                            Option<Type> infVarargs1 = newInferenceVar(s.getVarargs());
+                            Option<Type> infVarargs2 = newInferenceVar(s.getVarargs());
                             List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
                             List<KeywordType> infKeywords2 = newInferenceVars(s.getKeywords());
                             ConstraintFormula f = ConstraintFormula.TRUE;
@@ -440,8 +440,8 @@ public class TypeAnalyzer {
                                 if (form != null) {
                                     List<Type> infElements1 = makeInferenceVarTypes(form.getElements().size());
                                     List<Type> infElements2 = makeInferenceVarTypes(form.getElements().size());
-                                    Option<VarargsType> infVarargs1 = newInferenceVar(form.getVarargs());
-                                    Option<VarargsType> infVarargs2 = newInferenceVar(form.getVarargs());
+                                    Option<Type> infVarargs1 = newInferenceVar(form.getVarargs());
+                                    Option<Type> infVarargs2 = newInferenceVar(form.getVarargs());
                                     List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
                                     List<KeywordType> infKeywords2 = newInferenceVars(form.getKeywords());
                                     TupleType match1 = new TupleType(infElements1, infVarargs1, infKeywords1);
@@ -453,11 +453,11 @@ public class TypeAnalyzer {
                                         for (Pair<Type, Type> ts : IterUtil.zip(infElements1, infElements2)) {
                                             andElements.add(new AndType(ts.first(), ts.second()));
                                         }
-                                        Option<VarargsType> andVarargs;
+                                        Option<Type> andVarargs;
                                         if (infVarargs1.isSome()) {
                                             AndType vt = new AndType(infVarargs1.unwrap().getType(),
                                                                      infVarargs2.unwrap().getType());
-                                            andVarargs = Option.some(new VarargsType(vt));
+                                            andVarargs = Option.some(vt);
                                         }
                                         else { andVarargs = Option.none(); }
                                         List<KeywordType> andKeywords = new LinkedList<KeywordType>();
@@ -627,7 +627,7 @@ public class TypeAnalyzer {
                         if (!result.isTrue()) {
                             // covariance
                             List<Type> infElements = makeInferenceVarTypes(s.getElements().size());
-                            Option<VarargsType> infVarargs = newInferenceVar(s.getVarargs());
+                            Option<Type> infVarargs = newInferenceVar(s.getVarargs());
                             List<KeywordType> infKeywords = newInferenceVars(s.getKeywords());
                             ConstraintFormula f = subtype(s.getElements(), infElements, h);
                             if (!f.isFalse()) { f = f.and(subtype(s.getVarargs(), infVarargs, h), h); }
@@ -645,8 +645,8 @@ public class TypeAnalyzer {
                             // split to an And
                             List<Type> infElements1 = makeInferenceVarTypes(s.getElements().size());
                             List<Type> infElements2 = makeInferenceVarTypes(s.getElements().size());
-                            Option<VarargsType> infVarargs1 = newInferenceVar(s.getVarargs());
-                            Option<VarargsType> infVarargs2 = newInferenceVar(s.getVarargs());
+                            Option<Type> infVarargs1 = newInferenceVar(s.getVarargs());
+                            Option<Type> infVarargs2 = newInferenceVar(s.getVarargs());
                             List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
                             List<KeywordType> infKeywords2 = newInferenceVars(s.getKeywords());
                             ConstraintFormula f = ConstraintFormula.TRUE;
@@ -862,8 +862,8 @@ public class TypeAnalyzer {
                             if (form != null) {
                                 List<Type> infElements1 = makeInferenceVarTypes(form.getElements().size());
                                 List<Type> infElements2 = makeInferenceVarTypes(form.getElements().size());
-                                Option<VarargsType> infVarargs1 = newInferenceVar(form.getVarargs());
-                                Option<VarargsType> infVarargs2 = newInferenceVar(form.getVarargs());
+                                Option<Type> infVarargs1 = newInferenceVar(form.getVarargs());
+                                Option<Type> infVarargs2 = newInferenceVar(form.getVarargs());
                                 List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
                                 List<KeywordType> infKeywords2 = newInferenceVars(form.getKeywords());
                                 TupleType match1 = new TupleType(infElements1, infVarargs1, infKeywords1);
@@ -875,11 +875,11 @@ public class TypeAnalyzer {
                                     for (Pair<Type, Type> ts : IterUtil.zip(infElements1, infElements2)) {
                                         andElements.add(new AndType(ts.first(), ts.second()));
                                     }
-                                    Option<VarargsType> andVarargs;
+                                    Option<Type> andVarargs;
                                     if (infVarargs1.isSome()) {
                                         AndType vt = new AndType(infVarargs1.unwrap().getType(),
                                                                  infVarargs2.unwrap().getType());
-                                        andVarargs = Option.some(new VarargsType(vt));
+                                        andVarargs = Option.some(vt);
                                     }
                                     else { andVarargs = Option.none(); }
                                     List<KeywordType> andKeywords = new LinkedList<KeywordType>();
@@ -1183,26 +1183,26 @@ public class TypeAnalyzer {
     }
 
     /** Assumes the options are consistent -- either both some or both none. */
-    private ConstraintFormula subtype(Option<VarargsType> v1, Option<VarargsType> v2,
+    private ConstraintFormula subtype(Option<Type> v1, Option<Type> v2,
                                       SubtypeHistory history) {
         if (v1.isSome()) {
-            return subtype(v1.unwrap().getType(), v2.unwrap().getType(), history);
+            return subtype(v1.unwrap(), v2.unwrap(), history);
         }
         else { return ConstraintFormula.TRUE; }
     }
 
     /** Assumes the options are consistent -- either both some or both none. */
-    private ConstraintFormula sub(Option<VarargsType> v1, Option<VarargsType> v2,
+    private ConstraintFormula sub(Option<Type> v1, Option<Type> v2,
                                   SubtypeHistory history) {
         if (v1.isSome()) {
-            return sub(v1.unwrap().getType(), v2.unwrap().getType(), history);
+            return sub(v1.unwrap(), v2.unwrap(), history);
         }
         else { return ConstraintFormula.TRUE; }
     }
 
 
-    private Option<VarargsType> newInferenceVar(Option<VarargsType> varargs) {
-        if (varargs.isSome()) { return Option.some(new VarargsType(makeInferenceVarType())); }
+    private Option<Type> newInferenceVar(Option<Type> varargs) {
+        if (varargs.isSome()) { return Option.<Type>some(makeInferenceVarType()); }
         else { return Option.none(); }
     }
 

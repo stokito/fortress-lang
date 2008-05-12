@@ -501,7 +501,7 @@ public abstract class SubtypeChecker {
      * 1) The following types are not yet supported:
      *
      *        InferenceVarType(Object id, int index = -1);
-     *        ArgType(Option<VarargsType> varargs = Option.<VarargsType>none(),
+     *        ArgType(Option<Type> varargs = Option.<Type>none(),
      *                List<KeywordType> keywords = Collections.<KeywordType>emptyList(),
      *                boolean inArrow = false);
      *        abstract DimExpr();
@@ -633,9 +633,9 @@ public abstract class SubtypeChecker {
                     List<Type> stypes = ss.getElements();
                     List<Type> ttypes = tt.getElements();
                     int padLength = Math.max(stypes.size(), ttypes.size());
-                    List<Type> spadded = (ss.getVarargs().isSome()) ? pad(stypes, ss.getVarargs().unwrap().getType(), padLength)
+                    List<Type> spadded = (ss.getVarargs().isSome()) ? pad(stypes, ss.getVarargs().unwrap(), padLength)
                                                                     : stypes;
-                    List<Type> tpadded = (tt.getVarargs().isSome()) ? pad(ttypes, tt.getVarargs().unwrap().getType(), padLength)
+                    List<Type> tpadded = (tt.getVarargs().isSome()) ? pad(ttypes, tt.getVarargs().unwrap(), padLength)
                                                                     : ttypes;
                     for (Pair<Type, Type> p : IterUtil.zip(spadded, tpadded)) {
                         if (!subtype(p.first(), p.second(), history)) {
@@ -644,7 +644,7 @@ public abstract class SubtypeChecker {
                     }
                     // Check that varargs are subtypes
                     if (ss.getVarargs().isSome() && tt.getVarargs().isSome()) {
-                        if (!subtype(ss.getVarargs().unwrap().getType(), tt.getVarargs().unwrap().getType())) {
+                        if (!subtype(ss.getVarargs().unwrap(), tt.getVarargs().unwrap())) {
                             return FALSE;
                         }
                     }

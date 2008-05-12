@@ -238,7 +238,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         at.unify(e, tp_set, abm, ty);
                     }
                 } else { // p instanceof VarargsParam
-                    VarargsType ty = ((VarargsParam) p).getVarargsType();
+                    Type ty = ((VarargsParam) p).getType();
                     if (DUMP_INFERENCE)
                         System.err.println("Unifying "+at+" and vararg type "+ty);
                     at.unify(e, tp_set, abm, ty);

@@ -27,7 +27,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.UnificationError;
-import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.AbstractTupleType;
 import com.sun.fortress.nodes.ArgType;
@@ -324,7 +323,7 @@ public class FTypeTuple extends FType {
      */
     public boolean unifyTuple(BetterEnv env, Set<String> tp_set,
                               BoundingMap<String, FType, TypeLatticeOps> abm,
-                              List<Type> vals, Option<VarargsType> varargs) {
+                              List<Type> vals, Option<Type> varargs) {
         Iterator<FType> ftIterator = l.iterator();
         Iterator<Type> trIterator = vals.iterator();
         FType ft = null;
@@ -358,12 +357,12 @@ public class FTypeTuple extends FType {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
-        Option<VarargsType> vargs;
+        Option<Type> vargs;
         List<Type> elements;
         if (!(val instanceof AbstractTupleType)) {
             if (!(val instanceof VoidType)) return false;
             elements = Collections.<Type>emptyList();
-            vargs = Option.<VarargsType>none();
+            vargs = Option.none();
         } else if (val instanceof ArgType) {
             ArgType tup = (ArgType) val;
             if (!(tup.getKeywords().isEmpty())) return false;
@@ -372,7 +371,7 @@ public class FTypeTuple extends FType {
             return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
         } else { // (val instanceof TupleType)
             elements = ((TupleType)val).getElements();
-            vargs = Option.<VarargsType>none();
+            vargs = Option.none();
         }
         return unifyTuple(env, tp_set, abm, elements, vargs);
     }

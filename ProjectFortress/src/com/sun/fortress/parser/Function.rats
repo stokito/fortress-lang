@@ -63,15 +63,14 @@ AbsFnDecl FnSig =
                Id name = new Id(that.getSpan(), "_");
                params.add(NodeFactory.makeParam(that.getSpan(),mods,name,that));
            }
-           public void forVarargsType(VarargsType that) {
-               Id name = new Id(that.getSpan(), "_");
-               params.add(NodeFactory.makeVarargsParam(that.getSpan(), mods,
-                                                       name, that));
-           }
            public void forArgType(ArgType that) {
                for (AbstractNode i : that.getElements()) { i.accept(this); }
-               if (that.getVarargs().isSome())
-                   that.getVarargs().unwrap().accept(this);
+               if (that.getVarargs().isSome()) {
+                   Type t = that.getVarargs().unwrap();
+                   Id name = new Id(t.getSpan(), "_");
+                   params.add(NodeFactory.makeVarargsParam(t.getSpan(), mods,
+                                                           name, t));
+               }
                assert(that.getKeywords().isEmpty()): "Keyword parameters present"
                                                      + " in a FnSig: " + that;
            }

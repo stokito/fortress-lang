@@ -187,14 +187,10 @@ public class NodeFactory {
  }
 
  public static ArgType makeArgType(ArgType t, List<Type> tys,
-   Option<VarargsType> varargs,
-   List<KeywordType> keywords) {
+                                   Option<Type> varargs,
+                                   List<KeywordType> keywords) {
   return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs,
     keywords);
- }
-
- public static VarargsType makeVarargsType(VarargsType t, Type s) {
-  return new VarargsType(t.getSpan(), s);
  }
 
  public static KeywordType makeKeywordType(KeywordType t, Type s) {
@@ -706,17 +702,16 @@ public class NodeFactory {
   return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
  }
 
- public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
+ public static VarargsParam makeVarargsParam(Id name, Type type) {
   return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
  }
 
  public static VarargsParam makeVarargsParam(VarargsParam param, List<Modifier> mods) {
-  return new VarargsParam(param.getSpan(), mods, param.getName(),
-    param.getVarargsType());
+  return new VarargsParam(param.getSpan(), mods, param.getName(), param.getType());
  }
 
  public static VarargsParam makeVarargsParam(Span span, List<Modifier> mods,
-   Id name, VarargsType type) {
+                                             Id name, Type type) {
   return new VarargsParam(span, mods, name, type);
  }
 
@@ -797,20 +792,18 @@ public class NodeFactory {
   * Alternatively, you can invoke the ArgType constructor without keywords
   */
   public static ArgType makeArgType(Span span, List<Type> elements,
-    Option<VarargsType> varargs) {
-  return new ArgType(span, elements, varargs,
-    Collections.<KeywordType>emptyList());
+                                    Option<Type> varargs) {
+    return new ArgType(span, elements, varargs, Collections.<KeywordType>emptyList());
   }
 
   public static ArgType makeArgType(List<Type> elements) {
-   return new ArgType(new Span(), elements, Option.<VarargsType>none(),
+   return new ArgType(new Span(), elements, Option.<Type>none(),
      Collections.<KeywordType>emptyList());
   }
 
   public static ArgType makeArgType(Span span, List<Type> elements,
-    List<KeywordType> keywordElements,
-    Option<VarargsType> varargs)
-  {
+                                    List<KeywordType> keywordElements,
+                                    Option<Type> varargs) {
    return new ArgType(span, elements, varargs, keywordElements);
   }
 
@@ -1171,7 +1164,7 @@ public class NodeFactory {
    List<Param> params = new LinkedList<Param>();
    List<StaticArg> staticArgs = new LinkedList<StaticArg>();
    Type type = new TraitType(typeName, staticArgs);
-   params.add(new VarargsParam(new Id("args"), new VarargsType(type)));
+   params.add(new VarargsParam(new Id("args"), type));
    Type returnType = new TraitType(typeName , staticArgs);
    return new FnDef(fnName, params, Option.some(returnType), expression);
   }

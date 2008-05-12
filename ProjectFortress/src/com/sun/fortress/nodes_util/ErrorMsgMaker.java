@@ -213,7 +213,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         StringBuffer sb = new StringBuffer();
         sb.append(NodeUtil.nameString(node.getName()));
         sb.append(":");
-        sb.append(node.getVarargsType().accept(this));
+        sb.append(node.getType().accept(this));
+        sb.append("...");
 
         return sb.toString();
     }
@@ -223,19 +224,18 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             Useful.listInOxfords(mapSelf(node.getArgs()));
     }
 
-    public String forVarargsType(VarargsType node) {
-        return node.getType().accept(this) + "...";
-    }
-
     public String forTypeParam(TypeParam node) {
         return NodeUtil.nameString(node.getName());
     }
 
     public String forArgType(ArgType node) {
+        String varargsString = node.getVarargs().isSome() ?
+            node.getVarargs().unwrap().accept(this) + "..." :
+            "";
         return
             "(" +
             Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
-            acceptIfPresent(node.getVarargs()) +
+            varargsString + 
             Useful.listInDelimiters("", mapSelf(node.getKeywords()), "") +
             ")";
     }

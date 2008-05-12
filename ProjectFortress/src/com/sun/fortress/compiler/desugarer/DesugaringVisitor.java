@@ -82,7 +82,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             }
             public Node forVarargsParam(VarargsParam that) {
                 return new VarargsParam(that.getSpan(), that.getMods(), mangleName(that.getName()),
-                                        that.getVarargsType());
+                                        that.getType());
             }
         }.recurOnOptionOfListOfParam(params);
     }
@@ -141,7 +141,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
                                                  new ArrayList<StaticParam>(),
                                                  new ArrayList<Param>(),
-                                                 Option.wrap(TypesUtil.fromVarargsType(param.getVarargsType())),
+                                                 Option.wrap(TypesUtil.fromVarargsType(param.getType())),
                                                  new WhereClause(param.getSpan()), new Contract(new Span()),
                                                  new VarRef(param.getSpan(), false,
                                                             mangleName(param.getName()))));
@@ -376,8 +376,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new NormalParam(that.getSpan(), mods_result, name_result, type_result, defaultExpr_result);
 //    }
 //
-//    public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, VarargsType varargsType_result) {
-//        if (that.getMods() == mods_result && that.getName() == name_result && that.getVarargsType() == varargsType_result)
+//    public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, Type type_result) {
+//        if (that.getMods() == mods_result && that.getName() == name_result && that.getType() == type_result)
 //            return that;
 //        else return new VarargsParam(that.getSpan(), mods_result, name_result, varargsType_result);
 //    }
@@ -880,7 +880,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new TupleType(that.getSpan(), that.isParenthesized(), elements_result);
 //    }
 //
-//    public Node forArgTypeOnly(ArgType that, List<Type> elements_result, Option<VarargsType> varargs_result, List<KeywordType> keywords_result) {
+//    public Node forArgTypeOnly(ArgType that, List<Type> elements_result, Option<Type> varargs_result, List<KeywordType> keywords_result) {
 //        if (that.getElements() == elements_result && that.getVarargs() == varargs_result && that.getKeywords() == keywords_result)
 //            return that;
 //        else
@@ -1561,8 +1561,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    public Node forVarargsParam(VarargsParam that) {
 //        List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
 //        Id name_result = (Id) that.getName().accept(this);
-//        VarargsType varargsType_result = (VarargsType) that.getVarargsType().accept(this);
-//        return forVarargsParamOnly(that, mods_result, name_result, varargsType_result);
+//        Type type_result = (Type) that.getType().accept(this);
+//        return forVarargsParamOnly(that, mods_result, name_result, type_result);
 //    }
 //
 //    public Node forDimDecl(DimDecl that) {
@@ -2124,7 +2124,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forArgType(ArgType that) {
 //        List<Type> elements_result = recurOnListOfType(that.getElements());
-//        Option<VarargsType> varargs_result = recurOnOptionOfVarargsType(that.getVarargs());
+//        Option<Type> varargs_result = recurOnOptionOfType(that.getVarargs());
 //        List<KeywordType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
 //        return forArgTypeOnly(that, elements_result, varargs_result, keywords_result);
 //    }
@@ -2608,11 +2608,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    public Node forVarargsExpr(VarargsExpr that) {
 //        Expr varargs_result = (Expr) that.getVarargs().accept(this);
 //        return forVarargsExprOnly(that, varargs_result);
-//    }
-//
-//    public Node forVarargsType(VarargsType that) {
-//        Type type_result = (Type) that.getType().accept(this);
-//        return forVarargsTypeOnly(that, type_result);
 //    }
 //
 //    public Node forKeywordType(KeywordType that) {
@@ -3270,19 +3265,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //            if (elt != elt_result) changed = true;
 //        }
 //        return changed ? (result) : that;
-//    }
-//
-//    public Option<VarargsType> recurOnOptionOfVarargsType(final Option<VarargsType> that) {
-//        return that.apply(new edu.rice.cs.plt.tuple.OptionVisitor<VarargsType, Option<VarargsType>>() {
-//            public Option<VarargsType> forSome(VarargsType elt) {
-//                VarargsType elt_result = (VarargsType) elt.accept(NodeUpdateVisitor.this);
-//                return (elt == elt_result) ? that : edu.rice.cs.plt.tuple.Option.some(elt_result);
-//            }
-//
-//            public Option<VarargsType> forNone() {
-//                return that;
-//            }
-//        });
 //    }
 //
 //    public List<KeywordType> recurOnListOfKeywordType(final List<KeywordType> that) {

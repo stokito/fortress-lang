@@ -188,7 +188,7 @@ public class NodeComparator {
             x = compareOptionalType(((NormalParam)left).getType(), ((NormalParam)right).getType());
         }
         if ((left instanceof VarargsParam) && (right instanceof VarargsParam)) {
-            x = compare(((VarargsParam)left).getVarargsType().getType(), ((VarargsParam)right).getVarargsType().getType());
+            x = compare(((VarargsParam)left).getType(), ((VarargsParam)right).getType());
         }
         if (x != 0) return x;
         // TODO default expr, mods, must enter into comparison also.
@@ -320,10 +320,6 @@ public class NodeComparator {
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
-    }
-
-    static int compare(VarargsType left, VarargsType right) {
-        return compare(left.getType(), right.getType());
     }
 
     static int compare(TypeParam left, TypeParam right) {

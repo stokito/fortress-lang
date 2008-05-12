@@ -80,11 +80,11 @@ public abstract class TypeEnv {
             NormalParam _param = (NormalParam) param;
             return _param.getType();
         } else { // param instanceof VarargsParam
-            // Convert the declared VarargsType into a reference to
+            // Convert the declared varargs type into a reference to
             // FortressBuiltin.ImmutableHeapSequence.
             VarargsParam _param = (VarargsParam) param;
 
-            Type result = TypesUtil.fromVarargsType(_param.getVarargsType());
+            Type result = TypesUtil.fromVarargsType(_param.getType());
             return some(result);
         }
     }
@@ -95,7 +95,7 @@ public abstract class TypeEnv {
     protected static Type typeFromParams(List<Param> params) {
         List<Type> paramTypes = new ArrayList<Type>();
         List<KeywordType> keywordTypes = new ArrayList<KeywordType>();
-        Option<VarargsType> varargsType = none();
+        Option<Type> varargsType = none();
 
         for (Param param: params) {
             if (param instanceof NormalParam) {
@@ -117,7 +117,7 @@ public abstract class TypeEnv {
                 }
             } else { // We have a varargs param.
                 VarargsParam _param = (VarargsParam) param;
-                varargsType = wrap(_param.getVarargsType());
+                varargsType = wrap(_param.getType());
             }
         }
         return makeArgType(new Span(), paramTypes, keywordTypes, varargsType);

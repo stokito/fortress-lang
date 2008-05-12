@@ -431,7 +431,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * varargs parameter
          * Varargs ::= BindId : Type ...
          */
-        VarargsParam(VarargsType varargsType);
+        VarargsParam(Type type);
     /**
      * dimension and unit declaration
      * DimUnitDecl may represent a single dimension declaration, a single
@@ -1185,7 +1185,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract Type(ignoreForEquals boolean parenthesized = false);
         /**
-         * dimension expression
+         * dimension expression (not really a type, but here for
+         * now because of the way the parser is defined)
          */
         abstract DimExpr();
             /* vector type or exponent dimemsion
@@ -1227,6 +1228,96 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             OpDim(DimExpr val, Op op);
         /**
+         * base types: things that can be extended, excluded, thrown, etc.
+         */
+        abstract BaseType();
+            /**
+             * any type
+             */
+            AnyType();
+            /**
+             * bottom type
+             */
+            BottomType();
+            /**
+             * named type
+             */
+            abstract NamedType(Id name);
+                /**
+                 * a type variable
+                 * TraitType ::= QualifiedName
+                 * e.g.) T
+                 */
+                VarType();
+                /**
+                 * a trait (object, alias, or proper trait) type; traits
+                 * without params are referenced with an empty arg list
+                 * TraitType ::= QualifiedName [\StaticArgList\]
+                 * e.g.) List[\ZZ32\]
+                 */
+                TraitType(List<StaticArg> args);
+                /**
+                 * type of a generic singleton, used during static checking
+                 */
+                _RewriteGenericSingletonType(List<StaticParam> staticParams);
+            /**
+             * abbreviated type
+             */
+            abstract AbbreviatedType(Type type);
+                /**
+                 * array type
+                 * TraitType ::= Type [ ArraySize? ]
+                 * e.g.) ZZ64[3, 2]
+                 */
+                ArrayType(Indices indices);
+                /**
+                 * matrix type
+                 * TraitType ::= Type ^ IntExpr
+                 *             | Type ^ ( ExtentRange (BY ExtentRange)* )
+                 * e.g.)
+                 */
+                MatrixType(List<ExtentRange> dimensions);
+                /**
+                 * type with dimension
+                 * DimType ::= Type DimExpr (in Expr)?
+                 * e.g.) RR64 Length
+                 */
+                TaggedDimType(DimExpr dim,
+                              Option<Expr> unit = Option.<Expr>none());
+                /**
+                 * type with unit
+                 * DimType ::= Type Expr
+                 * e.g.) RR64 meter
+                 */
+                TaggedUnitType(Expr unit);
+        /**
+         * tuple-like types
+         */
+        abstract AbstractTupleType(List<Type> elements);
+            /**
+             * tuple type
+             * TupleType ::= ( Type, TypeList )
+             * e.g.)
+             */
+            TupleType();
+            /**
+             * argument type
+             * ArgType ::= ( (Type, )* (Type ... ,)? KeywordType(, KeywordType)* )
+             *           | ( (Type, )*  Type ... )
+             *           | TupleType
+             * e.g.)
+             */
+            ArgType(Option<Type> varargs = Option.<Type>none(),
+                    List<KeywordType> keywords
+                        = Collections.<KeywordType>emptyList(),
+                    boolean inArrow = false);
+        /**
+         * void type
+         * NonArrowType ::= ()
+         * e.g.) ()
+         */
+        VoidType();
+        /**
          * arrow type
          */
         abstract AbstractArrowType(Type domain, Type range,
@@ -1247,122 +1338,27 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                      WhereClause where
                                       = FortressUtil.emptyWhereClause());
         /**
-         * nonarrow type
+         * inferred type
+         * Used internally for type analysis
          */
-        abstract NonArrowType();
-            /**
-             * trait type
-             */
-            abstract BaseType();
-                /**
-                 * any type
-                 */
-                AnyType();
-                /**
-                 * bottom type
-                 */
-                BottomType();
-                /**
-                 * named type
-                 */
-                abstract NamedType(Id name);
-                    /**
-                     * a type variable
-                     * TraitType ::= QualifiedName
-                     * e.g.) T
-                     */
-                    VarType();
-                    /**
-                     * a trait (object, alias, or proper trait) type; traits
-                     * without params are referenced with an empty arg list
-                     * TraitType ::= QualifiedName [\StaticArgList\]
-                     * e.g.) List[\ZZ32\]
-                     */
-                    TraitType(List<StaticArg> args);
-                    /**
-                     * type of a generic singleton, used during static checking
-                     */
-                    _RewriteGenericSingletonType(List<StaticParam> staticParams);
-                /**
-                 * abbreviated type
-                 */
-                abstract AbbreviatedType(Type type);
-                    /**
-                     * array type
-                     * TraitType ::= Type [ ArraySize? ]
-                     * e.g.) ZZ64[3, 2]
-                     */
-                    ArrayType(Indices indices);
-                    /**
-                     * matrix type
-                     * TraitType ::= Type ^ IntExpr
-                     *             | Type ^ ( ExtentRange (BY ExtentRange)* )
-                     * e.g.)
-                     */
-                    MatrixType(List<ExtentRange> dimensions);
-                    /**
-                     * type with dimension
-                     * DimType ::= Type DimExpr (in Expr)?
-                     * e.g.) RR64 Length
-                     */
-                    TaggedDimType(DimExpr dim,
-                                  Option<Expr> unit = Option.<Expr>none());
-                    /**
-                     * type with unit
-                     * DimType ::= Type Expr
-                     * e.g.) RR64 meter
-                     */
-                    TaggedUnitType(Expr unit);
-            /**
-             * labeled type: tuple type or argument type
-             */
-            abstract AbstractTupleType(List<Type> elements);
-                /**
-                 * tuple type
-                 * TupleType ::= ( Type, TypeList )
-                 * e.g.)
-                 */
-                TupleType();
-                /**
-                 * argument type
-                 * ArgType ::= ( (Type, )* (Type ... ,)? KeywordType(, KeywordType)* )
-                 *           | ( (Type, )*  Type ... )
-                 *           | TupleType
-                 * e.g.)
-                 */
-                ArgType(Option<VarargsType> varargs
-                            = Option.<VarargsType>none(),
-                        List<KeywordType> keywords
-                            = Collections.<KeywordType>emptyList(),
-                        boolean inArrow = false);
-            /**
-             * void type
-             * NonArrowType ::= ()
-             * e.g.) ()
-             */
-            VoidType();
-            /**
-             * inferred type
-             * Used internally for type analysis
-             */
-            InferenceVarType(Object id);
-            /**
-             * A binary intersection.  Used internally for type analysis.
-             */
-            AndType(Type first, Type second);
-            /**
-             * A binary union.  Used internally for type analysis.
-             */
-            OrType(Type first, Type second);
-            /**
-             * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
-             * Names must be unqualified.
-             */
-            FixedPointType(Id name, Type body);
-            /**
-             * The type of the name given to a label expression.  Used internally.
-             */
-            LabelType();
+        InferenceVarType(Object id);
+        /**
+         * A binary intersection.  Used internally for type analysis.
+         */
+        AndType(Type first, Type second);
+        /**
+         * A binary union.  Used internally for type analysis.
+         */
+        OrType(Type first, Type second);
+        /**
+         * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
+         * Names must be unqualified.
+         */
+        FixedPointType(Id name, Type body);
+        /**
+         * The type of the name given to a label expression.  Used internally.
+         */
+        LabelType();
     /**
      * static argument
      */
@@ -1991,12 +1987,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) [3 4 5]...
      */
     VarargsExpr(Expr varargs);
-    /**
-     * varargs type used in tuple types and varargs parameters
-     * Type ...
-     * e.g.) ZZ32...
-     */
-    VarargsType(Type type);
     /**
      * keyword type used in tuple types
      * KeywordType ::= BindId = Type

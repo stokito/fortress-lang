@@ -31,7 +31,6 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StaticArg;
@@ -595,14 +594,6 @@ abstract public class FType implements Comparable<FType> {
     }
 
         
-    /**
-     * Convenience method for unifying with a VarargsType (e.g., "T...").
-     * VarargsTypes are special forms that appear only in ArgTypes. They are not Types.
-     */
-    public final void unify(BetterEnv env, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
-        unify(env, tp_set, abm, val.getType());
-    }
-
     public void mustExtend(FType st, HasAt constraint_loc) {
         List<FType> curr_extends = getExtendsNull();
         if (curr_extends == null) {
