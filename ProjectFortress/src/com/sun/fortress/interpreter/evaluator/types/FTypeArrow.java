@@ -30,7 +30,6 @@ import com.sun.fortress.nodes.AbstractTupleType;
 import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.Factory2;
@@ -172,7 +171,7 @@ public class FTypeArrow extends FType {
                 domain.unify(env, tp_set, dual, valdom);
             } else if (domain instanceof FTypeTuple) {
                 ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, ((AbstractTupleType)valdom).getElements(),
-                                                Option.<VarargsType>none());
+                                                Option.<Type>none());
             } else {
                 return false;
             }

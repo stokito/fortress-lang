@@ -35,7 +35,6 @@ import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BoundingMap;
@@ -78,14 +77,6 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
             node.accept(visitor);
 
     }
-
-     /* (non-Javadoc)
-      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVarargsType(com.sun.fortress.nodes.VarargsType)
-      */
-     @Override
-     public void forVarargsType(VarargsType that) {
-         that.getType().accept(this);
-     }
 
     /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTraitType(com.sun.fortress.nodes.TraitType)

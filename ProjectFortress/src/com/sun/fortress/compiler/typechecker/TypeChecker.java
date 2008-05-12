@@ -2371,10 +2371,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forAbstractNodeOnly(that);
 //    }
 //
-//    public RetType forVarargsTypeOnly(VarargsType that, RetType type_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
 //    public RetType forKeywordTypeOnly(KeywordType that, RetType name_result, RetType type_result) {
 //        return forAbstractNodeOnly(that);
 //    }
@@ -2585,7 +2581,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    public RetType forVarargsParam(VarargsParam that) {
 //        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
 //        RetType name_result = that.getName().accept(this);
-//        RetType varargsType_result = that.getVarargsType().accept(this);
+//        RetType varargsType_result = that.getType().accept(this);
 //        return forVarargsParamOnly(that, mods_result, name_result, varargsType_result);
 //    }
 //
@@ -2992,7 +2988,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forArgType(ArgType that) {
 //        List<RetType> elements_result = recurOnListOfType(that.getElements());
-//        Option<RetType> varargs_result = recurOnOptionOfVarargsType(that.getVarargs());
+//        Option<RetType> varargs_result = recurOnOptionOfType(that.getVarargs());
 //        List<RetType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
 //        return forArgTypeOnly(that, elements_result, varargs_result, keywords_result);
 //    }
@@ -3497,11 +3493,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    public RetType forVarargsExpr(VarargsExpr that) {
 //        RetType varargs_result = that.getVarargs().accept(this);
 //        return forVarargsExprOnly(that, varargs_result);
-//    }
-//
-//    public RetType forVarargsType(VarargsType that) {
-//        RetType type_result = that.getType().accept(this);
-//        return forVarargsTypeOnly(that, type_result);
 //    }
 //
 //    public RetType forKeywordType(KeywordType that) {

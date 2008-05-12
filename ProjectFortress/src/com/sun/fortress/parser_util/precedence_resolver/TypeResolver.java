@@ -612,11 +612,9 @@ public class TypeResolver {
                 for (Type ty : t.getElements()) {
                     elements.add(typeToType(ty));
                 }
-                Option<VarargsType> varargs = t.getVarargs();
+                Option<Type> varargs = t.getVarargs();
                 if (varargs.isSome()) {
-                    VarargsType ty = varargs.unwrap();
-                    varargs = Option.some(new VarargsType(ty.getSpan(),
-                                                          typeToType(ty.getType())));
+                    varargs = Option.some(typeToType(varargs.unwrap()));
                 }
                 List<KeywordType> keywords = new ArrayList<KeywordType>();
                 for (KeywordType ty : t.getKeywords()) {

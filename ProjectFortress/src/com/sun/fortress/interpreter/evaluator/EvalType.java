@@ -136,10 +136,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      return t.accept(this);
     }
 
-    public FType getFType(VarargsType t) {
-        return t.accept(this);
-    }
-
     public static List<Parameter> paramsToParameters(BetterEnv env,
             List<Param> params) {
         if (params.size() == 0) {
@@ -165,7 +161,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 ptype = e.getFTypeFromOption(type, FTypeTop.ONLY);
             }
             else { // in_p instanceof VarargsParam
-                ptype = e.getFType(((VarargsParam)in_p).getVarargsType());
+                ptype = FTypeRest.make(e.getFType(((VarargsParam)in_p).getType()));
             }
             Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p), NodeUtil.isTransient(in_p));
             fparams.add(i++, fp);
@@ -316,10 +312,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
-
-    public FType forVarargsType(VarargsType rt) {
-        return FTypeRest.make(rt.getType().accept(this));
-    }
 
     public FType forBoolArg(BoolArg b) {
         return b.getBool().accept(this);

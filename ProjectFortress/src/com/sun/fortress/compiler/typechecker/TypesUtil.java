@@ -32,7 +32,6 @@ import com.sun.fortress.nodes.OrType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -144,7 +143,7 @@ public class TypesUtil {
                 (right instanceof OrType) ? disjuncts((OrType)right) : IterUtil.make(right));
     }
     
-    public static final Type fromVarargsType(VarargsType varargsType) {
+    public static final Type fromVarargsType(Type varargsType) {
         return NodeFactory.makeTraitType(varargsType.getSpan(),
                                          false,
                                          makeId(Arrays.asList(makeId("FortressBuiltin")),

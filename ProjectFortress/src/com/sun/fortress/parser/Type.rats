@@ -162,9 +162,7 @@ Type ArgType =
      a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<Type>   ts1 = a1s.list();
        Span span = createSpan(yyStart,yyCount);
-       Option<VarargsType> ts2 = ((a2 != null)?
-                                   Option.some(new VarargsType(span, a2)) :
-                                   Option.<VarargsType>none());
+       Option<Type> ts2 = Option.wrap(a2);
        List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
        yyValue = new ArgType(span, ts1, ts2, ts3);
@@ -172,8 +170,7 @@ Type ArgType =
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
      { List<Type> ts1 = FortressUtil.mkList(a1s.list());
        Span span = createSpan(yyStart,yyCount);
-       Option<VarargsType> ts2 =
-         Option.some(new VarargsType(span, a2));
+       Option<Type> ts2 = Option.some(a2);
        yyValue = NodeFactory.makeArgType(span, ts1, ts2);
      }
    / TupleType ;
