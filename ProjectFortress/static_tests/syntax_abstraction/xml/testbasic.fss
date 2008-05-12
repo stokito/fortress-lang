@@ -5,6 +5,7 @@ export Executable
 
 run(args:String...) = do
   println "Answer is " (xml <a />)
+  println "Answer is " (xml <x></x>)
   println "Answer is " (xml <aaa>aa</aaa>)
   println "Answer is " (xml <aaa><foobar /></aaa>)
   println "Answer is " (xml <aaa foo="bar" />)
@@ -12,6 +13,21 @@ run(args:String...) = do
   println "Answer is " (xml <hello><world>hi mom</world></hello>)
   println "Answer is " (xml <hello attr="foobar"><world>hi mom</world></hello>)
   println "Answer is " (xml <hello attr="foobar" more="blah"><world>hi mom</world></hello>)
+
+(*
+  println "Xml: " (xml
+  <note>hi</note>)
+
+  println "Xml: " (xml
+  <note>
+  <to>Tove</to>
+  <from>Jani</from>
+  <heading>Reminder</heading>
+  <body>Dont forget me this weekend</body>
+  </note>
+  )
+  *)
+
   (*
   println "Answer is " (xml <aaal> <aaaal> aal </aaaal> </aaal>)
   println "Answer is " (xml <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)
