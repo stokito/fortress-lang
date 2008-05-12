@@ -1,0 +1,8 @@
+component Xml2
+export Xml2
+
+  object XmlNode
+    getter toString() = "xmlnode"
+  end
+
+end
