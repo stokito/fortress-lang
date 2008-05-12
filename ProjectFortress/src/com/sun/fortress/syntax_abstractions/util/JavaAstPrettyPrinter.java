@@ -222,7 +222,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
  @Override
  public String forStringLiteralExpr(StringLiteralExpr that) {
   String varName = FreshName.getFreshName("s");
-  this.code.add("StringLiteralExpr "+varName+" = new StringLiteralExpr(\""+that.getText()+"\");");
+  this.code.add("StringLiteralExpr "+varName+" = new StringLiteralExpr(\""+that.getText().replaceAll("\"","\\\\\"")+"\");");
   return varName;
  }
 
