@@ -1,3 +1,5 @@
+(* Xml grammar for writing inline xml. *)
+
 api Xml
 
   import FortressAst.{...}
@@ -21,15 +23,6 @@ api Xml
       <[ c ]>
     | x:XmlComplete <[ x ]>
 
-    (*
-    XExpr :StringLiteralExpr:=
-      b:XmlStart content:XmlContent e:XmlEnd
-      <[ content ]>
-      (*
-      <[ b "" content "" e ]>
-      *)
-      *)
-      
     XmlComplete :StringLiteralExpr:=
       OpenBracket# s:String Slash# CloseBracket
       <[ s ]>
@@ -70,34 +63,15 @@ api Xml
     Slash :StringLiteralExpr:=
       / <[ "/" ]>
 
-(*
-    String2 :StringLiteralExpr:=
-      x:BigA* <[ x ]>
-
-    BigA :StringLiteralExpr:=
-      a <[ "a" ]>
-      *)
-    
-    (*
-    String :StringLiteralExpr:=
-      x:AnyChar# rest:StringRest <[ x ]>
-    | x:AnyChar# <[ x ]>
-    *)
-
     String :StringLiteralExpr:=
       x:AnyChar# String <[ x ]>
     | x:AnyChar <[ x ]>
-
-(*
-    StringRest :StringLiteralExpr:=
-      NOT _  <[ "" ]>
-    | x:AnyChar# rest:StringRest <[ x ]>
-    *)
 
     StringRest :StringLiteralExpr:=
       l <[ "" ]>
     | x:AnyChar# rest:StringRest <[ x ]>
 
+    (* There must be a simpler way to do this *)
     AnyChar :StringLiteralExpr:=
       x:a <[ x ]>
     | x:b <[ x ]>
@@ -125,6 +99,7 @@ api Xml
     | x:y <[ x ]>
     | x:z <[ x ]>
 
+    (* Shouldn't need [] around < and > *)
     OpenBracket :StringLiteralExpr:=
       [<] <[ "<" ]>
 
