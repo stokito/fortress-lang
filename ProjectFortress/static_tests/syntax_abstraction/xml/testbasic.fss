@@ -1,6 +1,6 @@
 component testbasic
 
-import Xml.{...}
+import Xml2.{...}
 export Executable
 
 run(args:String...) = do
