@@ -30,7 +30,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.IdType;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.StaticParam;
@@ -474,16 +474,16 @@ abstract public class FType implements Comparable<FType> {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         boolean rc = false;
         FType other = null;
-        if (! (val instanceof IdType)) {
+        if (! (val instanceof VarType)) {
             if (DUMP_UNIFY) System.out.print("builtin ");
             if (val instanceof VoidType) {
                 other = FTypeVoid.ONLY;
             }
-        } else if (name.equals(NodeUtil.nameString(((IdType)val).getName()))) {
+        } else if (name.equals(NodeUtil.nameString(((VarType)val).getName()))) {
             if (DUMP_UNIFY) System.out.print("iso ");
             rc = true;
         } else {
-            other = env.getTypeNull(((IdType)val).getName());
+            other = env.getTypeNull(((VarType)val).getName());
             if (DUMP_UNIFY && other==null) System.out.print("undef second ");
         }
         if (!rc) {
@@ -530,8 +530,8 @@ abstract public class FType implements Comparable<FType> {
             return;
         }
         /* Check if val is a type variable */
-        else if (val instanceof IdType) {
-            IdType id_val = (IdType) val;
+        else if (val instanceof VarType) {
+            VarType id_val = (VarType) val;
             String nm = NodeUtil.nameString(id_val.getName());
             if (tp_set.contains(nm)) {
                 if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this);

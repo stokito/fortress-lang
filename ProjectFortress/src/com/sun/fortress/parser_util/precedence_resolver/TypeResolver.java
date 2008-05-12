@@ -600,11 +600,11 @@ public class TypeResolver {
                                      t.getThrowsClause(), t.isIo());
             }
             public Type forArrayType(ArrayType t) {
-                return new ArrayType(t.getSpan(), typeToType(t.getElement()),
+                return new ArrayType(t.getSpan(), typeToType(t.getType()),
                                      t.getIndices());
             }
             public Type forMatrixType(MatrixType t) {
-                return new MatrixType(t.getSpan(), typeToType(t.getElement()),
+                return new MatrixType(t.getSpan(), typeToType(t.getType()),
                                       t.getDimensions());
             }
             public Type forArgType(ArgType t) {
@@ -673,7 +673,7 @@ public class TypeResolver {
                                      "a type is found.");
                     }
                 }
-                public DimExpr forIdType(IdType t) {
+                public DimExpr forVarType(VarType t) {
                     return new DimRef(t.getSpan(), t.getName());
                 }
                 public DimExpr defaultCase(Node x) {
@@ -718,7 +718,7 @@ public class TypeResolver {
         try {
             return dim.accept(new NodeAbstractVisitor<Type>() {
                 public Type forDimRef(DimRef d) {
-                    return new IdType(d.getSpan(), d.getName());
+                    return new VarType(d.getSpan(), d.getName());
                 }
                 public Type forProductDim(ProductDim d) {
                     try {

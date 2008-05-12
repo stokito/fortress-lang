@@ -166,9 +166,9 @@ public class NodeFactory {
     newThrows, t.isIo());
  }
 
- public static InstantiatedType makeInstantiatedType(InstantiatedType t,
+ public static TraitType makeTraitType(TraitType t,
    List<StaticArg> args) {
-  return new InstantiatedType(t.getSpan(), t.isParenthesized(),
+  return new TraitType(t.getSpan(), t.isParenthesized(),
     t.getName(), args);
  }
 
@@ -249,38 +249,38 @@ public class NodeFactory {
     s);
  }
 
- public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
+ public static TraitType makeTraitType(Span span, boolean isParenthesized,
    Id name, List<StaticArg> args) {
-  return new InstantiatedType(span, isParenthesized, name, args);
+  return new TraitType(span, isParenthesized, name, args);
  }
 
- public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
+ public static TraitType makeTraitType(Span span, boolean isParenthesized,
    Id name, StaticArg... args) {
-  return makeInstantiatedType(span, isParenthesized, name, Arrays.asList(args));
+  return makeTraitType(span, isParenthesized, name, Arrays.asList(args));
  }
 
- public static InstantiatedType makeInstantiatedType(Id name, StaticArg... args) {
-  return makeInstantiatedType(new Span(), false, name, Arrays.asList(args));
+ public static TraitType makeTraitType(Id name, StaticArg... args) {
+  return makeTraitType(new Span(), false, name, Arrays.asList(args));
  }
 
  /** Signature separates the first element in order to guarantee a non-empty arg list. */
- public static InstantiatedType makeInstantiatedType(String nameFirst, String... nameRest) {
-  return makeInstantiatedType(new Span(), false, makeId(nameFirst, nameRest),
+ public static TraitType makeTraitType(String nameFirst, String... nameRest) {
+  return makeTraitType(new Span(), false, makeId(nameFirst, nameRest),
     Collections.<StaticArg>emptyList());
  }
 
- public static InstantiatedType makeInstantiatedType(String name,
+ public static TraitType makeTraitType(String name,
    List<StaticArg> sargs) {
-  return new InstantiatedType(new Span(),makeId(name),sargs);
+  return new TraitType(new Span(),makeId(name),sargs);
  }
 
- public static InstantiatedType makeInstantiatedType(Id name,
+ public static TraitType makeTraitType(Id name,
    List<StaticArg> sargs) {
-  return new InstantiatedType(name.getSpan(), name, sargs);
+  return new TraitType(name.getSpan(), name, sargs);
  }
 
- public static InstantiatedType makeInstantiatedType(Id name) {
-  return new InstantiatedType(name.getSpan(), name, Collections.<StaticArg>emptyList());
+ public static TraitType makeTraitType(Id name) {
+  return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList());
  }
 
  public static Type inArrowType(Type type) {
@@ -506,22 +506,22 @@ public class NodeFactory {
   public Id value(String arg) { return makeId(arg); }
  };
 
- public static IdType makeIdType(String string) {
-  return makeIdType(new Span(), makeId(string));
+ public static VarType makeVarType(String string) {
+  return makeVarType(new Span(), makeId(string));
  }
 
- public static IdType makeIdType(Span span, Id id) {
-  return new IdType(span, id);
+ public static VarType makeVarType(Span span, Id id) {
+  return new VarType(span, id);
  }
 
  public static LValueBind makeLValue(String name, String type) {
-  return makeLValue(name, makeIdType(type));
+  return makeLValue(name, makeVarType(type));
  }
 
  public static LValueBind makeLValue(Id name, Id type) {
   return new LValueBind(new Span(name.getSpan(), type.getSpan()),
     name,
-    Option.some((Type)makeIdType(type.getSpan(),type)),
+    Option.some((Type)makeVarType(type.getSpan(),type)),
     new ArrayList<Modifier>(),
     false);
  }
@@ -760,7 +760,7 @@ public class NodeFactory {
  public static TypeParam makeTypeParam(String name, String sup) {
   Span s = new Span();
   List<BaseType> supers = new ArrayList<BaseType>(1);
-  supers.add(makeIdType(sup));
+  supers.add(makeVarType(sup));
   return new TypeParam(s, new Id(s, name), supers);
  }
 
@@ -827,13 +827,13 @@ public class NodeFactory {
   }
 
   public static TypeArg makeTypeArg(Span span, String string) {
-   return new TypeArg(span, new IdType(span, makeId(span, string)));
+   return new TypeArg(span, new VarType(span, makeId(span, string)));
   }
 
   public static TypeArg makeTypeArg(String string) {
    Span span = new Span();
    return new TypeArg(span,
-     new IdType(span, makeId(span, string)));
+     new VarType(span, makeId(span, string)));
   }
 
   public static BoolRef makeBoolRef(String string) {
@@ -1005,18 +1005,18 @@ public class NodeFactory {
        t.getRange(), t.getThrowsClause(), t.isIo());
     }
     public Type forArrayType(ArrayType t) {
-     return new ArrayType(t.getSpan(), true, t.getElement(),
+     return new ArrayType(t.getSpan(), true, t.getType(),
        t.getIndices());
     }
-    public Type forIdType(IdType t) {
-     return new IdType(t.getSpan(), true, t.getName());
+    public Type forVarType(VarType t) {
+     return new VarType(t.getSpan(), true, t.getName());
     }
     public Type forMatrixType(MatrixType t) {
-     return new MatrixType(t.getSpan(), true, t.getElement(),
+     return new MatrixType(t.getSpan(), true, t.getType(),
        t.getDimensions());
     }
-    public Type forInstantiatedType(InstantiatedType t) {
-     return new InstantiatedType(t.getSpan(), true, t.getName(),
+    public Type forTraitType(TraitType t) {
+     return new TraitType(t.getSpan(), true, t.getName(),
        t.getArgs());
     }
     public Type forArgType(ArgType t) {
@@ -1107,13 +1107,13 @@ public class NodeFactory {
   }
 
   public static NamedType makeNamedType(APIName api, NamedType type) {
-   if (type instanceof IdType) {
-    return new IdType(type.getSpan(),
+   if (type instanceof VarType) {
+    return new VarType(type.getSpan(),
       type.isParenthesized(),
       makeId(api, type.getName()));
-   } else { // type instanceof InstantiatedType
-    InstantiatedType _type = (InstantiatedType)type;
-    return new InstantiatedType(_type.getSpan(),
+   } else { // type instanceof TraitType
+    TraitType _type = (TraitType)type;
+    return new TraitType(_type.getSpan(),
       _type.isParenthesized(),
       makeId(api, _type.getName()),
       _type.getArgs());
@@ -1170,9 +1170,9 @@ public class NodeFactory {
    Id fnName = new Id(functionName);
    List<Param> params = new LinkedList<Param>();
    List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-   Type type = new InstantiatedType(typeName, staticArgs);
+   Type type = new TraitType(typeName, staticArgs);
    params.add(new VarargsParam(new Id("args"), new VarargsType(type)));
-   Type returnType = new InstantiatedType(typeName , staticArgs);
+   Type returnType = new TraitType(typeName , staticArgs);
    return new FnDef(fnName, params, Option.some(returnType), expression);
   }
 

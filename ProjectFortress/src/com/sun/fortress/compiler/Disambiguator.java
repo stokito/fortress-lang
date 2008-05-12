@@ -70,7 +70,7 @@ import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
  *     Exprs, become MethodInvocations.</li>
  * <li>FnRefs referring to methods, and that are juxtaposed with Exprs, become 
  *     MethodInvocations.</li>
- * <li>IdTypes referring to traits become InstantiatedTypes (with 0
+ * <li>VarTypes referring to traits become TraitTypes (with 0
  *     arguments)</li> 
  * </ul>
  * 

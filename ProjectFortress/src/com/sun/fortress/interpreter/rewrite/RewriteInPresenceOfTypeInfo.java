@@ -23,8 +23,8 @@ import java.util.List;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnRef;
@@ -64,10 +64,10 @@ public class RewriteInPresenceOfTypeInfo extends Rewrite {
                 else
                     return visit(new VarRef(idn.getSpan(), fr.isParenthesized(), idn));
 
-        } else if (node instanceof InstantiatedType) {
-            InstantiatedType it = (InstantiatedType) node;
+        } else if (node instanceof TraitType) {
+            TraitType it = (TraitType) node;
             if (it.getArgs().size() == 0) {
-                return visit(new IdType(it.getSpan(), it.getName()));
+                return visit(new VarType(it.getSpan(), it.getName()));
             }
         }
         return visitNode(node);

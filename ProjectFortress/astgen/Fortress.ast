@@ -1267,17 +1267,18 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 abstract NamedType(Id name);
                     /**
-                     * type name
+                     * a type variable
                      * TraitType ::= QualifiedName
                      * e.g.) T
                      */
-                    IdType();
+                    VarType();
                     /**
-                     * instantiated type
+                     * a trait (object, alias, or proper trait) type; traits
+                     * without params are referenced with an empty arg list
                      * TraitType ::= QualifiedName [\StaticArgList\]
                      * e.g.) List[\ZZ32\]
                      */
-                    InstantiatedType(List<StaticArg> args);
+                    TraitType(List<StaticArg> args);
                     /**
                      * type of a generic singleton, used during static checking
                      */
@@ -1285,7 +1286,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 /**
                  * abbreviated type
                  */
-                abstract AbbreviatedType(Type element);
+                abstract AbbreviatedType(Type type);
                     /**
                      * array type
                      * TraitType ::= Type [ ArraySize? ]
@@ -1299,6 +1300,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * e.g.)
                      */
                     MatrixType(List<ExtentRange> dimensions);
+                    /**
+                     * type with dimension
+                     * DimType ::= Type DimExpr (in Expr)?
+                     * e.g.) RR64 Length
+                     */
+                    TaggedDimType(DimExpr dim,
+                                  Option<Expr> unit = Option.<Expr>none());
+                    /**
+                     * type with unit
+                     * DimType ::= Type Expr
+                     * e.g.) RR64 meter
+                     */
+                    TaggedUnitType(Expr unit);
             /**
              * labeled type: tuple type or argument type
              */
@@ -1349,23 +1363,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * The type of the name given to a label expression.  Used internally.
              */
             LabelType();
-            /**
-             * dimension type
-             */
-            abstract DimType(Type type);
-                /**
-                 * type with dimension
-                 * DimType ::= Type DimExpr (in Expr)?
-                 * e.g.) RR64 Length
-                 */
-                TaggedDimType(DimExpr dim,
-                              Option<Expr> unit = Option.<Expr>none());
-                /**
-                 * type with unit
-                 * DimType ::= Type Expr
-                 * e.g.) RR64 meter
-                 */
-                TaggedUnitType(Expr unit);
     /**
      * static argument
      */

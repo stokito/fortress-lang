@@ -35,7 +35,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericComparer;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;

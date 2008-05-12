@@ -197,8 +197,8 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
 /* TypeRef ::= Id StaticArgs? */
 private Type TypeRef = a1:Id a2:StaticArgs?
      { if (a2 == null)
-            yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),a1,a2);
+            yyValue = new VarType(createSpan(yyStart,yyCount), a1);
+       else yyValue = new TraitType(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* VoidType ::= ( w ) */

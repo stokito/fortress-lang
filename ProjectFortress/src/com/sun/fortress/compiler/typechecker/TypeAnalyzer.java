@@ -165,7 +165,7 @@ public class TypeAnalyzer {
                         }
                     }
 
-                    @Override public ConstraintFormula forIdType(IdType t) {
+                    @Override public ConstraintFormula forVarType(VarType t) {
                         if (s.equals(t)) { return ConstraintFormula.TRUE; }
                         else if (s instanceof OrType) {
                             return ConstraintFormula.FALSE;
@@ -176,10 +176,10 @@ public class TypeAnalyzer {
                         }
                     }
 
-                    @Override public ConstraintFormula forInstantiatedType(InstantiatedType t) {
+                    @Override public ConstraintFormula forTraitType(TraitType t) {
                         ConstraintFormula result;
-                        if (s instanceof InstantiatedType && ((InstantiatedType) s).getName().equals(t.getName())) {
-                            return equiv(((InstantiatedType) s).getArgs(), t.getArgs(), h);
+                        if (s instanceof TraitType && ((TraitType) s).getName().equals(t.getName())) {
+                            return equiv(((TraitType) s).getArgs(), t.getArgs(), h);
                         }
                         else {
                             TypeConsIndex index = _table.typeCons(t.getName());
@@ -222,7 +222,7 @@ public class TypeAnalyzer {
                         return ConstraintFormula.upperBound(s, t, h);
                     }
 
-                    @Override public ConstraintFormula forIdType(IdType s) {
+                    @Override public ConstraintFormula forVarType(VarType s) {
                         // TODO: recur on upper bounds
                         if (t instanceof AndType) { return ConstraintFormula.FALSE; }
                         else {
@@ -231,10 +231,10 @@ public class TypeAnalyzer {
                         }
                     }
 
-                    @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
+                    @Override public ConstraintFormula forTraitType(TraitType s) {
                         TypeConsIndex index = _table.typeCons(s.getName());
                         if (index instanceof TraitIndex) {
-                            if (!(t instanceof InstantiatedType)) { return ConstraintFormula.FALSE; }
+                            if (!(t instanceof TraitType)) { return ConstraintFormula.FALSE; }
                             else {
                                 TraitIndex traitIndex = (TraitIndex) index;
                                 Lambda<Type, Type> subst = makeSubstitution(traitIndex.staticParameters(),
@@ -282,7 +282,7 @@ public class TypeAnalyzer {
                             else { return ConstraintFormula.FALSE; }
                         }
 
-                        else if (t instanceof InstantiatedType) {
+                        else if (t instanceof TraitType) {
                             return sub(TUPLE, t, h);
                         }
 
@@ -341,7 +341,7 @@ public class TypeAnalyzer {
 
                     @Override public ConstraintFormula forVoidType(VoidType s) {
                         if (t instanceof VoidType) { return ConstraintFormula.TRUE; }
-                        else if (t instanceof InstantiatedType) {
+                        else if (t instanceof TraitType) {
                             // extends Any
                             return sub(ANY, t, h);
                         }
@@ -373,7 +373,7 @@ public class TypeAnalyzer {
                                 }
                             }
 
-                            else if (t instanceof InstantiatedType) {
+                            else if (t instanceof TraitType) {
                                 // extends Object
                                 result = result.or(sub(OBJECT, t, h), h);
                             }
@@ -553,15 +553,15 @@ public class TypeAnalyzer {
                         return ConstraintFormula.upperBound(s, t, h);
                     }
 
-                    @Override public ConstraintFormula forIdType(IdType s) {
+                    @Override public ConstraintFormula forVarType(VarType s) {
                         if (s.equals(t)) { return ConstraintFormula.TRUE; }
                         else { return ConstraintFormula.FALSE; }
                     }
 
-                    @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
+                    @Override public ConstraintFormula forTraitType(TraitType s) {
                         ConstraintFormula result;
-                        if (t instanceof InstantiatedType && s.getName().equals(((InstantiatedType) t).getName())) {
-                            result = equivalent(s.getArgs(), ((InstantiatedType) t).getArgs(), h);
+                        if (t instanceof TraitType && s.getName().equals(((TraitType) t).getName())) {
+                            result = equivalent(s.getArgs(), ((TraitType) t).getArgs(), h);
                         }
                         else { result = ConstraintFormula.FALSE; }
 

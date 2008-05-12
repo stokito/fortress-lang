@@ -74,7 +74,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * &#064;4:10 name="f")) params=[ (Param
  * &#064;4:12 name=(Id
  * &#064;4:11 name="y"))])])]) name=(Id
- * &#064;3:1 name="x") type=(Some val=(IdType
+ * &#064;3:1 name="x") type=(Some val=(VarType
  * &#064;3:5 name=(APIName names=["int"]))))])
  * </pre>
  */

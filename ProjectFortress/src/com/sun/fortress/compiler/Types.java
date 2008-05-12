@@ -21,7 +21,7 @@ import com.sun.fortress.nodes.*;
 import java.util.Collections;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeId;
-import static com.sun.fortress.nodes_util.NodeFactory.makeInstantiatedType;
+import static com.sun.fortress.nodes_util.NodeFactory.makeTraitType;
 
 public final class Types {
 
@@ -30,15 +30,15 @@ public final class Types {
     public static final Id ANY_NAME = makeId("AnyType", "Any");
     public static final Type ANY = new AnyType();
     public static final Type BOTTOM = new BottomType();
-    public static final Type OBJECT = makeInstantiatedType("FortressLibrary", "Object");
-    // public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
+    public static final Type OBJECT = makeTraitType("FortressLibrary", "Object");
+    // public static final Type TUPLE = NodeFactory.makeTraitType("FortressBuiltin", "Tuple");
 
     public static final Type VOID = new VoidType();
-    public static final Type FLOAT_LITERAL = makeInstantiatedType("FortressBuiltin", "FloatLiteral");
-    public static final Type INT_LITERAL = makeInstantiatedType("FortressBuiltin", "IntLiteral");
-    public static final Type BOOLEAN = makeInstantiatedType("FortressBuiltin", "Boolean");
-    public static final Type CHAR = makeInstantiatedType("FortressBuiltin", "Char");
-    public static final Type STRING = makeInstantiatedType("FortressBuiltin", "String");
-    public static final Type REGION = makeInstantiatedType("FortressLibrary", "Region");
+    public static final Type FLOAT_LITERAL = makeTraitType("FortressBuiltin", "FloatLiteral");
+    public static final Type INT_LITERAL = makeTraitType("FortressBuiltin", "IntLiteral");
+    public static final Type BOOLEAN = makeTraitType("FortressBuiltin", "Boolean");
+    public static final Type CHAR = makeTraitType("FortressBuiltin", "Char");
+    public static final Type STRING = makeTraitType("FortressBuiltin", "String");
+    public static final Type REGION = makeTraitType("FortressLibrary", "Region");
     public static final Type LABEL = new LabelType();
 }

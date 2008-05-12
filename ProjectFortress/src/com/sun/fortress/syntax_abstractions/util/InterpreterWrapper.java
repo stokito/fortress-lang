@@ -51,7 +51,7 @@ import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NormalParam;

@@ -38,7 +38,7 @@ import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Modifier;
@@ -149,8 +149,8 @@ public class FortressObjectASTVisitor<T> {
             return dispatchVoid(value);
         } else if (value.type().toString().equals("Type")) {
             return dispatchType(value);
-        } else if (value.type().toString().equals("InstantiatedType")) {
-            return dispatchInstantiatedType(value);
+        } else if (value.type().toString().equals("TraitType")) {
+            return dispatchTraitType(value);
         } else if (value.type().toString().equals("VoidType")) {
             return dispatchVoidType(value);
         } else if (value.type().toString().equals("WhereClause")) {
@@ -266,8 +266,8 @@ public class FortressObjectASTVisitor<T> {
     }
 
     private T dispatchType(FObject value) {
-        if (value.type().toString().equals("InstantiatedType")) {
-            return dispatchInstantiatedType(value);
+        if (value.type().toString().equals("TraitType")) {
+            return dispatchTraitType(value);
         } else if (value.type().toString().equals("VoidType")) {
             return dispatchVoidType(value);
         } else {
@@ -275,12 +275,12 @@ public class FortressObjectASTVisitor<T> {
         }
     }
 
-    private T dispatchInstantiatedType(FObject value) {
+    private T dispatchTraitType(FObject value) {
         FValue v1 = getField(value, "name");
         Id name = new FortressObjectASTVisitor<Id>(this.span).dispatch((FObject)v1);
         FValue v2 = getField(value, "args");
         List<StaticArg> staticArgs = dispatchList((FObject) v2);
-        return (T) new InstantiatedType(name, staticArgs);
+        return (T) new TraitType(name, staticArgs);
     }
 
     private T dispatchVoidType(FObject value) {

@@ -1282,7 +1282,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return new TypeCheckerResult(that);
     }
 
-    public TypeCheckerResult forInstantiatedType(InstantiatedType that) {
+    public TypeCheckerResult forTraitType(TraitType that) {
         return new TypeCheckerResult(that);
     }
 
@@ -1903,7 +1903,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forBaseTypeOnly(that);
 //    }
 //
-//    public RetType forIdTypeOnly(IdType that, RetType name_result) {
+//    public RetType forVarTypeOnly(VarType that, RetType name_result) {
 //        return forBaseTypeOnly(that);
 //    }
 //
@@ -1915,7 +1915,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forBaseTypeOnly(that);
 //    }
 //
-//    public RetType forInstantiatedTypeOnly(InstantiatedType that, RetType name_result, List<RetType> args_result) {
+//    public RetType forTraitTypeOnly(TraitType that, RetType name_result, List<RetType> args_result) {
 //        return forBaseTypeOnly(that);
 //    }
 //
@@ -2969,9 +2969,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forArrayTypeOnly(that, element_result, indices_result);
 //    }
 //
-//    public RetType forIdType(IdType that) {
+//    public RetType forVarType(VarType that) {
 //        RetType name_result = that.getName().accept(this);
-//        return forIdTypeOnly(that, name_result);
+//        return forVarTypeOnly(that, name_result);
 //    }
 //
 //    public RetType forInferenceVarType(InferenceVarType that) {
@@ -2984,10 +2984,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forMatrixTypeOnly(that, element_result, dimensions_result);
 //    }
 //
-//    public RetType forInstantiatedType(InstantiatedType that) {
+//    public RetType forTraitType(TraitType that) {
 //        RetType name_result = that.getName().accept(this);
 //        List<RetType> args_result = recurOnListOfStaticArg(that.getArgs());
-//        return forInstantiatedTypeOnly(that, name_result, args_result);
+//        return forTraitTypeOnly(that, name_result, args_result);
 //    }
 //
 //    public RetType forArgType(ArgType that) {

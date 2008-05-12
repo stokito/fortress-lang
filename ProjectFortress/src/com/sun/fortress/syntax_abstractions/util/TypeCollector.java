@@ -21,8 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -77,13 +77,13 @@ public class TypeCollector extends NodeDepthFirstVisitor<Option<Type>> {
  @Override
  public Option<Type> forKeywordSymbol(KeywordSymbol that) {
   Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-  return Option.<Type>some(new IdType(string));
+  return Option.<Type>some(new VarType(string));
  }
 
  @Override
  public Option<Type> forTokenSymbol(TokenSymbol that) {
   Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-  return Option.<Type>some(new IdType(string));
+  return Option.<Type>some(new VarType(string));
  }
 
  private Option<Type> handle(SyntaxSymbol symbol, String api, String id) {
@@ -95,7 +95,7 @@ public class TypeCollector extends NodeDepthFirstVisitor<Option<Type>> {
   Id list = NodeFactory.makeId(api, id);
   List<StaticArg> args = new LinkedList<StaticArg>();
   args.add(new TypeArg(type));
-  return Option.<Type>some(new InstantiatedType(list, args));
+  return Option.<Type>some(new TraitType(list, args));
  }
 
 }

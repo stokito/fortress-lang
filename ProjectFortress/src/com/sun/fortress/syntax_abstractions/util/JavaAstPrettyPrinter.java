@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
@@ -146,9 +146,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
  }
 
  @Override
- public String forIdTypeOnly(IdType that, String name_result) {
+ public String forVarTypeOnly(VarType that, String name_result) {
   String rVarName = FreshName.getFreshName("idType");
-  this.code.add("IdType "+rVarName+" = new IdType("+name_result+");");
+  this.code.add("VarType "+rVarName+" = new VarType("+name_result+");");
   return rVarName;
  }
 

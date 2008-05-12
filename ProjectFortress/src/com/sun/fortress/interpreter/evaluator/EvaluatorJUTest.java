@@ -150,12 +150,12 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 //      "   params=(Some val=[" +
 //      "     (Param @6:13" +
 //      "      name=(Id @6:11 name=\"p1\")" +
-//      "      type=(Some val=(IdType @6:13 name=(DottedId names=[\"ZZ32\"]))))])" +
+//      "      type=(Some val=(VarType @6:13 name=(DottedId names=[\"ZZ32\"]))))])" +
 //      "   defs=[" +
 //      "    (VarDecl @7:13" +
 //      "     init=(IntLiteralExpr text=\"2\" val=2)" +
 //      "     name=(Id @7:4 name=\"f1\")" +
-//      "     type=(Some val=(IdType @7:9 name=(DottedId names=[\"ZZ32\"]))))" +
+//      "     type=(Some val=(VarType @7:9 name=(DottedId names=[\"ZZ32\"]))))" +
 //      "    (FnDecl @8:11" +
 //      "     body=(VarRef var=(Id name=\"f1\"))" +
 //      "     contract=(Contract @8:6)" +

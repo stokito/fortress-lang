@@ -186,7 +186,7 @@ public class Printer extends NodeReflection {
 
             boolean oneLiner = oneLineVarRef
                     && (oneLinerNesting > 0 || o instanceof Op
-                            || o instanceof IdType || o instanceof Id || o instanceof Wrapper);
+                            || o instanceof VarType || o instanceof Id || o instanceof Wrapper);
             Field[] fields = getCachedPrintableFields(cl, clname);
             w.append("(");
             w.append(clname);

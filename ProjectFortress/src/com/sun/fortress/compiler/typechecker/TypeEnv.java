@@ -145,7 +145,7 @@ public abstract class TypeEnv {
                 }
                 public StaticArg forTypeParam(TypeParam that) {
                     return new TypeArg(new Span(),
-                                       NodeFactory.makeIdType(new Span(),
+                                       NodeFactory.makeVarType(new Span(),
                                                               that.getName()));
                 }
                 public StaticArg forUnitParam(UnitParam that) {
