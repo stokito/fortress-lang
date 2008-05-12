@@ -12,6 +12,8 @@ api Xml
     XExpr :Expr:=
       b:XmlStart c:XmlContent e:XmlEnd
       <[ "<" b ">" c "</" e ">" ]>
+    | b:XmlStart e:XmlEnd
+      <[ "<" b "></" e ">" ]>
     | x:XmlComplete <[ "<" x "/>" ]>
 
     XmlComplete :Expr:=
@@ -63,6 +65,7 @@ api Xml
     | x:g <[ x ]>
     | x:h <[ x ]>
     | x:i <[ x ]>
+    | x:j <[ x ]>
     | x:k <[ x ]>
     | x:l <[ x ]>
     | x:m <[ x ]>
@@ -79,6 +82,33 @@ api Xml
     | x:x <[ x ]>
     | x:y <[ x ]>
     | x:z <[ x ]>
+    | x:A <[ x ]>
+    | x:B <[ x ]>
+    | x:C <[ x ]>
+    | x:D <[ x ]>
+    | x:E <[ x ]>
+    | x:F <[ x ]>
+    | x:G <[ x ]>
+    | x:H <[ x ]>
+    | x:I <[ x ]>
+    | x:J <[ x ]>
+    | x:K <[ x ]>
+    | x:L <[ x ]>
+    | x:M <[ x ]>
+    | x:N <[ x ]>
+    | x:O <[ x ]>
+    | x:P <[ x ]>
+    | x:Q <[ x ]>
+    | x:R <[ x ]>
+    | x:S <[ x ]>
+    | x:T <[ x ]>
+    | x:U <[ x ]>
+    | x:V <[ x ]>
+    | x:W <[ x ]>
+    | x:X <[ x ]>
+    | x:Y <[ x ]>
+    | x:Z <[ x ]>
+
 
     (* Shouldn't need [] around < and > *)
     OpenBracket :Expr:=
