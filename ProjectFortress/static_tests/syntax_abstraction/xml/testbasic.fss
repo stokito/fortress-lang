@@ -1,0 +1,34 @@
+component testbasic
+
+import Xml.{...}
+export Executable
+
+run(args:String...) = do
+  println "Answer is " (xml <a />)
+  println "Answer is " (xml <aaa>aa</aaa>)
+  println "Answer is " (xml <aaa><foobar /></aaa>)
+  println "Answer is " (xml <aaa foo="bar" />)
+  println "Answer is " (xml <aaa><aa>aa</aa></aaa>)
+  println "Answer is " (xml <hello><world>hi mom</world></hello>)
+  println "Answer is " (xml <hello attr="foobar"><world>hi mom</world></hello>)
+  (*
+  println "Answer is " (xml <aaal> <aaaal> aal </aaaal> </aaal>)
+  println "Answer is " (xml <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)
+  *)
+(*
+  println "Answer is " (xml <aaal> stuff </aaal>)
+  *)
+(*
+  println "Answer is " (xml <aaaaal>)
+  *)
+  (*
+  println "Answer is " (xml a)
+  *)
+  (*
+  println "Answer is " (xml aa)
+  *)
+  (* println (xml <aaaa>) *)
+  println "ok"
+end
+
+end
