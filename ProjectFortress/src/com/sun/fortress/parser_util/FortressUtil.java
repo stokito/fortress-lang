@@ -161,39 +161,43 @@ public final class FortressUtil {
 
     public static Expr makeSubscripting(Span span, Span spanOpen, Span spanClose,
                                         String left, String right,
-                                        Expr base, List<Expr> args) {
+                                        Expr base, List<Expr> args,
+                                        List<StaticArg> sargs) {
         Op open  = NodeFactory.makeOpEnclosing(spanOpen, left);
         Op close = NodeFactory.makeOpEnclosing(spanClose, right);
-        return makeSubscripting(span, base, open, close, args);
+        return makeSubscripting(span, base, open, close, args, sargs);
     }
 
     public static Expr makeSubscripting(Span span, Expr base, Op open,
-                                        Op close, List<Expr> args) {
+                                        Op close, List<Expr> args,
+                                        List<StaticArg> sargs) {
         Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close),
                                      open, close);
         List<Expr> es;
         if (args == null) es = FortressUtil.emptyExprs();
         else              es = args;
-        return new SubscriptExpr(span, false, base, es, Option.some(op));
+        return new SubscriptExpr(span, false, base, es, Option.some(op), sargs);
     }
 
     public static Expr makeSubscripting(Span span, Span spanOpen, Span spanClose,
                                         String left, String right,
-                                        PureList<Expr> base, List<Expr> args) {
+                                        PureList<Expr> base, List<Expr> args,
+                                        List<StaticArg> sargs) {
         Op open  = NodeFactory.makeOpEnclosing(spanOpen, left);
         Op close = NodeFactory.makeOpEnclosing(spanClose, right);
-        return makeSubscripting(span, base, open, close, args);
+        return makeSubscripting(span, base, open, close, args, sargs);
     }
 
     public static Expr makeSubscripting(Span span, PureList<Expr> base, Op open,
-                                        Op close, List<Expr> args) {
+                                        Op close, List<Expr> args,
+                                        List<StaticArg> sargs) {
         Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close),
                                      open, close);
         Expr arr = buildPrimary((PureList<Expr>)base);
         List<Expr> es;
         if (args == null) es = FortressUtil.emptyExprs();
         else              es = args;
-        return new SubscriptExpr(span, false, arr, es, Option.some(op));
+        return new SubscriptExpr(span, false, arr, es, Option.some(op), sargs);
     }
 
     private static void multiple(Modifier m) {

@@ -43,7 +43,8 @@ Type Type =
                yyValue = new TaggedDimType(_ty.getSpan(), _ty.getType(),
                                            _ty.getDim(), Option.some(a2));
            } else {
-               yyValue = error(ty, "A dimension type is expected.");
+               yyValue = syntaxError(ty.getSpan(),
+                                     "A dimension type is expected.");
            }
        }
      };
@@ -211,10 +212,11 @@ constant inline Action<Type> ArrayTypeSize =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return error((Type)base, "It is a static error if an " +
-                                "exponentiation or a vector type or an array " +
-                                "type is immediately followed by a left " +
-                                "square bracket.");
+                   return syntaxError(((Type)base).getSpan(),
+                                      "It is a static error if an " +
+                                      "exponentiation or a vector type or an " +
+                                      "array type is immediately followed by " +
+                                      "a left square bracket.");
                return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
                                                 (Type)base, Option.wrap(a1));
            }};
@@ -258,9 +260,10 @@ constant inline Action<Type> Exponentiation =
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base) ||
                    NodeUtil.isExponentiation(a1))
-                   return error((Type)base, "It is a static error if an " +
-                                "exponentiation is immediately followed by " +
-                                "an exponentiation.");
+                   return syntaxError(((Type)base).getSpan(),
+                                      "It is a static error if an " +
+                                      "exponentiation is immediately followed " +
+                                      "by an exponentiation.");
                if (base instanceof DimExpr) {
                    return new ExponentDim(createSpan(yyStart,yyCount),
                                           (DimExpr)base, a1);
@@ -274,9 +277,10 @@ constant inline Action<Type> Exponentiation =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return error((Type)base, "It is a static error if an " +
-                                "exponentiation is immediately followed by " +
-                                "an exponentiation.");
+                   return syntaxError(((Type)base).getSpan(),
+                                      "It is a static error if an " +
+                                      "exponentiation is immediately followed " +
+                                      "by an exponentiation.");
                return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
                                                  (Type)base,a1,a2s.list());
            }};
@@ -361,10 +365,11 @@ constant inline Action<Type> ArrayTypeSizeTrait =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return error((Type)base, "It is a static error if an " +
-                                "exponentiation or a vector type or an array " +
-                                "type is immediately followed by a left " +
-                                "square bracket.");
+                   return syntaxError(((Type)base).getSpan(),
+                                      "It is a static error if an " +
+                                      "exponentiation or a vector type or an " +
+                                      "array type is immediately followed by " +
+                                      "a left square bracket.");
                return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
                                                 (Type)base, Option.wrap(a1));
            }};
@@ -380,9 +385,10 @@ constant inline Action<Type> ExponentiationTrait =
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base) ||
                    NodeUtil.isExponentiation(a1))
-                   return error((Type)base, "It is a static error if an " +
-                                "exponentiation is immediately followed by " +
-                                "an exponentiation.");
+                   return syntaxError(((Type)base).getSpan(),
+                                      "It is a static error if an " +
+                                      "exponentiation is immediately followed " +
+                                      "by an exponentiation.");
                return TypeResolver.makeMatrixType(createSpan(yyStart,yyCount),
                                                   (Type)base, a1);
            }};
@@ -391,9 +397,10 @@ constant inline Action<Type> ExponentiationTrait =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return error((Type)base, "It is a static error if an " +
-                                "exponentiation is immediately followed by " +
-                                "an exponentiation.");
+                   return syntaxError(((Type)base).getSpan(),
+                                      "It is a static error if an " +
+                                      "exponentiation is immediately followed " +
+                                      "by an exponentiation.");
                return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
                                                  (Type)base,a1,a2s.list());
            }};

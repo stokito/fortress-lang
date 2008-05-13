@@ -87,8 +87,9 @@ FnHeaderFront OpHeaderFront :=
            }
            name = new Enclosing(span, leftOp, opa4);
        } else
-           name = error(leftOp, "Mismatched enclosing operator definition: "
-                                + left + " and " + right);
+           name = syntaxError(leftOp.getSpan(),
+                              "Mismatched enclosing operator definition: " +
+                              left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa2, opa3, opparam);
@@ -123,8 +124,9 @@ FnHeaderFront AbsOpHeaderFront :=
            }
            name = new Enclosing(span, leftOp, opa4);
        } else
-           name = error(leftOp, "Mismatched enclosing operator definition: "
-                                + left + " and " + right);
+           name = syntaxError(leftOp.getSpan(),
+                              "Mismatched enclosing operator definition: " +
+                              left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa2, opa3, opparam);

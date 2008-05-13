@@ -163,9 +163,10 @@ private constant inline Action<IntExpr> ExponentIntExpr =
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
                if (NodeUtil.isExponentiation((IntExpr)base))
-                   return error((IntExpr)base, "It is a static error if an " +
-                                "exponentiation is immediately followed by " +
-                                "an exponentiation.");
+                   return syntaxError(((IntExpr)base).getSpan(),
+                                      "It is a static error if an " +
+                                      "exponentiation is immediately followed " +
+                                      "by an exponentiation.");
                return new ExponentConstraint(createSpan(yyStart,yyCount),
                                              (IntExpr)base, a1);
            }};
@@ -481,7 +482,8 @@ StaticArg StaticArg =
          yyValue = new DimArg(span, new QuotientDim(span, base,
                                                     TypeResolver.typeToDim(a1)));
        } catch (TypeConvertFailure e) {
-         yyValue = error(a1, "A dimension is expected but a type is found.");
+         yyValue = syntaxError(a1.getSpan(),
+                               "A dimension is expected but a type is found.");
        }
      }
    / a1:DimPrefixOp sr a2:Type
@@ -490,7 +492,8 @@ StaticArg StaticArg =
          yyValue = new DimArg(span,
                               new OpDim(span,TypeResolver.typeToDim(a2),a1));
        } catch (TypeConvertFailure e) {
-         yyValue = error(a2, "A dimension is expected but a type is found.");
+         yyValue = syntaxError(a2.getSpan(),
+                               "A dimension is expected but a type is found.");
        }
      }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /

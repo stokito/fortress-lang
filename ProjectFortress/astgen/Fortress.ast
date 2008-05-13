@@ -975,8 +975,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) a[i]
              */
             SubscriptExpr(Expr obj, List<Expr> subs,
-                          Option<Enclosing> op = Option.<Enclosing>none())
-                         implements LHS;
+                          Option<Enclosing> op = Option.<Enclosing>none(),
+                          List<StaticArg> staticArgs
+                              = Collections.<StaticArg>emptyList())
+                          implements LHS;
             /**
              * primary expression
              */
@@ -1053,7 +1055,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * If the reference to outer scope can be "fixed" (there is
                      * only one out scope) then it might be good to narrow this
                      * back down to an Id.
-                     * 
+                     *
                      * Names of "field" must be unqualified.
                      */
                     _RewriteFieldRef(Name field);
@@ -1147,7 +1149,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * a method invocation
                      * some are created by parsing, while others require later
                      * static analysis to disambiguate from function applications
-                     * 
+                     *
                      * Names of "method" must be unqualified.
                      */
                     MethodInvocation(Expr obj, Id method,
@@ -2035,7 +2037,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * mathematical item that is a subscripting
              * MathItem ::= Subscripting
              */
-            SubscriptingMI(Enclosing op, List<Expr> exprs);
+            SubscriptingMI(Enclosing op, List<Expr> exprs,
+                           List<StaticArg> staticArgs);
     /**
      * operator fixity
      */

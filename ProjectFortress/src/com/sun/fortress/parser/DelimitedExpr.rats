@@ -61,7 +61,8 @@ Expr DelimitedExpr =
    / Do
    / label w a1:Id w a2:BlockElems w end w a3:Id
      { if (!a1.getText().equals(a3.getText()))
-           error(a1, "Mismatched identifiers for label expressions.");
+             syntaxError(a1.getSpan(),
+                         "Mismatched identifiers for label expressions.");
        yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
    / while w a1:GeneratorClause w a2:Do

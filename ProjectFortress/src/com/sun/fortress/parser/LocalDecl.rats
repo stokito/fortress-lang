@@ -147,7 +147,7 @@ LocalVarDecl LocalVarDecl =
        List<Type> tys = a3.getElements();
        Option<Expr> init;
        if (a2.size() != tys.size())
-           error(new Id(span,"_"),"Mismatched numbers of variables and types.");
+           syntaxError(span, "Mismatched numbers of variables and types.");
        if (a1 != null) {
            a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
            if (a4 == null) init = Option.none();
