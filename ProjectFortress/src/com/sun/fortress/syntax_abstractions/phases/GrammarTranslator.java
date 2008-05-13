@@ -99,10 +99,9 @@ public class GrammarTranslator {
 		m.dependencies = mds;
 
 		for (Production p: m.productions) {
-			GrammarEnv grammarEnv = new GrammarEnv(module.getDeclaredNonterminals());
 			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
 				if (member.getName().getText().equals(p.name.name)) {
-					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member, grammarEnv);
+					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);
 					p.choice.alternatives.addAll(ptr.alternatives());
 				}
 			}

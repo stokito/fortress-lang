@@ -39,9 +39,13 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class MemberEnv {
 
-	private Map<Id, Type> varToTypeMap;
+    private Type returnType;
+    private Id name;
+    private Map<SyntaxDef, SyntaxDeclEnv> syntaxDefToEnv;
+    
+    
+    private Map<Id, Type> varToTypeMap;
 	private Id[] params;
-	private Map<SyntaxDef, SyntaxDeclEnv> syntaxDefToEnv;
 
 	private MemberEnv() {
 		this.varToTypeMap = new HashMap<Id, Type>();
@@ -50,6 +54,9 @@ public class MemberEnv {
 	
 	public MemberEnv(NonterminalIndex<? extends GrammarMemberDecl> member) {
 		this();
+		this.name = member.getName();
+		this.returnType = member.getType();
+		
 		if (member.getAst() instanceof NonterminalDecl) {
 			NonterminalDecl nd = (NonterminalDecl) member.getAst();
 			initEnv(nd.getParams(), nd.getSyntaxDefs());
@@ -82,7 +89,7 @@ public class MemberEnv {
 		}
 	}
 
-	private void add(SyntaxDef sd, SyntaxDeclEnv sdEnv) {
+	public void add(SyntaxDef sd, SyntaxDeclEnv sdEnv) {
 		this.syntaxDefToEnv.put(sd, sdEnv);		
 	}
 
@@ -115,6 +122,10 @@ public class MemberEnv {
 	}
 
 	public String toString() {
-		return ""+this.varToTypeMap+", "+Arrays.toString(params)+", "+this.syntaxDefToEnv.keySet();
+		return this.name+", var types: "+this.varToTypeMap+", Params: "+Arrays.toString(params)+", "+this.syntaxDefToEnv;
 	}
+
+    public Type getType() {
+        return this.returnType;
+    }
 }

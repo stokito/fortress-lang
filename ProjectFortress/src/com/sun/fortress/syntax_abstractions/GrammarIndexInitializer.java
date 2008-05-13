@@ -43,82 +43,82 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 public class GrammarIndexInitializer {
 
- public static class Result extends StaticPhaseResult {
-  private Collection<GlobalGrammarEnv> envs;
+    public static class Result extends StaticPhaseResult {
+        private Collection<GlobalGrammarEnv> envs;
 
-  public Result(Collection<GlobalGrammarEnv> envs,
-    Iterable<? extends StaticError> errors) {
-   super(errors);
-   this.envs = envs;
-  }
+        public Result(Collection<GlobalGrammarEnv> envs,
+                Iterable<? extends StaticError> errors) {
+            super(errors);
+            this.envs = envs;
+        }
 
-  public Collection<GlobalGrammarEnv> env() { return envs; }
- }
-
- public static Result init(Collection<GlobalGrammarEnv> envs) {
-  Collection<StaticError> ses = new LinkedList<StaticError>();
-  initGrammarExtends(envs, ses);
-  initNonterminalExtends(envs, ses);
-  return new Result(envs, ses);
- }
-
- /**
-  * Each nonterminal index is linked to the other
-  * @param envs
-  * @param ses
-  */
- private static void initNonterminalExtends(Collection<GlobalGrammarEnv> envs,
-   Collection<StaticError> ses) {
-  for (GlobalGrammarEnv env: envs) {
-   for (GrammarIndex g: env.getGrammars()) {
-    // Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
-    for (NonterminalIndex /*<? extends GrammarMemberDecl> */ n: g.getDeclaredNonterminals()) {
-     if (n instanceof NonterminalExtendIndex) {
-      Id name = n.getName();
-      GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-      Collection<NonterminalIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name.getText(), g);
-      if (s.isEmpty()) {
-       ses.add(StaticError.make("Unknown extended nonterminal: "+name+" in grammar: "+g.getName(), n.getAst()));
-      }
-     }
+        public Collection<GlobalGrammarEnv> env() { return envs; }
     }
-   }
-  }
 
- }
+    public static Result init(Collection<GlobalGrammarEnv> envs) {
+        Collection<StaticError> ses = new LinkedList<StaticError>();
+        initGrammarExtends(envs, ses);
+        initNonterminalExtends(envs, ses);
+        return new Result(envs, ses);
+    }
 
- /**
-  * Each grammar index has a collection of the grammar index' it extends
-  * @param envs
-  * @param ses
-  */
- private static void initGrammarExtends(Collection<GlobalGrammarEnv> envs,
-   Collection<StaticError> ses) {
-  // Record all the grammar names and their grammar index
-  Map<Id, GrammarIndex> m = new HashMap<Id, GrammarIndex>();
-  for (GlobalGrammarEnv gEnv: envs) {
-   for (GrammarIndex g: gEnv.getGrammars()) {
-    m.put(g.getName(), g);
-   }
-  }
-  // Make sure that a grammar index has a reference to the grammar index's it extends
-  for (GlobalGrammarEnv gEnv: envs) {
-   for (GrammarIndex g: gEnv.getGrammars()) {
-//    // Init nonterminal envs
-//    g.setEnv(new NonterminalEnv(g));
-    if (g.ast().isSome()) {
-     List<GrammarIndex> gs = new LinkedList<GrammarIndex>();
-     for (Id otherName: g.ast().unwrap().getExtends()) {
-      if (m.containsKey(otherName)) {
-       gs.add(m.get(otherName));
-      }
-     }
-     g.setExtended(gs);
+    /**
+     * Each nonterminal index is linked to the other
+     * @param envs
+     * @param ses
+     */
+    private static void initNonterminalExtends(Collection<GlobalGrammarEnv> envs,
+            Collection<StaticError> ses) {
+        for (GlobalGrammarEnv env: envs) {
+            for (GrammarIndex g: env.getGrammars()) {
+                // Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
+                for (NonterminalIndex /*<? extends GrammarMemberDecl> */ n: g.getDeclaredNonterminals()) {
+                    if (n instanceof NonterminalExtendIndex) {
+                        Id name = n.getName();
+                        GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
+                        Collection<NonterminalIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name.getText(), g);
+                        if (s.isEmpty()) {
+                            ses.add(StaticError.make("Unknown extended nonterminal: "+name+" in grammar: "+g.getName(), n.getAst()));
+                        }
+                    }
+                }
+            }
+        }
+
     }
-    else {
-     ses.add(StaticError.make("Malformed grammar", g.getName()));
+
+    /**
+     * Each grammar index has a collection of the grammar index' it extends
+     * @param envs
+     * @param ses
+     */
+    private static void initGrammarExtends(Collection<GlobalGrammarEnv> envs,
+            Collection<StaticError> ses) {
+        // Record all the grammar names and their grammar index
+        Map<Id, GrammarIndex> m = new HashMap<Id, GrammarIndex>();
+        for (GlobalGrammarEnv gEnv: envs) {
+            for (GrammarIndex g: gEnv.getGrammars()) {
+                m.put(g.getName(), g);
+            }
+        }
+        // Make sure that a grammar index has a reference to the grammar index's it extends
+        for (GlobalGrammarEnv gEnv: envs) {
+            for (GrammarIndex g: gEnv.getGrammars()) {
+                //    // Init nonterminal envs
+                //    g.setEnv(new NonterminalEnv(g));
+                if (g.ast().isSome()) {
+                    List<GrammarIndex> gs = new LinkedList<GrammarIndex>();
+                    for (Id otherName: g.ast().unwrap().getExtends()) {
+                        if (m.containsKey(otherName)) {
+                            gs.add(m.get(otherName));
+                        }
+                    }
+                    g.setExtended(gs);
+                }
+                else {
+                    ses.add(StaticError.make("Malformed grammar", g.getName()));
+                }
+            }
+        }
     }
-   }
-  }
- }
 }

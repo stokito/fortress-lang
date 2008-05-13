@@ -62,20 +62,20 @@ public class MemberTranslator {
 
 	}
 
-	private MemberTranslator(GrammarEnv grammarEnv) {
+	private MemberTranslator() {
 		this.productions = new LinkedList<Production>();
 		this.errors = new LinkedList<StaticError>();
-		this.grammarEnv = grammarEnv;
 	}
 
 	/**
 	 * Translate a collection of grammar members to Rats! productions
+	 * @param grammarEnv 
 	 * @param
 	 * @param env
 	 * @return
 	 */
 	public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
-		return new MemberTranslator(new GrammarEnv(members)).doTranslate(members);
+		return new MemberTranslator().doTranslate(members);
 	}
 
 	private Result doTranslate(

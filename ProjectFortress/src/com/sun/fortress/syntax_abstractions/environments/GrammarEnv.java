@@ -20,33 +20,40 @@ package com.sun.fortress.syntax_abstractions.environments;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import com.sun.fortress.compiler.index.NonterminalIndex;
-import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 
+/**
+ * Contains a map from fully qualified nonterminal or terminal
+ * names to their corresponding environment. 
+ */
 public class GrammarEnv {
 
-	Map<Id, MemberEnv> members;
+	private static Map<Id, MemberEnv> members = new HashMap<Id, MemberEnv>();
 
-	public GrammarEnv() {
-		this.members = new HashMap<Id, MemberEnv>();
+    public static void add(Id id, MemberEnv memberEnv) {
+        GrammarEnv.members.put(id, memberEnv);
+    }
+	
+	public static boolean contains(Id name) {
+		return GrammarEnv.members.containsKey(name);
 	}
 
-	public GrammarEnv(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
-		this();
-		for (NonterminalIndex<? extends GrammarMemberDecl> member: members) {
-			MemberEnv menv = new MemberEnv(member);
-			this.members.put(member.getName(), menv);
+	public static MemberEnv getMemberEnv(Id name) {
+		return GrammarEnv.members.get(name);
+	}
+
+	public static String getDump() {
+		String s = "GrammarEnv: \n";
+		for (Id id: GrammarEnv.members.keySet()) {
+		    s += " - "+id.toString()+"\n";
+		    s += " - "+GrammarEnv.members.get(id).toString()+"\n";
 		}
+		return s;
 	}
 
-	public boolean contains(Id name) {
-		return this.members.containsKey(name);
-	}
-
-	public MemberEnv getMemberEnv(Id name) {
-		return this.members.get(name);
-	}
-
+    public static void clear() {
+        GrammarEnv.members.clear();
+    }
 }

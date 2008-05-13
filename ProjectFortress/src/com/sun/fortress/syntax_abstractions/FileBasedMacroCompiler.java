@@ -30,6 +30,8 @@ import java.util.Collection;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnvInitializer;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
 import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
@@ -38,18 +40,18 @@ import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
-	public Result compile(Collection<GlobalGrammarEnv> envs, GlobalEnvironment env) {
+	public Result compile(Collection<GlobalGrammarEnv> grammarIndexs, GlobalEnvironment env) {
 
 		/*
 		 * Initialize GrammarIndex
 		 */
-		GrammarIndexInitializer.Result geir = GrammarIndexInitializer.init(envs); 
-		if (!geir.isSuccessful()) { return new Result(null, geir.errors()); }
-
+		GrammarIndexInitializer.Result giir = GrammarIndexInitializer.init(grammarIndexs); 
+		if (!giir.isSuccessful()) { return new Result(null, giir.errors()); }
+	
 		/* 
 		 * Resolve grammar extensions and extensions of nonterminal definitions.
 		 */
-		ModuleTranslator.Result mrr = ModuleTranslator.translate(envs);
+		ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 
 		if (ProjectProperties.debug) {
@@ -58,6 +60,15 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 			}
 		}
 
+	    /*
+         * Initialize mapping from nonterminal names to member environments
+         */
+        GrammarEnvInitializer.init(mrr.modules());       
+		
+        if (ProjectProperties.debug) {
+            System.err.println(GrammarEnv.getDump());
+        }
+        
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */

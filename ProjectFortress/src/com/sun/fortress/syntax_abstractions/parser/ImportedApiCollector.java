@@ -49,136 +49,136 @@ import edu.rice.cs.plt.iter.IterUtil;
  */
 public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
- private boolean isTopLevel;
- private GlobalEnvironment env;
- private Collection<GlobalGrammarEnv> grammars;
- private Iterable<? extends StaticError> errors;
+    private boolean isTopLevel;
+    private GlobalEnvironment env;
+    private Collection<GlobalGrammarEnv> grammars;
+    private Iterable<? extends StaticError> errors;
 
- public class Result extends StaticPhaseResult {
-  Collection<GlobalGrammarEnv> grammars;
+    public class Result extends StaticPhaseResult {
+        Collection<GlobalGrammarEnv> grammars;
 
-  public Result(Collection<GlobalGrammarEnv> grammars) {
-   super();
-   this.grammars = grammars;
-  }
+        public Result(Collection<GlobalGrammarEnv> grammars) {
+            super();
+            this.grammars = grammars;
+        }
 
-  public Result(Collection<GlobalGrammarEnv> grammars,
-    Iterable<? extends StaticError> errors) {
-   super(errors);
-   this.grammars = grammars;
-  }
+        public Result(Collection<GlobalGrammarEnv> grammars,
+                Iterable<? extends StaticError> errors) {
+            super(errors);
+            this.grammars = grammars;
+        }
 
 
-  public Collection<GlobalGrammarEnv> grammars() { return grammars; }
+        public Collection<GlobalGrammarEnv> grammars() { return grammars; }
 
-  public Result add(Result otherResult) {
-   Collection<GlobalGrammarEnv> grammars = new LinkedList<GlobalGrammarEnv>();
-   Collection<StaticError> errors = new LinkedList<StaticError>();
-   grammars.addAll(this.grammars);
-   grammars.addAll(otherResult.grammars);
-   for (StaticError e: this.errors()) {
-    errors.add(e);
-   }
-   for (StaticError e: otherResult.errors()) {
-    errors.add(e);
-   }
-   return new Result(grammars, errors);
-  }
- }
-
- public ImportedApiCollector(GlobalEnvironment env) {
-  this.env = env;
-  this.isTopLevel = true;
-  this.grammars = new LinkedList<GlobalGrammarEnv>();
-  this.errors = new LinkedList<StaticError>();
- }
-
- public Result collectApis(CompilationUnit c) {
-  c.accept(this);
-  return new Result(this.grammars, errors);
- }
-
- @Override
- public void forImportApiOnly(ImportApi that) {
-  for (AliasedAPIName apiAlias : that.getApis()) {
-   if (env.definesApi(apiAlias.getApi())) {
-    ApiIndex api = env.api(apiAlias.getApi());
-    if (!api.grammars().values().isEmpty()) {
-     grammars.add(new GlobalGrammarEnv(api .grammars().values(), this.isTopLevel));
-     getRecursiveImports(apiAlias.getApi());
+        public Result add(Result otherResult) {
+            Collection<GlobalGrammarEnv> grammars = new LinkedList<GlobalGrammarEnv>();
+            Collection<StaticError> errors = new LinkedList<StaticError>();
+            grammars.addAll(this.grammars);
+            grammars.addAll(otherResult.grammars);
+            for (StaticError e: this.errors()) {
+                errors.add(e);
+            }
+            for (StaticError e: otherResult.errors()) {
+                errors.add(e);
+            }
+            return new Result(grammars, errors);
+        }
     }
-   }
-   else {
-    StaticError.make("Undefined api: "+apiAlias.getApi(), that);
-   }
-  }
- }
 
- @Override
- public void forImportStarOnly(ImportStar that) {
-  Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
-  if (env.definesApi(that.getApi())) {
-   for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
-    if (grammar.ast().isSome()) {
-     if (!that.getExcept().contains(grammar.ast().unwrap().getName())) {
-      gs.add(grammar);
-     }
+    public ImportedApiCollector(GlobalEnvironment env) {
+        this.env = env;
+        this.isTopLevel = true;
+        this.grammars = new LinkedList<GlobalGrammarEnv>();
+        this.errors = new LinkedList<StaticError>();
     }
-   }
-   if (!gs.isEmpty()) {
-    grammars.add(new GlobalGrammarEnv(gs, this.isTopLevel));
-    getRecursiveImports(that.getApi());
-   }
-  }
-  else {
-   StaticError.make("Undefined api: "+that.getApi(), that);
-  }
- }
+
+    public Result collectApis(CompilationUnit c) {
+        c.accept(this);
+        return new Result(this.grammars, errors);
+    }
+
+    @Override
+    public void forImportApiOnly(ImportApi that) {
+        for (AliasedAPIName apiAlias : that.getApis()) {
+            if (env.definesApi(apiAlias.getApi())) {
+                ApiIndex api = env.api(apiAlias.getApi());
+                if (!api.grammars().values().isEmpty()) {
+                    grammars.add(new GlobalGrammarEnv(api.grammars().values(), this.isTopLevel));
+                    getRecursiveImports(apiAlias.getApi());
+                }
+            }
+            else {
+                StaticError.make("Undefined api: "+apiAlias.getApi(), that);
+            }
+        }
+    }
+
+    @Override
+    public void forImportStarOnly(ImportStar that) {
+        Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
+        if (env.definesApi(that.getApi())) {
+            for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
+                if (grammar.ast().isSome()) {
+                    if (!that.getExcept().contains(grammar.ast().unwrap().getName())) {
+                        gs.add(grammar);
+                    }
+                }
+            }
+            if (!gs.isEmpty()) {
+                grammars.add(new GlobalGrammarEnv(gs, this.isTopLevel));
+                getRecursiveImports(that.getApi());
+            }
+        }
+        else {
+            StaticError.make("Undefined api: "+that.getApi(), that);
+        }
+    }
 
 
-	@Override
-	public void forImportNamesOnly(ImportNames that) {
-		if (env.definesApi(that.getApi())) {
-			GlobalGrammarEnv grammarEnv = new GlobalGrammarEnv();
-			for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
-				String grammarName = grammar.ast().unwrap().getName().toString();
-				boolean found = false;
-				for (AliasedSimpleName name: that.getAliasedNames()) {
-					Id tmp = NodeFactory.makeId(name.getSpan(), that.getApi(), name.getName().toString());
-					String importedGrammarName = tmp.toString();					
-					if (importedGrammarName.equals(grammarName)) {
-						found  = true;
-						break;
-					}
-				}
-				if (found) {
-					grammarEnv.addGrammar(grammar, this.isTopLevel);
-				}
-				else {
-					grammarEnv.addGrammar(grammar, false);
-				}
-			}
-			if (!grammarEnv.getGrammars().isEmpty()) {
-				grammars.add(grammarEnv);
-				getRecursiveImports(that.getApi());
-			}
-		}
-		else {
-			StaticError.make("Undefined api: "+that.getApi(), that);
-		}
-	}
+    @Override
+    public void forImportNamesOnly(ImportNames that) {
+        if (env.definesApi(that.getApi())) {
+            GlobalGrammarEnv grammarEnv = new GlobalGrammarEnv();
+            for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
+                String grammarName = grammar.ast().unwrap().getName().toString();
+                boolean found = false;
+                for (AliasedSimpleName name: that.getAliasedNames()) {
+                    Id tmp = NodeFactory.makeId(name.getSpan(), that.getApi(), name.getName().toString());
+                    String importedGrammarName = tmp.toString();					
+                    if (importedGrammarName.equals(grammarName)) {
+                        found  = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    grammarEnv.addGrammar(grammar, this.isTopLevel);
+                }
+                else {
+                    grammarEnv.addGrammar(grammar, false);
+                }
+            }
+            if (!grammarEnv.getGrammars().isEmpty()) {
+                grammars.add(grammarEnv);
+                getRecursiveImports(that.getApi());
+            }
+        }
+        else {
+            StaticError.make("Undefined api: "+that.getApi(), that);
+        }
+    }
 
- /**
-  * @param that
-  */
- private void getRecursiveImports(APIName api) {
-  boolean isTopLevel = this.isTopLevel;
-  this.isTopLevel = false;
-  env.api(api).ast().accept(this);
-  this.isTopLevel = isTopLevel;
- }
+    /**
+     * @param that
+     */
+    private void getRecursiveImports(APIName api) {
+        boolean isTopLevel = this.isTopLevel;
+        this.isTopLevel = false;
+        env.api(api).ast().accept(this);
+        this.isTopLevel = isTopLevel;
+    }
 
- public Collection<GlobalGrammarEnv> getGrammars() {
-  return this.grammars;
- }
+    public Collection<GlobalGrammarEnv> getGrammars() {
+        return this.grammars;
+    }
 }
