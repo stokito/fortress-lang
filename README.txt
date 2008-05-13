@@ -1,4 +1,5 @@
 PROJECT FORTRESS SUBVERSION REPOSITORY
+--------------------------------------
 
 This README exists in the top-level directory of the Fortress project.
 Information about Fortress can be found at the following web site:
@@ -73,6 +74,7 @@ no reason to override the settings in this file.)
 
 
 SETTING UP YOUR ENVIRONMENT
+---------------------------
 
 We assume you are using an operating system with a Unix-style shell
 (for example, Solaris, Linux, Mac OS X, or Cygwin on Windows).  You
@@ -141,6 +143,7 @@ classpath).
 
 
 DEMO PROGRAMS
+-------------
 
 The directory ProjectFortress/demos/ contains some demonstration Fortress
 programs.  Among them are:
@@ -167,7 +170,30 @@ how to parse text using the Fortress libraries, you should look here
 (it's presently far more painful than we'd like).
 
 
+TEST PROGRAMS
+-------------
+
+The directory ProjectFortress/tests/ contains some Fortress programs
+to test the interpreter.  Test programs that are supposed to fail
+(for example, storing a String into a ZZ32-typed mutable) have names
+that are prefixed with XXX.
+
+The directory ProjectFortress/static_tests/ contains some Fortress
+programs to test the static end.  Test programs that are supposed to
+fail have names that are prefixed with XXX.  Test programs that are
+supposed to pass the static disambiguation then fail have names that
+are prefixed with DXX.
+
+
+The directory ProjectFortress/not_passing_yet/ contains some Fortress
+programs that should pass, but do not.  For example, if we had a test
+file containing an error that should be detected, but it isn't, that
+would be contained in ProjectFortress/not_passing_yet with a name
+prefixed with XXX.
+
+
 COMPONENTS
+----------
 
 Fortress currently lacks a full-blown component system.  All the code
 in your Fortress program should reside in API and component file pairs.
@@ -187,6 +213,7 @@ end
 
 
 LANGUAGE FEATURES THAT ARE IMPLEMENTED
+--------------------------------------
 
 * Object and trait declarations, including polymorphic traits.
   Constructor invocations must *always* provide the static arguments
@@ -251,6 +278,7 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
 
 
 LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
+------------------------------------------
 
 * Numerals with radix specifiers (which implies that some numerals may be
   recognized as identifiers)
@@ -291,6 +319,7 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 
 CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 BETA
+--------------------------------------------------------
 
 * This release of the Fortress language interpreter is the first to be
 released in tandem with the language specification, available as open source
@@ -350,6 +379,7 @@ necessary to temporarily drop the following features from the specification:
 
 
 THE DEFAULT LIBRARIES
+---------------------
 
 The components ProjectFortress/LibraryBuiltin/FortressBuiltin.fsi,
 ProjectFortress/LibraryBiltin/NativeSimpleTypes.fss and
@@ -358,6 +388,7 @@ Fortress program is run.
 
 
 BUILT-IN TYPES
+--------------
 
 There are a bunch of types that are defined internally by the Fortress
 interpreter.  With the exception of Any, these cannot be overridden.
@@ -386,6 +417,7 @@ and narrow to convert between ZZ32 and ZZ64.
 
 
 LIBRARY HIGH POINTS
+-------------------
 
 Your best guide to library functionality is the library code itself;
 this can be found in Library/ and in ProjectFortress/LibraryBuiltin.
@@ -488,6 +520,7 @@ will eventually be replaced by opr ()^T.
 
 
 GENERATORS, REDUCTIONS, and COMPREHENSIONS
+------------------------------------------
 
 Defining new generators is discussed in detail in the Fortress
 language specification, but if you're trying it yourself for the first
@@ -495,6 +528,7 @@ time, you may find it instructive to browse the source code of the libraries.
 
 
 DEFINING NEW PRIMITIVE FUNCTIONS
+--------------------------------
 
 It is relatively easy to add new primitive functions to Fortress.  To
 do this, you simply invoke the builtinPrimitive function with the name
@@ -515,6 +549,7 @@ non-user-friendly error messages when the Java code is run.
 
 
 DEFINING NEW PRIMITIVE CLASSES
+------------------------------
 
 To define a new primitive class, you will need to write a native
 component.  Examples of these can be found in Library; anything that
