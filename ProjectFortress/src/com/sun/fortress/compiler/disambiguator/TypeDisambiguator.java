@@ -44,6 +44,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.NI;
 
 /**
  * <p>Eliminates ambiguities in types:
@@ -62,13 +63,14 @@ import com.sun.fortress.useful.HasAt;
  * </p>
  * <p>All name references in resolved types that are undefined or used incorrectly are
  * treated as static errors.  Similarly, incorrect arity or kinds of static arguments
- * are treated as errors.</p>
+ * are treated as errors.  Malformed types (currently, just ArgTypes that don't appear
+ * is an arrow's domain) also cause errors.</p>
  */
 public class TypeDisambiguator extends NodeUpdateVisitor {
 
-    private TypeNameEnv _env;
-    private Set<IdOrOpOrAnonymousName> _onDemandImports;
-    private List<StaticError> _errors;
+    private final TypeNameEnv _env;
+    private final Set<IdOrOpOrAnonymousName> _onDemandImports;
+    private final List<StaticError> _errors;
 
     public TypeDisambiguator(TypeNameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
             List<StaticError> errors) {
@@ -202,11 +204,21 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 (Contract) that.getContract().accept(v),
                 (Expr) that.getBody().accept(v));
     }
+    
+    @Override public Node forArrowType(final ArrowType that) {
+        if (that.getDomain() instanceof ArgType) {
+            Type domainResult = (Type) super.forArgType((ArgType) that.getDomain());
+            Type rangeResult = (Type) that.getRange().accept(this);
+            Option<List<Type>> throwsResult = recurOnOptionOfListOfType(that.getThrowsClause());
+            return forArrowTypeOnly(that, domainResult, rangeResult, throwsResult);
+        }
+        else { return super.forArrowType(that); }
+    }
 
     @Override public Node forArgType(final ArgType that) {
-        if (!((ArgType)that).isInArrow())
-            error("Tuple types are not allowed to " +
-                  "have varargs or keyword types.", that);
+        // valid occurrences of ArgTypes are recognized before this recursive
+        // call takes place
+        error("Tuple types are not allowed to have varargs types.", that);
         return that;
     }
 

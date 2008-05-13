@@ -501,9 +501,7 @@ public abstract class SubtypeChecker {
      * 1) The following types are not yet supported:
      *
      *        InferenceVarType(Object id, int index = -1);
-     *        ArgType(Option<Type> varargs = Option.<Type>none(),
-     *                List<KeywordType> keywords = Collections.<KeywordType>emptyList(),
-     *                boolean inArrow = false);
+     *        ArgType(Type varargs);
      *        abstract DimExpr();
      *            ExponentType(Type base, IntExpr power);
      *            BaseDim();
@@ -626,37 +624,19 @@ public abstract class SubtypeChecker {
                 if (s instanceof ArgType && t instanceof ArgType) {
                     ArgType ss = (ArgType)s;
                     ArgType tt = (ArgType)t;
-                    // s cannot be a subtype of t if it has a vararg and t doesn't
-                    if (ss.getVarargs().isSome() && tt.getVarargs().isNone()) {
-                        return FALSE;
-                    }
                     List<Type> stypes = ss.getElements();
                     List<Type> ttypes = tt.getElements();
                     int padLength = Math.max(stypes.size(), ttypes.size());
-                    List<Type> spadded = (ss.getVarargs().isSome()) ? pad(stypes, ss.getVarargs().unwrap(), padLength)
-                                                                    : stypes;
-                    List<Type> tpadded = (tt.getVarargs().isSome()) ? pad(ttypes, tt.getVarargs().unwrap(), padLength)
-                                                                    : ttypes;
+                    List<Type> spadded = pad(stypes, ss.getVarargs(), padLength);
+                    List<Type> tpadded = pad(ttypes, tt.getVarargs(), padLength);
                     for (Pair<Type, Type> p : IterUtil.zip(spadded, tpadded)) {
                         if (!subtype(p.first(), p.second(), history)) {
                             return FALSE;
                         }
                     }
                     // Check that varargs are subtypes
-                    if (ss.getVarargs().isSome() && tt.getVarargs().isSome()) {
-                        if (!subtype(ss.getVarargs().unwrap(), tt.getVarargs().unwrap())) {
-                            return FALSE;
-                        }
-                    }
-                    Map<Id, Type> tKeywords = new HashMap<Id, Type>();
-                    for (KeywordType tk : tt.getKeywords()) {
-                        tKeywords.put(tk.getName(), tk.getType());
-                    }
-                    for (KeywordType sk : ss.getKeywords()) {
-                        Type tKeywordType = tKeywords.get(sk.getName());
-                        if (tKeywordType == null || !subtype(sk.getType(), tKeywordType)) {
-                            return FALSE;
-                        }
+                    if (!subtype(ss.getVarargs(), tt.getVarargs())) {
+                        return FALSE;
                     }
                     return TRUE;
                 } else if (s instanceof ArgType || t instanceof ArgType) { // Only one is ArgType

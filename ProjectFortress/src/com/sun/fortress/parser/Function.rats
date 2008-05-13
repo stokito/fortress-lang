@@ -65,14 +65,9 @@ AbsFnDecl FnSig =
            }
            public void forArgType(ArgType that) {
                for (AbstractNode i : that.getElements()) { i.accept(this); }
-               if (that.getVarargs().isSome()) {
-                   Type t = that.getVarargs().unwrap();
-                   Id name = new Id(t.getSpan(), "_");
-                   params.add(NodeFactory.makeVarargsParam(t.getSpan(), mods,
-                                                           name, t));
-               }
-               assert(that.getKeywords().isEmpty()): "Keyword parameters present"
-                                                     + " in a FnSig: " + that;
+               Type t = that.getVarargs();
+               Id name = new Id(t.getSpan(), "_");
+               params.add(NodeFactory.makeVarargsParam(t.getSpan(), mods, name, t));
            }
            public void forTupleType(TupleType that) {
                for (AbstractNode i : that.getElements()) { i.accept(this); }

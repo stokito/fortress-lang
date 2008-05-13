@@ -186,11 +186,8 @@ public class NodeFactory {
   return new TupleType(t.getSpan(), t.isParenthesized(), tys);
  }
 
- public static ArgType makeArgType(ArgType t, List<Type> tys,
-                                   Option<Type> varargs,
-                                   List<KeywordType> keywords) {
-  return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs,
-    keywords);
+ public static ArgType makeArgType(ArgType t, List<Type> tys, Type varargs) {
+  return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs);
  }
 
  public static KeywordType makeKeywordType(KeywordType t, Type s) {
@@ -279,15 +276,6 @@ public class NodeFactory {
   return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList());
  }
 
- public static Type inArrowType(Type type) {
-  if (type instanceof ArgType) {
-   ArgType ty = (ArgType)type;
-   return new ArgType(ty.getSpan(), ty.isParenthesized(),
-     ty.getElements(), ty.getVarargs(),
-     ty.getKeywords(), true);
-  } else return type;
- }
-
  public static ArrowType makeArrowType(Span span, Type domain,
    Type range,
    Option<List<BaseType>> throws_) {
@@ -295,12 +283,11 @@ public class NodeFactory {
    throws_.isSome() ?
      Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
       Option.<List<Type>>none();
-     return new ArrowType(span, inArrowType(domain), range, throwsAsTypeList);
+     return new ArrowType(span, domain, range, throwsAsTypeList);
  }
 
  public static ArrowType makeArrowType(Span span, Type domain, Type range) {
-  return new ArrowType(span, inArrowType(domain), range,
-    Option.<List<Type>>none());
+  return new ArrowType(span, domain, range, Option.<List<Type>>none());
  }
 
  public static AbstractArrowType makeGenericArrowType(Span span,
@@ -316,7 +303,7 @@ public class NodeFactory {
    throws_.isSome() ?
      Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
       Option.<List<Type>>none();
-     return new _RewriteGenericArrowType(span, inArrowType(domain), range,
+     return new _RewriteGenericArrowType(span, domain, range,
        throwsAsTypeList, staticParams, where);
  }
 
@@ -328,7 +315,7 @@ public class NodeFactory {
   if (staticParams.isEmpty()) {
    return makeArrowType(span, domain, range, Option.<List<BaseType>>none());
   }
-  return new _RewriteGenericArrowType(span, inArrowType(domain), range,
+  return new _RewriteGenericArrowType(span, domain, range,
     Option.<List<Type>>none(), staticParams, new WhereClause());
  }
 
@@ -788,25 +775,6 @@ public class NodeFactory {
   return new NatParam(s, new Id(s, name));
  }
 
- /**
-  * Alternatively, you can invoke the ArgType constructor without keywords
-  */
-  public static ArgType makeArgType(Span span, List<Type> elements,
-                                    Option<Type> varargs) {
-    return new ArgType(span, elements, varargs, Collections.<KeywordType>emptyList());
-  }
-
-  public static ArgType makeArgType(List<Type> elements) {
-   return new ArgType(new Span(), elements, Option.<Type>none(),
-     Collections.<KeywordType>emptyList());
-  }
-
-  public static ArgType makeArgType(Span span, List<Type> elements,
-                                    List<KeywordType> keywordElements,
-                                    Option<Type> varargs) {
-   return new ArgType(span, elements, varargs, keywordElements);
-  }
-
   public static TupleType makeTupleType(List<Type> elements) {
    return new TupleType(new Span(), elements);
   }
@@ -1010,11 +978,11 @@ public class NodeFactory {
     }
     public Type forTraitType(TraitType t) {
      return new TraitType(t.getSpan(), true, t.getName(),
-       t.getArgs());
+                          t.getArgs());
     }
     public Type forArgType(ArgType t) {
      return new ArgType(t.getSpan(), true, t.getElements(),
-       t.getVarargs(), t.getKeywords(), t.isInArrow());
+                        t.getVarargs());
     }
     public Type forTupleType(TupleType t) {
      return new TupleType(t.getSpan(), true, t.getElements());

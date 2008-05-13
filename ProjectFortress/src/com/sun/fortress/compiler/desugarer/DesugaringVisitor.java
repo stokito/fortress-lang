@@ -613,11 +613,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new TupleExpr(that.getSpan(), that.isParenthesized(), exprs_result);
 //    }
 //
-//    public Node forArgExprOnly(ArgExpr that, List<Expr> exprs_result, Option<VarargsExpr> varargs_result, List<KeywordExpr> keywords_result) {
-//        if (that.getExprs() == exprs_result && that.getVarargs() == varargs_result && that.getKeywords() == keywords_result)
+//    public Node forArgExprOnly(ArgExpr that, List<Expr> exprs_result, Option<VarargsExpr> varargs_result) {
+//        if (that.getExprs() == exprs_result && that.getVarargs() == varargs_result)
 //            return that;
 //        else
-//            return new ArgExpr(that.getSpan(), that.isParenthesized(), exprs_result, varargs_result, keywords_result, that.isInApp());
+//            return new ArgExpr(that.getSpan(), that.isParenthesized(), exprs_result, varargs_result, that.isInApp());
 //    }
 //
 //    public Node forTypecaseOnly(Typecase that, List<TypecaseClause> clauses_result, Option<Block> elseClause_result) {
@@ -880,11 +880,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new TupleType(that.getSpan(), that.isParenthesized(), elements_result);
 //    }
 //
-//    public Node forArgTypeOnly(ArgType that, List<Type> elements_result, Option<Type> varargs_result, List<KeywordType> keywords_result) {
-//        if (that.getElements() == elements_result && that.getVarargs() == varargs_result && that.getKeywords() == keywords_result)
+//    public Node forArgTypeOnly(ArgType that, List<Type> elements_result, Type varargs_result) {
+//        if (that.getElements() == elements_result && that.getVarargs() == varargs_result)
 //            return that;
 //        else
-//            return new ArgType(that.getSpan(), that.isParenthesized(), elements_result, varargs_result, keywords_result, that.isInArrow());
+//            return new ArgType(that.getSpan(), that.isParenthesized(), elements_result, varargs_result);
 //    }
 //
 //    public Node forVoidTypeOnly(VoidType that) {
@@ -1825,8 +1825,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    public Node forArgExpr(ArgExpr that) {
 //        List<Expr> exprs_result = recurOnListOfExpr(that.getExprs());
 //        Option<VarargsExpr> varargs_result = recurOnOptionOfVarargsExpr(that.getVarargs());
-//        List<KeywordExpr> keywords_result = recurOnListOfKeywordExpr(that.getKeywords());
-//        return forArgExprOnly(that, exprs_result, varargs_result, keywords_result);
+//        return forArgExprOnly(that, exprs_result, varargs_result);
 //    }
 //
 //    public Node forTypecase(Typecase that) {
@@ -2124,9 +2123,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forArgType(ArgType that) {
 //        List<Type> elements_result = recurOnListOfType(that.getElements());
-//        Option<Type> varargs_result = recurOnOptionOfType(that.getVarargs());
-//        List<KeywordType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
-//        return forArgTypeOnly(that, elements_result, varargs_result, keywords_result);
+//        Type varargs_result = that.getVarargs().accept(this);
+//        return forArgTypeOnly(that, elements_result, varargs_result);
 //    }
 //
 //    public Node forVoidType(VoidType that) {

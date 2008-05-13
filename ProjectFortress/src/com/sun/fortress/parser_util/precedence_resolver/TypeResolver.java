@@ -234,8 +234,8 @@ public class TypeResolver {
         Op op = frame.getOp();
         Type first = frame.getArg();
         if (isTypeOp(op)) {
-            Type domain = NodeFactory.inArrowType(typeToType(first));
-            return NodeFactory.makeArrowType(spanTwo(first,last), domain,
+            return NodeFactory.makeArrowType(spanTwo(first,last),
+                                             typeToType(first),
                                              typeToType(last),
                                              frame.getThrows());
         } else { // !(isTypeOp(op))
@@ -594,8 +594,8 @@ public class TypeResolver {
                 }
             }
             public Type forArrowType(ArrowType t) {
-                Type domain = NodeFactory.inArrowType(typeToType(t.getDomain()));
-                return new ArrowType(t.getSpan(), domain,
+                return new ArrowType(t.getSpan(),
+                                     typeToType(t.getDomain()),
                                      typeToType(t.getRange()),
                                      t.getThrowsClause(), t.isIo());
             }
@@ -612,17 +612,8 @@ public class TypeResolver {
                 for (Type ty : t.getElements()) {
                     elements.add(typeToType(ty));
                 }
-                Option<Type> varargs = t.getVarargs();
-                if (varargs.isSome()) {
-                    varargs = Option.some(typeToType(varargs.unwrap()));
-                }
-                List<KeywordType> keywords = new ArrayList<KeywordType>();
-                for (KeywordType ty : t.getKeywords()) {
-                    keywords.add(new KeywordType(ty.getSpan(), ty.getName(),
-                                                 typeToType(ty.getType())));
-                }
-                return new ArgType(t.getSpan(), elements, varargs, keywords,
-                                   t.isInArrow());
+                Type varargs = typeToType(t.getVarargs());
+                return new ArgType(t.getSpan(), elements, varargs);
             }
             public Type forTupleType(TupleType t) {
                 List<Type> elements = new ArrayList<Type>();
@@ -763,19 +754,7 @@ public class TypeResolver {
             if (isVerbose) System.out.println("after resolveOps: " + type);
             try {
                 if (type instanceof DimExpr) return dimToType((DimExpr)type);
-                else if (type instanceof ArgType) {
-                    ArgType ty = (ArgType)type;
-                    if (ty.getVarargs().isNone() && ty.getKeywords().isEmpty())
-                        return typeToType(new TupleType(ty.getSpan(),
-                                                        ty.isParenthesized(),
-                                                        ty.getElements()));
-                    else return typeToType(type);
-                    /*
-                    else return error(type, "Tuple types are not allowed to " +
-                                      "have varargs or keyword types.");
-                    */
-                } else
-                    return typeToType(type);
+                else return typeToType(type);
             } catch (TypeConvertFailure x) {
                 return type;
             }

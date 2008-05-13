@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.index.DeclaredVariable;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
+import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
@@ -117,10 +118,12 @@ public abstract class TypeEnv {
                 }
             } else { // We have a varargs param.
                 VarargsParam _param = (VarargsParam) param;
-                varargsType = wrap(_param.getType());
+                varargsType = some(_param.getType());
             }
         }
-        return makeArgType(new Span(), paramTypes, keywordTypes, varargsType);
+        if (!keywordTypes.isEmpty()) { return NI.nyi("Keyword parameters aren't yet supported"); }
+        else if (varargsType.isSome()) { return new ArgType(paramTypes, varargsType.unwrap()); }
+        else { return new TupleType(paramTypes); }
     }
 
     protected static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
