@@ -94,12 +94,12 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forKeywordSymbol(KeywordSymbol that) {
-        return handleTerminal(that, that.getToken(), true);
+        return handleTerminal(that, that.getToken());
     }
 
     @Override
     public Node forTokenSymbol(TokenSymbol that) {
-        return handleTerminal(that, that.getToken(), false);
+        return handleTerminal(that, that.getToken());
     }
 
     /**
@@ -108,7 +108,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
      * @param that
      * @return
      */
-    private Node handleTerminal(SyntaxSymbol that, String token, boolean maybeId ){
+    private Node handleTerminal(SyntaxSymbol that, String token){
         // Create a new name for the terminal definition
         String var = "";
         if (null != this.var) {
@@ -127,9 +127,6 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
         syntaxSymbols.add(that);
- if ( maybeId ){
-  syntaxSymbols.add(new NotPredicateSymbol(new NonterminalSymbol(NodeFactory.makeId("FortressSyntax", "Identifier", "idrest"))));
- }
 
         // Create the transformation expression
         Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);
