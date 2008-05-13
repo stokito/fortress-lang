@@ -41,7 +41,8 @@ Type NoNewlineType =
                yyValue = new TaggedDimType(_ty.getSpan(), _ty.getType(),
                                            _ty.getDim(), Option.some(a2));
            } else {
-               yyValue = error(ty, "A dimension type is expected.");
+               yyValue = syntaxError(ty.getSpan(),
+                                     "A dimension type is expected.");
            }
        }
      };

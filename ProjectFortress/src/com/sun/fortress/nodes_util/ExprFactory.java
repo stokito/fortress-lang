@@ -352,13 +352,22 @@ public class ExprFactory {
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
                                                   List<Expr> subs) {
         return new SubscriptExpr(span, false, obj, subs,
-                                 Option.<Enclosing>none());
+                                 Option.<Enclosing>none(),
+                                 Collections.<StaticArg>emptyList());
+    }
+
+    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
+                                                  List<Expr> subs,
+                                                  Option<Enclosing> op,
+                                                  List<StaticArg> sargs) {
+        return new SubscriptExpr(span, false, obj, subs, op, sargs);
     }
 
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
                                                   List<Expr> subs,
                                                   Option<Enclosing> op) {
-        return new SubscriptExpr(span, false, obj, subs, op);
+        return new SubscriptExpr(span, false, obj, subs, op,
+                                 Collections.<StaticArg>emptyList());
     }
 
     public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
@@ -713,7 +722,8 @@ public class ExprFactory {
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),
-                                         e.getSubs(), e.getOp());
+                                         e.getSubs(), e.getOp(),
+                                         e.getStaticArgs());
             }
             public Expr forTemplateGapExpr(TemplateGapExpr e) {
                 return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getParams());
@@ -740,7 +750,8 @@ public class ExprFactory {
         } else { // mi instanceof SubscriptingMI
             SubscriptingMI sub = (SubscriptingMI)mi;
             return makeSubscriptExpr(span, front, sub.getExprs(),
-                                     Option.wrap(sub.getOp()));
+                                     Option.wrap(sub.getOp()),
+                                     sub.getStaticArgs());
         }
     }
 

@@ -137,8 +137,9 @@ FnHeaderFront OpHeaderFront =
            }
            name = new Enclosing(span, leftOp, opa4);
        } else
-           name = error(leftOp, "Mismatched enclosing operator definition: "
-                                + left + " and " + right);
+           name = syntaxError(leftOp.getSpan(),
+                              "Mismatched enclosing operator definition: " +
+                              left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        yyValue = new FnHeaderFront(name, opa2, opa3);
      }
@@ -175,7 +176,8 @@ FnHeaderFront OpHeaderFront =
        } else if (a3.size() == 2) { // infix
            op = NodeFactory.makeOpInfix(op);
        } else { // error
-           op = error(op, "Operator fix is invalid in its dclaration.");
+           op = syntaxError(op.getSpan(),
+                            "Operator fix is invalid in its dclaration.");
        }
        if (a2 == null) yyValue = new FnHeaderFront(op, a3);
        else            yyValue = new FnHeaderFront(op, a2, a3);
@@ -208,8 +210,9 @@ FnHeaderFront AbsOpHeaderFront =
            }
            name = new Enclosing(span, leftOp, opa4);
        } else
-           name = error(leftOp, "Mismatched enclosing operator definition: "
-                                + left + " and " + right);
+           name = syntaxError(leftOp.getSpan(),
+                              "Mismatched enclosing operator definition: " +
+                              left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        yyValue = new FnHeaderFront(name, opa2, opa3);
      }
@@ -246,7 +249,8 @@ FnHeaderFront AbsOpHeaderFront =
        } else if (a3.size() == 2) { // infix
            op = NodeFactory.makeOpInfix(op);
        } else { // error
-           op = error(op, "Operator fix is invalid in its dclaration.");
+           op = syntaxError(op.getSpan(),
+                            "Operator fix is invalid in its dclaration.");
        }
        if (a2 == null) yyValue = new FnHeaderFront(op, a3);
        else            yyValue = new FnHeaderFront(op, a2, a3);

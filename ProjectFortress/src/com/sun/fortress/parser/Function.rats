@@ -54,8 +54,8 @@ AbsFnDecl FnSig =
        final List<Param>  params = FortressUtil.emptyParams();
 
        if (!(a2 instanceof ArrowType)) {
-           bug(errorMsg("Abstract function declaration should have an arrow " +
-                        "type.", a2));
+           syntaxError(a2.getSpan(),
+                       "Abstract function declaration should have an arrow type.");
        }
 
        ((ArrowType)a2).getDomain().accept(new NodeAbstractVisitor_void() {
@@ -73,7 +73,8 @@ AbsFnDecl FnSig =
                for (AbstractNode i : that.getElements()) { i.accept(this); }
            }
            public void defaultCase(Node that) {
-               bug(errorMsg("Node expected to be a Type; was: ", that));
+               syntaxError(that.getSpan(),
+                           errorMsg("Node expected to be a Type; was: ", that));
            }
        });
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods, a1,

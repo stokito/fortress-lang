@@ -99,7 +99,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         Expr warray = wrapEval(x.getObj(), "Indexing non-object.");
         List<Expr> wsubs = wrapEvalParallel(x.getSubs());
         return ExprFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs,
-                                             x.getOp());
+                                             x.getOp(), x.getStaticArgs());
     }
 
     /* (non-Javadoc)

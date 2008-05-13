@@ -19,7 +19,8 @@
  * Definition of Fortress variable declarations.
  */
 module com.sun.fortress.parser.Variable(NoNewlineHeader, MayNewlineHeader, Type,
-                                        NoNewlineExpr, Identifier, Keyword, Symbol, Spacing);
+                                        NoNewlineExpr, Identifier, Keyword,
+                                        Symbol, Spacing);
 
 import NoNewlineHeader;
 import MayNewlineHeader;
@@ -67,7 +68,7 @@ VarDecl VarDecl =
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
-           error(new Id(span,"_"), "Mismatched numbers of variables and types.");
+           syntaxError(span, "Mismatched numbers of variables and types.");
        List<LValueBind> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, tys, true);
@@ -148,7 +149,7 @@ AbsVarDecl AbsVarDecl =
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
-           error(new Id(span,"_"), "Mismatched numbers of variables and types.");
+           syntaxError(span, "Mismatched numbers of variables and types.");
        List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
