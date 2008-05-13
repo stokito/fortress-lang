@@ -73,7 +73,7 @@ private List<Id> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedNa
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Extends ::= extends w IdName */
-Option<Id> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
+Option<Id> Extends = extends w a1:QualifiedName { yyValue = Option.some(a1); };
 
 private GrammarMemberDecl NonterminalDef =
       m1:(NonTermMod w)? a1:Id params:(w NonterminalArguments)? w void:bar a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
@@ -106,7 +106,7 @@ private GrammarMemberDecl NonterminalDef =
         yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), a1, type, m1, params, syntaxDefs); };
 
 private Option<ModifierPrivate> NonTermMod =
-        private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
+        private {yyValue = Option.some(new ModifierPrivate(createSpan(yyStart,yyCount)));};
 
 private List<com.sun.fortress.useful.Pair<Id,Type>> NonterminalArguments =
         void:openparen w DeclList w void:closeparen;

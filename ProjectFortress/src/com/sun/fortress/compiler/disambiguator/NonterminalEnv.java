@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
@@ -38,9 +39,11 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 /**
  *  This nonterminal environment is used during disambiguation of nonterminal names
- *  The name of the nonterminal should not be qualified, unless the method comments 
+ *  The name of the nonterminal should not be qualified, unless the method comments
  *  states otherwise. The environment returns qualified names.
  *  We assume that the name of the given grammar has been disambiguated.
  *  The nonterminal environment has access to the nonterminal names
@@ -66,13 +69,19 @@ public class NonterminalEnv {
   */
  private void initializeNonterminals() {
   for (NonterminalIndex<? extends GrammarMemberDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
-   GrammarDecl currentGrammar = this.getGrammarIndex().ast().unwrap();
+   Option<? extends GrammarDecl> optGd = this.getGrammarIndex().ast();
+   GrammarDecl currentGrammar;
+   if (optGd.isSome()) {
+       currentGrammar = optGd.unwrap();
+   } else {
+       currentGrammar = bug("NonterminalEnv.initializeNonterminals is failed!");
+   }
 
    Span span = e.getName().getSpan();
    String key = e.getName().getText();
-   APIName api = constructNonterminalApi(currentGrammar.getName());   
+   APIName api = constructNonterminalApi(currentGrammar.getName());
    Id qname = NodeFactory.makeId(span, api, key);
-   
+
    if (nonterminals.containsKey(key)) {
     nonterminals.get(key).add(qname);
    } else {
@@ -85,13 +94,18 @@ public class NonterminalEnv {
 
  /**
   * Given a grammar name, construct an API for a nonterminal
-  * An API for a nonterminal is the API of the grammar 
+  * An API for a nonterminal is the API of the grammar
   * concatenated with the name of the grammar.
   * @param grammarName
   * @return
   */
  private APIName constructNonterminalApi(Id grammarName) {
-  APIName api = grammarName.getApi().unwrap();
+  Option<APIName> optApi = grammarName.getApi();
+  APIName api;
+  if (optApi.isSome())
+      api = optApi.unwrap();
+  else
+      api = bug("NonterminalEnv.constructNonterminalApi is failed!");
   List<Id> ls = new LinkedList<Id>();
   ls.addAll(api.getIds());
   ls.add(NodeFactory.makeId(grammarName.getSpan(), grammarName.getText()));
@@ -103,8 +117,11 @@ public class NonterminalEnv {
   * determine whether a nonterminal exists.  Assumes {@code name.getApi().isSome()}.
   */
  public boolean hasQualifiedNonterminal(Id name) {
-  APIName api = getApi(name.getApi().unwrap());
-  Id gname = getGrammarNameFromLastIdInAPI(name.getApi().unwrap());
+  Option<APIName> optApi = name.getApi();
+  if (optApi.isNone())
+      bug(name, "Expected to have an API name.");
+  APIName api = getApi(optApi.unwrap());
+  Id gname = getGrammarNameFromLastIdInAPI(optApi.unwrap());
   Id grammarName = NodeFactory.makeId(api, gname);
 
   if (grammarName.equals(this.current.getName())) {

@@ -35,8 +35,9 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
@@ -58,7 +59,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
  @Override
  public Node forGrammarDef(GrammarDef that) {
   if (this._env.grammarIndex(that.getName()).isSome()) {
-   this._currentEnv = new NonterminalEnv(_env.grammarIndex(that.getName()).unwrap());
+   this._currentEnv = new NonterminalEnv(this._env.grammarIndex(that.getName()).unwrap());
   }
   else {
    error("Undefined grammar: " + NodeUtil.nameString(that.getName()), that.getName());
@@ -79,7 +80,11 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
   NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
   Option<Id> oname = nnd.handleNonterminalName(_currentEnv, that.getName());
   this._errors.addAll(nnd.errors());
+  if (oname.isSome()) {
   return new NonterminalDef(that.getSpan(), oname.unwrap(that.getName()), that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
+  } else {
+      return bug(that, "Bad NonterminalDef");
+  }
  }
 
 

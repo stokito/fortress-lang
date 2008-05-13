@@ -487,7 +487,7 @@ public class TypeAnalyzer {
                 @Override public ConstraintFormula forType(Type t) {
                     return ConstraintFormula.FALSE;
                 }
-                
+
                 @Override public ConstraintFormula forAnyType(AnyType t) {
                     return ConstraintFormula.TRUE;
                 }
@@ -506,7 +506,7 @@ public class TypeAnalyzer {
             if (!result.isTrue()) {
 
                 ConstraintFormula sResult = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                    
+
                     @Override public ConstraintFormula forAnyType(AnyType s) {
                         return ConstraintFormula.FALSE; // t is not Any, because result is not true
                     }
@@ -1112,7 +1112,7 @@ public class TypeAnalyzer {
     /** Assumes the options are consistent -- either both some or both none. */
     private ConstraintFormula subtype(Option<Type> v1, Option<Type> v2,
                                       SubtypeHistory history) {
-        if (v1.isSome()) {
+        if (v1.isSome() && v2.isSome()) {
             return subtype(v1.unwrap(), v2.unwrap(), history);
         }
         else { return ConstraintFormula.TRUE; }
@@ -1121,7 +1121,7 @@ public class TypeAnalyzer {
     /** Assumes the options are consistent -- either both some or both none. */
     private ConstraintFormula sub(Option<Type> v1, Option<Type> v2,
                                   SubtypeHistory history) {
-        if (v1.isSome()) {
+        if (v1.isSome() && v2.isSome()) {
             return sub(v1.unwrap(), v2.unwrap(), history);
         }
         else { return ConstraintFormula.TRUE; }

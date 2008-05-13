@@ -552,7 +552,7 @@ ExponentiationMI Exponentiation =
      a1:caret a2:Exponent
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new ExponentiationMI(span, NodeFactory.makeOpInfix(span, a1),
-                                      Option.wrap(a2));
+                                      Option.some(a2));
      }
    / a1:ExponentOp
      { yyValue = new ExponentiationMI(a1.getSpan(), a1, Option.<Expr>none()); };

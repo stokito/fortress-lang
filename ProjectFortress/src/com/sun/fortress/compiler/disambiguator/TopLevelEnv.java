@@ -36,6 +36,8 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;
     private CompilationUnitIndex _current;
@@ -314,7 +316,12 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedTypeCons(Id name) {
-        APIName api = name.getApi().unwrap();
+        Option<APIName> optApi= name.getApi();
+        if (optApi.isNone()) {
+            bug(name, "Expected to have an API name.");
+            return false;
+        }
+        APIName api = optApi.unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).typeConses().containsKey(name);
         }
@@ -322,7 +329,10 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedVariable(Id name) {
-        APIName api = name.getApi().unwrap();
+        Option<APIName> optApi= name.getApi();
+        if (optApi.isNone())
+            bug(name, "Expected to have an API name.");
+        APIName api = optApi.unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).variables().containsKey(name);
         }
@@ -330,7 +340,10 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedFunction(Id name) {
-        APIName api = name.getApi().unwrap();
+        Option<APIName> optApi= name.getApi();
+        if (optApi.isNone())
+            bug(name, "Expected to have an API name.");
+        APIName api = optApi.unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).functions().containsFirst(name);
         }
@@ -338,7 +351,10 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedGrammar(Id name) {
-        APIName api = name.getApi().unwrap();
+        Option<APIName> optApi= name.getApi();
+        if (optApi.isNone())
+            bug(name, "Expected to have an API name.");
+        APIName api = optApi.unwrap();
         if (_globalEnv.definesApi(api)) {
             return _globalEnv.api(api).grammars().containsKey(name.getText());
         }
