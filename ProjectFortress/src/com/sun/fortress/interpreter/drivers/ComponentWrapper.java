@@ -36,6 +36,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfo;
+import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
@@ -81,7 +82,7 @@ public class ComponentWrapper {
         if (ProjectProperties.noStaticAnalysis)
             p = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(p);
         else
-            p = (CompilationUnit) RewriteInPresenceOfTypeInfo.Only.visit(p);
+            p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
 
         BetterEnv e = BetterEnv.empty();
         e.setTopLevel();
