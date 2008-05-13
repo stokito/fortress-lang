@@ -34,7 +34,14 @@ import Spacing;
    | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
  */
 public CompilationUnit File =
-     w CompilationUnit w EndOfFile
+     w yyValue:CompilationUnit w EndOfFile
+     { Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName filename = NodeFactory.makeAPIName(span, file, "\\.");
+       if (!filename.equals(yyValue.getName()))
+           yyValue = syntaxError(createSpan(yyStart,yyCount),
+                                 "Component/API names must match their enclosing file names.");
+     }
    / w Exports w semicolon? w Imports w semicolon?
      (w Decls w semicolon?)? w EndOfFile    // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
@@ -87,7 +94,7 @@ private Component Component =
                              "Import statements should come before export statements.");
      }
    / (native w)? component w APIName (w Imports w semicolon?)?
-     w Decls w semicolon? w end    // Error production
+     (w Decls w semicolon?)? w end    // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Components should have at least one export statement.");
      }

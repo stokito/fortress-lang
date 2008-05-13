@@ -180,7 +180,7 @@ public class TypeAnalyzerUtil {
     }
 
     public static Type throwsType(ArrowType t) {
-        return IterUtil.first(t.getThrowsClause().unwrap());
+        return IterUtil.first(t.getThrowsClause().unwrap(Collections.<Type>emptyList()));
     }
 
     public static Iterable<Type> keywordTypes(Iterable<? extends KeywordType> keys) {

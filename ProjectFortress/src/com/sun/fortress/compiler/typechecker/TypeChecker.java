@@ -44,6 +44,7 @@ import java.util.*;
 
 import java.io.PrintWriter;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.compiler.TypeError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.*;
 
@@ -88,7 +89,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         List<Type> results = new ArrayList<Type>();
 
         for (LValueBind binding: bindings) {
-            results.add(binding.getType().unwrap());
+            if (binding.getType().isSome()) {
+                results.add(binding.getType().unwrap());
+            } else
+                bug(binding, "Missing type.");
         }
         return NodeFactory.makeTupleType(results);
     }
@@ -966,6 +970,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Op op = that.getCompare().unwrap();
         TypeCheckerResult opResult = op.accept(this);
         result = TypeCheckerResult.compose(that, result, opResult);
+        assert(opResult.type().isSome());
         Type opType = opResult.type().unwrap();
 
         // Maps a distinct guard types to the first guard expr with said type
@@ -1115,6 +1120,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               List<TypeCheckerResult> exprs_result) {
         // The expressions list contains at least two elements.
         assert (exprs_result.size() >= 2);
+        assert (exprs_result.get(0).type().isSome());
+        assert (exprs_result.get(1).type().isSome());
 
         Type lhsType = exprs_result.get(0).type().unwrap();
         Type rhsType = exprs_result.get(1).type().unwrap();
@@ -1179,6 +1186,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         assert (that.getTarget().isSome()); // Filled in by disambiguator
         Id labelName = that.getTarget().unwrap();
         Option<BindingLookup> b = typeEnv.binding(labelName);
+        assert (that.getReturnExpr().isSome()); // Filled in by disambiguator
         if (b.isNone()) {
             TypeCheckerResult withResult = that.getReturnExpr().unwrap().accept(this);
             return TypeCheckerResult.compose(
@@ -1204,11 +1212,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         // Append the 'with' type to the list for this label
-        assert (that.getReturnExpr().isSome()); // Filled in by disambiguator
         TypeCheckerResult withResult = that.getReturnExpr().unwrap().accept(this);
         if (withResult.type().isNone()) {
             labelExitTypes.put(labelName, Option.<Set<Type>>none());
         } else {
+            assert (labelExitTypes.get(labelName).isSome());
             labelExitTypes.get(labelName).unwrap().add(withResult.type().unwrap());
         }
         return TypeCheckerResult.compose(that, Types.BOTTOM, withResult);

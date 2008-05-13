@@ -33,6 +33,7 @@ import java.util.Set;
 import static com.sun.fortress.nodes_util.NodeFactory.makeAndType;
 import static com.sun.fortress.nodes_util.NodeFactory.makeGenericArrowType;
 import static edu.rice.cs.plt.tuple.Option.some;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * A type environment whose outermost scope binds local function definitions.
@@ -63,12 +64,15 @@ class FnDefTypeEnv extends TypeEnv {
 
         LinkedList<Type> overloadedTypes = new LinkedList<Type>();
         for (FnDef fn : fns) {
-            overloadedTypes.add(makeGenericArrowType(fn.getSpan(),
+            if (fn.getReturnType().isSome()) {
+                overloadedTypes.add(makeGenericArrowType(fn.getSpan(),
                     fn.getStaticParams(),
                     typeFromParams(fn.getParams()),
                     fn.getReturnType().unwrap(), // all types have been filled in at this point
                     fn.getThrowsClause(),
                     fn.getWhere()));
+            } else
+                bug(fn, "All types are supposed to be filled in at this point.");
         }
         return some(new BindingLookup(var, makeAndType(overloadedTypes)));
     }

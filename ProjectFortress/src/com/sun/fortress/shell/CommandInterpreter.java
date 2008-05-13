@@ -31,7 +31,8 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.useful.Path;
 
-import static com.sun.fortress.shell.ConvenientStrings.*; 
+import static com.sun.fortress.shell.ConvenientStrings.*;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 import java.io.*;
 
@@ -42,14 +43,14 @@ public class CommandInterpreter {
  boolean test;
  boolean nolib;
 
- CommandInterpreter(Shell _shell) { 
+ CommandInterpreter(Shell _shell) {
   shell = _shell;
  }
 
  /**
   * This compiler uses a different method for determining what to compile,
   * and how to compile it.
-  * 
+  *
   * @param doLink
   * @param s
   * @throws UserError
@@ -67,7 +68,7 @@ public class CommandInterpreter {
     String head = s.substring(0, s.lastIndexOf("/"));
     s = s.substring(s.lastIndexOf("/")+1, s.length());
     path = path.prepend(head);
-   } 
+   }
 
    Iterable<? extends StaticError> errors = fortress.compile(path, s);
 
@@ -77,7 +78,7 @@ public class CommandInterpreter {
    // If there are no errors, all components will have been written to disk by the FileBasedRepository.
   }
   catch (RepositoryError error) {
-   System.err.println(error); 
+   System.err.println(error);
   }
  }
 
@@ -103,8 +104,12 @@ public class CommandInterpreter {
  }
 
  /* Runs a fortress source file directly.*/
- void script(String fileName) throws UserError, IOException { 
-  Driver.evalComponent(makeCompilationUnit(fileName).unwrap(), new PathBasedRepository(ProjectProperties.SOURCE_PATH)); 
+ void script(String fileName) throws UserError, IOException {
+     Option<CompilationUnit> cu = makeCompilationUnit(fileName);
+     if (cu.isSome())
+         Driver.evalComponent(cu.unwrap(),
+                              new PathBasedRepository(ProjectProperties.SOURCE_PATH));
+     else bug("Failed to make a compilation unit for " + fileName);
  }
 
  void run(List<String> args) throws UserError, IOException, Throwable {
@@ -135,7 +140,7 @@ public class CommandInterpreter {
     String head = fileName.substring(0, fileName.lastIndexOf("/"));
     fileName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
     path = path.prepend(head);
-   } 
+   }
 
    /*
     * Strip suffix to get a bare component name.
@@ -152,7 +157,7 @@ public class CommandInterpreter {
    // If there are no errors, all components will have been written to disk by the FileBasedRepository.
   }
   catch (RepositoryError e) {
-   System.err.println(e.getMessage()); 
+   System.err.println(e.getMessage());
   }
   catch (FortressError e) {
    System.err.println(e.getMessage());
@@ -170,7 +175,7 @@ public class CommandInterpreter {
  void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }
  void upgrade(String result, String left, String right) throws UserError { throw new UserError("Error: Upgrade not yet implemented!"); }
 
- void api(String fileName) throws IOException, UserError { 
+ void api(String fileName) throws IOException, UserError {
   FileBasedRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
   Fortress fortress = new Fortress(fileBasedRepository);
 
@@ -205,7 +210,7 @@ public class CommandInterpreter {
 
   if (! sourceFile.exists()) {
    throw new UserError("Error: File " + fileName + " does not exist.");
-  }   
+  }
   try {
    return ASTIO.parseToJavaAst(fileName);
   }
@@ -219,5 +224,3 @@ public class CommandInterpreter {
   return new File(shell.getComponents() + SEP + "components" + SEP + componentName + SEP + ".jst").exists();
  }
 }
-
-

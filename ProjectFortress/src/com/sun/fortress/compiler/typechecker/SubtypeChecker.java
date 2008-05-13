@@ -35,6 +35,7 @@ import static com.sun.fortress.nodes_util.NodeUtil.getName;
 import static com.sun.fortress.nodes_util.NodeUtil.nameString;
 import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public abstract class SubtypeChecker {
 
@@ -97,9 +98,11 @@ public abstract class SubtypeChecker {
                     if (first.getBase().isSome())
                          base = first.getBase().unwrap();
                     else base = zero;
-                    return NodeFactory.makeTraitType(span, false, name,
-                                                     elem, base,
-                                                     first.getSize().unwrap());
+                    if (first.getSize().isSome())
+                        return NodeFactory.makeTraitType(span, false, name,
+                                                         elem, base,
+                                                         first.getSize().unwrap());
+                    else return bug(t, "Missing size.");
                 } else if (dims.size() == 2) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
@@ -110,13 +113,17 @@ public abstract class SubtypeChecker {
                          base1 = first.getBase().unwrap();
                     else base1 = zero;
                     if (second.getBase().isSome())
-                         base2 = first.getBase().unwrap();
+                         base2 = second.getBase().unwrap();
                     else base2 = zero;
-                    return NodeFactory.makeTraitType(span, false, name,
-                                                     elem, base1,
-                                                     first.getSize().unwrap(),
-                                                     base2,
-                                                     second.getSize().unwrap());
+                    if (first.getSize().isSome()) {
+                        if (second.getSize().isSome()) {
+                            return NodeFactory.makeTraitType(span, false, name,
+                                                             elem, base1,
+                                                             first.getSize().unwrap(),
+                                                             base2,
+                                                             second.getSize().unwrap());
+                        } else return bug(second, "Missing size.");
+                    } else return bug(first, "Missing size.");
                 } else if (dims.size() == 3) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
@@ -129,19 +136,24 @@ public abstract class SubtypeChecker {
                          base1 = first.getBase().unwrap();
                     else base1 = zero;
                     if (second.getBase().isSome())
-                         base2 = first.getBase().unwrap();
+                         base2 = second.getBase().unwrap();
                     else base2 = zero;
                     if (third.getBase().isSome())
-                         base3 = first.getBase().unwrap();
+                         base3 = third.getBase().unwrap();
                     else base3 = zero;
-                    return NodeFactory.makeTraitType(span, false, name,
-                                                     elem, base1,
-                                                     first.getSize().unwrap(),
-                                                     base2,
-                                                     second.getSize().unwrap(),
-                                                     base3,
-                                                     third.getSize().unwrap());
-
+                    if (first.getSize().isSome()) {
+                        if (second.getSize().isSome()) {
+                            if (third.getSize().isSome()) {
+                                return NodeFactory.makeTraitType(span, false, name,
+                                                                 elem, base1,
+                                                                 first.getSize().unwrap(),
+                                                                 base2,
+                                                                 second.getSize().unwrap(),
+                                                                 base3,
+                                                                 third.getSize().unwrap());
+                            } else return bug(third, "Missing size.");
+                        } else return bug(second, "Missing size.");
+                    } else return bug(first, "Missing size.");
                 }
                 return error("Desugaring " + t + " to TraitType is not " +
                              "yet supported.");
