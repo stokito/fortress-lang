@@ -248,9 +248,9 @@ abstract public class NodeReflection {
 
     };
 
-    protected Field[] getCachedPrintableFields(Class cl) {
+    final protected Field[] getCachedPrintableFields(Class cl) {
 
-        return getCachedPrintableFields(cl, modifiedSimpleName(cl));
+        return getCachedPrintableFields(cl, cl.getSimpleName()); // modifiedSimpleName(cl));
     }
 
     private String modifiedSimpleName(Class cl) {
@@ -258,7 +258,7 @@ abstract public class NodeReflection {
                 + cl.getSimpleName() : cl.getSimpleName();
     }
 
-    protected Field[] getCachedPrintableFields(Class cl, String clname) {
+    final protected Field[] getCachedPrintableFields(Class cl, String clname) {
         Field[] fields = shortClassNameToFieldArray.get(clname);
         if (fields == null) {
             try {
