@@ -37,6 +37,8 @@ import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 public class RewriteInAbsenceOfTypeInfo extends Rewrite {
 
     public static RewriteInAbsenceOfTypeInfo Only = new RewriteInAbsenceOfTypeInfo();
@@ -131,6 +133,8 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         List<Expr> exprs = node.getExprs();
         VarRef first = (VarRef) exprs.get(0);
         Id idn = first.getVar();
+        if (idn.getApi().isNone())
+            bug(idn, "Missing an API name...");
         List<Id> ids = idn.getApi().unwrap().getIds();
 
         return new MethodInvocation(node.getSpan(),
@@ -144,6 +148,8 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         List<MathItem> exprs = node.getRest();
         VarRef first = (VarRef) node.getFront();
         Id idn = first.getVar();
+        if (idn.getApi().isNone())
+            bug(idn, "Missing an API name...");
         List<Id> ids = idn.getApi().unwrap().getIds();
 
         return new MethodInvocation(node.getSpan(),

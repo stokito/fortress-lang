@@ -93,6 +93,7 @@ public class SyntaxAbstractionUtil {
      */
     public static Id memberName(Span span, Id grammarName, String memberName) {
         Collection<Id> names = new LinkedList<Id>();
+        assert(grammarName.getApi().isSome());
         names.addAll(grammarName.getApi().unwrap().getIds());
         names.add(NodeFactory.makeId(grammarName.getText()));
         APIName apiGrammar = NodeFactory.makeAPIName(names);

@@ -112,7 +112,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
   this.grammarEnv = grammarEnv;
  }
 
- public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member, 
+ public static Result translate(NonterminalIndex<? extends GrammarMemberDecl> member,
    GrammarEnv grammarEnv) {
   return new SyntaxDefTranslator(grammarEnv).visit(member.getAst());
  }
@@ -170,6 +170,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
    locallyBoundVariables.addAll(sym.accept(new VariableCollector()));
   }
   String newName = FreshName.getFreshName(name).toUpperCase();
+  assert(this.currentNonterminalEnv.getSyntaxDeclEnv(syntaxDef).isSome());
   SyntaxDeclEnv sdEnv = this.currentNonterminalEnv.getSyntaxDeclEnv(syntaxDef).unwrap();
   ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, grammarEnv, sdEnv);
   if (!acr.isSuccessful()) { new Result(acr.errors()); }
@@ -272,6 +273,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     Option<List<Element>> id_result, List<Element> symbol_result) {
    if (symbol_result.size() == 1) {
     Element e = symbol_result.remove(0);
+    assert(that.getId().isSome());
     symbol_result.add(new Binding(that.getId().unwrap().getText(), e));
     return symbol_result;
    }

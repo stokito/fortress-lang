@@ -608,10 +608,9 @@ public class Driver {
                          */
                         /* probable bug: need to insert into ownNonFunction names */
                         change |= cw.desugarer.injectAtTopLevel(alias.unwrap(name).stringName(),
-                                name.stringName(),
-                                api_cw.desugarer,
-                                cw.excludedImportNames);
-
+                                                                name.stringName(),
+                                                                api_cw.desugarer,
+                                                                cw.excludedImportNames);
                     }
 
                 } else if (ix instanceof ImportStar) {

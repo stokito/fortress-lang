@@ -225,6 +225,7 @@ public List<StaticParam> getStaticParams() {
 
 public List<Param> getParams() {
     // TODO Auto-generated method stub
+    assert(odefOrDecl.getParams().isSome());
     return odefOrDecl.getParams().unwrap();
 }
 

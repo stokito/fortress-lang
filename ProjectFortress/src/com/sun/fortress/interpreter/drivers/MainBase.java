@@ -29,6 +29,8 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 public abstract class MainBase {
     static protected String baseName(boolean stripDir, String s, String suffix) {
         if (stripDir) {
@@ -133,7 +135,7 @@ public abstract class MainBase {
             Driver.runProgram(fr, p, false, false, fortressArgs);
         }
     }
-    
+
     void finish(String s, Option<CompilationUnit> p) throws Throwable {
         if (ast) {
             Appendable out = System.err;
@@ -153,7 +155,10 @@ public abstract class MainBase {
         }
         if (interpret) {
             FortressRepository fr = Driver.defaultRepository();
-            Driver.runProgram(fr, p.unwrap(), false, false, fortressArgs);
+            if (p.isSome())
+                Driver.runProgram(fr, p.unwrap(), false, false, fortressArgs);
+            else
+                bug(s + ": CompilationUnit is not found.");
         }
     }
 

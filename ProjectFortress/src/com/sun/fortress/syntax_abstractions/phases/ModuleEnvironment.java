@@ -157,6 +157,7 @@ public class ModuleEnvironment {
   ls.add(nt.getNonterminal());
   Module m;
   if (ModuleInfo.isFortressModule(nt.getName())) {
+   assert(nt.getName().getApi().isSome());
    APIName apiName = nt.getName().getApi().unwrap();
    Id newName = apiName.getIds().get(1);
    m = new FortressModule(newName.toString(), ls);

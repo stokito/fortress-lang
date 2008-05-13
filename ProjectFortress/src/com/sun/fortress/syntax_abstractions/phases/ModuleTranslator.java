@@ -126,6 +126,7 @@ public class ModuleTranslator {
   String nm = name;
   if (on.isSome()) {
    if (ModuleInfo.isFortressModule(on.unwrap())) {
+    assert(on.unwrap().getApi().isSome());
     return on.unwrap().getApi().unwrap().getIds().get(1).toString();
    }
    else {

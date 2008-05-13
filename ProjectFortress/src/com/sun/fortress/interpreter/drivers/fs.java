@@ -195,7 +195,7 @@ public class fs {
                 System.err.println("FAIL: Syntax error(s).");
                 System.exit(1);
             }
-            else if (!parseOnly) {
+            else if (!parseOnly && p.isSome()) {
                 CompilationUnit _p = p.unwrap();
 
                 if (verbose) {
