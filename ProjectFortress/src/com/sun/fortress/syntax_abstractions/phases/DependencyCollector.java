@@ -27,8 +27,9 @@ import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
-
 import edu.rice.cs.plt.tuple.Option;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /*
  * Collect the names of nonterminals referred form the alternatives of any
@@ -46,6 +47,8 @@ public class DependencyCollector extends NodeDepthFirstVisitor_void {
  public void forNonterminalSymbolOnly(NonterminalSymbol that) {
   // We know that fortress modules are on the form FortressSyntax.moduleName.nonterminal
   if (ModuleInfo.isFortressModule(that.getNonterminal())) {
+   if (that.getNonterminal().getApi().isNone())
+       bug(that, "Missing an API name...");
    Id id = that.getNonterminal().getApi().unwrap().getIds().get(1);
    result.add(id);
   }

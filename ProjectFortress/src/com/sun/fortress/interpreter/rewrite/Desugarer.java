@@ -1407,7 +1407,7 @@ public class Desugarer extends Rewrite {
     }
 
     private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
-        List<Expr> r = _requires.unwrap();
+        List<Expr> r = _requires.unwrap(Collections.<Expr>emptyList());
         for (Expr e : r) {
             Span sp = e.getSpan();
             GeneratorClause cond =
@@ -1420,7 +1420,7 @@ public class Desugarer extends Rewrite {
     }
 
     private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
-        List<EnsuresClause> es = _ensures.unwrap();
+        List<EnsuresClause> es = _ensures.unwrap(Collections.<EnsuresClause>emptyList());
         for (EnsuresClause e : es) {
             Span sp = e.getSpan();
             Id t1 = gensymId("t1");
@@ -1450,7 +1450,7 @@ public class Desugarer extends Rewrite {
     }
 
     private Block translateInvariants(Option<List<Expr>> _invariants, Block b) {
-        for (Expr e : _invariants.unwrap()) {
+        for (Expr e : _invariants.unwrap(Collections.<Expr>emptyList())) {
             Span sp = e.getSpan();
             Id t1 = gensymId("t1");
             Id t_result = gensymId("result");

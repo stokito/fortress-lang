@@ -52,7 +52,7 @@ public class SyntaxDeclEnv {
     @Override
     public void forPrefixedSymbolOnly(PrefixedSymbol that) {
      Option<Type> type = TypeCollector.getType(that);
-     if (type.isSome()) {
+     if (type.isSome() && that.getId().isSome()) {
       Id id = that.getId().unwrap();
       sdEnv.add(id, type.unwrap());
       if (that.getSymbol() instanceof NonterminalSymbol) {

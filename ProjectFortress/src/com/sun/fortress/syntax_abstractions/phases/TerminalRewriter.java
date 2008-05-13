@@ -64,7 +64,8 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         this.apiName = new LinkedList<Id>();
 
         Id name = that.getName();
-  this.apiName.addAll(name.getApi().unwrap().getIds());
+        assert(name.getApi().isSome());
+        this.apiName.addAll(name.getApi().unwrap().getIds());
         this.apiName.add(NodeFactory.makeId(name.getSpan(), name.getText()));
         return super.forGrammarDef(that);
     }
@@ -80,7 +81,8 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forPrefixedSymbol(PrefixedSymbol that) {
-     this.var = that.getId().unwrap().getText();
+        assert(that.getId().isSome());
+        this.var = that.getId().unwrap().getText();
         return super.forPrefixedSymbol(that);
     }
 
@@ -89,7 +91,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
      return super.forNonterminalSymbol(that);
     }
 
-    
+
     @Override
     public Node forKeywordSymbol(KeywordSymbol that) {
         return handleTerminal(that, that.getToken(), true);

@@ -36,6 +36,8 @@ import com.sun.fortress.parser.Fortress;
 
 import edu.rice.cs.plt.tuple.Option;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 public class EscapeRewriter extends NodeUpdateVisitor {
 
  private static final String ESCAPECHAR = "`";
@@ -45,13 +47,13 @@ public class EscapeRewriter extends NodeUpdateVisitor {
    int inx = 1;
    while(inx<s.length()-1) {
     ls.add(new CharSymbol(""+s.charAt(inx)));
-    inx++;       
+    inx++;
    }
    s = ""+s.charAt(s.length()-1);
   }
   return s;
  }
- 
+
  private String removeTrailingEscape(String s, List<CharacterSymbol> ls) {
   String end = "";
   if (s.startsWith(ESCAPECHAR)) {
@@ -60,16 +62,16 @@ public class EscapeRewriter extends NodeUpdateVisitor {
    inx++;
    while(inx<s.length()) {
     ls.add(new CharSymbol(""+s.charAt(inx)));
-    inx++;       
+    inx++;
    }
    return end;
   }
   return s;
  }
- 
+
  @Override
  public Node forCharacterClassSymbol(CharacterClassSymbol that) {
-  List<CharacterSymbol> ls = new LinkedList<CharacterSymbol>(); 
+  List<CharacterSymbol> ls = new LinkedList<CharacterSymbol>();
   for (CharacterSymbol cs: that.getCharacters()) {
    List<CharacterSymbol> ncs = cs.accept(new NodeDepthFirstVisitor<List<CharacterSymbol>>() {
 
@@ -91,7 +93,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
      head.add(new CharSymbol(s));
      return head;
     }
-    
+
    });
    ls.addAll(ncs);
   }
@@ -109,25 +111,26 @@ public class EscapeRewriter extends NodeUpdateVisitor {
   String s = removeEscape(that.getToken());
   return new TokenSymbol(that.getSpan(), s);
  }
- 
+
  @Override
  public Node forPrefixedSymbolOnly(PrefixedSymbol that,
            Option<Id> result_id,
            SyntaxSymbol result_symbol) {
+  if (result_id.isNone()) bug(that, "Missing an Id.");
   String s = removeEscape(result_id.unwrap().getText());
   return new PrefixedSymbol(that.getSpan(), Option.some(new Id(s)), result_symbol);
  }
- 
+
  private String removeEscape(String s) {
-  for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_SYMBOLS) { 
+  for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_SYMBOLS) {
    s = s.replaceAll(ESCAPECHAR+symbol, symbol);
   }
-  for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS) { 
+  for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS) {
    s = s.replaceAll(ESCAPECHAR+symbol, symbol);
   }
 
   return s;
  }
 
- 
+
 }
