@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.GrammarMemberDecl;

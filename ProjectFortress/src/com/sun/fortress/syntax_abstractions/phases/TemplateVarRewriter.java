@@ -136,22 +136,10 @@ public class TemplateVarRewriter {
 		return inx == 0;
 	}
 
-//	private String getGapName(Map<String, String> varToGapName, String var) {
-//		if (varToGapName.containsKey(var)) {
-//			return varToGapName.get(var);
-//		}
-//		String gapName = FreshName.getFreshName(var);
-//		varToGapName.put(var, gapName);
-//		return gapName;
-//	}
-
 	private List<String> parseArgs(Map<String, String> varToGapName , String s) {
-		// System.err.println("S: "+s);
 		String[] tokens = s.split(",");
 		List<String> ls = new LinkedList<String>();
 		for (String token: tokens) {
-			// System.err.println("T: "+token);
-			// ls.add(getGapName(varToGapName, token.trim()));
 			ls.add(token.trim());
 		}
 		return ls;
