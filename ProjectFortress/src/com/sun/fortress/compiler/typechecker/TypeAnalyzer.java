@@ -274,10 +274,6 @@ public class TypeAnalyzer {
                                 if (!result.isFalse()) {
                                     result = result.and(sub(s.getVarargs(), tCast.getVarargs(), h), h);
                                 }
-                                if (!result.isFalse()) {
-                                    result = result.and(sub(keywordTypes(s.getKeywords()),
-                                                            keywordTypes(tCast.getKeywords()), h), h);
-                                }
                             }
                             else { return ConstraintFormula.FALSE; }
                         }
@@ -290,31 +286,20 @@ public class TypeAnalyzer {
                             // split to an And
                             List<Type> infElements1 = makeInferenceVarTypes(s.getElements().size());
                             List<Type> infElements2 = makeInferenceVarTypes(s.getElements().size());
-                            Option<Type> infVarargs1 = newInferenceVar(s.getVarargs());
-                            Option<Type> infVarargs2 = newInferenceVar(s.getVarargs());
-                            List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
-                            List<KeywordType> infKeywords2 = newInferenceVars(s.getKeywords());
+                            Type infVarargs1 = newInferenceVar(s.getVarargs());
+                            Type infVarargs2 = newInferenceVar(s.getVarargs());
                             ConstraintFormula f = ConstraintFormula.TRUE;
                             for (Triple<Type, Type, Type> ts :
                                      IterUtil.zip(s.getElements(), infElements1, infElements2)) {
                                 f = f.and(equiv(ts.first(), new AndType(ts.second(), ts.third()), h), h);
                                 if (f.isFalse()) { break; }
                             }
-                            if (!f.isFalse() && infVarargs1.isSome()) {
-                                Type varargs = s.getVarargs().unwrap().getType();
-                                Type inf1 = infVarargs1.unwrap().getType();
-                                Type inf2 = infVarargs1.unwrap().getType();
-                                f = f.and(equiv(varargs, new AndType(inf1, inf2), h), h);
-                            }
-                            for (Triple<KeywordType, KeywordType, KeywordType> ks :
-                                     IterUtil.zip(s.getKeywords(), infKeywords1, infKeywords2)) {
-                                if (f.isFalse()) { break; }
-                                AndType andT = new AndType(ks.second().getType(), ks.third().getType());
-                                f = f.and(equiv(ks.first().getType(), andT, h), h);
+                            if (!f.isFalse()) {
+                                f = f.and(equiv(s.getVarargs(), new AndType(inf1, inf2), h), h);
                             }
                             if (!f.isFalse()) {
-                                Type sup = new AndType(new TupleType(infElements1, infVarargs1, infKeywords1),
-                                                       new TupleType(infElements2, infVarargs2, infKeywords2));
+                                Type sup = new AndType(new TupleType(infElements1, infVarargs1),
+                                                       new TupleType(infElements2, infVarargs2);
                                 f = f.and(sub(sup, t, h), h);
                             }
                             return f;
@@ -324,11 +309,6 @@ public class TypeAnalyzer {
                             ConstraintFormula result = ConstraintFormula.FALSE;
                             for (Type eltT : s.getElements()) {
                                 ConstraintFormula f = sub(eltT, BOTTOM, h);
-                                if (!f.isFalse()) { f = f.and(sub(BOTTOM, t, h), h); }
-                                result = result.or(f, h);
-                            }
-                            for (KeywordType key : s.getKeywords()) {
-                                ConstraintFormula f = sub(key.getType(), BOTTOM, h);
                                 if (!f.isFalse()) { f = f.and(sub(BOTTOM, t, h), h); }
                                 result = result.or(f, h);
                             }
@@ -440,12 +420,10 @@ public class TypeAnalyzer {
                                 if (form != null) {
                                     List<Type> infElements1 = makeInferenceVarTypes(form.getElements().size());
                                     List<Type> infElements2 = makeInferenceVarTypes(form.getElements().size());
-                                    Option<Type> infVarargs1 = newInferenceVar(form.getVarargs());
-                                    Option<Type> infVarargs2 = newInferenceVar(form.getVarargs());
-                                    List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
-                                    List<KeywordType> infKeywords2 = newInferenceVars(form.getKeywords());
-                                    TupleType match1 = new TupleType(infElements1, infVarargs1, infKeywords1);
-                                    TupleType match2 = new TupleType(infElements2, infVarargs2, infKeywords2);
+                                    Type infVarargs1 = newInferenceVar(form.getVarargs());
+                                    Type infVarargs2 = newInferenceVar(form.getVarargs());
+                                    TupleType match1 = new TupleType(infElements1, infVarargs1);
+                                    TupleType match2 = new TupleType(infElements2, infVarargs2);
                                     ConstraintFormula f = equiv(s.getFirst(), match1, h);
                                     if (!f.isFalse()) { f = f.and(equiv(s.getSecond(), match2, h), h); }
                                     if (!f.isFalse()) {
@@ -453,20 +431,8 @@ public class TypeAnalyzer {
                                         for (Pair<Type, Type> ts : IterUtil.zip(infElements1, infElements2)) {
                                             andElements.add(new AndType(ts.first(), ts.second()));
                                         }
-                                        Option<Type> andVarargs;
-                                        if (infVarargs1.isSome()) {
-                                            AndType vt = new AndType(infVarargs1.unwrap().getType(),
-                                                                     infVarargs2.unwrap().getType());
-                                            andVarargs = Option.some(vt);
-                                        }
-                                        else { andVarargs = Option.none(); }
-                                        List<KeywordType> andKeywords = new LinkedList<KeywordType>();
-                                        for (Pair<KeywordType, KeywordType> ks :
-                                                 IterUtil.zip(infKeywords1, infKeywords2)) {
-                                            AndType kt = new AndType(ks.first().getType(), ks.second().getType());
-                                            andKeywords.add(new KeywordType(ks.first().getName(), kt));
-                                        }
-                                        TupleType sup = new TupleType(andElements, andVarargs, andKeywords);
+                                        Type andVarargs = new AndType(infVarargs1, infVarargs2);
+                                        TupleType sup = new TupleType(andElements, andVarargs);
                                         f = f.and(sub(sup, t, h), h);
                                     }
                                     result = result.or(f, h);
@@ -613,10 +579,6 @@ public class TypeAnalyzer {
                             if (!result.isFalse()) {
                                 result = result.and(subtype(s.getVarargs(), tCast.getVarargs(), h), h);
                             }
-                            if (!result.isFalse()) {
-                                result = result.and(subtype(keywordTypes(s.getKeywords()),
-                                                            keywordTypes(tCast.getKeywords()), h), h);
-                            }
                         }
                         else { result = ConstraintFormula.FALSE; }
 
@@ -627,16 +589,11 @@ public class TypeAnalyzer {
                         if (!result.isTrue()) {
                             // covariance
                             List<Type> infElements = makeInferenceVarTypes(s.getElements().size());
-                            Option<Type> infVarargs = newInferenceVar(s.getVarargs());
-                            List<KeywordType> infKeywords = newInferenceVars(s.getKeywords());
+                            Type infVarargs = newInferenceVar(s.getVarargs());
                             ConstraintFormula f = subtype(s.getElements(), infElements, h);
                             if (!f.isFalse()) { f = f.and(subtype(s.getVarargs(), infVarargs, h), h); }
                             if (!f.isFalse()) {
-                                f = f.and(subtype(keywordTypes(s.getKeywords()),
-                                                  keywordTypes(infKeywords), h), h);
-                            }
-                            if (!f.isFalse()) {
-                                TupleType sup = new TupleType(infElements, infVarargs, infKeywords);
+                                TupleType sup = new TupleType(infElements, infVarargs);
                                 f = f.and(subtype(sup, t, h), h);
                             }
                             result = result.or(f, h);
@@ -645,31 +602,20 @@ public class TypeAnalyzer {
                             // split to an And
                             List<Type> infElements1 = makeInferenceVarTypes(s.getElements().size());
                             List<Type> infElements2 = makeInferenceVarTypes(s.getElements().size());
-                            Option<Type> infVarargs1 = newInferenceVar(s.getVarargs());
-                            Option<Type> infVarargs2 = newInferenceVar(s.getVarargs());
-                            List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
-                            List<KeywordType> infKeywords2 = newInferenceVars(s.getKeywords());
+                            Type infVarargs1 = newInferenceVar(s.getVarargs());
+                            Type infVarargs2 = newInferenceVar(s.getVarargs());
                             ConstraintFormula f = ConstraintFormula.TRUE;
                             for (Triple<Type, Type, Type> ts :
                                      IterUtil.zip(s.getElements(), infElements1, infElements2)) {
                                 f = f.and(equivalent(ts.first(), new AndType(ts.second(), ts.third()), h), h);
                                 if (f.isFalse()) { break; }
                             }
-                            if (!f.isFalse() && infVarargs1.isSome()) {
-                                Type varargs = s.getVarargs().unwrap().getType();
-                                Type inf1 = infVarargs1.unwrap().getType();
-                                Type inf2 = infVarargs1.unwrap().getType();
-                                f = f.and(equivalent(varargs, new AndType(inf1, inf2), h), h);
-                            }
-                            for (Triple<KeywordType, KeywordType, KeywordType> ks :
-                                     IterUtil.zip(s.getKeywords(), infKeywords1, infKeywords2)) {
-                                if (f.isFalse()) { break; }
-                                AndType andT = new AndType(ks.second().getType(), ks.third().getType());
-                                f = f.and(equivalent(ks.first().getType(), andT, h), h);
+                            if (!f.isFalse()) {
+                                f = f.and(equivalent(s.getVarargs(), new AndType(infVarargs1, infVarargs2), h), h);
                             }
                             if (!f.isFalse()) {
-                                Type sup = new AndType(new TupleType(infElements1, infVarargs1, infKeywords1),
-                                                       new TupleType(infElements2, infVarargs2, infKeywords2));
+                                Type sup = new AndType(new TupleType(infElements1, infVarargs1),
+                                                       new TupleType(infElements2, infVarargs2));
                                 f = f.and(subtype(sup, t, h), h);
                             }
                             result = result.or(f, h);
@@ -678,11 +624,6 @@ public class TypeAnalyzer {
                             // BottomType
                             for (Type eltT : s.getElements()) {
                                 ConstraintFormula f = subtype(eltT, BOTTOM, h);
-                                if (!f.isFalse()) { f = f.and(subtype(BOTTOM, t, h), h); }
-                                result = result.or(f, h);
-                            }
-                            for (KeywordType key : s.getKeywords()) {
-                                ConstraintFormula f = subtype(key.getType(), BOTTOM, h);
                                 if (!f.isFalse()) { f = f.and(subtype(BOTTOM, t, h), h); }
                                 result = result.or(f, h);
                             }
@@ -862,12 +803,10 @@ public class TypeAnalyzer {
                             if (form != null) {
                                 List<Type> infElements1 = makeInferenceVarTypes(form.getElements().size());
                                 List<Type> infElements2 = makeInferenceVarTypes(form.getElements().size());
-                                Option<Type> infVarargs1 = newInferenceVar(form.getVarargs());
-                                Option<Type> infVarargs2 = newInferenceVar(form.getVarargs());
-                                List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
-                                List<KeywordType> infKeywords2 = newInferenceVars(form.getKeywords());
-                                TupleType match1 = new TupleType(infElements1, infVarargs1, infKeywords1);
-                                TupleType match2 = new TupleType(infElements2, infVarargs2, infKeywords2);
+                                Type infVarargs1 = newInferenceVar(form.getVarargs());
+                                Type infVarargs2 = newInferenceVar(form.getVarargs());
+                                TupleType match1 = new TupleType(infElements1, infVarargs1);
+                                TupleType match2 = new TupleType(infElements2, infVarargs2);
                                 ConstraintFormula f = equivalent(s.getFirst(), match1, h);
                                 if (!f.isFalse()) { f = f.and(equivalent(s.getSecond(), match2, h), h); }
                                 if (!f.isFalse()) {
@@ -875,20 +814,8 @@ public class TypeAnalyzer {
                                     for (Pair<Type, Type> ts : IterUtil.zip(infElements1, infElements2)) {
                                         andElements.add(new AndType(ts.first(), ts.second()));
                                     }
-                                    Option<Type> andVarargs;
-                                    if (infVarargs1.isSome()) {
-                                        AndType vt = new AndType(infVarargs1.unwrap().getType(),
-                                                                 infVarargs2.unwrap().getType());
-                                        andVarargs = Option.some(vt);
-                                    }
-                                    else { andVarargs = Option.none(); }
-                                    List<KeywordType> andKeywords = new LinkedList<KeywordType>();
-                                    for (Pair<KeywordType, KeywordType> ks :
-                                             IterUtil.zip(infKeywords1, infKeywords2)) {
-                                        AndType kt = new AndType(ks.first().getType(), ks.second().getType());
-                                        andKeywords.add(new KeywordType(ks.first().getName(), kt));
-                                    }
-                                    TupleType sup = new TupleType(andElements, andVarargs, andKeywords);
+                                    Type andVarargs = new AndType(infVarargs1, infVarargs2);
+                                    TupleType sup = new TupleType(andElements, andVarargs);
                                     f = f.and(subtype(sup, t, h), h);
                                 }
                                 result = result.or(f, h);

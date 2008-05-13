@@ -601,7 +601,7 @@ public class ExprFactory {
                                e.getFinallyClause());
             }
             public Expr forArgExpr(ArgExpr e) {
-                return new ArgExpr(e.getSpan(), true, e.getExprs(), e.getVarargs(), e.getKeywords());
+                return new ArgExpr(e.getSpan(), true, e.getExprs(), e.getVarargs());
             }
             public Expr forTupleExpr(TupleExpr e) {
                 return new TupleExpr(e.getSpan(), true, e.getExprs());

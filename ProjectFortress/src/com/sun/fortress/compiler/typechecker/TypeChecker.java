@@ -933,7 +933,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
 
             Option<Type> applicationType =
-                TypesUtil.applicationType(subtypeChecker, opType, IterUtil.make(paramType, guardType));
+                TypesUtil.applicationType(subtypeChecker, opType,
+                                          TypesUtil.argsToType(paramType, guardType));
 
             // Check if "opType paramType guardType" application has type Boolean
             if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
@@ -996,10 +997,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Type guardTypeR = guardTypePair.second();
 
             Option<Type> applicationType =
-                TypesUtil.applicationType(subtypeChecker,
-                                                 opType,
-                                                 IterUtil.make(guardTypeL,
-                                                               guardTypeR));
+                TypesUtil.applicationType(subtypeChecker, opType,
+                                          TypesUtil.argsToType(guardTypeL, guardTypeR));
 
             // Check if "opType guardType_i guardType_j" application has type Boolean
             if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
@@ -1090,9 +1089,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 argTypes.add(r.type().unwrap());
             }
             if (success) {
-                applicationType = TypesUtil.applicationType(subtypeChecker,
-                                                            arrowType,
-                                                            argTypes);
+                applicationType = TypesUtil.applicationType(subtypeChecker, arrowType,
+                                                            TypesUtil.argsToType(argTypes));
                 if (applicationType.isNone()) {
                     // Guaranteed at least one operator because all the overloaded operators
                     // are created by disambiguation, not by the user.
@@ -2777,9 +2775,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forArgExpr(ArgExpr that) {
 //        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
-//        Option<RetType> varargs_result = recurOnOptionOfVarargsExpr(that.getVarargs());
-//        List<RetType> keywords_result = recurOnListOfBinding(that.getKeywords());
-//        return forArgExprOnly(that, exprs_result, varargs_result, keywords_result);
+//        RetType varargs_result = that.getVarargs().accept(this);
+//        return forArgExprOnly(that, exprs_result, varargs_result);
 //    }
 //
 //    public RetType forTupleExpr(TupleExpr that) {
@@ -2988,9 +2985,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forArgType(ArgType that) {
 //        List<RetType> elements_result = recurOnListOfType(that.getElements());
-//        Option<RetType> varargs_result = recurOnOptionOfType(that.getVarargs());
-//        List<RetType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
-//        return forArgTypeOnly(that, elements_result, varargs_result, keywords_result);
+//        RetType varargs_result = that.getVarargs().accept(this);
+//        return forArgTypeOnly(that, elements_result, varargs_result);
 //    }
 //
 //    public RetType forTupleType(TupleType that) {

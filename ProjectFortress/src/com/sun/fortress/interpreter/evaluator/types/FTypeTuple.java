@@ -365,10 +365,8 @@ public class FTypeTuple extends FType {
             vargs = Option.none();
         } else if (val instanceof ArgType) {
             ArgType tup = (ArgType) val;
-            if (!(tup.getKeywords().isEmpty())) return false;
             elements = tup.getElements();
-            vargs = tup.getVarargs();
-            return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
+            vargs = Option.some(tup.getVarargs());
         } else { // (val instanceof TupleType)
             elements = ((TupleType)val).getElements();
             vargs = Option.none();

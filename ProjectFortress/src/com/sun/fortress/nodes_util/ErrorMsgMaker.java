@@ -229,14 +229,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forArgType(ArgType node) {
-        String varargsString = node.getVarargs().isSome() ?
-            node.getVarargs().unwrap().accept(this) + "..." :
-            "";
         return
             "(" +
             Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
-            varargsString + 
-            Useful.listInDelimiters("", mapSelf(node.getKeywords()), "") +
+            node.getVarargs().accept(this) + "..." + 
             ")";
     }
 

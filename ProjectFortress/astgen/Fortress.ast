@@ -1302,15 +1302,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             TupleType();
             /**
              * argument type
-             * ArgType ::= ( (Type, )* (Type ... ,)? KeywordType(, KeywordType)* )
-             *           | ( (Type, )*  Type ... )
+             * ArgType ::=
+             *             ( (Type, )*  Type ... )
              *           | TupleType
              * e.g.)
              */
-            ArgType(Option<Type> varargs = Option.<Type>none(),
-                    List<KeywordType> keywords
-                        = Collections.<KeywordType>emptyList(),
-                    boolean inArrow = false);
+            ArgType(Type varargs);
         /**
          * void type
          * NonArrowType ::= ()

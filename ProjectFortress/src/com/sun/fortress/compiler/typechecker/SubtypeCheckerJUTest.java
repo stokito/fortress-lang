@@ -419,12 +419,9 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
     /** Test the application type checking. */
     public void testApplication() {
         Type arrow1 = parseType("(A, B) -> C");
-        Type lhs1 = parseType("A");
-        Type rhs1 = parseType("B");
+        Type arg1 = parseType("(A, B)");
         assertEquals(parseType("C"),
-                     TypesUtil.applicationType(checker,
-                                               arrow1,
-                                               Arrays.asList(lhs1, rhs1)).unwrap(BOTTOM));
+                     TypesUtil.applicationType(checker, arrow1, arg1).unwrap(null));
     }
 
 }

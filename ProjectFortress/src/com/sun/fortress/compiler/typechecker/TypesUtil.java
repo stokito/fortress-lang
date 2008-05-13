@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.compiler.Types;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -45,6 +46,27 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * Contains static utility methods for creating and interacting with types.
  */
 public class TypesUtil {
+    
+    /**
+     * Convert a list of application argument types to a single type
+     * (either (), the given (singelton) type, or a tuple).
+     */
+    public static Type argsToType(Type... ts) {
+        return argsToType(IterUtil.make(ts));
+    }
+    
+    /**
+     * Convert a list of application argument types to a single type
+     * (either (), the given (singelton) type, or a tuple).
+     */
+    public static Type argsToType(Iterable<Type> ts) {
+        int size = IterUtil.sizeOf(ts, 2);
+        switch (size) {
+            case 0: return Types.VOID;
+            case 1: return IterUtil.first(ts);
+            default: return new TupleType(IterUtil.asList(ts));
+        }
+    }
 
     /**
      * Figure out the static type of a non-generic function application.
@@ -52,30 +74,13 @@ public class TypesUtil {
      * @param fn the type of the function, which can be some AbstractArrowType,
      *           or an intersection of such (in the case of an overloaded
      *           function)
-     * @param args the arguments to apply to this function
+     * @param arg the argument to apply to this function
      * @return the return type of the most applicable arrow type in {@code fn},
      *         or {@code Option.none()} if no arrow type matched the args
      */
     public static Option<Type> applicationType(final SubtypeChecker checker,
                                                final Type fn,
-                                               final Iterable<Type> args) {
-        return applicationType(checker, fn, NodeFactory.makeArgType(IterUtil.asList(args)));
-    }
-
-    public static Option<Type> applicationType(final SubtypeChecker checker,
-                                               final Type fn,
                                                final Type arg) {
-
-        // Make sure domain is an ArgType
-        final ArgType domain;
-        if (arg instanceof ArgType) {
-            domain = (ArgType) arg;
-        } else if (arg instanceof TupleType) {
-            domain = NodeFactory.makeArgType(((TupleType)arg).getElements());
-        } else {
-            domain = NodeFactory.makeArgType(Collections.singletonList(arg));
-        }
-
         // Turn fn into a list of types (i.e. flatten if an intersection)
         final Iterable<Type> arrows =
             (fn instanceof AndType) ? conjuncts((AndType)fn)
@@ -88,7 +93,7 @@ public class TypesUtil {
             // Try to form a non-generic ArrowType from this arrow, if it matches the args
             Option<ArrowType> newArrow = arrow.accept(new NodeAbstractVisitor<Option<ArrowType>>() {
                 @Override public Option<ArrowType> forArrowType(ArrowType that) {
-                    return checker.subtype(domain, that.getDomain())
+                    return checker.subtype(arg, that.getDomain())
                         ? some(that)
                         : Option.<ArrowType>none();
                 }
@@ -120,7 +125,7 @@ public class TypesUtil {
 
     public static Option<Type> applicationType(SubtypeChecker checker,
                                                Type arrow,
-                                               Iterable<Type> args,
+                                               Type arg,
                                                Iterable<StaticArg> staticArgs) {
         return Option.<Type>none(); // TODO implement
     }
