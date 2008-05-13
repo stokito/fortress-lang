@@ -227,6 +227,8 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
         return stale;
     }
 
+        /* This recursion could be wrong -- might want to require that
+         * FortressRepository can enumerate things-depended on. */
     private boolean checkComponent(APIName c) {
         try {
             ComponentIndex ci =
