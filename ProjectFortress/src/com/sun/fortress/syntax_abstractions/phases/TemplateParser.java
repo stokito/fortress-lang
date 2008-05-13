@@ -149,7 +149,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 	 * Find the method that would parse a given production, such as
 	 * pExpression$Expr when given "Expr".
 	 */ 
-	private Method lookupExpression(Class parser, String production){
+	private Option<Method> lookupExpression(Class parser, String production){
 		try{
 			/* This is a Rats! specific naming convention. Move it
 			 * elsewhere?
@@ -162,8 +162,9 @@ public class TemplateParser extends NodeUpdateVisitor {
 			 */
 			if ( found != null ){
 				found.setAccessible(true);
+				return Option.wrap(found);
 			}
-			return found;
+			return Option.none();
 		} catch (NoSuchMethodException e){
 			throw new RuntimeException(e);
 		} catch (SecurityException e){
@@ -189,14 +190,13 @@ public class TemplateParser extends NodeUpdateVisitor {
 		BufferedReader in = Useful.bufferedStringReader(transformation);
 		com.sun.fortress.parser.Fortress parser =
 			new com.sun.fortress.parser.Fortress(in, "FooBar");
-		Method parse = lookupExpression(parser.getClass(), productionName);
-		if ( parse == null ){
-			System.err.println( "Did not find method " + productionName );
-			return Option.none();
+		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
+		if ( ! parse.isSome() ){
+			throw new RuntimeException("Did not find method " + productionName);
 		}
 
 		try {
-			xtc.parser.Result parseResult = invokeParseMethod(parser,parse,0);
+			xtc.parser.Result parseResult = invokeParseMethod(parser,parse.unwrap(),0);
 			if (parseResult.hasValue()) {
 				Object cu = ((SemanticValue) parseResult).value;
 				if (cu instanceof AbstractNode) {
