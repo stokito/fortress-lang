@@ -18,9 +18,6 @@
 package com.sun.fortress.ant_tasks;
 
 import com.sun.fortress.interpreter.drivers.fs;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Null;
-import edu.rice.cs.plt.tuple.Wrapper;
 import java.io.*;
 import java.util.*;
 import org.apache.tools.ant.*;
@@ -35,21 +32,21 @@ public abstract class BatchTask extends Task {
     protected BatchTask(String _execName) {
         execName = _execName;
     }
-    
+
     public void addFileset(FileSet fileset) {
         filesets.add(fileset);
     }
-    
+
     public void execute() {
         try {
             boolean failures = false;
-            
+
             for (FileSet fileSet : filesets) {
                 DirectoryScanner dirScanner = fileSet.getDirectoryScanner(getProject());
                 String[] includedFiles = dirScanner.getIncludedFiles();
                 for (String fileName : includedFiles) {
                     String nextFile = dirScanner.getBasedir() + File.separator + fileName;
-                    System.err.println("Processing " + nextFile); 
+                    System.err.println("Processing " + nextFile);
                     Process process = Runtime.getRuntime().exec (
                         execName + " " + execOptions + nextFile
                     );
@@ -65,15 +62,15 @@ public abstract class BatchTask extends Task {
                     }
                 }
             }
-            if (failures) { 
+            if (failures) {
                 throw new RuntimeException(
                     execName + " " +
                     "FAILED ON SOME FILES. " +
                     "SEE ABOVE ERROR MESSAGES FOR DETAILS."
-                ); 
-            }         
+                );
+            }
         } catch (RuntimeException e) {
-            // Catch RuntimeExceptions here to avoid catching them in the next 
+            // Catch RuntimeExceptions here to avoid catching them in the next
             // clause and wrapping them.
             throw e;
         } catch (Throwable t) {

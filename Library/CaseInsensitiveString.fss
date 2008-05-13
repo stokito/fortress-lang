@@ -32,12 +32,13 @@ value object CaseInsensitiveString(s:String)
     getter indices() : FullRange[\ZZ32\] = s.indices()
     getter generator() : Generator[\Char\] = s.generator()
     opr |self| : ZZ32 = |s|
-    opr =(self, other:String): Boolean = s.cicmp(other) = 0
-    opr <(self, other:String): Boolean = s.cicmp(other) < 0
-    opr <=(self, other:String): Boolean = s.cicmp(other) <= 0
-    opr >(self, other:String): Boolean = s.cicmp(other) > 0
-    opr >=(self, other:String): Boolean = s.cicmp(other) >= 0
-    opr CMP(self, other:String): TotalComparison = s.cicmp(other) CMP 0
+    opr =(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) = 0
+    opr <(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) < 0
+    opr <=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) <= 0
+    opr >(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) > 0
+    opr >=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) >= 0
+    opr CMP(self, other:CaseInsensitiveString): TotalComparison =
+        s.cicmp(other.toString()) CMP 0
     opr [i:ZZ32]: Char = s[i]
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the string, returning the empty string, in order to permit some convenient

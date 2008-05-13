@@ -24,22 +24,17 @@ import Map.{...}
 
 export Executable
 
-isDelimiter(c:Char):Boolean =   c IN <| ' ',  ',', '.', '?' |>
+delimiters : List[\Char\] = <| ' ',  ',', '.', '?', '*', '\t', '-', '/', '[', ']' |>
+delimMap : Map[\Char,Boolean\] = { c |-> true | c <- delimiters }
+isDelimiter(c:Char):Boolean = delimMap.member(c,false)
 
-maybeAddWord(word:String, 
-                         database:Map[\String,ZZ32\]):Map[\String,ZZ32\]= do
-    var result:Map[\String,ZZ32\] := mapping[\String,ZZ32\]()
-    occurs = database.member(word,0)
-    if occurs > 0 then 
-        result := database.update(word,occurs+1)
-    else 
-        result := database.add(word,1)
-    end
-    result
-end
+maybeAddWord(word:String,
+             database:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\]=
+    database.updateWith(fn (mx) => Just[\ZZ32\](if x <- mx then x+1 else 1 end),
+                        CaseInsensitiveString(word))
 
-getWords(s:String):Map[\String, ZZ32\] = do
-    var database:Map[\String,ZZ32\] := mapping[\String,ZZ32\]()
+getWords(s:String):Map[\CaseInsensitiveString, ZZ32\] = do
+    var database:Map[\CaseInsensitiveString,ZZ32\] := mapping[\CaseInsensitiveString,ZZ32\]()
     var count:ZZ32 := 1
     var current:ZZ32 := 0
     var start:ZZ32 := 0
@@ -71,37 +66,46 @@ makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
     database
 end
 
-opr UNIONSUM(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a.union(fn(k,x,y)=>x+y, b)
+opr UNIONSUM(a:Map[\CaseInsensitiveString,ZZ32\],
+             b:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\] =
+        a.union(fn(_,x,y)=>x+y, b)
 
-opr BIG UNIONSUM(g:(Reduction[\Map[\String,ZZ32\]\], Map[\String,ZZ32\]->Map[\String,ZZ32\])->Map[\String,ZZ32\]):Map[\String,ZZ32\]=
-    embiggen[\Map[\String,ZZ32\]\](fn (a,b) => a UNIONSUM b, mapping[\String,ZZ32\](), g)
+opr BIG UNIONSUM(g:(Reduction[\Map[\CaseInsensitiveString,ZZ32\]\],
+                    Map[\CaseInsensitiveString,ZZ32\]->Map[\CaseInsensitiveString,ZZ32\]) ->
+                   Map[\CaseInsensitiveString,ZZ32\]): Map[\CaseInsensitiveString,ZZ32\] =
+    embiggen[\Map[\CaseInsensitiveString,ZZ32\]\](fn (a,b) => a UNIONSUM b,
+                                            mapping[\CaseInsensitiveString,ZZ32\](), g)
 
-opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] = a.union(fn(k,x,y) =>x.append(y),b)
+opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
+    a.union(fn(k,x,y) =>x.append(y),b)
 
-opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\], Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\])->Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] =
-    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, mapping[\ZZ32,List[\String\]\](),g)
+opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\],
+                      Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\]) ->
+                     Map[\ZZ32,List[\String\]\]): Map[\ZZ32,List[\String\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b,
+                                    mapping[\ZZ32,List[\String\]\](),g)
 
 processFile(name:String):() = do
     println("Processing file " name)
     var rs:FileReadStream = FileReadStream(name)
-    database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
-    var invDatabase:Map[\ZZ32,List[\String\]\] = BIG UNIONUNION [(x,y) <-database] (makeInv(x,y))
-    try 
-        for i <- seq(1#100) do 
+    database:Map[\CaseInsensitiveString, ZZ32\] =
+        BIG UNIONSUM [l<-rs.lines()] getWords(l)
+    rs.close()
+    var invDatabase:Map[\ZZ32,List[\String\]\] =
+        BIG UNIONUNION [(x,y) <-database] { y |-> <| x.toString() |> asif List[\String\] }
+    try
+        for i <- seq(1#100) do
             (c:ZZ32,m:List[\String\]) = invDatabase.maximum().get()
             invDatabase := invDatabase.deleteMaximum()
-            println(m ": " c " times") 
-        end 
-    catch e 
+            println(m ": " c " times")
+        end
+    catch e
             NotFound => println("end")
     end
-    rs.close()
 end
 
 
-run(args:String...)= do
-    processFile(getEnvironment("FORTRESS_HOME", ".") "/ProjectFortress/demos/hamlet")   
+run(args:String...) = do
+    processFile(getEnvironment("FORTRESS_HOME", ".") "/ProjectFortress/demos/hamlet")
 end
 end
-
-

@@ -18,9 +18,6 @@
 package com.sun.fortress.ant_tasks;
 
 import com.sun.fortress.interpreter.drivers.fs;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Null;
-import edu.rice.cs.plt.tuple.Wrapper;
 import java.io.*;
 import java.util.*;
 import org.apache.tools.ant.*;

@@ -249,7 +249,6 @@ abstract public class NodeReflection {
     };
 
     final protected Field[] getCachedPrintableFields(Class cl) {
-
         return getCachedPrintableFields(cl, cl.getSimpleName()); // modifiedSimpleName(cl));
     }
 
