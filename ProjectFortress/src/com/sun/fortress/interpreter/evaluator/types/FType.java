@@ -330,15 +330,16 @@ abstract public class FType implements Comparable<FType> {
         if (other == BottomType.ONLY)
             return false;
         bug(errorMsg("Couldn't figure out ",this," <: ",other));
-        // This is the old reflection-loving subtype check.
-        // We shouldn't ever use it anymore.
-        Class us = getClass();
-        Class them = other.getClass();
-        System.err.println("Resorting to reflection for "+us+" <: "+them);
-        if (us == them) return true;
-        // TODO There's some type instantiations missing, but I do not know what
-        // good ones would be, and the code is correct anyway.
-        return them.isAssignableFrom(us);
+        return false;
+        // // This is the old reflection-loving subtype check.
+        // // We shouldn't ever use it anymore.
+        // Class us = getClass();
+        // Class them = other.getClass();
+        // System.err.println("Resorting to reflection for "+us+" <: "+them);
+        // if (us == them) return true;
+        // // TODO There's some type instantiations missing, but I do not know what
+        // // good ones would be, and the code is correct anyway.
+        // return them.isAssignableFrom(us);
     }
 
     public boolean equals(Object other) {

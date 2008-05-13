@@ -333,7 +333,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
           LessThan    => balancedAdd(key,val, left.updateWith(f,k), right)
           GreaterThan => balancedAdd(key,val, left, right.updateWith(f,k))
           else =>
-              if r <- f(val)
+              if r <- f(Just[\Val\](val))
               then NodeMap[\Key,Val\](k,r, left, right)
               else left.balancedDelete(right) end
       end

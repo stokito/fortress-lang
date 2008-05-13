@@ -49,14 +49,16 @@ public class LazilyEvaluatedCell extends IndirectionCell {
 
     public FValue getValue() {
         if (theValue == null) {
-            theValue = this;
-            theValue = (new Evaluator(e)).eval(exp);
-            exp = null;
-            e = null;
-        } else if (theValue == this) {
-            throw new CircularDependenceError(exp, "Value is self-dependent, cannot be evaluated.");
+            synchronized (this) {
+                if (theValue == null) {
+                    Expr exp0 = exp;
+                    BetterEnv e0 = e;
+                    exp = null;
+                    e = null;
+                    theValue = (new Evaluator(e0)).eval(exp0);
+                }
+            }
         }
-
         return theValue;
     }
 }

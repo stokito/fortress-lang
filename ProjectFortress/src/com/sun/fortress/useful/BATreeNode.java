@@ -219,22 +219,34 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             }
         }
 
+        // Balance test, factored out so we can be very very clever
+        // about null checking and thus avoid making Java think hard
+        // about the fact that weight >= 0 is an invariant.
+        // Only did this because [l,r]WeightIncreased show up in profiles.
+        private boolean outOfBalance(BATreeNode<T,U> heavier, BATreeNode<T,U> lighter) {
+            if (heavier==null) return false;
+            return (heavier.weight >> 2 > weight(lighter));
+        }
+
+        // Heaviness test, factored out so we can be very very clever
+        // about null checking and thus avoid making Java think hard
+        // about the fact that weight >= 0 is an invariant.
+        // Only did this because [l,r]WeightIncreased show up in profiles.
+        private boolean atLeastAsHeavy(BATreeNode<T,U> a, BATreeNode<T,U> b) {
+            if (b==null) return true;
+            if (a==null) return false;
+            return (a.weight >= b.weight);
+        }
 
         private BATreeNode<T,U> leftWeightIncreased(BATreeNode<T,U> l, BATreeNode<T,U> r) {
-            // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
-            int rw = weight(r);
-            int lw = weight(l);
-            if (lw  > rw << 2) {
+            if (outOfBalance(l,r)) {
                 // Must rotate.
-                int lrw = l.rightWeight();
-                int llw = l.leftWeight();
                 BATreeNode<T,U> lr = l.right;
-                if (llw >= lrw) {
+                if (atLeastAsHeavy(l.left,lr)) {
                     // L to root
                     return assembleLeft(l.left, l, l.right, this, r);
                 } else {
                     // LR to root
-
                     return assemble(l.left, l, lr.left, lr, lr.right, this, r);
                 }
             }
@@ -242,15 +254,10 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
         }
 
         private BATreeNode<T,U> rightWeightIncreased(BATreeNode<T,U> l, BATreeNode<T,U> r) {
-           // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
-            int rw = weight(r);
-            int lw = weight(l);
-           if (rw > lw << 2) {
+            if (outOfBalance(r,l)) {
                 // Must rotate.
-                int rrw = r.rightWeight();
-                int rlw = r.leftWeight();
                 BATreeNode<T,U> rl = r.left;
-                if (rrw >= rlw) {
+                if (atLeastAsHeavy(r.right,rl)) {
                     // R to root
                     return assembleRight(l, this, r.left, r, r.right);
 
@@ -258,9 +265,8 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                     // RL to root
                     return assemble(l, this, rl.left, rl, rl.right, r, r.right);
                 }
-            } else {
-                return new BATreeNode<T,U>(this,l,r);
             }
+            return new BATreeNode<T,U>(this,l,r);
         }
 
         BATreeNode<T,U> deleteMin(BATreeNode<T,U>[] deleted) {

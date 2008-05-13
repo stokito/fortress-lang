@@ -86,10 +86,11 @@ private app[\E,F\](a:List[\E\], b:List[\F\]): SomeList =
 
 private app'[\T,E,F\](t:Reflect[\T\], a:List[\E\], b:List[\F\]): List[\T\] =
     typecase (a,b) of
+        (List[\T\],List[\T\]) => a.append(b)
         (List[\T\],SomeList) => a.appendRC[\F\](b)
         (SomeList,List[\T\]) => b.appendLC[\E\](a)
         else =>
-            emptyList[\T\](|a| + |b|).appendR[\E\](a).appendR[\F\](b)
+            emptyList[\T\](scale(|a| + |b|)).appendR[\E\](a).appendR[\F\](b)
     end
 
 private addL[\E,F\](x:E, xs:List[\F\]): SomeList =
