@@ -275,7 +275,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
                 this.code.add(paramEnv+".put(\""+nEnv.getParameter(inx)+"\", "+t.getParams().get(inx)+");");
             }
 
-            Type type = nEnv.getType();
+            Type type = this.syntaxDeclEnv.getType(id);
             String typeName = type.toString();
             
             String rVarName = FreshName.getFreshName("rs");            

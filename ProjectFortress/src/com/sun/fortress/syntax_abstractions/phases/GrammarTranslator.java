@@ -63,8 +63,6 @@ public class GrammarTranslator {
 
 	private Result doTranslation(
 			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {	
-		
-		NonterminalTypeDictionary.addAll(modules);		
 
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
 			if (module instanceof FortressModule) {

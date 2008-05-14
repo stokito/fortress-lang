@@ -45,7 +45,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 //	    for(GrammarIndex g: grammarIndexs) {
 //	        System.err.println(g.getName() + ", "+ g.isToplevel());
 //	    }
-	    
+    
 		/*
 		 * Initialize GrammarIndex
 		 */
@@ -63,15 +63,6 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 				System.err.println(m);
 			}
 		}
-
-	    /*
-         * Initialize mapping from nonterminal names to member environments
-         */
-        GrammarEnvInitializer.init(mrr.modules());       
-		
-        if (ProjectProperties.debug) {
-            System.err.println(GrammarEnv.getDump());
-        }
         
 		/*
 		 * Translate each grammar to a corresponding Rats! module

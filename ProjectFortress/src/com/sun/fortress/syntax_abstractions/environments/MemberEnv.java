@@ -84,7 +84,7 @@ public class MemberEnv {
 		this.setParamArray(params);
 		
 		for (SyntaxDef sd: syntaxDefs) {
-			SyntaxDeclEnv sdEnv = SyntaxDeclEnv.getEnv(sd);
+			SyntaxDeclEnv sdEnv = new SyntaxDeclEnv(sd);
 			this.add(sd, sdEnv);
 		}
 	}

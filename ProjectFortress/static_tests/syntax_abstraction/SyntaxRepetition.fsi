@@ -31,15 +31,16 @@ api SyntaxRepetition
         do 
           exprs:List[\Expr\] = emptyList[\Expr\](2);
           ids:List[\Id\] = emptyList[\Id\]();
-          ids1:List[\Id\] = ids.addRight(Id("SyntaxRepetition"));
+          ids1:List[\Id\] = ids.addRight(Id(Nothing[\APIName\], "SyntaxRepetition"));
           apiName:APIName = APIName(ids1);
-          typeName:Id = Id("SelectQuery");
-          name:QualifiedIdName = QualifiedIdName(Just[\APIName\](apiName), typeName);
+          typeName:String = "" "SelectQuery";
+          name:Id = Id(Just[\APIName\](apiName), typeName);
           exprs1:List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()));
-          ops:List[\QualifiedOpName\] = <| QualifiedOpName(Nothing[\APIName\], Enclosing(Op("<|", Just[\Fixity\](EnclosingFixity())), Op("|>", Just[\Fixity\](EnclosingFixity())))) |>
-          op:OpRef = OpRef(ops, emptyList[\StaticArg\]());
-          oprExpr:OprExpr = OprExpr(op, Tuples)
-          exprs2:List[\Expr\] = exprs1.addRight(oprExpr);
+          ops1:List[\OpName\] = emptyList[\OpName\](1);
+          ops2:List[\OpName\] = ops1.addRight(Enclosing(Op(Nothing[\APIName\], "<|", Just[\Fixity\](EnclosingFixity())), Op(Nothing[\APIName\],"|>", Just[\Fixity\](EnclosingFixity()))));
+          op:OpRef = OpRef(ops2, emptyList[\StaticArg\]());
+          opExpr:OpExpr = OpExpr(op, Tuples)
+          exprs2:List[\Expr\] = exprs1.addRight(opExpr);
           TightJuxt(exprs2)
         end
   end

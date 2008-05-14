@@ -19,6 +19,7 @@ package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -27,9 +28,11 @@ import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -47,8 +50,11 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.IdentifierUtil;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.useful.HasAt;
 
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ItemDisambiguator extends NodeUpdateVisitor {

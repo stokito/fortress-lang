@@ -29,41 +29,41 @@ import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
 public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
- private Option<T> ast;
+    private Option<T> ast;
 
- public NonterminalIndex(Option<T> ast) {
-  this.ast = ast;
- }
+    public NonterminalIndex(Option<T> ast) {
+        this.ast = ast;
+    }
 
- public Option<T> ast() {
-  return this.ast;
- }
+    public Option<T> ast() {
+        return this.ast;
+    }
 
- public Id getName() {
-  if (this.ast().isSome()) {
-                    return this.ast().unwrap().getName();
-  }
-  throw new RuntimeException("Production index without ast and thus no name");
- }
+    public Id getName() {
+        if (this.ast().isSome()) {
+            return this.ast().unwrap().getName();
+        }
+        throw new RuntimeException("Production index without ast and thus no name");
+    }
 
- public BaseType getType() {
-  if (this.ast().isSome()) {
-   Option<BaseType> type = this.ast().unwrap().getType();
-   if (type.isSome()) {
-    return type.unwrap();
-   }
-   throw new RuntimeException("Production index without type, type inference is not implemented yet!");
-  }
-  throw new RuntimeException("Production index without ast and thus no type");
- }
+    public BaseType getType() {
+        if (this.ast().isSome()) {
+            Option<BaseType> type = this.ast().unwrap().getType();
+            if (type.isSome()) {
+                return type.unwrap();
+            }
+            throw new RuntimeException("Production index without type, type inference is not implemented yet!");
+        }
+        throw new RuntimeException("Production index without ast and thus no type");
+    }
 
- public T getAst() {
-  try { return this.ast.unwrap(); }
-  catch (OptionUnwrapException e) { throw new RuntimeException("Ast not found."); }
- }
+    public T getAst() {
+        try { return this.ast.unwrap(); }
+        catch (OptionUnwrapException e) { throw new RuntimeException("Ast not found."); }
+    }
 
- public boolean isPrivate() {
-  return getAst().getModifier().isSome();
- }
+    public boolean isPrivate() {
+        return getAst().getModifier().isSome();
+    }
 
 }
