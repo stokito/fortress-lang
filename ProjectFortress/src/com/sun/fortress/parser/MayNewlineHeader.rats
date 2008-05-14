@@ -376,29 +376,53 @@ private constant inline Action<UnitExpr> ExponentUnitExpr =
 
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
 Contract Contract =
-     w Requires w ExtendsWhere (w Ensures)? (w Invariant)? // Error production
+     w Requires w (ExtendsWhere / Throws / Where) (w Ensures)? (w Invariant)? // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-   / w Requires w Ensures w ExtendsWhere (w Invariant)? // Error production
+   / w Requires w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)? // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-   / w Requires w Ensures w Invariant w ExtendsWhere // Error production
+   / w Requires w Ensures w Invariant w (ExtendsWhere / Throws / Where) // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-   / w Ensures w ExtendsWhere (w Invariant)? // Error production
+   / w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)? // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-   / w Ensures w Invariant w ExtendsWhere // Error production
+   / w Ensures w Invariant w (ExtendsWhere / Throws / Where) // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-   / w Invariant w ExtendsWhere // Error production
+   / w Invariant w (ExtendsWhere / Throws / Where) // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
+     }
+   / w Requires w Invariant w Ensures // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Ensures clauses should come before invariant clauses.");
+     }
+   / w Invariant w Ensures w Requires // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Requires clauses should come before ensures/invariant clauses.");
+     }
+   / w Invariant w Requires (w Ensures)? // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Requires clauses should come before ensures/invariant clauses.");
+     }
+   / w Ensures w Invariant w Requires // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Requires clauses should come before ensures/invariant clauses.");
+     }
+   / w Ensures w Requires (w Invariant)? // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Requires clauses should come before ensures/invariant clauses.");
+     }
+   / w Invariant w Ensures // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Ensures clauses should come before invariant clauses.");
      }
    / a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
      { Option<List<Expr>> requires = Option.wrap(a1);
