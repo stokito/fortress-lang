@@ -34,14 +34,17 @@ public class JavaC {
 	static final String nl = "\n";
 	
 	public static int compile(String sourceDir, String destinationDir, String filename) {
-		System.err.println("compiling a temporary parser...");
+		if (ProjectProperties.debug)
+		    System.err.println("compiling a temporary parser...");
 		String classpath = sourceDir+":"+getFortressThirdPartyDependencyJars()+":"+getFortressBuildDir();
 		String[] args = {"-cp", classpath , "-d", destinationDir, filename};
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		int compilationResult = com.sun.tools.javac.Main.compile(args, pw);
 		String errors = sw.getBuffer().toString();
-		System.err.println("done: "+compilationResult);
+		if (ProjectProperties.debug) {
+		    System.err.println("done: "+compilationResult);
+		}
 		if (!errors.equals("")) {
 			System.err.println(errors);
 		}

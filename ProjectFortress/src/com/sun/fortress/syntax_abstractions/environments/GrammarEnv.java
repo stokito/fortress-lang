@@ -32,18 +32,37 @@ public class GrammarEnv {
 
 	private static Map<Id, MemberEnv> members = new HashMap<Id, MemberEnv>();
 
+	/**
+	 * Add name of terminal or nonterminal and its corresponding member environment
+	 * @param id
+	 * @param memberEnv
+	 */
     public static void add(Id id, MemberEnv memberEnv) {
         GrammarEnv.members.put(id, memberEnv);
     }
 	
+    /**
+     * Returns true if the given name is contained in this environment
+     * @param name
+     * @return
+     */
 	public static boolean contains(Id name) {
 		return GrammarEnv.members.containsKey(name);
 	}
 
+	/**
+	 * Returns the member environment associated with the given name 
+	 * @param name
+	 * @return
+	 */
 	public static MemberEnv getMemberEnv(Id name) {
 		return GrammarEnv.members.get(name);
 	}
 
+	/**
+	 * Dump the content of this environment as a string
+	 * @return
+	 */
 	public static String getDump() {
 		String s = "GrammarEnv: \n";
 		for (Id id: GrammarEnv.members.keySet()) {
@@ -53,6 +72,9 @@ public class GrammarEnv {
 		return s;
 	}
 
+	/**
+	 * Empty this environment
+	 */
     public static void clear() {
         GrammarEnv.members.clear();
     }
