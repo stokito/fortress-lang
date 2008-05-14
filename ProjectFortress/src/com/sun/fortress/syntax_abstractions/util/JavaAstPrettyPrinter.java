@@ -18,11 +18,8 @@
 package com.sun.fortress.syntax_abstractions.util;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Block;
@@ -30,7 +27,6 @@ import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
@@ -43,7 +39,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;

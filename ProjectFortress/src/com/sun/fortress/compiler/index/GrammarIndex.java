@@ -40,10 +40,13 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 
     private Collection<GrammarIndex> extendedGrammars;
 
+    private boolean isToplevel;
+
     public GrammarIndex(Option<GrammarDef> ast, Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
         this.ast = ast;
         this.extendedGrammars = new LinkedList<GrammarIndex>();
         this.members = members;
+        this.isToplevel = false;
     }
 
     public Option<GrammarDef> ast() {
@@ -84,6 +87,14 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
             }
         }
         return Option.none();
+    }
+
+    public void isToplevel(boolean isTopLevel) {
+        this.isToplevel = isTopLevel;
+    }
+    
+    public boolean isToplevel() {
+        return this.isToplevel;
     }
 
 }
