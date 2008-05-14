@@ -1,0 +1,107 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+package com.sun.fortress.compiler.disambiguator;
+
+import java.util.List;
+
+import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.StaticError;
+import com.sun.fortress.compiler.disambiguator.NameEnv;
+import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
+import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
+import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
+import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.HasAt;
+import edu.rice.cs.plt.tuple.Option;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
+public class NonterminalDisambiguator extends NodeUpdateVisitor {
+
+    private NameEnv _env;
+    private List<StaticError> _errors;
+    private NonterminalEnv _currentEnv;
+    private GlobalEnvironment _globalEnv;
+
+    public NonterminalDisambiguator(NameEnv env, GlobalEnvironment globalEnv, List<StaticError> newErrs) {
+        this._env = env;
+        this._errors = newErrs;
+        this._globalEnv = globalEnv;
+    }
+
+    private void error(String msg, HasAt loc) {
+        this._errors.add(StaticError.make(msg, loc));
+    }
+
+    @Override
+    public Node forGrammarDef(GrammarDef that) {
+        if (this._env.grammarIndex(that.getName()).isSome()) {
+            this._currentEnv = new NonterminalEnv(this._env.grammarIndex(that.getName()).unwrap());
+        }
+        else {
+            error("Undefined grammar: " + NodeUtil.nameString(that.getName()), that.getName());
+        }
+        return super.forGrammarDef(that);
+    }
+
+    @Override
+    public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> nonterminal_result) {
+        return new GrammarDef(that.getSpan(), name_result, extends_result, nonterminal_result);
+    }
+
+    @Override
+    public Node forNonterminalDefOnly(NonterminalDef that, Id name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
+        if (type_result.isNone()) {
+            throw new RuntimeException("Type inference is not supported yet!");
+        }
+        NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
+        Option<Id> oname = nnd.handleNonterminalName(_currentEnv, that.getName());
+        this._errors.addAll(nnd.errors());
+        if (oname.isSome()) {
+            return new NonterminalDef(that.getSpan(), oname.unwrap(that.getName()), that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
+        } else {
+            return bug(that, "Bad NonterminalDef");
+        }
+    }
+
+
+    @Override
+    public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
+            Id name_result, Option<BaseType> type_result,
+            Option<? extends Modifier> modifier_result,
+            List<SyntaxDef> syntaxDefs_result) {
+        NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
+        Option<Id> oname = pnd.handleNonterminalName(_currentEnv, that.getName());
+        this._errors.addAll(pnd.errors());
+        if (oname.isSome()) {
+            Id name = oname.unwrap();
+            return new NonterminalExtensionDef(that.getSpan(), name, that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
+        }
+        return new NonterminalExtensionDef(that.getSpan(), that.getName(), that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
+    }
+}

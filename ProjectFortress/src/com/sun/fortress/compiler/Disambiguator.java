@@ -2,18 +2,18 @@
   Copyright 2008 Sun Microsystems, Inc.,
   4150 Network Circle, Santa Clara, California 95054, U.S.A.
   All rights reserved.
-  
+
   U.S. Government Rights - Commercial software.
   Government users are subject to the Sun Microsystems, Inc. standard
   license agreement and applicable provisions of the FAR and its supplements.
-  
+
   Use is subject to license terms.
-  
+
   This distribution may include materials developed by third parties.
-  
+
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-  ******************************************************************************/
+ ******************************************************************************/
 
 package com.sun.fortress.compiler;
 
@@ -48,6 +48,7 @@ import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
+import com.sun.fortress.compiler.disambiguator.NonterminalDisambiguator;
 import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
 import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
@@ -78,26 +79,26 @@ import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
  * treated as static errors.
  */
 public class Disambiguator {
-    
+
     /** Result of {@link #disambiguateApis}. */
     public static class ApiResult extends StaticPhaseResult {
         private final Iterable<Api> _apis;
-        
+
         public ApiResult(Iterable<Api> apis, 
-                         Iterable<? extends StaticError> errors) {
+                Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
-        
+
         public Iterable<Api> apis() { return _apis; }
     }
-    
+
     /**
      * Disambiguate the given apis. To support circular references,
      * the apis should appear in the given environment.
      */
     public static ApiResult disambiguateApis(Iterable<Api> apis,
-                                             GlobalEnvironment globalEnv) {
+            GlobalEnvironment globalEnv) {
         List<Api> results = new ArrayList<Api>();
         List<StaticError> errors = new ArrayList<StaticError>();
         for (Api api : apis) {
@@ -109,12 +110,12 @@ public class Disambiguator {
                 new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) api.accept(td);
             if (newErrs.isEmpty()) {
-             ExprDisambiguator ed = 
+                ExprDisambiguator ed = 
                     new ExprDisambiguator(env, onDemandImports, newErrs);
                 Api edResult = (Api) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
-            
+
             if (!newErrs.isEmpty()) { 
                 errors.addAll(newErrs); 
             }
@@ -122,46 +123,46 @@ public class Disambiguator {
         results = disambiguateGrammarMembers(results, errors, globalEnv);
         return new ApiResult(results, errors);
     }
-    
 
- /**
-  * Disambiguate the names of nonterminals.
-  */
+
+    /**
+     * Disambiguate the names of nonterminals.
+     */
     private static List<Api> disambiguateGrammarMembers(Iterable<Api> apis,
-                 List<StaticError> errors,
-                 GlobalEnvironment globalEnv) {
+            List<StaticError> errors,
+            GlobalEnvironment globalEnv) {
         List<Api> results = new ArrayList<Api>();
         for (Api api : apis) {
             ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
             NonterminalDisambiguator pd = new NonterminalDisambiguator(env, globalEnv, newErrs);
-   Api pdResult = (Api) api.accept(pd);
-   results.add(pdResult);
+            Api pdResult = (Api) api.accept(pd);
+            results.add(pdResult);
             if (!newErrs.isEmpty()) { 
                 errors.addAll(newErrs); 
             }
         }
         return results;
- }
+    }
 
 
- /** Result of {@link #disambiguateComponents}. */
+    /** Result of {@link #disambiguateComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
         private final Iterable<Component> _components;
         public ComponentResult(Iterable<Component> components,
-                               Iterable<? extends StaticError> errors) {
+                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
         public Iterable<Component> components() { return _components; }
     }
-    
+
     /** Disambiguate the given components. */
     public static ComponentResult
-        disambiguateComponents(Iterable<Component> components,
-                               GlobalEnvironment globalEnv,
-                               Map<APIName, ComponentIndex> indices) {
+    disambiguateComponents(Iterable<Component> components,
+            GlobalEnvironment globalEnv,
+            Map<APIName, ComponentIndex> indices) {
         List<Component> results = new ArrayList<Component>();
         List<StaticError> errors = new ArrayList<StaticError>();
         for (Component comp : components) {
@@ -171,7 +172,7 @@ public class Disambiguator {
             }
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
-            
+
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
                 new TypeDisambiguator(env, onDemandImports, newErrs);
@@ -182,7 +183,7 @@ public class Disambiguator {
                 Component edResult = (Component) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
-            
+
             if (!newErrs.isEmpty()) { 
                 errors.addAll(newErrs); 
             }
