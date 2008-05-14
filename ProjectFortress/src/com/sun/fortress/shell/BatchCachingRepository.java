@@ -165,6 +165,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         @Override
         public Api apply(APIName x) {
             try {
+                ru.staleApis.remove(x);
                 ApiIndex xi = apiSource.getApi(x);
                 return (Api) xi.ast();
             } catch (FileNotFoundException e) {
@@ -182,6 +183,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
         @Override
         public Component apply(APIName x) {
             try {
+                ru.staleComponents.remove(x);
                 ComponentIndex xi = componentSource.getComponent(x);
                 return (Component) xi.ast();
             } catch (FileNotFoundException e) {
@@ -199,6 +201,7 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
     }
 
     public Set<APIName> newStaleComponentNames() {
+        Set<APIName> stale = ru.staleComponents;
         return Useful.difference(ru.staleComponents, alreadyCachedComponent);
     }
 
