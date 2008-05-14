@@ -140,8 +140,7 @@ public class ActionCreater {
         List<Decl> decls = new LinkedList<Decl>();
         for (Id var: syntaxDeclEnv.getVariables()) {
             List<LValueBind> valueBindings = new LinkedList<LValueBind>();
-            Id nonterminalName = syntaxDeclEnv.getNonterminalName(var);
-            Type type = GrammarEnv.getMemberEnv(nonterminalName).getType();
+            Type type = syntaxDeclEnv.getType(var);
             valueBindings.add(new LValueBind(var, Option.some(type), false));
             decls.add(new VarDecl(valueBindings, NodeFactory.makeIntLiteralExpr(7)));
         }

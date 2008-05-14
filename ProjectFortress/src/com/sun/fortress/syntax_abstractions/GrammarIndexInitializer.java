@@ -27,18 +27,27 @@ import java.util.Set;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
+import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
+import com.sun.fortress.compiler.index.GrammarTerminalIndex;
 import com.sun.fortress.compiler.index.NonterminalExtendIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
 import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 public class GrammarIndexInitializer {
 
@@ -58,6 +67,7 @@ public class GrammarIndexInitializer {
         Collection<StaticError> ses = new LinkedList<StaticError>();
         initGrammarExtends(grammarIndexs, ses);
         initNonterminalExtends(grammarIndexs, ses);
+        initGrammarEnv(grammarIndexs);
         return new Result(grammarIndexs, ses);
     }
 
@@ -114,4 +124,48 @@ public class GrammarIndexInitializer {
             }
         }
     }
+    
+    private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
+        for (GrammarIndex g: grammarIndexs) {
+            for (NonterminalIndex<? extends GrammarMemberDecl> nt: g.getDeclaredNonterminals()) {
+                if (nt instanceof GrammarNonterminalIndex) {
+                    for (SyntaxDef sd: ((GrammarNonterminalIndex<? extends GrammarMemberDecl>) nt).getSyntaxDefs()) {
+                        sd.accept(new NameCollector(g));
+                    }
+                }
+//                if (nt instanceof GrammarTerminalIndex) {
+//                    ((GrammarTerminalIndex) nt).getSyntaxDef().accept(new NameCollector(g));
+//                }
+            }
+        }        
+    }
+    
+    private static class NameCollector extends NodeDepthFirstVisitor_void {
+        
+        private GrammarIndex g;
+        private GrammarAnalyzer<GrammarIndex> ga;
+        
+        public NameCollector(
+                GrammarIndex g) {
+            this.g = g;
+            ga = new GrammarAnalyzer<GrammarIndex>();
+        }
+
+        @Override
+        public void forNonterminalSymbol(NonterminalSymbol that) {
+            Collection<Id> names = ga.getContained(that.getNonterminal().getText(), this.g);
+            if (1 == names.size()) {
+                Id name = IterUtil.first(names);
+                for(NonterminalIndex<? extends GrammarMemberDecl> nt: ga.getContainedSet(g)) {
+                    if (nt.getName().equals(name)) {
+                        GrammarEnv.add(name, new MemberEnv(nt));
+                    }
+                }
+            }
+            else {
+                throw new RuntimeException("Unexpect number of nonterminals with the same name: "+NodeUtil.namesString(names));
+            }
+        }
+    }
+
 }

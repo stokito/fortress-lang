@@ -37,7 +37,8 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 * @return
 	 */
 	public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getContainedSet(Analyzable<T> a) {
-		Collection<NonterminalIndex<? extends GrammarMemberDecl>> c = getDeclaredSet(a);
+		Collection<NonterminalIndex<? extends GrammarMemberDecl>> c = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+		c.addAll(getDeclaredSet(a));
 		c.addAll(this.getInheritedSet(a));
 		return c;
 	}

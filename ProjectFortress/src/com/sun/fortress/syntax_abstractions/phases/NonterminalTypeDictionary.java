@@ -35,39 +35,39 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class NonterminalTypeDictionary {
 
- private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> members = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
- private static Map<String, Type> cache = new HashMap<String, Type>();
+    private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> members = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+    private static Map<String, Type> cache = new HashMap<String, Type>();
 
- public static void addAll(Collection<Module> modules) {
-  for (Module module: modules) {
-   NonterminalTypeDictionary.members.addAll(module.getDeclaredNonterminals());
-  }
- }
+    public static void addAll(Collection<Module> modules) {
+        for (Module module: modules) {
+            NonterminalTypeDictionary.members.addAll(module.getDeclaredNonterminals());
+        }
+    }
 
- /**
-  * Given a name of a nonterminal or terminal definition, the type of the
-  * corresponding member is returned.
-  * The algorithm works by traversing the collection of members.
-  * The type of the first member found is returned.
-  * If the name is the empty String we return
-  * FortressLibrary.String return.
-  * This is kind of a hack see {@link ActionCreater#getType} for use.
-  * If a member is not found with the given name then a none value is returned
-  * @param name
-  * @return
-  */
- public static Option<Type> getType(String name) {
-  if (cache.containsKey(name)) {
-   return Option.<Type>some(cache.get(name));
-  }
+    /**
+     * Given a name of a nonterminal or terminal definition, the type of the
+     * corresponding member is returned.
+     * The algorithm works by traversing the collection of members.
+     * The type of the first member found is returned.
+     * If the name is the empty String we return
+     * FortressLibrary.String return.
+     * This is kind of a hack see {@link ActionCreater#getType} for use.
+     * If a member is not found with the given name then a none value is returned
+     * @param name
+     * @return
+     */
+    public static Option<Type> getType(String name) {
+        if (cache.containsKey(name)) {
+            return Option.<Type>some(cache.get(name));
+        }
 
-  for (NonterminalIndex<? extends GrammarMemberDecl> n: members) {
-   if (n.getName().getText().equals(name)) {
-    cache.put(name, n.getType());
-    return Option.<Type>some(n.getType());
-   }
-  }
-  return Option.none();
- }
+        for (NonterminalIndex<? extends GrammarMemberDecl> n: members) {
+            if (n.getName().getText().equals(name)) {
+                cache.put(name, n.getType());
+                return Option.<Type>some(n.getType());
+            }
+        }
+        return Option.none();
+    }
 
 }

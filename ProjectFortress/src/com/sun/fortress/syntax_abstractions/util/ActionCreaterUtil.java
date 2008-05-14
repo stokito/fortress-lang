@@ -35,7 +35,7 @@ public class ActionCreaterUtil {
             SyntaxDeclEnv syntaxDeclEnv, String BOUND_VARIABLES) {
         List<String> code = new LinkedList<String>();
         indents.add(3);
-        code.add("Map<String, AbstractNode> "+BOUND_VARIABLES+" = new HashMap<String, AbstractNode>();");
+        code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
         for(Id id: syntaxDeclEnv.getVariables()) {
             indents.add(3);
             code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+id.getText()+");");

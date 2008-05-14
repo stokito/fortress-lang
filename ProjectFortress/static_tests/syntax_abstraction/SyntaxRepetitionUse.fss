@@ -22,4 +22,6 @@ component SyntaxRepetitionUse
   export Executable
 
   run(args:String...) = print (SELECT a a a a world)
+
+  (* SelectQuery( <| "a" "b" |> ).toString() ) *)
 end

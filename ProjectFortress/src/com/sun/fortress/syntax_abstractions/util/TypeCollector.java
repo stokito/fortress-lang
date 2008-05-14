@@ -37,65 +37,61 @@ import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.syntax_abstractions.phases.NonterminalTypeDictionary;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 
-import edu.rice.cs.plt.tuple.Option;
-
-public class TypeCollector extends NodeDepthFirstVisitor<Option<Type>> {
+public class TypeCollector extends NodeDepthFirstVisitor<Type> {
 
     private TypeCollector() {}
 
-    public static Option<Type> getType(PrefixedSymbol ps) {
+    public static Type getType(PrefixedSymbol ps) {
         return ps.getSymbol().accept(new TypeCollector());
     }
 
     @Override
-    public Option<Type> defaultCase(Node that) {
+    public Type defaultCase(Node that) {
         throw new RuntimeException("Unexpected case: "+that.getClass());
     }
 
     @Override
-    public Option<Type> forOptionalSymbol(OptionalSymbol that) {
+    public Type forOptionalSymbol(OptionalSymbol that) {
         return handle(that.getSymbol(), SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.MAYBE);
     }
 
     @Override
-    public Option<Type> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
+    public Type forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
         return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
     }
 
     @Override
-    public Option<Type> forRepeatSymbol(RepeatSymbol that) {
+    public Type forRepeatSymbol(RepeatSymbol that) {
         return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
     }
 
     @Override
-    public Option<Type> forNonterminalSymbol(NonterminalSymbol that) {
-        return NonterminalTypeDictionary.getType(that.getNonterminal().getText());
+    public Type forNonterminalSymbol(NonterminalSymbol that) {
+        MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getNonterminal());
+        return memberEnv.getType();
     }
 
     @Override
-    public Option<Type> forKeywordSymbol(KeywordSymbol that) {
+    public Type forKeywordSymbol(KeywordSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return Option.<Type>some(new VarType(string));
+        return new VarType(string);
     }
 
     @Override
-    public Option<Type> forTokenSymbol(TokenSymbol that) {
+    public Type forTokenSymbol(TokenSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return Option.<Type>some(new VarType(string));
+        return new VarType(string);
     }
 
-    private Option<Type> handle(SyntaxSymbol symbol, String api, String id) {
-        Option<Type> t = symbol.accept(this);
-        if (t.isNone()) {
-            return t;
-        }
-        Type type = t.unwrap();
+    private Type handle(SyntaxSymbol symbol, String api, String id) {
+        Type type = symbol.accept(this);
         Id list = NodeFactory.makeId(api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
         args.add(new TypeArg(type));
-        return Option.<Type>some(new TraitType(list, args));
+        return new TraitType(list, args);
     }
 
 

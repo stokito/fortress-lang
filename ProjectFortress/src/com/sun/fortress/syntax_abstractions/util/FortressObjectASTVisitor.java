@@ -38,6 +38,7 @@ import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LooseJuxt;
@@ -68,6 +69,7 @@ import edu.rice.cs.plt.tuple.Option;
  * Java representation of Fortress AST.
  * TODO: Implement cases for all the AST nodes. Do so by matching on their name.
  */
+@SuppressWarnings("unchecked")
 public class FortressObjectASTVisitor<T> {
 
     private static final String VALUE_FIELD_NAME = "val";
@@ -144,7 +146,7 @@ public class FortressObjectASTVisitor<T> {
         } else if (value.type().toString().equals("CharLiteralExpr")) {
             return dispatchChar(value);
         } else if (value.type().toString().equals("StringLiteralExpr")) {
-            return dispatchString(value);
+            return dispatchStringLiteralExpr(value);
         } else if (value.type().toString().equals("VoidLiteralExpr")) {
             return dispatchVoid(value);
         } else if (value.type().toString().equals("Type")) {
@@ -257,7 +259,7 @@ public class FortressObjectASTVisitor<T> {
         return (T) NodeFactory.makeCharLiteralExpr(getVal(value).getChar());
     }
 
-    public T dispatchString(FObject value) {
+    public T dispatchStringLiteralExpr(FObject value) {
         return (T) NodeFactory.makeStringLiteralExpr(getVal(value).getString());
     }
 
@@ -304,8 +306,8 @@ public class FortressObjectASTVisitor<T> {
         FValue v1 = getField(value, "apiName");
         Option<APIName> apiName = dispatchMaybe((FObject)v1);
         FValue v2 = getField(value, "name");
-        Id id = new FortressObjectASTVisitor<Id>(this.span).dispatch((FObject)v2);
-        return (T) new Id(this.span, apiName, id.getText());
+        String id = ((FString) v2).getString();
+        return (T) new Id(this.span, apiName, id);
     }
 
     private T dispatchOp(FObject value) {
