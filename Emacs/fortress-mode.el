@@ -146,7 +146,7 @@
         "at" "atomic" "bool" "case" "catch" "coerces" "coercion"
         "component" "comprises" "default" "dim" "do" "elif" "else"
         "end" "ensures" "except" "excludes" "exit" "export" "extends"
-        "finally" "fn" "for" "forbid" "from" "getter" "hidden" "ident"
+        "finally" "fn" "for" "forbid" "from" "getter" "grammar" "hidden" "ident"
         "idiom" "if" "import" "in" "int" "invariant" "io" "juxtaposition"
         "label" "largest" "nat" "object" "of" "or" "opr" "private"
         "property" "provided" "requires" "self" "settable" "setter"
@@ -212,7 +212,7 @@
     ;; rightwards arrow
     `("\\(->\\)"
       1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               "→")
+                               "â")
                nil))
 
     ;; double arrow
@@ -224,13 +224,13 @@
     ;; left list bracket
     `("\\(<|\\)"
       1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               "⟨")
+                               "â¨")
                nil))
 
     ;; right list bracket
     `("\\(|>\\)"
       1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               "⟩")
+                               "â©")
                nil))
 
     ;; left type bracket

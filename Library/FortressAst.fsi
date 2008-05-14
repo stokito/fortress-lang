@@ -45,7 +45,7 @@ api FortressAst
    trait ExprOrUnitExpr extends Node end
 
    trait Applicable extends { AbsDeclOrDecl }
-     name : SimpleName
+     name : Id
      staticParams : List[\StaticParam\]
      params:List[\Param\]
      returnType:Maybe[\Type\]
@@ -92,7 +92,7 @@ api FortressAst
      *)
    trait FnAbsDeclOrDecl extends { AbstractNode, Applicable, GenericDecl }
       mods:List[\Modifier\]
-      name:SimpleName
+      name:Id
       staticParams:List[\StaticParam\]
       params:List[\Param\]
       returnType:Maybe[\Type\]
@@ -120,7 +120,7 @@ api FortressAst
      * e.g.) swap (x: Object, y: Object): (Object, Object)
      *)
    object AbsFnDecl(mods:List[\Modifier\],
-      name:SimpleName,
+      name:Id,
       staticParams:List[\StaticParam\],
       params:List[\Param\],
       returnType:Maybe[\Type\],
@@ -135,7 +135,7 @@ api FortressAst
      *)
    trait FnDecl extends FnAbsDeclOrDecl end
    object FnDef(mods:List[\Modifier\],
-      name:SimpleName,
+      name:Id,
       staticParams:List[\StaticParam\],
       params:List[\Param\],
       returnType:Maybe[\Type\],
@@ -182,40 +182,43 @@ api FortressAst
    object Assignment(lhs:List[\Lhs\], aopr:Maybe[\Op\], rhs:Expr) extends Expr end
 
    trait DelimitedExpr extends Expr end
-   object Block(exprs:List[\Expr\]) extends DelimitedExpr end
-   object CaseExpr(param:CaseParam, compare:Maybe[\Op\], clauses:List[\CaseClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
-   object Do(fronts:List[\DoFront\]) extends DelimitedExpr end
-   object For(gens:List[\Generator\], body:DoFront) extends DelimitedExpr end
-   object If(clauses:List[\IfClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
-   object Label(name:Id, body:Block) extends DelimitedExpr end
-   object Try(body:Block, catchClause:Maybe[\Catch\], forbids:List[\TraitType\], finallyClause:Maybe[\Block\]) extends DelimitedExpr end
-   object TupleExpr(exprs:List[\Expr\], varargs:Maybe[\VarargsExpr\], keywords:List[\Binding\]) extends DelimitedExpr end
-   object Typecase(bind:List[\Binding\], clauses:List[\TypecaseClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
-   object While(testExpr:Expr, body:Do) extends DelimitedExpr end
+     object Block(exprs:List[\Expr\]) extends DelimitedExpr end
+     object CaseExpr(param:CaseParam, compare:Maybe[\Op\], clauses:List[\CaseClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
+     object Do(fronts:List[\DoFront\]) extends DelimitedExpr end
+     object For(gens:List[\Generator\], body:DoFront) extends DelimitedExpr end
+     object If(clauses:List[\IfClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
+     object Label(name:Id, body:Block) extends DelimitedExpr end
+     object Try(body:Block, catchClause:Maybe[\Catch\], forbids:List[\TraitType\], finallyClause:Maybe[\Block\]) extends DelimitedExpr end
+    
+     trait AbstractTupleExpr extends DelimitedExpr end
+       object TupleExpr(exprs:List[\Expr\], varargs:Maybe[\VarargsExpr\], keywords:List[\Binding\]) extends DelimitedExpr end
+     
+     object Typecase(bind:List[\Binding\], clauses:List[\TypecaseClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
+     object While(testExpr:Expr, body:Do) extends DelimitedExpr end
 
-   trait FlowExpr extends Expr end
-   object Accumulator(aopr:Op, gens:List[\Generator\], body:Expr) extends FlowExpr end
-   object AtomicExpr(expr:Expr) extends FlowExpr end
-   object Exit(target:Maybe[\Id\], returnExpr:Maybe[\Expr\]) extends FlowExpr end
-   object Spawn(body:Expr) extends FlowExpr end
-   object Throw(expr:Expr) extends FlowExpr end
-   object TryAtomicExpr(expr:Expr) extends FlowExpr end
+     trait FlowExpr extends Expr end
+       trait BigOpApp extends FlowExpr end
+         object Accumulator(aopr:Op, gens:List[\Generator\], body:Expr) extends FlowExpr end
 
-   object FnExpr(parenthesized:Boolean, name:SimpleName, staticParams:List[\StaticParam\], params:List[\Param\], returnType:Maybe[\Type\], whereClause:List[\WhereClause\], throwsClause:Maybe[\List[\TraitType\]\], body:Expr) extends { Expr, Applicable } end
+       object AtomicExpr(expr:Expr) extends FlowExpr end
+       object Exit(target:Maybe[\Id\], returnExpr:Maybe[\Expr\]) extends FlowExpr end
+       object Spawn(body:Expr) extends FlowExpr end
+       object Throw(expr:Expr) extends FlowExpr end
+       object TryAtomicExpr(expr:Expr) extends FlowExpr end
 
-   trait LetExpr extends Expr
-      body:List[\Expr\]
-   end
-   object LetFn(body:List[\Expr\], fns:List[\FnDef\]) extends LetExpr end
-   object LocalVarDecl(lhs:List[\LValue\], rhs:Maybe[\IntLiteralExpr\]) extends LetExpr end
+     object FnExpr(parenthesized:Boolean, name:Id, staticParams:List[\StaticParam\], params:List[\Param\], returnType:Maybe[\Type\], whereClause:List[\WhereClause\], throwsClause:Maybe[\List[\TraitType\]\], body:Expr) extends { Expr, Applicable } end
 
-   object GeneratedExpr(expr:Expr, gens:List[\Generator\]) extends Expr end
+     trait LetExpr extends Expr
+        body:List[\Expr\]
+     end
+       object LetFn(body:List[\Expr\], fns:List[\FnDef\]) extends LetExpr end
+       object LocalVarDecl(lhs:List[\LValue\], rhs:Maybe[\IntLiteralExpr\]) extends LetExpr end
 
-   trait OpExpr extends Expr end
-   object OprExpr(op:OpRef, args:List[\Expr\]) extends OpExpr end
-(*   object SubscriptExpr(obj:Expr, subs:List[\Expr\], op:Maybe[\SubscriptOp\]) extends { Lhs, OpExpr } end *)
+     object GeneratedExpr(expr:Expr, gens:List[\Generator\]) extends FlowExpr end
 
-   trait Primary extends OpExpr end
+     trait SimpleExpr extends FlowExpr end
+      (* object SubscriptExpr(obj:Expr, subs:List[\Expr\], op:Maybe[\SubscriptOp\]) extends { Lhs, OpExpr } end *)
+       trait Primary extends SimpleExpr end
    object CoercionInvocation(traitType:TraitType, staticArgs:List[\StaticArg\], arg:Expr) extends Primary end
    object MethodInvocation(obj:Expr, method:Id, staticArgs:List[\StaticArg\], arg:Expr) extends Primary end
 
@@ -224,16 +227,30 @@ api FortressAst
    end
    object FieldRef(field:Id) extends AbstractFieldRef end
 
-   trait Juxt extends Primary
-      exprs:List[\Expr\]
-   end
-   object LooseJuxt(exprs:List[\Expr\]) extends Juxt end
-   object TightJuxt(exprs:List[\Expr\]) extends Juxt end
+   trait AppExpr extends Primary end
+     trait Juxt extends Primary
+        exprs:List[\Expr\]
+     end
+       trait LiteralExpr extends Primary
+         val:String
+       end
+
+         trait NumberLiteralExpr extends LiteralExpr end
+           object FloatLiteralExpr(val:String, intPart:ZZ64, numerator:ZZ64, denomBase:ZZ32, denomPower:ZZ32) extends NumberLiteralExpr end
+           object IntLiteralExpr(val:ZZ32) extends NumberLiteralExpr end
+
+         object CharLiteralExpr(val:ZZ32) extends LiteralExpr end
+         object StringLiteralExpr(val:String) extends LiteralExpr end
+         object VoidLiteralExpr(val:String) extends LiteralExpr end
+
+       object LooseJuxt(exprs:List[\Expr\]) extends Juxt end
+       object TightJuxt(exprs:List[\Expr\]) extends Juxt end
+     object OpExpr(op:OpRef, args:List[\Expr\]) extends Expr end
 
    (* TODO: Pair
      object ChainExpr(first:Expr, links:List[\Pair[\Op, Expr\]\]) extends Primary end
     *)
-   object FnRef(fns:List[\QualifiedIdName\], staticArgs:List[\StaticArg\]) extends Primary end
+   object FnRef(fns:List[\Id\], staticArgs:List[\StaticArg\]) extends Primary end
 
                     (**
                      * operator name with (inferred) static instantiations
@@ -241,23 +258,12 @@ api FortressAst
                      * Primary ::= Op[\StaticArgList\]
                      * e.g.) +[\String\]
                      *)
-                    object OpRef(ops:List[\QualifiedOpName\], staticArgs:List[\StaticArg\]) end
+                    object OpRef(ops:List[\OpName\], staticArgs:List[\StaticArg\]) end
 
    trait BaseExpr extends Primary end
 
-   object VarRef(avar:QualifiedIdName) extends { BaseExpr, Lhs } end
+   object VarRef(avar:Id) extends { BaseExpr, Lhs } end
 
-   trait LiteralExpr extends BaseExpr
-      val:String
-   end
-
-   trait NumberLiteralExpr extends LiteralExpr end
-   object FloatLiteralExpr(val:String, intPart:ZZ64, numerator:ZZ64, denomBase:ZZ32, denomPower:ZZ32) extends NumberLiteralExpr end
-   object IntLiteralExpr(val:ZZ32) extends NumberLiteralExpr end
-
-   object CharLiteralExpr(val:ZZ32) extends LiteralExpr end
-   object StringLiteralExpr(val:String) extends LiteralExpr end
-   object VoidLiteralExpr(val:String) extends LiteralExpr end
 
 
    trait Aggregate extends BaseExpr end
@@ -285,9 +291,9 @@ api FortressAst
    trait NonArrowType extends Type end
    trait TraitType extends NonArrowType end
    object ArrayType(element:Type, indices:Indices) extends TraitType end
-   object IdType(name:QualifiedIdName) extends TraitType end
+   object IdType(name:Id) extends TraitType end
    object MatrixType(element:Type, dimensions:List[\ExtentRange\]) extends TraitType end
-   object InstantiatedType(name:QualifiedIdName, args:List[\StaticArg\]) extends TraitType end
+   object InstantiatedType(name:Id, args:List[\StaticArg\]) extends TraitType end
 
    object TupleType(elements:List[\Type\], varargs:Maybe[\VarargsType\], keywords:List[\KeywordType\]) extends NonArrowType end
    object VoidType() extends NonArrowType end
@@ -341,7 +347,7 @@ api FortressAst
    object WhereCoerces(left:Type, right:Type) extends WhereClause end
    object WhereWidens(left:Type, right:Type) extends WhereClause end
    object WhereWidensCoerces(left:Type, right:Type) extends WhereClause end
-   object WhereEquals(left:QualifiedIdName, right:QualifiedIdName) extends WhereClause end
+   object WhereEquals(left:Id, right:Id) extends WhereClause end
    object UnitConstraint(name:Id) extends WhereClause end
 
    trait IntConstraint extends WhereClause end
@@ -385,46 +391,37 @@ api FortressAst
    (**
      * name prefixed by an optional API name
      *)
-   trait QualifiedName extends Name
+   trait IdOrOpOrAnonymousName extends Name
       aapi:Maybe[\APIName\]
-      name:SimpleName
    end
    (**
-     * qualified id name
-     * QualifiedIdName ::= Id(.Id)*
+     * identifier or operator name
+     *)
+    trait IdOrOpName extends IdOrOpOrAnonymousName end
+   (**
+     * identifier name
+     * Id ::= Id(.Id)*
      * e.g.) com.sun.fortress.nodes_util.getName
      *)
-   object QualifiedIdName(apiName:Maybe[\APIName\], name:Id) extends QualifiedName end
+   object Id(apiName:Maybe[\APIName\], name:String) extends IdOrOpName end
    (**
      * qualified operator name
      * internal uses only
      * e.g.) com.sun.fortress.nodes_util.+
      *)
-   object QualifiedOpName(apiName:Maybe[\APIName\], name:OpName) extends QualifiedName end
-   (**
-     * unqualified name
-     *)
-   trait SimpleName extends Name end
-   (**
-     * unqualified id name
-     *)
-   object Id(text:String) extends SimpleName end
-   (**
-     * unqualified operator name
-     *)
-   trait OpName extends SimpleName end
+   trait OpName extends IdOrOpName end
    (**
      * non-enclosing operator
      * e.g.) COMPOSE
      * e.g.) ===
      *)
-   object Op(text:String, fixity:Maybe[\Fixity\]) extends OpName end
+   object Op(apiName:Maybe[\APIName\], text:String, fixity:Maybe[\Fixity\]) extends OpName end
    (**
      * pair of enclosing operators
      * EncloserPair ::= LeftEncloser RightEncloser
      * e.g.) </ />
      *)
-   object Enclosing(open:Op, close:Op) extends OpName end
+   object Enclosing(apiName:Maybe[\APIName\], open:Op, close:Op) extends OpName end
 
    (* TODO: Implement AnonymousFnName *)
 
