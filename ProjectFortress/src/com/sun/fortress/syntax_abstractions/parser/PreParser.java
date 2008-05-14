@@ -31,15 +31,11 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 import com.sun.fortress.useful.Useful;
 
-import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 
 /**
@@ -49,30 +45,30 @@ import edu.rice.cs.plt.iter.IterUtil;
 public class PreParser {
 
 	   public static class Result extends StaticPhaseResult {
-	        private Collection<GlobalGrammarEnv> grammars;
+	        private Collection<GrammarIndex> grammars;
 	        
-	        public Result(Collection<GlobalGrammarEnv> grammars) {
+	        public Result(Collection<GrammarIndex> grammars) {
 	        	this.grammars = grammars;
 	        }
 
 	        public Result(StaticError error) {
 	            super(IterUtil.singleton(error));
-	            this.grammars = new LinkedList<GlobalGrammarEnv>();
+	            this.grammars = new LinkedList<GrammarIndex>();
 	        }
 	        
 	        public Result(Iterable<? extends StaticError> errors) {
 	            super(errors);
-	            grammars = new LinkedList<GlobalGrammarEnv>();
+	            grammars = new LinkedList<GrammarIndex>();
 	        }
 
 	        public Result(Result r1, Result r2) {
 	            super(r1, r2);
-	            this.grammars = new LinkedList<GlobalGrammarEnv>();
+	            this.grammars = new LinkedList<GrammarIndex>();
 	            grammars.addAll(r1.grammars);
 	            grammars.addAll(r2.grammars);
 	        }
 
-	        public Collection<GlobalGrammarEnv> getGrammars() { 
+	        public Collection<GrammarIndex> getGrammars() { 
 	        	return this.grammars;
 	        }
 	    }
@@ -85,17 +81,15 @@ public class PreParser {
 		
 		// TODO: Check that result only contains at most one component
 
-		ImportedApiCollector namesAndImports = new ImportedApiCollector(env);
-		ImportedApiCollector.Result result = namesAndImports.new Result(new LinkedList<GlobalGrammarEnv>());
+        Collection<GrammarIndex> result = new LinkedList<GrammarIndex>();
 		for (Component c: pr.components()) {
-			result = result.add(namesAndImports.collectApis(c));
-			if (!result.grammars().isEmpty()) {
+			result.addAll(new ImportedApiCollector(env).collectApis(c));
+			if (!result.isEmpty()) {
 				System.err.println("Component: "+c.getName()+" imports grammars...");	
 			}
 		}
-		if (!pr.isSuccessful()) { return new Result(result.errors()); }
 
-		return new Result(result.grammars());
+		return new Result(result);
 	}
 	
 	private static Parser.Result parseFile(File f) {

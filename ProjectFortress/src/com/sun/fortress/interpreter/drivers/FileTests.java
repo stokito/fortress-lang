@@ -85,6 +85,10 @@ public class FileTests {
         }
 
         public void testFile() throws Throwable {
+            // Usefull when a test is running forever 
+//            System.out.println(this.name);
+//            System.out.flush();
+
             PrintStream oldOut = System.out;
             PrintStream oldErr = System.err;
             WireTappedPrintStream wt_err =
@@ -97,6 +101,7 @@ public class FileTests {
             String s = f.replaceFirst(".*/", "");
             String tmpFile = "/tmp/" + s + ".ast";
             String fssFile = f + ".fss";
+            
             BufferedReader in = Useful.utf8BufferedFileReader(fssFile);
             try {
                 try {

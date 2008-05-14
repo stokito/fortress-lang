@@ -28,8 +28,8 @@ import java.util.Map;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 
 public interface MacroCompiler {
 
@@ -50,6 +50,6 @@ public interface MacroCompiler {
 		public Class<?> getParserClass() { return parserClass; }
 	}
 	
-	public Result compile(Collection<GlobalGrammarEnv> grammars, GlobalEnvironment env);
+	public Result compile(Collection<GrammarIndex> grammars, GlobalEnvironment env);
 	
 }

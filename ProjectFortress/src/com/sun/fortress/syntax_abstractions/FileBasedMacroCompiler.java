@@ -28,8 +28,8 @@ package com.sun.fortress.syntax_abstractions;
 import java.util.Collection;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.fortress.syntax_abstractions.environments.GlobalGrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnvInitializer;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
@@ -40,8 +40,12 @@ import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
-	public Result compile(Collection<GlobalGrammarEnv> grammarIndexs, GlobalEnvironment env) {
+	public Result compile(Collection<GrammarIndex> grammarIndexs, GlobalEnvironment env) {
 
+//	    for(GrammarIndex g: grammarIndexs) {
+//	        System.err.println(g.getName() + ", "+ g.isToplevel());
+//	    }
+	    
 		/*
 		 * Initialize GrammarIndex
 		 */
