@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-#    Copyright 2007 Sun Microsystems, Inc.,
+#    Copyright 2008 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -16,59 +16,7 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
-
-
-# The following nonsense implements auto-homing, if no home is explicitly set
-
-# if Fortress home is not set
-if [ -z "$FORTRESS_HOME" ]; then
-  cmd=$0
-  emptyifslash=${cmd##*/*}
-  # if the command contains any slashes at all
-  if [ -z "$emptyifslash" ]; then
-    # slash occurs in name, use as is
-    true;
-  else
-    # no slash
-    cmd=`which $cmd`
-  fi
-  # if the command that we found resolves to a symbolic link, try to follow
-  # (not possible on Solaris, yet)
-  if [ -L $cmd ]; then
-     READLINK=""
-     if [ -e /bin/readlink ]; then
-        # Linux
-        READLINK=/bin/readlink
-     elif [ -e /usr/bin/readlink ]; then
-        # MacOS
-        READLINK=/usr/bin/readlink
-     else
-       echo "You need to set FORTRESS_HOME to the directory containing ProjectFortress"
-       echo "The target of the symbolic link could not be followed."
-       exit 1
-     fi
-     # Follow the link, figure out if it is absolute or relative.
-     target=`$READLINK $cmd`
-     emptyifslash=${target##/*}
-     # if absolute (begins with /)
-     if [ -z "$emptyifslash" ]; then
-       cmd=$target
-     else
-       cmd=${cmd%/*}/$target
-     fi
-     # echo Symlink resolves to $cmd
-  fi
-  FORTRESS_HOME=${cmd%/*}/..
-  echo guessing FORTRESS_HOME=$FORTRESS_HOME
-fi
-
-if [ -e ${FORTRESS_HOME}/ProjectFortress ]; then
-  true
-else
-  echo "FORTRESS_HOME should be the name of the parent directory of ProjectFortress"
-  echo "instead of '$FORTRESS_HOME'"
-  exit 1
-fi
+FORTRESS_HOME=`${0%fortify}fortress_home`
 
 USE_EMACS=${USE_EMACS:-emacs}
 [ -n "$EMACS" ] && unset EMACSLOADPATH

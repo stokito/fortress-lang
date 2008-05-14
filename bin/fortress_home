@@ -59,5 +59,15 @@ if [ -z "$FORTRESS_HOME" ]; then
      # echo Symlink resolves to $cmd
   fi
   FORTRESS_HOME=${cmd%/*}/..
+  echo "Guessing FORTRESS_HOME=$FORTRESS_HOME" 1>&2
 fi
+
+if [ -e ${FORTRESS_HOME}/ProjectFortress ]; then
+  true
+else
+  echo "FORTRESS_HOME should be the name of the parent directory of ProjectFortress"
+  echo "instead of '$FORTRESS_HOME'"
+  exit 1
+fi
+
 echo "$FORTRESS_HOME"
