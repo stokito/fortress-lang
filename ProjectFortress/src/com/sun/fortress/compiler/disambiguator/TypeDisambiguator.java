@@ -67,7 +67,7 @@ import com.sun.fortress.useful.NI;
  * as an arrow's domain) also cause errors.</p>
  */
 public class TypeDisambiguator extends NodeUpdateVisitor {
-
+    
     private final TypeNameEnv _env;
     private final Set<IdOrOpOrAnonymousName> _onDemandImports;
     private final List<StaticError> _errors;
@@ -267,7 +267,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                               ", expected " + params.size(), that);
                         return that;
                     }
-                    boolean changed = false;
+                    boolean changed = !n.equals(that.getName());
                     List<StaticArg> newArgs = new ArrayList<StaticArg>(args.size());
                     for (Pair<StaticParam, StaticArg> pair :
                              IterUtil.zip(params, args)) {

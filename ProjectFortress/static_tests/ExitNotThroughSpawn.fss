@@ -26,7 +26,7 @@ export Executable
       label l
         exit l
       end l as ()
-    end) (* as Thread[\()\] (this ascription isn't working currently) *)
+    end) as Thread[\()\]
     ()
     
   end
