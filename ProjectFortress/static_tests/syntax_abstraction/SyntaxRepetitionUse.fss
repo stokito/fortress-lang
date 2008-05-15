@@ -16,12 +16,15 @@
  ******************************************************************************)
 component SyntaxRepetitionUse
 
-  import SyntaxRepetition.{Helloworld, SelectQuery}
+  import SyntaxRepetition.{Select1, Select2, SelectQuery}
   import List.{...}
 
   export Executable
 
-  run(args:String...) = print (SELECT a a a a world)
-
-  (* SelectQuery( <| "a" "b" |> ).toString() ) *)
+  run(args:String...) = do
+                          print (SELECT a a  a from)
+                          print (SELECT b b b b from)
+                          print (SELECT a a a a world)
+                          print (SELECT b b world) 
+                        end
 end
