@@ -56,10 +56,6 @@ ArrayExpr ArrayExpr =
      void:opensquare a1:StaticArgs? w a2:RectElements w void:closesquare
      { if (a1 == null) yyValue = a2;
        else            yyValue = FortressUtil.addStaticArgsToArrayExpr(a1, a2);
-     }
-   / opensquare wr StaticArgs w RectElements w closesquare // Error production
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
      };
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
