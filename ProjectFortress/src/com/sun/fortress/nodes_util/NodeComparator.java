@@ -271,7 +271,13 @@ public class NodeComparator {
     static int compare(Effect left, Effect right) {
         if (left.isIo() != right.isIo())
             return left.isIo() ? 1 : -1;
-        return typeListComparer.compare(left.getThrowsClause(), right.getThrowsClause());
+        if (left.getThrowsClause().isSome() != right.getThrowsClause().isSome())
+            return left.getThrowsClause().isSome() ? 1 : -1;
+        if (left.getThrowsClause().isSome()) {
+            return typeListComparer.compare(left.getThrowsClause().unwrap(),
+                                            right.getThrowsClause().unwrap());
+        }
+        else return 0;
     }
 
     static int compare(IntArg left, IntArg right) {

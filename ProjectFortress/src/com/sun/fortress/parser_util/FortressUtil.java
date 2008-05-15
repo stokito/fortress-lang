@@ -31,6 +31,7 @@ import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Cons;
@@ -782,6 +783,15 @@ public final class FortressUtil {
 
     public static Span spanAll(Iterable<? extends Node> nodes) {
         if (IterUtil.isEmpty(nodes)) { return new Span(); }
+        else {
+            return new Span(IterUtil.first(nodes).getSpan().getBegin(),
+                            IterUtil.last(nodes).getSpan().getEnd());
+        }
+    }
+    
+    
+    public static Span spanAll(SourceLoc defaultLoc, Iterable<? extends Node> nodes) {
+        if (IterUtil.isEmpty(nodes)) { return new Span(defaultLoc, defaultLoc); }
         else {
             return new Span(IterUtil.first(nodes).getSpan().getBegin(),
                             IterUtil.last(nodes).getSpan().getEnd());

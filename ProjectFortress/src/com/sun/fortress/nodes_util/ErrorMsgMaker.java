@@ -106,11 +106,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
     
     public String forEffect(Effect node) {
-        if (node.getThrowsClause().isEmpty()) {
+        if (node.getThrowsClause().isNone()) {
             return node.isIo() ? "io" : "";
         }
         else {
-            return "throws " + Useful.listInCurlies(mapSelf(node.getThrowsClause())) +
+            return "throws " + Useful.listInCurlies(mapSelf(node.getThrowsClause().unwrap())) +
                 (node.isIo() ? " io" : "");
         }
     }

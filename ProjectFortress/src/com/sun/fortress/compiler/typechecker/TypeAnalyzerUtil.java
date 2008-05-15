@@ -162,7 +162,7 @@ public class TypeAnalyzerUtil {
                     (d.getVarargs().isSome() && d.getVarargs().unwrap().accept(this)) ||
                     recurOnKeywords(d.getKeywords()) ||
                     t.getRange().accept(this) ||
-                    recurOnList(t.getEffect().getThrowsClause());
+                    recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
             }
             @Override public Boolean forTupleType(TupleType t) {
                 return recurOnList(t.getElements());

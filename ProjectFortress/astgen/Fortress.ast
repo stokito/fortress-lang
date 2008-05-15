@@ -1374,7 +1374,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         LabelType();
         
-    Effect(List<BaseType> throwsClause = Collections.<BaseType>emptyList(),
+    Effect(Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
            boolean io = false);
 
     /**
