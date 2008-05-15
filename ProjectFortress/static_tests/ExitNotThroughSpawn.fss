@@ -22,11 +22,12 @@ export Executable
 
   run(args:String...):() = do
     
-    spawn do
+    (spawn do
       label l
         exit l
       end l as ()
-    end as Thread[\()\]
+    end) (* as Thread[\()\] (this ascription isn't working currently) *)
+    ()
     
   end
 

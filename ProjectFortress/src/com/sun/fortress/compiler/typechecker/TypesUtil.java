@@ -25,16 +25,18 @@ import java.util.Map;
 import java.util.HashMap;
 
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.AndType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.OrType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.Types;
@@ -111,14 +113,9 @@ public class TypesUtil {
     public static Option<Type> applicationType(final SubtypeChecker checker,
                                                final Type fn,
                                                final ArgList args) {
-        // Turn fn into a list of types (i.e. flatten if an intersection)
-        final Iterable<Type> arrows =
-            (fn instanceof AndType) ? conjuncts((AndType)fn)
-                                    : IterUtil.make(fn);
-
         // Get a list of the arrow types that match these arguments
         List<ArrowType> matchingArrows = new ArrayList<ArrowType>();
-        for (Type arrow : arrows) {
+        for (Type arrow : conjuncts(fn)) {
 
             // Try to form a non-generic ArrowType from this arrow, if it matches the args
             Option<ArrowType> newArrow = arrow.accept(new NodeAbstractVisitor<Option<ArrowType>>() {
@@ -174,22 +171,34 @@ public class TypesUtil {
         return Option.<Type>none(); // TODO implement
     }
 
-    /** Get all the conjunct types from a nested AndType. */
-    public static Iterable<Type> conjuncts(AndType types) {
-        Type left = types.getFirst();
-        Type right = types.getSecond();
-        return IterUtil.compose(
-                (left instanceof AndType) ? conjuncts((AndType)left) : IterUtil.make(left),
-                (right instanceof AndType) ? conjuncts((AndType)right) : IterUtil.make(right));
+    /** Treat the given type as an interesection and get its elements. */
+    public static Iterable<Type> conjuncts(Type t) {
+        return t.accept(new NodeAbstractVisitor<Iterable<Type>>() {
+            @Override public Iterable<Type> forType(Type t) { return IterUtil.make(t); }
+            @Override public Iterable<Type> forAnyType(AnyType t) { return IterUtil.empty(); }
+            @Override public Iterable<Type> forIntersectionType(IntersectionType t) {
+                Iterable<Type> result = IterUtil.empty();
+                for (Type elt : t.getElements()) {
+                    result = IterUtil.compose(result, elt.accept(this));
+                }
+                return result;
+            }
+        });
     }
 
-    /** Get all the disjunct types from a nested OrType. */
-    public static Iterable<Type> disjuncts(OrType types) {
-        Type left = types.getFirst();
-        Type right = types.getSecond();
-        return IterUtil.compose(
-                (left instanceof OrType) ? disjuncts((OrType)left) : IterUtil.make(left),
-                (right instanceof OrType) ? disjuncts((OrType)right) : IterUtil.make(right));
+    /** Treat the given type as a union and get its elements. */
+    public static Iterable<Type> disjuncts(Type t) {
+        return t.accept(new NodeAbstractVisitor<Iterable<Type>>() {
+            @Override public Iterable<Type> forType(Type t) { return IterUtil.make(t); }
+            @Override public Iterable<Type> forBottomType(BottomType t) { return IterUtil.empty(); }
+            @Override public Iterable<Type> forUnionType(UnionType t) {
+                Iterable<Type> result = IterUtil.empty();
+                for (Type elt : t.getElements()) {
+                    result = IterUtil.compose(result, elt.accept(this));
+                }
+                return result;
+            }
+        });
     }
     
 }

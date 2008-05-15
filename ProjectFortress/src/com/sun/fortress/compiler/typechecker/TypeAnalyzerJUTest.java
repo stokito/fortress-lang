@@ -346,13 +346,13 @@ public class TypeAnalyzerJUTest extends TestCase {
             int orIndex = s.indexOf("|");
             Type left = parseType(s.substring(0, orIndex));
             Type right = parseType(s.substring(orIndex+1));
-            return new OrType(left, right);
+            return NodeFactory.makeUnionType(left, right);
         }
         else if (s.contains("&")) {
             int andIndex = s.indexOf("&");
             Type left = parseType(s.substring(0, andIndex));
             Type right = parseType(s.substring(andIndex+1));
-            return new AndType(left, right);
+            return NodeFactory.makeIntersectionType(left, right);
         }
         else if (s.startsWith("#")) {
             return new InferenceVarType(s);

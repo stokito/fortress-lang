@@ -893,26 +893,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return that;
 //    }
 //
-//    public Node forIntersectionTypeOnly(IntersectionType that, Set<Type> elements_result) {
-//        if (that.getElements() == elements_result) return that;
-//        else return new IntersectionType(that.getSpan(), that.isParenthesized(), elements_result);
-//    }
-//
-//    public Node forUnionTypeOnly(UnionType that, Set<Type> elements_result) {
-//        if (that.getElements() == elements_result) return that;
-//        else return new UnionType(that.getSpan(), that.isParenthesized(), elements_result);
-//    }
-//
-//    public Node forAndTypeOnly(AndType that, Type first_result, Type second_result) {
-//        if (that.getFirst() == first_result && that.getSecond() == second_result) return that;
-//        else return new AndType(that.getSpan(), that.isParenthesized(), first_result, second_result);
-//    }
-//
-//    public Node forOrTypeOnly(OrType that, Type first_result, Type second_result) {
-//        if (that.getFirst() == first_result && that.getSecond() == second_result) return that;
-//        else return new OrType(that.getSpan(), that.isParenthesized(), first_result, second_result);
-//    }
-//
 //    public Node forTaggedDimTypeOnly(TaggedDimType that, Type type_result, DimExpr dim_result, Option<Expr> unit_result) {
 //        if (that.getType() == type_result && that.getDim() == dim_result && that.getUnit() == unit_result) return that;
 //        else return new TaggedDimType(that.getSpan(), that.isParenthesized(), type_result, dim_result, unit_result);
@@ -2131,28 +2111,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //
 //    public Node forVoidType(VoidType that) {
 //        return forVoidTypeOnly(that);
-//    }
-//
-//    public Node forIntersectionType(IntersectionType that) {
-//        Set<Type> elements_result = recurOnSetOfType(that.getElements());
-//        return forIntersectionTypeOnly(that, elements_result);
-//    }
-//
-//    public Node forUnionType(UnionType that) {
-//        Set<Type> elements_result = recurOnSetOfType(that.getElements());
-//        return forUnionTypeOnly(that, elements_result);
-//    }
-//
-//    public Node forAndType(AndType that) {
-//        Type first_result = (Type) that.getFirst().accept(this);
-//        Type second_result = (Type) that.getSecond().accept(this);
-//        return forAndTypeOnly(that, first_result, second_result);
-//    }
-//
-//    public Node forOrType(OrType that) {
-//        Type first_result = (Type) that.getFirst().accept(this);
-//        Type second_result = (Type) that.getSecond().accept(this);
-//        return forOrTypeOnly(that, first_result, second_result);
 //    }
 //
 //    public Node forTaggedDimType(TaggedDimType that) {

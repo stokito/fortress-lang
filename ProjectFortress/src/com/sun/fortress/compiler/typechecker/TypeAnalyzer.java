@@ -140,7 +140,7 @@ public class TypeAnalyzer {
 
                     @Override public ConstraintFormula forVarType(VarType t) {
                         if (s.equals(t)) { return ConstraintFormula.TRUE; }
-                        else if (s instanceof OrType) {
+                        else if (s instanceof UnionType) {
                             return ConstraintFormula.FALSE;
                         }
                         else {
@@ -166,17 +166,27 @@ public class TypeAnalyzer {
                         }
                     }
 
-                    @Override public ConstraintFormula forOrType(OrType t) {
-                        if (s instanceof OrType || s instanceof AndType) {
+                    @Override public ConstraintFormula forUnionType(UnionType t) {
+                        if (s instanceof UnionType || s instanceof IntersectionType) {
                             return ConstraintFormula.FALSE;
                         }
                         else {
-                            return sub(s, t.getFirst(), h).or(sub(s, t.getSecond(), h), h);
+                            ConstraintFormula result = ConstraintFormula.FALSE;
+                            for (Type elt : t.getElements()) {
+                                result = result.or(sub(s, elt, h), h);
+                                if (result.isTrue()) { break; }
+                            }
+                            return result;
                         }
                     }
 
-                    @Override public ConstraintFormula forAndType(AndType t) {
-                        return sub(s, t.getFirst(), h).and(sub(s, t.getSecond(), h), h);
+                    @Override public ConstraintFormula forIntersectionType(IntersectionType t) {
+                        ConstraintFormula result = ConstraintFormula.TRUE;
+                        for (Type elt : t.getElements()) {
+                            result = result.and(sub(s, elt, h), h);
+                            if (result.isFalse()) { break; }
+                        }
+                        return result;
                     }
 
                 });
@@ -197,7 +207,7 @@ public class TypeAnalyzer {
 
                     @Override public ConstraintFormula forVarType(VarType s) {
                         // TODO: recur on upper bounds
-                        if (t instanceof AndType) { return ConstraintFormula.FALSE; }
+                        if (t instanceof IntersectionType) { return ConstraintFormula.FALSE; }
                         else {
                             // TODO: recur on upper bounds
                             return ConstraintFormula.FALSE;
@@ -361,19 +371,24 @@ public class TypeAnalyzer {
                         return result;
                     }
 
-                    @Override public ConstraintFormula forOrType(OrType s) {
-                        return sub(s.getFirst(), t, h).and(sub(s.getSecond(), t, h), h);
+                    @Override public ConstraintFormula forUnionType(UnionType s) {
+                        ConstraintFormula result = ConstraintFormula.TRUE;
+                        for (Type elt : s.getElements()) {
+                            result = result.and(sub(elt, t, h), h);
+                            if (result.isFalse()) { break; }
+                        }
+                        return result;
                     }
 
-                    @Override public ConstraintFormula forAndType(AndType s) {
-                        if (t instanceof AndType) { return excl(s.getFirst(), s.getSecond(), h); }
+                    @Override public ConstraintFormula forIntersectionType(IntersectionType s) {
+                        if (t instanceof IntersectionType) { return ConstraintFormula.FALSE; }
+                        //excl(s.getFirst(), s.getSecond(), h); }
                         else {
-                            ConstraintFormula result = excl(s.getFirst(), s.getSecond(), h);
-                            if (!result.isTrue()) {
-                                result = result.or(sub(s.getFirst(), t, h), h);
-                            }
-                            if (!result.isTrue()) {
-                                result = result.or(sub(s.getSecond(), t, h), h);
+                            //ConstraintFormula result = excl(s.getFirst(), s.getSecond(), h);
+                            ConstraintFormula result = ConstraintFormula.FALSE;
+                            for (Type elt : s.getElements()) {
+                                result = result.or(sub(elt, t, h), h);
+                                if (result.isTrue()) { break; }
                             }
                             /*
                             if (!result.isTrue()) {
@@ -685,6 +700,24 @@ public class TypeAnalyzer {
                         return result;
                     }
 
+                    @Override public ConstraintFormula forUnionType(UnionType s) {
+                        ConstraintFormula result = ConstraintFormula.TRUE;
+                        for (Type elt : s.getElements()) {
+                            result = result.and(sub(elt, t, h), h);
+                            if (result.isFalse()) { break; }
+                        }
+                        return result;
+                    }
+
+                    @Override public ConstraintFormula forIntersectionType(IntersectionType s) {
+                        ConstraintFormula result = ConstraintFormula.FALSE;
+                        for (Type elt : s.getElements()) {
+                            result = result.or(sub(elt, t, h), h);
+                            if (result.isTrue()) { break; }
+                        }
+                        return result;
+                    }
+                    /*
                     @Override public ConstraintFormula forOrType(OrType s) {
                         ConstraintFormula result;
                         if (t instanceof OrType) {
@@ -730,7 +763,9 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
+                    */
 
+                    /*
                     @Override public ConstraintFormula forAndType(AndType s) {
                         ConstraintFormula result;
                         if (t instanceof AndType) {
@@ -757,6 +792,7 @@ public class TypeAnalyzer {
                             }
                             result = result.or(f, h);
                         }
+                        */
                         /*
                         if (!result.isTrue()) {
                             // merge tuple
@@ -858,6 +894,7 @@ public class TypeAnalyzer {
                             result = result.or(f, h);
                         }
                         */
+                    /*
                         if (!result.isTrue()) {
                             // distribution of Or
                             InferenceVarType inf1 = makeInferenceVarType();
@@ -887,11 +924,13 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
+                    */
 
                 });
                 result = result.or(sResult, h);
             }
 
+            /*
             if (!result.isTrue()) {
                 // expand to intersection
                 InferenceVarType inf = makeInferenceVarType();
@@ -904,6 +943,7 @@ public class TypeAnalyzer {
                 InferenceVarType inf = makeInferenceVarType();
                 result = result.or(subtype(new OrType(s, inf), t, h.expand()), h);
             }
+            */
 
             // match where declarations
             // reverse aliases
@@ -1035,25 +1075,25 @@ public class TypeAnalyzer {
     public Type meet(Type s, Type t, SubtypeHistory history) {
         if (subtype(s, t, history).isTrue()) { return s; }
         else if (subtype(t, s, history).isTrue()) { return t; }
-        else { return new AndType(s, t); }
+        else { return NodeFactory.makeIntersectionType(s, t); }
     }
 
     public Type mt(Type s, Type t, SubtypeHistory history) {
         if (sub(s, t, history).isTrue()) { return s; }
         else if (sub(t, s, history).isTrue()) { return t; }
-        else { return new AndType(s, t); }
+        else { return NodeFactory.makeIntersectionType(s, t); }
     }
 
     public Type join(Type s, Type t, SubtypeHistory history) {
         if (subtype(s, t, history).isTrue()) { return t; }
         else if (subtype(t, s, history).isTrue()) { return s; }
-        else { return new OrType(s, t); }
+        else { return NodeFactory.makeUnionType(s, t); }
     }
 
     public Type jn(Type s, Type t, SubtypeHistory history) {
         if (sub(s, t, history).isTrue()) { return t; }
         else if (sub(t, s, history).isTrue()) { return s; }
-        else { return new OrType(s, t); }
+        else { return NodeFactory.makeUnionType(s, t); }
     }
 
 

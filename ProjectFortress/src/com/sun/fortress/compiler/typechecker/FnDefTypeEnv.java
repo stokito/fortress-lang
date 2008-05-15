@@ -65,7 +65,7 @@ class FnDefTypeEnv extends TypeEnv {
         for (FnDef fn : fns) {
             overloadedTypes.add(genericArrowFromDecl(fn));
         }
-        return some(new BindingLookup(var, NodeFactory.makeAndType(overloadedTypes)));
+        return some(new BindingLookup(var, new IntersectionType(overloadedTypes)));
     }
 
     @Override

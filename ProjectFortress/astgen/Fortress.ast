@@ -1353,13 +1353,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         InferenceVarType(Object id);
         /**
-         * A binary intersection.  Used internally for type analysis.
+         * An intersection or union.
          */
-        AndType(Type first, Type second);
-        /**
-         * A binary union.  Used internally for type analysis.
-         */
-        OrType(Type first, Type second);
+        abstract BoundType(List<Type> elements);
+            /**
+             * An intersection.  Used internally for type analysis.
+             */
+            IntersectionType();
+            /**
+             * A union.  Used internally for type analysis.
+             */
+            UnionType();
         /**
          * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
          * Names must be unqualified.
