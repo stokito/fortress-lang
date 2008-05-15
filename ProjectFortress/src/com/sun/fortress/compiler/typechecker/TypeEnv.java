@@ -85,15 +85,26 @@ public abstract class TypeEnv {
             // FortressBuiltin.ImmutableHeapSequence.
             VarargsParam _param = (VarargsParam) param;
 
-            Type result = TypesUtil.fromVarargsType(_param.getType());
+            Type result = Types.makeVarargsParamType(_param.getType());
             return some(result);
         }
     }
+    
+    protected static _RewriteGenericArrowType genericArrowFromDecl(FnAbsDeclOrDecl decl) {
+        return new _RewriteGenericArrowType(decl.getSpan(),
+                                            decl.getStaticParams(),
+                                            domainFromParams(decl.getParams()),
+                                            // all types have been filled in at this point
+                                            decl.getReturnType().unwrap(),
+                                            makeEffect(decl.getSpan().getEnd(),
+                                                       decl.getThrowsClause()),
+                                            decl.getWhere());
+    }
 
     /**
-     * Get a type from a list of params.
+     * Get a domain from a list of params.
      */
-    protected static Type typeFromParams(List<Param> params) {
+    protected static Domain domainFromParams(List<Param> params) {
         List<Type> paramTypes = new ArrayList<Type>();
         List<KeywordType> keywordTypes = new ArrayList<KeywordType>();
         Option<Type> varargsType = none();
@@ -121,9 +132,8 @@ public abstract class TypeEnv {
                 varargsType = some(_param.getType());
             }
         }
-        if (!keywordTypes.isEmpty()) { return NI.nyi("Keyword parameters aren't yet supported"); }
-        else if (varargsType.isSome()) { return new ArgType(paramTypes, varargsType.unwrap()); }
-        else { return new TupleType(paramTypes); }
+        
+        return new Domain(paramTypes, varargsType, keywordTypes);
     }
 
     protected static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
@@ -335,12 +345,7 @@ public abstract class TypeEnv {
 
         public BindingLookup(IdOrOpOrAnonymousName _var, FnAbsDeclOrDecl decl) {
             var = _var;
-            type = wrap((Type)makeGenericArrowType(decl.getSpan(),
-                    decl.getStaticParams(),
-                    typeFromParams(decl.getParams()),
-                    decl.getReturnType().unwrap(), // all types have been filled in at this point
-                    decl.getThrowsClause(),
-                    decl.getWhere()));
+            type = Option.<Type>wrap(genericArrowFromDecl(decl));
             mods = decl.getMods();
             mutable = false;
         }
@@ -350,13 +355,7 @@ public abstract class TypeEnv {
             Type _type = Types.ANY;
             mods = Collections.<Modifier>emptyList();
             for (FnAbsDeclOrDecl decl : decls) {
-                _type = new AndType(_type,
-                        makeGenericArrowType(decl.getSpan(),
-                                decl.getStaticParams(),
-                                typeFromParams(decl.getParams()),
-                                decl.getReturnType().unwrap(), // all types have been filled in at this point
-                                decl.getThrowsClause(),
-                                decl.getWhere()));
+                _type = new AndType(_type, genericArrowFromDecl(decl));
                 mods.addAll(decl.getMods());
             }
             type = wrap(_type);

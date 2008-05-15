@@ -17,12 +17,9 @@
 
 package com.sun.fortress.parser_util.precedence_opexpr;
 
-import java.util.List;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.useful.PureList;
-import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.nodes.Effect;
 
 
 /**
@@ -35,9 +32,9 @@ public class TypeTight extends TypeInfixFrame {
     * Constructs a TypeTight.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public TypeTight(Op in_op, Option<List<BaseType>> in_throws,
+   public TypeTight(Op in_op, Effect in_effect,
                     Type in_arg) {
-      super(in_op, in_throws, in_arg);
+      super(in_op, in_effect, in_arg);
    }
 
 
@@ -77,7 +74,7 @@ public class TypeTight extends TypeInfixFrame {
       } else {
          TypeTight casted = (TypeTight) obj;
          if (! (getOp().equals(casted.getOp()))) return false;
-         if (! (getThrows().equals(casted.getThrows()))) return false;
+         if (! (getEffect().equals(casted.getEffect()))) return false;
          return true;
       }
    }
@@ -91,7 +88,7 @@ public class TypeTight extends TypeInfixFrame {
    protected int generateHashCode() {
       int code = getClass().hashCode();
       code ^= getOp().hashCode();
-      code ^= getThrows().hashCode();
+      code ^= getEffect().hashCode();
       return code;
    }
 }

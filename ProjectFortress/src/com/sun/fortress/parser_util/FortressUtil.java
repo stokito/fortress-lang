@@ -96,6 +96,10 @@ public final class FortressUtil {
         return new WhereClause(Collections.<WhereBinding>emptyList(),
                                Collections.<WhereConstraint>emptyList());
     }
+    
+    public static Effect emptyEffect() {
+        return new Effect();
+    }
 
     public static <T> List<T> getListVal(Option<List<T>> o) {
         return o.unwrap(Collections.<T>emptyList());

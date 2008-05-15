@@ -64,8 +64,8 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // No static params, some normal params
                 type = new ArrowType(var.getSpan(),
-                        typeFromParams(decl.getParams().unwrap()),
-                        NodeFactory.makeTraitType(_var));
+                                     domainFromParams(decl.getParams().unwrap()),
+                                     NodeFactory.makeTraitType(_var));
             }
         } else {
             if (decl.getParams().isNone()) {
@@ -74,10 +74,10 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
-                type = NodeFactory.makeGenericArrowType(decl.getSpan(),
-                        decl.getStaticParams(),
-                        typeFromParams(decl.getParams().unwrap()),
-                        NodeFactory.makeTraitType(_var));
+                type = new _RewriteGenericArrowType(decl.getSpan(), decl.getStaticParams(),
+                                                    domainFromParams(decl.getParams().unwrap()),
+                                                    NodeFactory.makeTraitType(_var),
+                                                    decl.getWhere());
             }
         }
 

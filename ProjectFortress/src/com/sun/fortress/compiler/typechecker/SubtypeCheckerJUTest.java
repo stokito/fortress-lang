@@ -26,6 +26,7 @@ import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
 
 import static java.lang.Boolean.TRUE;
 import static java.lang.Boolean.FALSE;
@@ -419,9 +420,10 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
     /** Test the application type checking. */
     public void testApplication() {
         Type arrow1 = parseType("(A, B) -> C");
-        Type arg1 = parseType("(A, B)");
+        Type arg1 = parseType("A");
+        Type arg2 = parseType("B");
         assertEquals(parseType("C"),
-                     TypesUtil.applicationType(checker, arrow1, arg1).unwrap(null));
+                     TypesUtil.applicationType(checker, arrow1, new ArgList(arg1, arg2)).unwrap(null));
     }
 
 }

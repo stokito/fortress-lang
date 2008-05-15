@@ -1230,6 +1230,20 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             OpDim(DimExpr val, Op op);
         /**
+         * domain of an arrow type (not really a type, but here for
+         * now because of the way the parser is defined)
+         * Domain ::=
+         *     ( w (Type w , w)* (Type w ... w , w)? KeywordType (w , w KeywordType)* w )
+         *   | ( w (Type w , w)* Type w ... w )
+         *   | [other cases parsed elsewhere]
+         * e.g.)
+         * ZZ32
+         * (String, ZZ32, String..., foo=ZZ32)
+         */
+        Domain(List<Type> args,
+               Option<Type> varargs = Option.<Type>none(),
+               List<KeywordType> keywords = Collections.<KeywordType>emptyList());
+        /**
          * base types: things that can be extended, excluded, thrown, etc.
          */
         abstract BaseType();
@@ -1303,13 +1317,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             TupleType();
             /**
-             * argument type
-             * ArgType ::=
-             *             ( (Type, )*  Type ... )
-             *           | TupleType
-             * e.g.)
+             * Used internally to represent an infinite union of 
+             * TupleTypes.
              */
-            ArgType(Type varargs);
+            VarargTupleType(Type varargs);
         /**
          * void type
          * NonArrowType ::= ()
@@ -1319,10 +1330,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * arrow type
          */
-        abstract AbstractArrowType(Type domain, Type range,
-                                   Option<List<Type>> throwsClause
-                                     = Option.<List<Type>>none(),
-                                   boolean io = false);
+        abstract AbstractArrowType(Domain domain, Type range,
+                                   Effect effect = FortressUtil.emptyEffect());
             /**
              * arrow type
              * Type ::= Type -> Type Throws?
@@ -1334,8 +1343,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             _RewriteGenericArrowType(List<StaticParam> staticParams
                                       = Collections.<StaticParam>emptyList(),
-                                     WhereClause where
-                                      = FortressUtil.emptyWhereClause());
+                                     Domain domain,
+                                     Type range,
+                                     Effect effect = FortressUtil.emptyEffect(),
+                                     WhereClause where = FortressUtil.emptyWhereClause());
         /**
          * inferred type
          * Used internally for type analysis
@@ -1358,6 +1369,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * The type of the name given to a label expression.  Used internally.
          */
         LabelType();
+        
+    Effect(List<BaseType> throwsClause = Collections.<BaseType>emptyList(),
+           boolean io = false);
+
     /**
      * static argument
      */

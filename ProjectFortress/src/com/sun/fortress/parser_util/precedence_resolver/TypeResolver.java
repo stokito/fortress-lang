@@ -22,6 +22,7 @@ package com.sun.fortress.parser_util.precedence_resolver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
@@ -100,10 +101,10 @@ public class TypeResolver {
     }
 
     private static PureList<TypeInfixFrame>
-        looseInfixStack(Type e, Op op, Option<List<BaseType>> _throws,
+        looseInfixStack(Type e, Op op, Effect effect,
                         PureList<TypeInfixFrame> stack) throws ReadError {
         if (stack.isEmpty()) {
-            return PureList.<TypeInfixFrame>make(new TypeLoose(op, _throws, e));
+            return PureList.<TypeInfixFrame>make(new TypeLoose(op, effect, e));
         } else { // !stack.isEmpty()
             Cons<TypeInfixFrame> _stack = (Cons<TypeInfixFrame>)stack;
             TypeInfixFrame frame = _stack.getFirst();
@@ -113,7 +114,7 @@ public class TypeResolver {
                 Op _op = ((TypeTight)frame).getOp();
                 if (precedence(_op, op) instanceof Higher) {
                     return looseInfixStack(finishInfixFrame(e,frame),op,
-                                           _throws, rest);
+                                           effect, rest);
                 } else {
                     throw new ReadError(spanTwo(_op,op),
                                         "Tight operator " + _op.getText() +
@@ -131,7 +132,7 @@ public class TypeResolver {
                                 Type _new = makeProductDim(span,
                                                            (TaggedDimType)first,
                                                            typeToDim(e));
-                                return rest.cons(new TypeLoose(_op,_throws,_new));
+                                return rest.cons(new TypeLoose(_op,effect,_new));
                             } else {
                                 throw new ReadError(first.getSpan(),
                                                     "Dimensions are expected.");
@@ -148,11 +149,11 @@ public class TypeResolver {
                 } else {
                     Precedence prec = precedence(op, _op);
                     if (prec instanceof Higher) {
-                        return stack.cons(new TypeLoose(op, _throws, e));
+                        return stack.cons(new TypeLoose(op, effect, e));
                     } else if (prec instanceof Lower ||
                                prec instanceof Equal) {
                         return looseInfixStack(finishInfixFrame(e,frame), op,
-                                               _throws, rest);
+                                               effect, rest);
                     } else { // prec instanceof None
                         throw new ReadError(spanTwo(_op, op),
                                             "Loose operators " + _op.getText()
@@ -165,10 +166,10 @@ public class TypeResolver {
     }
 
   private static PureList<TypeInfixFrame>
-      tightInfixStack(Type e, Op op, Option<List<BaseType>> _throws,
+      tightInfixStack(Type e, Op op, Effect effect,
                       PureList<TypeInfixFrame> stack) throws ReadError {
       if (stack.isEmpty()) {
-          return PureList.<TypeInfixFrame>make(new TypeTight(op, _throws, e));
+          return PureList.<TypeInfixFrame>make(new TypeTight(op, effect, e));
       } else { // !stack.isEmpty()
           Cons<TypeInfixFrame> _stack = (Cons<TypeInfixFrame>)stack;
           TypeInfixFrame frame = _stack.getFirst();
@@ -177,7 +178,7 @@ public class TypeResolver {
           if (frame instanceof TypeLoose) {
               Op _op = ((TypeLoose)frame).getOp();
               if (precedence(op, _op) instanceof Higher) {
-                  return stack.cons(new TypeTight(op, _throws, e));
+                  return stack.cons(new TypeTight(op, effect, e));
               } else {
                   throw new ReadError(spanTwo(_op,op),
                                       "Loose operator " + _op.getText() +
@@ -195,7 +196,7 @@ public class TypeResolver {
                                 Type _new = makeProductDim(span,
                                                            (TaggedDimType)first,
                                                            typeToDim(e));
-                                return rest.cons(new TypeTight(_op,_throws,_new));
+                                return rest.cons(new TypeTight(_op,effect,_new));
                             } else {
                                 throw new ReadError(first.getSpan(),
                                                     "Dimensions are expected.");
@@ -212,12 +213,12 @@ public class TypeResolver {
               } else {
                   Precedence prec = precedence(op, _op);
                   if (prec instanceof Higher) {
-                      return stack.cons(new TypeTight(op, _throws, e));
+                      return stack.cons(new TypeTight(op, effect, e));
                   }
                   else if (prec instanceof Lower ||
                            prec instanceof Equal) {
                       return tightInfixStack(finishInfixFrame(e,frame), op,
-                                             _throws, rest);
+                                             effect, rest);
                   } else { // prec instanceof None
                       throw new ReadError(spanTwo(_op, op),
                                           "Tight operators " + _op.getText()
@@ -234,10 +235,8 @@ public class TypeResolver {
         Op op = frame.getOp();
         Type first = frame.getArg();
         if (isTypeOp(op)) {
-            return NodeFactory.makeArrowType(spanTwo(first,last),
-                                             typeToType(first),
-                                             typeToType(last),
-                                             frame.getThrows());
+            return new ArrowType(spanTwo(first, last), typeToDomain(first),
+                                 typeToType(last), frame.getEffect());
         } else { // !(isTypeOp(op))
             try {
                 DimExpr _second = typeToDim(last);
@@ -304,13 +303,13 @@ public class TypeResolver {
                     return resolveInfixStack
                         (_rest, looseInfixStack(type,
                                                 ((LooseInfix)second).getOp(),
-                                                ((LooseInfix)second).getThrows(),
+                                                ((LooseInfix)second).getEffect(),
                                                 stack));
                 else if (second instanceof TightInfix)
                     return resolveInfixStack
                         (_rest, tightInfixStack(type,
                                                 ((TightInfix)second).getOp(),
-                                                ((TightInfix)second).getThrows(),
+                                                ((TightInfix)second).getEffect(),
                                                 stack));
             }
             // Errors
@@ -581,7 +580,7 @@ public class TypeResolver {
     }
 
     private static Type typeToType(Type type) {
-        return type.accept(new NodeAbstractVisitor<Type>() {
+        return (Type) type.accept(new NodeUpdateVisitor() {
             public Type forExponentType(ExponentType t) {
                 return makeMatrixType(t.getSpan(), typeToType(t.getBase()),
                                       t.getPower());
@@ -593,43 +592,32 @@ public class TypeResolver {
                     return (Type)t;
                 }
             }
-            public Type forArrowType(ArrowType t) {
-                return new ArrowType(t.getSpan(),
-                                     typeToType(t.getDomain()),
-                                     typeToType(t.getRange()),
-                                     t.getThrowsClause(), t.isIo());
-            }
-            public Type forArrayType(ArrayType t) {
-                return new ArrayType(t.getSpan(), typeToType(t.getType()),
-                                     t.getIndices());
-            }
-            public Type forMatrixType(MatrixType t) {
-                return new MatrixType(t.getSpan(), typeToType(t.getType()),
-                                      t.getDimensions());
-            }
-            public Type forArgType(ArgType t) {
-                List<Type> elements = new ArrayList<Type>();
-                for (Type ty : t.getElements()) {
-                    elements.add(typeToType(ty));
-                }
-                Type varargs = typeToType(t.getVarargs());
-                return new ArgType(t.getSpan(), elements, varargs);
-            }
-            public Type forTupleType(TupleType t) {
-                List<Type> elements = new ArrayList<Type>();
-                for (Type ty : t.getElements()) {
-                    elements.add(typeToType(ty));
-                }
-                return new TupleType(t.getSpan(), elements);
-            }
             public Type forTaggedDimType(TaggedDimType t) {
                 return new TaggedDimType(t.getSpan(), typeToType(t.getType()),
                                          dimToDim(t.getDim()), t.getUnit());
             }
-            public Type defaultCase(Node x) {
-                return (Type)x;
-            }
         });
+    }
+    
+    private static Domain typeToDomain(Type type) {
+        if (type instanceof Domain) { return (Domain) type; }
+        else {
+            List<Type> args;
+            if (type instanceof VoidType) {
+                args = Collections.emptyList();
+            }
+            else if (type instanceof TupleType) {
+                TupleType tup = (TupleType) type;
+                args = new ArrayList<Type>(tup.getElements().size());
+                for (Type t : tup.getElements()) {
+                    args.add(typeToType(t));
+                }
+            }
+            else {
+                args = Collections.singletonList(typeToType(type));
+            }
+            return new Domain(type.getSpan(), type.isParenthesized(), args);
+        }
     }
 
     public static DimExpr typeToDim(Type type) throws TypeConvertFailure {

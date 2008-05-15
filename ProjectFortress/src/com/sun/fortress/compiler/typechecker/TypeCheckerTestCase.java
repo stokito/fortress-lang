@@ -30,7 +30,6 @@ import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.ProperTraitIndex;
-import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Id;
@@ -64,8 +63,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
             int arrowIndex = s.indexOf("->");
             Type left = parseType(s.substring(0, arrowIndex));
             Type right = parseType(s.substring(arrowIndex+2));
-            List<Type> thrown = Collections.singletonList(BOTTOM);
-            return new ArrowType(left, right, Option.some(thrown), false);
+            return new ArrowType(NodeFactory.makeDomain(left), right);
         }
         if (s.startsWith("(")) {
             List<Type> types = new ArrayList<Type>();

@@ -20,11 +20,11 @@ package com.sun.fortress.useful;
 import java.util.Comparator;
 import java.util.List;
 
-public class AnyListComparer<T> implements Comparator<List<T>> {
+public class AnyListComparer<T> implements Comparator<List<? extends T>> {
 
     Comparator<T> compareElements;
 
-    public int compare(List<T> arg0, List<T> arg1) {
+    public int compare(List<? extends T> arg0, List<? extends T> arg1) {
         int l0 = arg0.size();
         int l1 = arg1.size();
         if (l0 < l1) return -1;

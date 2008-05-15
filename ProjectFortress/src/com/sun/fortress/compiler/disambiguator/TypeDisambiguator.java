@@ -63,8 +63,8 @@ import com.sun.fortress.useful.NI;
  * </p>
  * <p>All name references in resolved types that are undefined or used incorrectly are
  * treated as static errors.  Similarly, incorrect arity or kinds of static arguments
- * are treated as errors.  Malformed types (currently, just ArgTypes that don't appear
- * is an arrow's domain) also cause errors.</p>
+ * are treated as errors.  Malformed types (currently, just Domains that don't appear
+ * as an arrow's domain) also cause errors.</p>
  */
 public class TypeDisambiguator extends NodeUpdateVisitor {
 
@@ -206,19 +206,17 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
     
     @Override public Node forArrowType(final ArrowType that) {
-        if (that.getDomain() instanceof ArgType) {
-            Type domainResult = (Type) super.forArgType((ArgType) that.getDomain());
-            Type rangeResult = (Type) that.getRange().accept(this);
-            Option<List<Type>> throwsResult = recurOnOptionOfListOfType(that.getThrowsClause());
-            return forArrowTypeOnly(that, domainResult, rangeResult, throwsResult);
-        }
-        else { return super.forArrowType(that); }
+        // make sure this.forDomain is *not* called
+        Domain domainResult = (Domain) super.forDomain(that.getDomain());
+        Type rangeResult = (Type) that.getRange().accept(this);
+        Effect effectResult = (Effect) that.getEffect().accept(this);
+        return forArrowTypeOnly(that, domainResult, rangeResult, effectResult);
     }
 
-    @Override public Node forArgType(final ArgType that) {
-        // valid occurrences of ArgTypes are recognized before this recursive
+    @Override public Node forDomain(final Domain that) {
+        // valid occurrences of Domain are recognized before this recursive
         // call takes place
-        error("Tuple types are not allowed to have varargs types.", that);
+        error("Tuple types are not allowed to have varargs or keyword types.", that);
         return that;
     }
 

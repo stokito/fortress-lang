@@ -36,9 +36,9 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
      static class EntrySet<T, U> extends AbstractSet<Map.Entry<T, U>> implements Set<Map.Entry<T, U>> {
 
         BATreeNode<T,U> root;
-        Comparator<T> comp;
+        Comparator<? super T> comp;
 
-        EntrySet(BATreeNode<T,U> r, Comparator<T> c) {
+        EntrySet(BATreeNode<T,U> r, Comparator<? super T> c) {
             root = r;
             comp = c;
         }
@@ -111,13 +111,13 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
     }
 
     volatile BATreeNode<T,U> root;
-    Comparator<T> comp;
+    Comparator<? super T> comp;
 
-    public BATree(Comparator<T> c) {
+    public BATree(Comparator<? super T> c) {
         comp = c;
     }
 
-    protected BATree(BATreeNode<T,U> r, Comparator<T> c) {
+    protected BATree(BATreeNode<T,U> r, Comparator<? super T> c) {
         root = r;
         comp = c;
     }

@@ -26,6 +26,7 @@ import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
+import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
@@ -919,7 +920,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // Init some types
         Type paramType = paramResult.type().unwrap();
-        Type paramGeneratorType = TypesUtil.makeGeneratorType(paramType);
+        Type paramGeneratorType = Types.makeGeneratorType(paramType);
 
         // Type check "paramExpr OP guardExpr" for each distinct type
         for (Type guardType : guards.firstSet()) {
@@ -938,7 +939,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             Option<Type> applicationType =
                 TypesUtil.applicationType(subtypeChecker, opType,
-                                          TypesUtil.argsToType(paramType, guardType));
+                                          new ArgList(paramType, guardType));
 
             // Check if "opType paramType guardType" application has type Boolean
             if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
@@ -1003,7 +1004,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             Option<Type> applicationType =
                 TypesUtil.applicationType(subtypeChecker, opType,
-                                          TypesUtil.argsToType(guardTypeL, guardTypeR));
+                                          new ArgList(guardTypeL, guardTypeR));
 
             // Check if "opType guardType_i guardType_j" application has type Boolean
             if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
@@ -1084,7 +1085,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Option<Type> applicationType = none();
         if (op_result.type().isSome()) {
             Type arrowType = op_result.type().unwrap();
-            List<Type> argTypes = new ArrayList<Type>(args_result.size());
+            ArgList argTypes = new ArgList();
             boolean success = true;
             for (TypeCheckerResult r : args_result) {
                 if (r.type().isNone()) {
@@ -1094,8 +1095,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 argTypes.add(r.type().unwrap());
             }
             if (success) {
-                applicationType = TypesUtil.applicationType(subtypeChecker, arrowType,
-                                                            TypesUtil.argsToType(argTypes));
+                applicationType = TypesUtil.applicationType(subtypeChecker, arrowType, argTypes);
                 if (applicationType.isNone()) {
                     // Guaranteed at least one operator because all the overloaded operators
                     // are created by disambiguation, not by the user.
@@ -1130,7 +1130,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return TypeCheckerResult.compose(that,
                                          TypesUtil.applicationType(subtypeChecker,
                                                                    lhsType,
-                                                                   rhsType),
+                                                                   new ArgList(rhsType)),
                                          exprs_result);
     }
 
@@ -1228,7 +1228,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
         if (bodyResult.type().isSome()) {
             return TypeCheckerResult.compose(that,
-                                             TypesUtil.makeThreadType(bodyResult.type().unwrap()),
+                                             Types.makeThreadType(bodyResult.type().unwrap()),
                                              bodyResult);
         } else {
             return TypeCheckerResult.compose(that, bodyResult);
@@ -2991,10 +2991,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forTraitTypeOnly(that, name_result, args_result);
 //    }
 //
-//    public RetType forArgType(ArgType that) {
+//    public RetType forVarargTupleType(VarargTupleType that) {
 //        List<RetType> elements_result = recurOnListOfType(that.getElements());
 //        RetType varargs_result = that.getVarargs().accept(this);
-//        return forArgTypeOnly(that, elements_result, varargs_result);
+//        return forVarargTupleTypeOnly(that, elements_result, varargs_result);
 //    }
 //
 //    public RetType forTupleType(TupleType that) {

@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.ArgType;
+import com.sun.fortress.nodes.VarargTupleType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VoidType;
@@ -218,12 +218,12 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forArgType(com.sun.fortress.nodes.ArgType)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVarargTupleType(com.sun.fortress.nodes.VarargTupleType)
      */
     @Override
-    public void forArgType(ArgType that) {
+    public void forVarargTupleType(VarargTupleType that) {
         // TODO Auto-generated method stub
-        super.forArgType(that);
+        super.forVarargTupleType(that);
     }
 
     /* (non-Javadoc)

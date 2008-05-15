@@ -27,7 +27,7 @@ public class LazyMemo1PC<Index, Value, Param> implements Factory1P<Index, Value,
 
     BATree<Index, Value> map;
 
-    public LazyMemo1PC(LazyFactory1P<Index, Value, Param> factory, Comparator<Index> comp) {
+    public LazyMemo1PC(LazyFactory1P<Index, Value, Param> factory, Comparator<? super Index> comp) {
         this.factory = factory;
         this.map = new BATree<Index, Value>(comp);
     }

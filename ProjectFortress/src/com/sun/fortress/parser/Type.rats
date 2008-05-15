@@ -100,9 +100,9 @@ PureList<PostfixOpExpr> TypePrefix =
  */
 PureList<PostfixOpExpr> TightInfixPostfix =
      <Arrow> a1:TypeInfixOp a2:TypePrimary a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / <ArrowPrefix> a1:TypeInfixOp a2:TypePrefix a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / a1:DimInfixOp a2:TypePrimary
      { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1)); }
    / a1:DimInfixOp a2:TypePrefix
@@ -122,9 +122,9 @@ PureList<PostfixOpExpr> TightInfixPostfix =
  */
 PureList<PostfixOpExpr> LooseInfix =
      <Arrow> a1:TypeInfixOp wr a2:TypePrimary a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / <ArrowPrefix> a1:TypeInfixOp wr a2:TypePrefix a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / <Infix> a1:DimInfixOp wr a2:TypePrimary
      { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); }
    / <InPrefix> a1:DimInfixOp wr a2:TypePrefix
@@ -136,14 +136,16 @@ Type TypePrimaryFront =
 
 /* TypeFront ::=
      ParenthesizedType
-   | ArgType
+   | Domain
+   | TupleType
    | TypeRef
    | VoidType
    | 1
  */
 private Type TypeFront =
      ParenthesizedType
-   / ArgType
+   / Domain
+   / TupleType
    / TypeRef
    / VoidType
    / one { yyValue = new BaseDim(createSpan(yyStart,1)); };
@@ -153,17 +155,26 @@ private Type ParenthesizedType =
      openparen w a1:Type w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
-/* ArgType ::=
-     ( w (Type w , w)* Type w ... w )
-   | TupleType
+/* Domain ::=
+     ( w (Type w , w)* (Type w ... w , w)? KeywordType (w , w KeywordType)* w )
+   | ( w (Type w , w)* Type w ... w )
  */
-Type ArgType =
-     openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
+Domain Domain =
+     openparen w a1s:(Type w comma w)* a2:(Type w void:ellipses w comma w)?
+     a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
+     { List<Type>   ts1 = a1s.list();
+       Span span = createSpan(yyStart,yyCount);
+       Option<Type> ts2 = Option.wrap(a2);
+       List<KeywordType> ts3 = a4s.list();
+       ts3.add(0, a3);
+       yyValue = new Domain(span, ts1, ts2, ts3);
+     }
+   / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
      { List<Type> ts1 = FortressUtil.mkList(a1s.list());
        Span span = createSpan(yyStart,yyCount);
-       yyValue = new ArgType(span, ts1, a2);
-     }
-   / TupleType ;
+       Option<Type> ts2 = Option.some(a2);
+       yyValue = new Domain(span, ts1, ts2);
+     };
 
 /* KeywordType ::= BindId w = w Type */
 private KeywordType KeywordType = a1:BindId w equals w a2:Type
@@ -339,13 +350,15 @@ BaseType TraitType =
 
 /* TraitTypeFront ::=
      ParenthesizedType
-   | ArgType
+   | Domain
+   | TupleType
    | TypeRef
    | VoidType
  */
 private Type TraitTypeFront =
      ParenthesizedType
-   / ArgType
+   / Domain
+   / TupleType
    / TypeRef
    / VoidType
    ;

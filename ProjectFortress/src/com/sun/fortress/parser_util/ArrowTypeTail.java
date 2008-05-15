@@ -21,23 +21,20 @@
  */
 package com.sun.fortress.parser_util;
 
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
-
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Effect;
 
 public class ArrowTypeTail {
 
     Type range;
-    Option<List<BaseType>> throwsClause;
+    Effect effect;
 
     public ArrowTypeTail(Type in_range,
-                         Option<List<BaseType>> in_throws) {
+                         Effect in_effect) {
         this.range = in_range;
-        this.throwsClause = in_throws;
+        this.effect = in_effect;
     }
 
     public Type getRange() { return range; }
-    public Option<List<BaseType>> getThrows() { return throwsClause; }
+    public Effect getEffect() { return effect; }
 }

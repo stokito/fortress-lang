@@ -82,9 +82,9 @@ PureList<PostfixOpExpr> TypePrefix := ...
  */
 PureList<PostfixOpExpr> TightInfixPostfix := ...
    / <Arrow> a1:TypeInfixOp a2:TypePrimary a3:(s Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / <ArrowPrefix> a1:TypeInfixOp a2:TypePrefix a3:(s Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / <Postfix> a1:DimPostfixOp sr a2:TypePrimary
      { yyValue = a2.cons((PostfixOpExpr)new Postfix(a1)); }
    / <PostPrefix> a1:DimPostfixOp sr a2:TypePrefix
@@ -98,9 +98,9 @@ PureList<PostfixOpExpr> TightInfixPostfix := ...
  */
 PureList<PostfixOpExpr> LooseInfix := ...
    / <Arrow> a1:TypeInfixOp sr a2:TypePrimary a3:(s Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / <ArrowPrefix> a1:TypeInfixOp sr a2:TypePrefix a3:(s Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, Option.wrap(a3))); }
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
    / <Infix> a1:DimInfixOp sr a2:TypePrimary
      { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); }
    / <InPrefix> a1:DimInfixOp sr a2:TypePrefix

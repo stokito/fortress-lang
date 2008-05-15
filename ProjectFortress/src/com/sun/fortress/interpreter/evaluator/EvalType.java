@@ -49,6 +49,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.compiler.Types;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -333,19 +334,25 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     @Override
     public FType forArrowType(ArrowType at) {
-        // TODO Keywords, defaults, still TBI
-        return FTypeArrow.make(at.getDomain().accept(this), at.getRange().accept(this));
+        Domain domain = at.getDomain();
+        if (!domain.getKeywords().isEmpty()) {
+            return NI.nyi("Can't interpret a type with keywords");
+        }
+        return FTypeArrow.make(Types.stripKeywords(domain).accept(this),
+                               at.getRange().accept(this));
     }
 
     @Override
-    public FType forArgType(ArgType tt) {
-        // TODO Unusual tuple types
-        return getFTypeFromList(tt.getElements(), this);
+    public FType forVarargTupleType(VarargTupleType tt) {
+        List<FType> elts = getFTypeListFromList(tt.getElements());
+        elts.add(FTypeRest.make(tt.getVarargs().accept(this)));
+        return FTypeTuple.make(elts);
     }
 
+    @Override
     public FType forTupleType(TupleType tt) {
-        // TODO Unusual tuple types
-        return getFTypeFromList(tt.getElements(), this);
+        List<FType> elts = getFTypeListFromList(tt.getElements());
+        return FTypeTuple.make(elts);
     }
 
     /* (non-Javadoc)

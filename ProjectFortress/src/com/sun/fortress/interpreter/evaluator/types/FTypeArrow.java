@@ -27,15 +27,16 @@ import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.AbstractTupleType;
-import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.Factory2;
 import com.sun.fortress.useful.Fn2;
 import com.sun.fortress.useful.Memo2;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.compiler.Types;
 
 
 // TODO Need to memoize this to preserve Equality.
@@ -162,18 +163,13 @@ public class FTypeArrow extends FType {
         try {
             range.unify(env, tp_set, abm, arr.getRange());
             BoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
-            // TODO: Handle domains that are AbstractTupleTypes containing varargs and keywords
-            Type valdom = arr.getDomain();
-
-            // Problems with tuples of 1 vs multiple args.
-            // Must spot the single-parameter binding to tuple case first.
-            if (! (valdom instanceof AbstractTupleType)) {
-                domain.unify(env, tp_set, dual, valdom);
-            } else if (domain instanceof FTypeTuple) {
-                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, ((AbstractTupleType)valdom).getElements(),
-                                                Option.<Type>none());
-            } else {
+            Domain valdom = arr.getDomain();
+            if (!valdom.getKeywords().isEmpty()) {
                 return false;
+                // TODO: handle domains containing keywords
+            }
+            else {
+                domain.unify(env, tp_set, dual, Types.stripKeywords(valdom));
             }
         } catch (FortressError p) {
             return false;

@@ -34,7 +34,7 @@ import static edu.rice.cs.plt.debug.DebugUtil.debug;
 public class TypeAnalyzerUtil {
 
     public static Lambda<Type, Type> makeSubstitution(Iterable<? extends StaticParam> params,
-                                                Iterable<? extends StaticArg> args) {
+                                                      Iterable<? extends StaticArg> args) {
         return makeSubstitution(params, args, IterUtil.<Id>empty());
     }
 
@@ -143,10 +143,34 @@ public class TypeAnalyzerUtil {
 
     public static boolean containsVariable(Type t, final List<Id> names) {
         return t.accept(new NodeAbstractVisitor<Boolean>() {
-            @Override public Boolean forArrowType(ArrowType t) {
-                return t.getDomain().accept(this) || t.getRange().accept(this) ||
-                    throwsType(t).accept(this);
+            private Boolean recurOnList(List<? extends Type> ts) {
+                for (Type t : ts) {
+                    if (t.accept(this)) { return true; }
+                }
+                return false;
             }
+            private Boolean recurOnKeywords(List<KeywordType> ks) {
+                for (KeywordType k : ks) {
+                    if (k.getType().accept(this)) { return true; }
+                }
+                return false;
+            }
+            @Override public Boolean forArrowType(ArrowType t) {
+                Domain d = t.getDomain();
+                Effect e = t.getEffect();
+                return recurOnList(d.getArgs()) ||
+                    (d.getVarargs().isSome() && d.getVarargs().unwrap().accept(this)) ||
+                    recurOnKeywords(d.getKeywords()) ||
+                    t.getRange().accept(this) ||
+                    recurOnList(t.getEffect().getThrowsClause());
+            }
+            @Override public Boolean forTupleType(TupleType t) {
+                return recurOnList(t.getElements());
+            }
+            @Override public Boolean forVarargTupleType(VarargTupleType t) {
+                return recurOnList(t.getElements()) || t.getVarargs().accept(this);
+            }
+            @Override public Boolean forAnyType(AnyType t) { return false; }
             @Override public Boolean forBottomType(BottomType t) { return false; }
             @Override public Boolean forVarType(VarType t) {
                 return t.getName().getApi().isNone() && names.contains(t.getName());
@@ -174,21 +198,4 @@ public class TypeAnalyzerUtil {
         });
     }
 
-    public static ArrowType makeArrow(Type domain, Type range, Type throwsT, boolean io) {
-        return new ArrowType(domain, range,
-                             Option.some(Collections.singletonList(throwsT)), io);
-    }
-
-    public static Type throwsType(ArrowType t) {
-        return IterUtil.first(t.getThrowsClause().unwrap(Collections.<Type>emptyList()));
-    }
-
-    public static Iterable<Type> keywordTypes(Iterable<? extends KeywordType> keys) {
-        return IterUtil.map(keys, KEYWORD_TO_TYPE);
-    }
-
-    private static final Lambda<KeywordType, Type> KEYWORD_TO_TYPE =
-        new Lambda<KeywordType, Type>() {
-        public Type value(KeywordType k) { return k.getType(); }
-    };
 }

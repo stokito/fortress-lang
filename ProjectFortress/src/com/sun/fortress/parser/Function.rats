@@ -57,26 +57,25 @@ AbsFnDecl FnSig =
            syntaxError(a2.getSpan(),
                        "Abstract function declaration should have an arrow type.");
        }
-
-       ((ArrowType)a2).getDomain().accept(new NodeAbstractVisitor_void() {
-           public void forType(Type that) {
-               Id name = new Id(that.getSpan(), "_");
-               params.add(NodeFactory.makeParam(that.getSpan(),mods,name,that));
-           }
-           public void forArgType(ArgType that) {
-               for (AbstractNode i : that.getElements()) { i.accept(this); }
-               Type t = that.getVarargs();
-               Id name = new Id(t.getSpan(), "_");
-               params.add(NodeFactory.makeVarargsParam(t.getSpan(), mods, name, t));
-           }
-           public void forTupleType(TupleType that) {
-               for (AbstractNode i : that.getElements()) { i.accept(this); }
-           }
-           public void defaultCase(Node that) {
-               syntaxError(that.getSpan(),
-                           errorMsg("Node expected to be a Type; was: ", that));
-           }
-       });
+       
+       Domain d = ((ArrowType) a2).getDomain();
+       for (Type argT : d.getArgs()) {
+           Id name = new Id(argT.getSpan(), "_");
+           params.add(NodeFactory.makeParam(argT.getSpan(), mods, name, argT));
+       }
+       if (d.getVarargs().isSome()) {
+           Type argT = d.getVarargs().unwrap();
+           Id name = new Id(argT.getSpan(), "_");
+           params.add(NodeFactory.makeVarargsParam(argT.getSpan(), mods, name, argT));
+       }
+       assert(d.getKeywords().isEmpty()): "Keyword parameters present"
+                                                     + " in a FnSig: " + d;
+       /*
+       We could do this, if we had a suitable value for bottomExpr:
+       for (KeywordType k : d.getKeywords()) {
+           params.add(new Param(k.getSpan(), mods, k.getName(), k.getType(), bottomExpr));
+       }
+       */
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods, a1,
                                           params, ((ArrowType)a2).getRange());
      };

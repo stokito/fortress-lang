@@ -17,10 +17,9 @@
 
 package com.sun.fortress.parser_util.precedence_opexpr;
 
-import java.util.List;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.BaseType;
-import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.nodes.Effect;
+import com.sun.fortress.parser_util.FortressUtil;
 
 /**
  * Class JuxtInfix, a component of the OpExpr composite hierarchy.
@@ -28,7 +27,7 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public abstract class JuxtInfix extends Object implements InfixOpExpr {
    private final Op _op;
-   private final Option<List<BaseType>> _throws;
+   private final Effect _effect;
    private int _hashCode;
    private boolean _hasHashCode = false;
 
@@ -43,24 +42,24 @@ public abstract class JuxtInfix extends Object implements InfixOpExpr {
          throw new java.lang.IllegalArgumentException("Parameter 'op' to the JuxtInfix constructor was null. This class may not have null field values.");
       }
       _op = in_op;
-      _throws = Option.<List<BaseType>>none();
+      _effect = FortressUtil.emptyEffect();
    }
 
-   public JuxtInfix(Op in_op, Option<List<BaseType>> in_throws) {
+   public JuxtInfix(Op in_op, Effect in_effect) {
       super();
 
       if (in_op == null) {
          throw new java.lang.IllegalArgumentException("Parameter 'op' to the JuxtInfix constructor was null. This class may not have null field values.");
       }
       _op = in_op;
-      if (in_throws == null) {
-         throw new java.lang.IllegalArgumentException("Parameter '_throws' to the JuxtInfix constructor was null. This class may not have null field values.");
+      if (in_effect == null) {
+         throw new java.lang.IllegalArgumentException("Parameter '_effect' to the JuxtInfix constructor was null. This class may not have null field values.");
       }
-      _throws = in_throws;
+      _effect = in_effect;
    }
 
    public Op getOp() { return _op; }
-   public Option<List<BaseType>> getThrows() { return _throws; }
+   public Effect getEffect() { return _effect; }
 
    public abstract <RetType> RetType accept(OpExprVisitor<RetType> visitor);
    public abstract void accept(OpExprVisitor_void visitor);

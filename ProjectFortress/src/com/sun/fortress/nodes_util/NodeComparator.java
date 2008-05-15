@@ -257,12 +257,21 @@ public class NodeComparator {
         if (x != 0) return x;
         x = compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
-        if (left.getThrowsClause().isSome() != right.getThrowsClause().isSome())
-            return left.getThrowsClause().isSome() ? 1 : -1;
-        if (left.getThrowsClause().isSome())
-            return typeListComparer.compare(left.getThrowsClause().unwrap(),
-                                            right.getThrowsClause().unwrap());
-        return 0;
+        return compare(left.getEffect(), right.getEffect());
+    }
+    
+    static int compare(Domain left, Domain right) {
+        int x = typeListComparer.compare(left.getArgs(), right.getArgs());
+        if (x != 0) return x;
+        x = compareOptionalType(left.getVarargs(), right.getVarargs());
+        if (x != 0) return x;
+        return keywordTypeListComparer.compare(left.getKeywords(), right.getKeywords());
+    }
+    
+    static int compare(Effect left, Effect right) {
+        if (left.isIo() != right.isIo())
+            return left.isIo() ? 1 : -1;
+        return typeListComparer.compare(left.getThrowsClause(), right.getThrowsClause());
     }
 
     static int compare(IntArg left, IntArg right) {
@@ -339,9 +348,10 @@ public class NodeComparator {
         return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
     }
 
-    static int compare(ArgType left, ArgType right) {
-        // TODO: Handle ArgTypes with varargs and keywords
-        return typeListComparer.compare(left.getElements(), right.getElements());
+    static int compare(VarargTupleType left, VarargTupleType right) {
+        int x = typeListComparer.compare(left.getElements(), right.getElements());
+        if (x != 0) return x;
+        return compare(left.getVarargs(), right.getVarargs());
     }
 
     static int compare(TupleType left, TupleType right) {
@@ -381,8 +391,8 @@ public class NodeComparator {
             return compare((ArrowType) left, (ArrowType) right);
         } else if (left instanceof VoidType) {
             return 0;
-        } else if (left instanceof ArgType) {
-            return compare((ArgType) left, (ArgType) right);
+        } else if (left instanceof VarargTupleType) {
+            return compare((VarargTupleType) left, (VarargTupleType) right);
         } else if (left instanceof TupleType) {
             return compare((TupleType) left, (TupleType) right);
         } else if (left instanceof TaggedDimType) {
