@@ -557,20 +557,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                        Option<TypeCheckerResult> elseClause_result) {
 
         if (elseClause_result.isSome()) {
-            Type clauseType = Types.BOTTOM;
+            List<Type> clauseTypes = new ArrayList<Type>();
             TypeCheckerResult elseResult = elseClause_result.unwrap();
 
             // Get union of all clauses' types
             for (TypeCheckerResult clauseResult : clauses_result) {
                 if (clauseResult.type().isSome()) {
-                    clauseType = new OrType(clauseType, clauseResult.type().unwrap());
+                    clauseTypes.add(clauseResult.type().unwrap());
                 }
             }
             if (elseResult.type().isSome()) {
-                clauseType = new OrType(clauseType, elseResult.type().unwrap());
+                clauseTypes.add(elseResult.type().unwrap());
             }
             return TypeCheckerResult.compose(that,
-                                             clauseType,
+                                             subtypeChecker.join(clauseTypes),
                                              TypeCheckerResult.compose(that, clauses_result),
                                              TypeCheckerResult.compose(that, elseResult));
         } else {
@@ -632,13 +632,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forDoOnly(Do that, List<TypeCheckerResult> fronts_result) {
         // Get union of all clauses' types
-        Type frontType = Types.BOTTOM;
+        List<Type> frontTypes = new ArrayList<Type>();
         for (TypeCheckerResult frontResult : fronts_result) {
             if (frontResult.type().isSome()) {
-                frontType = new OrType(frontType, frontResult.type().unwrap());
+                frontTypes.add(frontResult.type().unwrap());
             }
         }
-        return TypeCheckerResult.compose(that, frontType, fronts_result);
+        return TypeCheckerResult.compose(that, subtypeChecker.join(frontTypes), fronts_result);
     }
 
     public TypeCheckerResult forDoFront(DoFront that) {
@@ -677,8 +677,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
               overloadedTypes.add(fn_result.type().unwrap());
             }
         }
-        Option<Type> type = (overloadedTypes.isEmpty()) ? Option.<Type>none()
-                                                        : wrap(NodeFactory.makeAndType(overloadedTypes));
+        Option<Type> type = (overloadedTypes.isEmpty()) ?
+                                Option.<Type>none() :
+                                Option.<Type>some(new IntersectionType(overloadedTypes));
 
         return TypeCheckerResult.compose(that,
                                          type,
@@ -697,8 +698,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
               overloadedTypes.add(op_result.type().unwrap());
             }
         }
-        Option<Type> type = (overloadedTypes.isEmpty()) ? Option.<Type>none()
-                                                        : wrap(NodeFactory.makeAndType(overloadedTypes));
+        Option<Type> type = (overloadedTypes.isEmpty()) ?
+                                Option.<Type>none() :
+                                Option.<Type>some(new IntersectionType(overloadedTypes));
         return TypeCheckerResult.compose(that,
                                          type,
                                          TypeCheckerResult.compose(that, ops_result),
@@ -958,7 +960,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Type caseType = null;
         if (numClauses == clauseTypes.size()) {
             // Only set a type for this node if all clauses were typed
-            caseType = NodeFactory.makeOrType(clauseTypes);
+            caseType = subtypeChecker.join(clauseTypes);
         }
         return TypeCheckerResult.compose(that, caseType, result);
     }
@@ -1030,7 +1032,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Type caseType = null;
         if (that.getClauses().size() == clauseTypes.size()) {
             // Only set a type for this node if all clauses were typed
-            caseType = NodeFactory.makeOrType(clauseTypes);
+            caseType = subtypeChecker.join(clauseTypes);
         }
         return TypeCheckerResult.compose(that, caseType, result);
     }
@@ -1173,7 +1175,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             if (exitTypes.isSome()) {
                 Set<Type> _exitTypes = exitTypes.unwrap();
                 _exitTypes.add(bodyResult.type().unwrap());
-                labelType = some(NodeFactory.makeOrType(_exitTypes));
+                labelType = some(subtypeChecker.join(_exitTypes));
             }
         }
 
@@ -1926,22 +1928,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    }
 //
 //    public RetType forVoidTypeOnly(VoidType that) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forIntersectionTypeOnly(IntersectionType that, Set<RetType> elements_result) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forUnionTypeOnly(UnionType that, Set<RetType> elements_result) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forAndTypeOnly(AndType that, RetType first_result, RetType second_result) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forOrTypeOnly(OrType that, RetType first_result, RetType second_result) {
 //        return forNonArrowTypeOnly(that);
 //    }
 //
@@ -3004,28 +2990,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forVoidType(VoidType that) {
 //        return forVoidTypeOnly(that);
-//    }
-//
-//    public RetType forIntersectionType(IntersectionType that) {
-//        Set<RetType> elements_result = recurOnSetOfType(that.getElements());
-//        return forIntersectionTypeOnly(that, elements_result);
-//    }
-//
-//    public RetType forUnionType(UnionType that) {
-//        Set<RetType> elements_result = recurOnSetOfType(that.getElements());
-//        return forUnionTypeOnly(that, elements_result);
-//    }
-//
-//    public RetType forAndType(AndType that) {
-//        RetType first_result = that.getFirst().accept(this);
-//        RetType second_result = that.getSecond().accept(this);
-//        return forAndTypeOnly(that, first_result, second_result);
-//    }
-//
-//    public RetType forOrType(OrType that) {
-//        RetType first_result = that.getFirst().accept(this);
-//        RetType second_result = that.getSecond().accept(this);
-//        return forOrTypeOnly(that, first_result, second_result);
 //    }
 //
 //    public RetType forTaggedDimType(TaggedDimType that) {

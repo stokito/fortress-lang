@@ -88,7 +88,7 @@ class FnTypeEnv extends TypeEnv {
                                                                  _fn.where()));
             }
         }
-        return Option.some(new BindingLookup(var, makeAndType(overloadedTypes)));
+        return Option.some(new BindingLookup(var, new IntersectionType(overloadedTypes)));
     }
 
     @Override

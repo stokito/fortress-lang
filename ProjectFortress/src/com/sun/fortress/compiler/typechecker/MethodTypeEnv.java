@@ -56,29 +56,30 @@ class MethodTypeEnv extends TypeEnv {
             return parent.binding(var);
         }
 
-        Type type = Types.ANY;
+        List<Type> overloads = new ArrayList<Type>();
         for (Method method : methods) {
             if (method instanceof DeclaredMethod) {
                 DeclaredMethod _method = (DeclaredMethod)method;
-                FnAbsDeclOrDecl decl = _method.ast();
-                type = new AndType(type, genericArrowFromDecl(decl));
+                overloads.add(genericArrowFromDecl(_method.ast()));
             } else if (method instanceof FieldGetterMethod) {
                 FieldGetterMethod _method = (FieldGetterMethod)method;
                 LValueBind binding = _method.ast();
-                type = makeArrowType(binding.getSpan(),
-                                     Types.VOID,
-                                     binding.getType().unwrap()); // all types have been filled in at this point
+                overloads.add(makeArrowType(binding.getSpan(),
+                                            Types.VOID,
+                                             // all types have been filled in at this point
+                                            binding.getType().unwrap()));
 
             } else { // method instanceof FieldSetterMethod
                 final FieldSetterMethod _method = (FieldSetterMethod)method;
                 LValueBind binding = _method.ast();
 
-                type = makeArrowType(binding.getSpan(),
-                                     binding.getType().unwrap(), // all types have been filled in at this point
-                                     Types.VOID);
+                overloads.add(makeArrowType(binding.getSpan(),
+                                            binding.getType().unwrap(),
+                                            // all types have been filled in at this point
+                                            Types.VOID));
             }
         }
-        return Option.some(new BindingLookup(var, type));
+        return Option.some(new BindingLookup(var, new IntersectionType(overloads)));
     }
 
     @Override

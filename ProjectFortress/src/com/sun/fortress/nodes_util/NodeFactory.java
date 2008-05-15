@@ -192,14 +192,6 @@ public class NodeFactory {
   return new KeywordType(t.getSpan(), t.getName(), s);
  }
 
- public static AndType makeAndType(AndType t, Type first, Type second) {
-  return new AndType(t.getSpan(), t.isParenthesized(), first, second);
- }
-
- public static OrType makeOrType(OrType t, Type first, Type second) {
-  return new OrType(t.getSpan(), t.isParenthesized(), first, second);
- }
-
  public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
    DimExpr u) {
   return new TaggedDimType(t.getSpan(), t.isParenthesized(), s, u,
@@ -272,6 +264,14 @@ public class NodeFactory {
 
  public static TraitType makeTraitType(Id name) {
   return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList());
+ }
+ 
+ public static IntersectionType makeIntersectionType(Type t1, Type t2) {
+     return new IntersectionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
+ }
+
+ public static UnionType makeUnionType(Type t1, Type t2) {
+     return new UnionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
  }
 
 // public static ArrowType makeArrowType(Span span, Type domain,
@@ -1132,38 +1132,6 @@ public class NodeFactory {
 
   public static _RewriteGenericSingletonType makeGenericSingletonType(Id name, List<StaticParam> params) {
    return new _RewriteGenericSingletonType(name.getSpan(), name, params);
-  }
-
-
-
-  public static Type makeAndType(List<Type> types) {
-   if (types.isEmpty()) {
-    return Types.ANY;
-   } else if (types.size() == 1) {
-    return types.get(0);
-   } else {
-    return IterUtil.fold(IterUtil.skipFirst(types), types.get(0),
-      new Lambda2<Type, Type, Type>() {
-     public Type value(Type arg0, Type arg1) {
-      return new AndType(arg0, arg1);
-     }
-    });
-   }
-  }
-
-  public static Type makeOrType(Iterable<Type> types) {
-   if (IterUtil.isEmpty(types)) {
-    return Types.BOTTOM;
-   } else if (IterUtil.sizeOf(types) == 1) {
-    return IterUtil.first(types);
-   } else {
-    return IterUtil.fold(IterUtil.skipFirst(types), IterUtil.first(types),
-      new Lambda2<Type, Type, Type>() {
-     public Type value(Type arg0, Type arg1) {
-      return new OrType(arg0, arg1);
-     }
-    });
-   }
   }
 
   public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {

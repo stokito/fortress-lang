@@ -362,10 +362,10 @@ public abstract class SubtypeChecker {
         return (t instanceof MatrixType);
     }
     private boolean isUnion(Type t) {
-        return (t instanceof OrType);
+        return (t instanceof UnionType);
     }
     private boolean isIntersection(Type t) {
-        return (t instanceof AndType);
+        return (t instanceof IntersectionType);
     }
     private boolean isVarargTupleType(Type t) {
         return (t instanceof VarargTupleType);
@@ -506,6 +506,38 @@ public abstract class SubtypeChecker {
         assert(length >= types.size());
         return IterUtil.asList(IterUtil.compose(types, IterUtil.copy(padType, length-types.size())));
     }
+    
+    public Type join(Type... ts) {
+        return join(IterUtil.make(ts));
+    }
+    
+    public Type join(Iterable<? extends Type> ts) {
+        // eliminate duplicates but preserve order
+        // (a better implementation would eliminate subtypes)
+        Set<Type> elts = new LinkedHashSet<Type>();
+        for (Type t : ts) { elts.add(t); }
+        switch (elts.size()) {
+            case 0: return BOTTOM;
+            case 1: return IterUtil.first(elts);
+            default: return new UnionType(IterUtil.asList(elts));
+        }
+    }
+
+    public Type meet(Type... ts) {
+        return meet(IterUtil.make(ts));
+    }
+    
+    public Type meet(Iterable<? extends Type> ts) {
+        // eliminate duplicates but preserve order
+        // (a better implementation would eliminate supertypes)
+        Set<Type> elts = new LinkedHashSet<Type>();
+        for (Type t : ts) { elts.add(t); }
+        switch (elts.size()) {
+            case 0: return ANY;
+            case 1: return IterUtil.first(elts);
+            default: return new IntersectionType(IterUtil.asList(elts));
+        }
+    }
 
     /**
      * Returns whether s is a subtype of t.
@@ -525,8 +557,9 @@ public abstract class SubtypeChecker {
      *            TaggedDimType(DimExpr dim,
      *                          Option<Expr> unit = Option.<Expr>none());
      *            TaggedUnitType(Expr unit);
-     *        AndType(Type first, Type second);
-     *        OrType(Type first, Type second);
+     *        abstract BoundType(List<Type> elements);
+     *            IntersectionType();
+     *            UnionType();
      *        FixedPointType(Id name, Type body);
      *
      *    if any of the above types appears in s or t,
@@ -722,8 +755,12 @@ public abstract class SubtypeChecker {
             //             -------------------------
             //             p; Delta |- s1 OR s2 <: t
             if (isUnion(s)) {
-                OrType unionType = (OrType)s;
-                return subtype(unionType.getFirst(), t, h) || subtype(unionType.getSecond(), t, h);
+                boolean result = false;
+                for (Type sElt : ((UnionType) s).getElements()) {
+                    result |= subtype(sElt, t, h);
+                    if (result) { break; }
+                }
+                return result;
             }
             // [NS-Any]    p; Delta |- Any </: t  (where t =/= Any)
             if (s.equals(ANY) && !t.equals(ANY)) { return FALSE; }

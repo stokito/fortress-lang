@@ -352,13 +352,13 @@ public abstract class TypeEnv {
 
         public BindingLookup(IdOrOpOrAnonymousName _var, Collection<? extends FnAbsDeclOrDecl> decls) {
             var = _var;
-            Type _type = Types.ANY;
+            List<Type> overloads = new ArrayList<Type>();
             mods = Collections.<Modifier>emptyList();
             for (FnAbsDeclOrDecl decl : decls) {
-                _type = new AndType(_type, genericArrowFromDecl(decl));
+                overloads.add(genericArrowFromDecl(decl));
                 mods.addAll(decl.getMods());
             }
-            type = wrap(_type);
+            type = Option.<Type>some(new IntersectionType(overloads));
             mutable = false;
         }
 

@@ -270,10 +270,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTupleType(TupleType node) {
-        return
-            "(" +
-            Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
-            ")";
+        return Useful.listInDelimiters("(", mapSelf(node.getElements()), ")");
     }
 
     public String forTypeArg(TypeArg node) {
@@ -302,12 +299,14 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         else { return "#" + node.getId(); }
     }
 
-    public String forOrType(OrType node) {
-        return node.getFirst().accept(this) + " OR " + node.getSecond().accept(this);
+    public String forUnionType(UnionType node) {
+        // Could use U+2228 = OR if we supported Unicode output
+        return "OR" + Useful.listInCurlies(mapSelf(node.getElements()));
     }
 
-    public String forAndType(AndType node) {
-        return node.getFirst().accept(this) + " AND " + node.getSecond().accept(this);
+    public String forIntersectionType(IntersectionType node) {
+        // Could use U+2227 = AND if we supported Unicode output
+        return "AND" + Useful.listInCurlies(mapSelf(node.getElements()));
     }
 
     public String forItemSymbol(ItemSymbol item) {

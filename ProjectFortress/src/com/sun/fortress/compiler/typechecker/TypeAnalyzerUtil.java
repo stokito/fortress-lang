@@ -183,11 +183,8 @@ public class TypeAnalyzerUtil {
             }
             @Override public Boolean forVoidType(VoidType t) { return false; }
             @Override public Boolean forInferenceVarType(InferenceVarType t) { return false; }
-            @Override public Boolean forAndType(AndType t) {
-                return t.getFirst().accept(this) || t.getSecond().accept(this);
-            }
-            @Override public Boolean forOrType(OrType t) {
-                return t.getFirst().accept(this) || t.getSecond().accept(this);
+            @Override public Boolean forBoundType(BoundType t) {
+                return recurOnList(t.getElements());
             }
             @Override public Boolean forTypeArg(TypeArg t) { return t.getType().accept(this); }
             @Override public Boolean forIntArg(IntArg t) { return false; }
