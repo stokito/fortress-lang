@@ -21,7 +21,7 @@ package com.sun.fortress.compiler.desugarer;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.typechecker.*;
 
-import static com.sun.fortress.compiler.StaticError.errorMsg;
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TraitIndex;
@@ -35,6 +35,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.sun.fortress.compiler.StaticError.errorMsg;
 
 public class DesugaringVisitor extends NodeUpdateVisitor {
     private boolean inTrait = false;
@@ -141,7 +143,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
                                                  new ArrayList<StaticParam>(),
                                                  new ArrayList<Param>(),
-                                                 Option.wrap(TypesUtil.fromVarargsType(param.getType())),
+                                                 Option.wrap(Types.makeVarargsParamType(param.getType())),
                                                  new WhereClause(param.getSpan()), new Contract(new Span()),
                                                  new VarRef(param.getSpan(), false,
                                                             mangleName(param.getName()))));
@@ -833,18 +835,18 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new OpDim(that.getSpan(), that.isParenthesized(), val_result, op_result);
 //    }
 //
-//    public Node forArrowTypeOnly(ArrowType that, Type domain_result, Type range_result, Option<List<Type>> throwsClause_result) {
-//        if (that.getDomain() == domain_result && that.getRange() == range_result && that.getThrowsClause() == throwsClause_result)
+//    public Node forArrowTypeOnly(ArrowType that, Domain domain_result, Type range_result, Effect effect_result) {
+//        if (that.getDomain() == domain_result && that.getRange() == range_result && that.getEffect() == effect_result)
 //            return that;
 //        else
-//            return new ArrowType(that.getSpan(), that.isParenthesized(), domain_result, range_result, throwsClause_result, that.isIo());
+//            return new ArrowType(that.getSpan(), that.isParenthesized(), domain_result, range_result, effect_result);
 //    }
 //
 //    public Node for_RewriteGenericArrowTypeOnly(_RewriteGenericArrowType that, Type domain_result, Type range_result, Option<List<Type>> throwsClause_result, List<StaticParam> staticParams_result, WhereClause where_result) {
-//        if (that.getDomain() == domain_result && that.getRange() == range_result && that.getThrowsClause() == throwsClause_result && that.getStaticParams() == staticParams_result && that.getWhere() == where_result)
+//        if (that.getDomain() == domain_result && that.getRange() == range_result && that.getEffect() == effect_result && that.getStaticParams() == staticParams_result && that.getWhere() == where_result)
 //            return that;
 //        else
-//            return new _RewriteGenericArrowType(that.getSpan(), that.isParenthesized(), domain_result, range_result, throwsClause_result, that.isIo(), staticParams_result, where_result);
+//            return new _RewriteGenericArrowType(that.getSpan(), that.isParenthesized(), domain_result, range_result, effect_result, staticParams_result, where_result);
 //    }
 //
 //    public Node forBottomTypeOnly(BottomType that) {
@@ -880,11 +882,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new TupleType(that.getSpan(), that.isParenthesized(), elements_result);
 //    }
 //
-//    public Node forArgTypeOnly(ArgType that, List<Type> elements_result, Type varargs_result) {
+//    public Node forVarargTupleTypeOnly(VarargTupleType that, List<Type> elements_result, Type varargs_result) {
 //        if (that.getElements() == elements_result && that.getVarargs() == varargs_result)
 //            return that;
 //        else
-//            return new ArgType(that.getSpan(), that.isParenthesized(), elements_result, varargs_result);
+//            return new VarargTupleType(that.getSpan(), that.isParenthesized(), elements_result, varargs_result);
 //    }
 //
 //    public Node forVoidTypeOnly(VoidType that) {
@@ -2070,16 +2072,16 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //    }
 //
 //    public Node forArrowType(ArrowType that) {
-//        Type domain_result = (Type) that.getDomain().accept(this);
+//        Domain domain_result = (Domain) that.getDomain().accept(this);
 //        Type range_result = (Type) that.getRange().accept(this);
-//        Option<List<Type>> throwsClause_result = recurOnOptionOfListOfType(that.getThrowsClause());
-//        return forArrowTypeOnly(that, domain_result, range_result, throwsClause_result);
+//        Effect effect_result = (Effect) that.getEffect().accept(this);
+//        return forArrowTypeOnly(that, domain_result, range_result, effect_result);
 //    }
 //
 //    public Node for_RewriteGenericArrowType(_RewriteGenericArrowType that) {
-//        Type domain_result = (Type) that.getDomain().accept(this);
+//        Domain domain_result = (Domain) that.getDomain().accept(this);
 //        Type range_result = (Type) that.getRange().accept(this);
-//        Option<List<Type>> throwsClause_result = recurOnOptionOfListOfType(that.getThrowsClause());
+//        Effect effect_result = (Effect) that.getEffect().accept(this);
 //        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
 //        return for_RewriteGenericArrowTypeOnly(that, domain_result, range_result, throwsClause_result, staticParams_result, where_result);
@@ -2121,10 +2123,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forTupleTypeOnly(that, elements_result);
 //    }
 //
-//    public Node forArgType(ArgType that) {
+//    public Node forVarargTupleType(VarargTupleType that) {
 //        List<Type> elements_result = recurOnListOfType(that.getElements());
 //        Type varargs_result = that.getVarargs().accept(this);
-//        return forArgTypeOnly(that, elements_result, varargs_result);
+//        return forVarargTupleTypeOnly(that, elements_result, varargs_result);
 //    }
 //
 //    public Node forVoidType(VoidType that) {

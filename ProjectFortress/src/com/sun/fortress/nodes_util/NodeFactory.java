@@ -160,11 +160,9 @@ public class NodeFactory {
   return new OpDim(t.getSpan(), t.isParenthesized(), s, t.getOp());
  }
 
- public static ArrowType makeArrowType(ArrowType t, Type domain, Type range,
-   Option<List<Type>> newThrows) {
-  return new ArrowType(t.getSpan(), t.isParenthesized(), domain, range,
-    newThrows, t.isIo());
- }
+// public static ArrowType makeArrowType(ArrowType t, Domain domain, Type range, Effect effect) {
+//     return new ArrowType(t.getSpan(), t.isParenthesized(), domain, range, effect);
+// }
 
  public static TraitType makeTraitType(TraitType t,
    List<StaticArg> args) {
@@ -186,9 +184,9 @@ public class NodeFactory {
   return new TupleType(t.getSpan(), t.isParenthesized(), tys);
  }
 
- public static ArgType makeArgType(ArgType t, List<Type> tys, Type varargs) {
-  return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs);
- }
+// public static ArgType makeArgType(ArgType t, List<Type> tys, Type varargs) {
+//  return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs);
+// }
 
  public static KeywordType makeKeywordType(KeywordType t, Type s) {
   return new KeywordType(t.getSpan(), t.getName(), s);
@@ -276,49 +274,100 @@ public class NodeFactory {
   return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList());
  }
 
- public static ArrowType makeArrowType(Span span, Type domain,
-   Type range,
-   Option<List<BaseType>> throws_) {
-  Option<List<Type>> throwsAsTypeList =
-   throws_.isSome() ?
-     Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
-      Option.<List<Type>>none();
-     return new ArrowType(span, domain, range, throwsAsTypeList);
- }
-
+// public static ArrowType makeArrowType(Span span, Type domain,
+//   Type range,
+//   Option<List<BaseType>> throws_) {
+//  Option<List<Type>> throwsAsTypeList =
+//   throws_.isSome() ?
+//     Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
+//      Option.<List<Type>>none();
+//     return new ArrowType(span, domain, range, throwsAsTypeList);
+// }
+ 
  public static ArrowType makeArrowType(Span span, Type domain, Type range) {
-  return new ArrowType(span, domain, range, Option.<List<Type>>none());
+     return new ArrowType(span, makeDomain(domain), range, makeEffect(range.getSpan().getEnd()));
  }
+ 
+// public static AbstractArrowType makeGenericArrowType(Span span,
+//   List<StaticParam> staticParams,
+//   Type domain,
+//   Type range,
+//   Option<List<BaseType>> throws_,
+//   WhereClause where) {
+//  if (staticParams.isEmpty() && where.getConstraints().isEmpty() && where.getBindings().isEmpty()) {
+//   return makeArrowType(span, domain, range, throws_);
+//  }
+//  Option<List<Type>> throwsAsTypeList =
+//   throws_.isSome() ?
+//     Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
+//      Option.<List<Type>>none();
+//     return new _RewriteGenericArrowType(span, domain, range,
+//       throwsAsTypeList, staticParams, where);
+// }
 
- public static AbstractArrowType makeGenericArrowType(Span span,
-   List<StaticParam> staticParams,
-   Type domain,
-   Type range,
-   Option<List<BaseType>> throws_,
-   WhereClause where) {
-  if (staticParams.isEmpty() && where.getConstraints().isEmpty() && where.getBindings().isEmpty()) {
-   return makeArrowType(span, domain, range, throws_);
-  }
-  Option<List<Type>> throwsAsTypeList =
-   throws_.isSome() ?
-     Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
-      Option.<List<Type>>none();
-     return new _RewriteGenericArrowType(span, domain, range,
-       throwsAsTypeList, staticParams, where);
+// public static AbstractArrowType makeGenericArrowType(
+//   Span span,
+//   List<StaticParam> staticParams,
+//   Type domain,
+//   Type range) {
+//  if (staticParams.isEmpty()) {
+//   return makeArrowType(span, domain, range, Option.<List<BaseType>>none());
+//  }
+//  return new _RewriteGenericArrowType(span, domain, range,
+//    Option.<List<Type>>none(), staticParams, new WhereClause());
+// }
+ 
+ /** If args is a tuple or void, extract a list; otherwise, make a singleton */
+ public static Domain makeDomain(Type args) {
+     boolean parenthesized;
+     List<Type> argsList;
+     if (args instanceof VoidType) {
+         parenthesized = args.isParenthesized();
+         argsList = Collections.emptyList();
+     }
+     else if (args instanceof TupleType) {
+         parenthesized = args.isParenthesized();
+         argsList = ((TupleType) args).getElements();
+     }
+     else if (args instanceof Domain) {
+         throw new IllegalArgumentException("A domain is not a type; just use ArrowType constructor");
+     }
+     else {
+         parenthesized = false;
+         argsList = Collections.singletonList(args);
+     }
+     return new Domain(args.getSpan(), parenthesized, argsList);
  }
-
- public static AbstractArrowType makeGenericArrowType(
-   Span span,
-   List<StaticParam> staticParams,
-   Type domain,
-   Type range) {
-  if (staticParams.isEmpty()) {
-   return makeArrowType(span, domain, range, Option.<List<BaseType>>none());
-  }
-  return new _RewriteGenericArrowType(span, domain, range,
-    Option.<List<Type>>none(), staticParams, new WhereClause());
+ 
+ /** Create an "empty" effect at the given location. */
+ public static Effect makeEffect(SourceLoc loc) {
+     return new Effect(new Span(loc, loc));
  }
-
+ 
+ public static Effect makeEffect(SourceLoc defaultLoc, List<BaseType> throwsClause) {
+     Span span;
+     if (throwsClause.isEmpty()) { span = new Span(defaultLoc, defaultLoc); }
+     else {
+         span = new Span(throwsClause.get(0).getSpan(),
+                         throwsClause.get(throwsClause.size()-1).getSpan());
+     }
+     return new Effect(span, throwsClause);
+ }
+ 
+ public static Effect makeEffect(SourceLoc defaultLoc, Option<List<BaseType>> throwsClause) {
+     if (throwsClause.isSome()) { return makeEffect(defaultLoc, throwsClause.unwrap()); }
+     else { return makeEffect(defaultLoc); }
+ }
+ 
+ public static Effect makeEffect(Option<List<BaseType>> throwsClause) {
+     if (throwsClause.isNone()) { return FortressUtil.emptyEffect(); }
+     else {
+         List<BaseType> ts = throwsClause.unwrap();
+         return new Effect(FortressUtil.spanAll(ts), ts);
+     }
+ }
+ 
+ 
  public static KeywordType makeKeywordType(Id name, Type type) {
   return new KeywordType(new Span(), name, type);
  }
@@ -963,7 +1012,7 @@ public class NodeFactory {
    return ty.accept(new NodeAbstractVisitor<Type>() {
     public Type forArrowType(ArrowType t) {
      return new ArrowType(t.getSpan(), true, t.getDomain(),
-       t.getRange(), t.getThrowsClause(), t.isIo());
+                          t.getRange(), t.getEffect());
     }
     public Type forArrayType(ArrayType t) {
      return new ArrayType(t.getSpan(), true, t.getType(),
@@ -980,9 +1029,9 @@ public class NodeFactory {
      return new TraitType(t.getSpan(), true, t.getName(),
                           t.getArgs());
     }
-    public Type forArgType(ArgType t) {
-     return new ArgType(t.getSpan(), true, t.getElements(),
-                        t.getVarargs());
+    public Type forVarargTupleType(VarargTupleType t) {
+     return new VarargTupleType(t.getSpan(), true, t.getElements(),
+                                t.getVarargs());
     }
     public Type forTupleType(TupleType t) {
      return new TupleType(t.getSpan(), true, t.getElements());

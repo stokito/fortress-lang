@@ -35,7 +35,7 @@ public class Memo2PCL<Index, Part2, Value, Param> implements Factory2P<Index, Pa
     
     private final static boolean debug = false;
 
-    public Memo2PCL(Factory2P<Index, Part2, Value, Param> factory, Comparator<Index> comp, ReentrantLock lock) {
+    public Memo2PCL(Factory2P<Index, Part2, Value, Param> factory, Comparator<? super Index> comp, ReentrantLock lock) {
         this.factory = factory;
         this.map = new BATree<Index, Value>(comp);
         this.lock = lock;

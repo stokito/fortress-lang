@@ -367,8 +367,8 @@ public abstract class SubtypeChecker {
     private boolean isIntersection(Type t) {
         return (t instanceof AndType);
     }
-    private boolean isArgType(Type t) {
-        return (t instanceof ArgType);
+    private boolean isVarargTupleType(Type t) {
+        return (t instanceof VarargTupleType);
     }
 
     private boolean isTypeArg(StaticArg t) {
@@ -513,7 +513,7 @@ public abstract class SubtypeChecker {
      * 1) The following types are not yet supported:
      *
      *        InferenceVarType(Object id, int index = -1);
-     *        ArgType(Type varargs);
+     *        VarargTupleType(Type varargs);
      *        abstract DimExpr();
      *            ExponentType(Type base, IntExpr power);
      *            BaseDim();
@@ -610,7 +610,7 @@ public abstract class SubtypeChecker {
                     if (t instanceof ArrowType) {
                         ArrowType ss = (ArrowType)s;
                         ArrowType tt = (ArrowType)t;
-                        return (subtype(tt.getDomain(), ss.getDomain(), h) &&
+                        return (subdomain(tt.getDomain(), ss.getDomain(), h) &&
                                 subtype(ss.getRange(), tt.getRange(), h));
                     } else { // t instanceof _RewriteGenericArrowType
                         return FALSE;
@@ -621,7 +621,7 @@ public abstract class SubtypeChecker {
                     } else { // t instanceof _RewriteGenericArrowType
                         _RewriteGenericArrowType ss = (_RewriteGenericArrowType)s;
                         _RewriteGenericArrowType tt = (_RewriteGenericArrowType)t;
-                        return (subtype(tt.getDomain(), ss.getDomain(), h) &&
+                        return (subdomain(tt.getDomain(), ss.getDomain(), h) &&
                                 subtype(ss.getRange(), tt.getRange(), h) &&
                                 equivalentStaticParams(ss.getStaticParams(),
                                                        tt.getStaticParams(), h));
@@ -633,9 +633,9 @@ public abstract class SubtypeChecker {
             //          -----------------------------------
             //           p; Delta |- (s, ...) <: (t, ...)
             if (isTuple(s) && isTuple(t)) {
-                if (s instanceof ArgType && t instanceof ArgType) {
-                    ArgType ss = (ArgType)s;
-                    ArgType tt = (ArgType)t;
+                if (s instanceof VarargTupleType && t instanceof VarargTupleType) {
+                    VarargTupleType ss = (VarargTupleType)s;
+                    VarargTupleType tt = (VarargTupleType)t;
                     List<Type> stypes = ss.getElements();
                     List<Type> ttypes = tt.getElements();
                     int padLength = Math.max(stypes.size(), ttypes.size());
@@ -651,7 +651,8 @@ public abstract class SubtypeChecker {
                         return FALSE;
                     }
                     return TRUE;
-                } else if (s instanceof ArgType || t instanceof ArgType) { // Only one is ArgType
+                } else if (s instanceof VarargTupleType || t instanceof VarargTupleType) {
+                    // only one is a VarargTupleType
                     return FALSE;
                 } else { // s instanceof TupleType && s instanceof TupleType
                     TupleType ss = (TupleType)s;
@@ -724,15 +725,6 @@ public abstract class SubtypeChecker {
                 OrType unionType = (OrType)s;
                 return subtype(unionType.getFirst(), t, h) || subtype(unionType.getSecond(), t, h);
             }
-            // [NS-SingleArg]   p; Delta |- s <: t
-            //                  --------------------
-            //                  p; Delta |- s <: (t)
-            if (!isTuple(s) && isArgType(t)) {
-                ArgType arg = (ArgType)t;
-                if (arg.getElements().size() == 1) {
-                    return subtype(s, arg.getElements().get(0), h);
-                }
-            }
             // [NS-Any]    p; Delta |- Any </: t  (where t =/= Any)
             if (s.equals(ANY) && !t.equals(ANY)) { return FALSE; }
             // [NS-Bottom] p; Delta |- s </: Bottom  (where s =/= Bottom)
@@ -750,6 +742,23 @@ public abstract class SubtypeChecker {
             if (isValidTraitType(t) && !isValidTraitType(s)) { return FALSE; }
             return FALSE;
         }
+    }
+    
+    private Boolean subdomain(Domain s, Domain t, SubtypeHistory history) {
+        if (subtype(stripKeywords(s), stripKeywords(t), history)) {
+            Map<Id, Type> sMap = extractKeywords(s);
+            Map<Id, Type> tMap = extractKeywords(t);
+            if (tMap.keySet().containsAll(sMap.keySet())) {
+                boolean result = true;
+                for (Map.Entry<Id, Type> entry : sMap.entrySet()) {
+                    Type tType = tMap.get(entry.getKey());
+                    result &= subtype(entry.getValue(), tType, history);
+                    if (!result) { break; }
+                }
+                return result;
+            }
+        }
+        return false;
     }
 
     class SubtypeHistory {

@@ -61,13 +61,7 @@ class MethodTypeEnv extends TypeEnv {
             if (method instanceof DeclaredMethod) {
                 DeclaredMethod _method = (DeclaredMethod)method;
                 FnAbsDeclOrDecl decl = _method.ast();
-                type = new AndType(type,
-                                   makeGenericArrowType(decl.getSpan(),
-                                                        decl.getStaticParams(),
-                                                        typeFromParams(decl.getParams()),
-                                                        decl.getReturnType().unwrap(), // all types have been filled in at this point
-                                                        decl.getThrowsClause(),
-                                                        decl.getWhere()));
+                type = new AndType(type, genericArrowFromDecl(decl));
             } else if (method instanceof FieldGetterMethod) {
                 FieldGetterMethod _method = (FieldGetterMethod)method;
                 LValueBind binding = _method.ast();

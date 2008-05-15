@@ -30,14 +30,17 @@ import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.ArgType;
+import com.sun.fortress.nodes.VarargTupleType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VoidType;
+import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -119,7 +122,12 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     @Override
     public void forArrowType(ArrowType that) {
         that.getRange().accept(this);
-        that.getDomain().accept(dual);
+        Domain domain = that.getDomain();
+        // TODO: handle keywords
+        if (!domain.getKeywords().isEmpty()) {
+            NI.nyi("Can't yet handle keywords in arrow domains");
+        }
+        Types.stripKeywords(domain).accept(dual);
     }
 
     /* (non-Javadoc)
@@ -131,12 +139,12 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forArgType(com.sun.fortress.nodes.ArgType)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVarargTupleType(com.sun.fortress.nodes.VarargTupleType)
      */
     @Override
-    public void forArgType(ArgType that) {
-        // TODO: Handle ArgTypes with varargs and keywords
-        acceptList(that.getElements(), this);
+    public void forVarargTupleType(VarargTupleType that) {
+        // TODO: implement
+        NI.nyi("Can't yet handle varargs tuples");
     }
 
     /* (non-Javadoc)
@@ -144,7 +152,6 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forTupleType(TupleType that) {
-        // TODO: Handle TupleTypes with varargs and keywords
         acceptList(that.getElements(), this);
     }
 

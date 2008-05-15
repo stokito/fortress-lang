@@ -30,8 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static com.sun.fortress.nodes_util.NodeFactory.makeAndType;
-import static com.sun.fortress.nodes_util.NodeFactory.makeGenericArrowType;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 /** 

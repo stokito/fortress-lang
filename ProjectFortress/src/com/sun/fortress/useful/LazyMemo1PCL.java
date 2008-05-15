@@ -44,7 +44,7 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
     
     private final static boolean debug = false;
 
-    public LazyMemo1PCL(LazyFactory1P<Index, Value, Param> factory, Comparator<Index> comp, ReentrantLock lock) {
+    public LazyMemo1PCL(LazyFactory1P<Index, Value, Param> factory, Comparator<? super Index> comp, ReentrantLock lock) {
         this.factory = factory;
         this.map = new BATree<Index, Value>(comp);
         this.lock = lock;

@@ -23,6 +23,7 @@ import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
+import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
@@ -67,35 +68,24 @@ class FnTypeEnv extends TypeEnv {
         for (Function fn: fns) {
             if (fn instanceof DeclaredFunction) {
                 DeclaredFunction _fn = (DeclaredFunction)fn;
-                FnAbsDeclOrDecl decl = _fn.ast();
-                overloadedTypes.add(makeGenericArrowType(decl.getSpan(),
-                                                        decl.getStaticParams(),
-                                                        typeFromParams(decl.getParams()),
-                                                        decl.getReturnType().unwrap(), // all types have been filled in at this point
-                                                        decl.getThrowsClause(),
-                                                        decl.getWhere()));
+                overloadedTypes.add(genericArrowFromDecl(_fn.ast()));
             } else if (fn instanceof FunctionalMethod) {
                 FunctionalMethod _fn = (FunctionalMethod)fn;
                 FnAbsDeclOrDecl decl = _fn.ast();
-                overloadedTypes.add(makeGenericArrowType(decl.getSpan(),
-                                                        decl.getStaticParams(),
-                                                        typeFromParams(decl.getParams()),
-                                                        decl.getReturnType().unwrap(), // all types have been filled in at this point
-                                                        decl.getThrowsClause(),
-                                                        decl.getWhere()));
+                overloadedTypes.add(genericArrowFromDecl(_fn.ast()));
             } else { // fn instanceof Constructor
                 final Constructor _fn = (Constructor)fn;
+                Span loc = _fn.declaringTrait().getSpan();
+                Type selfType = makeTraitType(_fn.declaringTrait(),
+                                              staticParamsToArgs(_fn.staticParams()));
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
-                overloadedTypes.add(makeGenericArrowType(_fn.declaringTrait().getSpan(),
-                                                         _fn.staticParams(),
-                                                         typeFromParams(_fn.params().unwrap()),
-                                                         makeTraitType(_fn.declaringTrait(),
-                                                                       staticParamsToArgs(_fn.staticParams())),
-                                                         _fn.throwsClause(),
-                                                         _fn.where()));
-
+                overloadedTypes.add(new _RewriteGenericArrowType(loc, _fn.staticParams(),
+                                                                 domainFromParams(_fn.params().unwrap()),
+                                                                 selfType,
+                                                                 makeEffect(loc.getEnd(), _fn.throwsClause()),
+                                                                 _fn.where()));
             }
         }
         return Option.some(new BindingLookup(var, makeAndType(overloadedTypes)));

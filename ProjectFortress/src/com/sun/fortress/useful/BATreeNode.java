@@ -63,7 +63,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             if (right != null) right.visit(v);
         }
 
-        public void ok(Comparator<T> c) {
+        public void ok(Comparator<? super T> c) {
             int lw = 0;
             int rw = 0;
             if (left != null) {
@@ -142,7 +142,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             } else return this;
         }
 
-        public BATreeNode<T, U> getObject(T k, Comparator<T> comp) {
+        public BATreeNode<T, U> getObject(T k, Comparator<? super T> comp) {
             BATreeNode<T, U> t = this;
             while (t != null) {
                 int c = comp.compare(k,t.key);
@@ -157,7 +157,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             return t;
         }
 
-        int indexOf(T k, Comparator<T> comp) {
+        int indexOf(T k, Comparator<? super T> comp) {
             int toTheLeft = 0;
 
             BATreeNode<T, U> t = this;
@@ -189,7 +189,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             return t;
         }
 
-        public BATreeNode<T,U> add(T k, U d, Comparator<T> comp) {
+        public BATreeNode<T,U> add(T k, U d, Comparator<? super T> comp) {
             int c = comp.compare(k,key);
             BATreeNode<T,U> l = left;
             BATreeNode<T,U> r = right;
@@ -293,7 +293,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             }
         }
 
-        public BATreeNode<T,U> delete(T k, Comparator<T> comp) {
+        public BATreeNode<T,U> delete(T k, Comparator<? super T> comp) {
             int c = comp.compare(k,key);
             BATreeNode<T,U> l = left;
             BATreeNode<T,U> r = right;

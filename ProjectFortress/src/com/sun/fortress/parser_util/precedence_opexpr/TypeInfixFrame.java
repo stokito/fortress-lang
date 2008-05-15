@@ -17,12 +17,9 @@
 
 package com.sun.fortress.parser_util.precedence_opexpr;
 
-import java.util.List;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.useful.PureList;
-import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.nodes.Effect;
 
 /**
  * Class TypeInfixFrame, a component of the InfixFrame composite hierarchy.
@@ -30,7 +27,7 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public abstract class TypeInfixFrame extends Object implements InfixFrame {
    private final Op _op;
-   private final Option<List<BaseType>> _throws;
+   private final Effect _effect;
    private final Type _arg;
    private int _hashCode;
    private boolean _hasHashCode = false;
@@ -39,17 +36,16 @@ public abstract class TypeInfixFrame extends Object implements InfixFrame {
     * Constructs a TypeInfixFrame.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public TypeInfixFrame(Op in_op, Option<List<BaseType>> in_throws,
-                         Type in_arg) {
+   public TypeInfixFrame(Op in_op, Effect in_effect, Type in_arg) {
       super();
       _op = in_op;
-      _throws = in_throws;
+      _effect = in_effect;
       _arg = in_arg;
    }
 
    public Op getOp() { return _op; }
-   public Option<List<BaseType>> getThrows() { return _throws; }
-    public Type getArg() { return _arg; }
+   public Effect getEffect() { return _effect; }
+   public Type getArg() { return _arg; }
 
    public abstract <RetType> RetType accept(InfixFrameVisitor<RetType> visitor);
    public abstract void accept(InfixFrameVisitor_void visitor);

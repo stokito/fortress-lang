@@ -21,10 +21,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.AndType;
-import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
@@ -43,31 +46,58 @@ import static com.sun.fortress.nodes_util.NodeFactory.makeId;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
- * Contains static utility methods for creating and interacting with types.
+ * Contains static utility methods for type checking.
  */
 public class TypesUtil {
     
-    /**
-     * Convert a list of application argument types to a single type
-     * (either (), the given (singelton) type, or a tuple).
-     */
-    public static Type argsToType(Type... ts) {
-        return argsToType(IterUtil.make(ts));
+    public static class ArgList {
+        
+        private final List<Type> _args;
+        // _keywords is null if there are none (avoiding needless
+        // allocation in typical use cases)
+        private Map<Id, Type> _keywords;
+        
+        public ArgList(Type... args) {
+            if (args.length == 0) {
+                // more elements will probably be added
+                _args = new ArrayList<Type>();
+            }
+            else {
+                // probably won't be more elements
+                _args = new ArrayList<Type>(args.length);
+            }
+            _keywords = null;
+            for (Type t : args) { _args.add(t); }
+        }
+        
+        /** All add() invocations should occur before calling getters. */
+        public void add(Type arg) { _args.add(arg); }
+        
+        /** All add() invocations should occur before calling getters. */
+        public void add(Id name, Type type) {
+            if (_keywords == null) {_keywords = new HashMap<Id, Type>(8); }
+            _keywords.put(name, type);
+        }
+        
+        /**
+         * Extract the type represented by non-keywords args.  May be (),
+         * a TupleType, or the singleton member of the list of args.
+         */
+        public Type argType() {
+            switch (_args.size()) {
+                case 0: return Types.VOID;
+                case 1: return _args.get(0);
+                default: return new TupleType(_args);
+            }
+        }
+        
+        public Map<Id, Type> keywordTypes() {
+            if (_keywords == null) { return Collections.emptyMap(); }
+            else { return Collections.unmodifiableMap(_keywords); }
+        }
+        
     }
     
-    /**
-     * Convert a list of application argument types to a single type
-     * (either (), the given (singelton) type, or a tuple).
-     */
-    public static Type argsToType(Iterable<Type> ts) {
-        int size = IterUtil.sizeOf(ts, 2);
-        switch (size) {
-            case 0: return Types.VOID;
-            case 1: return IterUtil.first(ts);
-            default: return new TupleType(IterUtil.asList(ts));
-        }
-    }
-
     /**
      * Figure out the static type of a non-generic function application.
      * @param checker the SubtypeChecker to use for any type comparisons
@@ -80,7 +110,7 @@ public class TypesUtil {
      */
     public static Option<Type> applicationType(final SubtypeChecker checker,
                                                final Type fn,
-                                               final Type arg) {
+                                               final ArgList args) {
         // Turn fn into a list of types (i.e. flatten if an intersection)
         final Iterable<Type> arrows =
             (fn instanceof AndType) ? conjuncts((AndType)fn)
@@ -93,9 +123,20 @@ public class TypesUtil {
             // Try to form a non-generic ArrowType from this arrow, if it matches the args
             Option<ArrowType> newArrow = arrow.accept(new NodeAbstractVisitor<Option<ArrowType>>() {
                 @Override public Option<ArrowType> forArrowType(ArrowType that) {
-                    return checker.subtype(arg, that.getDomain())
-                        ? some(that)
-                        : Option.<ArrowType>none();
+                    boolean valid = false;
+                    if (checker.subtype(args.argType(), Types.stripKeywords(that.getDomain()))) {
+                        Map<Id, Type> argMap = args.keywordTypes();
+                        Map<Id, Type> paramMap = Types.extractKeywords(that.getDomain());
+                        if (paramMap.keySet().containsAll(argMap.keySet())) {
+                            valid = true;
+                            for (Map.Entry<Id, Type> entry : argMap.entrySet()) {
+                                Type sup = paramMap.get(entry.getKey());
+                                valid &= checker.subtype(entry.getValue(), sup);
+                                if (!valid) { break; }
+                            }
+                        }
+                    }
+                    return valid ? some(that) : Option.<ArrowType>none();
                 }
                 @Override public Option<ArrowType> for_RewriteGenericArrowType(_RewriteGenericArrowType that) {
                     return none(); // TODO - implement
@@ -113,6 +154,9 @@ public class TypesUtil {
         }
 
         // Find the most applicable arrow type
+        // TODO: there's not always a single minimum -- the meet rule may have
+        // allowed a declaration that has a minimum at run time, but that doesn't
+        // statically (when the runtime type of the argument is not precisely known).
         ArrowType minType = matchingArrows.get(0);
         for (int i=1; i<matchingArrows.size(); ++i) {
             ArrowType t = matchingArrows.get(i);
@@ -124,8 +168,8 @@ public class TypesUtil {
     }
 
     public static Option<Type> applicationType(SubtypeChecker checker,
-                                               Type arrow,
-                                               Type arg,
+                                               Type fn,
+                                               ArgList args,
                                                Iterable<StaticArg> staticArgs) {
         return Option.<Type>none(); // TODO implement
     }
@@ -148,20 +192,4 @@ public class TypesUtil {
                 (right instanceof OrType) ? disjuncts((OrType)right) : IterUtil.make(right));
     }
     
-    public static final Type fromVarargsType(Type varargsType) {
-        return NodeFactory.makeTraitType(varargsType.getSpan(),
-                                         false,
-                                         makeId(Arrays.asList(makeId("FortressBuiltin")),
-                                                makeId("ImmutableHeapSequence")));
-    }
-    
-    public static Type makeThreadType(Type typeArg) {
-        return new TraitType(NodeFactory.makeId("FortressBuiltin", "Thread"),
-                             Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
-    }
-    
-    public static Type makeGeneratorType(Type typeArg) {
-        return new TraitType(NodeFactory.makeId("FortressLibrary", "Generator"),
-                             Arrays.asList((StaticArg)NodeFactory.makeTypeArg(typeArg)));
-    }
 }

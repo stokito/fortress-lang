@@ -72,16 +72,49 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forArrowType(ArrowType node) {
+        String effectString = node.getEffect().accept(this);
+        if (effectString.length() > 0) { effectString = " " + effectString; }
         return
             node.getDomain().accept(this)
             + "->"
             + node.getRange().accept(this)
-            + (node.getThrowsClause().isSome() ?
-                   (" throws " + Useful.listInCurlies(mapSelf(node.getThrowsClause().unwrap()))) :
-                   "")
-            + (node.isIo()? " io" : "");
+            + effectString;
     }
-
+    
+    public String forDomain(Domain node) {
+        StringBuilder result = new StringBuilder();
+        result.append("(");
+        boolean first = true;
+        for (Type t : node.getArgs()) {
+            if (first) { first = false; }
+            else { result.append(", "); }
+            result.append(t.accept(this));
+        }
+        if (node.getVarargs().isSome()) {
+            if (first) { first = false; }
+            else { result.append(", "); }
+            result.append(node.getVarargs().unwrap().accept(this));
+            result.append("...");
+        }
+        for (KeywordType k : node.getKeywords()) {
+            if (first) { first = false; }
+            else { result.append(", "); }
+            result.append(k.accept(this));
+        }
+        result.append(")");
+        return result.toString();
+    }
+    
+    public String forEffect(Effect node) {
+        if (node.getThrowsClause().isEmpty()) {
+            return node.isIo() ? "io" : "";
+        }
+        else {
+            return "throws " + Useful.listInCurlies(mapSelf(node.getThrowsClause())) +
+                (node.isIo() ? " io" : "");
+        }
+    }
+            
     public String forVoidLiteralExpr(VoidLiteralExpr e) {
         return "()";
     }
@@ -228,7 +261,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName());
     }
 
-    public String forArgType(ArgType node) {
+    public String forVarargTupleType(VarargTupleType node) {
         return
             "(" +
             Useful.listInDelimiters("", mapSelf(node.getElements()), "") +

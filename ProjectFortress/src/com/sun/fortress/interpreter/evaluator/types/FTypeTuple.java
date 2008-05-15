@@ -28,9 +28,8 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.UnificationError;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.AbstractTupleType;
-import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
+import com.sun.fortress.nodes.VarargTupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.useful.BoundingMap;
@@ -357,20 +356,22 @@ public class FTypeTuple extends FType {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
-        Option<Type> vargs;
         List<Type> elements;
-        if (!(val instanceof AbstractTupleType)) {
-            if (!(val instanceof VoidType)) return false;
-            elements = Collections.<Type>emptyList();
-            vargs = Option.none();
-        } else if (val instanceof ArgType) {
-            ArgType tup = (ArgType) val;
-            elements = tup.getElements();
-            vargs = Option.some(tup.getVarargs());
-        } else { // (val instanceof TupleType)
-            elements = ((TupleType)val).getElements();
+        Option<Type> vargs;
+        if (val instanceof VoidType) {
+            elements = Collections.emptyList();
             vargs = Option.none();
         }
+        else if (val instanceof TupleType) {
+            elements = ((TupleType) val).getElements();
+            vargs = Option.none();
+        }
+        else if (val instanceof VarargTupleType) {
+            VarargTupleType tup = (VarargTupleType) val;
+            elements = tup.getElements();
+            vargs = Option.some(tup.getVarargs());
+        }
+        else { return false; }
         return unifyTuple(env, tp_set, abm, elements, vargs);
     }
 

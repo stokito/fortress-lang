@@ -25,7 +25,7 @@ public class Memo1C<Index1, Value> implements Factory1<Index1, Value> {
 
     BATree<Index1, Value> map;
 
-    public Memo1C(Factory1<Index1, Value> factory, Comparator<Index1> comp) {
+    public Memo1C(Factory1<Index1, Value> factory, Comparator<? super Index1> comp) {
         this.factory = factory;
         this.map = new BATree<Index1, Value>(comp);
     }
