@@ -52,6 +52,7 @@ import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.io.IOUtil;
 
 public abstract class RatsUtil {
 
@@ -184,7 +185,12 @@ public abstract class RatsUtil {
  }
 
  public static String getTempDir() {
-  return System.getProperty("java.io.tmpdir")+File.separatorChar;
+  // return System.getProperty("java.io.tmpdir")+File.separatorChar;
+  try{
+	  return IOUtil.createAndMarkTempDirectory("fortress","rats").getCanonicalPath() + File.separatorChar;
+  } catch ( IOException e ){
+	  return System.getProperty("java.io.tmpdir")+File.separatorChar;
+  }
  }
 
  public static String getFortressSrcDir() {
