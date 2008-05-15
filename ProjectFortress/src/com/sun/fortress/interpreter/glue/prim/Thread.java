@@ -67,11 +67,13 @@ public class Thread extends NativeConstructor {
         public Thread_prim(SingleFcn sf, NativeConstructor con) {
             super(con);
             this.con = con;
-            int numThreads = Runtime.getRuntime().availableProcessors();
-            String numThreadsString = System.getenv("FORTRESS_THREADS");
+            // For Now we are limiting spawn to creating only 1 thread
+	    //	    int numThreads = Runtime.getRuntime().availableProcessors();
+	    //            String numThreadsString = System.getenv("FORTRESS_THREADS");
 
-            if (numThreadsString != null)
-                numThreads = Integer.parseInt(numThreadsString);
+	    //            if (numThreadsString != null)
+	    //                numThreads = Integer.parseInt(numThreadsString);
+	    int numThreads = 1;
             group = new FortressTaskRunnerGroup(numThreads);
             st = new SpawnTask(sf,new Evaluator(getSelfEnv()));
 	    group.execute(st);
