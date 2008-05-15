@@ -83,11 +83,12 @@ public class ActionCreater {
         ActionCreater ac = new ActionCreater();
         Collection<StaticError> errors = new LinkedList<StaticError>();
         List<Integer> indents = new LinkedList<Integer>();
-        List<String> code = ActionCreaterUtil.createVariabelBinding(indents, syntaxDeclEnv, BOUND_VARIABLES);
 
         String returnType = new FortressTypeToJavaType().analyze(type);
 
+        List<String> code = new LinkedList<String>();
         if (transformation instanceof TransformationExpressionDef) {
+            code = ActionCreaterUtil.createVariabelBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false);
             Expr e = ((TransformationExpressionDef) transformation).getTransformation();
             Component component = ac.makeComponent(e, syntaxDeclEnv);
             String serializedComponent = ac.writeJavaAST(component);
@@ -99,6 +100,7 @@ public class ActionCreater {
             addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
         }
         else if (transformation instanceof TransformationTemplateDef) {
+            code = ActionCreaterUtil.createVariabelBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true);
             AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
             String yyValue = n.accept(jpp);

@@ -189,7 +189,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
 		BufferedReader in = Useful.bufferedStringReader(transformation);
 		com.sun.fortress.parser.Fortress parser =
-			new com.sun.fortress.parser.Fortress(in, "FooBar");
+			new com.sun.fortress.parser.Fortress(in, span.getBegin().getFileName());
 		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
 		if ( ! parse.isSome() ){
 			throw new RuntimeException("Did not find method " + productionName);

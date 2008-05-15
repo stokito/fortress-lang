@@ -74,17 +74,6 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         List<String> cs = new LinkedList<String>();
         cs.add("List<"+type+"> "+varName+" = new LinkedList<"+type+">();");
         for (String s: exprs_result) {
-            Id var = new Id(s);
-            if (this.syntaxDeclEnv.contains(var)) {
-                Type t = this.syntaxDeclEnv.getType(var);
-                if (t instanceof TraitType) {
-                    TraitType traitType = (TraitType) t;
-                    if (traitType.getName().getText().equals("List")) {
-                        cs.add(varName+".addAll("+s+".list());");
-                        break;
-                    }
-                }
-            }
             cs.add(varName+".add("+s+");");
         }
         return cs;
@@ -384,6 +373,13 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             return rVarName;
         }
         if (this.syntaxDeclEnv.contains(id)) {
+            Type type = this.syntaxDeclEnv.getType(id);
+            if (type instanceof TraitType) {
+                TraitType traitType = (TraitType) type;
+                if (traitType.getName().getText().equals("List")) {
+                    return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
+                }
+            }
             return id.getText();
         }
         String varName = FreshName.getFreshName("template");
