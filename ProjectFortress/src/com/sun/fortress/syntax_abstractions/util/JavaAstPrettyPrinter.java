@@ -22,9 +22,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
+import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
@@ -32,14 +35,20 @@ import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpExpr;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.TightJuxt;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes_util.SourceLoc;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
@@ -65,6 +74,17 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         List<String> cs = new LinkedList<String>();
         cs.add("List<"+type+"> "+varName+" = new LinkedList<"+type+">();");
         for (String s: exprs_result) {
+            Id var = new Id(s);
+            if (this.syntaxDeclEnv.contains(var)) {
+                Type t = this.syntaxDeclEnv.getType(var);
+                if (t instanceof TraitType) {
+                    TraitType traitType = (TraitType) t;
+                    if (traitType.getName().getText().equals("List")) {
+                        cs.add(varName+".addAll("+s+".list());");
+                        break;
+                    }
+                }
+            }
             cs.add(varName+".add("+s+");");
         }
         return cs;
@@ -81,8 +101,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forAPINameOnly(APIName that, List<String> ids_result) {
         String rVarName = FreshName.getFreshName("apiName");
         String idName = FreshName.getFreshName("id");
+        String sVarName = this.getSpan(that);
         this.code.addAll(mkList(ids_result, idName, "Id"));
-        this.code.add("APIName "+rVarName+" = new APIName("+idName+");");
+        this.code.add("APIName "+rVarName+" = new APIName("+sVarName+","+idName+");");
         return rVarName;
     }
 
@@ -90,8 +111,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forBlockOnly(Block that, List<String> exprs_result) {
         String rVarName = FreshName.getFreshName("block");
         String exprsName = FreshName.getFreshName("exprs");
+        String sVarName = this.getSpan(that);
         this.code.addAll(mkList(exprs_result, exprsName, "Expr"));
-        this.code.add("Block "+rVarName+" = new Block("+exprsName+");");
+        this.code.add("Block "+rVarName+" = new Block("+sVarName+", "+exprsName+");");
         return rVarName;
     }
 
@@ -99,14 +121,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forDoFrontOnly(DoFront that, Option<String> loc_result,
             String expr_result) {
         String rVarName = FreshName.getFreshName("doFront");
-        String loc = "";
-        if (loc_result.isNone()) {
-            loc = "Option.<Expr>none()";
-        }
-        else {
-            loc = "Option.<Expr>some("+loc_result.unwrap()+")";
-        }
-        this.code.add("DoFront "+rVarName+" = new DoFront("+loc+", "+that.isAtomic()+", "+expr_result+");");
+        String loc = this.handleOption(loc_result, "Expr");
+        String sVarName = this.getSpan(that);
+        this.code.add("DoFront "+rVarName+" = new DoFront("+sVarName+", "+loc+", "+that.isAtomic()+", "+expr_result+");");
         return rVarName;
     }
 
@@ -114,8 +131,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forDoOnly(Do that, List<String> fronts_result) {
         String rVarName = FreshName.getFreshName("aDo");
         String exprsName = FreshName.getFreshName("exprs");
+        String sVarName = this.getSpan(that);
         this.code.addAll(mkList(fronts_result, exprsName, "DoFront"));
-        this.code.add("Do "+rVarName+" = new Do("+exprsName+");");
+        this.code.add("Do "+rVarName+" = new Do("+sVarName+", "+exprsName+");");
         return rVarName;
     }
 
@@ -124,24 +142,36 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             List<String> staticArgs_result) {
         String rVarName = FreshName.getFreshName("fn");
         String fns = FreshName.getFreshName("ls");
+        String sVarName = this.getSpan(that);
         this.code.addAll(mkList(fns_result, fns, "Id"));
         String staticArgs = FreshName.getFreshName("ls");
         this.code.addAll(mkList(staticArgs_result, staticArgs, "StaticArg"));
-        this.code.add("FnRef "+rVarName+" = new FnRef("+that.isParenthesized()+", "+fns+", "+staticArgs+");");
+        this.code.add("FnRef "+rVarName+" = new FnRef("+sVarName+", "+that.isParenthesized()+", "+fns+", "+staticArgs+");");
         return rVarName;
     }
 
     @Override
     public String forId(Id that) {
         String rVarName = FreshName.getFreshName("id");
-        this.code.add("Id "+rVarName+" = new Id(\""+that.getText()+"\");");
+        String sVarName = this.getSpan(that);
+        this.code.add("Id "+rVarName+" = new Id("+sVarName+", \""+that.getText()+"\");");
         return rVarName;
     }
 
     @Override
+    public String forIdOnly(Id that, Option<String> api_result) {
+        String rVarName = FreshName.getFreshName("qIdName");
+        String sVarName = this.getSpan(that);
+        String api = this.handleOption(api_result, "APIName");
+        this.code.add("Id "+rVarName+" = new Id("+sVarName+", "+api+");");
+        return rVarName;
+    }
+    
+    @Override
         public String forVarTypeOnly(VarType that, String name_result) {
         String rVarName = FreshName.getFreshName("idType");
-        this.code.add("VarType "+rVarName+" = new VarType("+name_result+");");
+        String sVarName = this.getSpan(that);
+        this.code.add("VarType "+rVarName+" = new VarType("+sVarName+", "+name_result+");");
         return rVarName;
     }
 
@@ -151,6 +181,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             List<String> body_result, List<String> lhs_result,
             Option<String> rhs_result) {
         String rVarName = FreshName.getFreshName("localVarDecl");
+        
+        String sVarName = this.getSpan(that);
 
         String body = FreshName.getFreshName("body");
         this.code.addAll(mkList(body_result, body, "Expr"));
@@ -158,23 +190,19 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String lhs = FreshName.getFreshName("lhs");
         this.code.addAll(mkList(lhs_result, lhs, "LValue"));
 
-        String rhs = "";
-        if (rhs_result.isNone()) {
-            rhs = "Option.<Expr>none()";
-        }
-        else {
-            rhs = "Option.<Expr>some("+rhs_result.unwrap()+")";
-        }
-        this.code.add("LocalVarDecl "+rVarName+" = new LocalVarDecl("+body+", "+lhs+", "+rhs+");");
+        String rhs = this.handleOption(rhs_result, "Expr");
+        
+        this.code.add("LocalVarDecl "+rVarName+" = new LocalVarDecl("+sVarName+", "+body+", "+lhs+", "+rhs+");");
         return rVarName;
     }
 
     @Override
     public String forLooseJuxtOnly(LooseJuxt that, List<String> exprs_result) {
         String rVarName = FreshName.getFreshName("lj");
+        String sVarName = this.getSpan(that);
         String args = FreshName.getFreshName("ls");
         this.code.addAll(mkList(exprs_result, args, "Expr"));
-        this.code.add("LooseJuxt "+rVarName+" = new LooseJuxt("+that.isParenthesized()+", "+args+");");
+        this.code.add("LooseJuxt "+rVarName+" = new LooseJuxt("+sVarName+", "+that.isParenthesized()+", "+args+");");
         return rVarName;
     }
 
@@ -183,66 +211,50 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             Option<String> type_result, List<String> mods_result) {
         String rVarName = FreshName.getFreshName("lValueBind");
 
-        String type = "";
-        if (type_result.isNone()) {
-            type = "Option.<Type>none()";
-        }
-        else {
-            type = "Option.<Type>some("+type_result.unwrap()+")";
-        }
+        String sVarName = this.getSpan(that);
+        
+        String type = this.handleOption(type_result, "Type");
 
         String mods = FreshName.getFreshName("mods");
         this.code.addAll(mkList(mods_result, mods, "Modifier"));
 
-        this.code.add("LValueBind "+rVarName+" = new LValueBind("+name_result+", "+type+", "+mods+", "+that.isMutable()+");");
-        return rVarName;
-    }
-
-    @Override
-    public String forIdOnly(Id that, Option<String> api_result) {
-        String rVarName = FreshName.getFreshName("qIdName");
-        String api = "";
-        if (api_result.isNone()) {
-            api = "Option.<APIName>none()";
-        }
-        else {
-            api = "Option.<APIName>some("+api_result.unwrap()+")";
-        }
-        this.code.add("Id "+rVarName+" = new Id("+api+");");
+        this.code.add("LValueBind "+rVarName+" = new LValueBind("+sVarName+", "+name_result+", "+type+", "+mods+", "+that.isMutable()+");");
         return rVarName;
     }
 
     @Override
     public String forStringLiteralExpr(StringLiteralExpr that) {
         String varName = FreshName.getFreshName("s");
-        this.code.add("StringLiteralExpr "+varName+" = new StringLiteralExpr(\""+that.getText().replaceAll("\"","\\\\\"")+"\");");
+        String sVarName = this.getSpan(that);
+        this.code.add("StringLiteralExpr "+varName+" = new StringLiteralExpr("+sVarName+", \""+that.getText().replaceAll("\"","\\\\\"")+"\");");
         return varName;
     }
-
 
     @Override
     public String forTightJuxtOnly(TightJuxt that, List<String> exprs_result) {
         String varName = FreshName.getFreshName("ls");
         String rVarName = FreshName.getFreshName("tj");
+        String sVarName = this.getSpan(that);
         this.code.addAll(mkList(exprs_result, varName, "Expr"));
-        this.code.add("TightJuxt "+rVarName+" = new TightJuxt("+that.isParenthesized()+", "+varName+");");
+        this.code.add("TightJuxt "+rVarName+" = new TightJuxt("+sVarName+", "+that.isParenthesized()+", "+varName+");");
         return rVarName;
     }
 
     @Override
     public String forTypeArgOnly(TypeArg that, String type_result) {
         String rVarName = FreshName.getFreshName("typeArg");
-        this.code.add("TypeArg "+rVarName+" = new TypeArg("+type_result+");");
+        String sVarName = this.getSpan(that);
+        this.code.add("TypeArg "+rVarName+" = new TypeArg("+sVarName+", "+type_result+");");
         return rVarName;
     }
 
     @Override
     public String forVarRefOnly(VarRef that, String var_result) {
         String varName = FreshName.getFreshName("varRef");
-        this.code.add("VarRef "+varName+" = new VarRef("+var_result+");");
+        String sVarName = this.getSpan(that);
+        this.code.add("VarRef "+varName+" = new VarRef("+sVarName+", "+var_result+");");
         return varName;
     }
-
 
     @Override
     public String forVarRef(VarRef that) {
@@ -250,6 +262,82 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             return that.getVar().toString();
         }
         return super.forVarRef(that);
+    }
+    
+    @Override
+    public String forEnclosingOnly(Enclosing that, Option<String> api_result, String in_open_result, String in_close_result) {
+        String rVarName = FreshName.getFreshName("enclosing");
+        String sVarName = this.getSpan(that);
+        String apiVarName = this.handleOption(api_result, "APIName");
+        this.code.add("Enclosing "+rVarName+" = new Enclosing("+sVarName+", "+apiVarName+", "+in_open_result+", "+in_close_result+");");
+        return rVarName;
+    }
+
+    @Override
+    public String forEnclosingFixity(EnclosingFixity that) {
+        String rVarName = FreshName.getFreshName("enclosingFixity");
+        String sVarName = this.getSpan(that);
+        this.code.add("EnclosingFixity "+rVarName+" = new EnclosingFixity("+sVarName+");");
+        return rVarName;
+    }
+
+    @Override
+    public String forOpOnly(Op that, Option<String> api_result,
+            Option<String> fixity_result) {
+        String rVarName = FreshName.getFreshName("op");
+        String sVarName = this.getSpan(that);
+        String apiVarName = this.handleOption(api_result, "APIName");
+        String fixityVarName = this.handleOption(fixity_result, "Fixity");
+        this.code.add("Op "+rVarName+" = new Op("+sVarName+", "+apiVarName+", \""+that.getText()+"\", "+fixityVarName+");");
+        return rVarName;
+    }
+    
+    private String getSpan(AbstractNode that) {
+        Span span = that.getSpan();
+        String rVarName = FreshName.getFreshName("span");
+        String slStartVarName = FreshName.getFreshName("sl");
+        String slEndVarName = FreshName.getFreshName("sl");
+        String file = span.getBegin().getFileName();
+        int startLine = span.getBegin().getLine();
+        int startColumn = span.getBegin().column();
+        this.code.add("SourceLocRats "+slStartVarName+"   = new SourceLocRats(\""+file+"\", "+startLine+", "+startColumn+");");
+        int endLine = span.getBegin().getLine();
+        int endColumn = span.getBegin().column();
+        this.code.add("SourceLocRats "+slEndVarName+"   = new SourceLocRats(\""+file+"\", "+endLine+", "+endColumn+");");
+        this.code.add("Span "+rVarName +" = new Span("+slStartVarName+","+slEndVarName+");");        
+        return rVarName;
+    }
+    
+    private String handleOption(Option<String> o, String type) {
+        String rVarName = FreshName.getFreshName("option");
+        String rhs = "Option.<"+type+">none()";
+        if (o.isSome()) {
+            rhs = "Option.<"+type+">some("+o.unwrap()+")";
+        }
+        this.code.add("Option<"+type+"> "+rVarName +" = " +rhs+";"); 
+        return rVarName;
+    }
+
+    @Override
+    public String forOpExprOnly(OpExpr that, String in_op_result, List<String> args_result) {
+        String rVarName = FreshName.getFreshName("opExpr");
+        String sVarName = this.getSpan(that);
+        String argsVarName = FreshName.getFreshName("ls");
+        this.code.addAll(mkList(args_result, argsVarName, "Expr"));
+        this.code.add("OpExpr "+rVarName+" = new OpExpr("+sVarName+", "+that.isParenthesized()+", "+in_op_result+", "+argsVarName+");");
+        return rVarName;
+    }
+
+    @Override
+    public String forOpRefOnly(OpRef that, List<String> ops_result, List<String> staticArgs_result) {
+        String rVarName = FreshName.getFreshName("opRef");
+        String sVarName = this.getSpan(that);
+        String opsVarName = FreshName.getFreshName("ls");
+        this.code.addAll(mkList(ops_result, opsVarName, "OpName"));
+        String staticArgsVarName = FreshName.getFreshName("ls");
+        this.code.addAll(mkList(staticArgs_result, staticArgsVarName, "StaticArg"));
+        this.code.add("OpRef "+rVarName+" = new OpRef("+sVarName+", "+that.isParenthesized()+", "+opsVarName+", "+staticArgsVarName+");");
+        return rVarName;
     }
 
     @Override

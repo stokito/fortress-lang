@@ -127,15 +127,15 @@ public class GrammarIndexInitializer {
     
     private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
         for (GrammarIndex g: grammarIndexs) {
-            for (NonterminalIndex<? extends GrammarMemberDecl> nt: g.getDeclaredNonterminals()) {
+            for (NonterminalIndex/*<? extends GrammarMemberDecl> Commented out due to bug in Sun Java 1.5.0_04 on Fedora Linux */ nt: g.getDeclaredNonterminals()) {
                 if (nt instanceof GrammarNonterminalIndex) {
                     for (SyntaxDef sd: ((GrammarNonterminalIndex<? extends GrammarMemberDecl>) nt).getSyntaxDefs()) {
                         sd.accept(new NameCollector(g));
                     }
                 }
-//                if (nt instanceof GrammarTerminalIndex) {
-//                    ((GrammarTerminalIndex) nt).getSyntaxDef().accept(new NameCollector(g));
-//                }
+                if (nt instanceof GrammarTerminalIndex) {
+                    ((GrammarTerminalIndex) nt).getSyntaxDef().accept(new NameCollector(g));
+                }
             }
         }        
     }

@@ -25,9 +25,9 @@ api SyntaxRepetition
     toString():String
   end
 
-  grammar Helloworld extends { A, Literal }
+  grammar Select1 extends { A, B, Literal }
       LiteralExpr |Expr:=
-        a:SELECT Tuples* world
+        SELECT ATuples* world
         do 
           exprs:List[\Expr\] = emptyList[\Expr\](2);
           ids:List[\Id\] = emptyList[\Id\]();
@@ -39,19 +39,48 @@ api SyntaxRepetition
           ops1:List[\OpName\] = emptyList[\OpName\](1);
           ops2:List[\OpName\] = ops1.addRight(Enclosing(Op(Nothing[\APIName\], "<|", Just[\Fixity\](EnclosingFixity())), Op(Nothing[\APIName\],"|>", Just[\Fixity\](EnclosingFixity()))));
           op:OpRef = OpRef(ops2, emptyList[\StaticArg\]());
-          opExpr:OpExpr = OpExpr(op, Tuples)
+          opExpr:OpExpr = OpExpr(op, ATuples)
+          exprs2:List[\Expr\] = exprs1.addRight(opExpr);
+          TightJuxt(exprs2)
+        end
+      | SELECT BTuples* world
+        do 
+          exprs:List[\Expr\] = emptyList[\Expr\](2);
+          ids:List[\Id\] = emptyList[\Id\]();
+          ids1:List[\Id\] = ids.addRight(Id(Nothing[\APIName\], "SyntaxRepetition"));
+          apiName:APIName = APIName(ids1);
+          typeName:String = "" "SelectQuery";
+          name:Id = Id(Just[\APIName\](apiName), typeName);
+          exprs1:List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()));
+          ops1:List[\OpName\] = emptyList[\OpName\](1);
+          ops2:List[\OpName\] = ops1.addRight(Enclosing(Op(Nothing[\APIName\], "<|", Just[\Fixity\](EnclosingFixity())), Op(Nothing[\APIName\],"|>", Just[\Fixity\](EnclosingFixity()))));
+          op:OpRef = OpRef(ops2, emptyList[\StaticArg\]());
+          opExpr:OpExpr = OpExpr(op, BTuples)
           exprs2:List[\Expr\] = exprs1.addRight(opExpr);
           TightJuxt(exprs2)
         end
   end
+
+  grammar Select2 extends { A, B, Literal }
+      LiteralExpr |Expr:=
+        SELECT ATuples* from
+        <[ SelectQuery( <| ATuples |> ) ]>
+      | SELECT BTuples* from
+        <[ SelectQuery( <| BTuples |> ) ]>
+  end
  
   grammar A
-    Tuples :Expr:=
+    ATuples :Expr:=
       a SPACE do 
         exprs:List[\Expr\] = emptyList[\Expr\](2)
         exprs1:List[\Expr\] = exprs.addRight(StringLiteralExpr(""))
         exprs2:List[\Expr\] = exprs1.addRight(StringLiteralExpr(a.val))
         LooseJuxt(exprs2) end
+  end
+
+  grammar B
+    BTuples :Expr:=
+      b SPACE <[ "" b ]>
   end
 
 end
