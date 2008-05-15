@@ -76,7 +76,7 @@ public class Thread extends NativeConstructor {
 	    int numThreads = 1;
             group = new FortressTaskRunnerGroup(numThreads);
             st = new SpawnTask(sf,new Evaluator(getSelfEnv()));
-	    group.execute(st);
+            group.execute(st);
         }
 
         public NativeConstructor getConstructor() { return con; }
@@ -115,8 +115,8 @@ public class Thread extends NativeConstructor {
     public static final class stop extends NativeMeth0 {
         public FValue act(FObject self) {
             Thread_prim tp = (Thread_prim) self;
-	    tp.group.shutdownNow();
-	    //            tp.st.cancel();
+            tp.group.shutdownNow();
+            //            tp.st.cancel();
             return FVoid.V;
         }
     }
@@ -124,10 +124,10 @@ public class Thread extends NativeConstructor {
     public static final class abort extends NativeFn0 {
         protected FValue act() {
             Transaction current = BaseTask.getThreadState().transaction();
-	    if (current != null)
-		current.abort();
+            if (current != null)
+                current.abort();
             return FVoid.V;
-	}
+        }
     }
 
 }

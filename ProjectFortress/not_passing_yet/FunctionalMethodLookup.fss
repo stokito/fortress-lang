@@ -101,7 +101,6 @@ object EqTo extends TotalComp
 end
 
 trait Equty[\Self extends Equty[\Self\]\]
-        excludes { Number } (** Until Number is an actual type. **)
     opr EQL(self, other:Self): Boolean
 end
 
@@ -109,7 +108,6 @@ end
     This is primarily for floating-point values.  Minimal complete
     definition: either CMP or { LSTH, = }. **)
 trait StdPartialOrder[\Self extends StdPartialOrder[\Self\]\]
-        excludes { Number } (** Until Number is an actual type. **)
     opr CMP(self, other:Self): Comp =
         if self LSTH other then LessTh
         elif other GRTH self then GreaterTh
@@ -135,7 +133,6 @@ end
     define EQL in the latter case). **)
 trait StdTotalOrder[\Self extends StdTotalOrder[\Self\]\]
         extends StdPartialOrder[\Self\]
-        excludes { Number } (** Until Number is an actual type. **)
     opr CMP(self, other:Self): Comp =
         if self LSTH other then LessTh
         elif other LSTH self then GreaterTh

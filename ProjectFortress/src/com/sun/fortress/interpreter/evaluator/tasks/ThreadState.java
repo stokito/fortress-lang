@@ -30,7 +30,6 @@ public class ThreadState {
   // commit.
 
     int depth = 0;
-    final ContentionManager manager;
 
     long committed = 0;        // number of committed transactions
     long total = 0;            // total number of transactions
@@ -60,17 +59,13 @@ public class ThreadState {
      * Creates new ThreadState
      */
     public ThreadState() {
-        try {
-            manager = (ContentionManager)FortressTaskRunner.contentionManagerClass.newInstance();
-        } catch (NullPointerException e) {
-            throw new PanicException("No default contention manager class set.");
-        } catch (Exception e) {  // Some problem with instantiation
-            throw new PanicException(e);
-        }
+        super();
     }
 
     /* Are we in a transaction? */
     public int transactionNesting() { return depth;}
+
+    public boolean inATransaction() { return depth > 0; }
 
     /**
      * Resets any metering information (commits/aborts, etc).
@@ -102,7 +97,9 @@ public class ThreadState {
     }
 
     public Transaction transaction() { return transaction;}
-    public ContentionManager manager() { return manager;}
+    public ContentionManager manager() {
+        return FortressTaskRunner.getContentionManager();
+    }
     public void addToTotalMemRefs(long num) { totalMemRefs += num;}
     public long memRefs() { return totalMemRefs;}
     public void addToCommittedMemRefs(long num) { committedMemRefs += num;}
@@ -256,6 +253,3 @@ public class ThreadState {
         }
     }
 }
-
-
-
