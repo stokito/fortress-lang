@@ -21,6 +21,7 @@ import jsr166y.forkjoin.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
+import com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager2;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
@@ -31,10 +32,7 @@ import com.sun.fortress.interpreter.evaluator.FortressError;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FortressTaskRunner extends ForkJoinWorkerThread {
- /**
- * Contention manager class.
- */
-    protected static Class contentionManagerClass;
+    private static ContentionManager cm = new FortressManager2();
 /**
  * number of committed transactions for all threads
  */
@@ -66,36 +64,6 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
         super(group);
-        try {
-            Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager2");
-            setContentionManagerClass(managerClass);
-        } catch (ClassNotFoundException ex) {
-            System.out.println("UhOh Contention Manager not found");
-            System.exit(0);
-        }
-    }
-
-
-    /**
-     * Establishes a contention manager.  You must call this method
-     * before creating any <code>Thread</code>.
-     *
-     * @see com.sun.fortress.interpreter.evaluator.transactions.ContentionManager
-     * @param theClass class of desired contention manager.
-     */
-    public static void setContentionManagerClass(Class theClass) {
-        Class cm;
-        try {
-            cm = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
-        } catch (ClassNotFoundException e) {
-            throw new PanicException(e);
-        }
-        try {
-            contentionManagerClass = theClass;
-        } catch (Exception e) {
-            throw new PanicException("The class " + theClass
-                                     + " does not implement com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
-        }
     }
 
     /**
@@ -119,18 +87,18 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      *         there is no current transaction.
      */
     static public Transaction getTransaction() {
+        if (!BaseTask.inATransaction()) return null;
         ThreadState threadState = BaseTask.getThreadState();
         return threadState.transaction();
     }
 
     /**
-     * Gets the contention manager of the invoking <code>Thread</code>.
+     * Gets the contention manager
      *
-     * @return the invoking thread's contention manager
+     * @return the contention manager
      */
     static public ContentionManager getContentionManager() {
-        ThreadState threadState = BaseTask.getThreadState();
-        return threadState.manager();
+        return cm;
     }
 
     public static <T> T doItOnce(Callable<T> xaction) {
@@ -169,7 +137,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
                 T result = doItOnce(xaction);
                 return result;
             } catch (AbortedException e) {
-                if (BaseTask.getThreadState().transactionNesting() > 0) {
+                if (BaseTask.inATransaction()) {
                     throw e;  // to be handled by outermost transaction.
                 }
             }

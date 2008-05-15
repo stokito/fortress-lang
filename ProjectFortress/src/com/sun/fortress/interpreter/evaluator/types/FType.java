@@ -177,6 +177,7 @@ abstract public class FType implements Comparable<FType> {
         for (FType t : getExtends()) {
             for (FType x : t.getExcludes()) {
                 addExclude(x);
+                exclDump(" "+t+" excludes "+x);
             }
         }
         excludesClosed = true;

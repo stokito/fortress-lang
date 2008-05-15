@@ -76,8 +76,8 @@ public class  OverloadedFunction extends Fcn
     protected volatile boolean finishedSecond = true;
     protected IdOrOpOrAnonymousName fnName;
 
-    static final boolean DUMP_EXCLUSION = true;
-    static int excl_skip = 100000000;
+    static final boolean DUMP_EXCLUSION = false;
+    static int excl_skip = 1000000;
 
     public static void exclDump(Object... os) {
         if (DUMP_EXCLUSION && excl_skip <= 0) {

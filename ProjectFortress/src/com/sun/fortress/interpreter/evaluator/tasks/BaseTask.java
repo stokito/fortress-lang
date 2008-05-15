@@ -27,14 +27,12 @@ import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.tasks.ThreadState;
 
 public abstract class BaseTask extends RecursiveAction {
-    Throwable err;
-    boolean causedException;
-    final ThreadState threadState;
+    Throwable err = null;
+    boolean causedException = false;
+    ThreadState threadState = null;
     final BaseTask parent;
 
     public BaseTask() {
-        causedException = false;
-        threadState = new ThreadState();
         parent = getCurrentTask();
     }
 
@@ -73,12 +71,27 @@ public abstract class BaseTask extends RecursiveAction {
         }
     }
 
-    public ThreadState threadState() { return threadState;}
+    public ThreadState threadState() {
+        // invariant: getCurrentTask() == this
+        // we initialize lazily because this is pretty expensive;
+        // don't pay for the transactions unless we actually use them.
+        if (threadState==null) {
+            threadState = new ThreadState();
+        }
+        return threadState;
+    }
+
+    public static boolean inATransaction() {
+        BaseTask task = getCurrentTask();
+        ThreadState t = task.threadState;
+        if (t == null) return false;
+        return (t.inATransaction());
+    }
 
     public static ThreadState getThreadState() {
         BaseTask task = getCurrentTask();
         if (task == null)
             throw new RuntimeException("Not in a task!");
-        return task.threadState;
+        return task.threadState();
     }
 }

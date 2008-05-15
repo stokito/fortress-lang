@@ -81,7 +81,7 @@ object IntLiteral extends Integral
 end
 
 object Boolean
-    extends { SequentialGenerator[\()\], StandardTotalOrder[\Boolean\] }
+    extends { Condition[\()\], StandardTotalOrder[\Boolean\] }
 end
 
 object Char extends { StandardTotalOrder[\Char\] }

@@ -337,7 +337,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         final Evaluator current = new Evaluator(this);
         FValue res = FVoid.V;
         // Inside a transaction tryAtomic is a noop
-        if (BaseTask.getThreadState().transactionNesting() > 1) {
+        if (BaseTask.inATransaction()) {
             Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
             return expr.accept(current);
         }
@@ -479,7 +479,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
      /* If we are already in a transaction, don't evaluate in parallel */
-        } else if (BaseTask.getThreadState().transactionNesting() > 0) {
+        } else if (BaseTask.inATransaction()) {
             for (Expr exp : exprs) {
                 resList.add(exp.accept(this));
             }

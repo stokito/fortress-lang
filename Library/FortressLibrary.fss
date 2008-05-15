@@ -129,7 +129,6 @@ opr =(a:Any, b:Any):Boolean = a SEQV b
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 
 trait Equality[\Self extends Equality[\Self\]\]
-        excludes { Number } (** Until Number is an actual type. **)
     opr =(self, other:Self): Boolean
 end
 
@@ -214,6 +213,7 @@ end
     This is primarily for floating-point values.  Minimal complete
     definition: CMP or { <, = }. **)
 trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
+        extends { Equality[\Self\] }
     opr CMP(self, other:Self): Comparison =
         if self < other then LessThan
         elif other > self then GreaterThan

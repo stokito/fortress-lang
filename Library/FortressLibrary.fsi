@@ -95,7 +95,6 @@ opr =(a:Any, b:Any):Boolean
 opr =/=(a:Any, b:Any):Boolean
 
 trait Equality[\Self extends Equality[\Self\]\]
-        excludes { Number } (* Until Number is an actual type. *)
     abstract opr =(self, other:Self): Boolean
 end
 
@@ -178,6 +177,7 @@ end
     This is primarily for floating-point values.  Minimal complete
     definition: %CMP% or %{ <, = }%. **)
 trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
+        extends { Equality[\Self\] }
     opr CMP(self, other:Self): Comparison
     opr <(self, other:Self): Boolean
     opr >(self, other:Self): Boolean

@@ -33,7 +33,7 @@ trait EquivalenceRelation[\T extends EquivalenceRelation, opr ~\]
 end
 
 trait TotalOrder[\T extends TotalOrder[\T,<,<=,=,>=,>\],opr <,opr <=,opr =,opr >=,opr >\]
-    extends { EquivalenceRelation[\T, =\] } excludes Number (* else ambig overload *)
+    extends { EquivalenceRelation[\T, =\] }
   opr <(self, other:T):Boolean = NOT (self >= other)
   opr <=(self, other:T):Boolean
   opr >(self, other:T):Boolean = NOT (self <= other)
