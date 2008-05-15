@@ -23,24 +23,99 @@ import java.util.List;
 
 import xtc.util.Utilities;
 
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.EnclosingFixity;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpExpr;
+import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.PrefixedSymbol;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
+import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 import edu.rice.cs.plt.tuple.Option;
 
 public class ActionCreaterUtil {
 
     public static List<String> createVariabelBinding(List<Integer> indents,
-            SyntaxDeclEnv syntaxDeclEnv, String BOUND_VARIABLES) {
+            SyntaxDeclEnv syntaxDeclEnv, String BOUND_VARIABLES,
+            boolean isTemplate) {
         List<String> code = new LinkedList<String>();
         indents.add(3);
         code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
+        List<String> listCode = new LinkedList<String>();
         for(Id id: syntaxDeclEnv.getVariables()) {
             indents.add(3);
-            code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+id.getText()+");");
+            String var = id.getText();
+            if (isTemplate) {
+                Type t = syntaxDeclEnv.getType(id);
+                if (t instanceof TraitType) {
+                    TraitType traitType = (TraitType) t;
+                    if (traitType.getName().getText().equals("List")) {
+                        var = getFortressList(id, listCode, indents);
+                    }
+                }
+
+            }
+            code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
         }
-        return code;
+        listCode.addAll(code);
+        return listCode;
+    }
+
+    private static String getFortressList(Id id, List<String> code, List<Integer> indents) {
+        String enclosingName = FreshName.getFreshName("enclosingFixity");
+        indents.add(3);
+        code.add("EnclosingFixity "+enclosingName+" = new EnclosingFixity();");
+        String optionName1 = FreshName.getFreshName("option");
+        indents.add(3);
+        code.add("Option<APIName> "+optionName1+"= Option.<APIName>none();");
+        String optionName2 = FreshName.getFreshName("option");
+        indents.add(3);
+        code.add("Option<Fixity> "+optionName2+" = Option.<Fixity>some("+enclosingName+");");
+        String opName1 = FreshName.getFreshName("op");
+        indents.add(3);
+        code.add("Op "+opName1+" = new Op("+optionName1+", \"<|\", "+optionName2+");");
+
+        enclosingName = FreshName.getFreshName("enclosingFixity");
+        indents.add(3);
+        code.add("EnclosingFixity "+enclosingName+" = new EnclosingFixity();");
+        optionName1 = FreshName.getFreshName("option");
+        indents.add(3);
+        code.add("Option<APIName> "+optionName1+"= Option.<APIName>none();");
+        optionName2 = FreshName.getFreshName("option");
+        indents.add(3);
+        code.add("Option<Fixity> "+optionName2+" = Option.<Fixity>some("+enclosingName+");");
+        String opName2 = FreshName.getFreshName("op");
+        indents.add(3);
+        code.add("Op "+opName2+" = new Op("+optionName1+", \"|>\", "+optionName2+");");
+
+        optionName1 = FreshName.getFreshName("option");
+        indents.add(3);
+        code.add("Option<APIName> "+optionName1+" = Option.<APIName>none();");
+
+        enclosingName = FreshName.getFreshName("enclosing");
+        indents.add(3);
+        code.add("Enclosing "+enclosingName+" = new Enclosing("+optionName1+", "+opName1+", "+opName2+");");
+        String lsName = FreshName.getFreshName("ls");
+        indents.add(3);
+        code.add("List<OpName> "+lsName+" = new LinkedList<OpName>();");
+        indents.add(3);
+        code.add(lsName+".add("+enclosingName+");");
+        String opRefName = FreshName.getFreshName("opRef");
+        indents.add(3);
+        code.add("OpRef "+opRefName+" = new OpRef(false, "+lsName+", new LinkedList<StaticArg>());");
+        String opExprName = FreshName.getFreshName("opExpr");
+        indents.add(3);
+        code.add("OpExpr "+opExprName+" = new OpExpr(true, "+opRefName+", "+id.getText()+".list());");
+        return opExprName;
     }
 
     public static List<String> createRatsAction(String serializedComponent, List<Integer> indents) {
@@ -61,5 +136,5 @@ public class ActionCreaterUtil {
         }
         return code;
     }
-    
+
 }

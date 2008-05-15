@@ -17,6 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -31,7 +32,7 @@ import com.sun.fortress.nodes.TypeArg;
  */
 public class FortressTypeToJavaType {
 
-    public String analyze(BaseType t) {
+    public String analyze(Type t) {
         return t.accept(new NodeDepthFirstVisitor<String>() {
 
             @Override

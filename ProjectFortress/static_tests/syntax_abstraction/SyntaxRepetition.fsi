@@ -24,11 +24,16 @@ api SyntaxRepetition
   object SelectQuery(val:List[\String\]) 
     toString():String
   end
-
+(*
+  object GrammarHelper() 
+    makeObjectInstance(ls:List[\Expr\]):TightJuxt
+  end
+*)
   grammar Select1 extends { A, B, Literal }
       LiteralExpr |Expr:=
         SELECT ATuples* world
         do 
+(*          GrammarHelper().makeObjectInstance(ATuples) *)
           exprs:List[\Expr\] = emptyList[\Expr\](2);
           ids:List[\Id\] = emptyList[\Id\]();
           ids1:List[\Id\] = ids.addRight(Id(Nothing[\APIName\], "SyntaxRepetition"));
@@ -64,9 +69,9 @@ api SyntaxRepetition
   grammar Select2 extends { A, B, Literal }
       LiteralExpr |Expr:=
         SELECT ATuples* from
-        <[ SelectQuery( <| ATuples |> ) ]>
+        <[ SelectQuery( ATuples ) ]>
       | SELECT BTuples* from
-        <[ SelectQuery( <| BTuples |> ) ]>
+        <[ SelectQuery( BTuples ) ]>
   end
  
   grammar A
