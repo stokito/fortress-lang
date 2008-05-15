@@ -344,29 +344,25 @@ public class NodeFactory {
      return new Effect(new Span(loc, loc));
  }
  
+ public static Effect makeEffect(List<BaseType> throwsClause) {
+     return new Effect(FortressUtil.spanAll(throwsClause), Option.some(throwsClause));
+ }
+ 
  public static Effect makeEffect(SourceLoc defaultLoc, List<BaseType> throwsClause) {
-     Span span;
-     if (throwsClause.isEmpty()) { span = new Span(defaultLoc, defaultLoc); }
-     else {
-         span = new Span(throwsClause.get(0).getSpan(),
-                         throwsClause.get(throwsClause.size()-1).getSpan());
-     }
+     return new Effect(FortressUtil.spanAll(defaultLoc, throwsClause),
+                       Option.some(throwsClause));
+ }
+ 
+ public static Effect makeEffect(Option<List<BaseType>> throwsClause) {
+     Span span = FortressUtil.spanAll(throwsClause.unwrap(Collections.<BaseType>emptyList()));
      return new Effect(span, throwsClause);
  }
  
  public static Effect makeEffect(SourceLoc defaultLoc, Option<List<BaseType>> throwsClause) {
-     if (throwsClause.isSome()) { return makeEffect(defaultLoc, throwsClause.unwrap()); }
-     else { return makeEffect(defaultLoc); }
+     Span span = FortressUtil.spanAll(defaultLoc,
+                                      throwsClause.unwrap(Collections.<BaseType>emptyList()));
+     return new Effect(span, throwsClause);
  }
- 
- public static Effect makeEffect(Option<List<BaseType>> throwsClause) {
-     if (throwsClause.isNone()) { return FortressUtil.emptyEffect(); }
-     else {
-         List<BaseType> ts = throwsClause.unwrap();
-         return new Effect(FortressUtil.spanAll(ts), ts);
-     }
- }
- 
  
  public static KeywordType makeKeywordType(Id name, Type type) {
   return new KeywordType(new Span(), name, type);
