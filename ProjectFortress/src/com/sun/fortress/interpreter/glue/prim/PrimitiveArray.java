@@ -56,12 +56,36 @@ public class PrimitiveArray extends NativeConstructor {
         s0 = self_env.getValue("s0").getInt();
     }
 
-    public static final class get extends NativeMeth1 {
+    private static abstract class vi2O extends NativeMeth1 {
+        protected abstract FValue f(AtomicFTypeArray v, int i);
         public FValue act(FObject self, FValue ii) {
-            // System.out.println(self+".get("+ii+")");
             AtomicFTypeArray v = (AtomicFTypeArray) self;
-            // AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
+            return f(v,i);
+        }
+    }
+
+    private static abstract class vio2V extends NativeMeth2 {
+        protected abstract void f(AtomicFTypeArray v, int i, FValue x);
+        public FValue act(FObject self, FValue ii, FValue x) {
+            AtomicFTypeArray v = (AtomicFTypeArray) self;
+            int i = ii.getInt();
+            f(v,i,x);
+            return FVoid.V;
+        }
+    }
+
+    private static abstract class vio2B extends NativeMeth2 {
+        protected abstract boolean f(AtomicFTypeArray v, int i, FValue x);
+        public FValue act(FObject self, FValue ii, FValue x) {
+            AtomicFTypeArray v = (AtomicFTypeArray) self;
+            int i = ii.getInt();
+            return FBool.make(f(v,i,x));
+        }
+    }
+
+    public static final class get extends vi2O {
+        protected FValue f(AtomicFTypeArray v, int i) {
             FValue r = v.get(i);
             if (r==null) {
                 error(errorMsg("Access to uninitialized element ",
@@ -71,24 +95,15 @@ public class PrimitiveArray extends NativeConstructor {
         }
     }
 
-    public static final class put extends NativeMeth2 {
-        public FValue act(FObject self, FValue ii, FValue x) {
-            // System.out.println(self+".put("+ii+","+x+")");
-            AtomicFTypeArray v = (AtomicFTypeArray) self;
-            // AtomicArray<FValue> v = ((Vec)self).a;
-            int i = ii.getInt();
+    public static final class put extends vio2V {
+        protected void f(AtomicFTypeArray v, int i, FValue x) {
             v.set(i,x);
-            return FVoid.V;
         }
     }
 
-    public static final class init0 extends NativeMeth2 {
-        public FValue act(FObject self, FValue ii, FValue x) {
-            // System.out.println(self+".init0("+ii+","+x+")");
-            AtomicFTypeArray v = (AtomicFTypeArray) self;
-            // AtomicArray<FValue> v = ((Vec)self).a;
-            int i = ii.getInt();
-            return FBool.make(v.init(i,x));
+    public static final class init0 extends vio2B {
+        protected boolean f(AtomicFTypeArray v, int i, FValue x) {
+            return v.init(i,x);
         }
     }
 
