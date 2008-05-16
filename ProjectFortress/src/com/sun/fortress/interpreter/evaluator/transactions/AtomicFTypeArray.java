@@ -35,12 +35,13 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * Maurice's code.  Now modified beyond all recognition.
  */
 public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
-    // We always synchronize with any writer of the following array:
-    private final FValue[] array;
     // The native constructor, containing type and method information:
     private final NativeConstructor con;
 
-    // The following is used lock-free and should eventually be sparse:
+    // This contains the actual array data.
+    private final AtomicReferenceArray<FValue> array;
+    // This contains slot access metadata.  It should be made sparse
+    // in some fashion.
     private final AtomicReferenceArray<TransactorRecord> trans;
 
     private static final String FORMAT = "Unexpected transaction state: %s";
@@ -50,7 +51,7 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
     public AtomicFTypeArray(NativeConstructor con, int capacity) {
         super(con);
         this.con     = con;
-        array        = new FValue[capacity];
+        array        = new AtomicReferenceArray<FValue>(capacity);
         trans        = new AtomicReferenceArray<TransactorRecord>(capacity);
     }
 
@@ -70,20 +71,17 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
             // read, we want to just look at the data and return it
             // without allocating a ReadRecord.
             TransactorRecord orig = trans.get(i);
-            // Volatile read happens before regular read.
-            FValue res = array[i];
+            // Volatile read happens before volatile read.
+            FValue res = array.get(i);
             if (orig==null || orig instanceof ReadRecord) {
-                // Must re-check trans.get(i); in order to guarantee
-                // that this happens after res is read, we must also
-                // write.  Thus we CAS.  Want to use weakCAS to keep
-                // this code loop-free, but it doesn't provide
-                // ordering guarantees.
-                if (trans.compareAndSet(i,orig,orig)) {
+                // Must re-check trans.get(i); we had to make array
+                // an AtomicReferenceArray in order to guarantee that
+                // this second check happens after res is read.
+                if (orig==trans.get(i)) {
                     return res;
                 } // else there was contention on the TransactorRecord.
             } // else there is an outstanding write operation; clean it up.
-            return getSlowNT(i);
-        } // else we need to do a full transctional read.
+        } // else we need to do a full transactional read.
         return getSlow(i);
     }
 
@@ -92,7 +90,7 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
             if (TRACE_ARRAY) System.out.println("Slow get("+i+")");
             TransactorRecord orig = trans.get(i);
             TransactorRecord newRec = orig;
-            FValue res = array[i];
+            FValue res = array.get(i);
             if (orig==null) {
                 // Momentary hiccup in fast path; retry it.
             } else if (orig instanceof ReadRecord) {
@@ -106,6 +104,8 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
                     // get rid of it.
                     newRec = null;
                 } else {
+                    // THIS LINE IS SUSPECT; TALK TO VICTOR AGAIN AND/OR
+                    // WORK OUT SOME MORE.  MAY NEED TO AWAIT WRITER.
                     // serialize *before* outstanding writer!
                     res = writeRec.getOldValue();
                 }
@@ -129,7 +129,7 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
                 readRec = potentialReadContention(orig,i);
             }
             if (readRec != null && trans.compareAndSet(i,orig,readRec)) {
-                FValue res = array[i];
+                FValue res = array.get(i);
                 readRec.completed();
                 return res;
             }
@@ -144,8 +144,8 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
             if (orig==null || potentialWriteContention(orig,i)) {
                 WriteRecord writeRec = new WriteRecord();
                 if (trans.compareAndSet(i,orig,writeRec)) {
-                    writeRec.setOldValue(array[i]);
-                    array[i] = v;
+                    writeRec.setOldValue(array.get(i));
+                    array.set(i,v);
                     writeRec.completed();
                     return;
                 }
@@ -173,8 +173,8 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
      * exist.
      **/
     public boolean init(int i, FValue v) {
-        FValue old = array[i];
-        array[i] = v;
+        FValue old = array.get(i);
+        array.set(i,v);
         /* Ensure subsequent reads see our write.  Also destroys
          * atomicity of anything that was trying to concurrently
          * access this element.  Those accesses ought not to exist
@@ -254,7 +254,7 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
     private void restore(WriteRecord writeRec, int i) {
         synchronized(writeRec) {
             if (writeRec.mustRestore()) {
-                array[i] = writeRec.getOldValue();
+                array.set(i,writeRec.getOldValue());
                 if (TRACE_ARRAY) System.out.println("Restored "+i);
                 writeRec.restored();
             }

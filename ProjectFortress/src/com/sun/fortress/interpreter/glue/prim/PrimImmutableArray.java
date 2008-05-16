@@ -86,12 +86,26 @@ public class PrimImmutableArray extends NativeConstructor {
         }
     }
 
-    public static final class get extends NativeMeth1 {
+    private static abstract class vi2O extends NativeMeth1 {
+        protected abstract FValue f(PrimImmutableArrayObject v, int i);
         public FValue act(FObject self, FValue ii) {
-            // System.out.println(self+".get("+ii+")");
             PrimImmutableArrayObject v = (PrimImmutableArrayObject) self;
-            // AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
+            return f(v,i);
+        }
+    }
+
+    private static abstract class vio2B extends NativeMeth2 {
+        protected abstract boolean f(PrimImmutableArrayObject v, int i, FValue x);
+        public FValue act(FObject self, FValue ii, FValue x) {
+            PrimImmutableArrayObject v = (PrimImmutableArrayObject) self;
+            int i = ii.getInt();
+            return FBool.make(f(v,i,x));
+        }
+    }
+
+    public static final class get extends vi2O {
+        protected FValue f(PrimImmutableArrayObject v, int i) {
             FValue r = v.get(i);
             if (r==null) {
                 return error(errorMsg("Access to uninitialized element ",
@@ -101,13 +115,9 @@ public class PrimImmutableArray extends NativeConstructor {
         }
     }
 
-    public static final class init0 extends NativeMeth2 {
-        public FValue act(FObject self, FValue ii, FValue x) {
-            // System.out.println(self+".init0("+ii+","+x+")");
-            PrimImmutableArrayObject v = (PrimImmutableArrayObject) self;
-            // AtomicArray<FValue> v = ((Vec)self).a;
-            int i = ii.getInt();
-            return FBool.make(v.init(i,x));
+    public static final class init0 extends vio2B {
+        protected boolean f(PrimImmutableArrayObject v, int i, FValue x) {
+            return v.init(i,x);
         }
     }
 
