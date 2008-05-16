@@ -18,7 +18,6 @@
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.*;
-import java.lang.Boolean;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
@@ -26,6 +25,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Lambda2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -35,6 +35,17 @@ import com.sun.fortress.compiler.index.*;
 import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
 import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarType;
+import static edu.rice.cs.plt.iter.IterUtil.cross;
+import static edu.rice.cs.plt.iter.IterUtil.collapse;
+import static edu.rice.cs.plt.iter.IterUtil.map;
+import static edu.rice.cs.plt.iter.IterUtil.zip;
+import static edu.rice.cs.plt.iter.IterUtil.singleton;
+import static edu.rice.cs.plt.iter.IterUtil.compose;
+import static edu.rice.cs.plt.iter.IterUtil.skipFirst;
+import static edu.rice.cs.plt.iter.IterUtil.first;
+import static edu.rice.cs.plt.iter.IterUtil.skipLast;
+import static edu.rice.cs.plt.iter.IterUtil.last;
+import static edu.rice.cs.plt.iter.IterUtil.asList;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
@@ -42,13 +53,10 @@ import static edu.rice.cs.plt.debug.DebugUtil.debug;
  * Provides core type analysis algorithms in a specific type context.
  */
 public class TypeAnalyzer {
-    private static final boolean SIMPLIFIED_SUBTYPING = false;
+    private static final boolean SIMPLIFIED_SUBTYPING = true;
 
     private static final int MAX_SUBTYPE_DEPTH = 6;
     private static final int MAX_SUBTYPE_EXPANSIONS = 2;
-
-    private static final Option<List<Type>> THROWS_BOTTOM =
-        Option.some(Collections.singletonList(BOTTOM));
 
     private final TraitTable _table;
     private final StaticParamEnv _staticParamEnv;
@@ -76,31 +84,243 @@ public class TypeAnalyzer {
      * Convert the type to a normal form.
      * A normalized type has the following properties:
      * <ul>
-     * <li>The throws clause of all arrow types is a singleton list.
+     * <li>All component types (subtrees of the AST) are normalized.</li>
+     * <li>A union does not contain other unions.</li>
+     * <li>An intersection does not contain other intersections or unions.</li>
+     * <li>Redundant elements of intersections/unions are eliminated.</li>
+     * <li>Intersections/unions have arity of at least 2.</li>
+     * <li>A tuple has no intersection or union element.</li>
+     * <li>An arrow has neither a union domain nor an intersection range.</li>
+     * <li>TODO: It is not an AbbreviatedType.</li>
+     * <li>TODO: A TraitType does not reference an alias.</li>
      * </ul>
+     * Note that BaseTypes will be mapped to BaseTypes (and thus throws clauses can be
+     * normalized without introducing non-BaseTypes into the list).
      */
     public Type normalize(Type t) {
-        return t;
+        return (Type) t.accept(new NodeUpdateVisitor() {
+            
+            @Override public Type forTupleTypeOnly(TupleType t, List<Type> normalElements) {
+                Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
+                return t.equals(result) ? t : result;
+            }
+            
+            @Override public Type forVarargTupleTypeOnly(VarargTupleType t, List<Type> normalElements,
+                                                         Type normalVarargs) {
+                // the varargs type can be treated like just another tuple element, as far as 
+                // normalization is concerned
+                Lambda<Iterable<Type>, Type> factory = new Lambda<Iterable<Type>, Type>() {
+                    public Type value(Iterable<Type> ts) {
+                        if (IterUtil.isEmpty(ts)) { return VOID; }
+                        else {
+                            List<Type> elts = asList(skipLast(ts));
+                            Type varargs = last(ts);
+                            return new VarargTupleType(elts, varargs);
+                        }
+                    }
+                };
+                Type result = handleAbstractTuple(compose(normalElements, normalVarargs),
+                                                  factory);
+                return t.equals(result) ? t : result;
+            }
+            
+            private Type handleAbstractTuple(Iterable<Type> normalElements,
+                                             final Lambda<Iterable<Type>, Type> factory) {
+                // push unions out:
+                Iterable<Iterable<Type>> elementDisjuncts = map(normalElements, DISJUNCTS);
+                // given a union-less tuple, push intersections out:
+                Lambda<Iterable<Type>, Type> handleDisjunct = new Lambda<Iterable<Type>, Type>() {
+                    public Type value(Iterable<Type> disjunctElts) {
+                        Iterable<Iterable<Type>> elementConjuncts = map(disjunctElts, CONJUNCTS);
+                        // don't meet, because the tuples here aren't subtypes of each other
+                        return makeIntersection(map(cross(elementConjuncts), factory));
+                    }
+                };
+                // don't join, because the tuple intersections here aren't subtypes of each other
+                return makeUnion(map(cross(elementDisjuncts), handleDisjunct));
+            }
+            
+            @Override public Type forArrowTypeOnly(ArrowType t, Domain normalDomain, Type normalRange,
+                                                   final Effect normalEffect) {
+                Type domainArg = stripKeywords(normalDomain);
+                final Map<Id, Type> domainKeys = extractKeywords(normalDomain);
+                Iterable<Type> domainTs = compose(domainArg, domainKeys.values());
+                // map a list of the length of domainTs back to a Domain:
+                Lambda<Iterable<Type>, Domain> domainFactory = new Lambda<Iterable<Type>, Domain>() {
+                    public Domain value(Iterable<Type> ts) {
+                        List<KeywordType> ks = new ArrayList<KeywordType>(domainKeys.size());
+                        for (Pair<Id, Type> p : zip(domainKeys.keySet(), skipFirst(ts))) {
+                            ks.add(new KeywordType(p.first(), p.second()));
+                        }
+                        return makeDomain(first(ts), ks);
+                    }
+                };
+                Iterable<Domain> domains = map(cross(map(domainTs, DISJUNCTS)), domainFactory);
+                Iterable<Type> ranges = liftConjuncts(normalRange);
+                Iterable<Type> overloads = cross(domains, ranges, new Lambda2<Domain, Type, Type>() {
+                    public Type value(Domain d, Type r) {
+                        return new ArrowType(d, r, normalEffect);
+                    }
+                });
+                // TODO: this special treatment is necessary to prevent an arrow from becoming 
+                // Any.  But does this indicate something wrong with the formal rules?
+                Type result = IterUtil.isEmpty(overloads) ?
+                              new ArrowType(normalDomain, normalRange, normalEffect) :
+                              // don't meet, because the arrows here aren't subtypes of each other
+                              makeIntersection(overloads);
+                return t.equals(result) ? t : result;
+            }
+            
+            @Override public Domain forDomain(Domain d) {
+                // recur on a single args type rather than each element individually
+                Type args = stripKeywords(d);
+                Type argsNorm = (Type) args.accept(this);
+                List<KeywordType> ks = d.getKeywords();
+                List<KeywordType> ksNorm = recurOnListOfKeywordType(ks);
+                if (args == argsNorm && ks == ksNorm) { return d; }
+                else { return makeDomain(argsNorm, ksNorm); }
+            }
+            
+            @Override public Type forUnionTypeOnly(UnionType t, List<Type> normalElements) {
+                // collpase nested unions and eliminate redundant elements
+                return joinNormal(collapse(map(normalElements, DISJUNCTS)));
+            }
+            
+            @Override public Type forIntersectionTypeOnly(IntersectionType t,
+                                                          List<Type> normalElements) {
+                // push unions out:
+                Iterable<Iterable<Type>> elementDisjuncts = map(normalElements, DISJUNCTS);
+                // given a union-less intersection, collapse and eliminate redundant elements:
+                Lambda<Iterable<Type>, Type> handleDisjunct = new Lambda<Iterable<Type>, Type>() {
+                    public Type value(Iterable<Type> conjuncts) {
+                        Iterable<Type> collapsed = collapse(map(conjuncts, CONJUNCTS));
+                        return meetNormal(collapsed);
+                    }
+                };
+                // the resulting disjuncts may be redundant, so join
+                return joinNormal(map(cross(elementDisjuncts), handleDisjunct));
+            }
+            
+        });
     }
-
+    
+    /** Lambda for invoking {@link #normalize}. */
+    public final Lambda<Type, Type> NORMALIZE = new Lambda<Type, Type>() {
+        public Type value(Type t) { return normalize(t); }
+    };
+    
+    /**
+     * Restructure the given normalized type so that intersection, rather than union, occurs at
+     * the outermost level.  Produce the minimal list of conjuncts that make up that intersection.
+     */
+    private Iterable<Type> liftConjuncts(Type t) {
+        Iterable<Iterable<Type>> sumOfProducts = map(disjuncts(t), CONJUNCTS);
+        Iterable<Type> conjuncts = map(cross(sumOfProducts), MAKE_UNION);
+        return reduceConjuncts(conjuncts);
+    }
+        
+    /**
+     * Eliminate redundant conjuncts from the given list of normalized types.  A type is
+     * is redundant if some other type in the list is a subtype.  Where two elements are
+     * equivalent, the second of the two will be discarded.
+     */
+    private Iterable<Type> reduceConjuncts(Iterable<Type> conjuncts) {
+        return reduceList(conjuncts, true);
+    }
+    
+    /**
+     * Eliminate redundant disjuncts from the given list of normalized types.  A type is
+     * is redundant if some other type in the list is a supertype.  Where two elements are
+     * equivalent, the second of the two will be discarded.
+     */
+    private Iterable<Type> reduceDisjuncts(Iterable<Type> disjuncts) {
+        return reduceList(disjuncts, false);
+    }
+    
+    /**
+     * Generalization of {@link #reduceConjuncts} and {@link #reduceDisjuncts}: eliminate
+     * redundant elements from the list; where two are equivalent, the second is discarded.
+     * @param preferSubs  If {@code true}, where S is a subtype of T, discard T; otherwise,
+     *                    discard S.
+     */
+    private Iterable<Type> reduceList(Iterable<Type> ts, boolean preferSubs) {
+        if (IterUtil.sizeOf(ts, 2) < 2) { return ts; }
+        else {
+            LinkedList<Type> workList = IterUtil.asLinkedList(ts);
+            List<Type> result = new ArrayList<Type>();
+            Iterable<Type> remainingTs = compose(workList, result);
+            while (!workList.isEmpty()) {
+                // prefer discarding later elements when two are equivalent
+                Type t = workList.removeLast();
+                boolean keep = true;
+                for (Type other : remainingTs) {
+                    // only discard if subtyping holds for all variable instantiations
+                    if (preferSubs) { keep &= ! subtypeNormal(other, t).isTrue(); }
+                    else { keep &= ! subtypeNormal(t, other).isTrue(); }
+                    if (!keep) { break; }
+                }
+                if (keep) { result.add(t); }
+            }
+            return result;
+        }
+    }
+    
+    
 
     /**
-     * Produce a formula that, if satisfied, will support s as a subtype of t.
-     * Assumes s and t are normalized.
+     * Produce a formula that, if satisfied, will support {@code s} as a subtype of {@code t}.
+     * {@code s} and {@code t} need not be normalized.
      */
     public ConstraintFormula subtype(Type s, Type t) {
-        //return ConstraintFormula.TRUE;
         return SIMPLIFIED_SUBTYPING ? sub(s, t, _emptyHistory) : subtype(s, t, _emptyHistory);
     }
 
-    public Type join(Type s, Type t) {
-      return SIMPLIFIED_SUBTYPING ? jn(s, t, _emptyHistory) : join(s, t, _emptyHistory);
+    /**
+     * Given normalized {@code s} and {@code t}, produce a formula that, if satisfied, will
+     * support {@code s} as a subtype of {@code t}.
+     */
+    public ConstraintFormula subtypeNormal(Type s, Type t) {
+        // for now, do nothing special:
+        return subtype(s, t);
+    }
+    
+    /** Create a minimal union representing the join of the given types. */
+    public Type join(Type... ts) {
+        return join(IterUtil.make(ts));
+    }
+    
+    /** Create a minimal union representing the join of the given types. */
+    public Type join(Iterable<Type> ts) {
+        return joinNormal(map(ts, NORMALIZE));
+    }
+    
+    /**
+     * Create a minimal union representing the join of the given
+     * <em>normalized</em> types.
+     */
+    public Type joinNormal(Iterable<Type> ts) {
+        return makeUnion(reduceDisjuncts(ts));
     }
 
-    public Type meet(Type s, Type t) {
-        return SIMPLIFIED_SUBTYPING ? mt(s, t, _emptyHistory) : meet(s, t, _emptyHistory);
+    /** Create a minimal intersection representing the meet of the given types. */
+    public Type meet(Type... ts) {
+        return meet(IterUtil.make(ts));
     }
-
+    
+    /** Create a minimal intersection representing the meet of the given types. */
+    public Type meet(Iterable<Type> ts) {
+        return meetNormal(map(ts, NORMALIZE));
+    }
+    
+    /**
+     * Create a minimal intersection representing the meet of the given
+     * <em>normalized</em> types.
+     */
+    public Type meetNormal(Iterable<Type> ts) {
+        return makeIntersection(reduceConjuncts(ts));
+    }
+    
+    
     private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
