@@ -195,7 +195,12 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
 
 /* TypeRef ::= DottedIdChain StaticArgs? */
 /* TypeRef ::= Id StaticArgs? */
-private Type TypeRef = a1:Id a2:StaticArgs?
+private Type TypeRef =
+     Id wr StaticArgs // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately before left white square bracket.");
+     }
+   / a1:Id a2:StaticArgs?
      { if (a2 == null)
             yyValue = new VarType(createSpan(yyStart,yyCount), a1);
        else yyValue = new TraitType(createSpan(yyStart,yyCount),a1,a2);
@@ -268,7 +273,11 @@ ExtentRange ExtentRange =
    | ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 constant inline Action<Type> Exponentiation =
-     caret a1:IntExpr
+     caret wr IntExpr // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately after '^'.");
+     }
+   / caret a1:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base) ||
@@ -285,6 +294,10 @@ constant inline Action<Type> Exponentiation =
                                            (Type)base, a1);
                }
            }};
+     }
+   / caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately after '^'.");
      }
    / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
      { yyValue = new Action<Type>() {
@@ -393,7 +406,11 @@ constant inline Action<Type> ArrayTypeSizeTrait =
    | ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 constant inline Action<Type> ExponentiationTrait =
-     caret a1:IntExpr
+     caret wr IntExpr // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately after '^'.");
+     }
+   / caret a1:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base) ||
@@ -405,6 +422,10 @@ constant inline Action<Type> ExponentiationTrait =
                return TypeResolver.makeMatrixType(createSpan(yyStart,yyCount),
                                                   (Type)base, a1);
            }};
+     }
+   / caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately after '^'.");
      }
    / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
      { yyValue = new Action<Type>() {

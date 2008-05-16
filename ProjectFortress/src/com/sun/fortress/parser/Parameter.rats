@@ -55,7 +55,19 @@ List<Param> AbsValParam =
    |  Param (w , w Param)*
  */
 List<Param> Params =
-     a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
+     (Param w comma w)+ (Keyword w comma w)+ Varargs // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Varargs parameters should come before keyword parameters.");
+     }
+   / Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)* // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Normal parameters should come before varargs parameters and keyword parameters.");
+     }
+   / Varargs (w comma w Param)+ (w comma w Keyword)* // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Normal parameters should come before varargs parameters.");
+     }
+   / a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
      { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list());
        if (a2 != null) yyValue.add(a2);
@@ -73,7 +85,19 @@ List<Param> Params =
    |  AbsParam (w , w AbsParam)*
  */
 List<Param> AbsParams =
-     a1s:(AbsParam w comma w)* a2:(Varargs w comma w)? a3:Keyword
+     (AbsParam w comma w)+ (Keyword w comma w)+ Varargs // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Varargs parameters should come before keyword parameters.");
+     }
+   / Varargs w comma w (Keyword w comma w)+ AbsParam (w comma w AbsParam)* // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Normal parameters should come before varargs parameters and keyword parameters.");
+     }
+   / Varargs (w comma w AbsParam)+ (w comma w Keyword)* // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Normal parameters should come before varargs parameters.");
+     }
+   / a1s:(AbsParam w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
      { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list());
        if (a2 != null) yyValue.add(a2);
