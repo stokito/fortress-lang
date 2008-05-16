@@ -25,9 +25,8 @@ api SyntaxExtends
     Decl |List[\Decl\]:=
       some Thing 
         do
-          name : SimpleName = Id("some" Thing.val)
           fnDef : FnDef = FnDef(emptyList[\Modifier\](), 
-                     name,
+                     Id(Nothing[\APIName\], "some" Thing.val),
                      emptyList[\StaticParam\](),
                      emptyList[\Param\](),
                      Nothing[\Type\],
@@ -43,12 +42,12 @@ api SyntaxExtends
 
   grammar B extends { C1, C2 }
     Thing |StringLiteralExpr:=
-      thingB1 do StringLiteralExpr(thingB1.val) end
+      thingB1 <[ thingB1 ]>
   end
 
   grammar C
     Thing :StringLiteralExpr:=
-      thingC do StringLiteralExpr(thingC.val) end
+      thingC0 <[ thingC0 ]>
   end
 
   grammar D extends { Expression, C }
@@ -61,25 +60,26 @@ api SyntaxExtends
 
   grammar C1 extends C
     Thing |Expr:=
-      thingC1 do StringLiteralExpr(thingC1.val) end
+      thingC1 <[ thingC1 ]>
 
     Gnu :Expr:= 
       Thing do Thing.val end
+
   end
 
   grammar C2 extends C
     Thing |Expr:=
-      thingC2 do StringLiteralExpr(thingC2.val) end
+      thingC2 <[ thingC2 ]>
   end
 
   grammar E
     Thing :StringLiteralExpr:=
-      Foo do StringLiteralExpr(Foo.val) end
+      Foo <[ Foo ]>
   end
 
   grammar F extends C
     Thing |StringLiteralExpr:=
-      thingF do StringLiteralExpr(thingF.val) end
+      thingF <[ thingF ]>
   end
 
 end
