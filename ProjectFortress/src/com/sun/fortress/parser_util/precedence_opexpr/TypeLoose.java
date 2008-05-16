@@ -18,7 +18,7 @@
 package com.sun.fortress.parser_util.precedence_opexpr;
 
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrDomain;
 import com.sun.fortress.nodes.Effect;
 
 
@@ -33,7 +33,7 @@ public class TypeLoose extends TypeInfixFrame {
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public TypeLoose(Op in_op, Effect in_effect,
-                    Type in_arg) {
+                    TypeOrDomain in_arg) {
       super(in_op, in_effect, in_arg);
    }
 

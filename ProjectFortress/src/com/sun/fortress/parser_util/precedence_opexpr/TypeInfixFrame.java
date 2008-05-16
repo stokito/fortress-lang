@@ -18,7 +18,7 @@
 package com.sun.fortress.parser_util.precedence_opexpr;
 
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrDomain;
 import com.sun.fortress.nodes.Effect;
 
 /**
@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.Effect;
 public abstract class TypeInfixFrame extends Object implements InfixFrame {
    private final Op _op;
    private final Effect _effect;
-   private final Type _arg;
+   private final TypeOrDomain _arg;
    private int _hashCode;
    private boolean _hasHashCode = false;
 
@@ -36,7 +36,7 @@ public abstract class TypeInfixFrame extends Object implements InfixFrame {
     * Constructs a TypeInfixFrame.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public TypeInfixFrame(Op in_op, Effect in_effect, Type in_arg) {
+   public TypeInfixFrame(Op in_op, Effect in_effect, TypeOrDomain in_arg) {
       super();
       _op = in_op;
       _effect = in_effect;
@@ -45,7 +45,7 @@ public abstract class TypeInfixFrame extends Object implements InfixFrame {
 
    public Op getOp() { return _op; }
    public Effect getEffect() { return _effect; }
-   public Type getArg() { return _arg; }
+   public TypeOrDomain getArg() { return _arg; }
 
    public abstract <RetType> RetType accept(InfixFrameVisitor<RetType> visitor);
    public abstract void accept(InfixFrameVisitor_void visitor);

@@ -131,8 +131,10 @@ PureList<PostfixOpExpr> LooseInfix =
      { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); };
 
 /* TypePrimaryFront ::= TypeFront TypeTail* */
-Type TypePrimaryFront =
-    seed:TypeFront list:TypeTail* { yyValue = (Type)apply(list, seed); };
+TypeOrDomain TypePrimaryFront =
+    seed:TypeFront list:TypeTail+
+    { yyValue = (Type)apply(list, (Type)seed); }
+  / yyValue:TypeFront ;
 
 /* TypeFront ::=
      ParenthesizedType
@@ -142,7 +144,7 @@ Type TypePrimaryFront =
    | VoidType
    | 1
  */
-private Type TypeFront =
+private TypeOrDomain TypeFront =
      ParenthesizedType
    / Domain
    / TupleType
@@ -350,14 +352,12 @@ BaseType TraitType =
 
 /* TraitTypeFront ::=
      ParenthesizedType
-   | Domain
    | TupleType
    | TypeRef
    | VoidType
  */
 private Type TraitTypeFront =
      ParenthesizedType
-   / Domain
    / TupleType
    / TypeRef
    / VoidType

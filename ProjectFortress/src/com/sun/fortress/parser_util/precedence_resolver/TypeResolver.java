@@ -79,7 +79,8 @@ public class TypeResolver {
                                  expr0.getUnit());
     }
 
-    private static Type makeJuxt(Type first, Type second) throws ReadError {
+    private static TypeOrDomain makeJuxt(TypeOrDomain first,
+                                         TypeOrDomain second) throws ReadError {
         Span span = spanTwo(first, second);
         try {
             DimExpr dim = typeToDim(second);
@@ -101,7 +102,7 @@ public class TypeResolver {
     }
 
     private static PureList<TypeInfixFrame>
-        looseInfixStack(Type e, Op op, Effect effect,
+        looseInfixStack(TypeOrDomain e, Op op, Effect effect,
                         PureList<TypeInfixFrame> stack) throws ReadError {
         if (stack.isEmpty()) {
             return PureList.<TypeInfixFrame>make(new TypeLoose(op, effect, e));
@@ -123,7 +124,7 @@ public class TypeResolver {
                 }
             } else { // (frame instanceof TypeLoose)
                 Op _op = ((TypeLoose)frame).getOp();
-                Type first = ((TypeLoose)frame).getArg();
+                TypeOrDomain first = ((TypeLoose)frame).getArg();
                 Span span = spanTwo(first, e);
                 if (op.getText().equals(_op.getText())) {
                     if (isDOT(op)) {
@@ -166,7 +167,7 @@ public class TypeResolver {
     }
 
   private static PureList<TypeInfixFrame>
-      tightInfixStack(Type e, Op op, Effect effect,
+      tightInfixStack(TypeOrDomain e, Op op, Effect effect,
                       PureList<TypeInfixFrame> stack) throws ReadError {
       if (stack.isEmpty()) {
           return PureList.<TypeInfixFrame>make(new TypeTight(op, effect, e));
@@ -187,7 +188,7 @@ public class TypeResolver {
               }
           } else { // (frame instanceof TypeTight)
               Op _op = ((TypeTight)frame).getOp();
-              Type first = ((TypeTight)frame).getArg();
+              TypeOrDomain first = ((TypeTight)frame).getArg();
               Span span = spanTwo(first, e);
               if (op.getText().equals(_op.getText())) {
                   if (isDOT(op)) {
@@ -230,10 +231,11 @@ public class TypeResolver {
       }
   }
 
-    private static Type finishInfixFrame(Type last, TypeInfixFrame frame)
+    private static TypeOrDomain finishInfixFrame(TypeOrDomain last,
+                                                 TypeInfixFrame frame)
         throws ReadError {
         Op op = frame.getOp();
-        Type first = frame.getArg();
+        TypeOrDomain first = frame.getArg();
         if (isTypeOp(op)) {
             return new ArrowType(spanTwo(first, last), typeToDomain(first),
                                  typeToType(last), frame.getEffect());
@@ -265,8 +267,8 @@ public class TypeResolver {
         }
     }
 
-    private static Type finishInfixStack(Type last,
-                                         PureList<TypeInfixFrame> stack)
+    private static TypeOrDomain finishInfixStack(TypeOrDomain last,
+                                                 PureList<TypeInfixFrame> stack)
         throws ReadError {
         if (stack.isEmpty()) {
             return last;
@@ -277,8 +279,8 @@ public class TypeResolver {
         }
     }
 
-    private static Type resolveInfixStack(PureList<InfixOpExpr> opTypes,
-                                          PureList<TypeInfixFrame> stack)
+    private static TypeOrDomain resolveInfixStack(PureList<InfixOpExpr> opTypes,
+                                                  PureList<TypeInfixFrame> stack)
         throws ReadError {
         if (opTypes.isEmpty()) {
             throw new ReadError(new Span(),
@@ -289,7 +291,7 @@ public class TypeResolver {
                 throw new ReadError(new Span(),
                                     "A type or dimension is expected.");
             }
-            Type type = ((RealType)first).getType();
+            TypeOrDomain type = ((RealType)first).getType();
             if (opTypes.size() == 1) {
                 return finishInfixStack(type, stack);
             }
@@ -343,22 +345,22 @@ public class TypeResolver {
         }
     }
 
-    private static Type resolveInfix(PureList<InfixOpExpr> opTypes)
+    private static TypeOrDomain resolveInfix(PureList<InfixOpExpr> opTypes)
         throws ReadError {
         if (isVerbose) System.out.println("resolveInfix...");
         return resolveInfixStack(opTypes, PureList.<TypeInfixFrame>make());
     }
 
     private static PureList<InfixOpExpr> buildJuxt(PureList<InfixOpExpr> opTypes,
-                                                   PureList<Type> revTypes)
+                                                   PureList<TypeOrDomain> revTypes)
         throws ReadError {
         if (revTypes.size() < 2) {
             throw new ReadError(new Span(),
                                 "Misuse of type/dimension juxtaposition.");
         }
         Object[] prefix = revTypes.toArray(2);
-        Type first = (Type)prefix[1];
-        Type second = (Type)prefix[0];
+        TypeOrDomain first = (TypeOrDomain)prefix[1];
+        TypeOrDomain second = (TypeOrDomain)prefix[0];
         Span span = spanTwo(first, second);
         if (revTypes.size() > 2) {
             throw new ReadError(span, "Too much types/dimensions juxtaposed.");
@@ -372,7 +374,7 @@ public class TypeResolver {
                                 _first.getOp().toString() + ".");
         } else if (!opTypes.isEmpty() &&
                    ((Cons<InfixOpExpr>)opTypes).getFirst() instanceof RealType) {
-            Type _first =
+            TypeOrDomain _first =
                 ((RealType)((Cons<InfixOpExpr>)opTypes).getFirst()).getType();
             PureList<InfixOpExpr> rest = ((Cons<InfixOpExpr>)opTypes).getRest();
             return buildJuxt(rest, PureList.make(_first,makeJuxt(first,second)));
@@ -507,7 +509,7 @@ public class TypeResolver {
                         try {
                             DimExpr expr2 =
                                 typeToDim(((RealType)prefix[2]).getType());
-                            Type expr0 = ((RealType)prefix[0]).getType();
+                            TypeOrDomain expr0 = ((RealType)prefix[0]).getType();
                             Span span = spanTwo(expr0, expr2);
                             Type e;
                             try {
@@ -570,7 +572,7 @@ public class TypeResolver {
         }
     }
 
-    private static Type buildLayer(PureList<PostfixOpExpr> opTypes)
+    private static TypeOrDomain buildLayer(PureList<PostfixOpExpr> opTypes)
         throws ReadError {
         return resolveInfix
                    (resolveJuxt
@@ -579,7 +581,7 @@ public class TypeResolver {
                               (resolvePostfix (opTypes)))));
     }
 
-    private static Type typeToType(Type type) {
+    private static Type typeToType(TypeOrDomain type) {
         return (Type) type.accept(new NodeUpdateVisitor() {
             public Type forExponentType(ExponentType t) {
                 return makeMatrixType(t.getSpan(), typeToType(t.getBase()),
@@ -598,10 +600,10 @@ public class TypeResolver {
             }
         });
     }
-    
-    private static Domain typeToDomain(Type type) {
+
+    private static Domain typeToDomain(TypeOrDomain type) {
         if (type instanceof Domain) { return (Domain) type; }
-        else {
+        else { // type instanceof Type
             List<Type> args;
             if (type instanceof VoidType) {
                 args = Collections.emptyList();
@@ -616,11 +618,11 @@ public class TypeResolver {
             else {
                 args = Collections.singletonList(typeToType(type));
             }
-            return new Domain(type.getSpan(), type.isParenthesized(), args);
+            return new Domain(type.getSpan(), args);
         }
     }
 
-    public static DimExpr typeToDim(Type type) throws TypeConvertFailure {
+    public static DimExpr typeToDim(TypeOrDomain type) throws TypeConvertFailure {
         try {
             return type.accept(new NodeAbstractVisitor<DimExpr>() {
                 public DimExpr forDimExpr(DimExpr t) {
@@ -738,13 +740,13 @@ public class TypeResolver {
                 }
                 System.out.println(")");
             }
-            Type type = buildLayer(opTypes);
+            TypeOrDomain type = buildLayer(opTypes);
             if (isVerbose) System.out.println("after resolveOps: " + type);
             try {
                 if (type instanceof DimExpr) return dimToType((DimExpr)type);
                 else return typeToType(type);
             } catch (TypeConvertFailure x) {
-                return type;
+                return (Type)type;
             }
         } catch (Throwable e) {
             String msg = e.getMessage();
@@ -757,7 +759,7 @@ public class TypeResolver {
 
     public static DimExpr resolveOpsDim(PureList<PostfixOpExpr> opTypes) {
         try {
-            Type type = buildLayer(opTypes);
+            TypeOrDomain type = buildLayer(opTypes);
             try {
                 if (type instanceof DimExpr) return typeToDim((DimExpr)type);
                 else return typeToDim(type);

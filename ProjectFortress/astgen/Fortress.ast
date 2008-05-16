@@ -107,6 +107,11 @@ interface GenericAbsDeclOrDeclWithParams() extends GenericWithParams,
     interface GenericDeclWithParams() extends GenericDecl;
 
 /**
+ * type or the domain of an arrow type
+ */
+interface TypeOrDomain(ignoreForEquals Span span = new Span()) extends HasAt, Node;
+
+/**
  * top-level node abstract class
  */
 abstract AbstractNode(ignoreForEquals Span span = new Span())
@@ -1185,7 +1190,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * type
      */
-    abstract Type(ignoreForEquals boolean parenthesized = false);
+    abstract Type(ignoreForEquals boolean parenthesized = false)
+                 implements TypeOrDomain;
         /**
          * dimension expression (not really a type, but here for
          * now because of the way the parser is defined)
@@ -1229,20 +1235,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) Time squared
              */
             OpDim(DimExpr val, Op op);
-        /**
-         * domain of an arrow type (not really a type, but here for
-         * now because of the way the parser is defined)
-         * Domain ::=
-         *     ( w (Type w , w)* (Type w ... w , w)? KeywordType (w , w KeywordType)* w )
-         *   | ( w (Type w , w)* Type w ... w )
-         *   | [other cases parsed elsewhere]
-         * e.g.)
-         * ZZ32
-         * (String, ZZ32, String..., foo=ZZ32)
-         */
-        Domain(List<Type> args,
-               Option<Type> varargs = Option.<Type>none(),
-               List<KeywordType> keywords = Collections.<KeywordType>emptyList());
         /**
          * base types: things that can be extended, excluded, thrown, etc.
          */
@@ -1317,7 +1309,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             TupleType();
             /**
-             * Used internally to represent an infinite union of 
+             * Used internally to represent an infinite union of
              * TupleTypes.
              */
             VarargTupleType(Type varargs);
@@ -1373,10 +1365,25 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * The type of the name given to a label expression.  Used internally.
          */
         LabelType();
-        
+    /**
+     * domain of an arrow type
+     * ArgType ::=
+     *     ( (Type, )* (Type ... , )? KeywordType(, KeywordType)* )
+     *   | ( (Type, )* Type ... )
+     *   | TupleType
+     * e.g.)
+     * ZZ32
+     * (String, ZZ32, String..., foo=ZZ32)
+     */
+    Domain(List<Type> args,
+           Option<Type> varargs = Option.<Type>none(),
+           List<KeywordType> keywords = Collections.<KeywordType>emptyList())
+          implements TypeOrDomain;
+    /**
+     * effect on arrow types
+     */
     Effect(Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
            boolean io = false);
-
     /**
      * static argument
      */
