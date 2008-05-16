@@ -23,7 +23,7 @@ component SyntaxExtendsUse
 
   some thingB1
 
-  some thingC
+  some thingC0 
 
   some thingC1
 
@@ -31,5 +31,5 @@ component SyntaxExtendsUse
 
   some thingF
 
-  run(args:String...) = print (somethingB1() ", " somethingC() ", " somethingC1() ", " somethingC2() ", and " somethingF())
+  run(args:String...) = print (somethingB1() ", " somethingC0() ", " somethingC1() ", " somethingC2() ", and " somethingF())
 end

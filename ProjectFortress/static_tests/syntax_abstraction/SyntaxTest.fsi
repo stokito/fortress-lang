@@ -26,10 +26,9 @@ api SyntaxTest
         Fortress is very? a:cool# b:, indeed Verys* c:cool
         do 
           ids: List[\Id\] = emptyList[\Id\](1)
-          ids1: List[\Id\] = ids.addRight(Id("FortressLibrary"))
+          ids1: List[\Id\] = ids.addRight(Id(Nothing[\APIName\], "FortressLibrary"))
           apiName:APIName = APIName(ids1)
-          printName:Id = Id("print")
-          name: QualifiedIdName = QualifiedIdName(Just[\APIName\](apiName), printName)
+          name:Id = Id(Just[\APIName\](apiName), "print")
           exprs: List[\Expr\] = emptyList[\Expr\](2)
           exprs1: List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()))
           es:List[\Expr\] = if v <- very then
@@ -40,7 +39,8 @@ api SyntaxTest
           LooseJuxt(es)
         end
 
-      Verys :StringLiteralExpr:= SPACE a:very do StringLiteralExpr(a.val) end
+      Verys :StringLiteralExpr:= 
+        SPACE a:very do StringLiteralExpr(a.val) end
   end
  
 end

@@ -146,8 +146,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs,
 			String name, BaseType type) {
 		List<Sequence> sequence = new LinkedList<Sequence>();
+		int inx = 1;
 		for (SyntaxDef syntaxDef: syntaxDefs) {
-			sequence.add(visitSyntaxDef(syntaxDef, name, type));
+			sequence.add(visitSyntaxDef(syntaxDef, name+"_"+inx, type));
 		}
 		return sequence;
 	}
