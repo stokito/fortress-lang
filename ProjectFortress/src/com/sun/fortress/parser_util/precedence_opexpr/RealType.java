@@ -17,7 +17,7 @@
 
 package com.sun.fortress.parser_util.precedence_opexpr;
 
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrDomain;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes_util.NodeUtil;
 
@@ -26,7 +26,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
  * Note: null is not allowed as a getVal for any field.
  */
 public class RealType extends Object implements InfixOpExpr {
-   private final Type _type;
+   private final TypeOrDomain _type;
    private int _hashCode;
    private boolean _hasHashCode = false;
 
@@ -34,7 +34,7 @@ public class RealType extends Object implements InfixOpExpr {
     * Constructs a RealType.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public RealType(Type in_type) {
+   public RealType(TypeOrDomain in_type) {
       super();
 
       if (in_type == null) {
@@ -43,7 +43,7 @@ public class RealType extends Object implements InfixOpExpr {
       _type = in_type;
    }
 
-   final public Type getType() { return _type; }
+   final public TypeOrDomain getType() { return _type; }
 
    public <RetType> RetType accept(OpExprVisitor<RetType> visitor) { return visitor.forRealType(this); }
    public void accept(OpExprVisitor_void visitor) { visitor.forRealType(this); }
@@ -71,7 +71,7 @@ public class RealType extends Object implements InfixOpExpr {
 
       writer.print(" ");
       writer.print("type = ");
-      Type temp_type = getType();
+      TypeOrDomain temp_type = getType();
       if (temp_type == null) {
          writer.print("null");
       } else {

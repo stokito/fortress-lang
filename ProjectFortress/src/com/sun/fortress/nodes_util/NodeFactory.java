@@ -265,7 +265,7 @@ public class NodeFactory {
  public static TraitType makeTraitType(Id name) {
   return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList());
  }
- 
+
  public static IntersectionType makeIntersectionType(Type t1, Type t2) {
      return new IntersectionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
  }
@@ -283,11 +283,11 @@ public class NodeFactory {
 //      Option.<List<Type>>none();
 //     return new ArrowType(span, domain, range, throwsAsTypeList);
 // }
- 
+
  public static ArrowType makeArrowType(Span span, Type domain, Type range) {
      return new ArrowType(span, makeDomain(domain), range, makeEffect(range.getSpan().getEnd()));
  }
- 
+
 // public static AbstractArrowType makeGenericArrowType(Span span,
 //   List<StaticParam> staticParams,
 //   Type domain,
@@ -316,54 +316,47 @@ public class NodeFactory {
 //  return new _RewriteGenericArrowType(span, domain, range,
 //    Option.<List<Type>>none(), staticParams, new WhereClause());
 // }
- 
+
  /** If args is a tuple or void, extract a list; otherwise, make a singleton */
  public static Domain makeDomain(Type args) {
-     boolean parenthesized;
      List<Type> argsList;
      if (args instanceof VoidType) {
-         parenthesized = args.isParenthesized();
          argsList = Collections.emptyList();
      }
      else if (args instanceof TupleType) {
-         parenthesized = args.isParenthesized();
          argsList = ((TupleType) args).getElements();
      }
-     else if (args instanceof Domain) {
-         throw new IllegalArgumentException("A domain is not a type; just use ArrowType constructor");
-     }
      else {
-         parenthesized = false;
          argsList = Collections.singletonList(args);
      }
-     return new Domain(args.getSpan(), parenthesized, argsList);
+     return new Domain(args.getSpan(), argsList);
  }
- 
+
  /** Create an "empty" effect at the given location. */
  public static Effect makeEffect(SourceLoc loc) {
      return new Effect(new Span(loc, loc));
  }
- 
+
  public static Effect makeEffect(List<BaseType> throwsClause) {
      return new Effect(FortressUtil.spanAll(throwsClause), Option.some(throwsClause));
  }
- 
+
  public static Effect makeEffect(SourceLoc defaultLoc, List<BaseType> throwsClause) {
      return new Effect(FortressUtil.spanAll(defaultLoc, throwsClause),
                        Option.some(throwsClause));
  }
- 
+
  public static Effect makeEffect(Option<List<BaseType>> throwsClause) {
      Span span = FortressUtil.spanAll(throwsClause.unwrap(Collections.<BaseType>emptyList()));
      return new Effect(span, throwsClause);
  }
- 
+
  public static Effect makeEffect(SourceLoc defaultLoc, Option<List<BaseType>> throwsClause) {
      Span span = FortressUtil.spanAll(defaultLoc,
                                       throwsClause.unwrap(Collections.<BaseType>emptyList()));
      return new Effect(span, throwsClause);
  }
- 
+
  public static KeywordType makeKeywordType(Id name, Type type) {
   return new KeywordType(new Span(), name, type);
  }
@@ -504,7 +497,7 @@ public class NodeFactory {
  public static Id makeId(Span span, APIName api, String name) {
   return new Id(span, Option.some(api), name);
  }
- 
+
  /**
   * Alternatively, you can invoke the FnDef constructor without a selfName
   */
