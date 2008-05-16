@@ -257,7 +257,20 @@ Expr MapExpr =
               RightEncloser
  */
 FlowExpr Comprehension =
-     (BIG w)? opensquare a1:StaticArgs? w a2:ArrayComprehensionClause
+     (BIG w)? opensquare wr StaticArgs w ArrayComprehensionClause
+     (br ArrayComprehensionClause)* w closesquare // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately before left white square bracket.");
+     }
+   / (BIG w)? opencurly wr StaticArgs w Entry wr bar wr GeneratorClauseList w closecurly // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately before left white square bracket.");
+     }
+   / (BIG w)? LeftEncloser wr StaticArgs w Expr wr bar wr GeneratorClauseList w RightEncloser // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately before left white square bracket.");
+     }
+   / (BIG w)? opensquare a1:StaticArgs? w a2:ArrayComprehensionClause
      a3s:(br ArrayComprehensionClause)* w closesquare
      { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a2,
                                                                     a3s.list());
