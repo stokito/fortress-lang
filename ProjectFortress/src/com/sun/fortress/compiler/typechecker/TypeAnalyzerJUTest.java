@@ -22,6 +22,7 @@ import java.util.*;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -54,6 +55,35 @@ public class TypeAnalyzerJUTest extends TestCase {
 
     private static ConstraintFormula sub(TypeAnalyzer ta, Type s, Type t) {
         return ta.subtype(s, t);
+    }
+    
+    private static Type norm(TypeAnalyzer ta, String t) {
+        return ta.normalize(parseType(t));
+    }
+    
+    public void testNormalize() {
+        debug.logStart();
+        
+        TypeAnalyzer t = makeAnalyzer(trait("A"),
+                                      trait("B", "A"),
+                                      trait("C", "B"),
+                                      trait("D", "B"));
+        
+        assertEquals(type("A"), norm(t, "A"));
+        assertEquals(type("Any"), norm(t, "Any"));
+        assertEquals(type("Bottom"), norm(t, "Bottom"));
+        assertEquals(type("()"), norm(t, "()"));
+        assertEquals(type("(A,B)"), norm(t, "(A,B)"));
+        assertEquals(type("Bottom"), norm(t, "(A,Bottom)"));
+        //TODO: assertEquals(type("(A,Any)"), norm(t, "(A,Any)"));
+        assertEquals(type("B"), norm(t, "A&B"));
+        assertEquals(type("A"), norm(t, "A|B"));
+        //assertEquals(type("Any"), norm(t, "&{}"));
+        assertEquals(type("()"), norm(t, "&{()}"));
+        //assertEquals(type("&{C,D}"), norm(t, "&{A,B,C,D}"));
+        //assertEquals(type("Bottom"), norm(t, "|{}"));
+        assertEquals(type("()"), norm(t, "|{()}"));
+        assertEquals(type("A"), norm(t, "|{A,B,C,D}"));
     }
 
     public void testBasicTraitSubtyping() {
@@ -333,36 +363,73 @@ public class TypeAnalyzerJUTest extends TestCase {
                                     CollectUtil.<IdOrOpOrAnonymousName, Method>emptyRelation(),
                                     CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }
+    
+    /** Shortcut for parseType */
+    private static Type type(String s) { return parseType(s); }
 
     private static Type parseType(String s) {
         s = s.trim();
         if (s.contains("->")) {
-            int arrowIndex = s.indexOf("->");
-            Type left = parseType(s.substring(0, arrowIndex));
-            Type right = parseType(s.substring(arrowIndex+2));
-            return new ArrowType(NodeFactory.makeDomain(left), right);
+            Pair<Type, Type> p = parseBinaryType(s, "->");
+            return new ArrowType(NodeFactory.makeDomain(p.first()), p.second());
         }
         else if (s.contains("|")) {
-            int orIndex = s.indexOf("|");
-            Type left = parseType(s.substring(0, orIndex));
-            Type right = parseType(s.substring(orIndex+1));
-            return NodeFactory.makeUnionType(left, right);
+            if (s.startsWith("|")) {
+                return new UnionType(parseTypeList(s, "|{", "}"));
+            }
+            else {
+                Pair<Type, Type> p = parseBinaryType(s, "|");
+                return NodeFactory.makeUnionType(p.first(), p.second());
+            }
         }
         else if (s.contains("&")) {
-            int andIndex = s.indexOf("&");
-            Type left = parseType(s.substring(0, andIndex));
-            Type right = parseType(s.substring(andIndex+1));
-            return NodeFactory.makeIntersectionType(left, right);
+            if (s.startsWith("&")) {
+                return new IntersectionType(parseTypeList(s, "&{", "}"));
+            }
+            else {
+                Pair<Type, Type> p = parseBinaryType(s, "&");
+                return NodeFactory.makeIntersectionType(p.first(), p.second());
+            }
         }
         else if (s.startsWith("#")) {
             return new InferenceVarType(s);
         }
+        else if (s.equals("()")) {
+            return VOID;
+        }
+        else if (s.startsWith("(")) {
+            boolean varargs = s.endsWith("...)");
+            if (varargs) { s = s.substring(0, s.length()-4) + ")"; }
+            List<Type> ts = parseTypeList(s, "(", ")");
+            if (varargs) { return new VarargTupleType(ts, ts.remove(ts.size()-1)); }
+            else { return new TupleType(ts); }
+        }
+        else if (s.equals("Any")) { return ANY; }
+        else if (s.equals("Bottom")) { return BOTTOM; }
         else if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {
             return NodeFactory.makeVarType(s);
         }
         else {
             return NodeFactory.makeTraitType(s);
         }
+    }
+    
+    private static Pair<Type, Type> parseBinaryType(String s, String top) {
+        int opIndex = s.indexOf(top);
+        Type left = parseType(s.substring(0, opIndex));
+        Type right = parseType(s.substring(opIndex+top.length()));
+        return Pair.make(left, right);
+    }
+    
+    private static List<Type> parseTypeList(String s, String leftDelim, String rightDelim) {
+        if (!s.startsWith(leftDelim) || !s.endsWith(rightDelim)) {
+            throw new IllegalArgumentException();
+        }
+        String[] elts = s.substring(leftDelim.length(),
+                                    s.length()-rightDelim.length()).split(",");
+        LinkedList<Type> ts = new LinkedList<Type>();
+        for (String elt : elts) { ts.add(parseType(elt)); }
+        return ts;
     }
 
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */
