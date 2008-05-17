@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -265,17 +265,17 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
                 root = new BATreeNode<T, U>(k, d, null, null);
                 return d;
             }
-           
+
             next = root.add(k, d, comp);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (next.weight == root.weight) 
+            if (next.weight == root.weight)
                 return root.getObject(k, comp).getValue();
-            
+
             root = next;
             return d;
         }
-       
+
     }
 
     public void clear() {
