@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -35,7 +35,7 @@ import com.sun.fortress.useful.BoundingMap;
 public class FTypeTraitInstance extends FTypeTrait implements
         GenericTypeInstance {
 
-    
+
     /**
      * @deprecated
      * @param name
@@ -68,7 +68,7 @@ public class FTypeTraitInstance extends FTypeTrait implements
             isSymbolic = true;
     }
 
-    
+
     final private FTypeGeneric generic;
 
     final private List<FType> bind_args;

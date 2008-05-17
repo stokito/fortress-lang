@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,7 +20,7 @@ package com.sun.fortress.syntax_abstractions.rats.util;
 public class FreshName {
 
 	private static int freshid = 0;
-	
+
 	public static String getFreshName(String s) {
 		return s+(++freshid);
 	}

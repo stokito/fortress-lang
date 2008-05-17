@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * during value creation (which may recursively access lazy memo functions)
  * and uses a private copy of the memo function to shield mutators from
  * half-initialized data.
- * 
+ *
  * @author chase
  */
 public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value, Param>
@@ -37,11 +37,11 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
     LazyFactory1P<Index, Value, Param> factory;
 
     volatile BATree<Index, Value> map;
-    
+
     volatile BATree<Index, Value> shadow_map;
-    
+
     ReentrantLock lock;
-    
+
     private final static boolean debug = false;
 
     public LazyMemo1PCL(LazyFactory1P<Index, Value, Param> factory, Comparator<? super Index> comp, ReentrantLock lock) {
@@ -52,8 +52,8 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
 
     public Value make(Index probe, Param param) {
         Value result = null;
-        
-        /* If the shadow map is null, we cannot possibly be 
+
+        /* If the shadow map is null, we cannot possibly be
          * updating, and we will not become the updater without
          * taking some action of our own.  Therefore, this cheap
          * test detects the not-us case whenever there are no other
@@ -61,7 +61,7 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
          */
         if (shadow_map == null) {
             result = map.get(probe);
-        
+
           /*
            * If there is a shadow map, it matters whether it is us,
            * or someone else.  If we hold the lock, we are the uodater
@@ -76,14 +76,14 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
                 result = factory.make(probe, param, shadow_map);
             }
             return result;
-            
+
         } else {
             /*
              * Not the updater.
              */
             result = map.get(probe);
         }
-        
+
         if (result == null) {
             /*
              * If we come here, we know that we do not hold the lock,

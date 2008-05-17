@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,11 +28,11 @@ public class Memo1PCL<Index, Value, Param> implements Factory1P<Index, Value, Pa
     Factory1P<Index, Value, Param> factory;
 
     volatile BATree<Index, Value> map;
-    
+
     volatile BATree<Index, Value> shadow_map;
-    
+
     ReentrantLock lock;
-    
+
     private final static boolean debug = false;
 
     public Memo1PCL(Factory1P<Index, Value, Param> factory, Comparator<? super Index> comp, ReentrantLock lock) {
@@ -46,7 +46,7 @@ public class Memo1PCL<Index, Value, Param> implements Factory1P<Index, Value, Pa
     // synchronized; otherwise result may contain bogus data.
     public Value make(Index probe, Param param) {
         Value result = null;
-        // Cheapest possible 
+        // Cheapest possible
         if (shadow_map == null) {
             result = map.get(probe);
         } else if (lock.isHeldByCurrentThread()) {
@@ -59,7 +59,7 @@ public class Memo1PCL<Index, Value, Param> implements Factory1P<Index, Value, Pa
         } else {
             result = map.get(probe);
         }
-        
+
         if (result == null) {
             // We do not hold lock, we need to add the item to the map.
             lock.lock();
