@@ -51,7 +51,7 @@ find_ant(){
   exit 0
 }
 
-ant_exec=\"`find_ant`\"
+ant_exec=`find_ant`
 n=$?
 if [ $n -ne 0 ]; then
         exit $n
