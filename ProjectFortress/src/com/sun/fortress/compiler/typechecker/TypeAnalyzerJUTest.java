@@ -23,6 +23,7 @@ import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
+import edu.rice.cs.plt.text.TextUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -62,32 +63,80 @@ public class TypeAnalyzerJUTest extends TestCase {
     }
     
     public void testNormalize() {
-        debug.logStart();
+        debug.logStart(); try {
         
         TypeAnalyzer t = makeAnalyzer(trait("A"),
                                       trait("B", "A"),
                                       trait("C", "B"),
-                                      trait("D", "B"));
+                                      trait("D", "B"),
+                                      trait("E"),
+                                      trait("F"),
+                                      trait("G"));
         
         assertEquals(type("A"), norm(t, "A"));
         assertEquals(type("Any"), norm(t, "Any"));
         assertEquals(type("Bottom"), norm(t, "Bottom"));
         assertEquals(type("()"), norm(t, "()"));
+        
         assertEquals(type("(A,B)"), norm(t, "(A,B)"));
         assertEquals(type("Bottom"), norm(t, "(A,Bottom)"));
-        //TODO: assertEquals(type("(A,Any)"), norm(t, "(A,Any)"));
-        assertEquals(type("B"), norm(t, "A&B"));
-        assertEquals(type("A"), norm(t, "A|B"));
-        //assertEquals(type("Any"), norm(t, "&{}"));
+        assertEquals(type("(A,Any)"), norm(t, "(A,Any)"));
+        assertEquals(type("|{(A,E),(A,F),(A,G)}"), norm(t, "(A, |{E,F,G})"));
+        assertEquals(type("|{(C,C,C),(C,C,D),(C,D,C),(C,D,D),(D,C,C),(D,C,D),(D,D,C),(D,D,D)}"),
+                     norm(t, "(C|D, C|D, C|D)"));
+        assertEquals(type("&{(A,E),(A,F),(A,G)}"), norm(t, "(A, &{E,F,G})"));
+        assertEquals(type("&{(C,C,C),(C,C,D),(C,D,C),(C,D,D),(D,C,C),(D,C,D),(D,D,C),(D,D,D)}"),
+                     norm(t, "(C&D, C&D, C&D)"));
+        assertEquals(type("|{(C,E)&(C,F), (D,E)&(D,F)}"), norm(t, "(C|D,E&F)"));
+        
+        assertEquals(type("(A,B...)"), norm(t, "(A,B...)"));
+        assertEquals(type("A"), norm(t, "(A,Bottom...)"));
+        assertEquals(type("(A,Any...)"), norm(t, "(A,Any...)"));
+        assertEquals(type("|{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, |{E,F,G}...)"));
+        assertEquals(type("&{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, &{E,F,G}...)"));
+        assertEquals(type("|{(C,E...)&(C,F...), (D,E...)&(D,F...)}"), norm(t, "(C|D,E&F...)"));
+        
+        assertEquals(type("A->Any"), norm(t, "A->Any"));
+        assertEquals(type("Any->A"), norm(t, "Any->A"));
+        assertEquals(type("A->Bottom"), norm(t, "A->Bottom"));
+        assertEquals(type("Any"), norm(t, "Bottom->A"));
+        assertEquals(type("A->B"), norm(t, "A->(B|C)"));
+        assertEquals(type("A->(C|D)"), norm(t, "A->(C|D)"));
+        assertEquals(type("A->C"), norm(t, "A->(B&C)"));
+        assertEquals(type("(A->C)&(A->D)"), norm(t, "A->(C&D)"));
+        assertEquals(type("B->A"), norm(t, "(B|C)->A"));
+        assertEquals(type("(C->A)&(D->A)"), norm(t, "(C|D)->A"));
+        assertEquals(type("C->A"), norm(t, "(B&C)->A"));
+        assertEquals(type("(C&D)->A"), norm(t, "(C&D)->A"));
+        assertEquals(type("&{C->C,C->D,D->C,D->D}"), norm(t, "(C|D)->(C&D)"));
+        assertEquals(type("&{A->(C|E),A->(C|F),A->(D|E),A->(D|F)}"), norm(t, "A->(C&D)|(E&F)"));
+        assertEquals(type("A->C throws E io"), norm(t, "A->C throws E io"));
+        assertEquals(type("Any"), norm(t, "Bottom->C throws E io"));
+        assertEquals(type("&{(A,C...)->E,(A,D...)->E}"), norm(t, "(A, (C|D)...)->E"));
+        assertEquals(type("((A,C...)&(A,D...))->E"), norm(t, "(A, (C&D)...)->E"));
+        assertEquals(type("(C&D, foo=E&F, bar=G)->A"), norm(t, "(C&D, foo=E&F, bar=G)->A"));
+        assertEquals(type("&{(C,foo=E,bar=G)->A,(C,foo=F,bar=G)->A,(D,foo=E,bar=G)->A,(D,foo=F,bar=G)->A}"),
+                          norm(t, "(C|D, foo=E|F, bar=G)->A"));
+        
+        assertEquals(type("Any"), norm(t, "&{}"));
         assertEquals(type("()"), norm(t, "&{()}"));
-        //assertEquals(type("&{C,D}"), norm(t, "&{A,B,C,D}"));
-        //assertEquals(type("Bottom"), norm(t, "|{}"));
+        assertEquals(type("B"), norm(t, "A&B"));
+        assertEquals(type("&{C,D}"), norm(t, "&{A,B,C,D}"));
+        assertEquals(type("&{E,C,D}"), norm(t, "(A&E)&(C&(D&E))"));
+        assertEquals(type("|{C&E,C&F,C&G,D&E,D&F,D&G}"), norm(t, "(C|D)&(E|F|G)"));
+        
+        assertEquals(type("Bottom"), norm(t, "|{}"));
         assertEquals(type("()"), norm(t, "|{()}"));
+        assertEquals(type("A"), norm(t, "A|B"));
         assertEquals(type("A"), norm(t, "|{A,B,C,D}"));
+        assertEquals(type("|{A,E}"), norm(t, "(A|E)|(C|(D|E))"));
+        assertEquals(type("(C&D)|(&{E,F,G})"), norm(t, "(C&D)|(E&F&G)"));
+        
+        } finally { debug.logEnd(); }
     }
 
     public void testBasicTraitSubtyping() {
-        debug.logStart();
+        debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
                                       trait("B", "A"),
@@ -114,11 +163,11 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(FALSE, sub(t, "D", "C"));
         assertEquals(TRUE, sub(t, "D", "D"));
 
-        debug.logEnd();
+        } finally { debug.logEnd(); }
     }
 
     public void testArrowSubtyping() {
-        debug.logStart();
+        debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
                                       trait("B", "A"),
@@ -138,12 +187,12 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(FALSE, sub(t, "C->A", "A->C"));
         assertEquals(TRUE, sub(t, "A->C", "C->A"));
 
-        debug.logEnd();
+        } finally { debug.logEnd(); }
     }
 
     // inactive because results contain hidden variables (they're not just TRUE)
     public void xxxtestSimpleUnionSubtyping() {
-        debug.logStart();
+        debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
                                       trait("B", "A"),
@@ -183,11 +232,11 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(TRUE, sub(t, "C|E", "C|E"));
         assertEquals(TRUE, sub(t, "C|E", "E|C"));
 
-        debug.logEnd();
+        } finally { debug.logEnd(); }
     }
 
     public void xxxtestSimpleIntersectionSubtyping() {
-        debug.logStart();
+        debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
                                       trait("B", "A"),
@@ -227,7 +276,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(TRUE, sub(t, "C&E", "C&E"));
         assertEquals(TRUE, sub(t, "E&C", "C&E"));
 
-        debug.logEnd();
+        } finally { debug.logEnd(); }
     }
 
 //    public void testInferenceSubtyping() {
@@ -235,7 +284,7 @@ public class TypeAnalyzerJUTest extends TestCase {
 //
 
     public void xxxtestVoidSubtyping() {
-        debug.logStart();
+        debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
                                       trait("B", "A"),
@@ -250,7 +299,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(TRUE, sub(t, BOTTOM, VOID));
         assertEquals(FALSE, sub(t, ANY, VOID));
 
-        debug.logEnd();
+        } finally { debug.logEnd(); }
     }
 
 
@@ -367,70 +416,211 @@ public class TypeAnalyzerJUTest extends TestCase {
     /** Shortcut for parseType */
     private static Type type(String s) { return parseType(s); }
 
+    /**
+     * Parse the given string as a type.  This is a permissive algorithm: many strings that
+     * don't make sense will parse without error, but strings that do make sense are parsed
+     * as expected.  (However, there are some simple sanity checks to limit the set of
+     * parsed malformed strings.)  The following conventions are followed:
+     * <ul>
+     * <li>Order of operations: "->" takes precedence over "|", which takes precedence over
+     * "&"; all these are handled before other kinds of types.  The leftmost highest-priority
+     * operator is always handled first.  Parens can be used freely to change associativity
+     * and the order of operations.</li>
+     * <li>Arrows are parsed with full support for domains and effects.</li>
+     * <li>"|{<comma-list>}" is a arbitrary-arity union; "A|B" is a binary union.</li>
+     * <li>"&{<comma-list>}" is a arbitrary-arity intersection; "A&B" is a binary intersection.</li>
+     * <li>Empty paren-lists are parsed as void; a singleton is either a varargs tuple or just that
+     * type; and longer lists are parsed as tuples (or varargs tuples).  (Note, however, that
+     * expressions to the left of arrows are parsed as Domains.)</li>
+     * <li>Atomic types starting with "#" are inference variables.</li>
+     * <li>"Any" and "Bottom" are literals for those types.</li>
+     * <li>Single-letter types in the range "P"..."Z" are type variables.</li>
+     * <li>All other atomic types are TraitTypes with no static arguments.</li>
+     * </ul>
+     */
     private static Type parseType(String s) {
         s = s.trim();
-        if (s.contains("->")) {
-            Pair<Type, Type> p = parseBinaryType(s, "->");
-            return new ArrowType(NodeFactory.makeDomain(p.first()), p.second());
+        int opIndex;
+        
+        opIndex = findAtTop(s, "->");
+        if (opIndex >= 0) {
+            s = s + " "; // recognize a trailing "io"
+            int effectStart = findAtTop(s, " throws ", " io ");
+            if (effectStart == -1) { effectStart = s.length(); }
+            Domain d = parseDomain(s.substring(0, opIndex));
+            Type r = parseType(s.substring(opIndex+2, effectStart));
+            Effect e = parseEffect(s.substring(effectStart));
+            return new ArrowType(d, r, e);
         }
-        else if (s.contains("|")) {
-            if (s.startsWith("|")) {
-                return new UnionType(parseTypeList(s, "|{", "}"));
-            }
-            else {
-                Pair<Type, Type> p = parseBinaryType(s, "|");
-                return NodeFactory.makeUnionType(p.first(), p.second());
-            }
+        
+        opIndex = findAtTop(s, "|");
+        if (opIndex == 0) {
+            return new UnionType(parseTypeList(s, "|{", "}"));
         }
-        else if (s.contains("&")) {
-            if (s.startsWith("&")) {
-                return new IntersectionType(parseTypeList(s, "&{", "}"));
-            }
-            else {
-                Pair<Type, Type> p = parseBinaryType(s, "&");
-                return NodeFactory.makeIntersectionType(p.first(), p.second());
-            }
+        else if (opIndex > 0) {
+            Type left = parseType(s.substring(0, opIndex));
+            Type right = parseType(s.substring(opIndex+1));
+            return NodeFactory.makeUnionType(left, right);
         }
-        else if (s.startsWith("#")) {
-            return new InferenceVarType(s);
+        
+        opIndex = findAtTop(s, "&");
+        if (opIndex == 0) {
+            return new IntersectionType(parseTypeList(s, "&{", "}"));
         }
-        else if (s.equals("()")) {
-            return VOID;
+        else if (opIndex > 0) {
+            Type left = parseType(s.substring(0, opIndex));
+            Type right = parseType(s.substring(opIndex+1));
+            return NodeFactory.makeIntersectionType(left, right);
         }
-        else if (s.startsWith("(")) {
+        
+        if (s.startsWith("(")) {
             boolean varargs = s.endsWith("...)");
             if (varargs) { s = s.substring(0, s.length()-4) + ")"; }
             List<Type> ts = parseTypeList(s, "(", ")");
             if (varargs) { return new VarargTupleType(ts, ts.remove(ts.size()-1)); }
+            else if (ts.size() == 0) { return VOID; }
+            else if (ts.size() == 1) { return ts.get(0); }
             else { return new TupleType(ts); }
         }
-        else if (s.equals("Any")) { return ANY; }
-        else if (s.equals("Bottom")) { return BOTTOM; }
-        else if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {
+        
+        if (s.length() == 0 |
+            TextUtil.containsAny(s, '(', ')', '{', '}', ',', '-', '>', '&', '|') |
+            s.contains("...")) {
+            throw new IllegalArgumentException("Malformed name: \"" + s + "\"");
+        }
+        
+        if (s.equals("Any")) { return ANY; }
+        
+        if (s.equals("Bottom")) { return BOTTOM; }
+        
+        if (s.startsWith("#")) {
+            return new InferenceVarType(s);
+        }
+        
+        if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {
             return NodeFactory.makeVarType(s);
         }
+        
+        return NodeFactory.makeTraitType(s);
+    }
+    
+    private static Domain parseDomain(String s) {
+        s = s.trim();
+        // check whether this is entirely enclosed in parens
+        if (s.startsWith("(") && findAtTop(s, "->", "&", "|") == -1) {
+            List<Type> args = new LinkedList<Type>();
+            Option<Type> varargs = Option.none();
+            List<KeywordType> keys = new LinkedList<KeywordType>();
+            for (String elt : splitList(s, "(", ")")) {
+                if (elt.endsWith("...")) {
+                    elt = elt.substring(0, elt.length()-3);
+                    varargs = Option.some(parseType(elt));
+                }
+                else {
+                    int eq = findAtTop(elt, "=");
+                    if (eq >= 0) {
+                        Id k = NodeFactory.makeId(elt.substring(0, eq).trim());
+                        Type t = parseType(elt.substring(eq+1));
+                        keys.add(new KeywordType(k, t));
+                    }
+                    else { args.add(parseType(elt)); }
+                }
+            }
+            return new Domain(args, varargs, keys);
+        }
         else {
-            return NodeFactory.makeTraitType(s);
+            return new Domain(Collections.singletonList(parseType(s)));
         }
     }
     
-    private static Pair<Type, Type> parseBinaryType(String s, String top) {
-        int opIndex = s.indexOf(top);
-        Type left = parseType(s.substring(0, opIndex));
-        Type right = parseType(s.substring(opIndex+top.length()));
-        return Pair.make(left, right);
+    private static Effect parseEffect(String s) {
+        if (s.length() == 0) { return new Effect(); }
+        
+        boolean io = false;
+        s = s.trim();
+        if (s.equals("io")) { return new Effect(true); }
+        else if (s.startsWith("io ")) { io = true; s = s.substring(3).trim(); }
+        else if (s.endsWith(" io")) { io = true; s = s.substring(0, s.length()-3).trim(); }
+        
+        if (!s.startsWith("throws ")) {
+            throw new IllegalArgumentException("Unrecognized effect: \"" + s + "\"");
+        }
+        s = s.substring(7).trim();
+        List<String> elts;
+        if (s.startsWith("{")) { elts = splitList(s, "{", "}"); }
+        else { elts = Collections.singletonList(s); }
+        List<BaseType> ts = new LinkedList<BaseType>();
+        for (String elt : elts) {
+            Type t = parseType(elt);
+            if (!(t instanceof BaseType)) {
+                throw new IllegalArgumentException("Non-BaseType in throws: " + t);
+            }
+            ts.add((BaseType) t);
+        }
+        return new Effect(Option.some(ts), io);
     }
     
     private static List<Type> parseTypeList(String s, String leftDelim, String rightDelim) {
-        if (!s.startsWith(leftDelim) || !s.endsWith(rightDelim)) {
-            throw new IllegalArgumentException();
-        }
-        String[] elts = s.substring(leftDelim.length(),
-                                    s.length()-rightDelim.length()).split(",");
-        LinkedList<Type> ts = new LinkedList<Type>();
-        for (String elt : elts) { ts.add(parseType(elt)); }
+        return parseTypeList(splitList(s, leftDelim, rightDelim));
+    }
+    
+    private static List<Type> parseTypeList(List<String> ss) {
+        List<Type> ts = new LinkedList<Type>();
+        for (String elt : ss) { ts.add(parseType(elt)); }
         return ts;
     }
+    
+    /**
+     * Get the index of a non-parenthesized instance of the given substring, or -1
+     * if it is not found.
+     */
+    private static int findAtTop(String s, String... subs) {
+        int depth = 0;
+        for (int i = 0; i < s.length(); i++) {
+            switch (s.charAt(i)) {
+                case '(': depth++; break;
+                case '{': depth++; break;
+                case ')': depth--; break;
+                case '}': depth--; break;
+                default:
+                    if (depth == 0) {
+                        for (String sub : subs) {
+                            if (s.substring(i).startsWith(sub)) { return i; }
+                        }
+                    }
+            }
+        }
+        return -1;
+    }
+    
+    private static List<String> splitList(String s, String leftDelim, String rightDelim) {
+        if (!s.startsWith(leftDelim) || !s.endsWith(rightDelim)) {
+            throw new IllegalArgumentException("Bad list: \"" + s + "\"");
+        }
+        s = s.substring(leftDelim.length(), s.length()-rightDelim.length());
+        
+        List<String> elts = new LinkedList<String>();
+        int depth = 0;
+        int eltStart = 0;
+        for (int i = 0; i < s.length(); i++) {
+            switch (s.charAt(i)) {
+                case '(': depth++; break;
+                case '{': depth++; break;
+                case ')': depth--; break;
+                case '}': depth--; break;
+                case ',':
+                    if (depth == 0) {
+                        elts.add(s.substring(eltStart, i));
+                        eltStart = i+1;
+                    }
+            }
+        }
+        if (eltStart > 0 || s.length() - eltStart > 0) {
+            elts.add(s.substring(eltStart));
+        }
+        return elts;
+    }
+    
 
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */
     private static TypeAnalyzer makeAnalyzer(TraitIndex... traits) {

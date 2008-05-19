@@ -98,7 +98,8 @@ public class TypeAnalyzer {
      * normalized without introducing non-BaseTypes into the list).
      */
     public Type normalize(Type t) {
-        return (Type) t.accept(new NodeUpdateVisitor() {
+        debug.logStart("t", t);
+        Type result = (Type) t.accept(new NodeUpdateVisitor() {
             
             @Override public Type forTupleTypeOnly(TupleType t, List<Type> normalElements) {
                 Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
@@ -108,20 +109,25 @@ public class TypeAnalyzer {
             @Override public Type forVarargTupleTypeOnly(VarargTupleType t, List<Type> normalElements,
                                                          Type normalVarargs) {
                 // the varargs type can be treated like just another tuple element, as far as 
-                // normalization is concerned
-                Lambda<Iterable<Type>, Type> factory = new Lambda<Iterable<Type>, Type>() {
-                    public Type value(Iterable<Type> ts) {
-                        if (IterUtil.isEmpty(ts)) { return VOID; }
-                        else {
-                            List<Type> elts = asList(skipLast(ts));
-                            Type varargs = last(ts);
-                            return new VarargTupleType(elts, varargs);
+                // normalization is concerned, unless the varargs type is Bottom
+                if (normalVarargs.equals(BOTTOM)) {
+                    return handleAbstractTuple(normalElements, MAKE_TUPLE);
+                }
+                else {
+                    Lambda<Iterable<Type>, Type> factory = new Lambda<Iterable<Type>, Type>() {
+                        public Type value(Iterable<Type> ts) {
+                            if (IterUtil.isEmpty(ts)) { return VOID; }
+                            else {
+                                List<Type> elts = asList(skipLast(ts));
+                                Type varargs = last(ts);
+                                return new VarargTupleType(elts, varargs);
+                            }
                         }
-                    }
-                };
-                Type result = handleAbstractTuple(compose(normalElements, normalVarargs),
-                                                  factory);
-                return t.equals(result) ? t : result;
+                    };
+                    Type result = handleAbstractTuple(compose(normalElements, normalVarargs),
+                                                      factory);
+                    return t.equals(result) ? t : result;
+                }
             }
             
             private Type handleAbstractTuple(Iterable<Type> normalElements,
@@ -145,6 +151,7 @@ public class TypeAnalyzer {
                 Type domainArg = stripKeywords(normalDomain);
                 final Map<Id, Type> domainKeys = extractKeywords(normalDomain);
                 Iterable<Type> domainTs = compose(domainArg, domainKeys.values());
+                debug.logValues(new String[]{"normalDomain", "domainArg", "domainKeys"}, normalDomain, domainArg, domainKeys);
                 // map a list of the length of domainTs back to a Domain:
                 Lambda<Iterable<Type>, Domain> domainFactory = new Lambda<Iterable<Type>, Domain>() {
                     public Domain value(Iterable<Type> ts) {
@@ -162,12 +169,8 @@ public class TypeAnalyzer {
                         return new ArrowType(d, r, normalEffect);
                     }
                 });
-                // TODO: this special treatment is necessary to prevent an arrow from becoming 
-                // Any.  But does this indicate something wrong with the formal rules?
-                Type result = IterUtil.isEmpty(overloads) ?
-                              new ArrowType(normalDomain, normalRange, normalEffect) :
-                              // don't meet, because the arrows here aren't subtypes of each other
-                              makeIntersection(overloads);
+                // don't meet, because the arrows here aren't subtypes of each other
+                Type result = makeIntersection(overloads);
                 return t.equals(result) ? t : result;
             }
             
@@ -183,7 +186,8 @@ public class TypeAnalyzer {
             
             @Override public Type forUnionTypeOnly(UnionType t, List<Type> normalElements) {
                 // collpase nested unions and eliminate redundant elements
-                return joinNormal(collapse(map(normalElements, DISJUNCTS)));
+                Type result = joinNormal(collapse(map(normalElements, DISJUNCTS)));
+                return t.equals(result) ? t : result;
             }
             
             @Override public Type forIntersectionTypeOnly(IntersectionType t,
@@ -198,10 +202,13 @@ public class TypeAnalyzer {
                     }
                 };
                 // the resulting disjuncts may be redundant, so join
-                return joinNormal(map(cross(elementDisjuncts), handleDisjunct));
+                Type result = joinNormal(map(cross(elementDisjuncts), handleDisjunct));
+                return t.equals(result) ? t : result;
             }
             
         });
+        debug.logEnd("result", result);
+        return result;
     }
     
     /** Lambda for invoking {@link #normalize}. */
@@ -244,10 +251,11 @@ public class TypeAnalyzer {
      *                    discard S.
      */
     private Iterable<Type> reduceList(Iterable<Type> ts, boolean preferSubs) {
-        if (IterUtil.sizeOf(ts, 2) < 2) { return ts; }
+        debug.logStart(new String[]{"ts", "preferSubs"}, ts, preferSubs);
+        if (IterUtil.sizeOf(ts, 2) < 2) { debug.logEnd("result", ts); return ts; }
         else {
             LinkedList<Type> workList = IterUtil.asLinkedList(ts);
-            List<Type> result = new ArrayList<Type>();
+            LinkedList<Type> result = new LinkedList<Type>();
             Iterable<Type> remainingTs = compose(workList, result);
             while (!workList.isEmpty()) {
                 // prefer discarding later elements when two are equivalent
@@ -259,8 +267,9 @@ public class TypeAnalyzer {
                     else { keep &= ! subtypeNormal(t, other).isTrue(); }
                     if (!keep) { break; }
                 }
-                if (keep) { result.add(t); }
+                if (keep) { result.addFirst(t); }
             }
+            debug.logEnd("result", result);
             return result;
         }
     }

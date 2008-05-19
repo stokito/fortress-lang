@@ -18,6 +18,7 @@
 package com.sun.fortress.nodes_util;
 
 import com.sun.fortress.nodes.*;
+import java.io.Serializable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,7 @@ import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
 
 
-public class Span {
+public class Span implements Serializable {
     public SourceLoc begin;
 
     public SourceLoc end;
