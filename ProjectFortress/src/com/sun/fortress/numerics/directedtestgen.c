@@ -122,8 +122,20 @@ int main(int argc, char *argv[]) {
   while ((dsemihuge * 2.0) != dinf) dsemihuge *= 2.0;
   for (ftemp = fsemihuge; (fhuge + ftemp) != finf; ftemp /= (float) 2.0) fhuge += ftemp;
   for (dtemp = dsemihuge; (dhuge + dtemp) != dinf; dtemp /= 2.0) dhuge += dtemp;
+  printf("/*******************************************************************************\n");
+  printf("    Copyright 2008 Sun Microsystems, Inc.,\n");
+  printf("    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n");
+  printf("    All rights reserved.\n\n");
+  printf("    U.S. Government Rights - Commercial software.\n");
+  printf("    Government users are subject to the Sun Microsystems, Inc. standard\n");
+  printf("    license agreement and applicable provisions of the FAR and its supplements.\n\n");
+  printf("    Use is subject to license terms.\n\n");
+  printf("    This distribution may include materials developed by third parties.\n\n");
+  printf("    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered\n");
+  printf("    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.\n");
+  printf(" ******************************************************************************/\n\n");
   printf("// This file is generated automatically by compiling and executing\n");
-  printf("// the C program DirectedRoundingTestDataGenerator.c .\n");
+  printf("// the C program directedtestgen.c .\n");
   printf("\n");
   printf("package com.sun.fortress.numerics;\n");
   printf("\n");
@@ -462,7 +474,7 @@ int main(int argc, char *argv[]) {
   float_sqrt_example((float) 1.0);
   float_sqrt_example((float) -1.0);
   for (k = 2; k < 38; k++) {
-    float_sqrt_example((float) k); 
+    float_sqrt_example((float) k);
   }
   for (k = 0; k < 13; k++) {
     float p = (float) (123456 >> k);
@@ -481,7 +493,7 @@ int main(int argc, char *argv[]) {
     float_sqrt_example(((float) 1.0) / (2 * k + 35));
   }
   for (k = 2; k < 38; k++) {
-    float_sqrt_example(ftiny * (float) k); 
+    float_sqrt_example(ftiny * (float) k);
   }
   float_sqrt_example(ftiny);
   float_sqrt_example(-ftiny);
@@ -829,7 +841,7 @@ int main(int argc, char *argv[]) {
   double_sqrt_example(1.0);
   double_sqrt_example(-1.0);
   for (k = 2; k < 38; k++) {
-    double_sqrt_example(k); 
+    double_sqrt_example(k);
   }
   for (k = 0; k < 13; k++) {
     double p = (1234567890 >> k);
@@ -848,7 +860,7 @@ int main(int argc, char *argv[]) {
     double_sqrt_example((1.0) / (2 * k + 35));
   }
   for (k = 2; k < 38; k++) {
-    double_sqrt_example(dtiny * k); 
+    double_sqrt_example(dtiny * k);
   }
   double_sqrt_example(dtiny);
   double_sqrt_example(-dtiny);

@@ -16,7 +16,7 @@
  ******************************************************************************/
 
 // This file is generated automatically by compiling and executing
-// the C program DirectedRoundingTestDataGenerator.c .
+// the C program directedtestgen.c .
 
 package com.sun.fortress.numerics;
 
