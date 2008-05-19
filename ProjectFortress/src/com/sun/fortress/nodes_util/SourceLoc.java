@@ -17,12 +17,13 @@
 
 package com.sun.fortress.nodes_util;
 
+import java.io.Serializable;
 import com.sun.fortress.useful.MagicNumbers;
 
 // /
 // / type 'a node = 'a Node.node
 // /
-abstract public class SourceLoc {
+abstract public class SourceLoc implements Serializable {
     public abstract int column();
 
     @Override

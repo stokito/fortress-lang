@@ -140,9 +140,12 @@ public final class Types {
         @Override public Iterable<Type> forIntersectionType(IntersectionType t) {
             return t.getElements();
         }
-        @Override public Iterable<Type> forAnyType(AnyType t) {
-            return IterUtil.empty();
-        }
+        // TODO: the rules say Any = AND{}, but that allows tuples and arrows
+        // containing Any to be equivalent to Any, which isn't what we want.
+        // Need to work this out in the rules.
+        //@Override public Iterable<Type> forAnyType(AnyType t) {
+        //    return IterUtil.empty();
+        //}
     };
     
     /**
