@@ -60,12 +60,12 @@ public class StubRepository implements FortressRepository {
 
     public ApiIndex getApi(APIName name) throws FileNotFoundException,
             IOException {
-        return null;
+	    throw new FileNotFoundException("No such api");
     }
 
     public ComponentIndex getComponent(APIName name)
             throws FileNotFoundException, IOException {
-        return null;
+	    throw new FileNotFoundException("No such component");
     }
 
     public long getModifiedDateForApi(APIName name)
@@ -78,4 +78,7 @@ public class StubRepository implements FortressRepository {
         throw new FileNotFoundException();
     }
 
+    public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException {
+	    throw new FileNotFoundException();
+    }
 }
