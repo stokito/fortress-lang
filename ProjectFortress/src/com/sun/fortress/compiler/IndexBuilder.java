@@ -13,7 +13,7 @@
 
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-  ******************************************************************************/
+ ******************************************************************************/
 
 package com.sun.fortress.compiler;
 
@@ -118,7 +118,7 @@ public class IndexBuilder {
         private final Map<APIName, ApiIndex> _apis;
 
         public ApiResult(Map<APIName, ApiIndex> apis,
-                         Iterable<? extends StaticError> errors) {
+                Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
@@ -147,7 +147,7 @@ public class IndexBuilder {
         private final Map<APIName, ComponentIndex> _components;
 
         public ComponentResult(Map<APIName, ComponentIndex> components,
-                               Iterable<? extends StaticError> errors) {
+                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
@@ -236,8 +236,8 @@ public class IndexBuilder {
 
     /** Create a ComponentIndex and add it to the given map. */
     private void buildComponent(Component ast,
-                                Map<APIName, ComponentIndex> components,
-                                long modifiedDate) {
+            Map<APIName, ComponentIndex> components,
+            long modifiedDate) {
         ComponentIndex comp = buildComponentIndex(ast, modifiedDate);
         components.put(ast.getName(), comp);
     }
@@ -292,7 +292,7 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         ComponentIndex comp = new ComponentIndex(ast, variables, initializers,
-                                                 functions, typeConses, dimensions, units, modifiedDate);
+                functions, typeConses, dimensions, units, modifiedDate);
         return comp;
     }
 
@@ -302,8 +302,8 @@ public class IndexBuilder {
      * to the given relation.
      */
     private void buildTrait(TraitAbsDeclOrDecl ast,
-                            Map<Id, TypeConsIndex> typeConses,
-                            final Relation<IdOrOpOrAnonymousName, Function> functions) {
+            Map<Id, TypeConsIndex> typeConses,
+            final Relation<IdOrOpOrAnonymousName, Function> functions) {
         final Id name = ast.getName();
         final Map<Id, Method> getters = new HashMap<Id, Method>();
         final Map<Id, Method> setters = new HashMap<Id, Method>();
@@ -318,7 +318,7 @@ public class IndexBuilder {
             }
             @Override public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
                 buildMethod(d, name, getters, setters, coercions, dottedMethods,
-                            functionalMethods, functions);
+                        functionalMethods, functions);
             }
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
@@ -328,7 +328,7 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ProperTraitIndex(ast, getters, setters, coercions,
-                                                dottedMethods, functionalMethods);
+                dottedMethods, functionalMethods);
         typeConses.put(name, trait);
     }
 
@@ -338,9 +338,9 @@ public class IndexBuilder {
      * put it in the appropriate map.
      */
     private void buildObject(ObjectAbsDeclOrDecl ast,
-                             Map<Id, TypeConsIndex> typeConses,
-                             final Relation<IdOrOpOrAnonymousName, Function> functions,
-                             Map<Id, Variable> variables) {
+            Map<Id, TypeConsIndex> typeConses,
+            final Relation<IdOrOpOrAnonymousName, Function> functions,
+            Map<Id, Variable> variables) {
         final Id name = ast.getName();
         final Map<Id, Variable> fields = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
@@ -358,10 +358,10 @@ public class IndexBuilder {
                 fields.put(p.getName(), new ParamVariable(p));
             }
             Constructor c = new Constructor(name,
-                                            ast.getStaticParams(),
-                                            ast.getParams(),
-                                            ast.getThrowsClause(),
-                                            ast.getWhere());
+                    ast.getStaticParams(),
+                    ast.getParams(),
+                    ast.getThrowsClause(),
+                    ast.getWhere());
             constructor = Option.some(c);
             functions.add(name, c);
         }
@@ -380,7 +380,7 @@ public class IndexBuilder {
             }
             @Override public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
                 buildMethod(d, name, getters, setters, coercions, dottedMethods,
-                            functionalMethods, functions);
+                        functionalMethods, functions);
             }
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
@@ -390,8 +390,8 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ObjectTraitIndex(ast, constructor, fields, initializers,
-                                                getters, setters, coercions,
-                                                dottedMethods, functionalMethods);
+                getters, setters, coercions,
+                dottedMethods, functionalMethods);
         typeConses.put(name, trait);
     }
 
@@ -401,7 +401,7 @@ public class IndexBuilder {
      * map.
      */
     private void buildVariables(VarAbsDeclOrDecl ast,
-                                Map<Id, Variable> variables) {
+            Map<Id, Variable> variables) {
         for (LValueBind b : ast.getLhs()) {
             variables.put(b.getName(), new DeclaredVariable(b));
         }
@@ -412,9 +412,9 @@ public class IndexBuilder {
      * abstract fields.
      */
     private void buildTraitFields(AbsVarDecl ast,
-                                  Id declaringTrait,
-                                  Map<Id, Method> getters,
-                                  Map<Id, Method> setters) {
+            Id declaringTrait,
+            Map<Id, Method> getters,
+            Map<Id, Method> setters) {
         for (LValueBind b : ast.getLhs()) {
             ModifierSet mods = extractModifiers(b.getMods());
             // TODO: check for correct modifiers?
@@ -433,10 +433,10 @@ public class IndexBuilder {
      * getters and setters.
      */
     private void buildFields(VarAbsDeclOrDecl ast,
-                             Id declaringTrait,
-                             Map<Id, Variable> fields,
-                             Map<Id, Method> getters,
-                             Map<Id, Method> setters) {
+            Id declaringTrait,
+            Map<Id, Variable> fields,
+            Map<Id, Method> getters,
+            Map<Id, Method> setters) {
         for (LValueBind b : ast.getLhs()) {
             ModifierSet mods = extractModifiers(b.getMods());
             // TODO: check for correct modifiers?
@@ -455,7 +455,7 @@ public class IndexBuilder {
      * Create a dimension wrapper for the declaration and put it in the given map.
      */
     private void buildDimension(DimDecl ast,
-                                Map<Id, Dimension> dimensions) {
+            Map<Id, Dimension> dimensions) {
         dimensions.put(ast.getDim(), new Dimension(ast));
     }
 
@@ -463,7 +463,7 @@ public class IndexBuilder {
      * Create a unit wrapper for the declaration and put it in the given map.
      */
     private void buildUnit(UnitDecl ast,
-                           Map<Id, Unit> units) {
+            Map<Id, Unit> units) {
         for (Id unit: ast.getUnits()) {
             units.put(unit, new Unit(ast));
         }
@@ -474,7 +474,7 @@ public class IndexBuilder {
      * relation.
      */
     private void buildFunction(FnAbsDeclOrDecl ast,
-                               Relation<IdOrOpOrAnonymousName, Function> functions) {
+            Relation<IdOrOpOrAnonymousName, Function> functions) {
         functions.add(ast.getName(), new DeclaredFunction(ast));
     }
 
@@ -484,13 +484,13 @@ public class IndexBuilder {
      * functional methods with top-level functions.
      */
     private void buildMethod(FnAbsDeclOrDecl ast,
-                             Id declaringTrait,
-                             Map<Id, Method> getters,
-                             Map<Id, Method> setters,
-                             Set<Function> coercions,
-                             Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
-                             Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
-                             Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions) {
+            Id declaringTrait,
+            Map<Id, Method> getters,
+            Map<Id, Method> setters,
+            Set<Function> coercions,
+            Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
+            Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
+            Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions) {
         ModifierSet mods = extractModifiers(ast.getMods());
         // TODO: check for correct modifiers?
         IdOrOpOrAnonymousName name = ast.getName();
@@ -550,31 +550,31 @@ public class IndexBuilder {
 
 
     private Set<NonterminalIndex<? extends GrammarMemberDecl>> buildMembers(List<GrammarMemberDecl> members) {
-     Set<NonterminalIndex<? extends GrammarMemberDecl>> result = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
-     Set<Id> names = new HashSet<Id>();
-     for (GrammarMemberDecl m: members) {
+        Set<NonterminalIndex<? extends GrammarMemberDecl>> result = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
+        Set<Id> names = new HashSet<Id>();
+        for (GrammarMemberDecl m: members) {
             if (names.contains(m.getName())) {
                 error("Nonterminal declared twice: "+m.getName(), m);
             }
             names.add(m.getName());
             result.add(m.accept(new NodeDepthFirstVisitor<NonterminalIndex<? extends GrammarMemberDecl>>(){
 
-    @Override
-    public NonterminalIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
-     return new NonterminalDefIndex(Option.wrap(that));
-    }
+                @Override
+                public NonterminalIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
+                    return new NonterminalDefIndex(Option.wrap(that));
+                }
 
-    @Override
-    public NonterminalIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
-      NonterminalExtensionDef that) {
-     return new NonterminalExtendIndex(Option.wrap(that));
-    }
+                @Override
+                public NonterminalIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
+                        NonterminalExtensionDef that) {
+                    return new NonterminalExtendIndex(Option.wrap(that));
+                }
 
-    @Override
-    public NonterminalIndex<_TerminalDef> for_TerminalDef(
-      _TerminalDef that) {
-     return new GrammarTerminalIndex(Option.wrap(that));
-    }
+                @Override
+                public NonterminalIndex<_TerminalDef> for_TerminalDef(
+                        _TerminalDef that) {
+                    return new GrammarTerminalIndex(Option.wrap(that));
+                }
 
             }));
         }
