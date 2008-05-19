@@ -18,11 +18,22 @@
 component Xml2
 
   import FortressAst.{...}
+  import List.{...}
 
   export Xml2
 
-  object XmlNode(startTag:String)
-    getter toString() = "xmlnode: " startTag
+  trait Content
+    toString():String
   end
+
+  object Element(startTag:String, content:List[\Content\], endTag:String) extends Content 
+    toString():String = "<" startTag ">"  (for x <- content do x.toString() end) "</" endTag ">"
+  end
+  Element(startTag:String) = Element(startTag, emptyList[\Content\](), startTag)
+  Element(startTag:String, endTag:String) = Element(startTag, emptyList[\Content\](), endTag)
+
+  object CData(v:String) extends Content
+    toString():String = v
+   end
 
 end

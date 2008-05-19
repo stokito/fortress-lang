@@ -23,6 +23,8 @@ import java.util.List;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.AsExpr;
+import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
@@ -43,6 +45,7 @@ import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarRef;
@@ -95,6 +98,24 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.addAll(mkList(ids_result, idName, "Id"));
         this.code.add("APIName "+rVarName+" = new APIName("+sVarName+","+idName+");");
         return rVarName;
+    }
+
+    @Override
+    public String forAsExprOnly(AsExpr that, String expr_result,
+            String type_result) {
+        String rVarName = FreshName.getFreshName("asExpr");
+        String sVarName = this.getSpan(that, this.code);
+        this.code.add("AsExpr "+rVarName+" = new AsExpr("+sVarName+","+that.isParenthesized()+","+expr_result+","+type_result+");");
+        return rVarName;
+    }
+
+    @Override
+    public String forAsIfExprOnly(AsIfExpr that, String expr_result,
+            String type_result) {
+        String varName = FreshName.getFreshName("asExpr");
+        String spanName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add("AsIfExpr "+varName+" = new AsIfExpr("+spanName+","+that.isParenthesized()+","+expr_result+","+type_result+");");
+        return varName;
     }
 
     @Override
@@ -227,6 +248,27 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = this.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, varName, "Expr"));
         this.code.add("TightJuxt "+rVarName+" = new TightJuxt("+sVarName+", "+that.isParenthesized()+", "+varName+");");
+        return rVarName;
+    }
+
+    @Override
+    public String forTraitTypeOnly(TraitType that, String name_result,
+            List<String> args_result) {
+        String varName = FreshName.getFreshName("traitType");
+        String lsVarName = FreshName.getFreshName("ls");
+        String spanName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.addAll(mkList(args_result, lsVarName, "StaticArg"));
+        this.code.add("TraitType "+varName+" = new TraitType("+spanName+", "+that.isParenthesized()+", "+name_result+","+lsVarName+");");
+        return varName;
+    }
+
+    @Override
+    public String forTupleExprOnly(TupleExpr that, List<String> exprs_result) {
+        String varName = FreshName.getFreshName("ls");
+        String rVarName = FreshName.getFreshName("tupleExpr");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.addAll(mkList(exprs_result, varName, "Expr"));
+        this.code.add("TupleExpr "+rVarName+" = new TupleExpr("+sVarName+", "+that.isParenthesized()+", "+varName+");");
         return rVarName;
     }
 
@@ -374,9 +416,6 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             return rVarName;
         }
         if (this.syntaxDeclEnv.contains(id)) {
-            if (this.syntaxDeclEnv.isNonterminal(id)) {
-                return id.getText();    
-            }
             if (this.syntaxDeclEnv.isRepeat(id)) {
                 return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
             }
@@ -385,6 +424,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             }
             if (this.syntaxDeclEnv.isCharacterClass(id)) {
                 return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+            }
+            if (this.syntaxDeclEnv.isNonterminal(id)) {
+                return id.getText();
             }
             NI.nyi();
         }

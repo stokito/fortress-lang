@@ -17,19 +17,26 @@
 
 component testbasic
 
-import Xml2.{...}
-export Executable
+  import Xml2.{...}
+  import List.{...}
+  
+  export Executable
 
-run(args:String...) = do
+  run(args:String...) = do
+(*
   println "Answer is " <a />
-  println "Answer is " ( <x></x>)
-  println "Answer is " ( <aaa>aa</aaa>)
+  println "Answer is " ( <x></x> )
+*)
+  println "Answer is " ( <aaa>aa</aaa> )
+
   println "Answer is " ( <aaa><foobar /></aaa>)
   println "Answer is " ( <aaa foo="bar" />)
   println "Answer is " ( <aaa><aa>aa</aa></aaa>)
+
   println "Answer is " ( <hello><world>hi mom</world></hello>)
   println "Answer is " ( <hello attr="foobar"><world>hi mom</world></hello>)
   println "Answer is " ( <hello attr="foobar" more="blah"><world>hi mom</world></hello>)
+
 
   println "Xml: " (
   <note>hi</note>)
@@ -42,17 +49,16 @@ run(args:String...) = do
 
   println "Xml: " (
     <from>Jani</from>)
-
+(*
   println "Xml: " (
   <note>
-  <to>Tove</to>
-  <from>Jani</from>
-  <heading>Reminder</heading>
-  <body>Dont forget me this weekend</body>
-  </note>
-  )
-
-  (*
+    <to>Tove</to>
+    <from>Jani</from>
+    <heading>Reminder</heading>
+    <body>Dont forget me this weekend</body>
+  </note>)
+*)
+(*
   println "Answer is " ( <aaal> <aaaal> aal </aaaal> </aaal>)
   println "Answer is " ( <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)
   *)
@@ -69,7 +75,6 @@ run(args:String...) = do
   println "Answer is " ( aa)
   *)
   (* println ( <aaaa>) *)
-  println (( <a> </a>).toString())
   println "ok"
 end
 

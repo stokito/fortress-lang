@@ -21,25 +21,49 @@ api Xml2
 
   import FortressAst.{...}
   import FortressSyntax.{Literal}
+  import List.{...}
 
-  object XmlNode(startTag:String)
-    getter toString()
+  trait Content
+    toString():String
+  end
+
+  object Element(startTag:String, content:List[\Content\], endTag:String) extends Content 
+    getter toString():String
+  end 
+  Element(startTag:String)
+  Element(startTag:String, endTag:String)
+
+  object CData(v:String) extends Content
+    getter toString():String
   end
 
   grammar xml extends Literal
-    LiteralExpr |Expr:=
+    LiteralExpr |Expr:= (* type: Content *)
       x:XExpr <[ x ]>
 
-    XExpr :Expr:=
+    XExpr :Expr:= (* type: Content *)
       b:XmlStart c:XmlContent e:XmlEnd
-      <[ XmlNode(b) ]>
+      <[ Element(b, c, e) asif Content ]>
     | b:XmlStart e:XmlEnd
-      <[ "<" b "></" e ">" ]>
-    | x:XmlComplete <[ "<" x "/>" ]>
+      <[ Element(b,e) asif Content ]>
+    | x:XmlComplete <[ Element(x) asif Content ]>
+
+    XmlStart :Expr:=
+      o1:OpenBracket# s:String o2:CloseBracket
+      <[ s ]>
+    | o1:OpenBracket# s:String a:Attributes o2:CloseBracket
+      <[ s " " a ]>
+
+    XmlContent :Expr:= (* type: List[\Content\] *)
+      s:Strings <[ <| (CData(s) asif Content) |> ]>
+    | x:XExprs+ <[ x ]>
 
     XExprs :Expr:=
-      x:XExpr y:XExprs <[ x y ]>
-    | x:XExpr <[ x ]>
+      x:XExpr SPACE <[ x ]>
+
+    XmlEnd :Expr:= (* type: String *)
+      o1:OpenBracket# Slash# s:String# o2:CloseBracket
+      <[ s ]>
 
     XmlComplete :Expr:=
       OpenBracket# s:String Slash# CloseBracket
@@ -54,28 +78,14 @@ api Xml2
     Attribute :Expr:=
       key:String = " val:Strings " <[ key "='" val "'" ]>
 
-    XmlStart :Expr:=
-      o1:OpenBracket# s:String o2:CloseBracket
-      <[ s ]>
-    | o1:OpenBracket# s:String a:Attributes o2:CloseBracket
-      <[ s " " a ]>
-
-    XmlContent :Expr:=
-      s:Strings <[ s ]>
-    | x:XExprs <[ x ]>
-
-    Strings :Expr:=
+    Strings :Expr:= (* type: String *)
       s1:String s2:Strings <[ s1 " " s2 ]>
     | s1:String <[ s1 ]>
-
-    XmlEnd :Expr:=
-      o1:OpenBracket# Slash# s:String# o2:CloseBracket
-      <[ s ]>
 
     Slash :StringLiteralExpr:=
       / <[ "/" ]>
 
-    String :Expr:=
+    String :Expr:= (* type: String *)
       x:AnyChar# y:String <[ x y ]>
     | x:AnyChar <[ x "" ]>
 
