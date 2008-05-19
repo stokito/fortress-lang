@@ -20,7 +20,10 @@ package com.sun.fortress.syntax_abstractions.environments;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
+import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
@@ -39,12 +42,20 @@ import edu.rice.cs.plt.tuple.Option;
 public class SyntaxDeclEnv {
 
     private SyntaxDef sd;
+    private final Set<Id> anyChars;
+    private final Set<Id> characterClasses;
+    private final Set<Id> options;
+    private final Set<Id> repeats;
     private final Map<Id, Id> varToNonterminalName;
     private final Map<Id, Type> varToType;
     private boolean init;
 
     public SyntaxDeclEnv(SyntaxDef sd) {
         this.sd = sd;
+        this.anyChars = new HashSet<Id>();
+        this.characterClasses = new HashSet<Id>();
+        this.options = new HashSet<Id>();
+        this.repeats = new HashSet<Id>();
         this.varToNonterminalName = new HashMap<Id, Id>();
         this.varToType = new HashMap<Id, Type>();
         this.init = false;
@@ -56,14 +67,49 @@ public class SyntaxDeclEnv {
                 @Override
                 public void forPrefixedSymbolOnly(PrefixedSymbol that) {
                     assert(that.getId().isSome());
-                    Id id = that.getId().unwrap();
+                    final Id id = that.getId().unwrap();
+                    /**
+                     * At this point the only symbols which should be children of a 
+                     * prefix symbol are nonterminal, optional, repeat one or more times, 
+                     * repeat, character classes or any chars, thus we only handle these cases. 
+                     * In the case of optional, repeat one or more times, and repeat, we are interested 
+                     * in the nonterminals they refer to.
+                     */
+                    that.getSymbol().accept(new NodeDepthFirstVisitor_void() {
+                            @Override
+                            public void forNonterminalSymbol(NonterminalSymbol that) {
+                                varToNonterminalName.put(id, that.getNonterminal());
+                            }
 
-                    Id nonterminalName = that.getSymbol().accept(new NameCollector());
-                    varToNonterminalName.put(id, nonterminalName);
+                            @Override
+                            public void forCharacterClassSymbol(CharacterClassSymbol that) {
+                                characterClasses.add(id);
+                            }
+
+                            @Override
+                            public void forOptionalSymbol(OptionalSymbol that) {
+                                options.add(id);
+                                super.forOptionalSymbol(that);
+                            }
+
+                            @Override
+                            public void forRepeatOneOrMoreSymbol(
+                                    RepeatOneOrMoreSymbol that) {
+                                repeats.add(id);
+                                super.forRepeatOneOrMoreSymbol(that);
+                            }
+
+                            @Override
+                            public void forRepeatSymbol(RepeatSymbol that) {
+                                repeats.add(id);
+                                super.forRepeatSymbol(that);
+                            }
+                            
+                        });
                     varToType.put(id, TypeCollector.getType(that));
                     super.forPrefixedSymbolOnly(that);
                 }
-            });
+                });
         }
         this.init = true;
     }
@@ -71,13 +117,25 @@ public class SyntaxDeclEnv {
     public boolean contains(Id var) {
         if (!init)
             init();
-        return this.varToNonterminalName.containsKey(var);
+        return this.varToNonterminalName.containsKey(var) ||
+               this.characterClasses.contains(var) ||
+               this.anyChars.contains(var);
     }
 
     public Collection<Id> getVariables() {
         if (!init)
             init();
-        return this.varToNonterminalName.keySet();
+        Collection<Id> s = new HashSet<Id>();
+        s.addAll(this.varToNonterminalName.keySet());
+        s.addAll(this.characterClasses);
+        s.addAll(this.anyChars);
+        return s;
+    }
+
+    public boolean isNonterminal(Id var) {
+        if (!init)
+            init();
+        return this.varToNonterminalName.containsKey(var);
     }
 
     public Id getNonterminalName(Id var) {
@@ -92,34 +150,19 @@ public class SyntaxDeclEnv {
         return this.varToType.get(var);
     }
 
-    /**
-     * At this point the only symbols which should be children of a 
-     * prefix symbol are nonterminal, optional, repeat one or more times, 
-     * or repeat, thus we only handle these cases. 
-     */
-    private static class NameCollector extends NodeDepthFirstVisitor<Id> {
-
-        @Override
-        public Id forNonterminalSymbol(NonterminalSymbol that) {
-            return that.getNonterminal();
-        }
-
-        @Override
-        public Id forOptionalSymbolOnly(OptionalSymbol that,
-                Id symbol_result) {
-            return symbol_result;
-        }
-
-        @Override
-        public Id forRepeatOneOrMoreSymbolOnly(
-                RepeatOneOrMoreSymbol that, Id symbol_result) {
-            return symbol_result;
-        }
-
-        @Override
-        public Id forRepeatSymbolOnly(RepeatSymbol that,
-                Id symbol_result) {
-            return symbol_result;
-        }
+    public boolean isAnyChar(Id id) {
+        return this.anyChars.contains(id);
+    }
+    
+    public boolean isCharacterClass(Id id) {
+        return this.characterClasses.contains(id);
+    }
+    
+    public boolean isOption(Id id) {
+        return this.options.contains(id);
+    }
+    
+    public boolean isRepeat(Id id) {
+        return this.repeats.contains(id);
     }
 }

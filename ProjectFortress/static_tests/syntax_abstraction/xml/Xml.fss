@@ -16,5 +16,12 @@
  ******************************************************************************)
 
 component Xml
-export Xml
+ 
+
+  export Xml
+ 
+  object Element(startTag:Expr, endTag:Expr) extends Content 
+    toString():String = "startTag"
+  end 
+
 end

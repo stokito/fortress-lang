@@ -16,10 +16,13 @@
  ******************************************************************************)
 
 component Xml2
-export Xml2
 
-  object XmlNode
-    getter toString() = "xmlnode"
+  import FortressAst.{...}
+
+  export Xml2
+
+  object XmlNode(startTag:String)
+    getter toString() = "xmlnode: " startTag
   end
 
 end

@@ -202,7 +202,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
 		@Override
 		public String defaultCase(Node that) {
-			System.err.println(that.getClass());
 			return "";
 		}
 

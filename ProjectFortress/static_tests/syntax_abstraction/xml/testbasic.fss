@@ -21,29 +21,29 @@ import Xml2.{...}
 export Executable
 
 run(args:String...) = do
-  println "Answer is " (xml <a />)
-  println "Answer is " (xml <x></x>)
-  println "Answer is " (xml <aaa>aa</aaa>)
-  println "Answer is " (xml <aaa><foobar /></aaa>)
-  println "Answer is " (xml <aaa foo="bar" />)
-  println "Answer is " (xml <aaa><aa>aa</aa></aaa>)
-  println "Answer is " (xml <hello><world>hi mom</world></hello>)
-  println "Answer is " (xml <hello attr="foobar"><world>hi mom</world></hello>)
-  println "Answer is " (xml <hello attr="foobar" more="blah"><world>hi mom</world></hello>)
+  println "Answer is " <a />
+  println "Answer is " ( <x></x>)
+  println "Answer is " ( <aaa>aa</aaa>)
+  println "Answer is " ( <aaa><foobar /></aaa>)
+  println "Answer is " ( <aaa foo="bar" />)
+  println "Answer is " ( <aaa><aa>aa</aa></aaa>)
+  println "Answer is " ( <hello><world>hi mom</world></hello>)
+  println "Answer is " ( <hello attr="foobar"><world>hi mom</world></hello>)
+  println "Answer is " ( <hello attr="foobar" more="blah"><world>hi mom</world></hello>)
 
-  println "Xml: " (xml
+  println "Xml: " (
   <note>hi</note>)
 
-  println "Xml: " (xml
+  println "Xml: " (
     <note>
       <to>Tove</to>
     </note>
   )
 
-  println "Xml: " (xml
+  println "Xml: " (
     <from>Jani</from>)
 
-  println "Xml: " (xml
+  println "Xml: " (
   <note>
   <to>Tove</to>
   <from>Jani</from>
@@ -53,22 +53,23 @@ run(args:String...) = do
   )
 
   (*
-  println "Answer is " (xml <aaal> <aaaal> aal </aaaal> </aaal>)
-  println "Answer is " (xml <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)
+  println "Answer is " ( <aaal> <aaaal> aal </aaaal> </aaal>)
+  println "Answer is " ( <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)
   *)
 (*
-  println "Answer is " (xml <aaal> stuff </aaal>)
+  println "Answer is " ( <aaal> stuff </aaal>)
   *)
 (*
-  println "Answer is " (xml <aaaaal>)
+  println "Answer is " ( <aaaaal>)
   *)
   (*
-  println "Answer is " (xml a)
+  println "Answer is " ( a)
   *)
   (*
-  println "Answer is " (xml aa)
+  println "Answer is " ( aa)
   *)
-  (* println (xml <aaaa>) *)
+  (* println ( <aaaa>) *)
+  println (( <a> </a>).toString())
   println "ok"
 end
 
