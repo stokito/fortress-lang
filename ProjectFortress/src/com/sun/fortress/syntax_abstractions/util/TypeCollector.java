@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
@@ -82,6 +83,12 @@ public class TypeCollector extends NodeDepthFirstVisitor<Type> {
 
     @Override
     public Type forTokenSymbol(TokenSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forCharacterClassSymbol(CharacterClassSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }

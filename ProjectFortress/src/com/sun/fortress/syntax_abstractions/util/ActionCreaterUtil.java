@@ -37,8 +37,12 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -55,13 +59,26 @@ public class ActionCreaterUtil {
             indents.add(3);
             String var = id.getText();
             if (isTemplate) {
-                Type t = syntaxDeclEnv.getType(id);
-                if (t instanceof TraitType) {
-                    TraitType traitType = (TraitType) t;
-                    if (traitType.getName().getText().equals("List")) {
-                        var = getFortressList(id, listCode, indents);
+                if (syntaxDeclEnv.contains(id)) {
+                    if (syntaxDeclEnv.isRepeat(id)) {
+                        var = getFortressList(id, listCode, indents);  
+                    }
+                    if (syntaxDeclEnv.isOption(id)) {
+                        var = getFortressMaybe(id, code, indents, syntaxDeclEnv);  
+                    }
+                    if (syntaxDeclEnv.isCharacterClass(id)) {
+                        var = getFortressCharacterClass(id, code, indents);  
                     }
                 }
+                
+//                
+//                Type t = syntaxDeclEnv.getType(id);
+//                if (t instanceof TraitType) {
+//                    TraitType traitType = (TraitType) t;
+//                    if (traitType.getName().getText().equals("List")) {
+//                        
+//                    }
+//                }
 
             }
             code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
@@ -118,6 +135,47 @@ public class ActionCreaterUtil {
         return opExprName;
     }
 
+    private static String getFortressMaybe(Id id, List<String> code, List<Integer> indents, SyntaxDeclEnv syntaxDeclEnv) {
+        String spanName = JavaAstPrettyPrinter.getSpan(id, code);
+        
+        String type = new FortressTypeToJavaType().analyze(syntaxDeclEnv.getType(id));
+        
+        String name = FreshName.getFreshName("option");
+        indents.add(3);
+        code.add("Expr "+name+" = null");
+        
+        String staticArgs = FreshName.getFreshName("staticArgs");
+        indents.add(3);
+        code.add("List<StaticArg> "+staticArgs+"= new LinkedList<StaticArg>();");
+        indents.add(3);
+        code.add(staticArgs+".add(new TypeArg(new VarType(NodeFactory.makeId(\""+SyntaxAbstractionUtil.FORTRESSAST+"\", "+type+"))));");
+        indents.add(3);
+        code.add("if (null == "+id.getText()+") {");
+        String justArgs = FreshName.getFreshName("justArgs");
+        indents.add(3);
+        code.add("List<Expr> "+justArgs+" = new LinkedList<Expr>();");
+        indents.add(3);
+        code.add("    "+justArgs+".add("+id.getText()+");");
+        indents.add(3);
+        code.add("    "+name+" = SyntaxAbstractionUtil.makeObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+"\", \""+SyntaxAbstractionUtil.JUST+"\", "+justArgs+", "+staticArgs+");");
+        indents.add(3);
+        code.add("}");
+        indents.add(3);
+        code.add("else {");
+        indents.add(3);
+        code.add("    "+name+" = SyntaxAbstractionUtil.makeNoParamObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+"\", \""+SyntaxAbstractionUtil.NOTHING+"\", "+staticArgs+");");
+        indents.add(3);
+        code.add("}");
+        return name;
+    }
+    
+    private static String getFortressCharacterClass(Id id, List<String> code, List<Integer> indents) {
+        String name = FreshName.getFreshName("characterClass");
+        indents.add(3);
+        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id.getText()+");");
+        return name;
+    }
+    
     public static List<String> createRatsAction(String serializedComponent, List<Integer> indents) {
         List<String> code = new LinkedList<String>();
         String[] sc = Utilities.SPACE_NEWLINE_SPACE.split(serializedComponent);
