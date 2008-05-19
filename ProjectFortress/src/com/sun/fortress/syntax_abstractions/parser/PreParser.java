@@ -23,6 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
 import xtc.parser.ParseError;
 import xtc.parser.SemanticValue;
@@ -33,7 +35,10 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -72,6 +77,28 @@ public class PreParser {
 	        	return this.grammars;
 	        }
 	    }
+
+	   /* get a list of imported apis from a component/api */
+	public static List<APIName> getImportedApis(File f){
+		Parser.Result pr = parseFile(f);
+		if ( ! pr.isSuccessful() ){
+			throw new RuntimeException("Failed to parse");
+		}
+		List<APIName> all = new ArrayList<APIName>();
+		for ( Component comp : pr.components() ){
+			for ( Import i : comp.getImports() ){
+				ImportedNames names = (ImportedNames) i;
+				all.add( names.getApi() );
+			}
+		}
+		for ( Api api : pr.apis() ){
+			for ( Import i : api.getImports() ){
+				ImportedNames names = (ImportedNames) i;
+				all.add( names.getApi() );
+			}
+		}
+		return all;
+	}
 
 	/** Parses a single file. */
 	public static Result parse(File f, GlobalEnvironment env) {
