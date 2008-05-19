@@ -25,5 +25,11 @@ else
   CP="$FORTRESS_HOME/ProjectFortress/build:$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar:$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar:$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar:$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar:$JAVA_HOME/lib/tools.jar:$CP"
 fi
 
-java $JAVA_FLAGS -cp "$CP" -Dfortress.static.analysis=1 \
+if [ -z $JAVA_HOME ] ; then
+  JAVACMD=java
+else
+  JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+"$JAVACMD" $JAVA_FLAGS -cp "$CP" -Dfortress.static.analysis=1 \
 com.sun.fortress.shell.Shell "$@"
