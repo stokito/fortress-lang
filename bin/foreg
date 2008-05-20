@@ -17,8 +17,8 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-FORTRESS_HOME=`${0%foreg}fortress_home`
+FORTRESS_HOME="`${0%foreg}fortress_home`"
 
 USE_EMACS=${USE_EMACS:-emacs}
 [ -n "$EMACS" ] && unset EMACSLOADPATH
-"${USE_EMACS}" -batch "$@" -l $FORTRESS_HOME/Fortify/fortify.el -f foreg
+"${USE_EMACS}" -batch "$@" -l "$FORTRESS_HOME/Fortify/fortify.el" -f foreg

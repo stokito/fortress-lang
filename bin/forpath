@@ -17,8 +17,10 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-FORTRESS_HOME="`${0%fortex}fortress_home`"
+# Prints a line suitable for cutting and pasting into a shell that sets PATH properly
 
-USE_EMACS=${USE_EMACS:-emacs}
-[ -n "$EMACS" ] && unset EMACSLOADPATH
-"${USE_EMACS}" -batch "$@" -l "$FORTRESS_HOME/Fortify/fortify.el" -f fortex
+FORTRESS_HOME="`${0%forpath}fortress_home`"
+
+FORTRESS_BIN=`cd ${FORTRESS_HOME}/bin; /bin/pwd`
+
+echo "PATH=\"$FORTRESS_BIN:$PATH\""
