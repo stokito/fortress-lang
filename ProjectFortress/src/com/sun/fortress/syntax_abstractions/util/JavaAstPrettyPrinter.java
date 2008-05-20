@@ -290,7 +290,15 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
     @Override
     public String forVarRef(VarRef that) {
-        if (this.syntaxDeclEnv.contains(that.getVar())) { //TODO: is it ok to assume that it is not qualified?
+        Id id = that.getVar();
+        //TODO: is it ok to assume that it is not qualified?
+        if (this.syntaxDeclEnv.contains(that.getVar())) {
+            /* TODO: this same sort of code is used in handleTemplateGap.
+             * It should probably be abstracted and turned into a function.
+             */
+            if (this.syntaxDeclEnv.isRepeat(id)) {
+                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+            }
             return that.getVar().toString();
         }
         return super.forVarRef(that);

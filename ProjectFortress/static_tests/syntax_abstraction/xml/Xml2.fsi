@@ -27,11 +27,21 @@ api Xml2
     toString():String
   end
 
-  object Element(startTag:String, content:List[\Content\], endTag:String) extends Content 
+  object Element(info:Header, content:List[\Content\], endTag:String) extends Content 
     getter toString():String
   end 
   Element(startTag:String)
   Element(startTag:String, endTag:String)
+
+  object Attribute(key:String, val:String) extends Content
+    getter getKey():String
+    getter getValue():String
+  end
+  
+  object Header(startTag:String, attributes:List[\Attribute\])
+    getter getTag():String
+    getter attributes():String
+  end
 
   object CData(v:String) extends Content
     getter toString():String
@@ -48,11 +58,17 @@ api Xml2
       <[ Element(b,e) asif Content ]>
     | x:XmlComplete <[ Element(x) asif Content ]>
 
+    XmlComplete :Expr:=
+      OpenBracket# s:String Slash# CloseBracket
+      <[ Header(s,emptyList[\Attribute\]) ]>
+    | OpenBracket# s:String a:Attributes+ Slash# CloseBracket
+      <[ Header(s,a) ]>
+
     XmlStart :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
-      <[ s ]>
-    | o1:OpenBracket# s:String a:Attributes o2:CloseBracket
-      <[ s " " a ]>
+      <[ Header(s,emptyList[\Attribute\]) ]>
+    | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
+      <[ Header(s, a) ]>
 
     XmlContent :Expr:= (* type: List[\Content\] *)
       s:Strings <[ <| (CData(s) asif Content) |> ]>
@@ -65,18 +81,16 @@ api Xml2
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
       <[ s ]>
 
-    XmlComplete :Expr:=
-      OpenBracket# s:String Slash# CloseBracket
-      <[ s ]>
-    | OpenBracket# s:String a:Attributes Slash# CloseBracket
-      <[ s " " a ]>
-
+    (*
     Attributes :Expr:=
       a:Attribute r:Attributes <[ a " " r ]>
     | a:Attribute <[ a ]>
+    *)
+    Attributes :Expr:=
+      a:Attribute SPACE <[ a ]>
 
     Attribute :Expr:=
-      key:String = " val:AttributeStrings " <[ key "='" val "'" ]>
+      key:String = " val:AttributeStrings " <[ Attribute(key,val) ]>
 
     AttributeStrings :Expr:= (* type: String *)
       s1:AttributeString s2:AttributeStrings <[ s1 " " s2 ]>
@@ -93,9 +107,6 @@ api Xml2
     Strings :Expr:= (* type: String *)
       s1:String s2:Strings <[ s1 " " s2 ]>
     | s1:String <[ s1 ]>
-
-    Slash :StringLiteralExpr:=
-      / <[ "/" ]>
 
     String :Expr:= (* type: String *)
       x:AnyChar# y:String <[ x y ]>
@@ -114,5 +125,7 @@ api Xml2
     CloseBracket :Expr:=
       > <[ ">" ]>
 
+    Slash :StringLiteralExpr:=
+      / <[ "/" ]>
   end
 end

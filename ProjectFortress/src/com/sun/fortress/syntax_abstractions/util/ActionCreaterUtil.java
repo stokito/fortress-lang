@@ -48,7 +48,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ActionCreaterUtil {
 
-    public static List<String> createVariabelBinding(List<Integer> indents,
+    public static List<String> createVariableBinding(List<Integer> indents,
             SyntaxDeclEnv syntaxDeclEnv, String BOUND_VARIABLES,
             boolean isTemplate) {
         List<String> code = new LinkedList<String>();
