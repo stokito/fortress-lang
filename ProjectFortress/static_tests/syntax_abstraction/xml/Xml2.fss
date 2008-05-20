@@ -27,7 +27,15 @@ component Xml2
   end
 
   object Element(startTag:String, content:List[\Content\], endTag:String) extends Content 
-    toString():String = "<" startTag ">"  (for x <- content do x.toString() end) "</" endTag ">"
+    toString():String = 
+      do
+        var s:String = "<" startTag ">"
+        for x <- seq(content) do 
+          s := s x.toString() 
+        end
+        s := s "</" endTag ">"
+        s
+      end
   end
   Element(startTag:String) = Element(startTag, emptyList[\Content\](), startTag)
   Element(startTag:String, endTag:String) = Element(startTag, emptyList[\Content\](), endTag)

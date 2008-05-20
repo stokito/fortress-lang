@@ -37,7 +37,7 @@ api Xml2
     getter toString():String
   end
 
-  grammar xml extends Literal
+  grammar xml extends {Literal, Symbols}
     LiteralExpr |Expr:= (* type: Content *)
       x:XExpr <[ x ]>
 
@@ -76,7 +76,19 @@ api Xml2
     | a:Attribute <[ a ]>
 
     Attribute :Expr:=
-      key:String = " val:Strings " <[ key "='" val "'" ]>
+      key:String = " val:AttributeStrings " <[ key "='" val "'" ]>
+
+    AttributeStrings :Expr:= (* type: String *)
+      s1:AttributeString s2:AttributeStrings <[ s1 " " s2 ]>
+    | s1:AttributeString <[ s1 ]>
+
+    AttributeString :Expr:= (* type: String *)
+      x:AttributeChar# y:String <[ x y ]>
+    | x:AttributeChar <[ x "" ]>
+
+    AttributeChar :StringLiteralExpr:=
+      x:AnyChar <[ x ]>
+    | x:['] <[ x ]>
 
     Strings :Expr:= (* type: String *)
       s1:String s2:Strings <[ s1 " " s2 ]>
@@ -88,6 +100,10 @@ api Xml2
     String :Expr:= (* type: String *)
       x:AnyChar# y:String <[ x y ]>
     | x:AnyChar <[ x "" ]>
+
+  end
+
+  grammar Symbols 
 
     AnyChar :StringLiteralExpr:=
       x:[A:Za:z] <[ x ]>

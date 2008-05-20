@@ -151,18 +151,26 @@ public class SyntaxDeclEnv {
     }
 
     public boolean isAnyChar(Id id) {
+        if (!init)
+            init();
         return this.anyChars.contains(id);
     }
     
     public boolean isCharacterClass(Id id) {
+        if (!init)
+            init();
         return this.characterClasses.contains(id);
     }
     
     public boolean isOption(Id id) {
+        if (!init)
+            init();
         return this.options.contains(id);
     }
     
     public boolean isRepeat(Id id) {
+        if (!init)
+            init();
         return this.repeats.contains(id);
     }
 }

@@ -40,97 +40,97 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class EscapeRewriter extends NodeUpdateVisitor {
 
- private static final String ESCAPECHAR = "`";
+    private static final String ESCAPECHAR = "`";
 
- private String removeLeadingEscape(String s, List<CharacterSymbol> ls) {
-  if (s.startsWith(ESCAPECHAR)) {
-   int inx = 1;
-   while(inx<s.length()-1) {
-    ls.add(new CharSymbol(""+s.charAt(inx)));
-    inx++;
-   }
-   s = ""+s.charAt(s.length()-1);
-  }
-  return s;
- }
+    private String removeLeadingEscape(String s, List<CharacterSymbol> ls) {
+        if (s.startsWith(ESCAPECHAR)) {
+            int inx = 1;
+            while(inx<s.length()-1) {
+                ls.add(new CharSymbol(""+s.charAt(inx)));
+                inx++;
+            }
+            s = ""+s.charAt(s.length()-1);
+        }
+        return s;
+    }
 
- private String removeTrailingEscape(String s, List<CharacterSymbol> ls) {
-  String end = "";
-  if (s.startsWith(ESCAPECHAR)) {
-   int inx = 1;
-   end = ""+s.charAt(inx);
-   inx++;
-   while(inx<s.length()) {
-    ls.add(new CharSymbol(""+s.charAt(inx)));
-    inx++;
-   }
-   return end;
-  }
-  return s;
- }
-
- @Override
- public Node forCharacterClassSymbol(CharacterClassSymbol that) {
-  List<CharacterSymbol> ls = new LinkedList<CharacterSymbol>();
-  for (CharacterSymbol cs: that.getCharacters()) {
-   List<CharacterSymbol> ncs = cs.accept(new NodeDepthFirstVisitor<List<CharacterSymbol>>() {
-
-    @Override
-    public List<CharacterSymbol> forCharacterInterval(CharacterInterval that) {
-     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
-     String begin = removeLeadingEscape(that.getBegin(), head);
-     List<CharacterSymbol> tail = new LinkedList<CharacterSymbol>();
-     String end = removeTrailingEscape(that.getEnd(), tail);
-     head.add(new CharacterInterval(begin, end));
-     head.addAll(tail);
-     return head;
+    private String removeTrailingEscape(String s, List<CharacterSymbol> ls) {
+        String end = "";
+        if (s.startsWith(ESCAPECHAR)) {
+            int inx = 1;
+            end = ""+s.charAt(inx);
+            inx++;
+            while(inx<s.length()) {
+                ls.add(new CharSymbol(""+s.charAt(inx)));
+                inx++;
+            }
+            return end;
+        }
+        return s;
     }
 
     @Override
-    public List<CharacterSymbol> forCharSymbol(CharSymbol that) {
-     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
-     String s = removeLeadingEscape(that.getString(), head);
-     head.add(new CharSymbol(s));
-     return head;
+    public Node forCharacterClassSymbol(CharacterClassSymbol that) {
+        List<CharacterSymbol> ls = new LinkedList<CharacterSymbol>();
+        for (CharacterSymbol cs: that.getCharacters()) {
+            List<CharacterSymbol> ncs = cs.accept(new NodeDepthFirstVisitor<List<CharacterSymbol>>() {
+
+                @Override
+                public List<CharacterSymbol> forCharacterInterval(CharacterInterval that) {
+                    List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
+                    String begin = removeLeadingEscape(that.getBegin(), head);
+                    List<CharacterSymbol> tail = new LinkedList<CharacterSymbol>();
+                    String end = removeTrailingEscape(that.getEnd(), tail);
+                    head.add(new CharacterInterval(begin, end));
+                    head.addAll(tail);
+                    return head;
+                }
+
+                @Override
+                public List<CharacterSymbol> forCharSymbol(CharSymbol that) {
+                    List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
+                    String s = removeLeadingEscape(that.getString(), head);
+                    head.add(new CharSymbol(s));
+                    return head;
+                }
+
+            });
+            ls.addAll(ncs);
+        }
+        return new CharacterClassSymbol(that.getSpan(), ls);
     }
 
-   });
-   ls.addAll(ncs);
-  }
-  return new CharacterClassSymbol(that.getSpan(), ls);
- }
+    @Override
+    public Node forKeywordSymbol(KeywordSymbol that) {
+        String s = removeEscape(that.getToken());
+        return new KeywordSymbol(that.getSpan(), s);
+    }
 
- @Override
- public Node forKeywordSymbol(KeywordSymbol that) {
-  String s = removeEscape(that.getToken());
-  return new KeywordSymbol(that.getSpan(), s);
- }
+    @Override
+    public Node forTokenSymbol(TokenSymbol that) {
+        String s = removeEscape(that.getToken());
+        return new TokenSymbol(that.getSpan(), s);
+    }
 
- @Override
- public Node forTokenSymbol(TokenSymbol that) {
-  String s = removeEscape(that.getToken());
-  return new TokenSymbol(that.getSpan(), s);
- }
+    @Override
+    public Node forPrefixedSymbolOnly(PrefixedSymbol that,
+            Option<Id> result_id,
+            SyntaxSymbol result_symbol) {
+        if (result_id.isNone()) bug(that, "Missing an Id.");
+        String s = removeEscape(result_id.unwrap().getText());
+        return new PrefixedSymbol(that.getSpan(), Option.some(new Id(s)), result_symbol);
+    }
 
- @Override
- public Node forPrefixedSymbolOnly(PrefixedSymbol that,
-           Option<Id> result_id,
-           SyntaxSymbol result_symbol) {
-  if (result_id.isNone()) bug(that, "Missing an Id.");
-  String s = removeEscape(result_id.unwrap().getText());
-  return new PrefixedSymbol(that.getSpan(), Option.some(new Id(s)), result_symbol);
- }
+    private String removeEscape(String s) {
+        for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_SYMBOLS) {
+            s = s.replaceAll(ESCAPECHAR+symbol, symbol);
+        }
+        for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS) {
+            s = s.replaceAll(ESCAPECHAR+symbol, symbol);
+        }
 
- private String removeEscape(String s) {
-  for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_SYMBOLS) {
-   s = s.replaceAll(ESCAPECHAR+symbol, symbol);
-  }
-  for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS) {
-   s = s.replaceAll(ESCAPECHAR+symbol, symbol);
-  }
-
-  return s;
- }
+        return s;
+    }
 
 
 }
