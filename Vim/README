@@ -1,0 +1,8 @@
+* Install
+  Copy the sub-directories you find here to your ~/.vim directory. Example
+  $ cp -a fortress/Vim/syntax ~/.vim/.
+  ...
+
+* Use
+  Just start vim. If you don't see any syntax highlighting try executing this command
+  :syntax enable
