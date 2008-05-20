@@ -4,5 +4,10 @@
   ...
 
 * Use
-  Just start vim. If you don't see any syntax highlighting try executing this command
+Add the following line to your ~/.vimrc
+
+  au BufNewFile,BufRead *.fsi,*.fss set ft=fortress
+
+Then start vim and syntax highlighting should work. If it does not try executing
+
   :syntax enable
