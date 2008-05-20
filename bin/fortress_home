@@ -30,7 +30,7 @@ if [ -z "$FORTRESS_HOME" ]; then
     true;
   else
     # no slash
-    cmd=`which $cmd`
+    cmd="`which $cmd`"
   fi
   # if the command that we found resolves to a symbolic link, try to follow
   # (not possible on Solaris, yet)
@@ -48,7 +48,7 @@ if [ -z "$FORTRESS_HOME" ]; then
        exit 1
      fi
      # Follow the link, figure out if it is absolute or relative.
-     target=`$READLINK $cmd`
+     target="`$READLINK $cmd`"
      emptyifslash=${target##/*}
      # if absolute (begins with /)
      if [ -z "$emptyifslash" ]; then
@@ -58,11 +58,11 @@ if [ -z "$FORTRESS_HOME" ]; then
      fi
      # echo Symlink resolves to $cmd
   fi
-  FORTRESS_HOME=${cmd%/*}/..
+  FORTRESS_HOME="${cmd%/*}/.."
   echo "Guessing FORTRESS_HOME=$FORTRESS_HOME" 1>&2
 fi
 
-if [ -e ${FORTRESS_HOME}/ProjectFortress ]; then
+if [ -e "${FORTRESS_HOME}/ProjectFortress" ]; then
   true
 else
   echo "FORTRESS_HOME should be the name of the parent directory of ProjectFortress"

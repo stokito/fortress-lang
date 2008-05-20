@@ -38,9 +38,17 @@ public class Path {
 
     private static List<File> stringToFiles(String path) {
         List<File> dirs = new ArrayList<File>();
+        String p = pathSep;
+        if (path.startsWith(":")) {
+            p = ":";
+            path=path.substring(1);
+        } else if (path.startsWith(";")) {
+            p = ";";
+            path=path.substring(1);
+        }
         
         path = Useful.substituteVars(path);
-        StringTokenizer st = new StringTokenizer(path, pathSep);
+        StringTokenizer st = new StringTokenizer(path, p);
         while (st.hasMoreTokens()) {
             String e = st.nextToken();           
             File f = new File(e);

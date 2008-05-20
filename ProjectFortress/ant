@@ -32,7 +32,7 @@ find_ant(){
   # if $ANT_HOME is set then search for ant there
   if [ "x$ANT_HOME" != "x" ]; then
     if [ -x "$ANT_HOME/bin/ant" ]; then
-      echo $ANT_HOME/bin/ant
+      echo "$ANT_HOME/bin/ant"
       return
     else
       echo "Did not find ant in $ANT_HOME/bin" >&2
@@ -42,7 +42,7 @@ find_ant(){
   fi
 
   # Otherwise use whatever is in $PATH
-  result=`which ant 2>/dev/null`
+  result="`which ant 2>/dev/null`"
   if [ -z "$result" ]; then
     echo "Could not find ant. You need to install it. See http://ant.apache.org/ for details." >&2
     exit 1
@@ -51,9 +51,9 @@ find_ant(){
   exit 0
 }
 
-ant_exec=`find_ant`
+ant_exec="`find_ant`"
 n=$?
 if [ $n -ne 0 ]; then
         exit $n
 fi
-$ant_exec -noclasspath -lib third_party/junit "$@"
+"$ant_exec" -noclasspath -lib third_party/junit "$@"
