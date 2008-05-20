@@ -68,10 +68,6 @@ public class MemberEnv {
 			initEnv(nd.getParams(), ls);
 		}
 	}
-
-	public static MemberEnv getEmptyEnv() {
-		return new MemberEnv();
-	}
 	
 	private void initEnv(List<Pair<Id,Type>> ls, List<SyntaxDef> syntaxDefs) {
 		Id[] params = new Id[ls.size()];

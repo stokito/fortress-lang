@@ -23,41 +23,46 @@ component testbasic
   export Executable
 
   run(args:String...) = do
-(*
+
   println "Answer is " <a />
-  println "Answer is " ( <x></x> )
-*)
-  println "Answer is " ( <aaa>aa</aaa> )
+  println "Answer is " <x></x>
 
-  println "Answer is " ( <aaa><foobar /></aaa>)
-  println "Answer is " ( <aaa foo="bar" />)
-  println "Answer is " ( <aaa><aa>aa</aa></aaa>)
+  println "Answer is " <aaa>aa</aaa>
 
-  println "Answer is " ( <hello><world>hi mom</world></hello>)
-  println "Answer is " ( <hello attr="foobar"><world>hi mom</world></hello>)
-  println "Answer is " ( <hello attr="foobar" more="blah"><world>hi mom</world></hello>)
+  println "Answer is "  <aaa><foobar /></aaa>
+  println "Answer is " <aaa foo="bar" />
+  println "Answer is " <aaa><aa>aa</aa></aaa>
 
+  println "Answer is " <hello><world>hi mom</world></hello>
+  println "Answer is " <hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello>
+  println "Answer is " <hello attr="foobar" more="blah"><world>hi mom</world></hello>
+
+
+  xml:Content = <note>hi</note>
+  println "Xml: " xml
+
+  println "Xml: "
+  <note>It makes no sense to have an XML literal here remember Fortress 
+     interprets this as a new declaration like (* Element("note", CData(...), "note") *) </note>
+
+  xml2 = <note>
+           <to>Tove</to>
+         </eton>
+  println "Xml: " xml2
+
+  
 
   println "Xml: " (
-  <note>hi</note>)
+    <from>Jani</from>)
 
   println "Xml: " (
     <note>
       <to>Tove</to>
-    </note>
-  )
+      <from>Jani</from>
+      <heading>Reminder</heading>
+      <body>Dont forget me this weekend</body>
+    </note>)
 
-  println "Xml: " (
-    <from>Jani</from>)
-(*
-  println "Xml: " (
-  <note>
-    <to>Tove</to>
-    <from>Jani</from>
-    <heading>Reminder</heading>
-    <body>Dont forget me this weekend</body>
-  </note>)
-*)
 (*
   println "Answer is " ( <aaal> <aaaal> aal </aaaal> </aaal>)
   println "Answer is " ( <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)
