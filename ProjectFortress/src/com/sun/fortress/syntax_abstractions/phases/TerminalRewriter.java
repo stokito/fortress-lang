@@ -117,26 +117,26 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         else {
             var = FreshName.getFreshName("T");
         }
-        APIName apiName = NodeFactory.makeAPIName(this.apiName);
+        APIName apiName = NodeFactory.makeAPIName(that.getSpan(), this.apiName);
         Id id = NodeFactory.makeId(that.getSpan(), var);
         Id name = NodeFactory.makeId(that.getSpan(), apiName, id);
 
         // Create a the return type - A StringLiteralExpr
-        Option<BaseType> type = Option.<BaseType>some(new VarType(NodeFactory.makeId("FortressBuiltin", STRINGLITERALEXPR)));
+        Option<BaseType> type = Option.<BaseType>some(new VarType(that.getSpan(), NodeFactory.makeId("FortressBuiltin", STRINGLITERALEXPR)));
 
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();
         syntaxSymbols.add(that);
 
         // Create the transformation expression
-        Expr transformationExpression = NodeFactory.makeStringLiteralExpr(token);
+        Expr transformationExpression = NodeFactory.makeStringLiteralExpr(that.getSpan(), token);
 
         // Add the terminal definition to the collection of new terminal definitions
         SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, new TransformationTemplateDef(transformationExpression));
-        this._terminalDefs.add(new _TerminalDef(name, type, Option.<Modifier>none(), new LinkedList<Pair<Id, Type>>(), syntaxDef));
+        this._terminalDefs.add(new _TerminalDef(that.getSpan(), name, type, Option.<Modifier>none(), new LinkedList<Pair<Id, Type>>(), syntaxDef));
 
         // Return a new nonterminal reference to the new terminal definition
-        return new NonterminalSymbol(NodeFactory.makeId(that.getSpan(), apiName, id));
+        return new NonterminalSymbol(that.getSpan(), NodeFactory.makeId(that.getSpan(), apiName, id));
     }
 
 }

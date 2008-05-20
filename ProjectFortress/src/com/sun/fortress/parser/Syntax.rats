@@ -141,13 +141,13 @@ TransformationExpressionDef TransformationExpr =
        if (a3 == null) a3 = FortressUtil.doBlock(span);
        Do d = new Do(span, false,
                         FortressUtil.mkList(new DoFront(span, Option.<Expr>none(), false, a3)));
-       yyValue = new TransformationExpressionDef(d);
+       yyValue = new TransformationExpressionDef(createSpan(yyStart,yyCount), d);
      };
 
 /* TransformationTemplate ::= <[ Expr ]> */
 TransformationPreTemplateDef TransformationTemplate =
      leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
-     { yyValue = new TransformationPreTemplateDef("Expr", a1); };
+     { yyValue = new TransformationPreTemplateDef(createSpan(yyStart,yyCount), "Expr", a1); };
 
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
@@ -164,7 +164,7 @@ List<SyntaxSymbol> Symbs = a1:SpaceOrBreakline+ a2:SyntaxSymbol
 
 SyntaxSymbol SpaceOrBreakline =
       a1:sr
-      { yyValue = new WhitespaceSymbol(a1); }
+      { yyValue = new WhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
     /  yyValue:Breakline;
 
 SyntaxSymbol SyntaxSymbol =
@@ -188,27 +188,27 @@ SyntaxSymbol SyntaxSymbol =
       { Option<Id> prefix = Option.some(a1);
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
-          yyValue = new NoWhitespaceSymbol(s1.getSpan(), new PrefixedSymbol(prefix, tmp));
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(),prefix, tmp));
         }
         else {
-          yyValue = new PrefixedSymbol(prefix, s1);
+          yyValue = new PrefixedSymbol(createSpan(yyStart,yyCount), prefix, s1);
         }}
     / s1:Symbol
       { Option<Id> prefix = Option.none();
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
-          yyValue = new NoWhitespaceSymbol(s1.getSpan(), new PrefixedSymbol(prefix, tmp));
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(),prefix, tmp));
         }
         else
         if (s1 instanceof SpecialSymbol) {
           yyValue = s1;
         }
         else {
-          yyValue = new PrefixedSymbol(prefix, s1);
+          yyValue = new PrefixedSymbol(createSpan(yyStart,yyCount), prefix, s1);
         }};
 
 SyntaxSymbol Breakline = a1:breakline
-      { yyValue = new BreaklineSymbol(a1); };
+      { yyValue = new BreaklineSymbol(createSpan(yyStart,yyCount), a1); };
 
 SyntaxSymbol Symbol =
       a1:Suffix hash
@@ -226,25 +226,27 @@ SyntaxSymbol Suffix =
 
 SyntaxSymbol Item =
       !(w (leftDelimiter / do)) s:ItemText
-       { yyValue = new ItemSymbol(s); }
-    /  Tab
-      { yyValue = new TabSymbol(); }
-    /  Formfeed
-      { yyValue = new FormfeedSymbol(); }
-    /  Return
-      { yyValue = new CarriageReturnSymbol(); }
-    /  Newline
-      { yyValue = new NewlineSymbol(); }
-    /  Space
-      { yyValue = new WhitespaceSymbol(" "); }
-    /  Backspace
-      { yyValue = new BackspaceSymbol(); }
+       { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
-      { yyValue = new CharacterClassSymbol(a1.list()); };
+      { yyValue = new CharacterClassSymbol(createSpan(yyStart,yyCount), a1.list()); }
+    /  anyChar
+      { yyValue = new AnyCharacterSymbol(createSpan(yyStart,yyCount)); }
+    /  Tab
+      { yyValue = new TabSymbol(createSpan(yyStart,yyCount)); }
+    /  Formfeed
+      { yyValue = new FormfeedSymbol(createSpan(yyStart,yyCount)); }
+    /  Return
+      { yyValue = new CarriageReturnSymbol(createSpan(yyStart,yyCount)); }
+    /  Newline
+      { yyValue = new NewlineSymbol(createSpan(yyStart,yyCount)); }
+    /  Space
+      { yyValue = new WhitespaceSymbol(createSpan(yyStart,yyCount), " "); }
+    /  Backspace
+      { yyValue = new BackspaceSymbol(createSpan(yyStart,yyCount)); };
 
 CharacterSymbol CharacterClass =
-       c1:Char colon c2:Char { yyValue = new CharacterInterval(c1, c2); }
-    / c1:Char { yyValue = new CharSymbol(c1); };
+       c1:Char colon c2:Char { yyValue = new CharacterInterval(createSpan(yyStart,yyCount), c1, c2); }
+    / c1:Char { yyValue = new CharSymbol(createSpan(yyStart,yyCount), c1); };
 
 String Char =
     Tab
@@ -274,7 +276,7 @@ String utf16 =
 String SpecialChars =
       space / breakline / colon / questionmark / hash
    / plus / star / openSquareBraket / closeSquareBraket
-   / pling / bar;
+   / pling / bar / anyChar;
 
 String EscapedSpecialChars =
    pling SpecialChars;
@@ -286,6 +288,7 @@ String SpecialSymbols =
       Tab / Formfeed / Return / Newline / Space
     / Backspace / Not / And / leftDelimiter / do;
 
+transient String anyChar = ".";
 transient String bar = "|";
 transient String hash = "#";
 transient String colon = ":";

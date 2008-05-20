@@ -158,19 +158,19 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		return new NonterminalSymbol(that.getSpan(), name);
 	}
 
-	private KeywordSymbol makeKeywordSymbol(ItemSymbol item) {
-		return new KeywordSymbol(item.getSpan(), item.getItem());
+	private KeywordSymbol makeKeywordSymbol(ItemSymbol that) {
+		return new KeywordSymbol(that.getSpan(), that.getItem());
 	}
 
-	private TokenSymbol makeTokenSymbol(ItemSymbol item) {
-		return new TokenSymbol(item.getSpan(), item.getItem());
+	private TokenSymbol makeTokenSymbol(ItemSymbol that) {
+		return new TokenSymbol(that.getSpan(), that.getItem());
 	}
 
 	private static Id makeId(Span span, String item) {
 		int lastIndexOf = item.lastIndexOf('.');
 		if (lastIndexOf != -1) {
 			APIName apiName = NodeFactory.makeAPIName(item.substring(0, lastIndexOf));
-			return NodeFactory.makeId(apiName, NodeFactory.makeId(item.substring(lastIndexOf+1)));
+			return NodeFactory.makeId(span, apiName, NodeFactory.makeId(item.substring(lastIndexOf+1)));
 		}
 		else {
 			return NodeFactory.makeId(span, item);
@@ -193,13 +193,11 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	}
 
 	private Node handle(PrefixedSymbol prefix, SyntaxSymbol that, String varName) {
-		Id var = NodeFactory.makeId(varName);
+		Id var = NodeFactory.makeId(that.getSpan(), varName);
 		return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var), that);
 	}
 
 	private class PrefixHandler extends NodeDepthFirstVisitor<String> {
-
-
 		@Override
 		public String defaultCase(Node that) {
 			return "";
@@ -240,7 +238,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 				String symbol_result) {
 			return symbol_result;
 		}
-
 	}
 
 }

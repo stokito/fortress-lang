@@ -94,7 +94,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forAPINameOnly(APIName that, List<String> ids_result) {
         String rVarName = FreshName.getFreshName("apiName");
         String idName = FreshName.getFreshName("id");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(ids_result, idName, "Id"));
         this.code.add("APIName "+rVarName+" = new APIName("+sVarName+","+idName+");");
         return rVarName;
@@ -104,7 +104,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forAsExprOnly(AsExpr that, String expr_result,
             String type_result) {
         String rVarName = FreshName.getFreshName("asExpr");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("AsExpr "+rVarName+" = new AsExpr("+sVarName+","+that.isParenthesized()+","+expr_result+","+type_result+");");
         return rVarName;
     }
@@ -122,7 +122,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forBlockOnly(Block that, List<String> exprs_result) {
         String rVarName = FreshName.getFreshName("block");
         String exprsName = FreshName.getFreshName("exprs");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, exprsName, "Expr"));
         this.code.add("Block "+rVarName+" = new Block("+sVarName+", "+exprsName+");");
         return rVarName;
@@ -133,7 +133,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             String expr_result) {
         String rVarName = FreshName.getFreshName("doFront");
         String loc = this.handleOption(loc_result, "Expr");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("DoFront "+rVarName+" = new DoFront("+sVarName+", "+loc+", "+that.isAtomic()+", "+expr_result+");");
         return rVarName;
     }
@@ -142,7 +142,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forDoOnly(Do that, List<String> fronts_result) {
         String rVarName = FreshName.getFreshName("aDo");
         String exprsName = FreshName.getFreshName("exprs");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(fronts_result, exprsName, "DoFront"));
         this.code.add("Do "+rVarName+" = new Do("+sVarName+", "+exprsName+");");
         return rVarName;
@@ -153,7 +153,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             List<String> staticArgs_result) {
         String rVarName = FreshName.getFreshName("fn");
         String fns = FreshName.getFreshName("ls");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(fns_result, fns, "Id"));
         String staticArgs = FreshName.getFreshName("ls");
         this.code.addAll(mkList(staticArgs_result, staticArgs, "StaticArg"));
@@ -164,7 +164,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forId(Id that) {
         String rVarName = FreshName.getFreshName("id");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("Id "+rVarName+" = new Id("+sVarName+", \""+that.getText()+"\");");
         return rVarName;
     }
@@ -172,7 +172,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forIdOnly(Id that, Option<String> api_result) {
         String rVarName = FreshName.getFreshName("qIdName");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String api = this.handleOption(api_result, "APIName");
         this.code.add("Id "+rVarName+" = new Id("+sVarName+", "+api+");");
         return rVarName;
@@ -181,7 +181,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
         public String forVarTypeOnly(VarType that, String name_result) {
         String rVarName = FreshName.getFreshName("idType");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("VarType "+rVarName+" = new VarType("+sVarName+", "+name_result+");");
         return rVarName;
     }
@@ -193,7 +193,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             Option<String> rhs_result) {
         String rVarName = FreshName.getFreshName("localVarDecl");
         
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
 
         String body = FreshName.getFreshName("body");
         this.code.addAll(mkList(body_result, body, "Expr"));
@@ -210,7 +210,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forLooseJuxtOnly(LooseJuxt that, List<String> exprs_result) {
         String rVarName = FreshName.getFreshName("lj");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String args = FreshName.getFreshName("ls");
         this.code.addAll(mkList(exprs_result, args, "Expr"));
         this.code.add("LooseJuxt "+rVarName+" = new LooseJuxt("+sVarName+", "+that.isParenthesized()+", "+args+");");
@@ -222,7 +222,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             Option<String> type_result, List<String> mods_result) {
         String rVarName = FreshName.getFreshName("lValueBind");
 
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         
         String type = this.handleOption(type_result, "Type");
 
@@ -236,7 +236,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forStringLiteralExpr(StringLiteralExpr that) {
         String varName = FreshName.getFreshName("s");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("StringLiteralExpr "+varName+" = new StringLiteralExpr("+sVarName+", \""+that.getText().replaceAll("\"","\\\\\"")+"\");");
         return varName;
     }
@@ -245,7 +245,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forTightJuxtOnly(TightJuxt that, List<String> exprs_result) {
         String varName = FreshName.getFreshName("ls");
         String rVarName = FreshName.getFreshName("tj");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, varName, "Expr"));
         this.code.add("TightJuxt "+rVarName+" = new TightJuxt("+sVarName+", "+that.isParenthesized()+", "+varName+");");
         return rVarName;
@@ -275,7 +275,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forTypeArgOnly(TypeArg that, String type_result) {
         String rVarName = FreshName.getFreshName("typeArg");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("TypeArg "+rVarName+" = new TypeArg("+sVarName+", "+type_result+");");
         return rVarName;
     }
@@ -283,7 +283,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forVarRefOnly(VarRef that, String var_result) {
         String varName = FreshName.getFreshName("varRef");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("VarRef "+varName+" = new VarRef("+sVarName+", "+var_result+");");
         return varName;
     }
@@ -299,7 +299,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forEnclosingOnly(Enclosing that, Option<String> api_result, String in_open_result, String in_close_result) {
         String rVarName = FreshName.getFreshName("enclosing");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String apiVarName = this.handleOption(api_result, "APIName");
         this.code.add("Enclosing "+rVarName+" = new Enclosing("+sVarName+", "+apiVarName+", "+in_open_result+", "+in_close_result+");");
         return rVarName;
@@ -308,7 +308,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forEnclosingFixity(EnclosingFixity that) {
         String rVarName = FreshName.getFreshName("enclosingFixity");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add("EnclosingFixity "+rVarName+" = new EnclosingFixity("+sVarName+");");
         return rVarName;
     }
@@ -317,7 +317,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forOpOnly(Op that, Option<String> api_result,
             Option<String> fixity_result) {
         String rVarName = FreshName.getFreshName("op");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String apiVarName = this.handleOption(api_result, "APIName");
         String fixityVarName = this.handleOption(fixity_result, "Fixity");
         this.code.add("Op "+rVarName+" = new Op("+sVarName+", "+apiVarName+", \""+that.getText()+"\", "+fixityVarName+");");
@@ -353,7 +353,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forOpExprOnly(OpExpr that, String in_op_result, List<String> args_result) {
         String rVarName = FreshName.getFreshName("opExpr");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String argsVarName = FreshName.getFreshName("ls");
         this.code.addAll(mkList(args_result, argsVarName, "Expr"));
         this.code.add("OpExpr "+rVarName+" = new OpExpr("+sVarName+", "+that.isParenthesized()+", "+in_op_result+", "+argsVarName+");");
@@ -363,7 +363,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forOpRefOnly(OpRef that, List<String> ops_result, List<String> staticArgs_result) {
         String rVarName = FreshName.getFreshName("opRef");
-        String sVarName = this.getSpan(that, this.code);
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String opsVarName = FreshName.getFreshName("ls");
         this.code.addAll(mkList(ops_result, opsVarName, "OpName"));
         String staticArgsVarName = FreshName.getFreshName("ls");
