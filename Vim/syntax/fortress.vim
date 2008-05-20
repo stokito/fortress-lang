@@ -5,6 +5,8 @@
 " URL:          http://www.cs.utah.edu/~rafkind
 " Last Change:  2008 May 20 - Initial version
 
+" Some stuff stolen from ocaml.vim
+
 if version < 600
   syntax clear
 elseif exists("b:current_syntax") && b:current_syntax == "fortress"
@@ -12,18 +14,27 @@ elseif exists("b:current_syntax") && b:current_syntax == "fortress"
 endif
 
 syn region   fortressComment start="(\*" end="\*)" contains=fortressComment
-syn match    fortressKeyword    "\<end\>"
+syn match    fortressEnd    "\<end\>"
 
-syn match    fortressKeyword "\<getter\>"
+" syn match    fortressKeyword "\<getter\>"
+syn keyword  fortressKeyword getter do
+syn keyword  fortressExternal import export
+
+syn region   fortressString       start=+"+ skip=+\\\\\|\\"+ end=+"+
+syn match    fortressNumber       "\<-\=\d\(_\|\d\)*[l|L|n]\?\>"
 
 syn keyword  fortressType  api object trait value
 syn keyword  fortressType  extends abstract comprises
+syn keyword  fortressType  grammar component
+
+syn keyword  fortressOperator println
 
 syn keyword  fortressOperator opr
 
 syn region   fortressApi matchgroup=fortressModule start="\<api\>" matchgroup=fortressModule end="\<end\>" contains=ALLBUT,fortressEndErr
 syn region   fortressObject matchgroup=fortressModule start="\<object\>" matchgroup=fortressModule end="\<end\>" contains=ALLBUT,fortressEndErr
 syn region   fortressTrait matchgroup=fortressModule start="\<trait\>" matchgroup=fortressModule end="\<end\>" contains=ALLBUT,fortressEndErr
+syn region   fortressComponent matchgroup=fortressModule start="\<component\>" matchgroup=fortressModule end="\<end\>" contains=ALLBUT,fortressEndErr
 
 if version >= 508 || !exists("did_fortress_syntax_inits")
   if version < 508
@@ -35,8 +46,13 @@ if version >= 508 || !exists("did_fortress_syntax_inits")
 
   HiLink fortressComment	   Comment
   HiLink fortressKeyword	   Keyword
+  HiLink fortressExternal          Include
   HiLink fortressType		   Type
-  HiLink fortressOperator	   Keyword
+  HiLink fortressOperator	   Operator
+  HiLink fortressEnd               Statement
+
+  HiLink fortressString	           String
+  HiLink fortressNumber	           Number
 
   delcommand HiLink
 endif
