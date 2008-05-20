@@ -334,7 +334,7 @@ public class Fortress {
 		}
 	}
 
-	static class WrappedException extends StaticError {
+	public static class WrappedException extends StaticError {
 
 		private final Throwable throwable;
 		private boolean debug;

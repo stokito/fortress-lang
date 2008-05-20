@@ -161,7 +161,6 @@ public class ActionCreater {
             //   System.err.println(sw.getBuffer().toString());
             return sw.getBuffer().toString();
         } catch (IOException e) {
-            e.printStackTrace();
             throw new RuntimeException("Unexpected error: "+e.getMessage());
         }
     }

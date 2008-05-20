@@ -1062,10 +1062,14 @@ public class NodeFactory {
    return new IntLiteralExpr(BigInteger.valueOf(i));
   }
 
-  public static StringLiteralExpr makeStringLiteralExpr(String s) {
-   return new StringLiteralExpr(s);
+  public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
+   return new StringLiteralExpr(span, s);
   }
 
+  public static StringLiteralExpr makeStringLiteralExpr(String s) {
+      return new StringLiteralExpr(s);
+  }
+  
   public static CharLiteralExpr makeCharLiteralExpr(char c) {
    return new CharLiteralExpr(""+c);
   }

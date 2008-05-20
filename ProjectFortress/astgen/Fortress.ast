@@ -594,6 +594,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract SpecialSymbol();
             /**
+             * any character syntax symbol
+             */
+            AnyCharacterSymbol();
+            /**
              * whitespace syntax symbol
              */
             WhitespaceSymbol(String s);
