@@ -37,7 +37,6 @@ component testbasic
   println "Answer is " <hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello>
   println "Answer is " <hello attr="foobar" more="blah"><world>hi mom</world></hello>
 
-
   xml:Content = <note>hi</note>
   println "Xml: " xml
 
