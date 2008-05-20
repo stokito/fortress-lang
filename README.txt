@@ -56,7 +56,22 @@ Specification, Version 1.0.
 Library: The home for all of the Fortress standard libraries.
 
 bin: Shell scripts for our various projects.  These are bash scripts;
-you will need an installation of Bash on your system to run them.
+you will need an installation of Bash on your system to run them.  To
+make these scripts "auto-homing", script "forfoobar" begins with the
+line
+    FORTRESS_HOME=`${0%forfoobar}fortress_home`
+This replaces 'forfoobar' in whatever was used to invoke the script
+with 'fortress_home', runs that command, and assigns its output to
+FORTRESS_HOME for the remainder of the scripts.  'fortress_home'
+determines the location of fortress_home if it is not otherwise
+specified.  This command can also be used in your own build files;
+for example, if you include the fortify macros in a latex file
+    \input{$FORTRESS_HOME/Fortify/fortify-macros}
+you might precede the latex command with
+    FORTRESS_HOME="`fortress_home`"
+It is also possible to set FORTRESS_HOME in your environment, but
+if you have multiple versions of Fortress installed this can cause
+confusion and build problems.
 
 You will also see the following files:
 
@@ -85,12 +100,9 @@ will need to have access to the following:
 * Bash version 2.5 or later, installed at /bin/bash.
   See http://www.gnu.org/software/bash/
 
-In your shell startup script, define environment variable
-FORTRESS_HOME to point to the PFC directory you checked out.
-It is very important to set this environment variable correctly;
-it is used by several scripts and build files.
+Assume FORTRESS_HOME points to the PFC directory you checked out.
 
-In your shell startup script, add $FORTRESS_HOME/bin to your path.
+In your shell startup script, add FORTRESS_HOME/bin to your path.
 The shell scripts in this directory are Bash scripts.  To run them,
 you must have Bash accessible in /bin/bash.
 
@@ -104,7 +116,7 @@ script:
 JAVA_HOME and ANT_HOME, it is preferred that you set them manually.)
 
 Once all of these environment variables are set, build the interpreter
-by going to the directory $FORTRESS_HOME and typing the command:
+by going to the directory FORTRESS_HOME and typing the command:
 
     ./ant clean test
 
