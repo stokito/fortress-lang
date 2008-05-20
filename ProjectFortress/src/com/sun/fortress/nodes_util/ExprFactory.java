@@ -615,7 +615,7 @@ public class ExprFactory {
             public Expr forTupleExpr(TupleExpr e) {
                 return new TupleExpr(e.getSpan(), true, e.getExprs());
             }
-            public Expr forTypeCase(Typecase e) {
+            public Expr forTypecase(Typecase e) {
                 return new Typecase(e.getSpan(), true, e.getBind(),
                                     e.getClauses(), e.getElseClause());
             }
