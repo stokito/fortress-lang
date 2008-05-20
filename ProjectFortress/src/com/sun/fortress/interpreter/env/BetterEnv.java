@@ -65,7 +65,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     private BATreeNode<String, Declaration> dcl_env;
 
 
-    static public boolean verboseDump = true;
+    static public boolean verboseDump = false;
 
     /** Names noted for possible future overloading */
     String[] namesPut;
@@ -418,7 +418,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                                         value.type(), ") to ", str, " (type ", ft, ")");
                     error(loc, m);
                     return;
-                } 
+                }
             }
             rc.assignValue(value);
             return;
