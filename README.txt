@@ -44,6 +44,14 @@ information about fortify, see Fortify/fortify-doc.txt):
     (load (concat (getenv "FORTRESS_HOME")
                   "/Fortify/fortify.el"))
 
+Vim: A directory containing vim script files for syntax highlighting.
+To enable syntax lighting for fortress code copy the sub-directories
+under Vim/ to your ~/.vim directory.
+  $ mkdir ~/.vim
+  $ cp -a Vim/ftdetect Vim/syntax ~/.vim/.
+If your cp command does not accept the -a option then use -r
+  $ cp -r Vim/ftdetect Vim/syntax ~/.vim/.
+
 SpecData: Machine-readable files used by the Fortress Language
 Specification (e.g., a list of all reserved words).  Editors and other
 tools may also benefit from using these files.  Moreover, all examples

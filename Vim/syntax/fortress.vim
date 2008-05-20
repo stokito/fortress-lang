@@ -17,7 +17,7 @@ syn region   fortressComment start="(\*" end="\*)" contains=fortressComment
 syn match    fortressEnd    "\<end\>"
 
 " syn match    fortressKeyword "\<getter\>"
-syn keyword  fortressKeyword getter do
+syn keyword  fortressKeyword getter
 syn keyword  fortressExternal import export
 
 syn region   fortressString       start=+"+ skip=+\\\\\|\\"+ end=+"+
@@ -26,10 +26,17 @@ syn match    fortressNumber       "\<-\=\d\(_\|\d\)*[l|L|n]\?\>"
 syn keyword  fortressType  api object trait value
 syn keyword  fortressType  extends abstract comprises
 syn keyword  fortressType  grammar component
+syn keyword  fortressType  Any Boolean String self
 
 syn keyword  fortressOperator println
 
-syn keyword  fortressOperator opr
+syn keyword  fortressKeyword opr for
+
+syn match    fortressThenErr    "\<then\>"
+
+syn region   fortressNone matchgroup=fortressKeyword start="\<if\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr
+
+syn region   fortressNone matchgroup=fortressKeyword start="\<do\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressEndErr
 
 syn region   fortressApi matchgroup=fortressModule start="\<api\>" matchgroup=fortressModule end="\<end\>" contains=ALLBUT,fortressEndErr
 syn region   fortressObject matchgroup=fortressModule start="\<object\>" matchgroup=fortressModule end="\<end\>" contains=ALLBUT,fortressEndErr
@@ -53,6 +60,8 @@ if version >= 508 || !exists("did_fortress_syntax_inits")
 
   HiLink fortressString	           String
   HiLink fortressNumber	           Number
+  
+  HiLink fortressThenErr	   Error
 
   delcommand HiLink
 endif
