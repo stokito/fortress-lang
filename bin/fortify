@@ -16,8 +16,8 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
-FORTRESS_HOME=`${0%fortify}fortress_home`
+FORTRESS_HOME="`${0%fortify}fortress_home`"
 
 USE_EMACS=${USE_EMACS:-emacs}
 [ -n "$EMACS" ] && unset EMACSLOADPATH
-"${USE_EMACS}" -batch "$@" -l $FORTRESS_HOME/Fortify/fortify.el -f batch-fortify
+"${USE_EMACS}" -batch "$@" -l "$FORTRESS_HOME/Fortify/fortify.el" -f batch-fortify
