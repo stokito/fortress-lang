@@ -94,7 +94,8 @@ public abstract class ConstraintFormula {
         private Map<InferenceVarType, Type> _upperBounds;
         private Map<InferenceVarType, Type> _lowerBounds;
         
-        private SimpleFormula(Map<InferenceVarType, Type> upperBounds, Map<InferenceVarType, Type> lowerBounds) {
+        private SimpleFormula(Map<InferenceVarType, Type> upperBounds,
+                              Map<InferenceVarType, Type> lowerBounds) {
             _upperBounds = upperBounds;
             _lowerBounds = lowerBounds;
         }
@@ -158,43 +159,42 @@ public abstract class ConstraintFormula {
             return result.toString();
         }
 
-        private ConstraintFormula merge(SimpleFormula f, SubtypeHistory history) {
+        private ConstraintFormula merge(SimpleFormula f, SubtypeHistory h) {
             debug.logStart(new String[]{"this", "f"}, this, f);
             Map<InferenceVarType, Type> uppers = new HashMap<InferenceVarType, Type>();
             Map<InferenceVarType, Type> lowers = new HashMap<InferenceVarType, Type>();
             ConstraintFormula conditions = TRUE;
 
-            Set<InferenceVarType> upperVars = CollectUtil.union(_upperBounds.keySet(), f._upperBounds.keySet());
-            Set<InferenceVarType> lowerVars = CollectUtil.union(_lowerBounds.keySet(), f._lowerBounds.keySet());
+            Set<InferenceVarType> upperVars = CollectUtil.union(_upperBounds.keySet(),
+                                                                f._upperBounds.keySet());
+            Set<InferenceVarType> lowerVars = CollectUtil.union(_lowerBounds.keySet(),
+                                                                f._lowerBounds.keySet());
             // Optimization may be possible here -- Sukyoung
             for (InferenceVarType t : CollectUtil.union(upperVars, lowerVars)) {
                 Type upper = null;
                 Type lower = null;
                 if (_upperBounds.containsKey(t) && f._upperBounds.containsKey(t)) {
-                    upper = history.meet(_upperBounds.get(t), f._upperBounds.get(t));
+                    upper = h.meetNormal(_upperBounds.get(t), f._upperBounds.get(t));
                 }
                 else if (_upperBounds.containsKey(t)) { upper = _upperBounds.get(t); }
                 else if (f._upperBounds.containsKey(t)) { upper = f._upperBounds.get(t); }
                 if (_lowerBounds.containsKey(t) && f._lowerBounds.containsKey(t)) {
-                    lower = history.join(_lowerBounds.get(t), f._lowerBounds.get(t));
+                    lower = h.joinNormal(_lowerBounds.get(t), f._lowerBounds.get(t));
                 }
                 else if (_lowerBounds.containsKey(t)) { lower = _lowerBounds.get(t); }
                 else if (f._lowerBounds.containsKey(t)) { lower = f._lowerBounds.get(t); }
 
-                // What is this for? -- Sukyoung
+                // determine conditions necessary for enforcing lower <: upper
                 if (_upperBounds.containsKey(t) && f._lowerBounds.containsKey(t) ||
                     _lowerBounds.containsKey(t) && f._upperBounds.containsKey(t)) {
-                    conditions = conditions.and(history.subtype(lower, upper), history);
-                    if (!conditions.isTrue()) {
-//                    if (conditions.isFalse()) {
-                        debug.logEnd("result", FALSE);
-                        return FALSE;
-                    }
+                    // TODO: there may be a circular dependency here
+                    conditions = conditions.and(h.subtypeNormal(lower, upper), h);
                 }
                 if (upper != null) { uppers.put(t, upper); }
                 if (lower != null) { lowers.put(t, lower); }
+                if (conditions.isFalse()) { break; }
             }
-            ConstraintFormula result = new SimpleFormula(uppers, lowers).and(conditions, history);
+            ConstraintFormula result = new SimpleFormula(uppers, lowers).and(conditions, h);
             debug.logEnd("result", result);
             return result;
         }
@@ -203,7 +203,7 @@ public abstract class ConstraintFormula {
 
     public static ConstraintFormula upperBound(InferenceVarType var, Type bound, SubtypeHistory history) {
         debug.logStart(new String[]{"var","upperBound"}, var, bound);
-        if (history.subtype(ANY, bound).isTrue()) {
+        if (history.subtypeNormal(ANY, bound).isTrue()) {
             debug.logEnd("result", TRUE);
             return TRUE;
         }
@@ -218,7 +218,7 @@ public abstract class ConstraintFormula {
 
     public static ConstraintFormula lowerBound(InferenceVarType var, Type bound, SubtypeHistory history) {
         debug.logStart(new String[]{"var","lowerBound"}, var, bound);
-        if (history.subtype(bound, BOTTOM).isTrue()) {
+        if (history.subtypeNormal(bound, BOTTOM).isTrue()) {
             debug.logEnd("result", TRUE);
             return TRUE;
         }

@@ -41,33 +41,34 @@ public final class Types {
     private Types() {}
 
     public static final Id ANY_NAME = makeId("AnyType", "Any");
-    public static final Type ANY = new AnyType();
-    public static final Type BOTTOM = new BottomType();
-    public static final Type OBJECT = makeTraitType("FortressLibrary", "Object");
+    public static final AnyType ANY = new AnyType();
+    public static final BottomType BOTTOM = new BottomType();
+    public static final TraitType OBJECT = makeTraitType("FortressLibrary", "Object");
     // public static final Type TUPLE = NodeFactory.makeTraitType("FortressBuiltin", "Tuple");
     
     public static final Domain BOTTOM_DOMAIN = NodeFactory.makeDomain(BOTTOM);
 
-    public static final Type VOID = new VoidType();
-    public static final Type FLOAT_LITERAL = makeTraitType("FortressBuiltin", "FloatLiteral");
-    public static final Type INT_LITERAL = makeTraitType("FortressBuiltin", "IntLiteral");
-    public static final Type BOOLEAN = makeTraitType("FortressBuiltin", "Boolean");
-    public static final Type CHAR = makeTraitType("FortressBuiltin", "Char");
-    public static final Type STRING = makeTraitType("FortressBuiltin", "String");
-    public static final Type REGION = makeTraitType("FortressLibrary", "Region");
-    public static final Type LABEL = new LabelType();
+    public static final VoidType VOID = new VoidType();
+    public static final TraitType FLOAT_LITERAL = makeTraitType("FortressBuiltin", "FloatLiteral");
+    public static final TraitType INT_LITERAL = makeTraitType("FortressBuiltin", "IntLiteral");
+    public static final TraitType BOOLEAN = makeTraitType("FortressBuiltin", "Boolean");
+    public static final TraitType CHAR = makeTraitType("FortressBuiltin", "Char");
+    public static final TraitType STRING = makeTraitType("FortressBuiltin", "String");
+    public static final TraitType REGION = makeTraitType("FortressLibrary", "Region");
     
-    public static final Type makeVarargsParamType(Type varargsType) {
+    public static final LabelType LABEL = new LabelType();
+    
+    public static final TraitType makeVarargsParamType(Type varargsType) {
         // TODO: parameterize?
         return makeTraitType("FortressBuiltin", "ImmutableHeapSequence");
     }
     
-    public static Type makeThreadType(Type typeArg) {
+    public static TraitType makeThreadType(Type typeArg) {
         return makeTraitType(makeId("FortressBuiltin", "Thread"),
                              makeTypeArg(typeArg));
     }
     
-    public static Type makeGeneratorType(Type typeArg) {
+    public static TraitType makeGeneratorType(Type typeArg) {
         return makeTraitType(makeId("FortressLibrary", "Generator"),
                              makeTypeArg(typeArg));
     }
@@ -167,6 +168,26 @@ public final class Types {
             }
         }
     };
+    
+    /**
+     * Produce the union disjunct of the given vararg tuple at a certain arity.
+     * This is the arity+1st element of a union equivalent to the vararg tuple
+     * like the following:<ul>
+     * <li>(T...) = () | T | (T, T) | (T, T, T) | ...</li>
+     * <li>(A, B, C...) = Bottom | Bottom | (A, B) | (A, B, C) | ...</li>
+     * </ul>
+     * Note that the result is defined for all arities, but may sometimes be
+     * Bottom.
+     */
+    public static Type varargDisjunct(VarargTupleType t, int arity) {
+        List<Type> base = t.getElements();
+        int baseSize = base.size();
+        if (baseSize > arity) { return BOTTOM; }
+        else {
+            Iterable<Type> rest = IterUtil.copy(t.getVarargs(), arity-baseSize);
+            return makeTuple(IterUtil.compose(base, rest));
+        }
+    }
 
     /**
      * Produce a type representing a Domain with any keyword types removed.

@@ -41,5 +41,15 @@ public class ApiIndex extends CompilationUnitIndex {
     }
 
     public Map<String, GrammarIndex> grammars() { return _grammars; }
+    
+    public String toString() {
+        return "API Index" +
+            "\nVariables: " + variables() +
+            "\nFunctions: " + functions() +
+            "\nTypeConses: " + typeConses() +
+            "\nDimensions: " + dimensions() +
+            "\nUnits: " + units() +
+            "\nGrammars: " + grammars();
+    }
 
 }

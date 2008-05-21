@@ -22,6 +22,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -37,12 +38,24 @@ public class TraitTable {
     }
 
     public TypeConsIndex typeCons(Id name) {
-        Option<APIName> api = name.getApi();
-        if (api.isNone() || currentComponent.ast().getName().equals(api.unwrap())) {
-            return currentComponent.typeConses().get(name);
-        } else {
-            return globalEnv.api(api.unwrap()).typeConses().get(name);
+        TypeConsIndex result;
+        Id simpleName = new Id(name.getText());
+        // TODO: Shouldn't qualified names only point to APIs? -- Dan
+        if (name.getApi().isNone() ||
+            currentComponent.ast().getName().equals(name.getApi().unwrap())) {
+            result = currentComponent.typeConses().get(simpleName);
         }
+        else {
+            ApiIndex api = globalEnv.api(name.getApi().unwrap());
+            if (api == null) {
+                throw new IllegalArgumentException("API " + api + " is undefined");
+            }
+            result = api.typeConses().get(simpleName);
+        }
+        if (result == null) {
+            throw new IllegalArgumentException("Trait or alias " + name + " is undefined");
+        }
+        return result;
     }
 
     public CompilationUnitIndex compilationUnit(APIName name) {

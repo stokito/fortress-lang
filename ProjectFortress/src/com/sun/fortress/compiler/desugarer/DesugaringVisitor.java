@@ -143,7 +143,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
                                                  new ArrayList<StaticParam>(),
                                                  new ArrayList<Param>(),
-                                                 Option.wrap(Types.makeVarargsParamType(param.getType())),
+                                                 Option.<Type>wrap(Types.makeVarargsParamType(param.getType())),
                                                  new WhereClause(param.getSpan()), new Contract(new Span()),
                                                  new VarRef(param.getSpan(), false,
                                                             mangleName(param.getName()))));
