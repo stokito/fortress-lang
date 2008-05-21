@@ -21,7 +21,7 @@ syn keyword  fortressKeyword getter else
 syn keyword  fortressExternal import export
 
 syn region   fortressString       start=+"+ skip=+\\\\\|\\"+ end=+"+
-syn match    fortressNumber       "\<-\=\d\(_\|\d\)*[l|L|n]\?\>"
+syn match    fortressNumber       "\<-\=\d\(_\|\d\)*"
 
 syn keyword  fortressType  api object trait value
 syn keyword  fortressType  extends abstract comprises
