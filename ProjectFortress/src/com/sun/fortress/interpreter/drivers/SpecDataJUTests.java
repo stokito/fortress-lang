@@ -27,10 +27,10 @@ public class SpecDataJUTests {
     }
 
     public static Test suite() throws IOException {
-        String testDir1 = ProjectProperties.FORTRESS_HOME + "/SpecData/examples/basic";
-        String testDir2 = ProjectProperties.FORTRESS_HOME + 
+        String testDir1 = ProjectProperties.FORTRESS_AUTOHOME + "/SpecData/examples/basic";
+        String testDir2 = ProjectProperties.FORTRESS_AUTOHOME + 
             "/SpecData/examples/preliminaries";
-        String testDir3 = ProjectProperties.FORTRESS_HOME + 
+        String testDir3 = ProjectProperties.FORTRESS_AUTOHOME + 
             "/SpecData/examples/advanced";
         boolean failsOnly = ! ("1".equals(ProjectProperties.get("FORTRESS_JUNIT_VERBOSE")));
         TestSuite suite = new TestSuite("Test all .fss files in 'SpecData/examples'.");

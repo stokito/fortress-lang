@@ -40,6 +40,22 @@ public class ProjectProperties {
             s = System.getenv("FORTRESS_HOME");
         }
         if (s == null) {
+            s = FORTRESS_AUTOHOME;
+        }
+        return s;
+    }
+    
+    private static String fortressAutoHome() {
+        String s = null;
+        try {
+            s = System.getProperty("fortress.autohome");
+        } catch (Throwable th) {
+
+        }
+        if (s == null) {
+            s = System.getenv("FORTRESS_AUTOHOME");
+        }
+        if (s == null) {
             Path p = new Path(System.getProperty("java.class.path"));
             File f = null;
             try {
@@ -58,7 +74,7 @@ public class ProjectProperties {
                         throw new Error("Failure to evaluate relative path ../.. from " + f);
                     }
                 } catch (FileNotFoundException ex2) {
-                    throw new Error("Could not find fortress home using fortress.home, FORTRESS_HOME, or probing classpath.");
+                    throw new Error("Could not find fortress home using fortress.autohome, FORTRESS_AUTOHOME, or probing classpath.");
                 }
             }
         }
@@ -113,15 +129,16 @@ public class ProjectProperties {
         return s;
     }
 
-    public static final String FORTRESS_HOME = fortressHome();
-
+    public static final String FORTRESS_AUTOHOME = fortressAutoHome(); // MUST PRECEDE FORTRESS_HOME
+    public static final String FORTRESS_HOME = fortressHome(); // MUST FOLLOW FORTRESS_AUTOHOME
+    
     static final String home = System.getenv("HOME");
 
     static final StringMap searchTail = new StringMap.ComposedMaps(
             new StringMap.FromFileProps(".fortress.properties"),
             new StringMap.FromFileProps(home+"/.fortress.properties"),
-            new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties.local"),
-            new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
+            new StringMap.FromFileProps(FORTRESS_AUTOHOME+"/fortress.properties.local"),
+            new StringMap.FromFileProps(FORTRESS_AUTOHOME+"/fortress.properties")
     );
 
     static final StringMap allProps = new StringMap.ComposedMaps(
@@ -191,7 +208,7 @@ public class ProjectProperties {
      *
      * The path name includes a trailing slash!
      */
-    public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_HOME}/ProjectFortress/");
+    public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_AUTOHOME}/ProjectFortress/");
     // public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
 
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}.interpreter_cache");

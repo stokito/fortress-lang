@@ -194,7 +194,7 @@ public abstract class RatsUtil {
     }
 
     public static String getFortressSrcDir() {
-        return ProjectProperties.FORTRESS_HOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"src"+File.separatorChar;
+        return ProjectProperties.FORTRESS_AUTOHOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"src"+File.separatorChar;
     }
 
     public static void addParametersToInstantiation(Module m, String moduleName, Set<ModuleName> parameters) {

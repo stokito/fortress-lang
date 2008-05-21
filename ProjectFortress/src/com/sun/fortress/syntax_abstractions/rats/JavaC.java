@@ -52,12 +52,12 @@ public class JavaC {
 	}
 	
 	private static String getFortressBuildDir() {
-		return ProjectProperties.FORTRESS_HOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"build"+File.separatorChar;
+		return ProjectProperties.FORTRESS_AUTOHOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"build"+File.separatorChar;
 	}
 	
 	private static String getFortressThirdPartyDependencyJars() {
 		String sepChar = ""+File.separatorChar;
-		String thirdPartyDir = ProjectProperties.FORTRESS_HOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"third_party"+File.separatorChar;
+		String thirdPartyDir = ProjectProperties.FORTRESS_AUTOHOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"third_party"+File.separatorChar;
 		
 		String jars = "";
 		jars += thirdPartyDir+"ant"+sepChar+"ant-junit.jar:";

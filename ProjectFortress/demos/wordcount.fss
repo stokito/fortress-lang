@@ -106,6 +106,6 @@ end
 
 
 run(args:String...) = do
-    processFile(getEnvironment("FORTRESS_HOME", ".") "/ProjectFortress/demos/hamlet")
+    processFile(getEnvironment("FORTRESS_AUTOHOME", ".") "/ProjectFortress/demos/hamlet")
 end
 end
