@@ -7,7 +7,7 @@ api SyntaxSymbols
 (* mangler ??*)
 
     LiteralExpr |Expr:=
-         `FORMFEED [a`TAB] [b``c`TAB:J] [K:`TAB]   world  <[ "escape test   ok" ]>
+        `FORMFEED [a`TAB] [b``c`TAB:J] [K:`TAB]   world  <[ "escape test   ok" ]>
        | e:FunnyThingstest <[ e ]>
        | e:Operatortest <[ e ]>
        | e:Hashtest <[ e ]>
