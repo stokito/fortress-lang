@@ -329,17 +329,29 @@ public abstract class SubtypeChecker {
 
     private boolean isValidVarType(Type t) {
         if (isVarType(t)) {
-            TypeConsIndex index = _table.typeCons(((VarType)t).getName());
-            return (index instanceof TraitIndex ||
-                    index instanceof TypeAliasIndex);
+            try {
+                TypeConsIndex index = _table.typeCons(((VarType)t).getName());
+                return (index instanceof TraitIndex ||
+                        index instanceof TypeAliasIndex);
+            }
+            catch (IllegalArgumentException e) {
+                // TODO: clean up so that try/catch isn't required
+                return false;
+            }
         } else return false;
     }
 
     private boolean isValidTraitType(Type t) {
         if (t instanceof NamedType) {
-            TypeConsIndex index = _table.typeCons(((NamedType)t).getName());
-            return (index instanceof TraitIndex ||
-                    index instanceof TypeAliasIndex);
+            try {
+                TypeConsIndex index = _table.typeCons(((NamedType)t).getName());
+                return (index instanceof TraitIndex ||
+                        index instanceof TypeAliasIndex);
+            }
+            catch (IllegalArgumentException e) {
+                // TODO: clean up so that try/catch isn't required
+                return false;
+            }
         } else return (t instanceof AbbreviatedType);
     }
 

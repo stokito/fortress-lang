@@ -190,8 +190,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         } finally { debug.logEnd(); }
     }
 
-    // inactive because results contain hidden variables (they're not just TRUE)
-    public void xxxtestSimpleUnionSubtyping() {
+    public void testSimpleUnionSubtyping() {
         debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
@@ -235,7 +234,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         } finally { debug.logEnd(); }
     }
 
-    public void xxxtestSimpleIntersectionSubtyping() {
+    public void testSimpleIntersectionSubtyping() {
         debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
@@ -246,8 +245,8 @@ public class TypeAnalyzerJUTest extends TestCase {
 
         assertEquals(TRUE, sub(t, "B&D", "A"));
         assertEquals(TRUE, sub(t, "B&D", "B"));
-        assertEquals(TRUE, sub(t, "B&D", "C"));
-        assertEquals(FALSE, sub(t, "B&D", "D"));
+        assertEquals(FALSE, sub(t, "B&D", "C"));
+        assertEquals(TRUE, sub(t, "B&D", "D"));
         assertEquals(FALSE, sub(t, "B&D", "E"));
 
         assertEquals(TRUE, sub(t, "C&E", "A"));
@@ -279,11 +278,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         } finally { debug.logEnd(); }
     }
 
-//    public void testInferenceSubtyping() {
-//        assertEquals(sub(t, "$1
-//
-
-    public void xxxtestVoidSubtyping() {
+    public void testVoidSubtyping() {
         debug.logStart(); try {
 
         TypeAnalyzer t = makeAnalyzer(trait("A"),
@@ -301,6 +296,75 @@ public class TypeAnalyzerJUTest extends TestCase {
 
         } finally { debug.logEnd(); }
     }
+    
+    public void testTupleSubtyping() {
+        debug.logStart(); try {
+
+        TypeAnalyzer t = makeAnalyzer(trait("A"),
+                                      trait("B", "A"),
+                                      trait("C", "B"),
+                                      trait("D", "A"),
+                                      trait("E", "D"));
+
+        assertEquals(TRUE, sub(t, "(A, B)", "(A, B)"));
+        assertEquals(FALSE, sub(t, "(A, B)", "(B, A)"));
+        assertEquals(FALSE, sub(t, "(A, B)", "(A, B, Any)"));
+        assertEquals(TRUE, sub(t, "(B, D)", "(A, A)"));
+        assertEquals(FALSE, sub(t, "(A, A)", "(A, B)"));
+
+        } finally { debug.logEnd(); }
+    }
+    
+    public void testVarargSubtyping() {
+        debug.logStart(); try {
+
+        TypeAnalyzer t = makeAnalyzer(trait("A"),
+                                      trait("B", "A"),
+                                      trait("C", "B"),
+                                      trait("D", "A"),
+                                      trait("E", "D"));
+
+        assertEquals(TRUE, sub(t, "()", "(A...)"));
+        assertEquals(TRUE, sub(t, "A", "(A...)"));
+        assertEquals(TRUE, sub(t, "(A, A)", "(A...)"));
+        assertEquals(TRUE, sub(t, "(A, A, A)", "(A...)"));
+        assertEquals(TRUE, sub(t, "(B, C, E)", "(A...)"));
+        assertEquals(FALSE, sub(t, "Any", "(A...)"));
+        assertEquals(TRUE, sub(t, "Bottom", "(A...)"));
+        assertEquals(TRUE, sub(t, "(A, A...)", "(A...)"));
+
+        assertEquals(FALSE, sub(t, "()", "(A, A...)"));
+        assertEquals(TRUE, sub(t, "A", "(A, A...)"));
+        assertEquals(TRUE, sub(t, "(A, A)", "(A, A...)"));
+        assertEquals(TRUE, sub(t, "(A, A, A)", "(A, A...)"));
+        assertEquals(TRUE, sub(t, "(B, C, E)", "(A, A...)"));
+        assertEquals(FALSE, sub(t, "Any", "(A, A...)"));
+        assertEquals(TRUE, sub(t, "Bottom", "(A, A...)"));
+        assertEquals(TRUE, sub(t, "(A, A...)", "(A, A...)"));
+
+        assertEquals(FALSE, sub(t, "()", "(A, A, A...)"));
+        assertEquals(FALSE, sub(t, "A", "(A, A, A...)"));
+        assertEquals(TRUE, sub(t, "(A, A)", "(A, A, A...)"));
+        assertEquals(TRUE, sub(t, "(A, A, A)", "(A, A, A...)"));
+        assertEquals(TRUE, sub(t, "(B, C, E)", "(A, A, A...)"));
+        assertEquals(FALSE, sub(t, "Any", "(A, A, A...)"));
+        assertEquals(TRUE, sub(t, "Bottom", "(A, A, A...)"));
+        assertEquals(FALSE, sub(t, "(A, A...)", "(A, A, A...)"));
+
+        assertEquals(TRUE, sub(t, "()", "(Any...)"));
+        assertEquals(TRUE, sub(t, "A", "(Any...)"));
+        assertEquals(TRUE, sub(t, "(A, A)", "(Any...)"));
+        assertEquals(TRUE, sub(t, "(A, A, A)", "(Any...)"));
+        assertEquals(TRUE, sub(t, "(B, C, E)", "(Any...)"));
+        assertEquals(TRUE, sub(t, "Any", "(Any...)"));
+        assertEquals(TRUE, sub(t, "Bottom", "(Any...)"));
+        assertEquals(TRUE, sub(t, "(A, A...)", "(Any...)"));
+        
+        assertEquals(TRUE, sub(t, "(B...)", "(A...)"));
+        assertEquals(FALSE, sub(t, "(A...)", "(B...)"));
+
+        } finally { debug.logEnd(); }
+    }
 
 
     private static final GlobalEnvironment GLOBAL_ENV;
@@ -310,8 +374,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         ApiIndex builtin = api("AnyType", absTrait("Any"));
         apis.put(builtin.ast().getName(), builtin);
 
-        ApiIndex library =
-            api("FortressLibrary", absTrait("Object", "AnyType.Any"));
+        ApiIndex library = api("FortressLibrary", absTrait("Object"));
         apis.put(library.ast().getName(), library);
 
         GLOBAL_ENV = new GlobalEnvironment.FromMap(apis);
