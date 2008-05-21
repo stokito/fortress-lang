@@ -35,8 +35,11 @@ syn keyword  fortressOperator println
 syn keyword  fortressKeyword opr for
 
 syn match    fortressThenErr    "\<then\>"
+syn match    fortressCaseErr    "\<case>"
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<if\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr
+syn region   fortressNone matchgroup=fortressKeyword start="\<case\>" matchgroup=fortressKeyword end="\<of\>" contains=ALLBUT,fortressCaseErr nextgroup=fortressCase
+syn region   fortressCase matchgroup=fortressKeyword start="\<in\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressCaseErr
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<do\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressEndErr
 
