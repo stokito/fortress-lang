@@ -56,7 +56,6 @@ public class ActionCreaterUtil {
         code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
         List<String> listCode = new LinkedList<String>();
         for(Id id: syntaxDeclEnv.getVariables()) {
-            indents.add(3);
             String var = id.getText();
             if (isTemplate) {
                 if (syntaxDeclEnv.contains(id)) {
@@ -69,18 +68,13 @@ public class ActionCreaterUtil {
                     if (syntaxDeclEnv.isCharacterClass(id)) {
                         var = getFortressCharacterClass(id, code, indents);  
                     }
+                    
+                    if (syntaxDeclEnv.isAnyChar(id)) {
+                        var = getFortressAnyChar(id, code, indents);  
+                    }
                 }
-                
-//                
-//                Type t = syntaxDeclEnv.getType(id);
-//                if (t instanceof TraitType) {
-//                    TraitType traitType = (TraitType) t;
-//                    if (traitType.getName().getText().equals("List")) {
-//                        
-//                    }
-//                }
-
             }
+            indents.add(3);
             code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
         }
         listCode.addAll(code);
@@ -89,66 +83,76 @@ public class ActionCreaterUtil {
 
     private static String getFortressList(Id id, List<String> code, List<Integer> indents) {
         String enclosingName = FreshName.getFreshName("enclosingFixity");
-        indents.add(3);
+        indents.add(4);
         code.add("EnclosingFixity "+enclosingName+" = new EnclosingFixity();");
         String optionName1 = FreshName.getFreshName("option");
-        indents.add(3);
+        indents.add(4);
         code.add("Option<APIName> "+optionName1+"= Option.<APIName>none();");
         String optionName2 = FreshName.getFreshName("option");
-        indents.add(3);
+        indents.add(4);
         code.add("Option<Fixity> "+optionName2+" = Option.<Fixity>some("+enclosingName+");");
         String opName1 = FreshName.getFreshName("op");
-        indents.add(3);
+        indents.add(4);
         code.add("Op "+opName1+" = new Op("+optionName1+", \"<|\", "+optionName2+");");
 
         enclosingName = FreshName.getFreshName("enclosingFixity");
-        indents.add(3);
+        indents.add(4);
         code.add("EnclosingFixity "+enclosingName+" = new EnclosingFixity();");
         optionName1 = FreshName.getFreshName("option");
-        indents.add(3);
+        indents.add(4);
         code.add("Option<APIName> "+optionName1+"= Option.<APIName>none();");
         optionName2 = FreshName.getFreshName("option");
-        indents.add(3);
+        indents.add(4);
         code.add("Option<Fixity> "+optionName2+" = Option.<Fixity>some("+enclosingName+");");
         String opName2 = FreshName.getFreshName("op");
-        indents.add(3);
+        indents.add(4);
         code.add("Op "+opName2+" = new Op("+optionName1+", \"|>\", "+optionName2+");");
 
         optionName1 = FreshName.getFreshName("option");
-        indents.add(3);
+        indents.add(4);
         code.add("Option<APIName> "+optionName1+" = Option.<APIName>none();");
 
         enclosingName = FreshName.getFreshName("enclosing");
-        indents.add(3);
+        indents.add(4);
         code.add("Enclosing "+enclosingName+" = new Enclosing("+optionName1+", "+opName1+", "+opName2+");");
         String lsName = FreshName.getFreshName("ls");
-        indents.add(3);
+        indents.add(4);
         code.add("List<OpName> "+lsName+" = new LinkedList<OpName>();");
-        indents.add(3);
+        indents.add(4);
         code.add(lsName+".add("+enclosingName+");");
         String opRefName = FreshName.getFreshName("opRef");
-        indents.add(3);
+        indents.add(4);
         code.add("OpRef "+opRefName+" = new OpRef(false, "+lsName+", new LinkedList<StaticArg>());");
+        String tlsName = FreshName.getFreshName("ls");
+        indents.add(4);
+        code.add("List<Expr> "+tlsName+" = new LinkedList<Expr>();");
+        indents.add(4);
+        code.add(tlsName+".addAll("+id.getText()+".list());");
         String opExprName = FreshName.getFreshName("opExpr");
-        indents.add(3);
-        code.add("OpExpr "+opExprName+" = new OpExpr(true, "+opRefName+", "+id.getText()+".list());");
+        indents.add(4);
+        code.add("OpExpr "+opExprName+" = new OpExpr(true, "+opRefName+", "+tlsName+");");
         return opExprName;
     }
 
     private static String getFortressMaybe(Id id, List<String> code, List<Integer> indents, SyntaxDeclEnv syntaxDeclEnv) {
+        int codeSize = code.size();
         String spanName = JavaAstPrettyPrinter.getSpan(id, code);
-        
-        String type = new FortressTypeToJavaType().analyze(syntaxDeclEnv.getType(id));
+        for (int inx=codeSize; inx<code.size(); inx++) {
+            indents.add(3);
+        }        
+
+        JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
+        String type = syntaxDeclEnv.getType(id).accept(jpp);
         
         String name = FreshName.getFreshName("option");
         indents.add(3);
-        code.add("Expr "+name+" = null");
+        code.add("Expr "+name+" = null;");
         
         String staticArgs = FreshName.getFreshName("staticArgs");
         indents.add(3);
         code.add("List<StaticArg> "+staticArgs+"= new LinkedList<StaticArg>();");
-        indents.add(3);
-        code.add(staticArgs+".add(new TypeArg(new VarType(NodeFactory.makeId(\""+SyntaxAbstractionUtil.FORTRESSAST+"\", "+type+"))));");
+//        indents.add(3);
+//        code.add(staticArgs+".add(new TypeArg(new VarType(NodeFactory.makeId("+spanName+",\""+SyntaxAbstractionUtil.FORTRESSAST+"\", "+type+"))));");
         indents.add(3);
         code.add("if (null == "+id.getText()+") {");
         String justArgs = FreshName.getFreshName("justArgs");
@@ -157,13 +161,13 @@ public class ActionCreaterUtil {
         indents.add(3);
         code.add("    "+justArgs+".add("+id.getText()+");");
         indents.add(3);
-        code.add("    "+name+" = SyntaxAbstractionUtil.makeObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+"\", \""+SyntaxAbstractionUtil.JUST+"\", "+justArgs+", "+staticArgs+");");
+        code.add("    "+name+" = com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil.makeObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+"\", \""+SyntaxAbstractionUtil.JUST+"\", "+justArgs+", "+staticArgs+");");
         indents.add(3);
         code.add("}");
         indents.add(3);
         code.add("else {");
         indents.add(3);
-        code.add("    "+name+" = SyntaxAbstractionUtil.makeNoParamObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+"\", \""+SyntaxAbstractionUtil.NOTHING+"\", "+staticArgs+");");
+        code.add("    "+name+" = com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil.makeNoParamObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+"\", \""+SyntaxAbstractionUtil.NOTHING+"\", "+staticArgs+");");
         indents.add(3);
         code.add("}");
         return name;
@@ -171,6 +175,14 @@ public class ActionCreaterUtil {
     
     private static String getFortressCharacterClass(Id id, List<String> code, List<Integer> indents) {
         String name = FreshName.getFreshName("characterClass");
+        indents.add(3);
+        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id.getText()+");");
+        return name;
+    }
+    
+    private static String getFortressAnyChar(Id id, List<String> code,
+            List<Integer> indents) {
+        String name = FreshName.getFreshName("anyCharacter");
         indents.add(3);
         code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id.getText()+");");
         return name;
