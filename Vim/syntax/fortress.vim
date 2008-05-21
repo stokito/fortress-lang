@@ -26,7 +26,8 @@ syn match    fortressNumber       "\<-\=\d\(_\|\d\)*[l|L|n]\?\>"
 syn keyword  fortressType  api object trait value
 syn keyword  fortressType  extends abstract comprises
 syn keyword  fortressType  grammar component
-syn keyword  fortressType  Any Boolean String self
+syn keyword  fortressType  Any Boolean String self 
+syn keyword  fortressType  ZZ32 ZZ64 RR32 RR64
 
 syn keyword  fortressOperator println
 
