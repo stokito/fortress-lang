@@ -46,6 +46,10 @@ public abstract class NativeConstructor extends Constructor {
     public BetterEnv getLexicalEnv() {
         return lexEnv;
     }
+    
+    protected FValue check(FValue x) {
+        return x;
+    }
 
     public static abstract class FNativeObject extends FObject {
         public FNativeObject(NativeConstructor con) {

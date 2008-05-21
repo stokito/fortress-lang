@@ -63,7 +63,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     abstract public String  at();
     abstract public List<FType> getDomain();
     public boolean isOverride() { return false; }
-
+    
     /**
      * For now, prefer to unwrap tuples because that avoid creating
      * new memo entries for tuple types.
@@ -100,7 +100,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         return null;
     }
 
-    // NOTE: I believe it is ok for functions to use object identity for
+     // NOTE: I believe it is ok for functions to use object identity for
     // equals and hashCode().
 
     static class SignatureEquivalence extends Hasher<SingleFcn> {

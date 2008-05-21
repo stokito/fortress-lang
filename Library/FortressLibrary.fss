@@ -1612,7 +1612,7 @@ __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
 (* immutableFactory1 is a non-overloaded 0-parameter factory for
    0-indexed 1-D arrays.  It is also mentioned in WellKnownNames as it
    is used to allocate storage for varargs. *)
-__immutableFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
+__immutableFactory1[\T, nat b0, nat s0\]():ReadableArray1[\T,b0,s0\] = do
     r = immutableArray1[\T,s0\]()
     typecase _ = N[\b0\] of
         N[\0\] => r
