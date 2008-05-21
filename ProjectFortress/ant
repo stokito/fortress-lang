@@ -41,8 +41,11 @@ find_ant(){
     echo "ANT_HOME is not set" >&2
   fi
 
-  # Otherwise use whatever is in $PATH
-  result="`which ant 2>/dev/null`"
+  # Otherwise use whatever is in $PATH, minus any dots
+  export NODOTPATH="`echo "$PATH" | sed -e '1,$s/^[.]://g'`"
+  NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]:/:/g'`"
+  NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]$//g'`"
+  result="`(PATH="$NODOTPATH" which ant 2>/dev/null)`"
   if [ -z "$result" ]; then
     echo "Could not find ant. You need to install it. See http://ant.apache.org/ for details." >&2
     exit 1
