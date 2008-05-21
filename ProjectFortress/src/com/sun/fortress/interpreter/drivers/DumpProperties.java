@@ -27,6 +27,7 @@ class DumpProperties {
     if (cl == null) System.out.println("null ClassLoader");
     else System.out.println("ClassLoader " + cl.toString());
 
+    System.out.println("Fortress autohome is " + ProjectProperties.FORTRESS_AUTOHOME);
     System.out.println("Fortress home is " + ProjectProperties.FORTRESS_HOME);
     System.out.println("Fortress base is " + ProjectProperties.BASEDIR);
 

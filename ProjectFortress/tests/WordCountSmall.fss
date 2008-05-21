@@ -99,7 +99,7 @@ end
 
 
 run(args:String...)= do
-    processFile(getEnvironment("FORTRESS_HOME", ".") "/ProjectFortress/tests/presidents")   
+    processFile(getEnvironment("FORTRESS_AUTOHOME", ".") "/ProjectFortress/tests/presidents")   
 end
 end
 
