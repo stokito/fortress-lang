@@ -17,7 +17,7 @@ syn region   fortressComment start="(\*" end="\*)" contains=fortressComment
 syn match    fortressEnd    "\<end\>"
 
 " syn match    fortressKeyword "\<getter\>"
-syn keyword  fortressKeyword getter
+syn keyword  fortressKeyword getter else
 syn keyword  fortressExternal import export
 
 syn region   fortressString       start=+"+ skip=+\\\\\|\\"+ end=+"+
@@ -26,7 +26,8 @@ syn match    fortressNumber       "\<-\=\d\(_\|\d\)*[l|L|n]\?\>"
 syn keyword  fortressType  api object trait value
 syn keyword  fortressType  extends abstract comprises
 syn keyword  fortressType  grammar component
-syn keyword  fortressType  Any Boolean String self 
+syn keyword  fortressType  Any Boolean String self
+syn keyword  fortressType  Char
 syn keyword  fortressType  ZZ32 ZZ64 RR32 RR64
 
 syn keyword  fortressOperator println
