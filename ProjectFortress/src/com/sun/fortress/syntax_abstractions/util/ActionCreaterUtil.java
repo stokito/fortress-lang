@@ -140,10 +140,7 @@ public class ActionCreaterUtil {
         for (int inx=codeSize; inx<code.size(); inx++) {
             indents.add(3);
         }        
-
-        JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
-        String type = syntaxDeclEnv.getType(id).accept(jpp);
-        
+       
         String name = FreshName.getFreshName("option");
         indents.add(3);
         code.add("Expr "+name+" = null;");
