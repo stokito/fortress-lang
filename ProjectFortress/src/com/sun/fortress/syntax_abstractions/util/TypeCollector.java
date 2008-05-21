@@ -20,8 +20,17 @@ package com.sun.fortress.syntax_abstractions.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.nodes.AnyCharacterSymbol;
+import com.sun.fortress.nodes.BackspaceSymbol;
+import com.sun.fortress.nodes.BreaklineSymbol;
+import com.sun.fortress.nodes.CarriageReturnSymbol;
+import com.sun.fortress.nodes.CharSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
+import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NewlineSymbol;
+import com.sun.fortress.nodes.NoWhitespaceSymbol;
+import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -89,6 +98,60 @@ public class TypeCollector extends NodeDepthFirstVisitor<Type> {
 
     @Override
     public Type forCharacterClassSymbol(CharacterClassSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forAnyCharacterSymbol(AnyCharacterSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forBackspaceSymbol(BackspaceSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forBreaklineSymbol(BreaklineSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forCarriageReturnSymbol(CarriageReturnSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forCharSymbol(CharSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forFormfeedSymbol(FormfeedSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forNewlineSymbol(NewlineSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forNoWhitespaceSymbol(NoWhitespaceSymbol that) {
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
+        return new VarType(string);
+    }
+
+    @Override
+    public Type forTabSymbol(TabSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }

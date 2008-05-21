@@ -40,12 +40,12 @@ header {
 body {
   static {
     add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
-        "AND",    "BACKSPACE",    "FORM_FEED",    "do",    "NEWLINE",
+        "AND",    "BACKSPACE",    "FORMFEED",    "do",    "NEWLINE",
         "NOT",    "RETURN",    "TAB",    "SPACE",    "<\\["
     });
 
     add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
-        "#",    ":",    "`",    "\\+",    "\\?",    "\\*",    "\\[",    "\\]", "\\|"
+        "#",    ":",    "`",    "\\+",    "\\?",    "\\*",    "\\[",    "\\]",    "\\|",    "\\_"
     });
   }
 }
@@ -288,7 +288,7 @@ String SpecialSymbols =
       Tab / Formfeed / Return / Newline / Space
     / Backspace / Not / And / leftDelimiter / do;
 
-transient String anyChar = ".";
+transient String anyChar = "_";
 transient String bar = "|";
 transient String hash = "#";
 transient String colon = ":";
@@ -305,7 +305,7 @@ transient String rightDelimiter = "]>";
 transient String And = "AND";
 transient String Backspace = "BACKSPACE";      // backspace
 transient String do = "do";
-transient String Formfeed = "FORM_FEED";      // form feed
+transient String Formfeed = "FORMFEED";      // form feed
 transient String Newline = "NEWLINE";      // break line
 transient String Not = "NOT";
 transient String Return = "RETURN";      // carriage return

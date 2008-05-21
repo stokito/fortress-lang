@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -79,6 +80,12 @@ public class SyntaxDeclEnv {
                             @Override
                             public void forNonterminalSymbol(NonterminalSymbol that) {
                                 varToNonterminalName.put(id, that.getNonterminal());
+                            }
+
+                            @Override
+                            public void forAnyCharacterSymbol(
+                                    AnyCharacterSymbol that) {
+                                anyChars.add(id);
                             }
 
                             @Override

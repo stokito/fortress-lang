@@ -433,6 +433,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             if (this.syntaxDeclEnv.isCharacterClass(id)) {
                 return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
             }
+            if (this.syntaxDeclEnv.isAnyChar(id)) {
+                return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
+            }
             if (this.syntaxDeclEnv.isNonterminal(id)) {
                 return id.getText();
             }

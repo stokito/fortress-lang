@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.phases;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.CharSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.CharacterInterval;
@@ -67,6 +68,11 @@ public class EscapeRewriter extends NodeUpdateVisitor {
             return end;
         }
         return s;
+    }
+
+    @Override
+    public Node forAnyCharacterSymbol(AnyCharacterSymbol that) {
+        return new AnyCharacterSymbol(that.getSpan());
     }
 
     @Override

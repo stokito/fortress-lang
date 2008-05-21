@@ -37,8 +37,6 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes._TerminalDef;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
@@ -46,7 +44,6 @@ import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 public class MemberTranslator {
 	private List<Production> productions;
 	private Collection<StaticError> errors;
-	private GrammarEnv grammarEnv;
 
 	public class Result extends StaticPhaseResult {
 
@@ -95,7 +92,7 @@ public class MemberTranslator {
 	 */
 	private Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
 		Collection<StaticError> errors = new LinkedList<StaticError>();
-		NonterminalTranslator nt = new NonterminalTranslator(this.grammarEnv);
+		NonterminalTranslator nt = new NonterminalTranslator();
 		productions.add(member.getAst().accept(nt));
 		errors.addAll(nt.errors());
 		return new Result(errors);
@@ -105,11 +102,9 @@ public class MemberTranslator {
 
 	private static class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
 		private Collection<StaticError> errors;
-		private GrammarEnv grammarEnv; 
 
-		public NonterminalTranslator(GrammarEnv grammarEnv) {
+		public NonterminalTranslator() {
 			this.errors = new LinkedList<StaticError>();
-			this.grammarEnv = grammarEnv;
 		}
 
 		public Collection<StaticError> errors() {
@@ -122,7 +117,7 @@ public class MemberTranslator {
 			BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
 			String name = that.getName().getText(); //toString().replaceAll("\\.", "");
 
-			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that, this.grammarEnv); 
+			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
 			List<Sequence> sequence = sdtr.alternatives();
 
@@ -144,7 +139,7 @@ public class MemberTranslator {
 			BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
 			String name = that.getName().toString();
 
-			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that, this.grammarEnv); 
+			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
 			List<Sequence> sequence = sdtr.alternatives();
 

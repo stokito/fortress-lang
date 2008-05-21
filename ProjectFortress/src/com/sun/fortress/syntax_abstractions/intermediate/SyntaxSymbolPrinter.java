@@ -20,6 +20,8 @@ package com.sun.fortress.syntax_abstractions.intermediate;
 import java.util.List;
 
 import com.sun.fortress.nodes.AndPredicateSymbol;
+import com.sun.fortress.nodes.AnyCharacterSymbol;
+import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BreaklineSymbol;
 import com.sun.fortress.nodes.CarriageReturnSymbol;
 import com.sun.fortress.nodes.CharSymbol;
@@ -46,6 +48,16 @@ import com.sun.fortress.nodes.WhitespaceSymbol;
 import edu.rice.cs.plt.tuple.Option;
 
 public class SyntaxSymbolPrinter extends NodeDepthFirstVisitor<String> {
+
+    @Override
+    public String forAnyCharacterSymbol(AnyCharacterSymbol arg0) {
+        return "AnyCharacterSymbol()";
+    }
+
+    @Override
+    public String forBackspaceSymbol(BackspaceSymbol that) {
+        return "BackspaceSymbol()";
+    }
 
     @Override
     public String forBreaklineSymbol(BreaklineSymbol that) {

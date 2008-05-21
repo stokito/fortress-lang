@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import xtc.parser.Action;
+import xtc.parser.ParseError;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
@@ -82,10 +83,10 @@ public class ActionCreater {
             SyntaxDeclEnv syntaxDeclEnv) {
         ActionCreater ac = new ActionCreater();
         Collection<StaticError> errors = new LinkedList<StaticError>();
-        List<Integer> indents = new LinkedList<Integer>();
 
         String returnType = new FortressTypeToJavaType().analyze(type);
 
+        List<Integer> indents = new LinkedList<Integer>();
         List<String> code = new LinkedList<String>();
         if (transformation instanceof TransformationExpressionDef) {
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false);
@@ -104,7 +105,7 @@ public class ActionCreater {
             AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
             String yyValue = n.accept(jpp);
-
+            
             for (String s: jpp.getCode()) {
                 addCodeLine(s, code, indents);
             }
@@ -114,8 +115,6 @@ public class ActionCreater {
             }
             addCodeLine("yyValue = "+yyValue+";", code, indents);
         }
-
-        // System.err.println(code);
         Action a = new Action(code, indents);
         return ac.new Result(a, errors);
     }

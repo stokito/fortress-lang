@@ -38,6 +38,7 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.AndPredicateSymbol;
+import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BreaklineSymbol;
 import com.sun.fortress.nodes.CarriageReturnSymbol;
@@ -47,7 +48,6 @@ import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -68,7 +68,6 @@ import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
@@ -79,7 +78,6 @@ import edu.rice.cs.plt.tuple.Option;
 public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
 	private Iterable<? extends StaticError> errors;
-	private MemberEnv currentNonterminalEnv;
 
 	public class Result extends StaticPhaseResult {
 		private List<Sequence> alternatives;
@@ -114,7 +112,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		return new SyntaxDefTranslator().visit(member.getAst());
 	}
 
-	public static Result translate(GrammarMemberDecl member, GrammarEnv grammarEnv) {
+	public static Result translate(GrammarMemberDecl member) {
 		return new SyntaxDefTranslator().visit(member);
 	}
 
@@ -177,6 +175,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		}
 
 		@Override
+        public List<Element> forAnyCharacterSymbol(AnyCharacterSymbol that) {
+		    return mkList(new NonTerminal("_"));
+        }
+
+        @Override
 		public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
 			return mkList(new NonTerminal(that.getNonterminal().getText()));
 		}
@@ -203,27 +206,27 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
 		@Override
 		public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
-			return mkList(new NonTerminal("backspace"));
+		    return mkList(new xtc.parser.StringLiteral("\b"));
 		}
 
 		@Override
 		public List<Element> forNewlineSymbol(NewlineSymbol that) {
-			return mkList(new NonTerminal("newline"));
+		    return mkList(new xtc.parser.StringLiteral("\n"));
 		}
 
 		@Override
 		public List<Element> forCarriageReturnSymbol(CarriageReturnSymbol that) {
-			return mkList(new NonTerminal("return"));
+		    return mkList(new xtc.parser.StringLiteral("\r"));
 		}
 
 		@Override
 		public List<Element> forFormfeedSymbol(FormfeedSymbol that) {
-			return mkList(new NonTerminal("formfeed"));
+		    return mkList(new xtc.parser.StringLiteral("\f"));
 		}
 
 		@Override
 		public List<Element> forTabSymbol(TabSymbol that) {
-			return mkList(new NonTerminal("tab"));
+		    return mkList(new xtc.parser.StringLiteral("\t"));
 		}
 
 		@Override
@@ -322,7 +325,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 				List<Element> symbol_result) {
 			if (symbol_result.size() == 1) {
 				Element e = symbol_result.remove(0);
-				symbol_result.add(new FollowedBy(e));
+				symbol_result.add(new FollowedBy(new Sequence(e)));
 				return symbol_result;
 			}
 			if (symbol_result.isEmpty()) {
@@ -336,7 +339,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 				List<Element> symbol_result) {
 			if (symbol_result.size() == 1) {
 				Element e = symbol_result.remove(0);
-				symbol_result.add(new NotFollowedBy(e));
+				symbol_result.add(new NotFollowedBy(new Sequence(e)));
 				return symbol_result;
 			}
 			if (symbol_result.isEmpty()) {
