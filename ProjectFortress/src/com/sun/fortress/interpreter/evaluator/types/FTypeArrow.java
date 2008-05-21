@@ -70,6 +70,14 @@ public class FTypeArrow extends FType {
         domain = d;
         range = r;
     }
+    
+    public FType getRange() {
+        return range;
+    }
+    public FType getDomain() {
+        return domain;
+    }
+    
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.types.FType#subtypeOf(com.sun.fortress.interpreter.evaluator.types.FType)
      */

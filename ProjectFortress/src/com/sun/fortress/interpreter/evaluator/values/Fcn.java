@@ -20,11 +20,13 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.UnificationError;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 abstract public class Fcn extends FValue {
@@ -69,21 +71,25 @@ abstract public class Fcn extends FValue {
     public void setFtype(FType ftype) {
         if (this.ftype != null)
             throw new IllegalStateException("Cannot set twice");
-        this.ftype = ftype;
+        setFtypeUnconditionally(ftype);
     }
 
-    public void setFtypeUnconditionally(FType ftype) {
+    public  void setFtypeUnconditionally(FType ftype) {
         this.ftype = ftype;
     }
-
+  
+    protected FValue check(FValue x) {
+            return x;
+    }
+    
     final public FValue apply(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
-            return applyInner(unwrapped, loc, envForInference);
+            return check(applyInner(unwrapped, loc, envForInference));
         } catch (UnificationError u) {
             if (unwrapped != args) {
                 try {
-                    return applyInner(args, loc, envForInference);
+                    return check(applyInner(args, loc, envForInference));
                 } catch (UnificationError u1) {
                     throw u;
                 }

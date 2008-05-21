@@ -17,10 +17,15 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Useful;
@@ -31,7 +36,26 @@ abstract public class Simple_fcn extends SingleFcn {
         super(within);
     }
 
-    public String getString() {
+    FType ret_type;
+    
+    public  void setFtypeUnconditionally(FType ftype) {
+        super.setFtypeUnconditionally(ftype);
+        FType t = ((FTypeArrow) ftype).getRange();
+        // Hack around lack of type inference
+        if (t == BottomType.ONLY)
+            t = com.sun.fortress.interpreter.evaluator.types.FTypeTop.ONLY;
+        ret_type = t;
+    }
+    protected FValue check(FValue x) {
+         FType t = ret_type;
+         // Jam on, for now.
+         if (true || t.typeMatch(x))
+             return x;
+         return bug(errorMsg("Function ", this, " returned ", x , " but signature required ", t,
+                 ", supers are ", x.type().getTransitiveExtends()));
+     }
+  
+   public String getString() {
         return getFnName().toString() + Useful.listInParens(getDomain()) + " declared at " + at();
     }
 
