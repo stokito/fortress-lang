@@ -170,7 +170,7 @@ trait TotalComparison
        default definitions of CMP and >=. *)
     opr =(self, other:TotalComparison): Boolean = false
     opr =(self, other:Unordered): Boolean = false
-    opr CMP(self, other:Unordered): Boolean = Unordered
+    opr CMP(self, other:Unordered): Comparison = Unordered
     opr <(self, other:Unordered): Boolean = false
     opr >=(self, other:Unordered): Boolean = false
     opr >=(self, other:Comparison): Boolean = NOT (other < self)
@@ -182,7 +182,7 @@ end
 object LessThan extends TotalComparison
     getter toString(): String = "LessThan"
     opr =(self, other:LessThan): Boolean = true
-    opr CMP(self, other:LessThan): Comparison = EqualTo
+    opr CMP(self, other:LessThan): TotalComparison = EqualTo
     opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
     opr <(self, other:LessThan): Boolean = false
     opr <(self, other:TotalComparison): Boolean = true
@@ -192,7 +192,7 @@ end
 object GreaterThan extends TotalComparison
     getter toString(): String = "GreaterThan"
     opr =(self, other:GreaterThan): Boolean = true
-    opr CMP(self, other:GreaterThan): Comparison = EqualTo
+    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
     opr CMP(self, other:TotalComparison): TotalComparison = LessThan
     opr <(self, other:TotalComparison): Boolean = false
     opr INVERSE(self): TotalComparison = LessThan
@@ -257,7 +257,7 @@ end
     way. **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
         extends { StandardPartialOrder[\Self\], StandardMin[\Self\], StandardMax[\Self\] }
-    opr CMP(self, other:Self): Comparison =
+    opr CMP(self, other:Self): TotalComparison =
         if self < other then LessThan
         elif other < self then GreaterThan
         else EqualTo
@@ -965,11 +965,13 @@ end
 ************************************************************)
 
 oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
-   fail("Index of dimension " s " out of bounds; got " got " which is not in " l "#" sz);
+   fail("Index of dimension " s " out of bounds; got " got
+        " which is not in " l "#" sz);
 end
 
 trait HasRank extends Equality[\HasRank\] excludes { Number, AnyMaybe }
-  (** \vspace{-4ex} NOT YET: %comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] }% *)
+  (** \vspace{-4ex} NOT YET: %comprises Array[\T,E,I\]
+                              where [\T,E,I\]{ T extends Array[\T,E,I\] }% *)
   rank():ZZ32
   opr =(self, other:HasRank): Boolean = false
 end
@@ -2265,7 +2267,7 @@ opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
 (** A reduction performing String concatenation **)
 object StringReduction extends Reduction[\String\]
     getter toString() = "StringReduction"
-    empty(): Boolean = ""
+    empty(): String = ""
     join(a:String, b:String): String = a b
 end
 
@@ -2511,7 +2513,7 @@ object OpenRange[\T\] extends { Range[\T\], PartialRange[\T\] }
     opr[other:ExtentRange[\T\]] : ExtentRange[\T\] = other
     opr[other:FullRange[\T\]] : FullRange[\T\] = other
     opr =(self,_:OpenRange[\T\]): Boolean = true
-    opr CMP(self,other:Range[\T\]): Comparison =
+    opr CMP(self,other:Range[\T\]): TotalComparison =
         typecase other of
             OpenRange[\T\] => EqualTo
             else => GreaterThan
@@ -3129,7 +3131,7 @@ opr >=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     end
   end
 
-opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
+opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Comparison = do
     (a1,b1) = t1
     (a2,b2) = t2
     (a1 CMP a2) LEXICO: (b1 CMP b2)
@@ -3181,7 +3183,7 @@ opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     end
   end
 
-opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
+opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
     (a1 CMP a2) LEXICO: (b1 CMP b2) LEXICO: (c1 CMP c2)

@@ -1454,7 +1454,7 @@ opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
 (** A reduction performing String concatenation **)
 object StringReduction extends Reduction[\String\]
     getter toString()
-    empty(): Boolean
+    empty(): String
     join(a:String, b:String): String
 end
 
