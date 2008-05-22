@@ -17,7 +17,7 @@ syn region   fortressComment start="(\*" end="\*)" contains=fortressComment
 syn match    fortressEnd    "\<end\>"
 
 " syn match    fortressKeyword "\<getter\>"
-syn keyword  fortressKeyword getter else
+syn keyword  fortressKeyword getter else var
 syn keyword  fortressExternal import export
 
 syn region   fortressString       start=+"+ skip=+\\\\\|\\"+ end=+"+
@@ -37,7 +37,10 @@ syn keyword  fortressKeyword opr for
 syn match    fortressThenErr    "\<then\>"
 syn match    fortressCaseErr    "\<case>"
 
-syn region   fortressNone matchgroup=fortressKeyword start="\<if\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr
+syn region   fortressNone matchgroup=fortressKeyword start="\<if\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr nextgroup=fortressIf
+syn region   fortressIf matchgroup=fortressKeyword start="\<elif\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr nextgroup=fortressIf
+syn region   fortressIf matchgroup=fortressKeyword start="\<then\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressThenErr
+
 syn region   fortressNone matchgroup=fortressKeyword start="\<case\>" matchgroup=fortressKeyword end="\<of\>" contains=ALLBUT,fortressCaseErr nextgroup=fortressCase
 syn region   fortressCase matchgroup=fortressKeyword start="\<in\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressCaseErr
 
