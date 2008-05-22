@@ -28,10 +28,10 @@ export Executable
  * We toss a coin and the winner gets the wager from the loser.
  *
  * Observation: the fraction of the money we hold has a power-of-2 denominator.
- * This denominator increases by 1 (in lowest terms) after each round.
- * Thus the numerator is an odd number.
+ * This denominator increases by 1 (in lowest terms) after each round, and the
+ * numerator is an odd number.
  *
- * We're interested in a histogram of outcomes.  This histogram is symmetic
+ * We're interested in a histogram of outcomes.  This histogram is symmetric
  * about 1, so we only need to track the outcome of the poorer player, and
  * without loss of generality we can fix the outcome of the first coin toss.
  *
@@ -93,17 +93,20 @@ trial(f:Frac): () =
 spaces : String = "                    "
 asterisks : String = "***************************************************************************"
 
+(* prepend spaces to s until it is w in width *)
+prepad(w: ZZ32, s: String): String = spaces[ |s| : w ] s
+
 showHist():() = do
     mx = BIG MAX histogram
-    ml : ZZ32 = BIG MAX [(i,v) <- histogram.indexValuePairs(), v=/=0] |"" i| - 1
-    mxv : ZZ32 = |"" mx| - 1
+    indexFieldWidth : ZZ32 = BIG MAX [(i,v) <- histogram.indexValuePairs(), v=/=0] |"" i| - 1
+    valueFieldWidth : ZZ32 = |"" mx| - 1
     println("mx = " mx)
-    histogramLength = 75 - |ml| - |mxv|
+    histogramLength = 75 - indexFieldWidth - valueFieldWidth
     for (i,v) <- sequential(histogram.indexValuePairs()), v =/= 0 do
-        ix = "" i
-        print(spaces[ |ix| : ml ] ix ": ")
-        amount = "" v
-        print(spaces[ |amount| : mxv ] amount " |")
+        iAsString = "" i
+        print(prepad(indexFieldWidth, iAsString) ": ")
+        vAsString = "" v
+        print(prepad(valueFieldWidth, vAsString) " |")
         n = (histogramLength v + mx DIV 2) DIV mx
         if n < 1 then
             println(".")
@@ -115,7 +118,6 @@ showHist():() = do
 
 run(args:String...): () = do
     trial(init.lose())
-    println("*")
     showHist()
   end
 
