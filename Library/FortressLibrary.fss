@@ -297,10 +297,6 @@ trait AdditiveGroup[\Self extends AdditiveGroup[\Self\]\]
     opr -(self) : Self = self.zero() - self
 end
 
-(** Top-level factory for zeroes.  Overload this if you declare an AdditiveGroup.
-    This ought to be done via coercion eventually. **)
-zero[\Number\](): Number = 0
-
 (** Place holder for exclusions of MultiplicativeRing **)
 trait AnyMultiplicativeRing end
 
@@ -314,15 +310,6 @@ trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
     (** Exponentiation need only deal with natural exponents. **)
     opr ^(self, other:Integral): Self
 end
-
-(** Top-level factory for ones.  Overload this if you declare a Ring.
-    This ought to be done via coercion eventually. **)
-one[\Number\](): Number = 1
-
-(** Conversion of IntLiteral into Ring.  Canonically should
-    perform repeated addition of one.  This is almost never the right way to
-    actually do it, of course.  This ought to be done via coercion eventually. **)
-fromIntegral[\Number\](x:Integral): Number = x
 
 (** The use of StandardTotalOrder here is a lie; it will have to suffice
     until we can deal gracefully with NaNs disobeying the ordering rules
@@ -3054,6 +3041,7 @@ println(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.
 print(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
 println(a:Char):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+print(a:Char):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 print(a:Any):() = print("" a)
 println(a:Any):() = println("" a)
 (* 0-argument versions handle passing of () to single-argument versions. *)
