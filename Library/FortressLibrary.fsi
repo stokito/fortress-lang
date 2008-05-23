@@ -135,7 +135,7 @@ trait TotalComparison
         extends { Comparison, StandardTotalOrder[\TotalComparison\] }
         comprises { LessThan, EqualTo, GreaterThan }
     opr =(self, other:Comparison): Boolean
-    opr CMP(self, other:Unordered): Boolean
+    opr CMP(self, other:Unordered): Comparison
     opr >=(self, other:Unordered): Boolean
     opr >=(self, other:Comparison): Boolean
     opr LEXICO(self, other:TotalComparison): TotalComparison
@@ -244,10 +244,6 @@ trait AdditiveGroup[\Self extends AdditiveGroup[\Self\]\]
     opr -(self) : Self
 end
 
-(** Top-level factory for zeroes.  Overload this if you declare an AdditiveGroup.
-    This ought to be done via coercion eventually. **)
-zero[\Number\](): Number
-
 (** Place holder for exclusions of MultiplicativeRing **)
 trait AnyMultiplicativeRing end
 
@@ -261,15 +257,6 @@ trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
     (** Exponentiation need only deal with natural exponents. **)
     opr ^(self, other:Integral): Self
 end
-
-(** Top-level factory for ones.  Overload this if you declare a Ring.
-    This ought to be done via coercion eventually. **)
-one[\Number\](): Number
-
-(** Conversion of IntLiteral into Ring.  Canonically should
-    perform repeated addition of one.  This is almost never the right way to
-    actually do it, of course.  This ought to be done via coercion eventually. **)
-fromIntegral[\Number\](x:Integral): Number
 
 trait Number
       extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\] }
@@ -1709,12 +1696,12 @@ opr <[\A,B\](t1:(A,B), t2:(A,B)): Boolean
 opr <=[\A,B\](t1:(A,B), t2:(A,B)): Boolean
 opr >[\A,B\](t1:(A,B), t2:(A,B)): Boolean
 opr >=[\A,B\](t1:(A,B), t2:(A,B)): Boolean
-opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Boolean
+opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Comparison
 opr =[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean
 opr <[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean
 opr <=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean
 opr >[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean
 opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean
-opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean
+opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison
 
 end

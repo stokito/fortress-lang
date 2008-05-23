@@ -52,7 +52,7 @@ trait TotalComp
         println("TotalComp " self " EQL " other)
         false
       end
-    opr CMP(self, other:Unord): Boolean = Unord
+    opr CMP(self, other:Unord): Comp = Unord
     opr GREQ(self, other:Unord): Boolean = false
     opr GREQ(self, other:Comp): Boolean = NOT (other LSTH self)
     opr LSTH(self, other:Unord): Boolean = false
@@ -67,8 +67,8 @@ object LessTh extends TotalComp
         println("LessTh EQL LessTh")
         true
       end
-    opr CMP(self, other:LessTh): Boolean = EqTo
-    opr CMP(self, other:TotalComp): Boolean = GreaterTh
+    opr CMP(self, other:LessTh): Comp = EqTo
+    opr CMP(self, other:TotalComp): Comp = GreaterTh
     opr LSTH(self, other:LessTh): Boolean = false
     opr LSTH(self, other:TotalComp): Boolean = true
     opr INVERSE(self): TotalComp = GreaterTh
@@ -80,8 +80,8 @@ object GreaterTh extends TotalComp
         println("GreaterTh EQL GreaterTh")
         true
       end
-    opr CMP(self, other:GreaterTh): Boolean = EqTo
-    opr CMP(self, other:TotalComp): Boolean = LessTh
+    opr CMP(self, other:GreaterTh): Comp = EqTo
+    opr CMP(self, other:TotalComp): Comp = LessTh
     opr LSTH(self, other:Comp): Boolean = false
     opr INVERSE(self): TotalComp = LessTh
 end
@@ -92,7 +92,7 @@ object EqTo extends TotalComp
         println("EqTo EQL EqTo")
         true
       end
-    opr CMP(self, other:Comp): Boolean = INVERSE other
+    opr CMP(self, other:Comp): Comp = INVERSE other
     opr LSTH(self, other:LessTh): Boolean = true
     opr LSTH(self, other:TotalComp): Boolean = false
     opr LEXICO(self, other:TotalComp): TotalComp = other
