@@ -45,7 +45,7 @@ information about fortify, see Fortify/fortify-doc.txt):
                   "/Fortify/fortify.el"))
 
 Vim: A directory containing vim script files for syntax highlighting.
-To enable syntax lighting for fortress code copy the sub-directories
+To enable syntax highlighting for fortress code copy the sub-directories
 under Vim/ to your ~/.vim directory.
   $ mkdir ~/.vim
   $ cp -a Vim/ftdetect Vim/syntax ~/.vim/.
