@@ -37,13 +37,13 @@ public class FortressTask extends BatchTask {
 
     public FortressTask() { super("fortress"); }
 
-    public void setCompile(boolean val) { execOptions.append(" compile "); }
-    public void setAst(boolean val) { execOptions.append(" -ast "); }
-    public void setKeep(boolean val) { execOptions.append(" -keep "); }
-    public void setPause(boolean val) { execOptions.append(" -pause "); }
-    public void setParseOnly(boolean val) { execOptions.append(" -parseOnly "); }
-    public void setNolib(boolean val) { execOptions.append(" -nolib "); }
-    public void setVerbose(boolean val) { execOptions.append(" -v "); }
-    public void setTest(boolean val) { execOptions.append(" -test "); }
+    public void setCompile(boolean val) { addExecOption("compile"); }
+    public void setAst(boolean val) { addExecOption("-ast"); }
+    public void setKeep(boolean val) { addExecOption("-keep"); }
+    public void setPause(boolean val) { addExecOption("-pause"); }
+    public void setParseOnly(boolean val) { addExecOption("-parseOnly"); }
+    public void setNolib(boolean val) { addExecOption("-nolib"); }
+    public void setVerbose(boolean val) { addExecOption("-v"); }
+    public void setTest(boolean val) { addExecOption("-test"); }
 
 }

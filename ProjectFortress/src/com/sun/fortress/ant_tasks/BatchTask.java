@@ -22,15 +22,29 @@ import java.io.*;
 import java.util.*;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.taskdefs.Execute;
+import org.apache.tools.ant.taskdefs.PumpStreamHandler;
+import org.apache.tools.ant.types.Environment;
 
 public abstract class BatchTask extends Task {
     protected final String execName;
-    protected final StringBuffer execOptions = new StringBuffer();
+    // protected final StringBuffer execOptions = new StringBuffer();
+    private final Vector<String> options = new Vector<String>();
     protected final Vector<FileSet> filesets = new Vector<FileSet>();
-
+    private boolean newEnvironment = false;
+    private Environment env = new Environment();
 
     protected BatchTask(String _execName) {
         execName = _execName;
+    }
+
+    protected void addExecOption(String arg){
+	    options.add(arg);
+    }
+
+    public void addEnv(Environment.Variable var){
+        env.addVariable(var);
+        newEnvironment = true;
     }
 
     public void addFileset(FileSet fileset) {
@@ -46,6 +60,7 @@ public abstract class BatchTask extends Task {
                 String[] includedFiles = dirScanner.getIncludedFiles();
                 for (String fileName : includedFiles) {
                     String nextFile = dirScanner.getBasedir() + File.separator + fileName;
+		    /*
                     System.err.println("Processing " + nextFile);
                     Process process = Runtime.getRuntime().exec (
                         execName + " " + execOptions + nextFile
@@ -59,6 +74,31 @@ public abstract class BatchTask extends Task {
                             out.write(errors.read());
                         }
                         out.flush();
+                    }
+        */
+		    System.err.println( "Processing " + nextFile );
+		    ByteArrayOutputStream errors = new ByteArrayOutputStream();
+                    Execute execute = new Execute( new PumpStreamHandler( new ByteArrayOutputStream(), new BufferedOutputStream(errors), null ) );
+                    if ( newEnvironment ){
+                            execute.setNewenvironment(newEnvironment);
+                            String[] environment = env.getVariables();
+                            execute.setEnvironment(environment);
+                    }
+                    // execute.setCommandline( new String[]{execName, execOptions.toString(), nextFile } );
+		    Vector<String> command = new Vector<String>();
+		    command.add(execName);
+		    command.addAll(options);
+		    command.add(nextFile);
+                    // execute.setCommandline( new String[]{execName, nextFile } );
+                    execute.setCommandline( command.toArray(new String[0]) );
+                    execute.setAntRun(getProject());
+                    try{
+                        int exitValue = execute.execute();
+			if ( exitValue != 0 ){
+				System.err.print(errors.toString(0));
+			}
+                    } catch ( IOException e ){
+                        failures = true;
                     }
                 }
             }
