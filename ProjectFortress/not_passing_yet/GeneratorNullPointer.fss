@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component GeneratorNullPointer
+
+
+import Set.{...}
+export Executable
+
+object ConcatenationOfGenerators[\T\](g1:Generator[\T\],g2:Generator[\T\]) extends Generator[\T\]
+    generate[\R\](r : Reduction[\R\], body : T -> R):R = do
+        r.join(g1.generate[\R\](r,body),g2.generate[\R\](r,body))
+    end
+
+    seq(self) =
+        ConcatenationOfGenerators[\T\](g1.seq,g2.seq)
+end
+
+opr ||||[\T\](a:Generator[\T\],b:Generator[\T\]) =
+    ConcatenationOfGenerators[\T\](a,b)
+
+run(args:String...) = do
+    t = "The" |||| "quick"
+    println("OK")
+    seq(t)
+    println("OK'")
+    for i <- seq("The" |||| "quick") do
+        println i
+    end
+end
+
+end
