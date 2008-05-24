@@ -49,7 +49,7 @@ public CompilationUnit File =
      Component
  */
 private CompilationUnit CompilationUnit =
-     Component 
+     Component
      / Api ;
 
 /* Component ::= component w APIName (w Imports w ;?)? w  end */
@@ -61,17 +61,14 @@ private Component Component =
         yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);};
 
 /* Api ::=
-     (native w)? api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
+     api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
  */
 private Api Api =
     api w a1:APIName a2:(w yyValue:Imports w semicolon?)? (_)*
      { if (a2 == null) a2 = Collections.<Import>emptyList();
        List<AbsDecl> a3 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
-       if (a1 == null)
-           yyValue = new Api(span, a1, a2, a3);
-       else
-           yyValue = new Api(span, true, a1, a2, a3);
+       yyValue = new Api(span, a1, a2, a3);
      };
 
 /* Imports ::= Import (br Import)* */

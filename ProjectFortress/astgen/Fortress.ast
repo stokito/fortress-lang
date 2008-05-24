@@ -120,8 +120,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * compilation unit declaration
      * CompilationUnit ::= Component | Api
      */
-    abstract CompilationUnit(boolean _native = false,
-                             APIName name, List<Import> imports);
+    abstract CompilationUnit(APIName name, List<Import> imports);
         /**
          * component declaration
          * Component ::= native? component APIName Imports? Exports Decls? end
@@ -130,10 +129,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          *         run(args:String...) = print "Hello, World!\n"
          *       end
          */
-        Component(List<Export> exports, List<Decl> decls);
+        Component(boolean _native = false, APIName name, List<Import> imports,
+                  List<Export> exports, List<Decl> decls);
         /**
          * API declaration
-         * Api ::= native? api APIName Imports? AbsDecls? end
+         * Api ::= api APIName Imports? AbsDecls? end
          * e.g.) api Executable
          *         run(args:String...):()
          *       end
