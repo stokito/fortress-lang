@@ -86,7 +86,11 @@ public class ComponentWrapper {
 
         BetterEnv e = BetterEnv.empty();
         e.setTopLevel();
-        be = comp.is_native() ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
+        if (comp instanceof Component) {
+            be = ((Component)comp).is_native() ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
+        } else { // comp instanceof Api
+            be = new BuildEnvironments(e);
+        }
     }
 
     /**
