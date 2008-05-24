@@ -519,7 +519,7 @@ trait Condition[\E\] extends SequentialGenerator[\E\]
     getter isEmpty(): Boolean
     getter holds(): Boolean
     getter size(): ZZ32
-    getter get(): ZZ32 throws NotFound
+    getter get(): E throws NotFound
     getter bounds(): FullRange[\ZZ32\]
     getter indices(): FullRange[\ZZ32\]
     getter indexValuePairs(): Generator[\(ZZ32,E)\]
