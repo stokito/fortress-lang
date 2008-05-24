@@ -72,7 +72,7 @@ public final class OprUtil {
 
     public static boolean hasPrefixColon(Op op) {
         String opName = op.getText();
-        return (!opName.equals("::") && opName.length()>1 && opName.charAt(0)==':');
+        return (opName.length()>1 && opName.charAt(0)==':' && !opName.equals("::"));
     }
 
     public static boolean hasPrefixColon(OpName n) {
@@ -86,7 +86,7 @@ public final class OprUtil {
     public static boolean hasSuffixColon(Op op) {
         String opName = op.getText();
         int l = opName.length();
-        return (!opName.equals("::") && l>1 && opName.charAt(l-1)==':');
+        return (l>1 && opName.charAt(l-1)==':' && !opName.equals("::"));
     }
 
     public static boolean hasSuffixColon(OpName n) {
@@ -101,12 +101,11 @@ public final class OprUtil {
         String opName = op.getText();
         int l = opName.length();
         int i = 0;
-        if (hasPrefixColon(op)) {
-            l--;
-            i++;
-        }
         if (hasSuffixColon(op)) {
             l--;
+        }
+        if (hasPrefixColon(op)) {
+            i++;
         }
         if (l < opName.length()) {
             opName = opName.substring(i,l);
@@ -123,20 +122,7 @@ public final class OprUtil {
     }
 
     public static Op noColon(Op op) {
-        String opName = op.getText();
-        if (opName.equals("::"))
-            return op;
-        int l = opName.length();
-        int i = 0;
-        if (hasPrefixColon(op)) {
-            l--;
-            i++;
-        }
-        if (hasSuffixColon(op)) {
-            l--;
-        }
-        if (l < opName.length()) {
-            opName = opName.substring(i,l);
+        if (hasSuffixColon(op) || hasPrefixColon(op)) {
             return NodeFactory.makeOp(op.getSpan(),noColonText(op),
                                       op.getFixity());
         }
