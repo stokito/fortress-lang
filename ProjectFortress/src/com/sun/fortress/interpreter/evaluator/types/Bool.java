@@ -25,12 +25,12 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
  * the type of boolean-valued variables (FBool), or the two
  * boolean constant values.
  */
-public class Bool extends FType {
+public class Bool extends BoolType {
 
     static final Bool TRUE  = new Bool("true",  FBool.TRUE);
     static final Bool FALSE = new Bool("false", FBool.FALSE);
 
-    FBool value;
+    final FBool value;
 
     private Bool(String s, FBool value) {
         super(s);

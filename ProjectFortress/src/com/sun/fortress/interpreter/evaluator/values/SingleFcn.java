@@ -29,10 +29,12 @@ import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
+import com.sun.fortress.interpreter.evaluator.types.SymbolicBool;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimParam;
+import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OpParam;
@@ -63,7 +65,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     abstract public String  at();
     abstract public List<FType> getDomain();
     public boolean isOverride() { return false; }
-    
+
     /**
      * For now, prefer to unwrap tuples because that avoid creating
      * new memo entries for tuple types.
@@ -180,36 +182,22 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, WhereClause wcl, BetterEnv ge) throws Error {
         ArrayList<FType> a = new ArrayList<FType>();
         for (StaticParam tp: tpl) {
-            if (tp instanceof DimParam) {
-                DimParam dp = (DimParam) tp;
-                NI.nyi();
-            } else if (tp instanceof NatParam) {
-                NatParam np = (NatParam) tp;
-                String np_name = NodeUtil.getName(np);
-                SymbolicNat sn = new SymbolicNat(np_name);
-                ge.putType(np_name, sn);
-                a.add(sn);
-            } else if (tp instanceof IntParam) {
-                IntParam np = (IntParam) tp;
-                String np_name = NodeUtil.getName(np);
-                SymbolicNat sn = new SymbolicNat(np_name);
-                ge.putType(np_name, sn);
-                a.add(sn);
+            String name = NodeUtil.getName(tp);
+            FType t;
+            if (tp instanceof TypeParam) {
+                t = new SymbolicInstantiatedType(name, ge, tp);
+            } else if (tp instanceof NatParam || tp instanceof IntParam) {
+                t = new SymbolicNat(name);
+            } else if (tp instanceof BoolParam) {
+                t = new SymbolicBool(name);
             } else if (tp instanceof OpParam) {
                 OpParam op = (OpParam) tp;
-                String sot_name = NodeUtil.getName(tp);
-                SymbolicOprType sot = new SymbolicOprType(sot_name, ge, op);
-                ge.putType(sot_name, sot);
-                a.add(sot);
-            } else if (tp instanceof TypeParam) {
-                TypeParam stp = (TypeParam) tp;
-                String stp_name = NodeUtil.getName(stp);
-                SymbolicInstantiatedType st = new SymbolicInstantiatedType(stp_name, ge, tp);
-                ge.putType(stp_name, st);
-                a.add(st);
+                t = new SymbolicOprType(name, ge, op);
             } else {
-                bug(tp, errorMsg("Unimplemented symbolic StaticParam ", tp));
+                return bug(tp, errorMsg("Unimplemented symbolic StaticParam ", tp));
             }
+            ge.putType(name, t);
+            a.add(t);
         }
 
         // Expect that where clauses will add names and constraints.9
@@ -233,21 +221,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
         // Process constraints
         for (StaticParam tp: tpl) {
-            if (tp instanceof DimParam) {
-                DimParam dp = (DimParam) tp;
-                NI.nyi();
-            } else if (tp instanceof NatParam) {
-                NatParam np = (NatParam) tp;
-                String np_name = NodeUtil.getName(np);
-
-            } else if (tp instanceof IntParam) {
-                IntParam np = (IntParam) tp;
-                String np_name = NodeUtil.getName(np);
-
-            } else if (tp instanceof OpParam) {
-                OpParam op = (OpParam) tp;
-
-            } else if (tp instanceof TypeParam) {
+            String name = NodeUtil.getName(tp);
+            if (tp instanceof TypeParam) {
                 TypeParam stp = (TypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(stp_name);
@@ -256,8 +231,11 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.
                 st.setExtendsAndExcludes(eval_type.getFTypeListFromList(oext), null);
+            } else if (tp instanceof NatParam || tp instanceof IntParam ||
+                       tp instanceof OpParam || tp instanceof BoolParam) {
+                // No constraint handling right now
             } else {
-                bug(tp, errorMsg("Unexpected StaticParam ", tp));
+                return bug(tp, errorMsg("Unexpected StaticParam ", tp));
             }
         }
 
