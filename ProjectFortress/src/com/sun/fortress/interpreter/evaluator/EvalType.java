@@ -25,6 +25,7 @@ import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.Bool;
+import com.sun.fortress.interpreter.evaluator.types.BoolType;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
@@ -37,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
+import com.sun.fortress.interpreter.evaluator.types.SymbolicBool;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
@@ -215,10 +217,27 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             StaticParam p = params.get(i);
 
             if (a == BottomType.ONLY || a == null) {
-                guardedPutType(NodeUtil.getName(p), BottomType.ONLY, what, clenv);
+                a = BottomType.ONLY;
+                guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 // TODO need to undefine the nats and bools
                 // This means that our choice to use the Java types Boolean etc was wrong,
                 // because they lack lattice structure.
+            } else if (p instanceof TypeParam) {
+                String whence = null;
+                // There's probably some inappropriate ones.
+                if (a instanceof FTypeNat) {
+                    whence = "nat ";
+                } else if (a instanceof FTypeOpr) {
+                    whence = "opr ";
+                } else if (a instanceof BoolType) {
+                    whence = "bool ";
+                }
+                if (whence != null) {
+                    error(within, clenv,
+                          errorMsg("When instantiating ", what,
+                                   "Got ",whence, a,
+                                   " instead of type for param ", p));
+                }
             } else if (p instanceof NatParam) {
                 if (a instanceof IntNat) {
                     long l = ((IntNat)a).getValue();
@@ -228,10 +247,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     }
 
                     guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else if (a instanceof SymbolicNat) {
                     // guardedPutNat(NodeUtil.nameString(p), ((IntNat)a).getNumber(), what, clenv);
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
                     error(within, clenv,
                           errorMsg("Expected Nat, got ", a, " for param ", p,
@@ -240,10 +257,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             } else if (p instanceof IntParam) {
                 if (a instanceof IntNat) {
                     guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else if (a instanceof SymbolicNat) {
                     // guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
                     error(within, clenv,
                           errorMsg("Expected Int, got ", a, " for param ", p,
@@ -252,33 +267,16 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             } else if (p instanceof BoolParam) {
                 if (a instanceof Bool) {
                     guardedPutBool(NodeUtil.getName(p), ((Bool)a).getBooleanValue(), what, clenv);
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
+                } else if (a instanceof SymbolicBool) {
+                    // Fall through
                 } else {
                     error(within, clenv,
                           errorMsg("Expected Bool, got ", a, " for param ", p,
                                    " instantiating ", what));
                 }
-            } else if (p instanceof TypeParam) {
-                // There's probably some inappropriate ones.
-                if (a instanceof FTypeNat) {
-                    error(within, clenv,
-                          errorMsg("When instantiating ", what,
-                                   "Got nat ", a,
-                                   " instead of type for param ", p));
-                } else if (a instanceof FTypeOpr) {
-                    error(within, clenv,
-                          errorMsg("When instantiating ", what,
-                                   "Got opr ", a,
-                                   " instead of type for param ", p));
-                } else {
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
-                }
-
             } else if (p instanceof OpParam) {
-                if (a instanceof FTypeOpr) {
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
-                } else if (a instanceof SymbolicOprType) {
-                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
+                if (a instanceof FTypeOpr || a instanceof SymbolicOprType) {
+                    // Fall through
                 } else {
                     error(within, clenv,
                           errorMsg("Expected Opr, got ", a, " for param ", p,
@@ -290,6 +288,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 error(within, clenv,
                       errorMsg("Unexpected generic parameter ", p));
             }
+            guardedPutType(NodeUtil.getName(p), a, what, clenv);
          }
     }
 

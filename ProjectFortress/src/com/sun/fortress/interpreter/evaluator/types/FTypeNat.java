@@ -20,12 +20,8 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
-
-import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 /**
  * Various things that may appear as a "nat" parameter to a
@@ -46,11 +42,7 @@ abstract public class FTypeNat extends FBuiltinType {
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        /* Unification has failed due to a fundamental kind error.
-           Report that and fail. */
-        unificationError(val,env, errorMsg("Can't unify nat parameter ", this,
-                                " and  type argument ", val));
-        return false;
+        return FType.unifySymbolic(this,env,tp_set,abm,val);
     }
 
 }

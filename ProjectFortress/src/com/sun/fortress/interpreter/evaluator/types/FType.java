@@ -514,6 +514,19 @@ abstract public class FType implements Comparable<FType> {
         return rc;
     }
 
+    /** Utility function that provides unifyNonVar implementation for
+     * symbolic types such as nat and bool.
+     */
+    public static boolean unifySymbolic(FType self, BetterEnv env, Set<String> tp_set,
+                BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
+        /* Unification has failed due to a fundamental kind error.
+           Report that and fail. */
+        unificationError(val,env, errorMsg("Can't unify nat parameter ", self,
+                                " and  type argument ", val));
+        return false;
+    }
+
+
     /** One-sided unification of this fully-computed FType with a signature.
      * @param tp_set  The type variables which are subject to unification.
      * @param abm     Map of bounds on these variables (if any), updated.
