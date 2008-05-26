@@ -17,12 +17,15 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.Useful;
 
 public class FTypeGenerator extends FType {
 
     public FTypeGenerator(int x, int y) {
+        
         super("Generator");
+        ProgramError.error("I think this is never called");
         this.x = x; this.y = y;
     }
     int x, y;

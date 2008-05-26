@@ -29,9 +29,6 @@ import com.sun.fortress.useful.HasAt;
 
 public class AnonymousConstructor extends NonPrimitive {
 
-    private HasAt at;
-    protected FTypeObject selfType;
-
     AnonymousConstructor(BetterEnv within, FTypeObject selfType, HasAt at) {
         super(within);
         this.selfType = selfType;
@@ -39,7 +36,10 @@ public class AnonymousConstructor extends NonPrimitive {
 
     }
 
-    @Override
+    private HasAt at;
+    protected FTypeObject selfType;
+
+   @Override
     public HasAt getAt() {
         return at;
     }

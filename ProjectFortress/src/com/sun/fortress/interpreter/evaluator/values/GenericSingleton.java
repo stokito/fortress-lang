@@ -51,9 +51,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
         this.genericConstructor = gc;
     }
 
-
     private class Factory implements Factory1P<List<FType>, FObject, HasAt> {
-
         public FObject make(List<FType> args, HasAt location) {
             return (FObject)
             genericConstructor.typeApply(location, args).
@@ -61,11 +59,9 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
                     location,
                     genericConstructor.getWithin());
         }
-
-
     }
 
-     Memo1P<List<FType>, FObject, HasAt> memo = new Memo1P<List<FType>, FObject, HasAt>(new Factory());
+    Memo1P<List<FType>, FObject, HasAt> memo = new Memo1P<List<FType>, FObject, HasAt>(new Factory());
 
     public FObject make(List<FType> l, HasAt location) {
         return memo.make(l, location);
@@ -77,7 +73,6 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
     }
 
     public IdOrOpOrAnonymousName getName() {
-        // TODO Auto-generated method stub
         return odecl.getName();
     }
 

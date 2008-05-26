@@ -229,27 +229,33 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     iuo_tuple.copyTo(new IndexedArrayWrapper(theArray, x));
                     evaluator.e.putValue(s, theArray);
 
-                } else if (outerType == null) {
-                    Indexed it = new Indexed(iuo_tuple, bestGuess);
+                } else {
+                    // bug("Thought this was not executed anymore");
+                    // yes, it is, for matrix/vector/array pasting
+                    if (outerType == null) {
+                        Indexed it = new Indexed(iuo_tuple, bestGuess);
 
-                    iuo_tuple.copyTo(it);
+                        iuo_tuple.copyTo(it);
 
-                    evaluator.e.putValue(s, new FArray(it, evaluator.e, x));
+                        evaluator.e.putValue(s, new FArray(it, evaluator.e, x));
 
-                } else if (outerType instanceof FTypeArray) {
-                    Indexed it = new Indexed(iuo_tuple, bestGuess);
-                    iuo_tuple.copyTo(it);
-                    evaluator.e.putValue(s, new FArray(it, (FTypeArray) outerType));
+                    } else if (outerType instanceof FTypeArray) {
+                        Indexed it = new Indexed(iuo_tuple, bestGuess);
+                        iuo_tuple.copyTo(it);
+                        evaluator.e.putValue(s, new FArray(it,
+                                (FTypeArray) outerType));
 
-                } else if (outerType instanceof FTypeMatrix){
-                    Indexed it = new Indexed(iuo_tuple, bestGuess);
-                    iuo_tuple.copyTo(it);
-                    evaluator.e.putValue(s, new FMatrix(it, (FTypeMatrix) outerType));
+                    } else if (outerType instanceof FTypeMatrix) {
+                        Indexed it = new Indexed(iuo_tuple, bestGuess);
+                        iuo_tuple.copyTo(it);
+                        evaluator.e.putValue(s, new FMatrix(it,
+                                (FTypeMatrix) outerType));
 
-                } else if (outerType instanceof FTypeVector){
-                    Indexed it = new Indexed(iuo_tuple, bestGuess);
-                    iuo_tuple.copyTo(it);
-                    evaluator.e.putValue(s, new FVector(it));
+                    } else if (outerType instanceof FTypeVector) {
+                        Indexed it = new Indexed(iuo_tuple, bestGuess);
+                        iuo_tuple.copyTo(it);
+                        evaluator.e.putValue(s, new FVector(it));
+                    }
                 }
 
 
