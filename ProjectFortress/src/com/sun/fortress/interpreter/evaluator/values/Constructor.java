@@ -66,11 +66,25 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
-public class Constructor extends AnonymousConstructor implements HasFinishInitializing {
+public class Constructor extends NonPrimitive implements HasFinishInitializing {
 
     // TODO need to be more organized about all the names
     // that get rewritten.
  //   public HashSet<String> parameterNames = new HashSet<String>();
+
+    private HasAt at;
+    protected FTypeObject selfType;
+
+   @Override
+    public HasAt getAt() {
+        return at;
+    }
+
+    public String stringName() {
+        return "Constructor for " + selfType;
+    }
+
+    public boolean seqv(FValue v) { return false; }
 
     boolean finished = false;
 
@@ -172,7 +186,9 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     public Constructor(BetterEnv env, FTypeObject selfType, HasAt def,
                 IdOrOpOrAnonymousName name, List<? extends AbsDeclOrDecl> defs,
                 Option<List<Param>> params) {
-        super(env, selfType, def); // TODO verify that this is the proper env.
+        super(env); // TODO verify that this is the proper env.
+        this.selfType = selfType;
+        this.at = def;
         this.cfn = name;
         this.defs = defs;
         this.params = params;
