@@ -28,11 +28,15 @@ import com.sun.fortress.useful.BoundingMap;
  * generic -- integers, variables (other nat? general??),
  * sums, products.
  */
-abstract public class FTypeNat extends FBuiltinType {
+abstract public class FTypeNat extends FType {
 
     protected FTypeNat(String s) {
         super(s);
         // TODO Auto-generated constructor stub
+    }
+    
+    public final boolean isValueType() {
+        return true;
     }
 
     /*
