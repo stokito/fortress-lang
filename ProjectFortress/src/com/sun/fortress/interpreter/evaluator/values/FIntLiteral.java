@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 import java.math.BigInteger;
-import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
