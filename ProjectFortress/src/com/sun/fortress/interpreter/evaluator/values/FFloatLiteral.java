@@ -19,8 +19,6 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.lang.Double;
 
-import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
-
 public class FFloatLiteral extends NativeConstructor.FNativeObject {
     private final String value;
     private static volatile NativeConstructor con;

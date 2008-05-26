@@ -16,7 +16,6 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import com.sun.fortress.interpreter.evaluator.types.FBuiltinType;
 
 public class FLong extends NativeConstructor.FNativeObject implements HasIntValue {
     private final long val;
