@@ -445,8 +445,36 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return new TypeCheckerResult(that, error);
         }
     }
+    
+    
+    
+	@Override
+	public TypeCheckerResult for_RewriteFieldRef(_RewriteFieldRef that) {
+		// TODO Auto-generated method stub
+		return super.for_RewriteFieldRef(that);
+	}
 
-    public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
+	@Override
+	public TypeCheckerResult for_RewriteFieldRefOnly(_RewriteFieldRef that,
+			TypeCheckerResult obj_result, TypeCheckerResult field_result) {
+		// TODO Auto-generated method stub
+		return super.for_RewriteFieldRefOnly(that, obj_result, field_result);
+	}
+
+	@Override
+	public TypeCheckerResult forFieldRefForSure(FieldRefForSure that) {
+		// TODO Auto-generated method stub
+		return super.forFieldRefForSure(that);
+	}
+
+	@Override
+	public TypeCheckerResult forFieldRefOnly(FieldRef that,
+			TypeCheckerResult obj_result, TypeCheckerResult field_result) {
+	
+		return super.forFieldRefOnly(that, obj_result, field_result);
+	}
+
+	public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
         Option<Type> varType = var_result.type();
         if (varType.isSome()) {
             return TypeCheckerResult.compose(that, varType.unwrap(), var_result);
@@ -804,7 +832,103 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                  " from non-subtype ", exprType));
     }
 
-    public TypeCheckerResult forTupleExprOnly(TupleExpr that,
+    
+    
+    @Override
+	public TypeCheckerResult forAssignmentOnly(Assignment that,
+			List<TypeCheckerResult> lhs_results,
+			Option<TypeCheckerResult> opr_result, TypeCheckerResult rhs_result) {
+    	// If LHS.size() > 1 then rhs must be a tuple and their types must match.
+    	// LHS vars must have already been declared
+    	// if oper != :=, then do we need to look up the types it expects?
+    	// result of the entire thing is not clear in spec, making it type of expr
+    	
+    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(lhs_results.size()+2);
+    	all_results.addAll(lhs_results);
+    	if( opr_result.isSome() ) 
+    		all_results.add(opr_result.unwrap());
+    	all_results.add(rhs_result);    	
+    	
+    	if( rhs_result.type().isNone() ) {
+    		// Typechecking of subexpr already failed...
+    		return TypeCheckerResult.compose(that, all_results);
+    	}
+    	Type rhs_type = rhs_result.type().unwrap();
+    	
+    	// Construct type of LHS for comparison purposes
+    	Type lhs_type; 
+    	if( lhs_results.size() == 1 ) {
+    		// single expression
+    		TypeCheckerResult lhs_result = lhs_results.get(0);
+    		if( lhs_result.type().isNone() ) {
+        		// Typechecking of subexpr already failed...
+        		return TypeCheckerResult.compose(that, all_results);    			
+    		}
+    		else {
+    			lhs_type = lhs_result.type().unwrap();
+    		}
+    	}
+    	else {
+    		// tuple
+    		List<Type> element_types = new ArrayList<Type>(lhs_results.size());
+    		for( TypeCheckerResult lhs_result : lhs_results ) {
+    			if( lhs_result.type().isNone() ) {
+            		// Typechecking of subexpr already failed...
+            		return TypeCheckerResult.compose(that, all_results);    				
+    			}
+    			else {
+    				element_types.add(lhs_result.type().unwrap());
+    			}
+    		}
+    		lhs_type = NodeFactory.makeTupleType(element_types);
+    	}
+    	
+    	TypeCheckerResult result;
+    	
+    	// If opr is not :=, then rules are more like function call rules
+    	if( that.getOpr().isSome() ) {
+    		TypeCheckerResult opr_result_ = opr_result.unwrap();
+    		if( opr_result_.type().isNone() ) {
+        		// Typechecking of subexpr already failed...
+        		return TypeCheckerResult.compose(that, all_results);    			
+    		}
+    		else {
+    			// By this point, all subexpressions have typechecked properly
+    			Type opr_type = opr_result_.type().unwrap();
+    			// Now we get the type of the resulting application
+    			Option<Type> result_type = 
+    			TypesUtil.applicationType(subtypeChecker, opr_type,
+    					new ArgList(lhs_type, rhs_type));
+    			
+    			if( result_type.isSome() ) {
+    				// successful
+    				all_results.add(new TypeCheckerResult(that));
+    				result = TypeCheckerResult.compose(that, result_type.unwrap(), all_results);
+    			}
+    			else {
+					// no operator found for these types
+					result = new TypeCheckerResult(that, 
+							TypeError.make("No applicable call to " + that.getOpr().unwrap() +
+									" can be found for arguments of type " + lhs_type + " and " +
+									rhs_type + ".", 
+									that));
+    			}
+    		}
+    	}
+    	else {
+    		// The whole thing is just regular assignment
+    		// Now make sure RHS <: LHS
+    		TypeCheckerResult subtype_result = 
+        	this.checkSubtype(rhs_type, lhs_type, that);
+    		
+    		all_results.add(subtype_result);
+    		result = TypeCheckerResult.compose(that, rhs_type, all_results);
+    	}
+    	
+		return result;
+	}
+
+	public TypeCheckerResult forTupleExprOnly(TupleExpr that,
                                               List<TypeCheckerResult> exprs_result) {
         List<Type> types = new ArrayList<Type>(exprs_result.size());
         for (TypeCheckerResult r : exprs_result) {
@@ -1136,7 +1260,27 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          exprs_result);
     }
 
-    public TypeCheckerResult forLabel(Label that) {
+    @Override
+	public TypeCheckerResult forThrowOnly(Throw that,
+			TypeCheckerResult expr_result) {
+		// A throw expression has type bottom, pretty much regardless
+    	// but expr must have type Exception
+    	if( expr_result.type().isNone() ) {
+    		// Failure in subexpr
+    		return TypeCheckerResult.compose(that, Types.BOTTOM, expr_result);
+    	}
+    	else {
+    		List<TypeCheckerResult> results = new ArrayList<TypeCheckerResult>(2);
+    		TypeCheckerResult expr_is_exn = this.checkSubtype(expr_result.type().unwrap(),
+    				Types.EXCEPTION, that.getExpr(), "'throw' can only throw objects of Exception type. " +
+    				"This expression is of type " + expr_result.type().unwrap());
+    		results.add(expr_is_exn);
+    		results.add(expr_result);
+    		return TypeCheckerResult.compose(that, Types.BOTTOM, results);
+    	}
+	}
+
+	public TypeCheckerResult forLabel(Label that) {
 
         // Make sure this label isn't already bound
         Option<BindingLookup> b = typeEnv.binding(that.getName());
@@ -1265,7 +1409,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     // TRIVIAL NODES ---------------------
-
+    @Override
     public TypeCheckerResult forFloatLiteralExpr(FloatLiteralExpr that) {
         return new TypeCheckerResult(that, Types.FLOAT_LITERAL);
     }
