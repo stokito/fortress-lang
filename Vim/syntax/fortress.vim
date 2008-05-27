@@ -32,7 +32,7 @@ syn keyword  fortressType  ZZ32 ZZ64 RR32 RR64
 
 syn keyword  fortressOperator println
 
-syn keyword  fortressKeyword opr for
+syn keyword  fortressKeyword opr for private
 
 syn match    fortressThenErr    "\<then\>"
 syn match    fortressCaseErr    "\<case>"
