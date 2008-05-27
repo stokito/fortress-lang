@@ -24,11 +24,15 @@ api Xml2
   import List.{...}
 
   trait Content
+    getter hasElements():Boolean
     toString():String
   end
 
   object Element(info:Header, content:List[\Content\], endTag:String) extends Content 
     getter toString():String
+    getter tag():String
+    getter hasElements():Boolean
+    getter children():List[\Element\]
   end 
   Element(info:Header)
   Element(info:Header, endTag:String)
