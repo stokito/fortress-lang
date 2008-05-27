@@ -114,8 +114,8 @@ public class MemberTranslator {
 		@Override
 		public Production forNonterminalDef(NonterminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
-			BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
-			String name = that.getName().getText(); //toString().replaceAll("\\.", "");
+			BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
+			String name = that.getHeader().getName().getText(); //toString().replaceAll("\\.", "");
 
 			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }
@@ -136,8 +136,8 @@ public class MemberTranslator {
 		@Override
 		public Production for_TerminalDef(_TerminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
-			BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
-			String name = that.getName().toString();
+			BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
+			String name = that.getHeader().getName().toString();
 
 			SyntaxDefTranslator.Result sdtr = SyntaxDefTranslator.translate(that); 
 			if (!sdtr.isSuccessful()) { for (StaticError e: sdtr.errors()) { this.errors.add(e); } }

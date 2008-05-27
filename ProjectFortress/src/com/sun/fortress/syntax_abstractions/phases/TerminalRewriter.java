@@ -26,6 +26,9 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.ModifierPrivate;
+import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.Modifier;
@@ -40,9 +43,11 @@ import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -133,7 +138,12 @@ public class TerminalRewriter extends NodeUpdateVisitor {
 
         // Add the terminal definition to the collection of new terminal definitions
         SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, new TransformationTemplateDef(transformationExpression));
-        this._terminalDefs.add(new _TerminalDef(that.getSpan(), name, type, Option.<Modifier>none(), new LinkedList<Pair<Id, Type>>(), syntaxDef));
+        Option<ModifierPrivate> mods = Option.none();
+        List<StaticParam> st = new LinkedList<StaticParam>();
+        Type t = NodeFactory.makeTraitType(NodeFactory.makeId("FortressLibrary", "String"));
+        WhereClause whereClauses = new WhereClause(that.getSpan());
+        NonterminalHeader header = new NonterminalHeader(that.getSpan(), mods, name, new LinkedList<Pair<Id, Type>>(), st, Option.some(t), whereClauses);
+        this._terminalDefs.add(new _TerminalDef(that.getSpan(), header, type, syntaxDef));
 
         // Return a new nonterminal reference to the new terminal definition
         return new NonterminalSymbol(that.getSpan(), NodeFactory.makeId(that.getSpan(), apiName, id));

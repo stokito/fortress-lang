@@ -31,7 +31,10 @@ import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.If;
+import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
@@ -178,6 +181,38 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return rVarName;
     }
     
+    @Override
+    public String forIfOnly(If that, List<String> clauses_result,
+            Option<String> elseClause_result) {
+        String rVarName = FreshName.getFreshName("ifExpr");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        String clauses = FreshName.getFreshName("ls");
+        this.code.addAll(mkList(clauses_result, clauses, "IfClause"));   
+        String elseClause = this.handleOption(elseClause_result, "Block");
+        this.code.add("If "+rVarName+" = new If("+sVarName+","+that.isParenthesized()+","+clauses+","+elseClause+");");
+        return rVarName;
+    }
+
+    @Override
+    public String forIfClauseOnly(IfClause that, String test_result,
+            String body_result) {
+        String rVarName = FreshName.getFreshName("ifClause");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add("IfClause "+rVarName+" = new IfClause("+sVarName+","+test_result+","+body_result+");");
+        return rVarName;
+    }
+
+    @Override
+    public String forGeneratorClauseOnly(GeneratorClause that,
+            List<String> bind_result, String init_result) {
+        String rVarName = FreshName.getFreshName("generatorClause");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        String clauses = FreshName.getFreshName("ls");
+        this.code.addAll(mkList(bind_result, clauses, "Id"));   
+        this.code.add("GeneratorClause "+rVarName+" = new GeneratorClause("+sVarName+","+clauses+","+init_result+");");
+        return rVarName;
+    }
+
     @Override
         public String forVarTypeOnly(VarType that, String name_result) {
         String rVarName = FreshName.getFreshName("idType");
@@ -397,6 +432,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
             Id memberName = this.syntaxDeclEnv.getNonterminalName(id);
             
+            if (!GrammarEnv.contains(memberName)) {
+                throw new RuntimeException("Grammar environment does not contain identifier: "+id);
+            }
             MemberEnv nEnv = GrammarEnv.getMemberEnv(memberName);
                         
             for (int inx=0;inx<t.getParams().size();inx++) {

@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -179,7 +180,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
 	@Override
 	public Node forPrefixedSymbolOnly(final PrefixedSymbol prefix,
-			Option<Id> id_result, SyntaxSymbol symbol_result) {
+			Option<Id> id_result, Option<Type> type_result, SyntaxSymbol symbol_result) {
 		String varName = symbol_result.accept(new PrefixHandler());
 		if (id_result.isNone()) {
 			if (!IdentifierUtil.validId(varName)) {
@@ -188,13 +189,13 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			return handle(prefix, symbol_result, varName);
 		}
 		else {
-			return new PrefixedSymbol(prefix.getSpan(), id_result, symbol_result);
+			return new PrefixedSymbol(prefix.getSpan(), id_result, type_result, symbol_result);
 		}
 	}
 
 	private Node handle(PrefixedSymbol prefix, SyntaxSymbol that, String varName) {
 		Id var = NodeFactory.makeId(that.getSpan(), varName);
-		return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var), that);
+		return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var), prefix.getType(), that);
 	}
 
 	private class PrefixHandler extends NodeDepthFirstVisitor<String> {

@@ -41,10 +41,8 @@ public interface MacroCompiler {
 			this.parserClass = parserClass;
 		}
 		
-		public Result(Class<?> parserClass,
-				Iterable<? extends StaticError> errors) {
+		public Result(Iterable<? extends StaticError> errors) {
 			super(errors);
-			this.parserClass = parserClass;
 		}
 		
 		public Class<?> getParserClass() { return parserClass; }

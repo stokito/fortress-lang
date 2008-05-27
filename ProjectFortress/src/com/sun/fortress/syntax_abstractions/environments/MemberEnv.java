@@ -59,13 +59,13 @@ public class MemberEnv {
 		
 		if (member.getAst() instanceof NonterminalDecl) {
 			NonterminalDecl nd = (NonterminalDecl) member.getAst();
-			initEnv(nd.getParams(), nd.getSyntaxDefs());
+			initEnv(nd.getHeader().getParams(), nd.getSyntaxDefs());
 		}
 		else if (member.getAst() instanceof TerminalDecl) {
 			TerminalDecl nd = (TerminalDecl) member.getAst();
 			List<SyntaxDef> ls = new LinkedList<SyntaxDef>();
 			ls.add(nd.getSyntaxDef());
-			initEnv(nd.getParams(), ls);
+			initEnv(nd.getHeader().getParams(), ls);
 		}
 	}
 	

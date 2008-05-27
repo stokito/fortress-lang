@@ -151,7 +151,7 @@ public class ActionCreaterUtil {
 //        indents.add(3);
 //        code.add(staticArgs+".add(new TypeArg(new VarType(NodeFactory.makeId("+spanName+",\""+SyntaxAbstractionUtil.FORTRESSAST+"\", "+type+"))));");
         indents.add(3);
-        code.add("if (null == "+id.getText()+") {");
+        code.add("if (null != "+id.getText()+") {");
         String justArgs = FreshName.getFreshName("justArgs");
         indents.add(3);
         code.add("List<Expr> "+justArgs+" = new LinkedList<Expr>();");

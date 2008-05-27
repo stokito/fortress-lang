@@ -123,8 +123,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
 	@Override
 	public List<Sequence> forNonterminalDef(NonterminalDef that) {
-		BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
-		String name = that.getName().getText();
+		BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
+		String name = that.getHeader().getName().getText();
 		return visitSyntaxDefs(that.getSyntaxDefs(), name, type);
 	}
 
@@ -135,8 +135,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
 	@Override
 	public List<Sequence> for_TerminalDef(_TerminalDef that) {
-		BaseType type = SyntaxAbstractionUtil.unwrap(that.getType());
-		String name = that.getName().getText();
+		BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
+		String name = that.getHeader().getName().getText();
 		List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type));
 		return sequences;
 	}
@@ -261,8 +261,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		}
 
 		@Override
-		public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that,
-				Option<List<Element>> id_result, List<Element> symbol_result) {
+		public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that, 
+				Option<List<Element>> id_result, Option<List<Element>> type_result,
+				List<Element> symbol_result) {
 			if (symbol_result.size() == 1) {
 				Element e = symbol_result.remove(0);
 			    assert(that.getId().isSome());

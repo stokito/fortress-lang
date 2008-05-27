@@ -60,7 +60,6 @@ public class GrammarIndexInitializer {
             this.grammarIndexs = grammarIndexs;
         }
 
-        public Collection<GrammarIndex> env() { return grammarIndexs; }
     }
 
     public static Result init(Collection<GrammarIndex> grammarIndexs) {

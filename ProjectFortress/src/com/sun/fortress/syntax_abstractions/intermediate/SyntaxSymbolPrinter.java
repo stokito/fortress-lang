@@ -142,11 +142,15 @@ public class SyntaxSymbolPrinter extends NodeDepthFirstVisitor<String> {
 
     @Override
     public String forPrefixedSymbolOnly(PrefixedSymbol that,
-            Option<String> id_result, String symbol_result) {
-        if (id_result.isSome()) {
-            return "PrefixedSymbol("+id_result.unwrap()+":"+symbol_result+")";
+            Option<String> id_result, Option<String> type_result, String symbol_result) {
+        String s = "";
+        if (type_result.isSome()) {
+            s = ", :"+type_result.unwrap(); 
         }
-        return "PrefixedSymbol("+symbol_result+")"; 
+        if (id_result.isSome()) {
+            return "PrefixedSymbol("+id_result.unwrap()+":"+symbol_result+s+")";
+        }
+        return "PrefixedSymbol("+symbol_result+s+")"; 
     }
 
     @Override

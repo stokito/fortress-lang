@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
@@ -71,7 +72,6 @@ public class ContractedNonterminal {
      */
     public NonterminalIndex<? extends GrammarMemberDecl> getNonterminal() {
         List<SyntaxDef> syntaxDefs = new LinkedList<SyntaxDef>();
-        Id name = this.getName();
         for (NonterminalIndex/*<? extends GrammarMemberDecl>*/ gnt: this.members) {
             contractedNames.add(gnt.getName());
             if (gnt instanceof GrammarNonterminalIndex) {
@@ -82,12 +82,12 @@ public class ContractedNonterminal {
             }
         }
         Span span = this.members.get(0).getAst().getSpan();
-        Option<BaseType> type = this.members.get(0).getAst().getType();
+        Option<BaseType> astType = this.members.get(0).getAst().getAstType();
+        NonterminalHeader header = this.members.get(0).getAst().getHeader();
 
         // We assume that an overriding nonterminal has the same number of arguments 
         // as the nonterminal it overrides
-        List<Pair<Id, Type>> params = this.members.get(0).getAst().getParams();
-        NonterminalDef nonterminal = new NonterminalDef(span, name, type, Option.<Modifier>none(), params, syntaxDefs);
+        NonterminalDef nonterminal = new NonterminalDef(span, header, astType, syntaxDefs);
         Option<NonterminalDef> nonterminalDef = Option.some(nonterminal);
         return new NonterminalDefIndex(nonterminalDef);
     }

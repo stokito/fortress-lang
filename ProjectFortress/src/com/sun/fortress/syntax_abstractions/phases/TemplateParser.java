@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
+import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TransformationPreTemplateDef;
@@ -103,22 +104,13 @@ public class TemplateParser extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forNonterminalDef(NonterminalDef that) {
-		this.vars = new LinkedList<String>();
-		for (Pair<Id, Type> p: that.getParams()) {
-			this.vars.add(p.getA().toString());
-		}
-		return super.forNonterminalDef(that);
-	}
-
-	@Override
-	public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
-		this.vars = new LinkedList<String>();
-		for (Pair<Id, Type> p: that.getParams()) {
-			this.vars.add(p.getA().toString());
-		}
-		return super.forNonterminalExtensionDef(that);
-	}
+    public Node forNonterminalHeader(NonterminalHeader that) {
+        this.vars = new LinkedList<String>();
+        for (Pair<Id, Type> p: that.getParams()) {
+            this.vars.add(p.getA().toString());
+        }
+        return super.forNonterminalHeader(that);
+    }
 
 	@Override
 	public Node forSyntaxDef(SyntaxDef that) {
