@@ -25,6 +25,8 @@ public class SourceLocRats extends SourceLoc {
 
     int line;
 
+    int offset;
+    
     String fileName;
 
     @Override
@@ -64,13 +66,18 @@ public class SourceLocRats extends SourceLoc {
     }
 
     public SourceLocRats(SourceLoc x) {
-        this(x.getFileName(), x.getLine(), x.column());
+        this(x.getFileName(), x.getLine(), x.column(), x.getOffset());
     }
 
-    public SourceLocRats(String f, int l, int c) {
+    public SourceLocRats(String f, int l, int c, int offset) {
         this.fileName = f;
         this.line = l;
         this.col = c;
+        this.offset = offset;
+    }
+    
+    public int getOffset() {
+    	return offset;
     }
 
 }

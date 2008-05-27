@@ -375,10 +375,12 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String file = span.getBegin().getFileName();
         int startLine = span.getBegin().getLine();
         int startColumn = span.getBegin().column();
-        code.add("SourceLocRats "+slStartVarName+"   = new SourceLocRats(\""+file+"\", "+startLine+", "+startColumn+");");
+        int startOffset = span.getBegin().getOffset();
+        code.add("SourceLocRats "+slStartVarName+"   = new SourceLocRats(\""+file+"\", "+startLine+", "+startColumn+", "+startOffset+");");
         int endLine = span.getBegin().getLine();
         int endColumn = span.getBegin().column();
-        code.add("SourceLocRats "+slEndVarName+"   = new SourceLocRats(\""+file+"\", "+endLine+", "+endColumn+");");
+        int endOffset = span.getBegin().getOffset();
+        code.add("SourceLocRats "+slEndVarName+"   = new SourceLocRats(\""+file+"\", "+endLine+", "+endColumn+", "+endOffset+");");
         code.add("Span "+rVarName +" = new Span("+slStartVarName+","+slEndVarName+");");        
         return rVarName;
     }

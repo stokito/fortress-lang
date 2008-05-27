@@ -150,8 +150,8 @@ body {
    Span createSpan(int start, int end) {
         Column s = column(start);
         Column e = column(end-1);
-        SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column-1);
-        SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column-1);
+        SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column-1, start);
+        SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column-1, end);
         return new Span(slStart, slEnd);
    }
 

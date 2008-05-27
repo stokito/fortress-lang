@@ -45,11 +45,11 @@ import com.sun.fortress.parser_util.FortressUtil;
 
 public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testSourceLoc() {
-        SourceLoc sl1 = new SourceLocRats("cat", 1, 2);
-        SourceLoc sl2 = new SourceLocRats("cat", 1, 2);
-        SourceLoc sl3 = new SourceLocRats("dog", 1, 2);
-        SourceLoc sl4 = new SourceLocRats("cat", 1, 3);
-        SourceLoc sl5 = new SourceLocRats("cat", 2, 2);
+        SourceLoc sl1 = new SourceLocRats("cat", 1, 2, 0);
+        SourceLoc sl2 = new SourceLocRats("cat", 1, 2, 0);
+        SourceLoc sl3 = new SourceLocRats("dog", 1, 2, 0);
+        SourceLoc sl4 = new SourceLocRats("cat", 1, 3, 0);
+        SourceLoc sl5 = new SourceLocRats("cat", 2, 2, 0);
         Assert.assertEquals("cat", sl1.getFileName());
         Assert.assertEquals(1, sl1.getLine());
         Assert.assertEquals(2, sl1.column());
@@ -62,10 +62,10 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     }
 
     public void testSpan() {
-        SourceLoc sl1a = new SourceLocRats("cat", 1, 2);
-        SourceLoc sl2a = new SourceLocRats("cat", 3, 4);
-        SourceLoc sl1b = new SourceLocRats("cat", 1, 2);
-        SourceLoc sl2b = new SourceLocRats("cat", 3, 4);
+        SourceLoc sl1a = new SourceLocRats("cat", 1, 2, 0);
+        SourceLoc sl2a = new SourceLocRats("cat", 3, 4, 0);
+        SourceLoc sl1b = new SourceLocRats("cat", 1, 2, 0);
+        SourceLoc sl2b = new SourceLocRats("cat", 3, 4, 0);
         Span span1 = new Span(sl1a, sl2a);
         Span span2 = new Span(sl1b, sl2b);
         Span span3 = new Span(sl2a, sl1a);
@@ -74,7 +74,7 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     }
 
     Span newSpan(String f, int l, int c1, int c2) {
-        return new Span(new SourceLocRats(f,l,c1), new SourceLocRats(f,l,c2));
+        return new Span(new SourceLocRats(f,l,c1,0), new SourceLocRats(f,l,c2,0));
     }
 
 

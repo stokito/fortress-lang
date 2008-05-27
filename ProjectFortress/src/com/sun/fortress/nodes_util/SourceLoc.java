@@ -65,4 +65,8 @@ abstract public class SourceLoc implements Serializable {
      */
     abstract void setLine(int x);
 
+    /**
+     * @return Returns the offset.
+     */
+    public abstract int getOffset();
 }
