@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
+import com.sun.fortress.interpreter.evaluator.values.TraitMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
@@ -58,7 +58,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     }
 
     protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
-        return new PartiallyDefinedMethod(containing, methodEnvironment, x, definer);
+        return new TraitMethod(containing, methodEnvironment, x, definer);
     }
 
     protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {

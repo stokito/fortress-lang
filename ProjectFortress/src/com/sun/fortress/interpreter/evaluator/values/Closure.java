@@ -79,7 +79,7 @@ public class Closure extends NonPrimitive implements Scope {
     /*
      * Just like the PartiallyDefinedMethod, but used a specific environemnt
      */
-    public Closure(PartiallyDefinedMethod method, BetterEnv environment) {
+    public Closure(TraitMethod method, BetterEnv environment) {
         super(environment);
         def = NativeApp.checkAndLoadNative(method.def);
         instArgs = method.instArgs;

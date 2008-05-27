@@ -73,7 +73,7 @@ public class GenericMethod extends MethodClosure implements
             cl = new MethodClosureInstance(getEnv(), clenv, getDef(),
                                            getDefiner(), args, this);
         } else if (FType.anyAreSymbolic(args)) {
-            cl = new PartiallyDefinedMethodInstance(getEnv(), clenv, getDef(),
+            cl = new TraitMethodInstance(getEnv(), clenv, getDef(),
                                                     getDefiner(), args, this);
         } else {
             // TODO Intention is that this is a plain old instantiation,
@@ -81,7 +81,7 @@ public class GenericMethod extends MethodClosure implements
             // environment that makes this not work quite right
             // MethodClosureInstance ought to be MethodClosure, but
             // isn't, yet.
-            cl = new PartiallyDefinedMethod(getEnv(), clenv, getDef(),
+            cl = new TraitMethod(getEnv(), clenv, getDef(),
                                             getDefiner(), args);
         }
         cl.finishInitializing();
