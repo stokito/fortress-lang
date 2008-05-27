@@ -31,7 +31,7 @@ import com.sun.fortress.useful.HasAt;
  * Its environment is unusual.
  * @author chase
  */
-public class PartiallyDefinedMethodInstance extends PartiallyDefinedMethod  implements MethodInstance {
+public class TraitMethodInstance extends TraitMethod  implements MethodInstance {
 
     GenericMethod generator;
     //BetterEnv evaluationEnv;
@@ -41,7 +41,7 @@ public class PartiallyDefinedMethodInstance extends PartiallyDefinedMethod  impl
         // return new TraitMethodInstance(this, evaluationEnv, selfName(), generator);
     }
 
-    public PartiallyDefinedMethodInstance(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef,
+    public TraitMethodInstance(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef,
             FType definer, List<FType> args, GenericMethod generator) {
         super(within, evaluationEnv, fndef, definer, args);
         //this.evaluationEnv = evaluationEnv;

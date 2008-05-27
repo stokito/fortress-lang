@@ -34,7 +34,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 /**
  * Trait methods are only partially defined.
  */
-public class PartiallyDefinedMethod extends MethodClosure {
+public class TraitMethod extends MethodClosure {
 
     protected BetterEnv evaluationEnv;
 
@@ -47,14 +47,14 @@ public class PartiallyDefinedMethod extends MethodClosure {
                 s(def) : (s(def) + Useful.listInOxfords(instArgs))) + def.at();
     }
 
-    public PartiallyDefinedMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer) {
+    public TraitMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer) {
         super(within, fndef, definer); // TODO verify that this is the proper environment
         if (!evaluationEnv.getBlessed())
             System.err.println("urp!");
         this.evaluationEnv = evaluationEnv;
      }
 
-    protected PartiallyDefinedMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer, List<FType> args) {
+    protected TraitMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer, List<FType> args) {
         super(within, fndef, definer, args);
         this.evaluationEnv = evaluationEnv;
         if (!evaluationEnv.getBlessed())
@@ -67,29 +67,29 @@ public class PartiallyDefinedMethod extends MethodClosure {
         return getEvalEnv();
     }
 
-    public static Hasher<PartiallyDefinedMethod> signatureEquivalence = new Hasher<PartiallyDefinedMethod>() {
+    public static Hasher<TraitMethod> signatureEquivalence = new Hasher<TraitMethod>() {
 
         @Override
-        public long hash(PartiallyDefinedMethod x) {
+        public long hash(TraitMethod x) {
             return Simple_fcn.signatureEquivalence.hash(x);
         }
 
         @Override
-        public boolean equiv(PartiallyDefinedMethod x, PartiallyDefinedMethod y) {
+        public boolean equiv(TraitMethod x, TraitMethod y) {
             return Simple_fcn.signatureEquivalence.equiv(x,y);
         }
 
     };
 
-    public static Hasher<PartiallyDefinedMethod> nameEquivalence = new Hasher<PartiallyDefinedMethod>() {
+    public static Hasher<TraitMethod> nameEquivalence = new Hasher<TraitMethod>() {
 
         @Override
-        public long hash(PartiallyDefinedMethod x) {
+        public long hash(TraitMethod x) {
             return Simple_fcn.nameEquivalence.hash(x);
         }
 
         @Override
-        public boolean equiv(PartiallyDefinedMethod x, PartiallyDefinedMethod y) {
+        public boolean equiv(TraitMethod x, TraitMethod y) {
             return Simple_fcn.nameEquivalence.equiv(x,y);
         }
 
