@@ -51,6 +51,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.SourceLoc;
@@ -86,10 +87,26 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return cs;
     }
 
+    /**
+     * The defaultCase should never be used, each node should have a for...
+     * method defined somewhere in this file.
+     */
     @Override
     public String defaultCase(Node that) {
+        throw new RuntimeException( "Warning: no method is defined in " + this.getClass().getName() + " for node " + that.getClass().getName() );
+        /*
+        System.out.println( "Warning! No case implemented in " + this.getClass().getName() + " for node " + that.getClass().getName() );
         String rVarName = FreshName.getFreshName("def");
         this.code.add("StringLiteralExpr "+rVarName+" = new StringLiteralExpr(\""+that.getClass()+"\");");
+        return rVarName;
+        */
+    }
+
+    @Override 
+    public String forVoidLiteralExprOnly(VoidLiteralExpr that){
+        String rVarName = FreshName.getFreshName("voidExpr");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add( String.format("VoidLiteralExpr %s = new VoidLiteralExpr(%s);",  rVarName, sVarName ) );
         return rVarName;
     }
 
