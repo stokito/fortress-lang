@@ -20,9 +20,11 @@ import FortressAst.{...}
 
 export Executable
 
-foo():() = print (world)
+  f():() = print world
 
-run(args:String...) = do foo()
-                         print (hello world)
-                      end
+  run(args:String...) = do 
+    f()
+    print (hello world)
+    println (foo bar)
+  end
 end

@@ -515,10 +515,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * grammar member (nonterminal or terminal) declaration
      * Names and params must be unqualified.
      */
-    abstract GrammarMemberDecl(Id name,
-                               Option<BaseType> type,
-                               Option<? extends Modifier> modifier
-                                   List<Pair<Id,Type>> params) implements AbsDecl;
+    abstract GrammarMemberDecl(NonterminalHeader header,
+                               Option<BaseType> astType) implements AbsDecl;
         /**
          * nonterminal declaration
          */
@@ -540,6 +538,18 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * syntax abstractions
              */
             _TerminalDef();
+    /**
+     * nonterminal header
+     */
+    NonterminalHeader(Option<ModifierPrivate> modifier
+                        = Option.<ModifierPrivate>none(),
+                      Id name,
+                      List<Pair<Id,Type>> params,
+                      List<StaticParam> staticParams
+                        = Collections.<StaticParam>emptyList(),
+                      Option<Type> type,
+                      WhereClause whereClause
+                        = FortressUtil.emptyWhereClause());
     /**
      * syntax declaration
      */
@@ -572,7 +582,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * prefixed syntax symbol
          */
-        PrefixedSymbol(Option<Id> id, SyntaxSymbol symbol);
+        PrefixedSymbol(Option<Id> id, Option<Type> type = Option.<Type>none(), SyntaxSymbol symbol);
         /**
          * optional syntax symbol
          */

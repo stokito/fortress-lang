@@ -41,14 +41,14 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
     public Id getName() {
         if (this.ast().isSome()) {
-            return this.ast().unwrap().getName();
+            return this.ast().unwrap().getHeader().getName();
         }
         throw new RuntimeException("Production index without ast and thus no name");
     }
 
     public BaseType getType() {
         if (this.ast().isSome()) {
-            Option<BaseType> type = this.ast().unwrap().getType();
+            Option<BaseType> type = this.ast().unwrap().getAstType();
             if (type.isSome()) {
                 return type.unwrap();
             }
@@ -63,7 +63,7 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
     }
 
     public boolean isPrivate() {
-        return getAst().getModifier().isSome();
+        return getAst().getHeader().getModifier().isSome();
     }
 
 }

@@ -40,7 +40,7 @@ api SyntaxTest
         end
 
       Verys :StringLiteralExpr:= 
-        SPACE a:very do StringLiteralExpr(a.val) end
+        SPACE a:very <[ a ]>
   end
  
 end

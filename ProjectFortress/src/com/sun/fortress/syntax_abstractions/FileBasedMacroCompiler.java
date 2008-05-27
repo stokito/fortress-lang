@@ -48,13 +48,13 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 * Initialize GrammarIndex
 		 */
 		GrammarIndexInitializer.Result giir = GrammarIndexInitializer.init(grammarIndexs); 
-		if (!giir.isSuccessful()) { return new Result(null, giir.errors()); }
+		if (!giir.isSuccessful()) { return new Result(giir.errors()); }
 	
 		/* 
 		 * Resolve grammar extensions and extensions of nonterminal definitions.
 		 */
 		ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
-		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
+		if (!mrr.isSuccessful()) { return new Result(mrr.errors()); }
 
 		if (ProjectProperties.debug) {
 			for (Module m: mrr.modules()) {
@@ -66,14 +66,14 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 * Translate each grammar to a corresponding Rats! module
 		 */
 		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
-		if (!gtr.isSuccessful()) { return new Result(null, gtr.errors()); }
+		if (!gtr.isSuccessful()) { return new Result(gtr.errors()); }
 
 		/*
 		 * For each changed module write it to a file and run Rats! to 
 		 * generate a temporary parser.
 		 */
 		RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules());
-		if (!rpgr.isSuccessful()) { return new Result(null, rpgr.errors()); }
+		if (!rpgr.isSuccessful()) { return new Result(rpgr.errors()); }
 
 		/*
 		 * Return the temporary parser

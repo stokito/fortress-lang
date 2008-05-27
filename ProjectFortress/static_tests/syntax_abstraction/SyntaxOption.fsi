@@ -20,22 +20,33 @@ api SyntaxOption
   import FortressAst.{...}
   import FortressSyntax.{...}
 
+
   grammar Helloworld extends { A, Literal }
       LiteralExpr |Expr:=
-         Hello? world
-         do
-           if h <- Hello then
-             StringLiteralExpr(h.val " " world.val)
-           else
-             StringLiteralExpr(world.val)
-           end
-         end
+        Hello? world
+        do
+          if h <- Hello then
+            StringLiteralExpr(h.val " " world.val ", ")
+          else
+            StringLiteralExpr(world.val ", ")
+          end
+        end
+      | Foo? bar <[
+          if h <- Foo then
+            h bar
+          else
+            bar
+          end
+        ]>
   end
  
   grammar A
       Hello :Expr:=
          hello       do StringLiteralExpr(hello.val) end
        | skjfjhfdskh do StringLiteralExpr("hello") end
+
+      Foo :Expr:=
+         foo <[ foo ]>
   end
 
 end

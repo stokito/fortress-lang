@@ -80,6 +80,9 @@ public class TypeCollector extends NodeDepthFirstVisitor<Type> {
 
     @Override
     public Type forNonterminalSymbol(NonterminalSymbol that) {
+        if (!GrammarEnv.contains(that.getNonterminal())) {
+            throw new RuntimeException("Grammar environment does not contain identifier: "+that.getNonterminal());
+        }
         MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getNonterminal());
         return memberEnv.getType();
     }

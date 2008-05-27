@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.parser.Fortress;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -120,11 +121,11 @@ public class EscapeRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forPrefixedSymbolOnly(PrefixedSymbol that,
-            Option<Id> result_id,
+            Option<Id> result_id, Option<Type> type_result,
             SyntaxSymbol result_symbol) {
         if (result_id.isNone()) bug(that, "Missing an Id.");
         String s = removeEscape(result_id.unwrap().getText());
-        return new PrefixedSymbol(that.getSpan(), Option.some(new Id(s)), result_symbol);
+        return new PrefixedSymbol(that.getSpan(), Option.some(new Id(s)), type_result, result_symbol);
     }
 
     private String removeEscape(String s) {

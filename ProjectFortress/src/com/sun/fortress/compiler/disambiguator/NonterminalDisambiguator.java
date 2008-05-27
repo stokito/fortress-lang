@@ -24,19 +24,28 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
+import com.sun.fortress.nodes.AbsExternalSyntax;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierPrivate;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
+import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Pair;
+
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -75,33 +84,31 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forNonterminalDefOnly(NonterminalDef that, Id name_result, Option<BaseType> type_result, Option<? extends Modifier> modifier_result, List<SyntaxDef> syntaxDefs_result) {
-        if (type_result.isNone()) {
+    public Node forNonterminalDefOnly(NonterminalDef that,
+            NonterminalHeader header_result, Option<BaseType> astType_result,
+            List<SyntaxDef> syntaxDefs_result) {
+        if (astType_result.isNone()) {
             throw new RuntimeException("Type inference is not supported yet!");
         }
-        NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-        Option<Id> oname = nnd.handleNonterminalName(_currentEnv, that.getName());
-        this._errors.addAll(nnd.errors());
-        if (oname.isSome()) {
-            return new NonterminalDef(that.getSpan(), oname.unwrap(that.getName()), that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
-        } else {
-            return bug(that, "Bad NonterminalDef");
-        }
+        return super.forNonterminalDefOnly(that, header_result, astType_result, syntaxDefs_result);
     }
 
-
     @Override
-    public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
-            Id name_result, Option<BaseType> type_result,
-            Option<? extends Modifier> modifier_result,
-            List<SyntaxDef> syntaxDefs_result) {
+    public Node forNonterminalHeaderOnly(NonterminalHeader that,
+            Option<ModifierPrivate> modifier_result, Id name_result,
+            List<StaticParam> staticParams_result, Option<Type> type_result,
+            WhereClause whereClause_result) {
         NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
         Option<Id> oname = pnd.handleNonterminalName(_currentEnv, that.getName());
         this._errors.addAll(pnd.errors());
         if (oname.isSome()) {
             Id name = oname.unwrap();
-            return new NonterminalExtensionDef(that.getSpan(), name, that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
+            return new NonterminalHeader(that.getSpan(), modifier_result, name, that.getParams(), staticParams_result, type_result, whereClause_result);
         }
-        return new NonterminalExtensionDef(that.getSpan(), that.getName(), that.getType(), that.getModifier(), that.getParams(), syntaxDefs_result);
+        return bug(that, "Bad Nonterminal header");
+        // return new NonterminalHeader(that.getSpan(), modifier_result, name_result, staticParams_result, type_result, whereClause_result);
     }
+
+    
+
 }

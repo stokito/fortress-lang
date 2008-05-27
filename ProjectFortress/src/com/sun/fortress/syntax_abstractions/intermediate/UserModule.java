@@ -34,9 +34,4 @@ public class UserModule extends Module {
 		super(name, members);
 	}
 
-	public String toString() {
-		String indentation = "  ";
-		String s = super.toString();
-		return s+= indentation+"* User module";
-	}
 }

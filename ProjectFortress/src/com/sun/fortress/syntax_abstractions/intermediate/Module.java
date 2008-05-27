@@ -49,7 +49,6 @@ import edu.rice.cs.plt.tuple.Option;
 public abstract class Module implements Analyzable<Module> {
 
     protected String name;
-    private boolean isTopLevel;
 
     private Map<String, Set<SyntaxSymbol>> tokenMap;
 
@@ -72,14 +71,6 @@ public abstract class Module implements Analyzable<Module> {
         this();
         this.name = name;
         this.declaredMembers.addAll(declaredMembers);
-    }
-
-    public void isTopLevel(boolean b) {
-        this.isTopLevel = b;
-    }
-
-    public boolean isTopLevel() {
-        return this.isTopLevel;
     }
 
     public String getName() {
@@ -161,8 +152,6 @@ public abstract class Module implements Analyzable<Module> {
         String indent = indentation;
         String tmpIndent = "";
         String s = "*** "+this.getName()+" ***\n";
-
-        s+= indent+"* Toplevel: "+this.isTopLevel+"\n";
 
         s+= indent+"* Parameters\n";
         tmpIndent = indent;
