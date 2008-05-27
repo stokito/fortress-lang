@@ -30,12 +30,13 @@ api Xml2
   object Element(info:Header, content:List[\Content\], endTag:String) extends Content 
     getter toString():String
   end 
-  Element(startTag:String)
-  Element(startTag:String, endTag:String)
+  Element(info:Header)
+  Element(info:Header, endTag:String)
 
   object Attribute(key:String, val:String) extends Content
     getter getKey():String
     getter getValue():String
+    getter toString():String
   end
   
   object Header(startTag:String, attributes:List[\Attribute\])
