@@ -52,6 +52,9 @@ under Vim/ to your ~/.vim directory.
 If your cp command does not accept the -a option then use -r
   $ cp -r Vim/ftdetect Vim/syntax ~/.vim/.
 
+You should also add the following line to your ~/.vimrc file
+  au BufNewFile,BufRead *.fsi,*.fss set ft=fortress
+
 SpecData: Machine-readable files used by the Fortress Language
 Specification (e.g., a list of all reserved words).  Editors and other
 tools may also benefit from using these files.  Moreover, all examples
