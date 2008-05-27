@@ -118,21 +118,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
             // NOT GENERIC
             {
                 Fcn fcn = (Fcn) containing.getValue(fname);
-                if (fcn instanceof Closure) {
-                    // This is only loosely paired with the
-                    // first pass; dealing with overloading tends to
-                    // break up the 1-1 relationship between the two.
-                    // However, because of the way that scopes nest,
-                    // it is possible (I think) that f could be overloaded
-                    // in an inner scope but not overloaded in an outer
-                    // scope.
-                    Closure cl = (Closure) fcn;
-                    cl.finishInitializing();
-                } else if (fcn instanceof OverloadedFunction) {
-                    OverloadedFunction og = (OverloadedFunction) fcn;
-                    og.finishInitializing();
-
-                }
+                fcn.finishInitializing();
             }
         }
    }

@@ -37,7 +37,7 @@ abstract public class Simple_fcn extends SingleFcn {
     }
 
     FType ret_type;
-    
+
     public  void setFtypeUnconditionally(FType ftype) {
         super.setFtypeUnconditionally(ftype);
         FType t = ((FTypeArrow) ftype).getRange();
@@ -54,7 +54,7 @@ abstract public class Simple_fcn extends SingleFcn {
          return bug(errorMsg("Function ", this, " returned ", x , " but signature required ", t,
                  ", supers are ", x.type().getTransitiveExtends()));
      }
-  
+
    public String getString() {
         return getFnName().toString() + Useful.listInParens(getDomain()) + " declared at " + at();
     }

@@ -21,26 +21,13 @@ component GeneratorNullPointer
 import Set.{...}
 export Executable
 
-object ConcatenationOfGenerators[\T\](g1:Generator[\T\],g2:Generator[\T\]) extends Generator[\T\]
-    generate[\R\](r : Reduction[\R\], body : T -> R):R = do
-        r.join(g1.generate[\R\](r,body),g2.generate[\R\](r,body))
-    end
-
-    seq(self) =
-        ConcatenationOfGenerators[\T\](g1.seq,g2.seq)
-end
-
-opr ||||[\T\](a:Generator[\T\],b:Generator[\T\]) =
-    ConcatenationOfGenerators[\T\](a,b)
+f(x: Generator[\Char\]): ZZ32 = 0
+f[\A,B\](x: A -> B): ZZ32 = 1
+f(x: Any): ZZ32 = 1000
 
 run(args:String...) = do
-    t = "The" |||| "quick"
-    println("OK")
-    seq(t)
-    println("OK'")
-    for i <- seq("The" |||| "quick") do
-        println i
-    end
+    println(f(("The").seq))
+    println(f(seq("The")))
 end
 
 end

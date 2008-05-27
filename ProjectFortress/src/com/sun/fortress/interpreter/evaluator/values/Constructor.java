@@ -66,7 +66,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
-public class Constructor extends NonPrimitive implements HasFinishInitializing {
+public class Constructor extends NonPrimitive {
 
     // TODO need to be more organized about all the names
     // that get rewritten.

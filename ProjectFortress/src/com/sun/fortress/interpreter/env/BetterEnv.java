@@ -359,32 +359,25 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                 /*
                  * Lots of overloading combinations
                  */
+                OverloadedFunction ovl = null;
                 if (fvo instanceof SingleFcn) {
                     SingleFcn gm = (SingleFcn)fvo;
-                    OverloadedFunction gms = new OverloadedFunction(gm.getFnName(), this);
-                    gms.addOverload(gm);
-                     if (value instanceof SingleFcn) {
-                         gms.addOverload((SingleFcn) value, overloadIsOK);
-                    } else if (value instanceof OverloadedFunction) {
-                        gms.addOverloads((OverloadedFunction) value);
-                    } else {
-                        error(errorMsg("Overload of Simple_fcn ", fvo,
-                                       " with inconsistent ", value));
-                    }
-                     return table.add(index, gms, comparator);
-                 } else if (fvo instanceof OverloadedFunction) {
-                   if (value instanceof SingleFcn) {
-                       ((OverloadedFunction)fvo).addOverload((SingleFcn) value, overloadIsOK);
-                    } else if (value instanceof OverloadedFunction) {
-                        ((OverloadedFunction)fvo).addOverloads((OverloadedFunction) value);
-                    } else {
-                        error(errorMsg("Overload of OverloadedFunction ", fvo,
-                                       " with inconsistent ", value));
-                    }
-
-
-               } else {
-                    throw new RedefinitionError(what, index, original.getValue(), value);
+                    ovl = new OverloadedFunction(gm.getFnName(), this);
+                    ovl.addOverload(gm);
+                    table = table.add(index, ovl, comparator);
+                } else if (fvo instanceof OverloadedFunction) {
+                    ovl = (OverloadedFunction)fvo;
+                } else {
+                    throw new RedefinitionError(what, index,
+                                                original.getValue(), value);
+                }
+                if (value instanceof SingleFcn) {
+                    ovl.addOverload((SingleFcn) value, overloadIsOK);
+                } else if (value instanceof OverloadedFunction) {
+                    ovl.addOverloads((OverloadedFunction) value);
+                } else {
+                    error(errorMsg("Overload of ", ovl,
+                                   " with inconsistent ", value));
                 }
                 /*
                  * The overloading occurs in the original table, unless a new overload

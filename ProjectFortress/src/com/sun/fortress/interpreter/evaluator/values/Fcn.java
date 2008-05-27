@@ -63,9 +63,21 @@ abstract public class Fcn extends FValue {
      */
     public FType type() {
         if (ftype==null && false) {
-            throw new NullPointerException(errorMsg("No type information for ", this));
+            throw new NullPointerException(errorMsg("No type information for ", this,
+                                                    " ", this.getClass()));
         }
         return ftype;
+    }
+
+    /**
+     * Finish initializing Fcn, if necessary.
+     *
+     * There used to be a HasFinishInitializing interface for this,
+     * but after cleaning up the code a bit it became clear that we
+     * should just let it apply to any Fcn.
+     */
+    public void finishInitializing() {
+        // By default, nothing need be done.
     }
 
     public void setFtype(FType ftype) {
@@ -77,11 +89,11 @@ abstract public class Fcn extends FValue {
     public  void setFtypeUnconditionally(FType ftype) {
         this.ftype = ftype;
     }
-  
+
     protected FValue check(FValue x) {
             return x;
     }
-    
+
     final public FValue apply(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {

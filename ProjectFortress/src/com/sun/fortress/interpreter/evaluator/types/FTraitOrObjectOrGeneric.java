@@ -115,21 +115,18 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // FnAbsDeclOrDecl
                     FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
                     String fndodname = NodeUtil.nameString(fndod.getName());
-                    {
-                        // cl = new OverloadedFunction(fndod.getName(),
-                        // getEnv());
+                    // cl = new OverloadedFunction(fndod.getName(),
+                    // getEnv());
 
-                        // If the container is generic, then we create an
-                        // empty top-level overloading, to be filled in as
-                        // the container is instantiated.
-                        Fcn cl = new GenericFunctionalMethod(getWithin(), fndod,
-                                spi, (FTypeGeneric)x);
+                    // If the container is generic, then we create an
+                    // empty top-level overloading, to be filled in as
+                    // the container is instantiated.
+                    Fcn cl = new GenericFunctionalMethod(getWithin(), fndod,
+                                                         spi, (FTypeGeneric)x);
 
-                        topLevel.putValueNoShadowFn(fndodname, cl);
+                    topLevel.putValueNoShadowFn(fndodname, cl);
+                    // TODO test and other modifiers
 
-                        // TODO test and other modifiers
-
-                    }
                 }
             }
         } else {
@@ -144,10 +141,11 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     String fndodname = NodeUtil.nameString(fndod.getName());
 
                     Fcn cl = new FunctionalMethod(getWithin(), fndod, spi, x);
-                    if (x instanceof GenericTypeInstance)
+                    if (x instanceof GenericTypeInstance) {
                         topLevel.putFunctionalMethodInstance(fndodname, cl);
-                    else
+                    } else {
                         topLevel.putValueNoShadowFn(fndodname, cl);
+                    }
                 }
             }
         }
@@ -181,20 +179,10 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // pass
                     // "+pass);
                     String fndodname = NodeUtil.nameString(fndod.getName());
-                    {
-                        Fcn fcn = (Fcn) topLevel.getValue(fndodname);
 
-                        if (fcn instanceof Closure) {
-                            Closure cl = (Closure) fcn;
-                            cl.finishInitializing();
-                        } else if (fcn instanceof OverloadedFunction) {
-                            // TODO it is correct to do this here, though it
-                            // won't work yet.
-                            OverloadedFunction og = (OverloadedFunction) fcn;
-                            og.finishInitializing();
+                    Fcn fcn = (Fcn) topLevel.getValue(fndodname);
 
-                        }
-                    }
+                    fcn.finishInitializing();
                 }
             }
         }

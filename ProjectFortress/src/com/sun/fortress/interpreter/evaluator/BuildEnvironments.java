@@ -48,7 +48,6 @@ import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
-import com.sun.fortress.interpreter.evaluator.values.HasFinishInitializing;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
@@ -445,7 +444,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         FValue cl;
 
         if (!optStaticParams.isEmpty()) {
-             cl = newGenericClosure(containing, x);
+            cl = newGenericClosure(containing, x);
         } else {
             // NOT GENERIC
             cl = newClosure(containing, x);
@@ -470,49 +469,16 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
    private void forFnDef2(FnDef x) {
-
    }
+
    // Overridden in BuildTraitEnvironment
    protected void forFnDef3(FnDef x) {
        List<StaticParam> optStaticParams = x.getStaticParams();
        String fname = NodeUtil.nameAsMethod(x);
-       if (!optStaticParams.isEmpty()) {
-           // GENERIC
-           {
-               // Why isn't this the right thing to do?
-               // FGenericFunction is (currently) excluded from this treatment.
-               FValue fcn = containing.getValue(fname);
+       Fcn fcn = (Fcn)containing.getValue(fname);
+       fcn.finishInitializing();
+   }
 
-               if (fcn instanceof OverloadedFunction) {
-                   OverloadedFunction og = (OverloadedFunction) fcn;
-                   og.finishInitializing();
-
-               }
-           }
-
-       } else {
-           // NOT GENERIC
-           {
-               Fcn fcn = (Fcn) containing.getValue(fname);
-
-               if (fcn instanceof Closure) {
-                   // This is only loosely paired with the
-                   // first pass; dealing with overloading tends to
-                   // break up the 1-1 relationship between the two.
-                   // However, because of the way that scopes nest,
-                   // it is possible (I think) that f could be overloaded
-                   // in an inner scope but not overloaded in an outer
-                   // scope.
-                   Closure cl = (Closure) fcn;
-                   cl.finishInitializing();
-               } else if (fcn instanceof OverloadedFunction) {
-                   OverloadedFunction og = (OverloadedFunction) fcn;
-                   og.finishInitializing();
-
-               }
-           }
-       }
-  }
    private void forFnDef4(FnDef x) {
    }
 
@@ -801,32 +767,21 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getType(fname);
-
-        if (params.isSome()) {
-
-            if (!staticParams.isEmpty()) {
-                // Do nothing.
-            } else {
-                FTypeObject fto = (FTypeObject) ft;
-                HasFinishInitializing cl = (HasFinishInitializing) containing.getValue(fname);
+        if (!staticParams.isEmpty()) {
+            // Do nothing
+        } else if (params.isSome()) {
+            FTypeObject fto = (FTypeObject) ft;
+            Fcn cl = (Fcn) containing.getValue(fname);
 //                List<Parameter> fparams = EvalType.paramsToParameters(
 //                        containing, params.unwrap());
 //                cl.setParams(fparams);
-                cl.finishInitializing();
-            }
-
+            cl.finishInitializing();
         } else {
-            // If there are no parameters, it is a singleton.
-
-            if (!staticParams.isEmpty()) {
-                // do nothing for generic singleton or its constructor
-            } else {
             Constructor cl = (Constructor) containing
-                    .getValue(obfuscatedSingletonConstructorName(fname, x));
+                .getValue(obfuscatedSingletonConstructorName(fname, x));
             //  cl.setParams(Collections.<Parameter> emptyList());
-                cl.finishInitializing();
-            }
-         }
+            cl.finishInitializing();
+        }
         scanForFunctionalMethodNames(ft, x.getDecls());
     }
     private void forObjectDecl4(ObjectDecl x) {
@@ -1452,24 +1407,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         } else {
             // NOT GENERIC
 
-                Fcn fcn = (Fcn) containing.getValue(fname);
-
-                if (fcn instanceof Closure) {
-                    // This is only loosely paired with the
-                    // first pass; dealing with overloading tends to
-                    // break up the 1-1 relationship between the two.
-                    // However, because of the way that scopes nest,
-                    // it is possible (I think) that f could be overloaded
-                    // in an inner scope but not overloaded in an outer
-                    // scope.
-                    Closure cl = (Closure) fcn;
-                    cl.finishInitializing();
-                } else if (fcn instanceof OverloadedFunction) {
-                    OverloadedFunction og = (OverloadedFunction) fcn;
-                    og.finishInitializing();
-
-                }
-
+            Fcn fcn = (Fcn) containing.getValue(fname);
+            fcn.finishInitializing();
         }
 
     }

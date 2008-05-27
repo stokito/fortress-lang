@@ -53,7 +53,9 @@ public class FGenericFunction extends SingleFcn
 
     volatile Simple_fcn symbolicInstantiation;
 
-   /* (non-Javadoc)
+    FnAbsDeclOrDecl fndef;
+
+    /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
      */
     @Override
@@ -108,7 +110,7 @@ public class FGenericFunction extends SingleFcn
 
     protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
         Closure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
-         cl.finishInitializing();
+        cl.finishInitializing();
         return cl;
     }
 
@@ -128,13 +130,11 @@ public class FGenericFunction extends SingleFcn
 
     }
 
-     Memo1P<List<FType>, Simple_fcn, HasAt> memo = new Memo1P<List<FType>, Simple_fcn, HasAt>(new Factory());
+    Memo1P<List<FType>, Simple_fcn, HasAt> memo = new Memo1P<List<FType>, Simple_fcn, HasAt>(new Factory());
 
     public Simple_fcn make(List<FType> l, HasAt location) {
         return memo.make(l, location);
     }
-
-    FnAbsDeclOrDecl fndef;
 
     public FnAbsDeclOrDecl getFnDefOrDecl() {
         return fndef;
