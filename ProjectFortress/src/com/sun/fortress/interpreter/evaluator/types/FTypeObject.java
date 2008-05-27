@@ -44,12 +44,12 @@ public class FTypeObject extends FTraitOrObject {
 
     volatile BetterEnv declaredMembersOf;
     volatile protected boolean membersInitialized; // initially false
-    
+
     // This is here because of a refactoring to make traits and objects more alike
-    
+
     BetterEnv methodEnv;
-    
-    
+
+
     // names of fields
     // including both the field declarations in the object declaration
     // and the non-transient value parameters of the object constructor
@@ -97,7 +97,7 @@ public class FTypeObject extends FTraitOrObject {
         methodEnv.bless();
 
     }
-    
+
     public BetterEnv getMethodExecutionEnv() {
         if (methodEnv == null) {
             bug("Internal error, get of unset methodEnv");
@@ -105,33 +105,33 @@ public class FTypeObject extends FTraitOrObject {
         return methodEnv;
     }
 
-   protected synchronized void initializeMembers() {
-      
-        if (membersInitialized) 
+    protected synchronized void initializeMembers() {
+
+        if (membersInitialized)
                return;
         BetterEnv into = getMembersInternal();
          List<? extends AbsDeclOrDecl> defs = getASTmembers();
 
-        /* The parameters to BuildObjectEnvironment are 
-         * myseriously backwards-looking 
+        /* The parameters to BuildObjectEnvironment are
+         * myseriously backwards-looking
          */
-         BuildObjectEnvironment inner = 
+         BuildObjectEnvironment inner =
            new BuildObjectEnvironment(methodEnv, getWithin(), this, null);
-         
-         // Wish we could say this, but it doesn't work yet. 
+
+         // Wish we could say this, but it doesn't work yet.
            //  new BuildObjectEnvironment(into, methodEnv, this, null);
            //methodEnv.augment(into);
 
         inner.doDefs1234(defs);
-        
-        // This is a minor hack to deal with messed-up object environments. 
+
+        // This is a minor hack to deal with messed-up object environments.
         for(AbsDeclOrDecl v : members) {
             if (v instanceof FnAbsDeclOrDecl) {
                 String s = ((FnAbsDeclOrDecl)v).getName().stringName();
                 declaredMembersOf.putValueUnconditionally(s,  methodEnv.getValue(s));
             }
         }
-        
+
         membersInitialized = true;
     }
 

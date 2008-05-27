@@ -59,7 +59,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class  OverloadedFunction extends Fcn
-    implements Factory1P<List<FType>, Fcn, HasAt>, HasFinishInitializing {
+    implements Factory1P<List<FType>, Fcn, HasAt> {
 
     private final boolean debug = false;
     private final boolean debugMatch = false;
@@ -251,10 +251,16 @@ public class  OverloadedFunction extends Fcn
 
         OverloadComparisonResult ocr = new OverloadComparisonResult();
 
-
         for (int i = 0; i< new_overloads.size(); i++) {
             Overload o1 = new_overloads.get(i);
-            ftalist.add(o1.getFn().type());
+            Fcn fn = o1.getFn();
+            if (fn instanceof GenericFunctionalMethod) {
+                // Any reason not to just ignore these?
+                // They never get type info, right?
+                continue;
+            }
+            FType ty = fn.type();
+            ftalist.add(ty);
 
             if (!noCheck && !o1.guaranteedOK) {
 
@@ -654,8 +660,8 @@ public class  OverloadedFunction extends Fcn
     public void addOverload(SingleFcn fn) {
 //      if (finishedFirst && !fn.getFinished())
 //          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
-      addOverload(new Overload(fn));
-  }
+        addOverload(new Overload(fn));
+    }
 
     public void addOverload(SingleFcn fn, boolean guaranteedOK) {
 //      if (finishedFirst && !fn.getFinished())

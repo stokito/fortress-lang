@@ -54,7 +54,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 /**
  * A Closure value is a function, plus some environment information.
  */
-public class Closure extends NonPrimitive implements Scope, HasFinishInitializing {
+public class Closure extends NonPrimitive implements Scope {
 
     protected FType returnType;
     protected List<FType> instArgs;

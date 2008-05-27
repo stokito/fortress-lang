@@ -31,16 +31,16 @@ import com.sun.fortress.useful.Useful;
 // the equivalence class.
 
 public class Overload implements Comparable, HasAt {
-    
+
     /**
      * This overload is slightly tweaked to implement the symmetric test for
      * dotted methods.
-     * 
+     *
      * @author chase
      */
     static public class MethodOverload extends Overload {
         List<FType> params;
-        
+
         public MethodOverload(MethodClosure mc) {
             super(mc);
             params = Useful.prepend(mc.getDefiner(), super.getParams());
@@ -52,7 +52,7 @@ public class Overload implements Comparable, HasAt {
             return params;
         }
     }
-    
+
     public String at() {
         return fn.at();
     }
@@ -67,6 +67,7 @@ public class Overload implements Comparable, HasAt {
 
     public Overload(SingleFcn fn) {
         this.fn = fn;
+        this.guaranteedOK = false;
     }
 
     public Overload(SingleFcn fn, OverloadedFunction olf, boolean guaranteedOK) {
@@ -80,14 +81,6 @@ public class Overload implements Comparable, HasAt {
             return ((HasSelfParameter)fn).getSelfParameterIndex();
         }
         return -1;
-    }
-    
-
-    /**
-     * @param fn The fn to set.
-     */
-    public void setFn(SingleFcn fn) {
-        this.fn = fn;
     }
 
     /**
@@ -104,16 +97,15 @@ public class Overload implements Comparable, HasAt {
         return fn.getNormalizedDomain();
     }
 
+    private final SingleFcn fn;
 
-
-    private SingleFcn fn;
     /**
      * True if this overload cannot possibly conflict -- because it is a
      * functional method of an instantiated generic type.
      * This is a (major) optimization.
      */
-    boolean guaranteedOK;
-    
+    final boolean guaranteedOK;
+
     DebugletPrintStream ps;
 
     /* (non-Javadoc)

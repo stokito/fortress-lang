@@ -69,21 +69,20 @@ public class GenericMethod extends MethodClosure implements
 
     protected MethodClosure newClosure(BetterEnv clenv, List<FType> args) {
         MethodClosure cl;
-        if (FType.anyAreSymbolic(args))
-            cl = isTraitMethod ? new PartiallyDefinedMethodInstance(getEnv(),
-                    clenv, getDef(), getDefiner(), args, this)
-                    : new MethodClosureInstance(getEnv(), clenv, getDef(),
-                           getDefiner(), args, this);
-        else {
+        if (!isTraitMethod) {
+            cl = new MethodClosureInstance(getEnv(), clenv, getDef(),
+                                           getDefiner(), args, this);
+        } else if (FType.anyAreSymbolic(args)) {
+            cl = new PartiallyDefinedMethodInstance(getEnv(), clenv, getDef(),
+                                                    getDefiner(), args, this);
+        } else {
             // TODO Intention is that this is a plain old instantiation,
             // however there are issues of capturing the evaluation
             // environment that makes this not work quite right
             // MethodClosureInstance ought to be MethodClosure, but
             // isn't, yet.
-            cl = isTraitMethod ? new PartiallyDefinedMethod(getEnv(),
-                    clenv, getDef(), getDefiner(), args)
-                    : new MethodClosureInstance(getEnv(), clenv, getDef(),
-                            getDefiner(), args, this);
+            cl = new PartiallyDefinedMethod(getEnv(), clenv, getDef(),
+                                            getDefiner(), args);
         }
         cl.finishInitializing();
         return (MethodClosure) cl;
@@ -143,7 +142,7 @@ public class GenericMethod extends MethodClosure implements
         ArrayList<FType> argValues = et.forStaticArgList(args);
         return make(argValues, location);
     }
-    
+
     public Simple_fcn typeApply(HasAt location, List<FType> argValues) {
         return make(argValues, location);
     }
@@ -244,6 +243,6 @@ public class GenericMethod extends MethodClosure implements
         return getDef().getReturnType();
     }
 
-    
-    
+
+
 }
