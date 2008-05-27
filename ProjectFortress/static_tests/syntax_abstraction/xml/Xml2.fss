@@ -23,6 +23,7 @@ component Xml2
   export Xml2
 
   trait Content
+    hasElements():Boolean = false
     toString():String
   end
 
@@ -39,6 +40,22 @@ component Xml2
         s := s "</" endTag ">"
         s
       end
+
+    children():List[\Element\] = 
+        content.map[\Element\](fn x => cast[\Element\](x))
+    
+    hasElements():Boolean = NOT content.isEmpty()
+    (*
+    hasElements():Boolean = false
+    *)
+
+    isElement(e):Boolean =
+        typecase e of
+            Element => true
+            else => false
+        end
+    
+    tag():String = info.getTag
   end
   Element(info:Header) = Element(info, emptyList[\Content\](), info.getTag())
   Element(info:Header, endTag:String) = Element(info, emptyList[\Content\](), endTag)
@@ -56,6 +73,6 @@ component Xml2
 
   object CData(v:String) extends Content
     toString():String = v
-   end
+  end
 
 end
