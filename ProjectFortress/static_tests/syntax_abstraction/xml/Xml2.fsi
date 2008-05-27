@@ -60,13 +60,13 @@ api Xml2
 
     XmlComplete:Header :Expr:=
       OpenBracket# s:String Slash# CloseBracket
-      <[ Header(s,emptyList[\Attribute\]) ]>
+      <[ Header(s,emptyList[\Attribute\]()) ]>
     | OpenBracket# s:String a:Attributes+ Slash# CloseBracket
       <[ Header(s,a) ]>
 
     XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
-      <[ Header(s,emptyList[\Attribute\]) ]>
+      <[ Header(s,emptyList[\Attribute\]()) ]>
     | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
       <[ Header(s, a) ]>
 
