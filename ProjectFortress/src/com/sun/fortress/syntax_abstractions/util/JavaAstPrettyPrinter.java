@@ -145,7 +145,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String idName = FreshName.getFreshName("id");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(ids_result, idName, "Id"));
-        this.code.add("APIName "+rVarName+" = new APIName("+sVarName+","+idName+");");
+        this.code.add(String.format("APIName %s = new APIName(%s, %s);", rVarName, sVarName, idName));
         return rVarName;
     }
 
@@ -154,7 +154,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             String type_result) {
         String rVarName = FreshName.getFreshName("asExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("AsExpr "+rVarName+" = new AsExpr("+sVarName+","+that.isParenthesized()+","+expr_result+","+type_result+");");
+        this.code.add( String.format("AsExpr %s = new AsExpr(%s,%b,%s,%s);", rVarName, sVarName, that.isParenthesized(), expr_result, type_result) );
         return rVarName;
     }
 
@@ -163,7 +163,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             String type_result) {
         String varName = FreshName.getFreshName("asExpr");
         String spanName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("AsIfExpr "+varName+" = new AsIfExpr("+spanName+","+that.isParenthesized()+","+expr_result+","+type_result+");");
+        this.code.add( String.format("AsIfExpr %s = new AsIfExpr(%s,%b,%s,%s);", varName, spanName, that.isParenthesized(), expr_result, type_result) );
         return varName;
     }
 
@@ -173,7 +173,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String exprsName = FreshName.getFreshName("exprs");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, exprsName, "Expr"));
-        this.code.add("Block "+rVarName+" = new Block("+sVarName+", "+exprsName+");");
+        this.code.add( String.format("Block %s = new Block(%s, %s);", rVarName, sVarName, exprsName) );
         return rVarName;
     }
 
@@ -183,7 +183,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("doFront");
         String loc = this.handleOption(loc_result, "Expr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("DoFront "+rVarName+" = new DoFront("+sVarName+", "+loc+", "+that.isAtomic()+", "+expr_result+");");
+        this.code.add( String.format("DoFront %s = new DoFront(%s, %s, %b, %s);", rVarName, sVarName, loc, that.isAtomic(), expr_result) );
         return rVarName;
     }
 
@@ -193,7 +193,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String exprsName = FreshName.getFreshName("exprs");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(fronts_result, exprsName, "DoFront"));
-        this.code.add("Do "+rVarName+" = new Do("+sVarName+", "+exprsName+");");
+        this.code.add( String.format("Do %s = new Do(%s, %s);", rVarName, sVarName, exprsName) );
         return rVarName;
     }
 
@@ -206,7 +206,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.addAll(mkList(fns_result, fns, "Id"));
         String staticArgs = FreshName.getFreshName("ls");
         this.code.addAll(mkList(staticArgs_result, staticArgs, "StaticArg"));
-        this.code.add("FnRef "+rVarName+" = new FnRef("+sVarName+", "+that.isParenthesized()+", "+fns+", "+staticArgs+");");
+
+        this.code.add( String.format( "FnRef %s = new FnRef(%s, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), fns, staticArgs) );
+
         return rVarName;
     }
 
@@ -214,7 +216,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forId(Id that) {
         String rVarName = FreshName.getFreshName("id");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("Id "+rVarName+" = new Id("+sVarName+", \""+that.getText()+"\");");
+        this.code.add( String.format("Id %s = new Id(%s, \"%s\");", rVarName, sVarName, that.getText()) );
         return rVarName;
     }
 
@@ -223,7 +225,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("qIdName");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String api = this.handleOption(api_result, "APIName");
-        this.code.add("Id "+rVarName+" = new Id("+sVarName+", "+api+");");
+        this.code.add(String.format("Id %s = new Id(%s, %s);", rVarName, sVarName, api) );
         return rVarName;
     }
     
@@ -235,7 +237,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String clauses = FreshName.getFreshName("ls");
         this.code.addAll(mkList(clauses_result, clauses, "IfClause"));   
         String elseClause = this.handleOption(elseClause_result, "Block");
-        this.code.add("If "+rVarName+" = new If("+sVarName+","+that.isParenthesized()+","+clauses+","+elseClause+");");
+        this.code.add( String.format("If %s = new If(%s,%s,%s,%s);", rVarName, sVarName, that.isParenthesized(), clauses, elseClause) );
         return rVarName;
     }
 
@@ -244,7 +246,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             String body_result) {
         String rVarName = FreshName.getFreshName("ifClause");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("IfClause "+rVarName+" = new IfClause("+sVarName+","+test_result+","+body_result+");");
+        this.code.add( String.format("IfClause %s = new IfClause(%s,%s,%s);", rVarName, sVarName, test_result, body_result) );
         return rVarName;
     }
 
@@ -255,7 +257,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String clauses = FreshName.getFreshName("ls");
         this.code.addAll(mkList(bind_result, clauses, "Id"));   
-        this.code.add("GeneratorClause "+rVarName+" = new GeneratorClause("+sVarName+","+clauses+","+init_result+");");
+        this.code.add( String.format("GeneratorClause %s = new GeneratorClause(%s,%s,%s);", rVarName, sVarName, clauses, init_result) );
         return rVarName;
     }
 
@@ -263,10 +265,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         public String forVarTypeOnly(VarType that, String name_result) {
         String rVarName = FreshName.getFreshName("idType");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("VarType "+rVarName+" = new VarType("+sVarName+", "+name_result+");");
+        this.code.add( String.format("VarType %s = new VarType(%s, %s);", rVarName, sVarName, name_result) );
         return rVarName;
     }
-
 
     @Override
     public String forLocalVarDeclOnly(LocalVarDecl that,
@@ -284,7 +285,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
         String rhs = this.handleOption(rhs_result, "Expr");
         
-        this.code.add("LocalVarDecl "+rVarName+" = new LocalVarDecl("+sVarName+", "+body+", "+lhs+", "+rhs+");");
+        this.code.add( String.format("LocalVarDecl %s = new LocalVarDecl(%s, %s, %s, %s);", rVarName, sVarName, body, lhs, rhs) );
         return rVarName;
     }
 
@@ -294,7 +295,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String args = FreshName.getFreshName("ls");
         this.code.addAll(mkList(exprs_result, args, "Expr"));
-        this.code.add("LooseJuxt "+rVarName+" = new LooseJuxt("+sVarName+", "+that.isParenthesized()+", "+args+");");
+        this.code.add( String.format("LooseJuxt %s = new LooseJuxt(%s, %b, %s);", rVarName, sVarName, that.isParenthesized(), args) );
         return rVarName;
     }
 
@@ -310,7 +311,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String mods = FreshName.getFreshName("mods");
         this.code.addAll(mkList(mods_result, mods, "Modifier"));
 
-        this.code.add("LValueBind "+rVarName+" = new LValueBind("+sVarName+", "+name_result+", "+type+", "+mods+", "+that.isMutable()+");");
+        this.code.add(String.format("LValueBind %s = new LValueBind(%s, %s, %s, %s, %b);", rVarName, sVarName, name_result, mods, that.isMutable()) );
         return rVarName;
     }
 
@@ -318,7 +319,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forStringLiteralExpr(StringLiteralExpr that) {
         String varName = FreshName.getFreshName("s");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("StringLiteralExpr "+varName+" = new StringLiteralExpr("+sVarName+", \""+that.getText().replaceAll("\"","\\\\\"")+"\");");
+        this.code.add( String.format("StringLiteralExpr %s = new StringLiteralExpr(%s, \"%s\");", varName, sVarName, that.getText().replaceAll("\"","\\\\\"")) );
         return varName;
     }
 
@@ -328,7 +329,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("tj");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, varName, "Expr"));
-        this.code.add("TightJuxt "+rVarName+" = new TightJuxt("+sVarName+", "+that.isParenthesized()+", "+varName+");");
+        this.code.add( String.format("TightJuxt %s = new TightJuxt(%s, %b, %s);", rVarName, sVarName, that.isParenthesized(), varName) );
         return rVarName;
     }
 
@@ -339,7 +340,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String lsVarName = FreshName.getFreshName("ls");
         String spanName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(args_result, lsVarName, "StaticArg"));
-        this.code.add("TraitType "+varName+" = new TraitType("+spanName+", "+that.isParenthesized()+", "+name_result+","+lsVarName+");");
+        this.code.add( String.format("TraitType %s = new TraitType(%s, %b, %s, %s);", varName, spanName, that.isParenthesized(), name_result, lsVarName) );
         return varName;
     }
 
