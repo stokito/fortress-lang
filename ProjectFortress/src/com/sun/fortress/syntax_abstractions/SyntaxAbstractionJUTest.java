@@ -31,6 +31,7 @@ public class SyntaxAbstractionJUTest extends TestSuite {
 		String[] files = new String[]{
 			"SyntaxTestUse.fss",
 			"SyntaxTemplateVarsUse.fss",
+			"SyntaxNodesUse.fss",
 		};
 		TestSuite suite = new TestSuite();
 		for ( String filename : files ){
