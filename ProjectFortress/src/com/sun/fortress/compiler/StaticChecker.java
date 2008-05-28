@@ -21,6 +21,7 @@ import java.util.*;
 import com.sun.fortress.compiler.typechecker.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 
@@ -49,7 +50,7 @@ public class StaticChecker {
      * line before the type checker is fully functional.
      * StaticTest sets typecheck to true before running type checking tests.
      */
-    public static boolean typecheck = false;
+    public static boolean typecheck = ProjectProperties.getBoolean("fortress.test.typecheck", false);
     
     public static class ApiResult extends StaticPhaseResult {
         private Map<APIName, ApiIndex> _apis;
