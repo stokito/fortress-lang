@@ -28,10 +28,15 @@ public class SyntaxAbstractionJUTest extends TestSuite {
 	private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
 
 	public static TestSuite suite() {
+		String[] files = new String[]{
+			"SyntaxTestUse.fss",
+			"SyntaxTemplateVarsUse.fss",
+		};
 		TestSuite suite = new TestSuite();
-		String filename = "SyntaxTestUse.fss";
-		File f = new File(STATIC_TESTS_DIR + filename );
-		suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
+		for ( String filename : files ){
+			File f = new File(STATIC_TESTS_DIR + filename );
+			suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
+		}
 		return suite;
 	}
 }
