@@ -36,7 +36,7 @@ syn keyword  fortressKeyword opr for private
 
 syn match    fortressThenErr    "\<then\>"
 syn match    fortressCaseErr    "\<case\>"
-syn match    fortressTypcase    "\<of\>"
+syn match    fortressTypecaseErr    "\<of\>"
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<if\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr nextgroup=fortressIf
 syn region   fortressIf matchgroup=fortressKeyword start="\<elif\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr nextgroup=fortressIf
@@ -45,7 +45,7 @@ syn region   fortressIf matchgroup=fortressKeyword start="\<then\>" matchgroup=f
 syn region   fortressNone matchgroup=fortressKeyword start="\<case\>" matchgroup=fortressKeyword end="\<of\>" contains=ALLBUT,fortressCaseErr nextgroup=fortressCase
 syn region   fortressCase matchgroup=fortressKeyword start="\<in\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressCaseErr
 
-syn region   fortressNone matchgroup=fortressKeyword start="\<typecase\>" matchgroup=fortressKeyword end="\<of\>" contains=ALLBUT,fortressTypecase nextgroup=fortressTypecase
+syn region   fortressNone matchgroup=fortressKeyword start="\<typecase\>" matchgroup=fortressKeyword end="\<of\>" contains=ALLBUT,fortressTypecaseErr nextgroup=fortressTypecase
 syn region   fortressTypecase matchgroup=fortressKeyword start="\<of\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressEndErr
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<do\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressEndErr
