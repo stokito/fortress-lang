@@ -111,9 +111,16 @@ will need to have access to the following:
 * Bash version 2.5 or later, installed at /bin/bash.
   See http://www.gnu.org/software/bash/
 
-Assume FORTRESS_HOME points to the PFC directory you checked out.
+Assume FORTRESS_HOME points to the PFC directory you checked out.  On
+Unix-like systems this should be a matter of using export or setenv.  If
+you are using Cygwin, one user reports success with the following
+command line for setting FORTRESS_HOME:
+  export FORTRESS_HOME=`cygpath -am cygwin/path/to/fortress/install/directory`
+e.g.:
+  export FORTRESS_HOME=`cygpath -am ${HOME}/tools/fortress`
 
-In your shell startup script, add FORTRESS_HOME/bin to your path.
+
+In your shell startup script, add $FORTRESS_HOME/bin to your path.
 The shell scripts in this directory are Bash scripts.  To run them,
 you must have Bash accessible in /bin/bash.
 
