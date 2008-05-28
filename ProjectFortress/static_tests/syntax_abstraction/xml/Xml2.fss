@@ -68,7 +68,7 @@ component Xml2
   object Attribute(key:String, val:String)
     getter getKey():String = key
     getter getValue():String = val
-    getter toString():String = " " getKey() "=" getValue()
+    getter toString():String = " " getKey() "='" getValue() "'"
   end
 
   object CData(v:String) extends Content
