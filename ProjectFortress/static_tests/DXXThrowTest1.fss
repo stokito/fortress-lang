@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXXThrowTest1
+component DXXThrowTest1
   export Executable
 
   object FooExn
