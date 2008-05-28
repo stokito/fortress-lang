@@ -1,0 +1,8 @@
+component TryAtomic
+    export Executable
+    object foo end
+    run(args:String...):() = do
+        var a:foo
+        a:= tryatomic foo
+    end
+end 

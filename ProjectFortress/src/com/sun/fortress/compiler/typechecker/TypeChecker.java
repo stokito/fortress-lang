@@ -1387,7 +1387,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                          errorMsg("A 'spawn' expression must not occur inside an 'atomic' expression."));
     }
 
-    private TypeCheckerResult forAtomic(Node that, Expr body, final String errorMsg) {
+
+
+	@Override
+	public TypeCheckerResult forTryAtomicExpr(TryAtomicExpr that) {
+		return forAtomic(that,
+                that.getExpr(),
+                errorMsg("A 'spawn' expression must not occur inside a 'try atomic' expression."));
+	}
+
+	private TypeCheckerResult forAtomic(Node that, Expr body, final String errorMsg) {
         TypeChecker newChecker = new TypeChecker(table,
                                                  staticParamEnv,
                                                  typeEnv,
@@ -1521,8 +1530,38 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
-}
+ /* Fails until we do implement type checking generators
+	@Override
+	public TypeCheckerResult forWhileOnly(While that,
+			TypeCheckerResult test_result, TypeCheckerResult body_result) {
 
+		//is test a type
+		if(test_result.type().isNone() || body_result.type().isNone()){
+			return TypeCheckerResult.compose(that,Types.VOID, test_result, body_result);
+		}
+
+		 TypeCheckerResult this_result = new TypeCheckerResult(that);
+		 //This test will crash until we implement generators
+		 if( !test_result.type().unwrap().equals(Types.BOOLEAN) ) {
+			this_result = TypeCheckerResult.compose(that, 
+					Types.VOID, new TypeCheckerResult(that, 
+							TypeError.make("Condition of while loop must have type Boolean, but had type " +
+									test_result.type().unwrap(), that.getTest())), test_result, body_result );
+		}
+		
+		if( !body_result.type().unwrap().equals(Types.VOID) ) {
+			this_result = TypeCheckerResult.compose(that,
+					Types.VOID, new TypeCheckerResult(that, 
+							TypeError.make("Body of while loop must have type (), but had type " +
+									body_result.type().unwrap(), that.getBody())), this_result, test_result, body_result);
+		}
+		
+		return this_result;
+		
+}
+*/
+    
+}
     /* Methods copied from superclass, to make it easier to incrementally define
      * overridings here.
      */
@@ -1983,9 +2022,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forAbstractFieldRefOnly(that, obj_result);
 //    }
 //
-//    public RetType forFieldRefForSureOnly(FieldRefForSure that, RetType obj_result, RetType field_result) {
-//        return forAbstractFieldRefOnly(that, obj_result);
-//    }
 //
 //    public RetType for_RewriteFieldRefOnly(_RewriteFieldRef that, RetType obj_result, RetType field_result) {
 //        return forAbstractFieldRefOnly(that, obj_result);
