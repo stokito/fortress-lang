@@ -350,7 +350,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("tupleExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, varName, "Expr"));
-        this.code.add("TupleExpr "+rVarName+" = new TupleExpr("+sVarName+", "+that.isParenthesized()+", "+varName+");");
+        this.code.add( String.format("TupleExpr %s = new TupleExpr(%s, %s, %s);", rVarName, sVarName, that.isParenthesized(), varName) );
         return rVarName;
     }
 
@@ -358,7 +358,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forTypeArgOnly(TypeArg that, String type_result) {
         String rVarName = FreshName.getFreshName("typeArg");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("TypeArg "+rVarName+" = new TypeArg("+sVarName+", "+type_result+");");
+        this.code.add( String.format("TypeArg %s = new TypeArg(%s, %s);", rVarName, sVarName, type_result ) );
         return rVarName;
     }
 
@@ -366,7 +366,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forVarRefOnly(VarRef that, String var_result) {
         String varName = FreshName.getFreshName("varRef");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("VarRef "+varName+" = new VarRef("+sVarName+", "+var_result+");");
+        this.code.add( String.format("VarRef %s = new VarRef(%s, %s);", varName, sVarName, var_result) );
         return varName;
     }
 
@@ -391,7 +391,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("enclosing");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String apiVarName = this.handleOption(api_result, "APIName");
-        this.code.add("Enclosing "+rVarName+" = new Enclosing("+sVarName+", "+apiVarName+", "+in_open_result+", "+in_close_result+");");
+        this.code.add( String.format("Enclosing %s = new Enclosing(%s, %s, %s, %s);", rVarName, sVarName, apiVarName, in_open_result, in_close_result) );
         return rVarName;
     }
 
@@ -399,7 +399,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forEnclosingFixity(EnclosingFixity that) {
         String rVarName = FreshName.getFreshName("enclosingFixity");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add("EnclosingFixity "+rVarName+" = new EnclosingFixity("+sVarName+");");
+        this.code.add( String.format("EnclosingFixity %s = new EnclosingFixity(%s);", rVarName, sVarName) );
         return rVarName;
     }
 
@@ -410,7 +410,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String apiVarName = this.handleOption(api_result, "APIName");
         String fixityVarName = this.handleOption(fixity_result, "Fixity");
-        this.code.add("Op "+rVarName+" = new Op("+sVarName+", "+apiVarName+", \""+that.getText()+"\", "+fixityVarName+");");
+        this.code.add( String.format("Op %s = new Op(%s, %s, \"%s\", %s);", rVarName, sVarName, apiVarName, that.getText(), fixityVarName) );
         return rVarName;
     }
     
@@ -423,12 +423,12 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         int startLine = span.getBegin().getLine();
         int startColumn = span.getBegin().column();
         int startOffset = span.getBegin().getOffset();
-        code.add("SourceLocRats "+slStartVarName+"   = new SourceLocRats(\""+file+"\", "+startLine+", "+startColumn+", "+startOffset+");");
+        code.add( String.format("SourceLocRats %s = new SourceLocRats(\"%s\", %s, %s, %s);", slStartVarName, file, startLine, startColumn, startOffset) );
         int endLine = span.getBegin().getLine();
         int endColumn = span.getBegin().column();
         int endOffset = span.getBegin().getOffset();
-        code.add("SourceLocRats "+slEndVarName+"   = new SourceLocRats(\""+file+"\", "+endLine+", "+endColumn+", "+endOffset+");");
-        code.add("Span "+rVarName +" = new Span("+slStartVarName+","+slEndVarName+");");        
+        code.add( String.format("SourceLocRats %s = new SourceLocRats(\"%s\", %s, %s, %s);", slEndVarName, file, endLine, endColumn, endOffset) );
+        code.add( String.format( "Span %s = new Span(%s,%s);", rVarName, slStartVarName, slEndVarName) );        
         return rVarName;
     }
     
@@ -448,7 +448,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String argsVarName = FreshName.getFreshName("ls");
         this.code.addAll(mkList(args_result, argsVarName, "Expr"));
-        this.code.add("OpExpr "+rVarName+" = new OpExpr("+sVarName+", "+that.isParenthesized()+", "+in_op_result+", "+argsVarName+");");
+        this.code.add( String.format("OpExpr %s = new OpExpr(%s, %b, %s, %s);", rVarName, sVarName, that.isParenthesized(), in_op_result, argsVarName) );
         return rVarName;
     }
 
@@ -460,7 +460,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.addAll(mkList(ops_result, opsVarName, "OpName"));
         String staticArgsVarName = FreshName.getFreshName("ls");
         this.code.addAll(mkList(staticArgs_result, staticArgsVarName, "StaticArg"));
-        this.code.add("OpRef "+rVarName+" = new OpRef("+sVarName+", "+that.isParenthesized()+", "+opsVarName+", "+staticArgsVarName+");");
+        this.code.add( String.format("OpRef %s = new OpRef(%s, %b, %s, %s);", rVarName, sVarName, that.isParenthesized(), opsVarName, staticArgsVarName) );
         return rVarName;
     }
 
