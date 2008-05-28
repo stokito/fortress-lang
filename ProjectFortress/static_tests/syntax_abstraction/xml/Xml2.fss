@@ -44,7 +44,8 @@ component Xml2
     children():List[\Element\] = 
         content.map[\Element\](fn x => cast[\Element\](x))
     
-    hasElements():Boolean = NOT content.isEmpty()
+    hasElements():Boolean = (NOT content.isEmpty()) AND (isElement(content[0]))
+    content():CData = cast[\CData\](content[0])
     (*
     hasElements():Boolean = false
     *)
@@ -55,7 +56,7 @@ component Xml2
             else => false
         end
     
-    tag():String = info.getTag
+    tag():String = info.getTag()
   end
   Element(info:Header) = Element(info, emptyList[\Content\](), info.getTag())
   Element(info:Header, endTag:String) = Element(info, emptyList[\Content\](), endTag)

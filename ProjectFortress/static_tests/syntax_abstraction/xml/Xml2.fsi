@@ -33,6 +33,7 @@ api Xml2
     getter tag():String
     getter hasElements():Boolean
     getter children():List[\Element\]
+    getter content():CData
   end 
   Element(info:Header)
   Element(info:Header, endTag:String)

@@ -1,0 +1,13 @@
+component SyntaxNodesUse
+import SyntaxNodes.{...}
+
+export Executable
+
+run(args:String...) = do
+    b-a-d a
+    b-a-d b
+    b-a-d c
+    b-a-d d
+end
+
+end

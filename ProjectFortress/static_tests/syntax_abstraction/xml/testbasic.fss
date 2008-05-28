@@ -17,12 +17,24 @@
 
 component testbasic
 
-    import Xml2.{...}
-    import List.{...}
+import Xml2.{...}
+import List.{...}
 
-    export Executable
+export Executable
 
-    run(args:String...) = do
+printTree(node,space) = do
+    print (space "" node.tag() ":")
+    if node.hasElements() then
+        println
+        for i <- node.children() do
+            printTree(i,space " ")
+        end
+    else
+        println node.content()
+    end
+end
+
+run(args:String...) = do
 
     println "Answer is " <a />
     println "Answer is " <x></x>
@@ -82,6 +94,7 @@ component testbasic
     q2 = cast[\Element\](q1)
     println q2.hasElements()
     println q2.children()
+    printTree(q2,"")
     (*
     y = <t2> <t3>bread</t3> </t2>
     println y.hasElements()
