@@ -2,7 +2,7 @@
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
-a
+
     U.S. Government Rights - Commercial software.
     Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
@@ -15,7 +15,7 @@ a
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component AssignmentTest
+component DXXAssignmentTest2
   export Executable
 
   object Foo
@@ -30,32 +30,10 @@ component AssignmentTest
 
   end
 
-  typeTest():() = do
-    var a:Foo
-    b:() = (a:=Foo)
-  end
-
-
   run(args:String...):() = do
-    (* Currently fails because IntLiteral <!: ZZ32
-    var a : ZZ32
-    a := 1
-    *)
-
-    var a:Foo 
-    a := Foo 
-
-    (a) := Foo
-    (a) := (Foo)
-    a := (Foo)
-
-    (* Tuples *)
-
-    var b : Bar
-    var c : Quux
-    (a,b) := (Foo,Bar)
-    (a,c) := (Foo,Bar)
-
-    (* Other operators *) 
+    (* Make sure we cannot assign to non-assignable things *)
+    a:Bar = Bar
+    a:= Bar
   end
+  
 end
