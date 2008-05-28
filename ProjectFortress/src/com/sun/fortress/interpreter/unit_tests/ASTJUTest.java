@@ -34,7 +34,7 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.useful.Pair;
@@ -94,7 +94,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
             Lex a = new Lex(bs(s));
             f.run(a);
             fail("Missing error");
-        } catch (FortressError ex) {
+        } catch (FortressException ex) {
              out.println("OK, "  + s + ", " + ex);
         } catch (IOException ex) {
             fail("Unexpected IO exception " + ex);

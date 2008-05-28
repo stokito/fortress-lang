@@ -176,7 +176,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putType(name, type);
-        } catch (FortressError pe) {
+        } catch (FortressException pe) {
             throw pe.setContext(where,containing);
         }
     }
@@ -185,7 +185,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putNat(name, nat);
-        } catch (FortressError pe) {
+        } catch (FortressException pe) {
             throw pe.setContext(where, containing);
         }
     }
@@ -194,7 +194,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putBool(name, b);
-        } catch (FortressError pe) {
+        } catch (FortressException pe) {
             throw pe.setContext(where,containing);
         }
     }
@@ -325,7 +325,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             FType result = env.getType(i.getName());
             return result;
-        } catch (FortressError p) {
+        } catch (FortressException p) {
             throw p.setContext(i,env);
         }
 
@@ -377,7 +377,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 try {
                     FType result = env.getType(q);
                     return result;
-                } catch (FortressError p) {
+                } catch (FortressException p) {
                     throw p.setContext(q, env);
                 }
             }
@@ -435,7 +435,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             return x.getType().accept(this);
         }
-        catch (FortressError pe) {
+        catch (FortressException pe) {
             pe.setWhere(x);
             throw pe;
         }
@@ -445,7 +445,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             FType result = env.getType(q);
             return result;
-        } catch (FortressError p) {
+        } catch (FortressException p) {
             throw p.setContext(q,env);
         }
 

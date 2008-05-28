@@ -40,7 +40,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.FortressError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.FortressException.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
 

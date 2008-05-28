@@ -26,7 +26,7 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
@@ -329,7 +329,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                                  this, " and ", val));
                 }
             }
-        } catch (FortressError p) {
+        } catch (FortressException p) {
             if (DUMP_UNIFY) System.out.println("   Arg unification failed.");
             return false;
         } catch (EmptyLatticeIntervalError p) {

@@ -33,7 +33,7 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
@@ -306,8 +306,8 @@ public class Fortress {
 			Driver.runProgram(bcr, cu, test, nolib, args);
 		} catch (Throwable th) {
 			// TODO FIXME what is the proper treatment of errors/exceptions etc.?
-			if (th instanceof FortressError) {
-				FortressError pe = (FortressError) th;
+			if (th instanceof FortressException) {
+				FortressException pe = (FortressException) th;
 				if (pe.getStaticErrors() != null)
 					return pe.getStaticErrors();
 			}

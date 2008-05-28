@@ -26,7 +26,7 @@ import com.sun.fortress.useful.HasAt;
  * be debugged and/or worked around.
  */
 
-public class InterpreterBug extends FortressError {
+public class InterpreterBug extends FortressException {
 
     /**
      * Make Eclipse happy

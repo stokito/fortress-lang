@@ -28,7 +28,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -208,7 +208,7 @@ public class fs {
             }
 
         }
-        catch (FortressError e) {
+        catch (FortressException e) {
 //            keepTemp = true;
             System.err.println("\n--------Fortress error appears below--------\n");
             if (verboseExceptions) {

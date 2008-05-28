@@ -28,7 +28,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
@@ -353,7 +353,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             );
         } catch (AbortedException ae) {
             FObject f = (FObject) e.getValue(WellKnownNames.tryatomicFailureException);
-            FortressException f_exc = new FortressException(f);
+            FortressError f_exc = new FortressError(f);
             throw f_exc;
         }
         return res;
@@ -581,7 +581,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return forBlock(_else.unwrap());
             }
             FObject f = (FObject) e.getValue(WellKnownNames.matchFailureException);
-            FortressException f_exc = new FortressException(f);
+            FortressError f_exc = new FortressError(f);
             throw f_exc;
         }
     }
@@ -805,7 +805,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return forFieldRefCommon(x, x.getField());
     }
 
-    private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressError,
+    private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressException,
             ProgramError {
         String fname = NodeUtil.nameString(fld);
         Expr obj = x.getObj();
@@ -820,7 +820,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return error(errorMsg("Non-object ",fobj," cannot have field ",
                                       NodeUtil.nameString(fld)));
             }
-        } catch (FortressError ex) {
+        } catch (FortressException ex) {
             throw ex.setContext(x,e);
         }
         return DottedMethodApplication.make(fobj,fname,fname,x);
@@ -941,7 +941,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             bug(x,"empty juxtaposition");
         try {
             times = e.getValue("juxtaposition");
-        } catch (FortressError fe) {
+        } catch (FortressException fe) {
             throw fe.setContext(x,e);
         }
         List<FValue> evaled = evalExprListParallel(exprs);
@@ -1025,7 +1025,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private FValue getOp(OpName op) {
         try {
             return e.getValue(NodeUtil.nameString(op));
-        } catch (FortressError ex) {
+        } catch (FortressException ex) {
             throw ex.setContext(op,e);
         }
     }
@@ -1520,7 +1520,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         try {
             res = body.accept(this);
             return res;
-        } catch (FortressException exc) {
+        } catch (FortressError exc) {
             FType excType = exc.getException().type();
             Option<Catch> _catchClause = x.getCatchClause();
             if (_catchClause.isSome()) {
@@ -1536,7 +1536,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                             Evaluator evClause = new Evaluator(this, _catch);
                             evClause.e.putValue(name.getText(), exc.getException());
                             return catchBody.accept(evClause);
-                        } catch (FortressError err) {
+                        } catch (FortressException err) {
                             throw err.setContext(x,e);
                         }
                     }
@@ -1551,7 +1551,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                   // Can we get a better HasAt?
                   HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
                   FObject f = (FObject) c.apply(args, at, e);
-                  FortressException f_exc = new FortressException(x,e,f);
+                  FortressError f_exc = new FortressError(x,e,f);
                   throw f_exc;
                 }
             }
@@ -1645,7 +1645,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // methods/fields
                     try {
                         res = ((Selectable) res).select(fld.getText());
-                    } catch (FortressError ex) {
+                    } catch (FortressException ex) {
                         throw ex.setContext(x, e);
                     }
                 } else {
@@ -1680,7 +1680,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forThrow(Throw throw1) {
         Expr ex = throw1.getExpr();
         FObject v = (FObject) ex.accept(this);
-        FortressException f_exc = new FortressException(throw1,e,v);
+        FortressError f_exc = new FortressError(throw1,e,v);
         throw f_exc;
         // neverReached
     }

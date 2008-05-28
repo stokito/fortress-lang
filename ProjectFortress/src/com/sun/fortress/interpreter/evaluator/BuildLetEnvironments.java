@@ -75,7 +75,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             Closure cl = new Closure(containing, fn);
             try {
                 containing.putValue(fname, cl);
-            } catch (FortressError pe) {
+            } catch (FortressException pe) {
                 throw pe.setContext(x,containing);
             }
             // TODO Local functions cannot be Enclosing, can they?

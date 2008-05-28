@@ -35,7 +35,7 @@ import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.fs;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -141,7 +141,7 @@ public class InterpreterWrapper {
 
 
             return new Result(runFunction(c), errors);
-        } catch (FortressError e) {
+        } catch (FortressException e) {
             System.err.println("\n--------Fortress error appears below--------\n");
             e.printInterpreterStackTrace(System.err);
             e.printStackTrace();

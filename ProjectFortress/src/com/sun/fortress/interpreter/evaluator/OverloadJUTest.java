@@ -48,7 +48,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
             assertTrue(idx >= 0);
             assertEquals(result, clauses.get(idx));
         }
-        catch (FortressError pe) {
+        catch (FortressException pe) {
             assertFalse("CompilationUnit error related to overloading: " +
                         pe.getMessage(), pe.getMessage().contains("verload"));
             fail();
@@ -62,7 +62,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
             assertTrue("Dispatch found candidate "+idx+ " when it shouldn't",
                        idx == -1);
         }
-        catch (FortressError pe) {
+        catch (FortressException pe) {
             assertTrue("CompilationUnit error was not related to overloading: "+
                        pe.getMessage(), pe.getMessage().contains("verload"));
         }
