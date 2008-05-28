@@ -35,8 +35,8 @@ syn keyword  fortressOperator println
 syn keyword  fortressKeyword opr for private
 
 syn match    fortressThenErr    "\<then\>"
-syn match    fortressCaseErr    "\<case>"
-syn match    fortressTypcase    "\<of>"
+syn match    fortressCaseErr    "\<case\>"
+syn match    fortressTypcase    "\<of\>"
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<if\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr nextgroup=fortressIf
 syn region   fortressIf matchgroup=fortressKeyword start="\<elif\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr nextgroup=fortressIf
