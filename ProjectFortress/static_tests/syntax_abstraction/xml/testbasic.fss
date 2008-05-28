@@ -25,7 +25,7 @@ export Executable
 printTree(node,space) = do
     print (space "" node.tag() ":")
     if node.hasElements() then
-        println
+        println ""
         for i <- node.children() do
             printTree(i,space " ")
         end
