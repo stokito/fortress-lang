@@ -28,7 +28,7 @@ api Xml2
     toString():String
   end
 
-  object Element(info:Header, content:List[\Content\], endTag:String) extends Content 
+  object Element(info:Header, content_:List[\Content\], endTag:String) extends Content 
     getter toString():String
     getter tag():String
     getter hasElements():Boolean
