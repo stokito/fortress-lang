@@ -260,7 +260,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
 
 
-            } catch (FortressError ex) {
+            } catch (FortressException ex) {
                 throw ex.setContext(x,evaluator.e);
             }
 
@@ -285,7 +285,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     else
                         evaluator.e.putValue(s, value);
                 }
-            } catch (FortressError ex) {
+            } catch (FortressException ex) {
                 throw ex.setContext(x,evaluator.e);
             }
         }

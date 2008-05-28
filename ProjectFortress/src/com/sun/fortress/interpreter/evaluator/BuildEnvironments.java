@@ -423,7 +423,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             } else {
                 putValue(e, name, value);
             }
-        } catch (FortressError pe) {
+        } catch (FortressException pe) {
             throw pe.setContext(where,e);
         }
     }
@@ -866,7 +866,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                   FValue init_val = new LazilyEvaluatedCell(init, containing);
                   putValue(bindInto, sname, init_val);
               }
-          } catch (FortressError pe) {
+          } catch (FortressException pe) {
               throw pe.setContext(x,bindInto);
           }
 
@@ -1347,7 +1347,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
              * is a placeholder. */
             FValue init_val = new LazilyEvaluatedCell(null, null);
             putValue(bindInto, sname, init_val);
-        } catch (FortressError pe) {
+        } catch (FortressException pe) {
             throw pe.setContext(x,bindInto);
         }
     }

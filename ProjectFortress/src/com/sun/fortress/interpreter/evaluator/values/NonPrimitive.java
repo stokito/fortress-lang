@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
@@ -256,7 +256,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                     } else {
                         env.putValueUnconditionally(param.getName(), arg);
                     }
-                } catch (FortressError ex) {
+                } catch (FortressException ex) {
                     throw ex.setContext(loc,env);
                 }
             }

@@ -33,7 +33,7 @@ import com.sun.fortress.compiler.RepositoryUpdater;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
@@ -248,8 +248,8 @@ public class BatchCachingRepository extends StubRepository implements FortressRe
                 throw (RuntimeException) th;
             if (th instanceof Error)
                 throw (Error) th;
-            if (th instanceof FortressError) 
-                throw (FortressError) th;
+            if (th instanceof FortressException) 
+                throw (FortressException) th;
             throw new Error(th);
         }
     }

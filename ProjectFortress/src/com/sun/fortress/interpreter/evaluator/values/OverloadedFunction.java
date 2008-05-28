@@ -30,7 +30,7 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
@@ -796,7 +796,7 @@ public class  OverloadedFunction extends Fcn
                     sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, envForInference);
                     if (debugMatch)
                         System.err.println("Inferred from " + gsfn + " to " + sfn);
-                } catch (FortressError pe) {
+                } catch (FortressException pe) {
                     if (debugMatch)
                         System.err.println("No match for " + gsfn);
                     continue; // No match, means no dice.
@@ -842,7 +842,7 @@ public class  OverloadedFunction extends Fcn
                 if (! t.typeMatch(a)) {
                     return false;
                 }
-            } catch (FortressError e) {
+            } catch (FortressException e) {
                 return false;
             }
         }

@@ -25,7 +25,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
@@ -163,7 +163,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         List<FType> instantiationTypes;
         try {
             instantiationTypes = createSymbolicInstantiation(tpl, wcl, ge);
-        } catch (FortressError e) {
+        } catch (FortressException e) {
             e.setContext(location,ge);
             throw e;
         }

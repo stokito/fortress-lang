@@ -16,11 +16,16 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.tasks;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 
-public class TaskError extends FortressError {
+public class TaskError extends FortressException {
 
-   public TaskError(Throwable err) {
+   /**
+	 * Make Eclipse happy
+	 */
+	private static final long serialVersionUID = -653549831412970946L;
+
+public TaskError(Throwable err) {
         super(err.getMessage());
     }
 }

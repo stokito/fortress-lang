@@ -21,7 +21,7 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -182,7 +182,7 @@ public final class DottedMethodApplication extends Fcn {
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         try {
             return cl.applyMethod(args, self, loc, envForInference);
-        } catch (FortressError ex) {
+        } catch (FortressException ex) {
             throw ex.setContext(loc, getWithin());
         } catch (StackOverflowError soe) {
             return error(loc, getWithin(), errorMsg("Stack overflow on ",loc));

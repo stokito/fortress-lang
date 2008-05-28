@@ -25,9 +25,9 @@ import com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManag
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
-import com.sun.fortress.interpreter.evaluator.FortressException;
-import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.FortressError;
+import java.util.concurrent.Callable;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -116,7 +116,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
             }
         } catch (AbortedException e) {
             throw e;
-        } catch (FortressError e) {
+        } catch (FortressException e) {
             throw e;
         } catch (Exception e) {
             throw new PanicException(e);

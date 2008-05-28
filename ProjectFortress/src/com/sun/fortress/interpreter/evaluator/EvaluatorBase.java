@@ -85,7 +85,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
             return foo.apply(args, loc, e);
-        } catch (FortressError ex) {
+        } catch (FortressException ex) {
             throw ex.setContext(loc,e);
         } catch (StackOverflowError soe) {
             return error(loc,e,errorMsg("Stack overflow on ",foo));
@@ -160,7 +160,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         if (DUMP_INFERENCE)
                             System.err.println("    extends "+tr+" = "+tt);
                         abm.meetPut(name, tt);
-                    } catch (FortressError pe) {
+                    } catch (FortressException pe) {
                         if (DUMP_INFERENCE)
                             System.err.println("    extends with failed evalType "+tr);
                         if (!rechecked) {
@@ -243,7 +243,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         System.err.println("Unifying "+at+" and vararg type "+ty);
                     at.unify(e, tp_set, abm, ty);
                 }
-            } catch (FortressError ex) {
+            } catch (FortressException ex) {
                 /* Give decent feedback when unification fails. */
                 throw ex.setContext(loc, e);
             }

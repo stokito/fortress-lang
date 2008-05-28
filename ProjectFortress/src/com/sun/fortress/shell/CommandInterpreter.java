@@ -25,7 +25,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.interpreter.drivers.*;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
@@ -159,7 +159,7 @@ public class CommandInterpreter {
   catch (RepositoryError e) {
    System.err.println(e.getMessage());
   }
-  catch (FortressError e) {
+  catch (FortressException e) {
    System.err.println(e.getMessage());
    e.printInterpreterStackTrace(System.err);
 

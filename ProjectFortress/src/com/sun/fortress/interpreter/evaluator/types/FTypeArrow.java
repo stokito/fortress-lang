@@ -23,7 +23,7 @@ import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.AbstractTupleType;
@@ -179,7 +179,7 @@ public class FTypeArrow extends FType {
             else {
                 domain.unify(env, tp_set, dual, Types.stripKeywords(valdom));
             }
-        } catch (FortressError p) {
+        } catch (FortressException p) {
             return false;
         } catch (EmptyLatticeIntervalError p) {
             return false;
