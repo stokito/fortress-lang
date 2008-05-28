@@ -832,6 +832,34 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                  " from non-subtype ", exprType));
     }
 
+
+    // This method is brittle to additions to the LHS type. Isn't there a better way to get these?
+    private static Option<? extends IdOrOpOrAnonymousName> getIdOfLHS(LHS lhs) {
+    	if( lhs instanceof _RewriteFieldRef ) {
+    		Name n = ((_RewriteFieldRef)lhs).getField();
+    		assert(n instanceof IdOrOpOrAnonymousName);
+    		return Option.some(((IdOrOpOrAnonymousName)n));
+    	}
+    	else if( lhs instanceof FieldRef ) {
+    		return Option.some(((FieldRef)lhs).getField());
+    	}
+    	else if( lhs instanceof FieldRefForSure ) {
+    		return Option.some(((FieldRefForSure)lhs).getField());
+    	}
+    	else if( lhs instanceof LValueBind ) {
+    		return Option.some(((LValueBind)lhs).getName());
+    	}
+    	else if( lhs instanceof SubscriptExpr ) {
+    		return Option.none();
+    	}
+    	else if( lhs instanceof VarRef ) {
+    		return Option.some(((VarRef)lhs).getVar());
+    	}
+    	else {
+    		assert(false);
+    		return Option.none();
+    	}
+    }
     
     
     @Override
@@ -840,6 +868,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			Option<TypeCheckerResult> opr_result, TypeCheckerResult rhs_result) {
     	// If LHS.size() > 1 then rhs must be a tuple and their types must match.
     	// LHS vars must have already been declared
+    	// must be assignable
     	// if oper != :=, then do we need to look up the types it expects?
     	// result of the entire thing is not clear in spec, making it type of expr
     	
@@ -847,14 +876,32 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	all_results.addAll(lhs_results);
     	if( opr_result.isSome() ) 
     		all_results.add(opr_result.unwrap());
-    	all_results.add(rhs_result);    	
+    	all_results.add(rhs_result);
+
+    	// assert that lhs variables are assignable
+    	for( LHS lhs : that.getLhs() ) {
+    		Option<? extends IdOrOpOrAnonymousName> id = getIdOfLHS(lhs);
+    		if( id.isSome() ) {
+    			Option<BindingLookup> binding = typeEnv.binding(id.unwrap());
+    			if( binding.isSome() ) {
+    				if( !binding.unwrap().isMutable() ) {
+    					// THIS is an error. Must be declared mutable
+    					TypeCheckerResult r = new TypeCheckerResult(lhs, TypeError.make("Left-hand side of assignment must be mutable, and " +
+    							lhs + " is not.", lhs));
+    					all_results.add(r);
+    					//return TypeCheckerResult.compose(that, all_results);
+    					return r;
+    				}
+    			}	
+    		}
+    	}
     	
     	if( rhs_result.type().isNone() ) {
     		// Typechecking of subexpr already failed...
     		return TypeCheckerResult.compose(that, all_results);
     	}
     	Type rhs_type = rhs_result.type().unwrap();
-    	
+    	    	
     	// Construct type of LHS for comparison purposes
     	Type lhs_type; 
     	if( lhs_results.size() == 1 ) {
@@ -922,7 +969,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         	this.checkSubtype(rhs_type, lhs_type, that);
     		
     		all_results.add(subtype_result);
-    		result = TypeCheckerResult.compose(that, rhs_type, all_results);
+    		result = TypeCheckerResult.compose(that, Types.VOID, all_results);
     	}
     	
 		return result;
