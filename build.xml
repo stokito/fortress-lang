@@ -19,4 +19,7 @@
     <target name="testSystem">
         <ant target="testSystem"/>
     </target>
+    <target name="testOnly">
+        <ant target="testOnly" />
+    </target>
 </project>

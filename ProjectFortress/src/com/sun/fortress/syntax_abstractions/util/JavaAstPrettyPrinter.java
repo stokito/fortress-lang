@@ -26,6 +26,7 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Block;
+import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Enclosing;
@@ -35,6 +36,8 @@ import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
+import com.sun.fortress.nodes.IntLiteralExpr;
+import com.sun.fortress.nodes.InFixity;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
@@ -80,7 +83,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
     private Collection<? extends String> mkList(List<String> exprs_result, String varName, String type) {
         List<String> cs = new LinkedList<String>();
-        cs.add("List<"+type+"> "+varName+" = new LinkedList<"+type+">();");
+        cs.add(String.format("List<%1$s> %2$s = new LinkedList<%1$s>();", type, varName));
+        // cs.add("List<"+type+"> "+varName+" = new LinkedList<"+type+">();");
         for (String s: exprs_result) {
             cs.add(varName+".add("+s+");");
         }
@@ -100,6 +104,31 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.add("StringLiteralExpr "+rVarName+" = new StringLiteralExpr(\""+that.getClass()+"\");");
         return rVarName;
         */
+    }
+
+    @Override
+    public String forIntLiteralExprOnly(IntLiteralExpr that){
+	    String rVarName = FreshName.getFreshName("intExpr");
+	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+	    this.code.add( String.format("IntLiteralExpr %s = new IntLiteralExpr(%s, new java.math.BigInteger(\"%s\"));", rVarName, sVarName, that.getVal().toString() ) );
+	    return rVarName;
+    }
+
+    @Override
+    public String forInFixityOnly(InFixity that){
+	    String rVarName = FreshName.getFreshName("inFixity");
+	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+	    this.code.add( String.format("InFixity %s = new InFixity(%s);", rVarName, sVarName) );
+	    return rVarName;
+    }
+
+    @Override
+    public String forChainExprOnly(ChainExpr that, String first_result) {
+	    String rVarName = FreshName.getFreshName("chainExpr");
+	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+	    // this.code.add( String.format("ChainExpr %s = new ChainExpr(%s, %s, new ArrayList<Pair<Op,Expr>>());", rVarName, sVarName, first_result) );
+	    this.code.add( String.format("ChainExpr %s = new ChainExpr(%s, %s, new ArrayList());", rVarName, sVarName, first_result) );
+	    return rVarName;
     }
 
     @Override 
