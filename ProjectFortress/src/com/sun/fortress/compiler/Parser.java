@@ -23,10 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
-import java.util.List;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.io.IOUtil;
@@ -53,7 +51,6 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
-import com.sun.fortress.useful.NI;
 
 /**
  * Methods to parse a collection of files to a collection of ASTs. Automatically
@@ -172,40 +169,7 @@ public class Parser {
     public static Result parse(File f) {
         try {
             BufferedReader in = Useful.utf8BufferedFileReader(f);
-            try {
-                com.sun.fortress.parser.Fortress p =
-                    new com.sun.fortress.parser.Fortress(in, f.toString());
-                xtc.parser.Result parseResult = p.pFile(0);
-                if (parseResult.hasValue()) {
-                    Object cu = ((SemanticValue) parseResult).value;
-                    if (cu instanceof Api) {
-                        Api _cu = (Api) cu;
-
-                        if (f.toString().endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
-                            return new Result(_cu, f.lastModified());
-                        } else {
-                            return new Result(StaticError.make
-                                ("Api files must have suffix " + ProjectProperties.API_SOURCE_SUFFIX,
-                                 _cu));
-                        }
-                    } else if (cu instanceof Component) {
-                        Component _cu = (Component) cu;
-
-                        if (f.toString().endsWith(ProjectProperties.COMP_SOURCE_SUFFIX)) {
-                            return new Result(_cu, f.lastModified());
-                        } else {
-                            return new Result(StaticError.make
-                                ("Component files must have suffix " + ProjectProperties.COMP_SOURCE_SUFFIX,
-                                 _cu));
-                        }
-                    } else {
-                        throw new RuntimeException("Unexpected parse result: " + cu);
-                    }
-                } else {
-                    return new Result(new Parser.Error((ParseError) parseResult, p));
-                }
-            }
-            finally { in.close(); }
+            return parse(f.toString(), f.lastModified(), in);
         }
         catch (FileNotFoundException e) {
             return new Result(StaticError.make("Cannot find file " + f.getName(),
@@ -217,6 +181,46 @@ public class Parser {
             return new Result(StaticError.make(desc, f.toString()));
         }
     }
+
+    /** Parses a BufferedReader object, given some descriptive information. */
+	public static Result parse(String filename, 
+			long modificationDate, BufferedReader in) throws IOException {
+		try {
+		    com.sun.fortress.parser.Fortress p =
+		        new com.sun.fortress.parser.Fortress(in, filename);
+		    xtc.parser.Result parseResult = p.pFile(0);
+		    if (parseResult.hasValue()) {
+		        Object cu = ((SemanticValue) parseResult).value;
+		        if (cu instanceof Api) {
+		            Api _cu = (Api) cu;
+
+		            if (filename.endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
+		                return new Result(_cu, modificationDate);
+		            } else {
+		                return new Result(StaticError.make
+		                    ("Api files must have suffix " + ProjectProperties.API_SOURCE_SUFFIX,
+		                     _cu));
+		            }
+		        } else if (cu instanceof Component) {
+		            Component _cu = (Component) cu;
+
+		            if (filename.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX)) {
+		                return new Result(_cu, modificationDate);
+		            } else {
+		                return new Result(StaticError.make
+		                    ("Component files must have suffix " + ProjectProperties.COMP_SOURCE_SUFFIX,
+		                     _cu));
+		            }
+		        } else {
+		            throw new RuntimeException("Unexpected parse result: " + cu);
+		        }
+		    } else {
+		        return new Result(new Parser.Error((ParseError) parseResult, p));
+		    }
+		}
+		finally { in.close(); }
+	}  
+    
 
     /**
      * Get all files potentially containing APIs imported by cu that aren't
