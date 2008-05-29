@@ -1120,7 +1120,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, BetterEnv interior) {
         List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
-        interior = new BetterEnv(interior, x);
+        interior = interior.extendAt(x);
 
         EvalType et = processWhereClauses(x.getWhere(), interior);
 
@@ -1236,7 +1236,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     static public void finishObjectTrait(List<BaseType> extends_,
             List<? extends Type> excludes, WhereClause wheres, FTypeObject ftt,
             BetterEnv interior, HasAt x) {
-        interior = new BetterEnv(interior, x);
+        interior = interior.extendAt(x);
         EvalType et = processWhereClauses(wheres, interior);
         ftt.setExtendsAndExcludes(et.getFTypeListFromList(extends_), et
                 .getFTypeListFromList(excludes), interior);

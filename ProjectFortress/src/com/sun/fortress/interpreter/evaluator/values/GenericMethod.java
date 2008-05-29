@@ -92,7 +92,7 @@ public class GenericMethod extends MethodClosure implements
             Factory1P<List<FType>, MethodClosure, HasAt> {
 
         public MethodClosure make(List<FType> args, HasAt location) {
-            BetterEnv clenv = new BetterEnv(evaluationEnv, location); // TODO is this the right environment?
+            BetterEnv clenv = evaluationEnv.extendAt(location); // TODO is this the right environment?
             // It looks like it might be, or else good enough.  The disambiguating
             // pass effectively hides all the names defined in the interior
             // of the trait.

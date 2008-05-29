@@ -88,7 +88,7 @@ public class FTypeTrait extends FTraitOrObject {
     protected void finishInitializing() {
         declaredMembersOf.bless();
         BetterEnv interior = getWithin();
-        methodEnv = new BetterEnv(interior, interior.getAt());
+        methodEnv = interior.extend();
         methodEnv.bless();
     }
 

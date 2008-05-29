@@ -25,6 +25,7 @@ ProjectFortress/*.tfi
 fortress_*.zip
 ProjectFortress/.dependencies/dependencies.txt
 META
+ProjectFortress/junitvmwatcher*.properties
 ProjectFortress/bin/
 ProjectFortress/build/
 ProjectFortress/src/com/sun/fortress/nodes/

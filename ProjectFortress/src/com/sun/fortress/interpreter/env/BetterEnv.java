@@ -152,12 +152,19 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         this(new HasAt.FromString(s));
     }
 
+    // Used by Trait and Object to constructor declared-members environments.
     public BetterEnv(HasAt s) {
         within = s;
     }
 
+    // Only used in testing (EvaluatorJUTest).
     public BetterEnv(BetterEnv existing, String s) {
         this(existing, new HasAt.FromString(s));
+    }
+
+    private BetterEnv(BetterEnv containing, HasAt x) {
+        this(containing);
+        within = x;
     }
 
     private BetterEnv(BetterEnv existing) {
@@ -174,12 +181,31 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         parent = existing;
     }
 
-    public BetterEnv(BetterEnv existing, BetterEnv additions) {
+    /**
+     * Creates a new type environment starting with existing (the nominal parent)
+     * but with additions added.
+     * 
+     * @param existing
+     * @param additions
+     */
+    private BetterEnv(BetterEnv existing, BetterEnv additions) {
         if ( !existing.blessed || !additions.blessed )
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
         augment(existing, additions);
         parent = existing;
         bless();
+    }
+    
+    public BetterEnv extend(BetterEnv additions) {
+        return new BetterEnv(this, additions);
+    }
+
+    public BetterEnv extendAt(HasAt x) {
+        return new BetterEnv(this, x);
+    }
+
+    public BetterEnv extend() {
+        return new BetterEnv(this, this.getAt());
     }
 
     private void augment(BetterEnv existing, BetterEnv additions) {
@@ -193,17 +219,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         dcl_env = augment(existing.dcl_env, additions.dcl_env);
     }
 
-    public BetterEnv augment(BetterEnv additions) {
-        augment(this, additions);
-        return this;
-    }
-
-    public BetterEnv(BetterEnv containing, HasAt x) {
-        this(containing);
-        within = x;
-    }
-
-    static <Result> BATreeNode<String, Result> augment(
+   static <Result> BATreeNode<String, Result> augment(
             BATreeNode<String, Result> original,
             BATreeNode<String, Result> toBeAdded) {
         if (original == null) return toBeAdded;

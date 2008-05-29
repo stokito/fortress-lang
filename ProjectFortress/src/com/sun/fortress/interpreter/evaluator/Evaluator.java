@@ -196,7 +196,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @param within
      */
     public Evaluator(Evaluator ev, HasAt within) {
-        this(new BetterEnv(ev.e, within));
+        this(ev.e.extendAt(within));
     }
 
     /**
@@ -324,7 +324,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = FortressTaskRunner.doIt (
             new Callable<FValue>() {
                 public FValue call() {
-                    Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+                    Evaluator ev = new Evaluator(current.e.extendAt(expr));
                     return expr.accept(ev);
                 }
             }
@@ -338,14 +338,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = FVoid.V;
         // Inside a transaction tryAtomic is a noop
         if (BaseTask.inATransaction()) {
-            Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+            Evaluator ev = new Evaluator(current.e.extendAt(expr));
             return expr.accept(current);
         }
         try {
             res = FortressTaskRunner.doItOnce(
                 new Callable<FValue>() {
                     public FValue call() {
-                        Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+                        Evaluator ev = new Evaluator(current.e.extendAt(expr));
                         FValue res1 = expr.accept(ev);
                         return res1;
                     }
@@ -461,7 +461,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         for (Expr exp : exprs) {
             // TODO This will get turned into forLet methods
             if (exp instanceof LetExpr) {
-                BetterEnv inner = new BetterEnv(eval.e, exp);
+                BetterEnv inner = eval.e.extendAt(exp);
                 BuildLetEnvironments be = new BuildLetEnvironments(inner);
                     res = be.doLets((LetExpr) exp);
             } else {
@@ -903,7 +903,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Block body  = x.getBody();
         FValue res = FVoid.V;
         try {
-            Evaluator ev = new Evaluator(new BetterEnv(e,body));
+            Evaluator ev = new Evaluator(e.extendAt(body));
             res = ev.forBlock(body);
         } catch (NamedLabelException e) {
             if (e.match(name.getText())) {
