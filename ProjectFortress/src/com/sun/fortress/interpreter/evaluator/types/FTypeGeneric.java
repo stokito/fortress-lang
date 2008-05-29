@@ -264,7 +264,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
     static  FTraitOrObject make(List<FType> bind_args, List<FType> key_args, HasAt within,
             Map<List<FType>, FTraitOrObject> map, FTypeGeneric gen) {
-        BetterEnv clenv = new BetterEnv(gen.env, within);
+        BetterEnv clenv = gen.env.extendAt(within);
         // List<StaticParam> params = def.getTypeParams().getVal();
         EvalType.bindGenericParameters(gen.params, bind_args, clenv, within,
                 gen.genericAt);

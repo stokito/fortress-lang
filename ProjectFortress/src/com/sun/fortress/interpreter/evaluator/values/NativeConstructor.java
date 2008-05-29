@@ -114,7 +114,7 @@ public abstract class NativeConstructor extends Constructor {
         // or objectExpr value.
         if (defs.size() > 0) {
             EvalVarsEnvironment eve =
-                new EvalVarsEnvironment(new BetterEnv(lex_env,self_env), self_env);
+                new EvalVarsEnvironment(lex_env.extend(self_env), self_env);
             visitDefs(eve); // HACK here's where we add to self_env.
         }
 

@@ -156,7 +156,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         // want to contaminate a "real" environment with these names.
         // We also don't want "crosstalk" between type parameters
         // to different overloaded things.
-        BetterEnv ge = new BetterEnv(bte, location);
+        BetterEnv ge = bte.extendAt(location);
 
         // Note that we must arrange for the symbolic things
         // to meet the constraints required by the object.
@@ -171,7 +171,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     }
 
     static public List<FType> createSymbolicInstantiation(BetterEnv bte, List<StaticParam> tpl, WhereClause wcl, HasAt location) throws Error {
-        return createSymbolicInstantiation(tpl, wcl, new BetterEnv(bte, location));
+        return createSymbolicInstantiation(tpl, wcl, bte.extendAt(location));
     }
     /**
      * @param tpl

@@ -93,7 +93,7 @@ public class FTypeObject extends FTraitOrObject {
     @Override
     protected void finishInitializing() {
         BetterEnv interior = getWithin();
-        methodEnv = new BetterEnv(interior, interior.getAt());
+        methodEnv = interior.extend();
         methodEnv.bless();
 
     }

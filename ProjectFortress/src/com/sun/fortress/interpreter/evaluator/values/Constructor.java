@@ -443,7 +443,7 @@ public class Constructor extends NonPrimitive {
         }
 
 
-        methodsEnv = new BetterEnv(within, within.getAt());
+        methodsEnv = within.extend();
         addMethodsToEnv(methodsEnv);
         methodsEnv.bless();
 
@@ -598,7 +598,7 @@ public class Constructor extends NonPrimitive {
 
         if (defs.size() > 0) {
             // Minor optimization, avoid this if no defs to eval.
-            EvalVarsEnvironment eve = new EvalVarsEnvironment(new BetterEnv(lex_env, self_env), self_env);
+            EvalVarsEnvironment eve = new EvalVarsEnvironment(lex_env.extend(self_env), self_env);
             visitDefs(eve); // HACK here's where we add to self_env.
         }
 
@@ -616,7 +616,7 @@ public class Constructor extends NonPrimitive {
 
     public FValue applyOEConstructor(HasAt loc, BetterEnv lex_env) {
         // Problem -- we need to detach self-env from other env.
-        BetterEnv self_env = new BetterEnv(methodsEnv, loc);
+        BetterEnv self_env = methodsEnv.extendAt(loc);
 
         FValue surroundSelf = lex_env.getValueNull(WellKnownNames.secretSelfName);
         if (surroundSelf != null)
@@ -635,7 +635,7 @@ public class Constructor extends NonPrimitive {
 
         if (defs.size() > 0) {
             // Minor optimization, avoid this if no defs to eval.
-            EvalVarsEnvironment eve = new EvalVarsEnvironment(new BetterEnv(lex_env, self_env), self_env);
+            EvalVarsEnvironment eve = new EvalVarsEnvironment(lex_env.extend(self_env), self_env);
             visitDefs(eve); // HACK here's where we add to self_env.
         }
 

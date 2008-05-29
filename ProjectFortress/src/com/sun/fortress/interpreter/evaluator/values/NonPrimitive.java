@@ -189,13 +189,13 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     public BetterEnv buildEnvFromParams(List<FValue> args, HasAt loc)
             throws Error {
-        BetterEnv env = new BetterEnv(within, getAt());
+        BetterEnv env = within.extendAt(getAt());
         return buildEnvFromParams(args, env, loc);
     }
 
     public BetterEnv buildEnvFromEnvAndParams(BetterEnv env, List<FValue> args, HasAt loc)
             throws Error {
-        env = new BetterEnv(env, getAt());
+        env = env.extendAt(getAt());
         return buildEnvFromParams(args, env, loc);
     }
 

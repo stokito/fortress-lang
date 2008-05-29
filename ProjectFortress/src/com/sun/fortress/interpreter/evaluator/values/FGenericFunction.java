@@ -120,7 +120,7 @@ public class FGenericFunction extends SingleFcn
     private class Factory implements Factory1P<List<FType>, Simple_fcn, HasAt> {
 
         public Simple_fcn make(List<FType> args, HasAt location) {
-            BetterEnv clenv = new BetterEnv(getEnv(), location);
+            BetterEnv clenv = getEnv().extendAt(location);
             List<StaticParam> params = getStaticParams();
             EvalType.bindGenericParameters(params, args, clenv, location, fndef);
 
