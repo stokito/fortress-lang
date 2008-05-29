@@ -19,7 +19,6 @@
 
 component Generators.GeneratorDefn
 import List.{...}
-import TypeReflect.{...}
 export Executable
 
 (** EXAMPLE **)

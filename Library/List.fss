@@ -17,42 +17,53 @@
 
 component List
 import OneShotFlag.{...}
-import TypeReflect.{...}
 import NativeArray.{...}
 
 export List
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).
 
-    An ArrayList is an immutable segment of a mutable array.  The rest
-    of the mutable array may contain elements of purelists in which
-    this list is contained, or may be free for future use.  Every
-    PureList includes a pointer to a flag canExtend; if this flag is
-    true we are permitted to add additional elements to the PureList
-    in place by writing into the mutable array.  At most one instance
-    sharing the same backing array will obtain permission to extend
-    the array in this way; we atomically check and update the flag to
-    guarantee this.  Having obtained permission to extend the list,
-    that permission may be extended to future attempts to extend.
+    An ArrayList is an immutable, fully-initialized segment of a
+    write-once array.  The rest of the mutable array may contain
+    elements of purelists in which this list is contained, or may be
+    unwritten for future use.  Every PureList includes a pointer to a
+    flag canExtend; if this flag is true we are permitted to add
+    additional elements to the PureList in place by writing into the
+    uninitialized portions of the array.  At most one instance sharing
+    the same backing array will obtain permission to extend the array
+    in this way; we atomically check and update the flag to guarantee
+    this.  Having obtained permission to extend the list, that
+    permission may be passed on to future attempts to extend.
 
     Eventually the backing array fills and we must allocate a new
     backing array to accept new elements.  At the moment we're not
     particularly careful to avoid stealing permission to extend for
     overflowing append operations.
 
-    Note that because of this implementation, an ArrayList can be
-    efficiently extended on the right (addRight) and appended to
-    (append), but cannot be efficiently extended on the left
-    (addLeft).
+    We keep separate flags for both the left and right ends of the
+    ArrayList, so that it supports efficient extension or append on
+    either end.  The append operation attempts to copy the contents of
+    one argument into the other, choosing based on the availability of
+    space and permission.  The way enlargement works tends to favor
+    right extension; if you're appending this shouldn't matter, but it
+    means it's probably better to use %addRight% in favor of %addLeft%
+    if there is a choice.
 
     Note also that the implementation hasn't yet been carefully
     checked for amortization, so it is quite likely there are a number
-    of asymptotic infelicities in the implementation.
+    of asymptotic infelicities in the library.
 
     Finally, note that this is an efficient *amortized* structure.  An
     individual operation may be quite slow due to copying work.
+    Moreover, because it is amortized rather than incremental it may
+    be quite inefficient if you augment a single list in multiple
+    different ways (the list will be repeatedly re-copied for each
+    different extension).
 
     Baking these off vs PureLists, they look very good in practice.
+    But the bakeoff tended to extend each list at most once (not 100%
+    true, but close).
+
  **)
 
 (* Tests can be found in
@@ -81,28 +92,19 @@ trait SomeList excludes { Number, HasRank }
     addRight(e:Any): SomeList = addR(self,e)
 end
 
-private app[\E,F\](a:List[\E\], b:List[\F\]): SomeList =
-    app'(joinReflected(Reflect[\E\](),Reflect[\F\]()),a,b)
-
-private app'[\T,E,F\](t:Reflect[\T\], a:List[\E\], b:List[\F\]): List[\T\] =
+private app[\T,E extends T,F extends T\](a:List[\E\], b:List[\F\]): List[\T\] =
     typecase (a,b) of
         (List[\T\],List[\T\]) => a.append(b)
-        (List[\T\],SomeList) => a.appendRC[\F\](b)
-        (SomeList,List[\T\]) => b.appendLC[\E\](a)
+        (List[\T\],List[\F\]) => a.appendRC[\F\](b)
+        (List[\E\],List[\T\]) => b.appendLC[\E\](a)
         else =>
             emptyList[\T\](scale(|a| + |b|)).appendR[\E\](a).appendR[\F\](b)
     end
 
-private addL[\E,F\](x:E, xs:List[\F\]): SomeList =
-    addL'(joinReflected(Reflect[\E\](),Reflect[\F\]()),x,xs)
-
-private addL'[\T,E,F\](t:Reflect[\T\], x:E, xs:List[\F\]): List[\T\] =
+private addL[\T,E extends T,F extends T\](x:E, xs:List[\F\]): List[\T\] =
     emptyList[\T\](scale(|xs|)).addRight(x).appendR[\F\](xs)
 
-private addR[\E,F\](xs:List[\F\],x:E): SomeList =
-    addR'(joinReflected(Reflect[\E\](),Reflect[\F\]()),xs,x)
-
-private addR'[\T,E,F\](t:Reflect[\T\], xs:List[\F\], x:E): List[\T\] =
+private addR[\T,E extends T,F extends T\](xs:List[\F\],x:E): List[\T\] =
     emptyList[\T\](scale(|xs|)).appendR[\F\](xs).addRight(x)
 
 (** %List%.  We return a %Generator% for non-list-specific operations
