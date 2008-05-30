@@ -16,6 +16,13 @@ api SyntaxNodes
                 else 
                 2
                 end ]>
+        | e x:Decl <[ println x ]>
+        | g {Thing} <[ 1 ]>
+        | f {x:Thing y:Thing} <[ 1 ]>
+        | n {x:Thing q {y:Thing z:Thing}} <[ 1 ]>
+        (*
+        | f (x:Thing y:Thing) <[ 1 ]>
+        *)
     end
 
 end

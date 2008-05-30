@@ -34,6 +34,7 @@ api Xml2
     getter hasElements():Boolean
     getter children():List[\Element\]
     getter content():CData
+    getter attributes():List[\Attribute\]
   end 
   Element(info:Header)
   Element(info:Header, endTag:String)
@@ -75,6 +76,11 @@ api Xml2
       <[ Header(s,emptyList[\Attribute\]()) ]>
     | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
       <[ Header(s, a) ]>
+
+    (x:A y:A)*
+    x:AA*
+    y:AA*
+    AA = x:a y:a <[ x y ]>
 
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
       s:Strings <[ <| (CData(s) asif Content) |> ]>

@@ -33,7 +33,7 @@ component Xml2
         if info.getTag() =/= endTag then
           println "Tags dont match start '" info.getTag() "' end '" endTag "'"
         end
-        var s:String = "<" info.getTag() (BIG STRING info.attributes) ">"
+        var s:String = "<" info.getTag() (BIG STRING info.attributes()) ">"
         for x <- seq(content_) do 
           s := s x.toString() 
         end
@@ -43,6 +43,8 @@ component Xml2
 
     children():List[\Element\] = 
         content_.map[\Element\](fn x => cast[\Element\](x))
+    
+    attributes():List[\Attribute\] = info.attributes()
     
     hasElements():Boolean = content_.isEmpty() OR: (isElement(content_[0]))
     content():CData = cast[\CData\](content_[0])
@@ -61,9 +63,9 @@ component Xml2
   Element(info:Header) = Element(info, emptyList[\Content\](), info.getTag())
   Element(info:Header, endTag:String) = Element(info, emptyList[\Content\](), endTag)
 
-  object Header(startTag:String, attributes:List[\Attribute\])
+  object Header(startTag:String, attributes_:List[\Attribute\])
     getter getTag():String = startTag
-    getter attributes():String = attributes
+    getter attributes():List[\Attribute\] = attributes_
   end
 
   object Attribute(key:String, val:String)

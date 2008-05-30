@@ -33,6 +33,9 @@ import xtc.parser.NonTerminal;
 import xtc.parser.NotFollowedBy;
 import xtc.parser.Sequence;
 import xtc.parser.SequenceName;
+import xtc.parser.SequenceName;
+import xtc.parser.ParserAction;
+import xtc.parser.Action;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
@@ -48,6 +51,7 @@ import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -175,184 +179,198 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		}
 
 		@Override
-        public List<Element> forAnyCharacterSymbol(AnyCharacterSymbol that) {
-		    return mkList(new NonTerminal("_"));
-        }
-
-        @Override
-		public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
-			return mkList(new NonTerminal(that.getNonterminal().getText()));
-		}
-
-		@Override
-		public List<Element> forKeywordSymbol(KeywordSymbol that) {
-			return mkList(new xtc.parser.StringLiteral(that.getToken()));
-		}
-
-		@Override
-		public List<Element> forTokenSymbol(TokenSymbol that) {
-			return mkList(new xtc.parser.StringLiteral(that.getToken()));
-		}
-
-		@Override
-		public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
-			return mkList(new NonTerminal("w"));
-		}
-
-		@Override
-		public List<Element> forBreaklineSymbol(BreaklineSymbol that) {
-			return mkList(new NonTerminal("br"));
-		}
-
-		@Override
-		public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
-		    return mkList(new xtc.parser.StringLiteral("\b"));
-		}
-
-		@Override
-		public List<Element> forNewlineSymbol(NewlineSymbol that) {
-		    return mkList(new xtc.parser.StringLiteral("\n"));
-		}
-
-		@Override
-		public List<Element> forCarriageReturnSymbol(CarriageReturnSymbol that) {
-		    return mkList(new xtc.parser.StringLiteral("\r"));
-		}
-
-		@Override
-		public List<Element> forFormfeedSymbol(FormfeedSymbol that) {
-		    return mkList(new xtc.parser.StringLiteral("\f"));
-		}
-
-		@Override
-		public List<Element> forTabSymbol(TabSymbol that) {
-		    return mkList(new xtc.parser.StringLiteral("\t"));
-		}
-
-		@Override
-		public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
-			List<CharRange> crs = new LinkedList<CharRange>();
-			final String mess = "Incorrect escape rewrite: ";
-			for (CharacterSymbol c: that.getCharacters()) {
-				// TODO: Error when begin < end
-				CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
-					@Override
-					public CharRange forCharacterInterval(CharacterInterval that) {
-						if (that.getBegin().length() != 1) {
-							new RuntimeException(mess +that.getBegin());
-						}
-						if (that.getEnd().length() != 1) {
-							new RuntimeException(mess+that.getEnd());
-						}
-						return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
-					}
-
-					@Override
-					public CharRange forCharSymbol(CharSymbol that) {
-						if (that.getString().length() != 1) {
-							new RuntimeException(mess+that.getString());
-						}
-						return new CharRange(that.getString().charAt(0));
-					}
-				});
-				crs.add(cr);
+			public List<Element> forAnyCharacterSymbol(AnyCharacterSymbol that) {
+				return mkList(new NonTerminal("_"));
 			}
-			return mkList(new CharClass(crs));
-		}
 
 		@Override
-		public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that, 
-				Option<List<Element>> id_result, Option<List<Element>> type_result,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-			    assert(that.getId().isSome());
-				symbol_result.add(new Binding(that.getId().unwrap().getText(), e));
-				return symbol_result;
+			public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
+				return mkList(new NonTerminal(that.getNonterminal().getText()));
 			}
-			if (symbol_result.isEmpty()) {
-				if (that.getId().isSome()) {
-					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+that.getId().unwrap().getText() + " "+that.getSymbol());
+
+		@Override
+			public List<Element> forKeywordSymbol(KeywordSymbol that) {
+				return mkList(new xtc.parser.StringLiteral(that.getToken()));
+			}
+
+		@Override
+			public List<Element> forTokenSymbol(TokenSymbol that) {
+				return mkList(new xtc.parser.StringLiteral(that.getToken()));
+			}
+
+		@Override
+			public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
+				return mkList(new NonTerminal("w"));
+			}
+
+		@Override
+			public List<Element> forBreaklineSymbol(BreaklineSymbol that) {
+				return mkList(new NonTerminal("br"));
+			}
+
+		@Override
+			public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
+				return mkList(new xtc.parser.StringLiteral("\b"));
+			}
+
+		@Override
+			public List<Element> forNewlineSymbol(NewlineSymbol that) {
+				return mkList(new xtc.parser.StringLiteral("\n"));
+			}
+
+		@Override
+			public List<Element> forCarriageReturnSymbol(CarriageReturnSymbol that) {
+				return mkList(new xtc.parser.StringLiteral("\r"));
+			}
+
+		@Override
+			public List<Element> forFormfeedSymbol(FormfeedSymbol that) {
+				return mkList(new xtc.parser.StringLiteral("\f"));
+			}
+
+		@Override
+			public List<Element> forTabSymbol(TabSymbol that) {
+				return mkList(new xtc.parser.StringLiteral("\t"));
+			}
+
+		@Override
+			public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
+				List<CharRange> crs = new LinkedList<CharRange>();
+				final String mess = "Incorrect escape rewrite: ";
+				for (CharacterSymbol c: that.getCharacters()) {
+					// TODO: Error when begin < end
+					CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
+						@Override
+						public CharRange forCharacterInterval(CharacterInterval that) {
+							if (that.getBegin().length() != 1) {
+								new RuntimeException(mess +that.getBegin());
+							}
+							if (that.getEnd().length() != 1) {
+								new RuntimeException(mess+that.getEnd());
+							}
+							return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
+						}
+
+					@Override
+						public CharRange forCharSymbol(CharSymbol that) {
+							if (that.getString().length() != 1) {
+								new RuntimeException(mess+that.getString());
+							}
+							return new CharRange(that.getString().charAt(0));
+						}
+					});
+					crs.add(cr);
 				}
-				throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
+				return mkList(new CharClass(crs));
 			}
-			throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
-		}
 
 		@Override
-		public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new xtc.parser.Option(e));
-				return symbol_result;
+			public List<Element> forGroupSymbol(GroupSymbol that){
+				List<Element> all = new LinkedList<Element>();
+				for ( SyntaxSymbol syms : that.getSymbols() ){
+					all.addAll( syms.accept(this) );
+				}
+				List<Integer> indents = new LinkedList<Integer>();
+				indents.add(1);
+				List<String> code = new LinkedList<String>();
+				code.add( "do stuff;" );
+				all.add( new ParserAction( new Action(code, indents) ) );
+				return mkList( new Binding(FreshName.getFreshName("g"), new Sequence(all)));
 			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
-		}
 
 		@Override
-		public List<Element> forRepeatOneOrMoreSymbolOnly(
-				RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new xtc.parser.Repetition(true, e));
-				return symbol_result;
+			public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that, 
+					Option<List<Element>> id_result, Option<List<Element>> type_result,
+					List<Element> symbol_result) {
+				if (symbol_result.size() == 1) {
+					Element e = symbol_result.remove(0);
+					assert(that.getId().isSome());
+					symbol_result.add(new Binding(that.getId().unwrap().getText(), e));
+					return symbol_result;
+				}
+				if (symbol_result.isEmpty()) {
+					if (that.getId().isSome()) {
+						throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+that.getId().unwrap().getText() + " "+that.getSymbol());
+					}
+					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
+				}
+				throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
 			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed repeat-one-or-more symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
-		}
 
 		@Override
-		public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new xtc.parser.Repetition(false, e));
-				return symbol_result;
+			public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
+					List<Element> symbol_result) {
+				if (symbol_result.size() == 1) {
+					Element e = symbol_result.remove(0);
+					symbol_result.add(new xtc.parser.Option(e));
+					return symbol_result;
+				}
+				if (symbol_result.isEmpty()) {
+					throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
+				}
+				throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
 			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
-		}
 
 		@Override
-		public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new FollowedBy(new Sequence(e)));
-				return symbol_result;
-			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
-		}
+			public List<Element> forRepeatOneOrMoreSymbolOnly(
+					RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
+				if (symbol_result.size() == 1) {
+					Element e = symbol_result.remove(0);
+					symbol_result.add(new xtc.parser.Repetition(true, e));
+					return symbol_result;
+				}
+				if (symbol_result.isEmpty()) {
+					throw new RuntimeException("Malformed repeat-one-or-more symbol, not bound to any symbol: ");
+				}
+				throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
+					}
 
 		@Override
-		public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
-				List<Element> symbol_result) {
-			if (symbol_result.size() == 1) {
-				Element e = symbol_result.remove(0);
-				symbol_result.add(new NotFollowedBy(new Sequence(e)));
-				return symbol_result;
+			public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
+					List<Element> symbol_result) {
+				if (symbol_result.size() == 1) {
+					Element e = symbol_result.remove(0);
+					symbol_result.add(new xtc.parser.Repetition(false, e));
+					return symbol_result;
+				}
+				if (symbol_result.isEmpty()) {
+					throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
+				}
+				throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
 			}
-			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
-			}
-			throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
-		}
 
 		@Override
-		public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
-			return new LinkedList<Element>();
-		}
+			public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
+					List<Element> symbol_result) {
+				if (symbol_result.size() == 1) {
+					Element e = symbol_result.remove(0);
+					symbol_result.add(new FollowedBy(new Sequence(e)));
+					return symbol_result;
+				}
+				if (symbol_result.isEmpty()) {
+					throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
+				}
+				throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
+			}
+
+		@Override
+			public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
+					List<Element> symbol_result) {
+				if (symbol_result.size() == 1) {
+					Element e = symbol_result.remove(0);
+					symbol_result.add(new NotFollowedBy(new Sequence(e)));
+					return symbol_result;
+				}
+				if (symbol_result.isEmpty()) {
+					throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
+				}
+				throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
+			}
+
+		@Override
+			public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
+				return new LinkedList<Element>();
+			}
 
 	}
 
