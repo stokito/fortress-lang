@@ -581,14 +581,10 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             return v;
         if (v instanceof IndirectionCell) {
             try {
-                v = ((IndirectionCell) v).getValue();
+                v = ((IndirectionCell) v).getValueNull();
             } catch (CircularDependenceError ce) {
                 ce.addParticipant(s);
                 throw ce;
-            }
-            // Ought to snap link if original was not ReferenceCell
-            if (v == null) {
-                error("Variable " + s + " has no value");
             }
         }
         return v;

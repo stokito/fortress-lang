@@ -1,4 +1,4 @@
-/*******************************************************************************
+ /*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -81,9 +81,9 @@ public class ReferenceCell extends IndirectionCell {
     public String toString() {
         return node.toString();
     }
-    
+
     private void debugPrint(String s) {
-	System.out.println(Thread.currentThread().getName() + s);
+        System.out.println(Thread.currentThread().getName() + s);
     }
 
     public void assignValue(FValue f2) {
@@ -93,19 +93,19 @@ public class ReferenceCell extends IndirectionCell {
         while (true) {
             synchronized (this) {
                 if (me == null) {
-		    others = readWriteConflict(me);
-		    for (Transaction t : others) {
-			t.abort();
-		    }
+                    others = readWriteConflict(me);
+                    for (Transaction t : others) {
+                        t.abort();
+                    }
                     writer.abort();
-		    rnode.recover();
-		    writer = Transaction.COMMITTED_TRANS;
-		    node.setValue(f2);
+                    rnode.recover();
+                    writer = Transaction.COMMITTED_TRANS;
+                    node.setValue(f2);
                     return;
-		} else if (!me.isActive()) {
-		    return;
-		}
-		others = readWriteConflict(me);		
+                } else if (!me.isActive()) {
+                    return;
+                }
+                others = readWriteConflict(me);
                 if (others.isEmpty()) {
                     other = openWrite(me);
                     if (other == null) {
@@ -130,15 +130,15 @@ public class ReferenceCell extends IndirectionCell {
         FValue val;
         FValue oldVal;
 
-        void setValue(FValue value) { 
-	    val = value;
-	}
+        void setValue(FValue value) {
+            val = value;
+        }
 
         FNode(FValue value) {val = value;}
         FNode() {}
-        FValue getValue() { 
-	    return val;
-	}
+        FValue getValue() {
+            return val;
+        }
         FValue getOldValue() { return oldVal;}
 
         public void backup() { oldVal = val; }
@@ -165,6 +165,15 @@ public class ReferenceCell extends IndirectionCell {
     }
 
     public FValue getValue() {
+        FValue the_value = getValueNull();
+        if (the_value == null) {
+            return error("Attempt to read uninitialized variable");
+        }
+
+        return the_value;
+    }
+
+    public FValue getValueNull() {
         Transaction me  = FortressTaskRunner.getTransaction();
         Transaction other = null;
         while (true) {
@@ -172,16 +181,9 @@ public class ReferenceCell extends IndirectionCell {
                 other = openRead(me);
                 //other = openWrite(me);
                 if (other == null) {
-		    FValue the_value;
-		    the_value = node.getValue();
-
-		    if (the_value == null) {
-			return error("Attempt to read uninitialized variable");
-		    }
-
-		    return the_value;
-		}
-	    }
+                    return node.getValue();
+                }
+            }
             manager.resolveConflict(me, other);
         }
     }
@@ -196,11 +198,11 @@ public class ReferenceCell extends IndirectionCell {
         rnode.recover();
         writer = Transaction.COMMITTED_TRANS;
       } else if (writer.isActive()) {
-	  writer.abort();
-	  rnode.recover();
-	  writer = Transaction.COMMITTED_TRANS;
+          writer.abort();
+          rnode.recover();
+          writer = Transaction.COMMITTED_TRANS;
       }
-	  
+
       return null;
     }
     if (me.attempts > CONFLICT_THRESHOLD) {
@@ -245,7 +247,7 @@ public class ReferenceCell extends IndirectionCell {
       } else if (writer.isActive()) {
           writer.abort();
           rnode.recover();
-	  writer = Transaction.COMMITTED_TRANS;
+          writer = Transaction.COMMITTED_TRANS;
       }
       return null;
     }
