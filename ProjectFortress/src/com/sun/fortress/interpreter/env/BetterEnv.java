@@ -196,19 +196,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         bless();
     }
     
-    public BetterEnv extend(BetterEnv additions) {
-        return new BetterEnv(this, additions);
-    }
-
-    public BetterEnv extendAt(HasAt x) {
-        return new BetterEnv(this, x);
-    }
-
-    public BetterEnv extend() {
-        return new BetterEnv(this, this.getAt());
-    }
-
-    private void augment(BetterEnv existing, BetterEnv additions) {
+     private void augment(BetterEnv existing, BetterEnv additions) {
         type_env = augment(existing.type_env, additions.type_env);
         nat_env = augment(existing.nat_env, additions.nat_env);
         int_env = augment(existing.int_env, additions.int_env);
@@ -219,7 +207,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         dcl_env = augment(existing.dcl_env, additions.dcl_env);
     }
 
-   static <Result> BATreeNode<String, Result> augment(
+   private static <Result> BATreeNode<String, Result> augment(
             BATreeNode<String, Result> original,
             BATreeNode<String, Result> toBeAdded) {
         if (original == null) return toBeAdded;
@@ -227,7 +215,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return augmentRecursive(original, toBeAdded);
     }
 
-    static <Result> BATreeNode<String, Result> augmentRecursive(
+    private static <Result> BATreeNode<String, Result> augmentRecursive(
             BATreeNode<String, Result> original,
             BATreeNode<String, Result> toBeAdded) {
 
@@ -244,11 +232,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return original.add(toBeAdded.getKey(), toBeAdded.getValue(), comparator);
     }
 
-    static public String string(FValue f1) {
-        return ((FString) f1).getString();
-    }
-
-    private <Result> Result get(BATreeNode<String, Result> table, String index) {
+     private <Result> Result get(BATreeNode<String, Result> table, String index) {
         Result r = null;
         if (table != null) {
             BATreeNode<String,Result> node = table.getObject(index, comparator);
@@ -416,7 +400,23 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         }
     }
 
-    public void assignValue(HasAt loc, String str, FValue value) {
+    public BetterEnv extend(BetterEnv additions) {
+        return new BetterEnv(this, additions);
+    }
+
+    public BetterEnv extendAt(HasAt x) {
+        return new BetterEnv(this, x);
+    }
+
+    public BetterEnv extend() {
+        return new BetterEnv(this, this.getAt());
+    }
+
+    static public String string(FValue f1) {
+        return ((FString) f1).getString();
+    }
+
+   public void assignValue(HasAt loc, String str, FValue value) {
         FValue v = get(var_env, str);
         if (v instanceof ReferenceCell) {
             ReferenceCell rc = (ReferenceCell) v;
@@ -455,11 +455,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //
 //    }
 
-    public Boolean casValue(String str, FValue old_value, FValue new_value) {
-        return bug("Cas on envs no longer supported");
-    }
-
-
+ 
     public void debugPrint(String debugString) {
         if (debug)
             System.out.println(debugString);
