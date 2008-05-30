@@ -260,38 +260,6 @@ SyntaxSymbol Suffix =
     / yyValue:Item;
 
 SyntaxSymbol Item =
-	/*
-      "(" w syms:SyntaxSymbols w ")"
-      {
-        System.out.println( "Make a group symbol" );
-      	yyValue = new GroupSymbol(syms);
-      }
-      */
-      /*
-      "hey" w all:(c1:Char c2:Char)* "hey"
-      {
-      	System.out.println( "C1 : " + c1 );
-      	yyValue = new TabSymbol(createSpan(yyStart,yyCount));
-      }
-      */
-      /*
-      "hey" w all:(c1:Char c2:Char { System.out.println( "Hello" );
-       	  	 	 	   System.out.println("c1 " + c1 + " c2 " + c2);
-                                   yyValue = new com.sun.fortress.useful.Pair<String,String>(c1,c2);
-				 })* w "hey"
-       {
-       	System.out.println( "Parsed " + all );
-	for ( Object p : all ){
-		com.sun.fortress.useful.Pair<String,String> p_ = (com.sun.fortress.useful.Pair<String,String>) p;
-		System.out.println( "First: " + p_.getA() );
-	}
-	for ( Object p : all ){
-		com.sun.fortress.useful.Pair<String,String> p_ = (com.sun.fortress.useful.Pair<String,String>) p;
-		System.out.println( "Second: " + p_.getB() );
-	}
-	yyValue = new TabSymbol(createSpan(yyStart,yyCount));
-       }
-       */
       !(w (leftDelimiter / do)) s:ItemText
       { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
