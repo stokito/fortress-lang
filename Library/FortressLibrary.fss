@@ -2139,10 +2139,86 @@ end
 * Reductions
 ************************************************************)
 
-trait Reduction[\ R \]
+trait Reduction[\R\]
     getter toString() = "A Reduction without a toString() of its own"
     empty(): R
     join(a: R, b: R): R
+end
+
+trait ReductionWithoutZero[\R\] extends Reduction[\Maybe[\R\]\]
+    getter toString() = "Associative reduction without identity"
+    empty(): Nothing[\R\] = Nothing[\R\]
+    join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] =
+        if av <- a then
+            if bv <- b then
+                Just[\R\](simpleJoin(a,b))
+            else
+                a
+            end
+        else
+            b
+        end
+    simpleJoin(a:R, b:R): R
+end
+
+trait CommutativeReduction[\R\] extends Reduction[\R\] end
+
+trait ReductionWithLeftZero[\R\] extends Reduction[\R\]
+    isLeftZero(r:R): Boolean
+end
+
+trait ReductionWithRightZero[\R\] extends Reduction[\R\]
+    isRightZero(r:R): Boolean
+end
+
+trait ReductionWithZero[\R\]
+        extends {ReductionWithLeftZero[\R\],ReductionWithRightZero[\R\]}
+    isZero(r:R): Boolean
+    isLeftZero(r:R): Boolean = isZero(r)
+    isRightZero(r:R): Boolean = isZero(r)
+end
+
+trait BigOperator[\I,R,O\] extends Reduction[\R\]
+    empty(): R
+    join(R,R): R
+    body(I): R
+    complete(R): O
+end
+
+trait SomeBigOperatorWithIdentityCompletion[\R\] extends Reduction[\R\] end
+
+trait BigOperatorWithIdentityCompletion[\I,R\]
+        extends { BigOperator[\I,R,R\], SomeBigOperatorWithIdentityCompletion[\R\] }
+    complete(r:R): R = r
+end
+
+trait BigOperatorWithIdentityBody[\R,O\] extends BigOperator[\R,R,O\]
+    body(r:R): R = r
+end
+
+trait SimpleBigOperator[\R\]
+        extends { BigOperatorWithIdentityCompletion[\R,R\],
+                  BigOperatorWithIdentityBody[\R,R\] }
+end
+
+trait LeftDistributiveBigOperator[\I,R\]
+        extends BigOperatorWithIdentityBody[\I,R\]
+    leftDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
+end
+
+trait RightDistributiveBigOperator[\I,R\]
+        extends BigOperatorWithIdentityBody[\I,R\]
+    rightDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
+end
+
+trait DistributiveBigOperator[\I,R\]
+        extends { LeftDistributiveBigOperator[\I,R\],
+                  RightDistributiveBigOperator[\I,R\] }
+    distributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
+    leftDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean =
+        distributesOver(b)
+    rightDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean =
+        distributesOver(b)
 end
 
 object VoidReduction extends Reduction[\()\]

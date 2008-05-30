@@ -48,6 +48,10 @@ public class LazilyEvaluatedCell extends IndirectionCell {
     }
 
     public FValue getValue() {
+        return getValueNull();
+    }
+
+    public FValue getValueNull() {
         if (theValue == null) {
             synchronized (this) {
                 if (theValue == null) {
