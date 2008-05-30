@@ -22,6 +22,8 @@ import java.util.LinkedList;
 
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.PrefixedSymbol;
+import com.sun.fortress.nodes.GroupSymbol;
+import com.sun.fortress.nodes.SyntaxSymbol;
 
 public class VariableCollector extends NodeDepthFirstVisitor<Collection<PrefixedSymbol>> {
 
@@ -39,4 +41,13 @@ public class VariableCollector extends NodeDepthFirstVisitor<Collection<Prefixed
 		return c;
 	}
 
+	@Override
+	public Collection<PrefixedSymbol> forGroupSymbol(GroupSymbol that) {
+		Collection<PrefixedSymbol> c = super.forGroupSymbol(that);
+		for ( SyntaxSymbol symbol : that.getSymbols() ){
+			c.addAll( symbol.accept(this) );
+		}
+		System.out.println( "Bound symbols for group: " + c );
+		return c;
+	}
 }
