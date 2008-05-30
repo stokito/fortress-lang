@@ -612,6 +612,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             description="Fortress Parser">
         <echo message="Rebuilding parser..."/>
        <java fork="yes"
+             failonerror="yes"
              dir="${parser}"
              classname="xtc.parser.Rats"
              classpath="${xtc}/xtc.jar">
@@ -626,6 +627,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             description="Preparser">
         <echo message="Rebuilding preparser..."/>
        <java fork="yes"
+             failonerror="yes"
              dir="${preparser}"
              classname="xtc.parser.Rats"
              classpath="${xtc}/xtc.jar">
@@ -640,6 +642,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             description="Fortress Parser">
        <echo message="Rebuilding parser..."/>
        <java fork="yes"
+             failonerror="yes"
              dir="${parser}"
              classname="xtc.parser.Rats"
              classpath="${xtc}/xtc.jar">
@@ -649,6 +652,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         </java>
         <echo message="Rebuilding the preparser..."/>
         <java fork="yes"
+            failonerror="yes"
             dir="${preparser}"
             classname="xtc.parser.Rats"
             classpath="${xtc}/xtc.jar">
