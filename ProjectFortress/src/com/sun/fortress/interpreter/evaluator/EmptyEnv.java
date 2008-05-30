@@ -33,15 +33,6 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class EmptyEnv extends CommonEnv {
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#casValue(java.lang.String, com.sun.fortress.interpreter.evaluator.values.FValue, com.sun.fortress.interpreter.evaluator.values.FValue)
-     */
-    @Override
-    public Boolean casValue(String str, FValue old_value, FValue new_value) {
-        return bug("Empty environment does not support cas");
-    }
-
-
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getApiNull(com.sun.fortress.interpreter.nodes.APIName)

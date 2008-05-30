@@ -88,12 +88,6 @@ public interface Environment  {
      */
     public abstract void assignValue(HasAt loc, String str, FValue f2);
 
-    // public abstract void assignValue(FValue f1, FValue f2);
-
-    public abstract Boolean casValue(String str, FValue old_value, FValue new_value);
-
-    public abstract Boolean casValue(FValue f1, FValue old_value, FValue new_value);
-
     public abstract Closure getRunClosure();
 
     public abstract FType getType(String str);
