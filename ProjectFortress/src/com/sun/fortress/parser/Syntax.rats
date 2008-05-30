@@ -197,11 +197,13 @@ SyntaxSymbol SyntaxSymbol =
         else {
            yyValue = new AndPredicateSymbol(createSpan(yyStart,yyCount), s1);
         }}
-    / "{" w syms:SyntaxSymbolsX w "}"
-    {
-      System.out.println( "Matched a group: " + syms );
-      yyValue = new GroupSymbol(syms);
-    }
+    / gsym:GroupSymbol questionmark
+      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), gsym); }
+    / gsym:GroupSymbol star
+      { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), gsym); }
+    / gsym:GroupSymbol plus
+      { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), gsym); }
+    / yyValue:GroupSymbol
     / a1:Id colon s1:Symbol type:(void:colon Type)?
       { Option<Id> prefix = Option.some(a1);
         Option<Type> type1 = Option.none();
@@ -233,6 +235,13 @@ SyntaxSymbol SyntaxSymbol =
           }
         }};
 
+SyntaxSymbol GroupSymbol =
+      "{" w syms:SyntaxSymbolsX w "}"
+      {
+        System.out.println( "Matched a group: " + syms );
+        yyValue = new GroupSymbol(createSpan(yyStart, yyCount), syms);
+      };
+
 SyntaxSymbol Breakline = a1:breakline
       { yyValue = new BreaklineSymbol(createSpan(yyStart,yyCount), a1); };
 
@@ -242,13 +251,13 @@ SyntaxSymbol Symbol =
      / yyValue:Suffix;
 
 SyntaxSymbol Suffix =
-     a1:Item questionmark
-     { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
-     / a1:Item star
+      a1:Item questionmark
+      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
+    / a1:Item star
      { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), a1); }
-     / a1:Item plus
+    / a1:Item plus
      { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), a1); }
-     / yyValue:Item;
+    / yyValue:Item;
 
 SyntaxSymbol Item =
 	/*
@@ -284,7 +293,7 @@ SyntaxSymbol Item =
        }
        */
       !(w (leftDelimiter / do)) s:ItemText
-       { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
+      { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
       { yyValue = new CharacterClassSymbol(createSpan(yyStart,yyCount), a1.list()); }
     /  anyChar
