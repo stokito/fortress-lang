@@ -177,7 +177,7 @@ public abstract class RatsUtil {
     }
 
     public static String getModulePath(String dottedName) {
-        return dottedName.replaceAll("\\.", ""+File.separatorChar);
+        return dottedName.replace('.', File.separatorChar);
     }
 
     public static String getParserPath() {
