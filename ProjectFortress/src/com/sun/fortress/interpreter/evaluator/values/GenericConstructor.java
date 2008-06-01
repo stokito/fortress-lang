@@ -189,6 +189,15 @@ public String stringName() {
  */
 @Override
 public List<FType> getDomain() {
+    return getSymbolic().getDomain();
+
+}
+
+public FType getRange() {
+    return getSymbolic().getRange();
+}
+
+private Simple_fcn  getSymbolic() throws Error {
     if (symbolicInstantiation == null) {
         synchronized (this) {
             if (symbolicInstantiation == null) {
@@ -209,8 +218,7 @@ public List<FType> getDomain() {
             }
         }
     }
-    return symbolicInstantiation.getDomain();
-
+    return symbolicInstantiation;
 }
 
 public IdOrOpOrAnonymousName getName() {

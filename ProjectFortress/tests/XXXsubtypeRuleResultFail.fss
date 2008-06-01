@@ -15,26 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component primOverloadTest
+component XXXsubtypeRuleResultFail
 export Executable
 
-opr -[\ T extends Number, nat n, nat m \]
-     (x:String, y:ZZ32):() = do
-  for i <- 1#y do
-    println(x)
-  end
+trait T
+  p():String = "T"
 end
 
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (x:Array1[\ZZ32, 0, 3\], y:String):String = x[0] y x[1] y x[2]
+trait S extends T
+  p():String = "S"
+end
+
+object ot extends T end
+object os extends S end
+
+f(t:T):T = t
+f(s:S):S = s
+
+g(x:T, y:T, z:S):S = z
+g(x:T, y:S, z:S):T = x
 
 run(args:String...):()= do
-  "cat"-7
-  x:ZZ32[3] = [4 5 6]
-  y:String = "-"
-  println( x[0] )
-  println( x (y) )
-  println( x[1] )
-  println( x y )
-  end
+  println("Overloading should f a i l, this should not run")  
+end
+
 end
