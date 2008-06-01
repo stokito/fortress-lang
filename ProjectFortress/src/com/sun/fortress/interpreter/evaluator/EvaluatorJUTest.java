@@ -35,7 +35,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.useful.HasAt;
 
-public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
+public class EvaluatorJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 
     public EvaluatorJUTest() {
         super("EvaluatorJUTest");
