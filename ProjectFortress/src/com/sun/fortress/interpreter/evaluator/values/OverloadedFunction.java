@@ -257,10 +257,11 @@ public class  OverloadedFunction extends Fcn
             if (fn instanceof GenericFunctionalMethod) {
                 // Any reason not to just ignore these?
                 // They never get type info, right?
-                continue;
+                // continue;
+            } else {
+                FType ty = fn.type();
+                ftalist.add(ty);
             }
-            FType ty = fn.type();
-            ftalist.add(ty);
 
             if (!noCheck && !o1.guaranteedOK) {
 
@@ -313,6 +314,8 @@ public class  OverloadedFunction extends Fcn
         private int min;
         private boolean allObjInstance1;
         private boolean allObjInstance2;
+        private boolean result1Subtype2Failure;
+        private boolean result2Subtype1Failure;
 
         private int l1;
         private int l2;;
@@ -337,6 +340,8 @@ public class  OverloadedFunction extends Fcn
             min = Integer.MAX_VALUE;
             allObjInstance1 = true;
             allObjInstance2 = true;
+            result1Subtype2Failure = false;
+            result2Subtype1Failure = false;
 
             l1 = -1;
             l2 = -2;
@@ -487,9 +492,22 @@ public class  OverloadedFunction extends Fcn
                 }
       //      }
 
-            if (!distinct && p1better >= 0 && p2better >= 0) {
-                meetOk = meetExistsIn(o1, o2, new_overloads);
+            if (!distinct) {
+                if (p1better >= 0 && p2better >= 0) {
+                    meetOk = meetExistsIn(o1, o2, new_overloads);
+                } else {
+                    FType r1 = o1.getFn().getRange();
+                    FType r2 = o2.getFn().getRange();
+                    if (p1better >= 0) {
+                     // subtype rule applies
+                        result1Subtype2Failure = ! r1.subtypeOf(r2);
+                    } else if (p2better >= 0) {
+                    // subtype rule applies
+                        result2Subtype1Failure = ! r2.subtypeOf(r1);
+                    }
+                }
             }
+            
 
             describeOverloadingFailure(o1, o2, within, pl1,
                                        pl2);
@@ -514,6 +532,9 @@ public class  OverloadedFunction extends Fcn
 
             // neither is better, not a functional method
             if (p1better < 0 && p2better < 0 && selfIndex < 0)
+                return false;
+            
+            if (result1Subtype2Failure || result2Subtype1Failure)
                 return false;
 
             return true;
@@ -566,6 +587,19 @@ public class  OverloadedFunction extends Fcn
                 } else
                     explanation = errorMsg("Overloading of ", o1, " and ", o2,
                     " fails because of ambiguity in overlapping rest (...) parameters");
+                error(o1, o2, within, explanation);
+            }
+            
+            if (result1Subtype2Failure) {
+                String explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                " fails because the first parameter list is a subtype of the second, but the first result is not a subtype of the second");
+               // System.err.println("FAIL " + explanation);
+               error(o1, o2, within, explanation);
+            }
+            if (result2Subtype1Failure) {
+                String explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                " fails because the second parameter list is a subtype of the first, but the second result is not a subtype of the first");
+                // System.err.println("FAIL " + explanation);
                 error(o1, o2, within, explanation);
             }
 

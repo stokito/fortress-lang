@@ -56,10 +56,12 @@ abstract public class Simple_fcn extends SingleFcn {
      }
 
    public String getString() {
-        return getFnName().toString() + Useful.listInParens(getDomain()) + " declared at " + at();
+        return getFnName().toString() + Useful.listInParens(getDomain()) + ":" + getRange() + " declared at " + at();
     }
 
-    abstract public List<FType> getDomain();
+   public FType getRange() {
+       return ret_type;
+   }
 
     /**
      * Returns can-this-function-be-called-now.
