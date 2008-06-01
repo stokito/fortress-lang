@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,7 +21,7 @@ import java.util.Random;
 
 import junit.framework.TestCase;
 
-public class BATJUTest extends com.sun.fortress.useful.TcWrapper  {
+public class BATJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(BATJUTest.class);

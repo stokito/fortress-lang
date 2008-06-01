@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -30,7 +30,7 @@ import junit.framework.TestCase;
 import junit.framework.TestListener;
 import junit.framework.TestResult;
 
-public abstract class TcWrapper extends TestCase implements TestListener {
+public abstract class TestCaseWrapper extends TestCase implements TestListener {
 
     private final static boolean failsOnly = true;
     
@@ -70,11 +70,11 @@ public abstract class TcWrapper extends TestCase implements TestListener {
        
 }
 
-    public TcWrapper() {
+    public TestCaseWrapper() {
         super();
     }
 
-    public TcWrapper(String arg0) {
+    public TestCaseWrapper(String arg0) {
         super(arg0);
     }
     

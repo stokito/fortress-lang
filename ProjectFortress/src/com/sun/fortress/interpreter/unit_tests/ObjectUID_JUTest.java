@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -23,9 +23,9 @@ import com.sun.fortress.nodes_util.UIDComparator;
 import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.useful.BATree;
-import com.sun.fortress.useful.TcWrapper;
+import com.sun.fortress.useful.TestCaseWrapper;
 
-public class ObjectUID_JUTest extends TcWrapper {
+public class ObjectUID_JUTest extends TestCaseWrapper {
 
     public ObjectUID_JUTest() {
         // TODO Auto-generated constructor stub

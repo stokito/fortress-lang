@@ -31,7 +31,7 @@ import com.sun.fortress.parser_util.precedence_opexpr.Precedence;
 import com.sun.fortress.useful.Useful;
 
 
-public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
+public class PrecedenceMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
     final PrecedenceMap pm = PrecedenceMap.ONLY;
 
     public static void main(String[] args) {
