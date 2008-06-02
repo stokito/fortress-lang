@@ -156,6 +156,47 @@
       "\\)\\>")
      'font-lock-keyword-face)
 
+    ;; Specially translated operators
+    `("\\<\\(NOT\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode NOT-SIGN)
+         nil))
+
+    `("\\<\\(AND\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode LOGICAL-AND)
+         nil))
+
+    `("\\<\\(OR\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode LOGICAL-OR)
+         nil))
+
+    `("\\<\\(DOT\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode DOT-OPERATOR)
+         nil))
+
+    `("\\<\\(TIMES\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode MULTIPLICATION-SIGN)
+         nil))
+
+    `("\\<\\(DIV\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode DIVISION-SIGN)
+         nil))
+
+    `("\\<\\(IN\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode ELEMENT-OF)
+         nil))
+
+    `("\\<\\(SUM\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode N-ARY-SUMMATION)
+         nil))
+
     ;; functions
     '("\\<\\([_A-Za-z]+\\)\\>([^)]*)\\(?::()\\)?\\s-*="
       1 font-lock-function-name-face)
@@ -221,10 +262,16 @@
          (fortress-unicode RIGHTWARDS-ARROW)
          nil))
 
-    ;; double arrow
+    ;; double-headed arrow
     `("\\(<->\\)"
       1 (fortress-with-unicode-char
          (fortress-unicode LEFT-RIGHT-ARROW)
+         nil))
+
+    ;; double-line arrow
+    `("\\(=>\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode RIGHTWARDS-DOUBLE-ARROW)
          nil))
 
     ;; left list bracket
@@ -249,6 +296,21 @@
     `("\\(\\\\[]]\\)"
       1 (fortress-with-unicode-char
          (fortress-unicode MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET)
+         nil))
+
+    `("\\(<=\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode LESS-THAN-OR-EQUAL-TO)
+         nil))
+
+    `("\\(>=\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode GREATER-THAN-OR-EQUAL-TO)
+         nil))
+
+    `("\\(=/=\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode NOT-EQUAL-TO)
          nil))
 
     ))
@@ -360,6 +422,7 @@
     (RIGHTWARDS-ARROW . #x2192)
     (LEFTWARDS-ARROW . #x2190)
     (LEFT-RIGHT-ARROW . #x2194)
+    (RIGHTWARDS-DOUBLE-ARROW . #x2192)
     (RIGHTWARDS-DOUBLE-ARROW . #x21D2)
     (MATHEMATICAL-LEFT-WHITE-SQUARE-BRACKET . #x27e6)
     (MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET . #x27e7)
@@ -368,6 +431,17 @@
     (INFINITY . #x221E)
     (DOWN-TACK . #x22A4)
     (UP-TACK . #x22A5)
+    (NOT-EQUAL-TO . #x2260)
+    (LESS-THAN-OR-EQUAL-TO . #x2264)
+    (GREATER-THAN-OR-EQUAL-TO . #x2265)
+    (NOT-SIGN . #x00ac)
+    (LOGICAL-AND . #x2227)
+    (LOGICAL-OR . #x2228)
+    (N-ARY-SUMMATION . #x2211)
+    (DOT-OPERATOR . #x22c5)
+    (DIVISION-SIGN . #x00f7)
+    (MULTIPLICATION-SIGN . #x00d7)
+    (ELEMENT-OF . #x2208)
     )
   "mapping from fortress name to ucs character number or nil for no replacement\nThis is used in a macro, so won't take effect until emacs is restarted."
   :group 'fortress :type 'alist)
