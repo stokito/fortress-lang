@@ -273,7 +273,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 				List<Integer> indents = new LinkedList<Integer>();
 				indents.add(1);
 				List<String> code = new LinkedList<String>();
-				code.add( "do stuff;" );
+				StringBuffer variables = new StringBuffer();
+				for ( PrefixedSymbol sym : that.accept( new VariableCollector() ) ){
+					variables.append( sym.getId().unwrap().toString() ).append( "," );
+				}
+				code.add( String.format("new com.sun.fortress.syntax_abstractions.util.Tuple(%s);", variables.toString().substring( 0, variables.toString().length() - 1 ) ) );
 				all.add( new ParserAction( new Action(code, indents) ) );
 				return mkList( new Binding(FreshName.getFreshName("g"), new Sequence(all)));
 			}

@@ -39,6 +39,10 @@ import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
+/**
+ * Creates or modifies each rats module and adds productions defined by
+ * grammars in api's.
+ */
 public class GrammarTranslator {
 	private Collection<Module> ratsModules;
 	private Iterable<? extends StaticError> errors;
@@ -100,7 +104,10 @@ public class GrammarTranslator {
 			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
 				if (member.getName().getText().equals(p.name.name)) {
 					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);
-					p.choice.alternatives.addAll(ptr.alternatives());
+					/* Add new productions to the front of the
+					 * choices so that user generated productions receive higher precedence than fortress productions.
+					 */
+					p.choice.alternatives.addAll(0, ptr.alternatives());
 				}
 			}
 		}
