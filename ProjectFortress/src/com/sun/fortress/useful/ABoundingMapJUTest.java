@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,7 +19,7 @@ package com.sun.fortress.useful;
 
 import junit.framework.TestCase;
 
-public class ABoundingMapJUTest extends TcWrapper {
+public class ABoundingMapJUTest extends TestCaseWrapper {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(ABoundingMapJUTest.class);

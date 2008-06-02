@@ -64,6 +64,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
     abstract public String  at();
     abstract public List<FType> getDomain();
+    abstract public FType getRange();
     public boolean isOverride() { return false; }
 
     /**

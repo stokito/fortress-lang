@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.GenericFunctionOrMethod.FunctionsAndState;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
@@ -51,11 +52,47 @@ public class FGenericFunction extends SingleFcn
                               implements GenericFunctionOrMethod,
                               Factory1P<List<FType>, Simple_fcn, HasAt> {
 
-    volatile Simple_fcn symbolicInstantiation;
-
+ 
     FnAbsDeclOrDecl fndef;
 
+    volatile Simple_fcn symbolicInstantiation;
     /* (non-Javadoc)
+      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
+      */
+     @Override
+     public List<FType> getDomain() {
+         return getSymbolic().getDomain();
+
+     }
+     
+     @Override
+     public FType getRange() {
+         return getSymbolic().getRange();
+
+     }
+
+     private Simple_fcn getSymbolic() throws Error, ProgramError {
+         if (symbolicInstantiation == null) {
+             synchronized (this) {
+                 if (symbolicInstantiation == null) {
+                     List<FType> symbolic_static_args = FunctionsAndState.symbolicStaticsByPartition.get(this);
+                     if (symbolic_static_args == null) {
+                         /* TODO This is not quite right, because we risk
+                          * identifying two functions whose where clauses are
+                          * interpreted differently in two different environments.
+                          */
+                         symbolic_static_args =
+                             FunctionsAndState.symbolicStaticsByPartition.syncPutIfMissing(this,
+                                     createSymbolicInstantiation(getEnv(), getStaticParams(), getWhere(), fndef));
+                     }
+                     symbolicInstantiation = typeApply(getEnv(), fndef, symbolic_static_args);
+                 }
+             }
+         }
+         return symbolicInstantiation;
+     }
+
+   /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
      */
     @Override
@@ -67,33 +104,7 @@ public class FGenericFunction extends SingleFcn
         return fndef.stringName();
     }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
-     */
-    @Override
-    public List<FType> getDomain() {
-        if (symbolicInstantiation == null) {
-            synchronized (this) {
-                if (symbolicInstantiation == null) {
-                    List<FType> symbolic_static_args = FunctionsAndState.symbolicStaticsByPartition.get(this);
-                    if (symbolic_static_args == null) {
-                        /* TODO This is not quite right, because we risk
-                         * identifying two functions whose where clauses are
-                         * interpreted differently in two different environments.
-                         */
-                        symbolic_static_args =
-                            FunctionsAndState.symbolicStaticsByPartition.syncPutIfMissing(this,
-                                    createSymbolicInstantiation(getEnv(), getStaticParams(), getWhere(), fndef));
-                    }
-                    symbolicInstantiation = typeApply(getEnv(), fndef, symbolic_static_args);
-                }
-            }
-        }
-        return symbolicInstantiation.getDomain();
-
-    }
-
-    /* (non-Javadoc)
+     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.FValue#getString()
      */
     @Override

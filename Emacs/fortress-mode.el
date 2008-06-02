@@ -156,6 +156,47 @@
       "\\)\\>")
      'font-lock-keyword-face)
 
+    ;; Specially translated operators
+    `("\\<\\(NOT\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode NOT-SIGN)
+         nil))
+
+    `("\\<\\(AND\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode LOGICAL-AND)
+         nil))
+
+    `("\\<\\(OR\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode LOGICAL-OR)
+         nil))
+
+    `("\\<\\(DOT\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode DOT-OPERATOR)
+         nil))
+
+    `("\\<\\(TIMES\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode MULTIPLICATION-SIGN)
+         nil))
+
+    `("\\<\\(DIV\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode DIVISION-SIGN)
+         nil))
+
+    `("\\<\\(IN\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode ELEMENT-OF)
+         nil))
+
+    `("\\<\\(SUM\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode N-ARY-SUMMATION)
+         nil))
+
     ;; functions
     '("\\<\\([_A-Za-z]+\\)\\>([^)]*)\\(?::()\\)?\\s-*="
       1 font-lock-function-name-face)
@@ -179,13 +220,13 @@
 
     ;; experimental code for pretty mathematical type-name rendering
     `("\\<\\(RR\\)\\(64\\|32\\)?\\>"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               (fortress-with-unicode-char MATHBB-R))
-               'font-lock-fortress-type-face))
+      1 (fortress-with-unicode-char
+         (fortress-unicode MATHBB-R)
+         'font-lock-fortress-type-face))
     `("\\<\\(ZZ\\)\\(64\\|32\\)?\\>"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               (fortress-with-unicode-char MATHBB-Z))
-               'font-lock-fortress-type-face))
+      1 (fortress-with-unicode-char
+         (fortress-unicode MATHBB-Z)
+         'font-lock-fortress-type-face))
 
     ;; builtin type name
     `(,(concat "\\<\\(" (regexp-opt fortress-builtin-types) "\\)\\>")
@@ -193,9 +234,9 @@
 
     ;; leftwards arrow
     `("\\(<-\\)"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               (fortress-with-unicode-char LEFTWARDS-ARROW))
-               nil))
+      1 (fortress-with-unicode-char
+         (fortress-unicode LEFTWARDS-ARROW)
+         nil))
 
     ;; NOTE: The following look really bad in Aquamacs under the wrong font.
     ;; In particular, the monaco fontsets can't get the arrow spacing right
@@ -206,44 +247,71 @@
     ;; (it won't look like anything changed, but it has, ever so slightly).
     ;; My hypothesis is that this hands font choice off to Apple's routines.
     ;; I've set this font in initial-frame-alist and default-frame-alist.
-    ;;   Get a cut-and-pasteable font name, M-x eval-expression the following:
+    ;;   To get a cut-and-pasteable font name, M-x eval-expression the following:
     ;;   (insert (cdr (assoc 'font (frame-parameters))))
+
+    ;; DO NOT CHANGE THE EXPANSIONS BELOW.  INSTEAD, change
+    ;; (preferably using custom if that works) values in
+    ;; fortress-unicde-char-map to nil or to a different expansion.
+    ;; Note that you will need to restart for any changes to take
+    ;; effect.
 
     ;; rightwards arrow
     `("\\(->\\)"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               "â")
-               nil))
+      1 (fortress-with-unicode-char
+         (fortress-unicode RIGHTWARDS-ARROW)
+         nil))
 
-    ;; double arrow
+    ;; double-headed arrow
     `("\\(<->\\)"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               (fortress-with-unicode-char LEFT-RIGHT-ARROW))
-               nil))
+      1 (fortress-with-unicode-char
+         (fortress-unicode LEFT-RIGHT-ARROW)
+         nil))
+
+    ;; double-line arrow
+    `("\\(=>\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode RIGHTWARDS-DOUBLE-ARROW)
+         nil))
 
     ;; left list bracket
     `("\\(<|\\)"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               "â¨")
-               nil))
+      1 (fortress-with-unicode-char
+         (fortress-unicode MATHEMATICAL-LEFT-ANGLE-BRACKET)
+         nil))
 
     ;; right list bracket
     `("\\(|>\\)"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               "â©")
-               nil))
+      1 (fortress-with-unicode-char
+         (fortress-unicode MATHEMATICAL-RIGHT-ANGLE-BRACKET)
+         nil))
 
     ;; left type bracket
     `("\\([[]\\\\\\)"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               (fortress-with-unicode-char MATHEMATICAL-LEFT-WHITE-SQUARE-BRACKET))
-               nil))
+      1 (fortress-with-unicode-char
+         (fortress-unicode MATHEMATICAL-LEFT-WHITE-SQUARE-BRACKET)
+         nil))
 
     ;; right type bracket
     `("\\(\\\\[]]\\)"
-      1 (progn (compose-region (match-beginning 1) (match-end 1)
-                               (fortress-with-unicode-char MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET))
-               nil))
+      1 (fortress-with-unicode-char
+         (fortress-unicode MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET)
+         nil))
+
+    `("\\(<=\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode LESS-THAN-OR-EQUAL-TO)
+         nil))
+
+    `("\\(>=\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode GREATER-THAN-OR-EQUAL-TO)
+         nil))
+
+    `("\\(=/=\\)"
+      1 (fortress-with-unicode-char
+         (fortress-unicode NOT-EQUAL-TO)
+         nil))
 
     ))
 
@@ -354,28 +422,39 @@
     (RIGHTWARDS-ARROW . #x2192)
     (LEFTWARDS-ARROW . #x2190)
     (LEFT-RIGHT-ARROW . #x2194)
+    (RIGHTWARDS-DOUBLE-ARROW . #x2192)
     (RIGHTWARDS-DOUBLE-ARROW . #x21D2)
     (MATHEMATICAL-LEFT-WHITE-SQUARE-BRACKET . #x27e6)
     (MATHEMATICAL-RIGHT-WHITE-SQUARE-BRACKET . #x27e7)
+    (MATHEMATICAL-LEFT-ANGLE-BRACKET . #x27e8)
+    (MATHEMATICAL-RIGHT-ANGLE-BRACKET . #x27e9)
     (INFINITY . #x221E)
     (DOWN-TACK . #x22A4)
     (UP-TACK . #x22A5)
+    (NOT-EQUAL-TO . #x2260)
+    (LESS-THAN-OR-EQUAL-TO . #x2264)
+    (GREATER-THAN-OR-EQUAL-TO . #x2265)
+    (NOT-SIGN . #x00ac)
+    (LOGICAL-AND . #x2227)
+    (LOGICAL-OR . #x2228)
+    (N-ARY-SUMMATION . #x2211)
+    (DOT-OPERATOR . #x22c5)
+    (DIVISION-SIGN . #x00f7)
+    (MULTIPLICATION-SIGN . #x00d7)
+    (ELEMENT-OF . #x2208)
     )
-  "mapping from fortress name to ucs character number or replacement string"
+  "mapping from fortress name to ucs character number or nil for no replacement\nThis is used in a macro, so won't take effect until emacs is restarted."
   :group 'fortress :type 'alist)
+
+(defun fortress-unicode (char)
+  (if char
+      (compose-region (match-beginning 1) (match-end 1) char)))
 
 (defun fortress-pair-to-char-or-string (pair)
   (let ((val (cdr pair)))
     (if (numberp val)
       (decode-char 'ucs val)
       val)))
-
-(defun fortress-get-unicode-char (name &optional alternative)
-  "Given name, looks up in fortress-unicode-char-map and turns result into string.\nIf missing, uses alternative instead, (symbol-name name) if absent."
-  (let ((pair (assq name fortress-unicode-char-map)))
-    (if pair
-      (fortress-pair-to-char-or-string pair)
-      (or alternative (symbol-name name)))))
 
 (defmacro fortress-with-unicode-char (body &rest bodies)
   (let ((ucs-str-pairs

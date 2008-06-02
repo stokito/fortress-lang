@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -45,7 +45,7 @@ abstract public class BaseEnv implements Environment {
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.Environment#casValue(com.sun.fortress.interpreter.evaluator.values.FValue, com.sun.fortress.interpreter.evaluator.values.FValue, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
-  
+
     final public void putValue(FValue f1, FValue f2) {
         putValue(string(f1), f2);
     }

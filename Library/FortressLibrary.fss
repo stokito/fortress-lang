@@ -384,7 +384,7 @@ trait Number
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
     opr SQRT_DOWN(self):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtDown")
-    opr ^(self, b:Number):RR64 =
+    opr ^(self, b:Number):Number = (* was RR64 *)
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
     (** Shouldn't need this extra declaration. **)
     opr ^(self, b:Integral):RR64 =

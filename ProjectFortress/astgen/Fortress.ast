@@ -1281,7 +1281,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * TraitType ::= QualifiedName [\StaticArgList\]
                  * e.g.) List[\ZZ32\]
                  */
-                TraitType(List<StaticArg> args);
+                TraitType(List<StaticArg> args
+                           = Collections.<StaticArg>emptyList());
                 /**
                  * type of a generic singleton, used during static checking
                  */
