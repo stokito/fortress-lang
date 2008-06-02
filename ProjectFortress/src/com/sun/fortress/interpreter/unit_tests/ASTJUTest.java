@@ -46,7 +46,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * JUnit based test
  */
 
-public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
+public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 
     public ASTJUTest(String testName) {
         super(testName);

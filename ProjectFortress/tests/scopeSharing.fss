@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,7 +28,7 @@ shredMaker():(()->T) = do
   var shred:ZZ32 = 0
   var serial:ZZ32 = 0
 
-  fn():(()->T) => do serial += 1;
+  fn():T => do serial += 1;
      mySerial = serial (* Capture in this function invocation *)
      object extends T
        getshred() = shred

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,12 +18,12 @@
 package com.sun.fortress.nodes_util;
 
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.useful.TcWrapper;
+import com.sun.fortress.useful.TestCaseWrapper;
 
 /**
  * More tests are needed over NodeFactory. This is a start.
  */
-public class NodeFactoryJUTest extends TcWrapper {
+public class NodeFactoryJUTest extends TestCaseWrapper {
     public void testMakeAPIName() {
         APIName result = NodeFactory.makeAPIName(new Span(), "foobar.fss", "\\.");
         assertEquals("foobar", result.toString());

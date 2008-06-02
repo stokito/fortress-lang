@@ -15,16 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SyntaxNodesUse
-import SyntaxNodes.{...}
-
+component XXXsubtypeRuleResultFail
 export Executable
 
-run(args:String...) = do
-    b-a-d a
-    b-a-d b
-    b-a-d c
-    b-a-d d
+trait T
+  p():String = "T"
+end
+
+trait S extends T
+  p():String = "S"
+end
+
+object ot extends T end
+object os extends S end
+
+f(t:T):T = t
+f(s:S):S = s
+
+g(x:T, y:T, z:S):S = z
+g(x:T, y:S, z:S):T = x
+
+run(args:String...):()= do
+  println("Overloading should f a i l, this should not run")  
 end
 
 end

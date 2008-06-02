@@ -56,7 +56,9 @@ import edu.rice.cs.plt.io.IOUtil;
 
 public abstract class RatsUtil {
 
-    public static final String COMSUNFORTRESSPARSER = "com"+File.separatorChar+"sun"+File.separatorChar+"fortress"+File.separatorChar+"parser"+File.separatorChar;
+    private static final char SEP = '/'; // File.separatorChar
+
+    public static final String COMSUNFORTRESSPARSER = "com"+ SEP +"sun"+SEP+"fortress"+SEP+"parser"+SEP;
 
     public static Module getRatsModule(String filename) {
         Option<Module> result = parseRatsModule(filename);
@@ -177,7 +179,7 @@ public abstract class RatsUtil {
     }
 
     public static String getModulePath(String dottedName) {
-        return dottedName.replaceAll("\\.", ""+File.separatorChar);
+        return dottedName.replace('.', SEP);
     }
 
     public static String getParserPath() {
@@ -185,16 +187,16 @@ public abstract class RatsUtil {
     }
 
     public static String getTempDir() {
-        // return System.getProperty("java.io.tmpdir")+File.separatorChar;
+        // return System.getProperty("java.io.tmpdir")+SEP;
         try{
-            return IOUtil.createAndMarkTempDirectory("fortress","rats").getCanonicalPath() + File.separatorChar;
+            return IOUtil.createAndMarkTempDirectory("fortress","rats").getCanonicalPath() + SEP;
         } catch ( IOException e ){
-            return System.getProperty("java.io.tmpdir")+File.separatorChar;
+            return System.getProperty("java.io.tmpdir")+SEP;
         }
     }
 
     public static String getFortressSrcDir() {
-        return ProjectProperties.FORTRESS_AUTOHOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"src"+File.separatorChar;
+        return ProjectProperties.FORTRESS_AUTOHOME+SEP+"ProjectFortress"+SEP+"src"+SEP;
     }
 
     public static void addParametersToInstantiation(Module m, String moduleName, Set<ModuleName> parameters) {

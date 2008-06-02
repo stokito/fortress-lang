@@ -1069,7 +1069,7 @@ public class NodeFactory {
   public static StringLiteralExpr makeStringLiteralExpr(String s) {
       return new StringLiteralExpr(s);
   }
-  
+
   public static CharLiteralExpr makeCharLiteralExpr(char c) {
    return new CharLiteralExpr(""+c);
   }
@@ -1103,7 +1103,7 @@ public class NodeFactory {
    return new FnRef(span, ids, staticArgs);
   }
 
-  public static OpName makeEncloserOpName(Span span) {
+  public static OpName makeListOpName(Span span) {
    Op open = NodeFactory.makeOpEnclosing(span, "<|");
    Op close = NodeFactory.makeOpEnclosing(span, "|>");
    return new Enclosing(FortressUtil.spanTwo(open,close), open,close);

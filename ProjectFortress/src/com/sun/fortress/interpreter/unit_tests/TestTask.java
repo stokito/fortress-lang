@@ -24,7 +24,7 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.interpreter.evaluator.transactions.*;
 import com.sun.fortress.interpreter.evaluator.tasks.*;
-import com.sun.fortress.useful.TcWrapper;
+import com.sun.fortress.useful.TestCaseWrapper;
 
 public class TestTask extends BaseTask {
     public void compute() {
