@@ -158,10 +158,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 	private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type) {
 		List<Element> elms = new LinkedList<Element>();
 		// Translate the symbols
-		Collection<PrefixedSymbol> locallyBoundVariables = new LinkedList<PrefixedSymbol>();
 		for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
 			elms.addAll(sym.accept(new SymbolTranslator()));
-			locallyBoundVariables.addAll(sym.accept(new VariableCollector()));
 		}
 		String newName = FreshName.getFreshName(name).toUpperCase();
 		ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, new SyntaxDeclEnv(syntaxDef));
