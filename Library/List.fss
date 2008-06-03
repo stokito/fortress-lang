@@ -225,19 +225,22 @@ concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
   end
 
 (** A reduction object for concatenating lists. *)
-private object Concat[\E\] extends Reduction[\ List[\E\] \]
+private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter toString():String = "List concatenation"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
 end
 
 (** A reduction object for concatenating lists covariantly. *)
-private object CVConcat[\T\] extends Reduction[\SomeList\]
+private object CVConcat[\T\] extends MonoidReduction[\SomeList\]
+  getter toString():String = "Covariant list concatenation"
   empty(): SomeList = emptyList[\T\]()
   join(a:SomeList, b:SomeList): SomeList = a.append(b)
 end
 
 (** The same for reverse concatenation *)
-private object RevConcat[\E\] extends Reduction[\ List[\E\] \]
+private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter toString():String = "List reversal concatenation"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
 end

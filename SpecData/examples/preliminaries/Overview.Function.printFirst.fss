@@ -23,10 +23,10 @@ export Executable
 
 object Error extends UncheckedException end
 
-object SizeReduction[\N extends Number\]() extends Reduction[\N\]
+object SizeReduction[\N extends Number\]() extends MonoidReduction[\N\]
   getter toString() = "SizeReduction"
   empty(): N = 0
-  join(a: N, b: N): N = 2
+  join(a: N, b: N): N = if a+b=0 then 0 else 2 end
 end
 
 (*

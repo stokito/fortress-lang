@@ -91,32 +91,25 @@ opr BIG {[\T extends StandardTotalOrder[\T\]\]
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
                     Set[\R\] = g(Union[\R\], identity[\R\])
 
-object Union[\E extends StandardTotalOrder[\E\]\] extends Reduction[\Set[\E\]\]
-    e = EmptySet[\E\]
-    empty():Set[\E\] = e
+object Union[\E extends StandardTotalOrder[\E\]\] extends CommutativeMonoidReduction[\Set[\E\]\]
+    getter toString(): String = "Union reduction"
+    empty():Set[\E\] = EmptySet[\E\]
     join(a:Set[\E\], b:Set[\E\]): Set[\E\] = a UNION b
 end
 
 opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g:(Reduction[\Maybe[\Set[\R\]\]\],
                              Set[\R\]->Maybe[\Set[\R\]\]) ->
                             Maybe[\Set[\R\]\]): Set[\R\] =
-    Intersection[\R\].unwrap(g(Intersection[\R\],
+    Intersection[\R\].unlift(g(Intersection[\R\],
                                fn (s:Set[\R\]):Just[\Set[\R\]\] =>
-                                   Just[\Set[\R\]\](s)))
+                                   Intersection[\R\].lift(s)))
 
-object Intersection[\E extends StandardTotalOrder[\E\]\] extends Reduction[\Maybe[\Set[\E\]\]\]
-    ee = Nothing[\Set[\E\]\]
-    empty():Maybe[\Set[\E\]\] = ee
-    join(a:Maybe[\Set[\E\]\], b:Maybe[\Set[\E\]\]): Maybe[\Set[\E\]\] =
-        if aa <- a then
-            if bb <- b then
-                Just[\Set[\E\]\](aa INTERSECTION bb)
-            else a end
-        else b end
-    unwrap(w:Maybe[\Set[\E\]\]): Set[\E\] =
-        if u <- w then u
-        else throw EmptyIntersection
-        end
+object Intersection[\E extends StandardTotalOrder[\E\]\]
+        extends { CommutativeReduction[\Set[\E\]\],
+                  ReductionWithZeroes[\Set[\E\],Maybe[\Set[\E\]\]\] }
+    getter toString(): String = "Intersection reduction"
+    simpleJoin(a:Set[\E\], b:Set[\E\]):Set[\E\] = a INTERSECTION b
+    isZero(s:Set[\E\]): Boolean = s.isEmpty()
 end
 
 value object SeqSetGenerator[\E extends StandardTotalOrder[\E\]\](s: Set[\E\])

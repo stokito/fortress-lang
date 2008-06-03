@@ -133,14 +133,24 @@ end
 
 (** Total ordering *)
 
-object LexicographicPartialReduction extends Reduction[\Comparison\]
+object LexicographicPartialReduction
+        extends { MonoidReduction[\Comparison\],
+                  ReductionWithZeroes[\Comparison, Comparison\] }
+    getter toString():String = "Lexicographic reduction on partial order"
     empty(): Comparison = EqualTo
     join(a:Comparison, b:Comparison):Comparison = a LEXICO b
+    isZero(_:Unordered): Boolean = true
+    isZero(_:Comparison): Boolean = false
 end
 
-object LexicographicReduction extends Reduction[\TotalComparison\]
+object LexicographicReduction
+        extends { MonoidReduction[\TotalComparison\],
+                  ReductionWithZeroes[\TotalComparison, TotalComparison\] }
+    getter toString():String = "Lexicographic reduction on total order"
     empty(): TotalComparison = EqualTo
     join(a:TotalComparison, b:TotalComparison):TotalComparison = a LEXICO b
+    isLeftZero(_:EqualTo): Boolean = false
+    isLeftZero(_:Comparison): Boolean = true
 end
 
 trait Comparison
@@ -724,13 +734,13 @@ end
 trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     getter isEmpty(): Boolean = NOT holds()
     getter holds(): Boolean = cond[\Boolean\](fn (_:E):Boolean => true, fn () => false)
-    getter size(): ZZ32 = if self then 1 else 0 end
+    getter size(): ZZ32 = if holds() then 1 else 0 end
     getter get(): E throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
     getter bounds(): FullRange[\ZZ32\] = 0 # |self|
     getter indices(): FullRange[\ZZ32\] = bounds()
     getter indexValuePairs(): Condition[\(ZZ32,E)\] =
         cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
-    opr |self|: ZZ32 = if self.holds() then 1 else 0 end
+    opr |self|: ZZ32 = if holds() then 1 else 0 end
     opr [i:ZZ32]:E throws NotFound = if i=0 then get() else throw NotFound end
     opr [r:Range[\ZZ32\]]: Condition[\E\] =
         cond[\E\](fn (e:E): Condition[\E\] => do
@@ -2138,19 +2148,60 @@ end
 * Reductions
 ************************************************************)
 
-trait Reduction[\R\]
-    getter toString() = "A Reduction without a toString() of its own"
-    empty(): R
-    join(a: R, b: R): R
+trait Reduction[\R\] end
+
+(** Invariants:
+    join must be associative with identity empty
+    unlift(lift(x)) = x
+ **)
+trait ActualReduction[\R,L\] extends Reduction[\L\]
+    getter toString():String
+    empty(): L
+    join(a: L, b: L): L
+    lift(r:R): L
+    unlift(l:L): R
+    (** If this reduction left-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    leftDistribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\] =
+        distribute(r)
+    (** If this reduction right-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    rightDistribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\] =
+        distribute(r)
+    (** If this reduction distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    distribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\] =
+        Nothing[\(Reduction[\R\],Reduction[\R\])\]
 end
 
-trait ReductionWithoutZero[\R\] extends Reduction[\Maybe[\R\]\]
-    getter toString() = "Associative reduction without identity"
+trait PossibleReductionPair[\R\] extends Condition[\SomeReductionPair[\R\]\]
+    comprises { NoReductionPair[\R\], SomeReductionPair[\R\] }
+end
+
+object NoReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean = false
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = e()
+end
+
+trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean = true
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = t(self)
+    getter outer(): Reduction[\R\]
+    getter inner(): Reduction[\R\]
+end
+
+trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
+    getter outer(): ActualReduction[\R,L\]
+    getter inner(): ActualReduction[\R,L\]
+end
+
+(** The usual lifting to Maybe for identity-less operators **)
+trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
     empty(): Nothing[\R\] = Nothing[\R\]
     join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] =
         if av <- a then
             if bv <- b then
-                Just[\R\](simpleJoin(a,b))
+                Just[\R\](simpleJoin(av,bv))
             else
                 a
             end
@@ -2158,76 +2209,54 @@ trait ReductionWithoutZero[\R\] extends Reduction[\Maybe[\R\]\]
             b
         end
     simpleJoin(a:R, b:R): R
+    lift(r:R): Maybe[\R\] = Maybe[\R\](r)
+    unlift(r:Maybe[\R\]): R = r.get()
 end
 
-trait CommutativeReduction[\R\] extends Reduction[\R\] end
+trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
 
-trait ReductionWithLeftZero[\R\] extends Reduction[\R\]
-    isLeftZero(r:R): Boolean
+(** Monoids don't require a special lift and unlift operation. **)
+trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
+    lift(r:R): R = r
+    unlift(r:R): R = r
 end
 
-trait ReductionWithRightZero[\R\] extends Reduction[\R\]
-    isRightZero(r:R): Boolean
+trait CommutativeMonoidReduction[\R\] extends MonoidReduction[\R\] end
+
+trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
+    isLeftZero(l:L): Boolean = isZero(l)
+    isRightZero(l:L): Boolean = isZero(l)
+    isZero(l:L): Boolean = false
 end
 
-trait ReductionWithZero[\R\]
-        extends {ReductionWithLeftZero[\R\],ReductionWithRightZero[\R\]}
-    isZero(r:R): Boolean
-    isLeftZero(r:R): Boolean = isZero(r)
-    isRightZero(r:R): Boolean = isZero(r)
+trait BigOperator[\I,R\]
+    getter reduction(): Reduction[\R\]
+    getter body(): I->R
 end
 
-trait BigOperator[\I,R,O\] extends Reduction[\R\]
-    empty(): R
-    join(R,R): R
-    body(I): R
-    complete(R): O
+object BigReduction[\R\](r:Reduction[\R\]) extends BigOperator[\R,R\]
+    getter reduction(): Reduction[\R\] = r
+    getter body(): R->R = identity[\R\]
 end
 
-trait SomeBigOperatorWithIdentityCompletion[\R\] extends Reduction[\R\] end
-
-trait BigOperatorWithIdentityCompletion[\I,R\]
-        extends { BigOperator[\I,R,R\], SomeBigOperatorWithIdentityCompletion[\R\] }
-    complete(r:R): R = r
+object Comprehension[\I,R\](r: Reduction[\R\], singleton:I->R)
+        extends BigOperator[\I,R\]
+    getter reduction(): Reduction[\R\] = r
+    getter body(): I->R = singleton
 end
 
-trait BigOperatorWithIdentityBody[\R,O\] extends BigOperator[\R,R,O\]
-    body(r:R): R = r
-end
-
-trait SimpleBigOperator[\R\]
-        extends { BigOperatorWithIdentityCompletion[\R,R\],
-                  BigOperatorWithIdentityBody[\R,R\] }
-end
-
-trait LeftDistributiveBigOperator[\I,R\]
-        extends BigOperatorWithIdentityBody[\I,R\]
-    leftDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
-end
-
-trait RightDistributiveBigOperator[\I,R\]
-        extends BigOperatorWithIdentityBody[\I,R\]
-    rightDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
-end
-
-trait DistributiveBigOperator[\I,R\]
-        extends { LeftDistributiveBigOperator[\I,R\],
-                  RightDistributiveBigOperator[\I,R\] }
-    distributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
-    leftDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean =
-        distributesOver(b)
-    rightDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean =
-        distributesOver(b)
-end
-
-object VoidReduction extends Reduction[\()\]
+(** VoidReduction is usually done for effect, so we pretend that
+    the completion performs the effects.  This rules out things
+    distributing over void (that would change the number of effects in
+    our program) but not void distributing over other things. **)
+object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     getter toString() = "VoidReduction"
     empty(): () = ()
     join(a: (), b: ()): () = ()
 end
 
 (* Hack to permit any Number to work non-parametrically. *)
-object SumReduction extends Reduction[\Number\]
+object SumReduction extends CommutativeMonoidReduction[\Number\]
     getter toString() = "SumReduction"
     empty(): Number = 0
     join(a: Number, b: Number): Number = a+b
@@ -2236,7 +2265,7 @@ end
 opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
     g(SumReduction,cast[\Number\])
 
-object ProdReduction extends Reduction[\Number\]
+object ProdReduction extends CommutativeMonoidReduction[\Number\]
     getter toString() = "ProdReduction"
     empty(): Number = 1
     join(a:Number, b:Number): Number = a b
@@ -2245,40 +2274,18 @@ end
 opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
     g(ProdReduction,cast[\Number\])
 
-object MinReduction[\T extends StandardMin[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter toString() = "MinReduction"
-    empty(): AnyMaybe = Nothing[\T\]
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe =
-        if aa <- a then
-            if bb <- b then
-                just(aa MIN bb)
-            else
-                a
-            end
-        else
-            b
-        end
+    simpleJoin(a:T, b:T): T = a MIN b
 end
 
 opr BIG MIN[\T extends StandardMin[\T\]\]
            (g:(MinReduction[\T\],T->AnyMaybe)->AnyMaybe): T =
         g(MinReduction[\T\],just).get()
 
-object MaxReduction[\T extends StandardMax[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter toString() = "MaxReduction"
-    empty(): AnyMaybe = Nothing[\T\]
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe =
-        if aa <- a then
-            if bb <- b then
-                just(aa MAX bb)
-            else
-                a
-            end
-        else
-            b
-        end
+    simpleJoin(a:T, b:T): T = a MAX b
 end
 
 opr BIG MAX[\T extends StandardMax[\T\]\]
@@ -2294,10 +2301,13 @@ opr BIG MAXNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64 =
       identity[\RR64\])
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
-object AndReduction extends Reduction[\Boolean\]
+object AndReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString() = "AndReduction"
     empty(): Boolean = true
     join(a: Boolean, b: Boolean): Boolean = a AND b
+    isZero(a:Boolean): Boolean = NOT a
 end
 
 opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
@@ -2310,10 +2320,13 @@ opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
         g(AndReduction, f)
     end MustBe
 
-object OrReduction extends Reduction[\Boolean\]
+object OrReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString() = "OrReduction"
     empty(): Boolean = false
     join(a: Boolean, b: Boolean): Boolean = a OR b
+    isZero(a:Boolean): Boolean = a
 end
 
 opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
@@ -2327,21 +2340,21 @@ opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
     end MustBe
 
 (** A reduction performing String concatenation **)
-object StringReduction extends Reduction[\String\]
+object StringReduction extends MonoidReduction[\String\]
     getter toString() = "StringReduction"
     empty(): String = ""
     join(a:String, b:String): String = a || b
 end
 
 (** A reduction performing String concatenation with a space **)
-object SpaceReduction extends Reduction[\String\]
+object SpaceReduction extends MonoidReduction[\String\]
     getter toString() = "StringReduction"
     empty(): String = ""
     join(a:String, b:String): String = a ||| b
 end
 
 (** A reduction performing String concatenation with newline separation **)
-object NewlineReduction extends ReductionWithoutZero[\String\]
+object NewlineReduction extends AssociativeReduction[\String\]
     getter toString() = "StringReduction"
     simpleJoin(a:String, b:String): String = a // b
 end
@@ -2366,34 +2379,19 @@ opr BIG //(g:(Reduction[\Maybe[\String\]\],Any->Maybe[\String\])->Maybe[\String\
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
-object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
+object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
     getter toString()="mapReduceReduction"
     empty(): R = z
     join(a:R, b:R): R = (j)(a,b)
 end
 
-(** A %MapReduceReduction% takes an associative binary function %j% on
+(** A %MIMapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
-object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends Reduction[\Any\]
-    getter toString()="mapReduceReduction"
+object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
+    getter toString():String="MIMapReduceReduction from embiggen"
     empty(): R = z
     join(a:Any, b:Any): R = (j)(a,b)
-end
-
-(** Given an operator OP: (T,T) -> T and its identity z:T, create
-    the corresponding reduction.  OP must be associative. *)
-object OprReduction[\T,opr OP\](z:T) extends Reduction[\T\]
-    getter toString()="OprReduction"
-    empty():T = z
-    join(a:T, b:T): T = a OP b
-end
-
-(** As above, but with hacks for missing type information. *)
-object MIOprReduction[\T,opr OP\](z:Any) extends Reduction[\Any\]
-    getter toString()="OprReduction"
-    empty(): T = z
-    join(a:Any, b:Any): T = a OP b
 end
 
 (** %embiggen% takes a type %T% and an operation (either an operator
