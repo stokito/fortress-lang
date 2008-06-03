@@ -55,6 +55,15 @@ List<WhereConstraint> WhereConstraintList =
 WhereConstraint WhereConstraint =
      a1:Id w a2:Extends
      { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:OpName w a2:Extends // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid type parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / TypeAlias
    / a1:Type w coerces w a2:Type
      { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
@@ -75,7 +84,25 @@ UnitConstraint UnitConstraint =
      "dimensionless" w equals w a1:Id
      { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:Id w equals w "dimensionless"
-     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
+   / "dimensionless" w equals w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid unit name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
+   / a1:OpName w equals w "dimensionless" // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid unit name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     };
 
 /* IntConstraint ::=
      IntExpr w <= w IntExpr

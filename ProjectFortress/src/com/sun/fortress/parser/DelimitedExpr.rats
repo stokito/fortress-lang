@@ -65,6 +65,15 @@ Expr DelimitedExpr =
                          "Mismatched identifiers for label expressions.");
        yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
+   / label w a1:OpName w a2:BlockElems w end w a3:OpName
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid label name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / while w a1:GeneratorClause w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
    / for w a1:GeneratorClauseList w a2:DoFront w end
