@@ -35,8 +35,8 @@ showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
         end
     end
     println(
-        BIG STRING [(i,l) <- headers.indexValuePairs()]
-            "\n" l (BIG STRING [row <- data] "," row[i]))
+        BIG ||[(i,l) <- headers.indexValuePairs()]
+            //l (BIG ||[row <- data] "," row[i]))
   end
 
 checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =

@@ -31,10 +31,6 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
  */
 public class StringPrim {
 
-public static final class App extends Util.SS2S {
-    protected String f(String x, String y) { return x + y; }
-}
-
 public static final class Print extends Util.S2V {
     protected void f(String x) { System.out.print(x); }
 }

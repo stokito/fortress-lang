@@ -27,23 +27,23 @@ component Xml2
     toString():String
   end
 
-  object Element(info:Header, content_:List[\Content\], endTag:String) extends Content 
-    toString():String = 
+  object Element(info:Header, content_:List[\Content\], endTag:String) extends Content
+    toString():String =
       do
         if info.getTag() =/= endTag then
           println "Tags dont match start '" info.getTag() "' end '" endTag "'"
         end
-        var s:String = "<" info.getTag() (BIG STRING info.attributes) ">"
-        for x <- seq(content_) do 
-          s := s x.toString() 
+        var s:String = "<" info.getTag() (BIG || info.attributes) ">"
+        for x <- seq(content_) do
+          s := s x.toString()
         end
         s := s "</" endTag ">"
         s
       end
 
-    children():List[\Element\] = 
+    children():List[\Element\] =
         content_.map[\Element\](fn x => cast[\Element\](x))
-    
+
     hasElements():Boolean = content_.isEmpty() OR: (isElement(content_[0]))
     content():CData = cast[\CData\](content_[0])
     (*
@@ -55,7 +55,7 @@ component Xml2
             Element => true
             else => false
         end
-    
+
     tag():String = info.getTag()
   end
   Element(info:Header) = Element(info, emptyList[\Content\](), info.getTag())

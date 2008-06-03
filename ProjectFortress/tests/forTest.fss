@@ -21,7 +21,7 @@ export Executable
 
 run(args:String...):()=do
 for i <- 1#10 do
-   print("Hello World \n")
+   println("Hello World")
 end
 end
 end
