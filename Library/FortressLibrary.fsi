@@ -1447,7 +1447,17 @@ end
 
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary. **)
-opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String
+opr BIG ||(g:(Reduction[\String\],Any->String)->String): String
+
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary, and separating
+    non-empty components by a space. **)
+opr BIG |||(g:(Reduction[\String\],Any->String)->String): String
+
+(** This operator performs string concatenation with newline
+    separation, first converting its inputs (of type Any) to String if
+    necessary. **)
+opr BIG //(g:(Reduction[\Maybe[\String\]\],Any->Maybe[\String\])->Maybe[\String\]): String
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
@@ -1620,39 +1630,6 @@ random(a:Number):RR64
     gracefully with %Char%s outside the 16-bit plane. **)
 char(a:ZZ32):Char
 
-opr DOT(a:String, b:String):String
-opr juxtaposition
-     (a:String, b:String):String
-opr DOT(a:Number, b:String):String
-opr juxtaposition
-     (a:Number, b:String):String
-opr DOT(a:String, b:Number):String
-opr juxtaposition
-     (a:String, b:Number):String
-opr DOT(a:Boolean, b:String):String
-opr juxtaposition
-     (a:Boolean, b:String):String
-opr DOT(a:String, b:Boolean):String
-opr juxtaposition
-     (a:String, b:Boolean):String
-opr DOT(a:String, c:Char):String
-opr juxtaposition
-     (a:String, c:Char):String
-opr DOT(c:Char, a:String):String
-opr juxtaposition
-     (c:Char, a:String):String
-opr DOT(a:String, b:()):String
-opr juxtaposition(a:String, b:()):String
-opr DOT(a:String, b:(Any,Any)):String
-opr juxtaposition(a:String, b:(Any,Any)):String
-opr juxtaposition(a:String, b:(Any,Any,Any)):String
-opr DOT(a:(), b:String):String
-opr juxtaposition(a:(), b:String):String
-opr DOT(a:Any, b:String):String
-opr juxtaposition(a:Any, b:String):String
-opr DOT(a:String, b:Any):String
-opr juxtaposition(a:String, b:Any):String
-
 print(a:String):()
 println(a:String):()
 print(a:Number):()
@@ -1665,6 +1642,12 @@ println(a:Any):()
 (** 0-argument versions handle passing of () to single-argument versions. **)
 print():()
 println():()
+
+(** opr // appends a single newline separator. **)
+opr (x:Any)// : String
+
+(** opr /// appends a double newline separator **)
+opr (x:Any)/// : String
 
 (* A way to get environment information from inside of fortress *)
 getEnvironment(name:String, defaultValue:String):String

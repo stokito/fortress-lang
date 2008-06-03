@@ -76,7 +76,7 @@ object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
                 end
               end)
     getter toString(): String =
-        "[" bounds() "] = [" (BIG STRING [(i,v) <- indexValuePairs()] " " i "|->" v) " ]"
+        "[" bounds() "] = [" (BIG ||[(i,v) <- indexValuePairs()] " " i "|->" v) " ]"
     dump(): String = data.toString()
     indexAndMask(i:ZZ32) : (ZZ32,ZZ64) = (i RSHIFT 6, widen(1) LSHIFT (i BITAND 63))
     secondaryIndex(fe:ZZ64, mask:ZZ64) = popCount((mask-1) BITAND fe)

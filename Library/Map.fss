@@ -243,7 +243,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     getter toString():String = do
       (km, vm, delmin) = extractMinimum().get()
       ("{" km "|->" vm
-           (BIG STRING[(k,v)<-delmin] ", " k "|->" v) "}")
+           (BIG ||[(k,v)<-delmin] ", " k "|->" v) "}")
     end
 
     opr |self| : ZZ32 = sz
