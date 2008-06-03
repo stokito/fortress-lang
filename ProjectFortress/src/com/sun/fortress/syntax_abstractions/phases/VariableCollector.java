@@ -17,6 +17,8 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -25,29 +27,95 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 
-public class VariableCollector extends NodeDepthFirstVisitor<Collection<PrefixedSymbol>> {
+import com.sun.fortress.nodes.RepeatSymbol;
+import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
+import com.sun.fortress.nodes.OptionalSymbol;
 
-	@Override
-	public Collection<PrefixedSymbol> defaultCase(com.sun.fortress.nodes.Node that) {
-		return new LinkedList<PrefixedSymbol>();
-	}	
-	
-	@Override
-	public Collection<PrefixedSymbol> forPrefixedSymbol(PrefixedSymbol that) {
-		Collection<PrefixedSymbol> c = super.forPrefixedSymbol(that);
-		if (that.getId().isSome()) {
-			c.add(that);
-		}
-		return c;
-	}
+public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol, VariableCollector.Depth>> {
 
-	@Override
-	public Collection<PrefixedSymbol> forGroupSymbol(GroupSymbol that) {
-		Collection<PrefixedSymbol> c = super.forGroupSymbol(that);
-		for ( SyntaxSymbol symbol : that.getSymbols() ){
-			c.addAll( symbol.accept(this) );
-		}
-		System.out.println( "Bound symbols for group: " + c );
-		return c;
-	}
+    public interface Depth {
+        public String getType(String baseType);
+        public boolean isOptional();
+    }
+
+    private Depth depth;
+
+    public VariableCollector() {
+        this.depth = new Depth() {
+                public String getType(String baseType) {
+                    return baseType;
+                }
+                public boolean isOptional() {
+                    return false;
+                }
+            };
+    }
+
+    private VariableCollector(Depth depth) {
+        this.depth = depth;
+    }
+
+    @Override
+    public Map<PrefixedSymbol,Depth> defaultCase(com.sun.fortress.nodes.Node that) {
+        return new HashMap<PrefixedSymbol,Depth>();
+    }	
+
+    @Override
+    public Map<PrefixedSymbol,Depth> forPrefixedSymbol(PrefixedSymbol that) {
+        Map<PrefixedSymbol,Depth> c = super.forPrefixedSymbol(that);
+        if (that.getId().isSome()) {
+            c.put(that, depth);
+        }
+        return c;
+    }
+
+    @Override
+    public Map<PrefixedSymbol,Depth> forGroupSymbol(GroupSymbol that) {
+        Map<PrefixedSymbol,Depth> c = super.forGroupSymbol(that);
+        for ( SyntaxSymbol symbol : that.getSymbols() ){
+            c.putAll( symbol.accept(this) );
+        }
+        System.out.println( "Bound symbols for group: " + c );
+        return c;
+    }
+
+    @Override
+    public Map<PrefixedSymbol,Depth> forRepeatSymbol(RepeatSymbol that) {
+        return that.getSymbol().accept(new VariableCollector(addStar(depth)));
+    }
+
+    @Override
+    public Map<PrefixedSymbol,Depth> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
+        return that.getSymbol().accept(new VariableCollector(addPlus(depth)));
+    }
+
+    @Override
+    public Map<PrefixedSymbol,Depth> forOptionalSymbol(OptionalSymbol that) {
+        return that.getSymbol().accept(new VariableCollector(addOptional(depth)));
+    }
+
+    private Depth addStar(final Depth d) {
+        return new Depth() {
+                public String getType(String baseType) {
+                    return "List<" + d.getType(baseType) + ">";
+                }
+                public boolean isOptional() {
+                    return false;
+                }
+            };
+    }
+    private Depth addPlus(Depth d) {
+        return addStar(d);
+    }
+    private Depth addOptional(final Depth d) {
+        return new Depth() {
+                public String getType(String baseType) {
+                    return d.getType(baseType);
+                }
+                public boolean isOptional() {
+                    return true;
+                }
+            };
+    }
+
 }
