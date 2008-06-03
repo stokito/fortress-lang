@@ -35,7 +35,7 @@ run(args:String...):()=do
   joinString(a:String, b:String):String = a b
   r1 = Mrr[\String\](joinString, "")
   catdog = r1.join("cat", "dog")
-  println (if catdog = "catdog" then "PASS" else "FAIL" end)
+  println (if catdog = "catdog" then "PASS" else "FAIL")
 end
 
 end

@@ -41,7 +41,7 @@ a(f:(String, String)->String):RR64=do
   7.0
 end
 
-t(b:Boolean) = println (if b then "pass" else "fail" end)
+t(b:Boolean) = println (if b then "pass" else "fail")
 
 run(args:String...):()=do
 
