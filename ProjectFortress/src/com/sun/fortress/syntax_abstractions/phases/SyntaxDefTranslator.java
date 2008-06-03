@@ -389,6 +389,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
             List<Integer> indents2 = new LinkedList<Integer>();
             List<String> code2 = new LinkedList<String>();
+            String packedName = FreshName.getFreshName("packed");
+            indents2.add(1);
+            code2.add(modifier.preUnpack(packedName, freshName));
             int varCount = varSyms.size();
             for (int index = 0; index < varCount ; index++) {
                 PrefixedSymbol sym = varSyms.get(index);
@@ -396,7 +399,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 String baseType = sym.getType().unwrap().toString(); // FIXME: need check?
                 String fullType = varMap.get(sym).getType(baseType);
                 indents2.add(1);
-                code2.add(modifier.unpackDecl(fullType, varName, freshName, index));
+                code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
             }
             Element unpack = new ParserAction(new Action(code2, indents2));
 
@@ -408,9 +411,10 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     private static interface Modifier {
         public String getName();
         public Element makePack(Element e);
+        public String preUnpack(String packedName, String rawName);
         public String unpackDecl(String fullType, String varName, String packedName, int index);
     }
-    
+
     private static class RepeatModifier implements Modifier {
         boolean isPlus;
         RepeatModifier(boolean isPlus) {
@@ -422,8 +426,12 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         public Element makePack(Element e) {
             return new xtc.parser.Repetition(isPlus, e);
         }
+        public String preUnpack(String packedName, String rawName) {
+            return String.format("List<Object[]> %s = (List<Object[]>) %s.list();",
+                                 packedName, rawName);
+        }
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
-            return String.format("List<%s> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.<%s>unpack((List<Object[]>)%s, %d);", 
+            return String.format("List<%s> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.<%s>unpack(%s, %d);", 
                                  fullType, varName, fullType, packedName, index);
         }
     }
@@ -435,8 +443,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         public Element makePack(Element e) {
             return new xtc.parser.Option(e);
         }
+        public String preUnpack(String packedName, String rawName) {
+            return String.format("Object[] %s = (Object[]) %s;", packedName, rawName);
+        }
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
-            return String.format("%s %s = (Object[])%s[%d];", fullType, varName, packedName, index);
+            return String.format("%s %s = %s[%d];", fullType, varName, packedName, index);
         }
     }
 
