@@ -21,7 +21,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 import xtc.parser.Binding;
 import xtc.parser.CharClass;
@@ -54,6 +57,7 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
@@ -168,13 +172,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		return new Sequence(new SequenceName(newName), elms);
 	}
 
-	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
+    private static List<Element> mkList(Element... e) {
+        return Arrays.asList(e);
+    }
 
-		private List<Element> mkList(Element e) {
-			List<Element> els = new LinkedList<Element>();
-			els.add(e);
-			return els;
-		}
+	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
 
 		@Override
 			public List<Element> forAnyCharacterSymbol(AnyCharacterSymbol that) {
@@ -263,32 +265,13 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 			}
 
 		@Override
-			public List<Element> forGroupSymbol(GroupSymbol that){
-				List<Element> all = new LinkedList<Element>();
-				for ( SyntaxSymbol syms : that.getSymbols() ){
-					all.addAll( syms.accept(this) );
-				}
-				List<Integer> indents = new LinkedList<Integer>();
-				indents.add(1);
-				List<String> code = new LinkedList<String>();
-				StringBuffer variables = new StringBuffer();
-				for ( PrefixedSymbol sym : that.accept( new VariableCollector() ) ){
-					variables.append( sym.getId().unwrap().toString() ).append( "," );
-				}
-				code.add( String.format("new com.sun.fortress.syntax_abstractions.util.Tuple(%s);", variables.toString().substring( 0, variables.toString().length() - 1 ) ) );
-				all.add( new ParserAction( new Action(code, indents) ) );
-				return mkList( new Binding(FreshName.getFreshName("g"), new Sequence(all)));
-			}
-
-		@Override
 			public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that, 
 					Option<List<Element>> id_result, Option<List<Element>> type_result,
 					List<Element> symbol_result) {
 				if (symbol_result.size() == 1) {
-					Element e = symbol_result.remove(0);
-					assert(that.getId().isSome());
-					symbol_result.add(new Binding(that.getId().unwrap().getText(), e));
-					return symbol_result;
+                                    Element e = symbol_result.get(0);
+                                    assert(that.getId().isSome());
+                                    return mkList(new Binding(that.getId().unwrap().getText(), e));
 				}
 				if (symbol_result.isEmpty()) {
 					if (that.getId().isSome()) {
@@ -300,54 +283,35 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 			}
 
 		@Override
-			public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
-					List<Element> symbol_result) {
-				if (symbol_result.size() == 1) {
-					Element e = symbol_result.remove(0);
-					symbol_result.add(new xtc.parser.Option(e));
-					return symbol_result;
-				}
-				if (symbol_result.isEmpty()) {
-					throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
-				}
-				throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
-			}
+		public List<Element> forGroupSymbol(GroupSymbol that){
+                    List<Element> all = new LinkedList<Element>();
+                    for ( SyntaxSymbol syms : that.getSymbols() ){
+                        all.addAll( syms.accept(this) );
+                    }
+                    return all;
+                }
 
 		@Override
-			public List<Element> forRepeatOneOrMoreSymbolOnly(
-					RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
-				if (symbol_result.size() == 1) {
-					Element e = symbol_result.remove(0);
-					symbol_result.add(new xtc.parser.Repetition(true, e));
-					return symbol_result;
-				}
-				if (symbol_result.isEmpty()) {
-					throw new RuntimeException("Malformed repeat-one-or-more symbol, not bound to any symbol: ");
-				}
-				throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
-					}
+                public List<Element> forOptionalSymbol(OptionalSymbol that) {
+                    return that.getSymbol().accept(new ModifierTranslator(this, new OptionalModifier()));
+                }
 
 		@Override
-			public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
-					List<Element> symbol_result) {
-				if (symbol_result.size() == 1) {
-					Element e = symbol_result.remove(0);
-					symbol_result.add(new xtc.parser.Repetition(false, e));
-					return symbol_result;
-				}
-				if (symbol_result.isEmpty()) {
-					throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
-				}
-				throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
-			}
+                public List<Element> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
+                    return that.getSymbol().accept(new ModifierTranslator(this, new RepeatModifier(true)));
+                }
+
+		@Override
+                public List<Element> forRepeatSymbol(RepeatSymbol that) {
+                    return that.getSymbol().accept(new ModifierTranslator(this, new RepeatModifier(false)));
+                }
 
 		@Override
 			public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
 					List<Element> symbol_result) {
 				if (symbol_result.size() == 1) {
-					Element e = symbol_result.remove(0);
-					symbol_result.add(new FollowedBy(new Sequence(e)));
-					return symbol_result;
+					Element e = symbol_result.get(0);
+                                        return mkList(new FollowedBy(new Sequence(e)));
 				}
 				if (symbol_result.isEmpty()) {
 					throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
@@ -359,9 +323,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 			public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
 					List<Element> symbol_result) {
 				if (symbol_result.size() == 1) {
-					Element e = symbol_result.remove(0);
-					symbol_result.add(new NotFollowedBy(new Sequence(e)));
-					return symbol_result;
+					Element e = symbol_result.get(0);
+                                        return mkList(new NotFollowedBy(new Sequence(e)));
 				}
 				if (symbol_result.isEmpty()) {
 					throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
@@ -376,5 +339,110 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
 	}
 
+    private static class ModifierTranslator extends NodeDepthFirstVisitor<List<Element>> {
+
+        private SymbolTranslator inner;
+        private Modifier modifier;
+
+        ModifierTranslator(SymbolTranslator inner, Modifier modifier) {
+            this.inner = inner;
+            this.modifier = modifier;
+        }
+
+        @Override
+        public List<Element> defaultCase(Node that) {
+            List<Element> result = that.accept(inner);
+            if (result.size() == 1) {
+                Element e = result.get(0);
+                return mkList(new xtc.parser.Repetition(false, e));
+            } else if (result.isEmpty()) {
+                throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
+            } else {
+                throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+result);
+            }
+        }
+
+        @Override
+        public List<Element> forGroupSymbol(GroupSymbol that){
+            Map<PrefixedSymbol,VariableCollector.Depth> varMap = that.accept(new VariableCollector());
+            List<PrefixedSymbol> varSyms = new ArrayList<PrefixedSymbol>(varMap.keySet());
+            String freshName = FreshName.getFreshName("g");
+            List<Element> all = new LinkedList<Element>();
+            for (SyntaxSymbol syms : that.getSymbols()) {
+                all.addAll( syms.accept(inner) );
+            }
+
+            List<Integer> indents = new LinkedList<Integer>();
+            indents.add(1);
+            List<String> code = new LinkedList<String>();
+            StringBuilder variables = new StringBuilder();
+            for (PrefixedSymbol sym : varSyms) {
+                variables.append( sym.getId().unwrap().toString() ).append( "," );
+            }
+            code.add(String.format("yyValue = new Object[] { %s };", variables.toString()));
+            all.add(new ParserAction(new Action(code, indents)));
+            Element pack = new Binding(freshName, modifier.makePack(new Sequence(all)));
+            // Element pack = new Binding(freshName, new xtc.parser.Repetition(isPlus, new Sequence(all)));
+
+            List<Integer> indents2 = new LinkedList<Integer>();
+            List<String> code2 = new LinkedList<String>();
+            int varCount = varSyms.size();
+            for (int index = 0; index < varCount ; index++) {
+                PrefixedSymbol sym = varSyms.get(index);
+                String varName = sym.getId().unwrap().toString();
+                String baseType = sym.getType().unwrap().toString(); // FIXME: need check?
+                String fullType = varMap.get(sym).getType(baseType);
+                indents2.add(1);
+                code2.add(modifier.unpackDecl(fullType, varName, freshName, index));
+            }
+            Element unpack = new ParserAction(new Action(code2, indents2));
+
+            return mkList(pack, unpack);
+        }
+
+    }
+
+    private static interface Modifier {
+        public Element makePack(Element e);
+        public String unpackDecl(String fullType, String varName, String packedName, int index);
+    }
+    
+    private static class RepeatModifier implements Modifier {
+        boolean isPlus;
+        RepeatModifier(boolean isPlus) {
+            this.isPlus = isPlus;
+        }
+        public Element makePack(Element e) {
+            return new xtc.parser.Repetition(isPlus, e);
+        }
+        public String unpackDecl(String fullType, String varName, String packedName, int index) {
+            return String.format("List<%s> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.<%s>unpack((List<Object[]>)%s, %d);", 
+                                 fullType, varName, fullType, packedName, index);
+        }
+    }
+
+    private static class OptionalModifier implements Modifier {
+        public Element makePack(Element e) {
+            return new xtc.parser.Option(e);
+        }
+        public String unpackDecl(String fullType, String varName, String packedName, int index) {
+            return String.format("%s %s = (Object[])%s[%d];", fullType, varName, packedName, index);
+        }
+    }
 
 }
+
+        /*
+OptionalSymbol                    
+                    if (symbol_result.size() == 1) {
+					Element e = symbol_result.remove(0);
+					symbol_result.add(new xtc.parser.Option(e));
+					return symbol_result;
+				}
+				if (symbol_result.isEmpty()) {
+					throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
+				}
+				throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
+			}
+
+        */
