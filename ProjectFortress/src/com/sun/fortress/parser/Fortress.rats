@@ -27,7 +27,7 @@ instantiate com.sun.fortress.parser.Declaration(TraitObject, Function, Variable,
 instantiate com.sun.fortress.parser.TraitObject(Method, Field, AbsField,
                                                 Parameter, OtherDecl,
                                                 NoNewlineHeader, Identifier,
-                                                Keyword, Spacing)
+                                                Keyword, Symbol, Spacing)
             as TraitObject;
 instantiate com.sun.fortress.parser.Function(Parameter, NoNewlineHeader,
                                              NoNewlineType, NoNewlineExpr,
