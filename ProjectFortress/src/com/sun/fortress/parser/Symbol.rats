@@ -115,7 +115,7 @@ private String exponentOp =
  * all-caps with underscores; it doesn't look it up anywhere, and
  * shouldn't since this set of operators is open-ended.
  */
-private String OpName =
+String OpName =
      opn:id &{FortressUtil.validOp(opn) };
 
 Op Op =

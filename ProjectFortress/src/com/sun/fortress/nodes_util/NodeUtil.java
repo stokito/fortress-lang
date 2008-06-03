@@ -359,6 +359,12 @@ public class NodeUtil {
         public String apply(Name n) { return nameString(n); }
     };
 
+    public static final Fn<String, Id> StringToIdFn = new Fn<String, Id>() {
+            public Id apply(String x) {
+                return new Id(new Span(), x);
+            }
+        };
+
     /* for APIName ******************************************************/
     public static List<String> toStrings(APIName n) {
         return IterUtil.asList(IterUtil.map(n.getIds(), IdToStringFn));
