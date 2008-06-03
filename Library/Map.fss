@@ -176,7 +176,8 @@ object SeqMapGenerator[\Key,Val\](o:Map[\Key,Val\])
   generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = o.seqgen[\R\](r,body)
 end
 
-object DisjointMapUnion[\Key,Val\] extends Reduction[\Map[\Key,Val\]\]
+object DisjointMapUnion[\Key,Val\] extends MonoidReduction[\Map[\Key,Val\]\]
+    toString(): String = "Disjoint map union reduction"
     empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
     join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
         a UPLUS b

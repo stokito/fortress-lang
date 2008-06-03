@@ -73,7 +73,8 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
     deleteMinimum(): Heap[\K,V\]
 end
 
-object HeapMerge[\K,V\](boiler: Heap[\K,V\]) extends Reduction[\Heap[\K,V\]\]
+object HeapMerge[\K,V\](boiler: Heap[\K,V\])
+        extends CommutativeMonoidReduction[\Heap[\K,V\]\]
 end
 
 trait Pairing[\K,V\] extends Heap[\K,V\]

@@ -100,7 +100,7 @@ emptyList[\E\](): List[\E\]
 singleton[\E\](e:E): List[\E\]
 
 (** A reduction object for concatenating lists. *)
-object Concat[\E\] extends Reduction[\ List[\E\] \]
+object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
   empty(): List[\E\]
   join(a:List[\E\], b:List[\E\]): List[\E\]
 end

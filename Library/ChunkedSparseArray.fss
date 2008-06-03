@@ -40,7 +40,7 @@ bitNum(x : ZZ64): ZZ32 = do
   end
 
 value object Bits(x0:ZZ64) extends SequentialGenerator[\ZZ32\]
-    generate[\R\](r: Reduction[\R\], body: E -> R): R = do
+    generate[\R\](r: Reduction[\R\], body: E -> R): R =
         x : ZZ64 := x0
         res : R := r.empty()
         while x =/= 0 do

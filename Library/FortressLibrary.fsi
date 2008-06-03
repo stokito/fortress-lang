@@ -99,15 +99,22 @@ trait Equality[\Self extends Equality[\Self\]\]
 end
 
 (** Total ordering *)
-
-object LexicographicPartialReduction extends Reduction[\Comparison\]
+object LexicographicPartialReduction
+        extends { MonoidReduction[\Comparison\],
+                  ReductionWithZeroes[\Comparison, Comparison\] }
     empty(): Comparison
     join(a:Comparison, b:Comparison):Comparison
+    isZero(_:Unordered): Boolean
+    isZero(_:Comparison): Boolean
 end
 
-object LexicographicReduction extends Reduction[\TotalComparison\]
+object LexicographicReduction
+        extends { MonoidReduction[\TotalComparison\],
+                  ReductionWithZeroes[\TotalComparison, TotalComparison\] }
     empty(): TotalComparison
     join(a:TotalComparison, b:TotalComparison):TotalComparison
+    isLeftZero(_:EqualTo): Boolean
+    isLeftZero(_:Comparison): Boolean
 end
 
 trait Comparison
@@ -1368,20 +1375,103 @@ array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\]
 * \subsection*{Reductions}
 ************************************************************)
 
-trait Reduction[\ R \]
-    abstract getter toString():String
-    abstract empty(): R
-    abstract join(a: R, b: R): R
+trait Reduction[\R\] end
+
+(** Invariants:
+    join must be associative with identity empty
+    unlift(lift(x)) = x
+ **)
+trait ActualReduction[\R,L\] extends Reduction[\R\]
+    abstract getter toString()
+    abstract empty(): L
+    abstract join(a: L, b: L): L
+    abstract lift(r:R): L
+    abstract unlift(l:L): R
+    (** If this reduction left-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    leftDistribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\]
+    (** If this reduction right-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    rightDistribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\]
+    (** If this reduction distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    distribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\]
 end
 
-object VoidReduction extends Reduction[\()\]
+trait PossibleReductionPair[\R\] extends Condition[\SomeReductionPair[\R\]\]
+    comprises { NoReductionPair[\R\], SomeReductionPair[\R\] }
+end
+
+object NoReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
+end
+
+trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
+    abstract getter outer(): Reduction[\R\]
+    abstract getter inner(): Reduction[\R\]
+end
+
+trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
+    abstract getter outer(): ActualReduction[\R,L\]
+    abstract getter inner(): ActualReduction[\R,L\]
+end
+
+(** The usual lifting to Maybe for identity-less operators **)
+trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
+    empty(): Nothing[\R\]
+    join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\]
+    abstract simpleJoin(a:R, b:R): R
+    lift(r:R): Maybe[\R\]
+    unlift(r:Maybe[\R\]): R
+end
+
+trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
+
+(** Monoids don't require a special lift and unlift operation. **)
+trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
+    lift(r:R): R
+    unlift(r:R): R
+end
+
+trait CommutativeMonoidReduction[\R\] extends MonoidReduction[\R\] end
+
+trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
+    isLeftZero(l:L): Boolean
+    isRightZero(l:L): Boolean
+    isZero(l:L): Boolean
+end
+
+trait BigOperator[\I,R\]
+    getter reduction(): Reduction[\R\]
+    getter body(): I->R
+end
+
+object BigReduction[\R\](r:Reduction[\R\]) extends BigOperator[\R,R\]
+    getter reduction(): Reduction[\R\]
+    getter body(): R->R
+end
+
+object Comprehension[\I,R\](r: Reduction[\R\], singleton:I->R)
+        extends BigOperator[\I,R\]
+    getter reduction(): Reduction[\R\]
+    getter body(): I->R
+end
+
+(** VoidReduction is usually done for effect, so we pretend that
+    the completion performs the effects.  This rules out things
+    distributing over void (that would change the number of effects in
+    our program) but not void distributing over other things. **)
+object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     getter toString()
     empty(): ()
     join(a: (), b: ()): ()
 end
 
-(** Hack to permit any %Number% to work non-parametrically. **)
-object SumReduction extends Reduction[\Number\]
+(* Hack to permit any Number to work non-parametrically. *)
+object SumReduction extends CommutativeMonoidReduction[\Number\]
     getter toString()
     empty(): Number
     join(a: Number, b: Number): Number
@@ -1389,7 +1479,7 @@ end
 
 opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
 
-object ProdReduction extends Reduction[\Number\]
+object ProdReduction extends CommutativeMonoidReduction[\Number\]
     getter toString()
     empty(): Number
     join(a:Number, b:Number): Number
@@ -1397,21 +1487,17 @@ end
 
 opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
 
-object MinReduction[\T extends StandardMin[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
-    empty(): AnyMaybe
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe
+    simpleJoin(a:T, b:T): T
 end
 
 opr BIG MIN[\T extends StandardMin[\T\]\]
            (g:(MinReduction[\T\],T->AnyMaybe)->AnyMaybe): T
 
-object MaxReduction[\T extends StandardMax[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
-    empty(): AnyMaybe
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe
+    simpleJoin(a:T, b:T): T
 end
 
 opr BIG MAX[\T extends StandardMax[\T\]\]
@@ -1421,28 +1507,47 @@ opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
 
 opr BIG MAXNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
 
-(** %AndReduction% and %OrReduction% take advantage of natural zeroes for early exit. **)
-object AndReduction extends Reduction[\Boolean\]
+(** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
+object AndReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString()
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
+    isZero(a:Boolean): Boolean
 end
 
 opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
 
-object OrReduction extends Reduction[\Boolean\]
+object OrReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString()
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
+    isZero(a:Boolean): Boolean
 end
 
 opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
 
 (** A reduction performing String concatenation **)
-object StringReduction extends Reduction[\String\]
+object StringReduction extends MonoidReduction[\String\]
     getter toString()
     empty(): String
     join(a:String, b:String): String
+end
+
+(** A reduction performing String concatenation with a space **)
+object SpaceReduction extends MonoidReduction[\String\]
+    getter toString()
+    empty(): String
+    join(a:String, b:String): String
+end
+
+(** A reduction performing String concatenation with newline separation **)
+object NewlineReduction extends AssociativeReduction[\String\]
+    getter toString()
+    simpleJoin(a:String, b:String): String
 end
 
 (** This operator performs string concatenation, first converting
@@ -1462,18 +1567,19 @@ opr BIG //(g:(Reduction[\Maybe[\String\]\],Any->Maybe[\String\])->Maybe[\String\
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
-object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
+object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
     getter toString()
     empty(): R
     join(a:R, b:R): R
 end
 
-(** Given an operator OP: (T,T) -> T and its identity z:T, create
-    the corresponding reduction.  OP must be associative. *)
-object OprReduction[\T,opr OP\](z:T) extends Reduction[\T\]
+(** A %MIMapReduceReduction% takes an associative binary function %j% on
+    arguments of type %R%, and the identity of that function %z%, and
+    returns the corresponding reduction. **)
+object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
     getter toString()
-    empty():T
-    join(a:T, b:T): T
+    empty(): R
+    join(a:Any, b:Any): R
 end
 
 (** %embiggen% takes a type %T% and an operation (either an operator

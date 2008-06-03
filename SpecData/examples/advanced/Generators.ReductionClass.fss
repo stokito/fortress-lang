@@ -21,7 +21,8 @@ component Generators.ReductionClass
 export Executable
 
 (** EXAMPLE **)
-object SumZZ32 extends Reduction[\ZZ32\]
+object SumZZ32 extends CommutativeMonoidReduction[\ZZ32\]
+    toString():String = "SumZZ32"
     empty(): ZZ32 = 0
     join(a: ZZ32, b: ZZ32): ZZ32 = a+b
 end

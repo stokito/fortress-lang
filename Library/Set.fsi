@@ -64,7 +64,7 @@ opr BIG {[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList } : Set[\U
 opr BIG UNION[\R\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
                     Set[\R\]
 
-object Union[\E\] extends Reduction[\Set[\E\]\] end
+object Union[\E\] extends CommutativeMonoidReduction[\Set[\E\]\] end
 
 opr BIG INTERSECTION[\R\](g:(Reduction[\Maybe[\Set[\R\]\]\],
                              Set[\R\]->Maybe[\Set[\R\]\]) ->
