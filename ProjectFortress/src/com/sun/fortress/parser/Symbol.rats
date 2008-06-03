@@ -241,7 +241,7 @@ Op PROD = "PROD"
 Op Accumulator =
      SUM
    / PROD
-   / void:BIG w a1:Op
+   / void:BIG w a1:(Encloser / Op)
      { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
                                        "BIG " + a1.getText());
      };
