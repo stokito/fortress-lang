@@ -19,13 +19,12 @@ package com.sun.fortress.interpreter.evaluator;
 
 import com.sun.fortress.useful.HasAt;
 
-/*
+/**
  * An InterpreterBug should be thrown when the interpreter finds
  * itself in an inconsistent state, and wants to provide feedback on
  * the Fortress source program which will enable the inconsistency to
  * be debugged and/or worked around.
  */
-
 public class InterpreterBug extends FortressException {
 
     /**
