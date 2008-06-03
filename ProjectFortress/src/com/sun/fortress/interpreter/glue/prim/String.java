@@ -53,6 +53,13 @@ public class String extends NativeConstructor {
         return FString.EMPTY;
     }
 
+    private static abstract class ss2S extends NativeMeth1 {
+        protected abstract java.lang.String f(java.lang.String s, java.lang.String o);
+        protected final FString act(FObject self, FValue other) {
+            return FString.make(f(self.getString(),other.getString()));
+        }
+    }
+
     private static abstract class ss2B extends NativeMeth1 {
         protected abstract boolean f(java.lang.String s, java.lang.String o);
         protected final FBool act(FObject self, FValue other) {
@@ -141,4 +148,11 @@ public class String extends NativeConstructor {
             return self.charAt(i);
         }
     }
+
+    public static final class App extends ss2S {
+        protected java.lang.String f(java.lang.String x, java.lang.String y) {
+            return x + y;
+        }
+    }
+
 }

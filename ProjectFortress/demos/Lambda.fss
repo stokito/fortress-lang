@@ -237,7 +237,7 @@ object Parser(f:FileReadStream)
     parseId(): String = do
         res : String := "" curr
         while next() NOTIN terminators do
-            res DOT= curr
+            res := res || curr
         end
         res
       end

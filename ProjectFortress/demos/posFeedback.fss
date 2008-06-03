@@ -64,21 +64,21 @@ object Stats
         showHist(i:ZZ32): String = do
             (ng,ps) = (histogram[negOut,i], histogram[posOut,i])
             if ng+ps =/= 0 then
-                h = "\n" fmt3(i) ":" fmt3(ps) "|" fmt3(ng)
+                h = // fmt3(i) ":" fmt3(ps) "|" fmt3(ng)
                 scn = barlen(ng)
                 scp = barlen(ps)
                 h repeat(32-scp," ") repeat(scp,"+") "|" repeat(scn,"-")
             else
-                "\n" fmt3(i)
+                // fmt3(i)
             end
           end
-        histo = BIG STRING [i<-0#365] showHist(i)
-        ("Stats:"
-         "\nn   = " fmt3(n) "\t\tmedian = " fmt3(med)
-         "\npos = " fmt3(pos) "\t" percent(pos,n) "%\tmedian = " fmt3(posMed)
-         "\nneg = " fmt3(neg) "\t" percent(neg,n) "%\tmedian = " fmt3(negMed)
-         "\nover= " fmt3(overAYear) "\t" percent(overAYear,n) "%"
-         "\nHistogram:" histo)
+        histo = BIG ||[i<-0#365] showHist(i)
+        ("Stats:" //
+         "n   = " fmt3(n) "\t\tmedian = " fmt3(med) //
+         "pos = " fmt3(pos) "\t" percent(pos,n) "%\tmedian = " fmt3(posMed) //
+         "neg = " fmt3(neg) "\t" percent(neg,n) "%\tmedian = " fmt3(negMed) //
+         "over= " fmt3(overAYear) "\t" percent(overAYear,n) "%" //
+         "Histogram:" histo)
       end
     recordOver(): () = atomic do
         overAYear += 1
@@ -109,7 +109,7 @@ median[\I\](gen: Generator[\I\], bucket: I -> ZZ32): (ZZ32,I) = do
     (n, med)
   end
 
-repeat(i:ZZ32, s:String): String = BIG STRING [_ <- 0#i] s
+repeat(i:ZZ32, s:String): String = BIG ||[_ <- 0#i] s
 
 object Entity(var positivity: ZZ32,
               known: ZZ32[2], transient initFacts: ZZ32[2])
@@ -128,7 +128,7 @@ object Entity(var positivity: ZZ32,
       end
 
     getter toString(): String =
-        ("Entity(" positivity ", [" known[0] " " known[1] "]) t = " time "\n"
+        ("Entity(" positivity ", [" known[0] " " known[1] "]) t = " time //
          facts.toString())
 
     otherOutcome(outcome: ZZ32): ZZ32 = 1 - outcome
