@@ -141,6 +141,11 @@ public class TypeAnalyzerUtil {
         };
     }
 
+    /**
+     * Does thie given type t contain any of the type variable names given by names?
+     * @param t Given type
+     * @param names type variable names to look for
+     */
     public static boolean containsVariable(Type t, final List<Id> names) {
         return t.accept(new NodeAbstractVisitor<Boolean>() {
             private Boolean recurOnList(List<? extends Type> ts) {

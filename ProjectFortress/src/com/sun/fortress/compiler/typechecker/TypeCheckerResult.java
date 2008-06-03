@@ -23,11 +23,14 @@ import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+
 public class TypeCheckerResult extends StaticPhaseResult {
     private final Node ast;
     private final Option<Type> type;
     private final ConstraintFormula nodeConstraints;
 
+ // TODO: We need to change the compose methods so that nodeConstraints are combined. 
+    
     public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
                                             TypeCheckerResult... results) {
         return new TypeCheckerResult(_ast, _type,

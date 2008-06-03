@@ -29,8 +29,8 @@ import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
- * A type environment whose outermost lexical scope consists of a map from
- * Ids to Variables.
+ * This environment represents bindings of top-level variables in a component.
+ * It consists of a map from Ids to Variables.
  */
 class VarTypeEnv extends TypeEnv {
     private Map<Id, Variable> entries;
@@ -57,6 +57,7 @@ class VarTypeEnv extends TypeEnv {
                 Id declaringTrait = _result.declaringTrait();
 
                 return some(new BindingLookup(makeLValue(_var, declaringTrait)));
+                //return some(new BindingLookup(_var, parent.type(declaringTrait)));
             } else { // result instanceof ParamVariable
                 ParamVariable _result = (ParamVariable)result;
                 Param param = _result.ast();
@@ -66,8 +67,6 @@ class VarTypeEnv extends TypeEnv {
                   makeLValue(param.getName(), type), param.getMods())));
             }
         } else {
-            if (_var.getApi().isSome())
-                return binding(new Id(_var.getSpan(), _var.getText()));
             return parent.binding(var);
         }
     }

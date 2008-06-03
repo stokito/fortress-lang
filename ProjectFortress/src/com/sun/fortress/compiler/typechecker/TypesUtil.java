@@ -39,10 +39,14 @@ import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.NI;
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeId;
 import static edu.rice.cs.plt.tuple.Option.*;
@@ -98,6 +102,83 @@ public class TypesUtil {
             else { return Collections.unmodifiableMap(_keywords); }
         }
         
+    }
+    
+    /**
+     * Figure out the static type of a non-generic function application. This
+     * method is a rewrite of the old method with the same name but using a
+     * {@code TypeAnalyzer} rather than a Subtype checker. Accordingly, 
+     * we may have to (in the future)
+     * return a ConstraintFormula instead of a type.
+     * @param checker the SubtypeChecker to use for any type comparisons
+     * @param fn the type of the function, which can be some AbstractArrowType,
+     *           or an intersection of such (in the case of an overloaded
+     *           function)
+     * @param arg the argument to apply to this function
+     * @return the return type of the most applicable arrow type in {@code fn},
+     *         or {@code Option.none()} if no arrow type matched the args
+     */
+    public static Option<Type> applicationType(final TypeAnalyzer checker,
+    		                                   final Type fn,
+    		                                   final ArgList args) {
+        // Get a list of the arrow types that match these arguments
+        List<ArrowType> matchingArrows = new ArrayList<ArrowType>();
+        for (Type arrow : conjuncts(fn)) {
+
+            // Try to form a non-generic ArrowType from this arrow, if it matches the args
+            Pair<Option<ArrowType>, ConstraintFormula> newArrow = 
+            	arrow.accept(new NodeAbstractVisitor<Pair<Option<ArrowType>, ConstraintFormula>>() {
+                @Override public Pair<Option<ArrowType>, ConstraintFormula> forArrowType(ArrowType that) {
+                    //boolean valid = false;
+                    ConstraintFormula valid = checker.subtype(args.argType(), Types.stripKeywords(that.getDomain()));
+
+                    Map<Id, Type> argMap = args.keywordTypes();
+                    Map<Id, Type> paramMap = Types.extractKeywords(that.getDomain());
+                    if (paramMap.keySet().containsAll(argMap.keySet())) {
+                    	for (Map.Entry<Id, Type> entry : argMap.entrySet()) {
+                    		Type sup = paramMap.get(entry.getKey());
+                    		//valid &= checker.subtype(entry.getValue(), sup);  creating a new history here is weird
+                    		valid = valid.and(checker.subtype(entry.getValue(), sup), checker.new SubtypeHistory());
+                    		//if (!valid) { break; }
+                    	}
+                    }
+                    return Pair.make(Option.some(that), valid);
+                }
+                @Override public Pair<Option<ArrowType>, ConstraintFormula> 
+                for_RewriteGenericArrowType(_RewriteGenericArrowType that) {
+                    return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE); // TODO - implement
+                }
+                @Override public Pair<Option<ArrowType>, ConstraintFormula> defaultCase(Node that) {
+                	return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
+                }
+            });
+            if (newArrow.second().isSatisfiable()) {
+                matchingArrows.add(newArrow.first().unwrap());
+            }
+        }
+        if (matchingArrows.isEmpty()) {
+            return none();
+        }
+
+        // Find the most applicable arrow type
+        // TODO: there's not always a single minimum -- the meet rule may have
+        // allowed a declaration that has a minimum at run time, but that doesn't
+        // statically (when the runtime type of the argument is not precisely known).
+//        ArrowType minType = matchingArrows.get(0);
+//        for (int i=1; i<matchingArrows.size(); ++i) {
+//            ArrowType t = matchingArrows.get(i);
+//            if (checker.subtype(t, minType)) {
+//                minType = t;
+//            }
+//        }
+        
+        Iterable<Type> ranges =
+        IterUtil.map(matchingArrows, new Lambda<ArrowType, Type>(){
+			public Type value(ArrowType arg0) {
+				return arg0.getRange();
+			}});
+        
+        return some(checker.meet(ranges));
     }
     
     /**
@@ -171,7 +252,7 @@ public class TypesUtil {
         return Option.<Type>none(); // TODO implement
     }
 
-    /** Treat the given type as an interesection and get its elements. */
+    /** Treat the given type as an intersection and get its elements. */
     public static Iterable<Type> conjuncts(Type t) {
         return t.accept(new NodeAbstractVisitor<Iterable<Type>>() {
             @Override public Iterable<Type> forType(Type t) { return IterUtil.make(t); }
