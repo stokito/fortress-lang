@@ -203,7 +203,7 @@ private List<IdOrOpOrAnonymousName> SimpleNameList =
 
 /* AliasedSimpleName ::=
      Id (w as w Id)?
-   | opr w Op (w as w Op)?
+   | opr w (Encloser / Op) (w as w (Encloser / Op))?
    | opr w EncloserPair (w as w EncloserPair)?
  */
 private AliasedSimpleName AliasedSimpleName =
@@ -214,7 +214,7 @@ private AliasedSimpleName AliasedSimpleName =
        else
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      }
-   / opr w a1:Op a2:(w as w Op)?
+   / opr w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
      { Span span = createSpan(yyStart,yyCount);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1);

@@ -44,8 +44,8 @@ import Spacing;
    | for w GeneratorClauseList w DoFront w end
    | if w GeneratorClause w then w BlockElems (w Elifs)? (w Else)? w end
    | ( w if w GeneratorClause w then w BlockElems (w Elifs)? w Else (w end)? w )
-   | case w Expr (w Op)? w of w CaseClauses (w CaseElse)? w end
-   | case w most w Op w of w CaseClauses w end
+   | case w Expr (w (Encloser / Op))? w of w CaseClauses (w CaseElse)? w end
+   | case w most w (Encloser / Op) w of w CaseClauses w end
    | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
    | try w BlockElems (w Catch)? (w forbid w TraitTypes)?
        (w finally w BlockElems)? w end
@@ -84,7 +84,8 @@ Expr DelimitedExpr =
        yyValue = new If(createSpan(yyStart,yyCount),false,clauses,
                         Option.some(a4));
      }
-   / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
+   / case w a1:Expr a2:(w (Encloser / Op))? w of w a3:CaseClauses
+     a4:(w CaseElse)? w end
      { Option<Op> compare;
        if (a2 == null) compare = Option.none();
        else            compare = Option.some(a2);
@@ -95,7 +96,7 @@ Expr DelimitedExpr =
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
                               Option.some(a1), compare, a3, _else);
      }
-   / case w most w a1:Op w of w a2:CaseClauses w end
+   / case w most w a1:(Encloser / Op) w of w a2:CaseClauses w end
      { Option<Op> compare = Option.some(a1);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
                               Option.<Expr>none(), compare, a2,
