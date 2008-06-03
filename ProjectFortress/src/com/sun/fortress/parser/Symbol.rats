@@ -102,7 +102,9 @@ private String rightEncloserMulti =
    / "/\\/\\/]" / "/\\/]"
    ;
 
-private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
+private String exponentOp =
+     "^T"
+   / a1:"^" a2:(encloser / op) { yyValue = a1+a2; };
 
 /* Finally, a nonreserved word that is made up of a mixture of uppercase
  * letters and underscores (but no digits), does not begin or end with an
@@ -131,8 +133,8 @@ private String condOp =
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Three or more colons are not valid operators in Fortress.");
      }
-   / a1:":" a2:op a3:colon { yyValue = a1+a2+a3; }
-   / a1:op a2:colon        { yyValue = a1+a2; };
+   / a1:":" a2:(encloser / op) a3:colon { yyValue = a1+a2+a3; }
+   / a1:(encloser / op) a2:colon        { yyValue = a1+a2; };
 
 private String multiOp =
      "-/->"
@@ -166,7 +168,7 @@ String op =
    / singleOp ;
 
 Op CompoundOp =
-     a1:op equalsOp
+     a1:(encloser / op) equalsOp
      { yyValue = NodeFactory.makeOpInfix(createSpan(yyStart, yyCount), a1); };
 
 /* The operator "=>" should not be in the left-hand sides of
@@ -237,7 +239,7 @@ Op PROD = "PROD"
                                        "BIG juxtaposition");
      };
 
-/* Accumulator ::= SUM | PROD | BIG w Op */
+/* Accumulator ::= SUM | PROD | BIG w (Encloser | Op) */
 Op Accumulator =
      SUM
    / PROD

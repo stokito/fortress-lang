@@ -69,10 +69,10 @@ List<Id> BindIdOrBindIdTuple =
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
-/* SimpleName ::= Id | opr w Op | opr w EncloserPair */
+/* SimpleName ::= Id | opr w (Encloser / Op) | opr w EncloserPair */
 IdOrOpOrAnonymousName SimpleName =
      Id
-   / opr w Op
+   / opr w (Encloser / Op)
    / opr w EncloserPair;
 
 /* APIName ::= Id(.Id)* */
