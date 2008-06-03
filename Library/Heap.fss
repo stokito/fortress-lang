@@ -151,11 +151,11 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
     dump():String = "N(" k "," v "," sibs.dump() "," kids.dump() ")"
     check() = do
         if NOT sibs.isEmpty() then
-            println("\nFAIL: Non-empty sibs in:" // dump() "\n")
+            println( //"FAIL: Non-empty sibs in:" // dump()// )
             fail("dying")
         end
         if NOT kids.check(k) then
-            println("\nFAIL: heap structure violation in:" // dump() "\n")
+            println( //"FAIL: heap structure violation in:" // dump()// )
         end
         self
       end
@@ -249,7 +249,7 @@ object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K
     getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
     check() = do
         if NOT kids.check(k) then
-            println("\nFAIL: heap structure violation in:" // dump() "\n")
+            println( //"FAIL: heap structure violation in:" // dump()// )
         end
         self
       end

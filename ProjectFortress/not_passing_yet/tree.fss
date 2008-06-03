@@ -414,10 +414,10 @@ object Function[\nat k\]
   d : Tree[\RR64[k],2\] := d_
 
   toString():String =
-    ("thresh = " thresh "\n"
-     "initial_level = " initial_level "\n"
-     "compressed = " compressed "\n"
-     "s = " s.toString() "\n"
+    ("thresh = " thresh //
+     "initial_level = " initial_level //
+     "compressed = " compressed //
+     "s = " s.toString() //
      "d = " d.toString())
 
   copy():Function[\k\] =
@@ -740,38 +740,38 @@ testMe():() = do
   println(f.copy().toString())
   rt2 = SQRT 2.0
   ftv = f_test(rt2-1)
-  println(f.apply(rt2-1) " ~\n" ftv " =\n" (1.0/rt2))
+  println(f.apply(rt2-1) " ~" // ftv " =" // (1.0/rt2))
   println( ||f|| ) (* Should also match the above. *)
   f.compress()
   println(f.toString())
   f.reconstruct()
   println(f.toString())
-  println(f.apply(rt2-1) " ~\n" ftv)
+  println(f.apply(rt2-1) " ~" // ftv)
   g_test(x:RR64):RR64 = 2^(-x)
   g : Function[\3\] = function[\3\](0.00001,g_test,0,20)
   gtv = g_test(rt2-1)
   println("Here is G")
   println(g.toString())
-  println(g.apply(rt2-1) " ~\n" gtv)
+  println(g.apply(rt2-1) " ~" // gtv)
   println( ||g|| )
   println("f^2")
   ff = f f
-  println(ff.apply(rt2-1) " ~\n" (ftv DOT ftv))
+  println(ff.apply(rt2-1) " ~" // (ftv DOT ftv))
   println("g^2")
   gg = g g
-  println(gg.apply(rt2-1) " ~\n" (gtv DOT gtv))
+  println(gg.apply(rt2-1) " ~" // (gtv DOT gtv))
   println("f g")
   fg = f g
-  println(fg.apply(rt2-1) " ~\n" (ftv DOT gtv))
+  println(fg.apply(rt2-1) " ~" // (ftv DOT gtv))
   println("f SQRT 2")
   f.reconstruct()
   rt2f = rt2 f
   f.compress()
   rt2fr = rt2 f
-  println(rt2f.apply(rt2-1) " ~\n" rt2fr.apply(rt2-1) " ~\n" (rt2 ftv))
+  println(rt2f.apply(rt2-1) " ~" // rt2fr.apply(rt2-1) " ~" // (rt2 ftv))
   println("f + g")
   fpg = f + g
-  println(fpg.apply(rt2-1) " ~\n" (ftv + gtv))
+  println(fpg.apply(rt2-1) " ~" // (ftv + gtv))
 end
 
 run(args:String...):() = do
