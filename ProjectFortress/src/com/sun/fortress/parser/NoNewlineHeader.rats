@@ -117,12 +117,57 @@ List<WhereBinding> WhereBindingList =
 WhereBinding WhereBinding =
      nat w a1:Id
      { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
+   / nat w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid nat parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / int w a1:Id
      { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
+   / int w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid int parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / bool w a1:Id
      { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
+   / bool w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid bool parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / unit w a1:Id
      { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); }
+   / unit w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid unit parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
+   / a1:OpName a2:(w a2:Extends)?
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid type parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / a1:Id a2:(w a2:Extends)?
      { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
        yyValue = new WhereType(createSpan(yyStart,yyCount), a1, a2);
@@ -345,22 +390,76 @@ private List<StaticParam> StaticParamList =
    | Id (w Extends)? (w absorbs w unit)?
 */
 private StaticParam StaticParam =
-     nat  w a1:Id
+     nat w a1:Id
      { yyValue = new NatParam(createSpan(yyStart,yyCount), a1);}
-   / int  w a1:Id
+   / nat w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid nat parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
+   / int w a1:Id
      { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
+   / int w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid int parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / bool w a1:Id
      { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
-   / dim  w a1:Id
+   / bool w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid bool parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
+   / dim w a1:Id
      {yyValue = new DimParam(createSpan(yyStart,yyCount), a1);}
+   / dim w a1:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid dim parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / unit w a1:Id a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
      { Option<Type> derived = Option.wrap(a2);
        boolean absorbs = (a3 == null) ? false : true;
        yyValue = new UnitParam(createSpan(yyStart,yyCount), a1,
                                derived, absorbs);
      }
-   / opr  w a1:Op
+   / unit w a1:OpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)? // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid unit parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
+   / opr w a1:Op
      { yyValue = new OpParam(createSpan(yyStart,yyCount), a1); }
+   / a1:OpName a2:(w Extends)? a3:(w absorbs w unit)? // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid type parameter name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
      { if (a2 == null) a2 = Collections.<BaseType>emptyList();
        boolean absorbs;
