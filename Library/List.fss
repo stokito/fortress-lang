@@ -159,7 +159,7 @@ trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
                                              else emptyList[\E\]() end)
     toString():String =
       "<|" (if (h,t) <- extractLeft() then
-                h (BIG STRING [e<-t] ", " e)
+                h (BIG ||[e<-t] ", " e)
             else " " end) "|>"
     (** %concatMap% is an in-place version of the %nest% method from
         %Generator%; it flattens the result into an actual list, rather than

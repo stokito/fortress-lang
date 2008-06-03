@@ -76,7 +76,7 @@ object FileWriteStream(transient fileName:String) extends { FileStream }
         "com.sun.fortress.interpreter.glue.prim.FileWriteStream$write")
     write(x:Any): () = write("" x)
     writes(x:Generator[\Any\], r:String):() =
-        write((BIG STRING [e <- x]
+        write((BIG ||[e <- x]
                    typecase e of
                         String => e
                         else   => "" e

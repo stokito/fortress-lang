@@ -84,8 +84,7 @@ end
 
 fail(s:String) = do
    println("FAIL: " s)
-   printTaskTrace()
-   throwError(s)
+   (* throwError(s) *)
    throw FailCalled(s)
 end
 
@@ -281,7 +280,7 @@ assert(flag: Boolean, failMsg: String): () =
 
 assert(x:Any, y:Any, failMsg: Any...): () =
     if x =/= y then
-        msg = x " =/= " y "; " (BIG STRING failMsg)
+        msg = x " =/= " y "; " (BIG || failMsg)
         fail(msg)
     end
 
@@ -384,7 +383,7 @@ trait Number
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
     opr SQRT_DOWN(self):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtDown")
-    opr ^(self, b:Number):Number = (* was RR64 *)
+    opr ^(self, b:Number):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
     (** Shouldn't need this extra declaration. **)
     opr ^(self, b:Integral):RR64 =
@@ -518,7 +517,7 @@ trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
     opr BITNOT(self):ZZ64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
-    opr ^(self, b:Integral):Number =
+    opr ^(self, b:Integral):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
     narrow(self):ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$FromLong")
@@ -1354,8 +1353,8 @@ trait StandardMutableArrayType[\T extends StandardMutableArrayType[\T,E,I\],E,I\
                 s0.put(i,v)
             end
         else
-            fail("Can't assign indexed with bounds " a.bounds()
-                 "\n to differently-sized subarray " self.bounds())
+            fail("Can't assign indexed with bounds " a.bounds() //
+                 " to differently-sized subarray " self.bounds())
         end
       end
 
@@ -2331,13 +2330,38 @@ opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
 object StringReduction extends Reduction[\String\]
     getter toString() = "StringReduction"
     empty(): String = ""
-    join(a:String, b:String): String = a b
+    join(a:String, b:String): String = a || b
+end
+
+(** A reduction performing String concatenation with a space **)
+object SpaceReduction extends Reduction[\String\]
+    getter toString() = "StringReduction"
+    empty(): String = ""
+    join(a:String, b:String): String = a ||| b
+end
+
+(** A reduction performing String concatenation with newline separation **)
+object NewlineReduction extends ReductionWithoutZero[\String\]
+    getter toString() = "StringReduction"
+    simpleJoin(a:String, b:String): String = a // b
 end
 
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary. **)
-opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String =
+opr BIG ||(g:(Reduction[\String\],Any->String)->String): String =
     g(StringReduction, fn (x:Any)=> "" x)
+
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary, and separating
+    non-empty components by a space. **)
+opr BIG |||(g:(Reduction[\String\],Any->String)->String): String =
+    g(SpaceReduction, fn (x:Any)=> "" x)
+
+(** This operator performs string concatenation with newline
+    separation, first converting its inputs (of type Any) to String if
+    necessary. **)
+opr BIG //(g:(Reduction[\Maybe[\String\]\],Any->Maybe[\String\])->Maybe[\String\]): String =
+    g(NewlineReduction, fn (x:Any)=> Just[\String\]("" x)).get()
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
@@ -2933,7 +2957,7 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
         h = lo + ex
         l : N := lo
         acc : R = r.empty()
-        (* DO NOT DEFINE THIS USING RECURSION!!! *)
+        (* DON'T DEFINE THIS USING RECURSION!!! *)
         while l < h do
             b = m(l)
             acc := r.join(acc, b)
@@ -2944,7 +2968,7 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
     loop(f: N->()): () = do
         h = lo + ex
         l : N := lo
-        (* DO NOT DEFINE THIS USING RECURSION!!! *)
+        (* DON'T DEFINE THIS USING RECURSION!!! *)
         while l < h do
             f(l)
             l += 1
@@ -3075,54 +3099,19 @@ random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim
 
 char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")
 
-opr DOT(a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, c:Char):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, c:Char):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(c:Char, a:String):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (c:Char, a:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, b:()):String = a "()"
-opr juxtaposition(a:String, b:()):String = a "()"
-opr DOT(a:String, b:(Any,Any)):String = do (i,j) = b; a "(" i "," j ")" end
-opr juxtaposition(a:String, b:(Any,Any)):String =
-    do (i,j) = b; a "(" i "," j ")" end
-opr juxtaposition(a:String, b:(Any,Any,Any)):String =
-    do (i,j,k) = b; a "(" i "," j "," k ")" end
-opr DOT(a:(), b:String):String = "()" b
-opr juxtaposition(a:(), b:String):String = "()" b
-opr DOT(a:Any, b:String):String = ("" a) b
-opr juxtaposition(a:Any, b:String):String = ("" a) b
-opr DOT(a:String, b:Any):String = a b.toString()
-opr juxtaposition(a:String, b:Any):String = a b.toString()
-
 print(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-print(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-println(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-print(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-println(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-println(a:Char):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-print(a:Char):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 print(a:Any):() = print("" a)
 println(a:Any):() = println("" a)
 (* 0-argument versions handle passing of () to single-argument versions. *)
 print():() = print("()")
 println():() = println("")
+
+(** opr // appends a single newline separator. **)
+opr (x:Any)// : String = x||"\n"
+
+(** opr /// appends a double newline separator **)
+opr (x:Any)/// : String = x||"\n\n"
 
 (* A way to get environment information from inside of fortress *)
 getEnvironment(name:String, defaultValue:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetEnvironment")

@@ -66,7 +66,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
                                               else emptyList[\E\]() end)
   toString():String =
       "<|" (if (h,t) <- extractLeft() then
-                h (BIG STRING [e<-t] ", " e)
+                h (BIG ||[e<-t] ", " e)
             else " " end) "|>"
   concatMap[\G\](f: E->List[\G\]): List[\G\] =
       generate[\List[\G\]\](Concat[\G\],f)
