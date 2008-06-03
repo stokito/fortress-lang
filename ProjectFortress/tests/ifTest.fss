@@ -19,11 +19,11 @@ component ifTest
 export Executable
 
 a()=do
-  println(if 1=1 then "a pass" else "a fail" end)
+  println(if 1=1 then "a pass" else "a fail")
 end
 
 b()=do
-  println(if 0=1 then "b fail" else "b pass" end)
+  println(if 0=1 then "b fail" else "b pass")
 end
 
 

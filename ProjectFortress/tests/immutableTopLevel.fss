@@ -53,8 +53,8 @@ run(args:String...):()=do
   println("c = " c)
   println("d = " d)
   O.p(P.ff)
-  println("Sideeffect count = " effects ", " (if effects = 7 then "PASS" else "FAIL" end))
-  
+  println("Sideeffect count = " effects ", " (if effects = 7 then "PASS" else "FAIL"))
+
 end
 
 end

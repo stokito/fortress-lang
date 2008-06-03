@@ -22,7 +22,7 @@ run(args:String...):()=do
   inc4(x) = (inc2(inc2(x)));
   inc(x) = (1 + (x));
   inc2(x) = (inc(inc(x)));
-  println(if inc4(4)=8 then "pass" else "fail" end)
+  println(if inc4(4)=8 then "pass" else "fail")
 end
 
 end
