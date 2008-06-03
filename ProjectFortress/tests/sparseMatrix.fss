@@ -52,7 +52,7 @@ end
 testSparse[\nat n\](A: Csr[\RR64,n,n\]) = do
   D = matrix[\RR64,n,n\]().assign(A)
   if D=/=A then
-    println("FAIL: dense =/= sparse\nD" D // "A" A)
+    println("FAIL: dense =/= sparse" // "D" D // "A" A)
   else
     println("dense OK")
   end

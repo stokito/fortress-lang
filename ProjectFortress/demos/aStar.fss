@@ -157,7 +157,7 @@ object Sudoku(var cands : ZZ32, var props : ZZ32,
                  (BIG ||[k<-0#9] if state[i,j,k].working() then "."
                                  elif state[i,j,k].cand() then "" (k+1)
                                  else " " end) "|")
-             ) "\n") "Remaining: " cands " Fixed: " props
+             )) // "Remaining: " cands " Fixed: " props
     getter toString(): String =
         (BIG ||[i<-0#9] (
              BIG ||[j<-0#9] do

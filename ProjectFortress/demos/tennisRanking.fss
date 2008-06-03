@@ -558,7 +558,7 @@ printMvpMepMip(fout:FileWriteStream, arr:Array[\(ZZ32,String),ZZ32\]) =
 printResult(fout: FileWriteStream, previous: String, today: String) =
   do
     (* print a header *)
-    fout.println("\n" previous " ~ " today "\n")
+    fout.println( // previous " ~ " today // )
     fout.println("순위  선수         승패            경기수            포인트")
     fout.println(tableBegin)
 

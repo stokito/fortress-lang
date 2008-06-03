@@ -80,7 +80,7 @@ run(args:String...):() = do
   testLens : List[\ZZ32\] = <|0,1,2,7,10|>
   assert(20,SUM testLens,"sum wrong")
   for i <- seq(testLens) do
-      print("\n" i ":")
+      print( //i ":")
       li = list(0#i)
       print(li)
       chkPop(li,i)
@@ -151,7 +151,7 @@ run(args:String...):() = do
   end
   finish = nanoTime()
   ms = ((finish-start) + 500000) DIV 1000000
-  println("\nSucceeded in " (ms/1000.0) "s")
+  println( //"Succeeded in " (ms/1000.0) "s")
 end
 
 end

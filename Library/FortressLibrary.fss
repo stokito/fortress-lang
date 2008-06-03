@@ -1580,7 +1580,7 @@ object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
   get(i:ZZ32):T = mem.get(i)
   put(i:ZZ32, v:T) = mem.put(i,v)
   init0(i:ZZ32, v:T) = mem.init0(i,v)
-  replica[\U\]() = array1[\T,s0\]()
+  replica[\U\]() = array1[\U,s0\]()
 end
 
 (* builtinFactory1 must be a non-overloaded 0-parameter factory for
@@ -2063,7 +2063,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     zeroIndices():Tuple3Range[\ZZ32,ZZ32,ZZ32\] = (0,0,0)#(s0,s1,s2)
 
     replica[\U\]():Array3[\U,b0,s0,b1,s1,b2,s2\] =
-        __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
+        __DefaultArray3[\U,b0,s0,b1,s1,b2,s2\]()
     copy():Array3[\T,b0,s0,b1,s1,b2,s2\] =
         self.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):T =>
                                      get(i-b0,j-b1,k-b2))

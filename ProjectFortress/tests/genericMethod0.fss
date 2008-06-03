@@ -38,7 +38,7 @@ end
 
 run(args:String...):() = do
   MyRange(1,10).generate[\()\](VoidReduction,
-                               fn (x:ZZ32):() => print "Hello World\n")
+                               fn (x:ZZ32):() => println "Hello World")
 end
 
 end
