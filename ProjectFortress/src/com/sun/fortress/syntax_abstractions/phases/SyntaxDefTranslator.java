@@ -355,10 +355,13 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             if (result.size() == 1) {
                 Element e = result.get(0);
                 return mkList(new xtc.parser.Repetition(false, e));
-            } else if (result.isEmpty()) {
-                throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
             } else {
-                throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+result);
+                throw new RuntimeException
+                    (String.format("Malformed %s symbol, %s",
+                                   modifier.getName(),
+                                   (result.isEmpty()
+                                    ? "not bound to any symbol"
+                                    : ("bound to multiple symbols: " + result))));
             }
         }
 
@@ -403,6 +406,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     }
 
     private static interface Modifier {
+        public String getName();
         public Element makePack(Element e);
         public String unpackDecl(String fullType, String varName, String packedName, int index);
     }
@@ -411,6 +415,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         boolean isPlus;
         RepeatModifier(boolean isPlus) {
             this.isPlus = isPlus;
+        }
+        public String getName() {
+            return isPlus? "repeat" : "repeat-one-or-more";
         }
         public Element makePack(Element e) {
             return new xtc.parser.Repetition(isPlus, e);
@@ -422,6 +429,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     }
 
     private static class OptionalModifier implements Modifier {
+        public String getName() {
+            return "optional";
+        }
         public Element makePack(Element e) {
             return new xtc.parser.Option(e);
         }
@@ -431,18 +441,3 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     }
 
 }
-
-        /*
-OptionalSymbol                    
-                    if (symbol_result.size() == 1) {
-					Element e = symbol_result.remove(0);
-					symbol_result.add(new xtc.parser.Option(e));
-					return symbol_result;
-				}
-				if (symbol_result.isEmpty()) {
-					throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
-				}
-				throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
-			}
-
-        */
