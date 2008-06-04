@@ -348,7 +348,7 @@ constant Expr LeftAssociatedPrimary =
        Expr e3 = (Expr)apply(a3s, e2);
        yyValue = (Expr)apply(a4s, e3);
      }
-   / a1:DottedIdChain a2:ParenthesisDelimited a3s:ParenthesisDelimitedLeft+
+   / a1:DottedIdChain a2:ParenthesisDelimited a3s:ParenthesisDelimitedLeft*
      a4s:Selector*
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
@@ -357,13 +357,12 @@ constant Expr LeftAssociatedPrimary =
        Expr e2 = (Expr)apply(a3s, e1);
        yyValue = (Expr)apply(a4s, e2);
      }
-   / a1:DottedIdChain a2s:ParenthesisDelimitedLeft* a3s:Selector*
+   / a1:DottedIdChain a2s:Selector*
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
        Span span = FortressUtil.spanTwo(receiver,last);
        Expr e1 = new FieldRef(span, receiver, last);
-       Expr e2 = (Expr)apply(a2s, e1);
-       yyValue = (Expr)apply(a3s, e2);
+       yyValue = (Expr)apply(a2s, e1);
      }
    / a1:PrimaryFront a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
      a4s:Selector+
