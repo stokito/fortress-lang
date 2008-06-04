@@ -234,5 +234,17 @@ public abstract class ConstraintFormula {
     public static ConstraintFormula fromBoolean(boolean b) {
         return b ? TRUE : FALSE;
     }
+    
+    /**
+     * AND together all of the given constraints.
+     */
+    public static ConstraintFormula bigAnd(Iterable<? extends ConstraintFormula> constraints,
+    		                               SubtypeHistory hist) {
+    	ConstraintFormula result = TRUE;
+    	for( ConstraintFormula constraint : constraints ) {
+    		result = result.and(constraint, hist);
+    	}
+    	return result;
+    }
 
 }

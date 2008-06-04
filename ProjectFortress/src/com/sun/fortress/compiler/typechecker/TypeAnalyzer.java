@@ -1038,6 +1038,17 @@ public class TypeAnalyzer {
         public String toString() {
           return IterUtil.multilineToString(_entries) + "\n" + _expansions + " expansions";
         }
+        
+        public SubtypeHistory combine(SubtypeHistory h){
+        	int newexpand = Math.max(this._expansions,h._expansions);
+        	Relation<Type,Type> newrel= new HashRelation<Type,Type>();
+        	newrel.addAll(this._entries);
+        	newrel.addAll(h._entries);
+        	// TODO: NEB we are trying this out but we are not
+        	// sure why we should choose the other one.
+        	return new SubtypeHistory(newrel, newexpand);
+        }
+        
     }
 
 
