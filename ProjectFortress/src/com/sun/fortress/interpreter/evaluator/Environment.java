@@ -24,10 +24,14 @@ import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Visitor2;
 
 
 public interface Environment  {
@@ -162,6 +166,73 @@ public interface Environment  {
 
     public abstract FType getTypeNull(Id name);
 
-    public abstract BetterEnv genericLeafEnvHack(BetterEnv genericEnv, HasAt within);
+    public abstract Environment genericLeafEnvHack(Environment genericEnv, HasAt within);
+    
+    public void bless() ;
 
+    public boolean getBlessed() ;
+
+    public Environment extend(Environment additions) ;
+    
+    public Environment extendAt(HasAt x) ;
+
+    public Environment extend() ;
+    
+    public Iterable<String> youngestFrame() ;
+
+    public boolean isTopLevel();
+
+    public abstract void putValueUnconditionally(String s,
+            FValue theObject);
+
+    public abstract void removeVar(String name);
+
+    public abstract HasAt getAt();
+
+    public abstract void putValueShadowFn(String fname, FValue cl);
+
+    // A notable name -- for overloading later, I think.
+    public abstract void noteName(String s);
+
+    // An untyped variable...
+    public abstract void putVariablePlaceholder(String sname);
+
+    // Fix the untyped variable
+    public abstract void storeType(HasAt x, String sname, FType ft);
+
+    public abstract void putFunctionalMethodInstance(String fndodname, FValue cl); // Fcn?
+
+    public abstract void putValueNoShadowFn(String fndodname, FValue cl); // Fcn?
+
+    public abstract void putValueUnconditionally(String name, FValue value,
+            FType ft);
+
+    public abstract FValue getValueRaw(String s);
+
+    public abstract void visit(Visitor2<String, Object> nameCollector);
+
+    public abstract void putVariable(String s, FValue value);
+
+    public abstract void removeType(String s);
+
+    public abstract Number getIntNull(String s);
+
+    public abstract Boolean getBoolNull(String s);
+
+    public abstract Closure getClosure(String toBeRun);
+
+    public abstract void putVariable(String string, FType fvt);
+
+    public abstract Environment installPrimitives();
+
+    public abstract void putInt(String add_as, Number cnnf);
+    
+    public void visit(Visitor2<String, FType> vt,
+            Visitor2<String, Number> vn,
+            Visitor2<String, Number> vi,
+            Visitor2<String, FValue> vv,
+            Visitor2<String, Boolean> vb);
+
+    public abstract void setTopLevel();
+    
 }

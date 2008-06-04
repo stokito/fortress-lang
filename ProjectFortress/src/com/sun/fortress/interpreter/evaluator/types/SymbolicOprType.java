@@ -17,16 +17,14 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.Collections;
-import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 
 public class SymbolicOprType extends SymbolicType {
 
-    public SymbolicOprType(String name, BetterEnv interior, AbstractNode decl) {
+    public SymbolicOprType(String name, Environment interior, AbstractNode decl) {
         super(name, interior, Collections.<AbsDeclOrDecl>emptyList(), decl);
         isSymbolic = true;
     }

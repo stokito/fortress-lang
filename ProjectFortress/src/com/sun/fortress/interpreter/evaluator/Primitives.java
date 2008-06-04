@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.Bool;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
@@ -37,15 +36,15 @@ public class Primitives {
             System.out.println(debugString);
     }
 
-    private static void install_type(BetterEnv env, String name, FType t) {
+    private static void install_type(Environment env, String name, FType t) {
         env.putType(name, t);
     }
 
-    private static void install_value(BetterEnv env, String name, FValue v) {
+    private static void install_value(Environment env, String name, FValue v) {
         env.putValue(name, v);
     }
 
-    public static void installPrimitives(BetterEnv env) {
+    public static void installPrimitives(Environment env) {
 
         // Dual identity of true/false
         install_type(env, "true", Bool.make(true));

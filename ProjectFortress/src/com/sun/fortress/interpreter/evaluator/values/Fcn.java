@@ -16,25 +16,23 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.UnificationError;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
-
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 abstract public class Fcn extends FValue {
     /**
      * Need to know the environment so we can resolve
      * overloading/shadowing properly.
      */
-    BetterEnv within;
+    Environment within;
 
     /**
      * Need to make type information mutable due to
@@ -42,12 +40,12 @@ abstract public class Fcn extends FValue {
      */
     private volatile FType ftype;
 
-    protected Fcn(BetterEnv within) {
+    protected Fcn(Environment within) {
         this.within = within;
         within.bless();
     }
 
-    public BetterEnv getWithin() {
+    public Environment getWithin() {
         return within;
     }
 
@@ -94,7 +92,7 @@ abstract public class Fcn extends FValue {
             return x;
     }
 
-    final public FValue apply(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    final public FValue apply(List<FValue> args, HasAt loc, Environment envForInference) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
             return check(applyInner(unwrapped, loc, envForInference));
@@ -118,7 +116,7 @@ abstract public class Fcn extends FValue {
         return args;
     }
 
-    abstract public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference);
+    abstract public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference);
 
     public boolean hasSelfDotMethodInvocation() {
         return false;

@@ -19,8 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.Evaluator;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.useful.HasAt;
@@ -33,9 +32,9 @@ import com.sun.fortress.useful.HasAt;
 public class MethodClosureInstance extends MethodClosure implements MethodInstance {
 
     GenericMethod generator;
-    BetterEnv genericEnv;
+    Environment genericEnv;
 
-    public MethodClosureInstance(BetterEnv within, BetterEnv genericEnv, Applicable fndef, FType definer, List<FType> args, GenericMethod generator) {
+    public MethodClosureInstance(Environment within, Environment genericEnv, Applicable fndef, FType definer, List<FType> args, GenericMethod generator) {
         super(within, fndef, definer, args);
         this.generator = generator;
         this.genericEnv = genericEnv;
@@ -45,7 +44,7 @@ public class MethodClosureInstance extends MethodClosure implements MethodInstan
         }
     }
 
-    public BetterEnv getEvalEnv() {
+    public Environment getEvalEnv() {
         return genericEnv;
     }
 
@@ -53,7 +52,7 @@ public class MethodClosureInstance extends MethodClosure implements MethodInstan
     // a MethodClosure and applying its subclass, a PartiallyDefinedMethod (which
     // appears to actually represent some piece of a functional method in practice).
     @Override
-    protected BetterEnv envForApplication(FObject selfValue, HasAt loc) {
+    protected Environment envForApplication(FObject selfValue, HasAt loc) {
         return selfValue.getLexicalEnv().genericLeafEnvHack(genericEnv, loc);
     }
 

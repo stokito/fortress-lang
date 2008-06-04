@@ -19,25 +19,24 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
-import java.util.List;
 import java.util.ArrayList;
-import edu.rice.cs.plt.tuple.Option;
+import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildObjectEnvironment;
-import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarAbsDeclOrDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
+
+import edu.rice.cs.plt.tuple.Option;
 
 
 public class FTypeObject extends FTraitOrObject {
@@ -47,7 +46,7 @@ public class FTypeObject extends FTraitOrObject {
 
     // This is here because of a refactoring to make traits and objects more alike
 
-    BetterEnv methodEnv;
+    Environment methodEnv;
 
 
     // names of fields
@@ -59,7 +58,7 @@ public class FTypeObject extends FTraitOrObject {
     // functional methods, and dotted methods
     List<IdOrOpOrAnonymousName> methods = new ArrayList<IdOrOpOrAnonymousName>();
 
-    public FTypeObject(String name, BetterEnv env, HasAt at,
+    public FTypeObject(String name, Environment env, HasAt at,
                        Option<List<Param>> params,
                        List<? extends AbsDeclOrDecl> members, AbstractNode def) {
         super(name, env, at, members, def);
@@ -92,13 +91,13 @@ public class FTypeObject extends FTraitOrObject {
 
     @Override
     protected void finishInitializing() {
-        BetterEnv interior = getWithin();
+        Environment interior = getWithin();
         methodEnv = interior.extend();
         methodEnv.bless();
 
     }
 
-    public BetterEnv getMethodExecutionEnv() {
+    public Environment getMethodExecutionEnv() {
         if (methodEnv == null) {
             bug("Internal error, get of unset methodEnv");
         }

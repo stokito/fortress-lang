@@ -21,29 +21,25 @@ import java.math.BigInteger;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FLong;
-import com.sun.fortress.interpreter.evaluator.values.FFloat;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.interpreter.glue.NativeFn1;
-import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import com.sun.fortress.nodes.GenericWithParams;
 
 /**
  * Functions from IntLiteral.
  */
 public class IntLiteral extends NativeConstructor {
 
-public IntLiteral(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+public IntLiteral(Environment env, FTypeObject selfType, GenericWithParams def) {
     super(env, selfType, def);
 }
 

@@ -22,7 +22,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
@@ -32,7 +32,7 @@ import com.sun.fortress.useful.Useful;
 
 
 abstract public class Simple_fcn extends SingleFcn {
-    Simple_fcn(BetterEnv within) {
+    Simple_fcn(Environment within) {
         super(within);
     }
 

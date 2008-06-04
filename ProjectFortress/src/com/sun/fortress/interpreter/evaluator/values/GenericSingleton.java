@@ -21,22 +21,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
-
-import edu.rice.cs.plt.tuple.Option;
 
 public class GenericSingleton extends FValue implements Factory1P<List<FType>, FObject, HasAt> {
 
@@ -93,7 +86,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
         return make(argValues, location);
     }
 
-    public FObject typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
+    public FObject typeApply(List<StaticArg> args, Environment e, HasAt x) {
         List<StaticParam> params = odecl.getStaticParams();
         ArrayList<FType> argValues = GenericConstructor.argsToTypes(args, e, x, params);
         return make(argValues, x);

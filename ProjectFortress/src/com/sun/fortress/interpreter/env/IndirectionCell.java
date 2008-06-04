@@ -17,12 +17,12 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class IndirectionCell extends FValue {
     protected volatile FValue theValue;

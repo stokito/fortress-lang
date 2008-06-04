@@ -56,9 +56,9 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
     protected static final boolean DUMP_INFERENCE = false;
 
-    final public BetterEnv e;
+    final public Environment e;
 
-    protected EvaluatorBase(BetterEnv e) {
+    protected EvaluatorBase(Environment e) {
         this.e = e;
     }
 
@@ -99,7 +99,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
      */
     public static Simple_fcn inferAndInstantiateGenericFunction(
             List<FValue> args, GenericFunctionOrMethod appliedThing, HasAt loc,
-            BetterEnv e) throws ProgramError {
+            Environment e) throws ProgramError {
 
         if (DUMP_INFERENCE)
             System.err.println("IAIGF " + appliedThing + " with " + args);

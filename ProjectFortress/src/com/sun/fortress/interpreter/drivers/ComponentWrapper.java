@@ -16,12 +16,9 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.drivers;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
@@ -29,21 +26,14 @@ import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.nodes.Api;
+import com.sun.fortress.interpreter.rewrite.Desugarer;
+import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
+import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.rewrite.Desugarer;
-import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
-import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfo;
-import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.useful.BASet;
-import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class ComponentWrapper {
     CompilationUnit p;
@@ -84,7 +74,7 @@ public class ComponentWrapper {
         else
             p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
 
-        BetterEnv e = BetterEnv.empty();
+        Environment e = BetterEnv.empty();
         e.setTopLevel();
         if (comp instanceof Component) {
             be = ((Component)comp).is_native() ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
@@ -219,7 +209,7 @@ public class ComponentWrapper {
             throw new IllegalStateException("Must be populated, typed, and functioned before init vars");
     }
 
-    public BetterEnv getEnvironment() {
+    public Environment getEnvironment() {
         return be.getEnvironment();
     }
 

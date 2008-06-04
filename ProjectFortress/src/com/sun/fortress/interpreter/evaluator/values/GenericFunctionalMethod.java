@@ -16,22 +16,19 @@
  ******************************************************************************/
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.NormalParam;
-import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.parser_util.FortressUtil;
-import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.Useful;
 
 public class GenericFunctionalMethod extends FGenericFunction implements HasSelfParameter {
@@ -40,13 +37,14 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     int selfParameterIndex;
     private FTypeGeneric selfParameterType;
 
-    public GenericFunctionalMethod(BetterEnv e, FnAbsDeclOrDecl fndef, int self_parameter_index, FTypeGeneric self_parameter_type) {
+    public GenericFunctionalMethod(Environment e, FnAbsDeclOrDecl fndef, int self_parameter_index, FTypeGeneric self_parameter_type) {
         super(e, fndef);
         this.selfParameterIndex = self_parameter_index;
         this.selfParameterType = self_parameter_type;
     }
 
-    protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
+    @Override
+    protected Simple_fcn newClosure(Environment clenv, List<FType> args) {
         // BUG IS HERE, NEED TO instantiate the selfParameterType! ;
 
         FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDefOrDecl());

@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.glue;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -50,7 +51,7 @@ public abstract class NativeMeth extends NativeApp implements Method {
      *  uses the location information to label any FortressError that
      *  is thrown. */
     public final FValue applyMethod(List<FValue> args, FObject selfValue,
-                                    HasAt loc, BetterEnv envForInference) {
+                                    HasAt loc, Environment envForInference) {
         return applyMethod(args,selfValue);
     }
 

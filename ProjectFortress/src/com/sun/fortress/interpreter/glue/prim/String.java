@@ -18,30 +18,25 @@
 package com.sun.fortress.interpreter.glue.prim;
 
 import java.util.List;
-import java.util.Collections;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FChar;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.glue.NativeFn0;
+import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FChar;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FString;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.GenericWithParams;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-
 
 public class String extends NativeConstructor {
 
-    public String(BetterEnv env,
+    public String(Environment env,
                   FTypeObject selfType,
                   GenericWithParams def) {
         super(env,selfType,def);

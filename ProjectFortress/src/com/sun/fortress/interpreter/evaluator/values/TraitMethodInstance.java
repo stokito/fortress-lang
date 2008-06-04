@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
@@ -36,12 +37,12 @@ public class TraitMethodInstance extends TraitMethod  implements MethodInstance 
     GenericMethod generator;
     //BetterEnv evaluationEnv;
 
-    public MethodClosure completeClosure(BetterEnv env) {
+    public MethodClosure completeClosure(Environment env) {
         return this;
         // return new TraitMethodInstance(this, evaluationEnv, selfName(), generator);
     }
 
-    public TraitMethodInstance(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef,
+    public TraitMethodInstance(Environment within, Environment evaluationEnv, Applicable fndef,
             FType definer, List<FType> args, GenericMethod generator) {
         super(within, evaluationEnv, fndef, definer, args);
         //this.evaluationEnv = evaluationEnv;

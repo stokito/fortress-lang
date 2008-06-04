@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.nodes_util.Unprinter;
 
 

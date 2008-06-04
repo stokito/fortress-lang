@@ -20,15 +20,16 @@ package com.sun.fortress.interpreter.glue.prim;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.nodes.GenericWithParams;
 
 public class FloatLiteral extends NativeConstructor {
 
-public FloatLiteral(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+public FloatLiteral(Environment env, FTypeObject selfType, GenericWithParams def) {
     super(env, selfType, def);
 }
 

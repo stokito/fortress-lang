@@ -17,21 +17,19 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import java.util.List;
+
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * A DottedMethodApplication is produced when a FieldRef occurs in
@@ -44,7 +42,7 @@ public final class DottedMethodApplication extends Fcn {
     private final Method cl;
     private final FObject self;
 
-    private DottedMethodApplication(FObject self, Method cl, BetterEnv selfEnv) {
+    private DottedMethodApplication(FObject self, Method cl, Environment selfEnv) {
         super(selfEnv);
         this.cl = cl;
         this.self = self;
@@ -66,7 +64,7 @@ public final class DottedMethodApplication extends Fcn {
         // TODO Need to distinguish between public/private
         // methods/fields
         //  (actually this is properly the duty of static analysis).
-        BetterEnv selfEnv;
+        Environment selfEnv;
         FObject self;
         FValue cl;
         if (receiver instanceof FObject) {
@@ -128,17 +126,17 @@ public final class DottedMethodApplication extends Fcn {
     /** Perform a full method invocation. */
     public static FValue invokeMethod(FValue receiver, String prettyName,
                                       String mname, List<FValue> args,
-                                      HasAt x, BetterEnv envForInference) {
+                                      HasAt x, Environment envForInference) {
         DottedMethodApplication app =
             DottedMethodApplication.make(receiver,prettyName,mname,x);
         return app.apply(args,x,envForInference);
     }
 
     public DottedMethodApplication applyToStaticArgs(List<StaticArg> sargs, HasAt x,
-                                                     BetterEnv envForInference) {
+            Environment envForInference) {
         Method cl = getMethod();
         FObject self = getSelf();
-        BetterEnv selfEnv = getWithin();
+        Environment selfEnv = getWithin();
 
         if (cl instanceof OverloadedMethod) {
             return bug(x, selfEnv,
@@ -179,7 +177,7 @@ public final class DottedMethodApplication extends Fcn {
         // Do nothing.
     }
 
-    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
         try {
             return cl.applyMethod(args, self, loc, envForInference);
         } catch (FortressException ex) {

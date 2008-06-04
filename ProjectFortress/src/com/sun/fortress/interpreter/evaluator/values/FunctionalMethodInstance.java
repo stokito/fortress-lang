@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,13 +19,14 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 
 public class FunctionalMethodInstance extends FunctionalMethod {
 
-    public FunctionalMethodInstance(BetterEnv e, Applicable fndef,
+    public FunctionalMethodInstance(Environment e, Applicable fndef,
             List<FType> args, FGenericFunction generator,
             int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
         super(e, fndef, args, self_parameter_index, self_parameter_type);

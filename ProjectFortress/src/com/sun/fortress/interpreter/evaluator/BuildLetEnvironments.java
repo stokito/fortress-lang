@@ -49,9 +49,9 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
 
     boolean firstPass = true;
 
-    BetterEnv containing;
+    Environment containing;
 
-    public BuildLetEnvironments(BetterEnv within) {
+    public BuildLetEnvironments(Environment within) {
         this.containing = within;
     }
 

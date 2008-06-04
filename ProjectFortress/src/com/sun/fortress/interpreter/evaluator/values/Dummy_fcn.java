@@ -20,12 +20,11 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
@@ -58,7 +57,7 @@ public class Dummy_fcn extends Simple_fcn {
 
     public List<FType> getDomain() {return domain;}
 
-    public FValue applyInner(List<FValue> vals, HasAt loc, BetterEnv envForInference) {
+    public FValue applyInner(List<FValue> vals, HasAt loc, Environment envForInference) {
         return NI.nyi("Dummy_fcn.apply_inner");
     }
 

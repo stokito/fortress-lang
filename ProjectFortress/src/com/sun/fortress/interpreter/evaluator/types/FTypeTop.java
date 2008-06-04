@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -25,8 +27,6 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeTop extends FTypeTrait {
     public final static FTypeTop ONLY = new FTypeTop();

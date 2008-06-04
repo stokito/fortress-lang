@@ -16,9 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
+import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.BufferedWriter;
+
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.AbstractNode;
@@ -26,8 +29,6 @@ import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.EquivalenceClass;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public abstract class FValue {
     //   public static final FValue ZERO = new FInt(0);

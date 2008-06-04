@@ -19,14 +19,12 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.Set;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.NumberConstraint;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntExpr;
-import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.NumberConstraint;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.useful.ABoundingMap;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1;
@@ -128,7 +126,7 @@ public class IntNat extends FTypeNat {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
+    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unifying IntNat "+this+" and "+val);
@@ -136,7 +134,7 @@ public class IntNat extends FTypeNat {
     }
 
     @Override
-    public void unifyStaticArg(BetterEnv env, Set<String> tp_set,
+    public void unifyStaticArg(Environment env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, StaticArg val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unifying IntNat "+this+" and "+val);

@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 
@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.Applicable;
  */
 public class ClosureInstance extends Closure {
 
-    public ClosureInstance(BetterEnv e, Applicable fndef, List<FType> args, FGenericFunction generator) {
+    public ClosureInstance(Environment e, Applicable fndef, List<FType> args, FGenericFunction generator) {
         super(e, fndef, args);
         this.generator = generator;
     }

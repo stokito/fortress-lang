@@ -17,32 +17,30 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import static com.sun.fortress.interpreter.evaluator.FortressException.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.UnificationError;
-import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.VarargTupleType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarargTupleType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
-import com.sun.fortress.useful.ListComparer;
 import com.sun.fortress.useful.Memo1C;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.FortressException.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
+import edu.rice.cs.plt.tuple.Option;
 
 // TODO need to memoize this to preserver type EQuality
 public class FTypeTuple extends FType {
@@ -320,7 +318,7 @@ public class FTypeTuple extends FType {
      * Unify a tuple type with a list of Type.
      *  This gets used here and in FTypeArrow.
      */
-    public boolean unifyTuple(BetterEnv env, Set<String> tp_set,
+    public boolean unifyTuple(Environment env, Set<String> tp_set,
                               BoundingMap<String, FType, TypeLatticeOps> abm,
                               List<Type> vals, Option<Type> varargs) {
         Iterator<FType> ftIterator = l.iterator();
@@ -352,7 +350,7 @@ public class FTypeTuple extends FType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
+    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);

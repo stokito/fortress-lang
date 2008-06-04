@@ -202,7 +202,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     /**
      * Creates a new com.sun.fortress.interpreter.evaluator in the specified environment.
      */
-    public Evaluator(BetterEnv e) {
+    public Evaluator(Environment e) {
         super(e);
         this.e.bless();
     }
@@ -461,7 +461,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         for (Expr exp : exprs) {
             // TODO This will get turned into forLet methods
             if (exp instanceof LetExpr) {
-                BetterEnv inner = eval.e.extendAt(exp);
+                Environment inner = eval.e.extendAt(exp);
                 BuildLetEnvironments be = new BuildLetEnvironments(inner);
                     res = be.doLets((LetExpr) exp);
             } else {
@@ -1466,7 +1466,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (fobj instanceof FObject) {
             FObject fobject = (FObject) fobj;
             // TODO Need to distinguish between public/private methods/fields
-            BetterEnv se = fobject.getSelfEnv();
+            Environment se = fobject.getSelfEnv();
             FValue cl = se.getValueNull(mname);
             if (cl != null && !(cl instanceof Method) && cl instanceof Fcn) {
                 // Ordinary closure, assigned to a field.

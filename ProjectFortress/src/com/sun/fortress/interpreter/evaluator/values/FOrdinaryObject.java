@@ -17,19 +17,19 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.nodes.Id;
 
 public class FOrdinaryObject extends FObject {
 
-    final BetterEnv lexicalEnv;
-    final BetterEnv selfEnv;
+    final Environment lexicalEnv;
+    final Environment selfEnv;
     final FTypeObject ftype;
 
     public FOrdinaryObject(FTypeObject selfType,
-                           BetterEnv lexical_env, BetterEnv self_dot_env) {
+            Environment lexical_env, Environment self_dot_env) {
         this.lexicalEnv = lexical_env;
         this.selfEnv = self_dot_env;
         this.ftype = selfType;
@@ -38,11 +38,11 @@ public class FOrdinaryObject extends FObject {
     /**
      * The environment that you get from "self."
      */
-    public BetterEnv getSelfEnv() {
+    public Environment getSelfEnv() {
         return selfEnv;
     }
 
-    public BetterEnv getLexicalEnv() {
+    public Environment getLexicalEnv() {
         return lexicalEnv;
     }
 

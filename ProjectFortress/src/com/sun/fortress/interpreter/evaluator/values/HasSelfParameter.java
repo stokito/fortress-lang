@@ -17,7 +17,6 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
-import com.sun.fortress.interpreter.evaluator.types.FType;
 
 public interface HasSelfParameter {
     public int getSelfParameterIndex();

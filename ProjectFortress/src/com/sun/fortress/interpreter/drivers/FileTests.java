@@ -22,34 +22,21 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import edu.rice.cs.plt.tuple.Option;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Unprinter;
-import com.sun.fortress.compiler.FortressRepository;
-import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.shell.AutocachingRepository;
-import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
-import com.sun.fortress.shell.CacheBasedRepository;
-import com.sun.fortress.shell.PathBasedRepository;
-import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class FileTests {
 

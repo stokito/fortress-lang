@@ -16,10 +16,10 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
+import com.sun.fortress.interpreter.evaluator.types.FType;
 
 public abstract class FConstructedValue extends FValue {
     /**
