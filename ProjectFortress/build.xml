@@ -509,7 +509,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
-                    <include name="**/SpecDataJUTests.class"/>
+                    <include name="**/SpecDataJUTest.class"/>
                 </fileset>
             </batchtest>
       </junit>
