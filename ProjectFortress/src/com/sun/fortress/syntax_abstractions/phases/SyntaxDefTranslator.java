@@ -55,6 +55,7 @@ import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.GroupSymbol;
+import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.Node;
@@ -201,7 +202,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 			public List<Element> forKeywordSymbol(KeywordSymbol that) {
 				return mkList(new xtc.parser.StringLiteral(that.getToken()));
 			}
-
+		
 		@Override
 			public List<Element> forTokenSymbol(TokenSymbol that) {
 				return mkList(new xtc.parser.StringLiteral(that.getToken()));
@@ -366,13 +367,19 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 return mkList(new xtc.parser.Repetition(false, e));
             } else {
                 throw new RuntimeException
-                    (String.format("Malformed %s symbol, %s",
+                    (String.format("Malformed %s symbol while scanning %s, %s",
                                    modifier.getName(),
+				   that.getClass().getName(),
                                    (result.isEmpty()
                                     ? "not bound to any symbol"
                                     : ("bound to multiple symbols: " + result))));
             }
         }
+
+	@Override
+	public List<Element> forNonterminalSymbol(NonterminalSymbol that){
+		return defaultCase(that);
+	}
 
         @Override
         public List<Element> forGroupSymbol(GroupSymbol that){
@@ -405,7 +412,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             for (int index = 0; index < varCount ; index++) {
                 PrefixedSymbol sym = varSyms.get(index);
                 String varName = sym.getId().unwrap().toString();
+		/* FIXME: get the java node ast type, not the fortress type */
                 String baseType = inner.getEnv().getType( sym.getId().unwrap() ).toString();
+		// System.out.println( String.format( "Java type for baseType %s is %s", baseType, inner.getEnv().getType( sym.getId().unwrap() ).getClass().getName() ) ); 
 		/*
 		if ( sym.getType().isSome() ){
 			baseType = sym.getType().unwrap().toString(); // FIXME: need check?
