@@ -3,6 +3,7 @@ package com.sun.fortress.syntax_abstractions.util;
 
 import java.util.List;
 import java.util.LinkedList;
+import xtc.util.Pair;
 
 public class ArrayUnpacker {
 
@@ -13,4 +14,13 @@ public class ArrayUnpacker {
         }
         return acc;
     }
+
+    public static List<Object[]> convertPackedList(Pair<Object> packed) {
+        List<Object[]> acc = new LinkedList<Object[]>();
+        for (Object p : packed) {
+            acc.add((Object[])p);
+        }
+        return acc;
+    }
+
 }

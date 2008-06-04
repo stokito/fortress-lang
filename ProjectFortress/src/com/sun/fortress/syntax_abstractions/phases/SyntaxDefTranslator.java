@@ -55,6 +55,7 @@ import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.GroupSymbol;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
@@ -411,9 +412,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             int varCount = varSyms.size();
             for (int index = 0; index < varCount ; index++) {
                 PrefixedSymbol sym = varSyms.get(index);
-                String varName = sym.getId().unwrap().toString();
+                Id varId = sym.getId().unwrap();
+                String varName = varId.toString();
+                String ntName = inner.getEnv().getNonterminalName(varId).getText();
+                String baseFortressType = inner.getEnv().getType(varId).toString();
                 /* FIXME: get the java node ast type, not the fortress type */
-                String baseType = inner.getEnv().getType( sym.getId().unwrap() ).toString();
                 // System.out.println( String.format( "Java type for baseType %s is %s", baseType, inner.getEnv().getType( sym.getId().unwrap() ).getClass().getName() ) ); 
                 /*
                 if ( sym.getType().isSome() ){
@@ -422,7 +425,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                         baseType = "???";
                 }
                 */
-                String fullType = varMap.get(sym).getType(baseType);
+                String fullType = varMap.get(sym).getType(/*baseType*/ "Object");
                 indents2.add(1);
                 code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
             }
@@ -452,7 +455,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             return new xtc.parser.Repetition(isPlus, e);
         }
         public String preUnpack(String packedName, String rawName) {
-            return String.format("List<Object[]> %s = (List<Object[]>) %s.list();",
+            return String.format("List<Object[]> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.convertPackedList(%s);",
                                  packedName, rawName);
         }
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
