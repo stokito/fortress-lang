@@ -21,7 +21,7 @@ import java.io.IOException;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-public class SpecDataJUTests {
+public class SpecDataJUTest {
     public static void main(String[] args) throws IOException {
         junit.textui.TestRunner.run(suite());
     }
