@@ -109,9 +109,7 @@ private Component Component =
            yyValue = new Component(span, true, a2, a3, a4, a5);
      };
 
-/* Api ::=
-     (native w)? api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
- */
+/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
 private Api Api =
      native w api w APIName (w Imports w semicolon?)?
      (w AbsDecls w semicolon?)? w end    // Error production
