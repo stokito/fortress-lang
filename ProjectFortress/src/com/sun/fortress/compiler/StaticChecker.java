@@ -121,17 +121,19 @@ public class StaticChecker {
                                                       StaticParamEnv.make(),
                                                       typeEnv,
                                                       component);
-            
-//        TypeCheckerResult result = new 
-//        // Iterate over top-level functions, checking the body of each.
-//        for (Function fn: component.functions()) {
-//            typeChecker.check(fn);
-//        }
            
-            // Iterate over trait and object definitions.
-            //for (
+            TypeCheckerResult result =  component.ast().accept(typeChecker);
             
-            return component.ast().accept(typeChecker);
+            // We need to make sure type inference succeeded.
+            if( !result.getNodeConstraints().isSatisfiable() ) {
+            	// Oh no! Type inference failed. Our error message will suck.
+            	String err = "Type inference failed. This error message is not helpful.";
+            	StaticError s_err = StaticError.make(err, component.ast());
+            	            	
+            	result = TypeCheckerResult.addError(result, s_err);
+            }
+            
+            return result;
         } else {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
         }
