@@ -79,7 +79,7 @@
  <property name="junitMem" value="768m"/>
  <property name="junit.dir" value="junit-results"/>
  <property environment="env"/>
- 
+
  <path id="compile.classpath">
     <pathelement location="${java.home}/../lib/tools.jar"/>
     <pathelement location="${build}"/>
@@ -494,6 +494,28 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <fail message="Tests expected to fail are failing!" if="tests.failed"/>
     </target>
 
+    <target name="testSpecData" depends="compile"
+            description="Run SpecDataJUTests.">
+        <mkdir dir="${test.results}"/>
+        <junit printsummary="on"
+               haltonerror="off"
+               haltonfailure="off"
+               showoutput="yes"
+               fork="true"
+               maxmemory="${junitMem}"
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
+            <classpath refid="compile.classpath"/>
+            <formatter type="plain" usefile="true"/>
+            <batchtest fork="true" todir="${test.results}">
+                <fileset dir="${build}">
+                    <include name="**/SpecDataJUTests.class"/>
+                </fileset>
+            </batchtest>
+      </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+    </target>
+
     <target name="testSystem" depends="compile"
             description="Run SystemJUTests.">
         <mkdir dir="${test.results}"/>
@@ -790,5 +812,5 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <arg value="com.sun.fortress.interpreter.drivers.NotPassingYet"/>
         </java>
     </target>
-    
+
 </project>
