@@ -37,6 +37,8 @@ api SyntaxNodes
         | g {Thing} <[ 1 ]>
         | f {x:Thing y:Thing} <[ 1 ]>
         | n {x:Thing q {y:Thing z:Thing}} <[ 1 ]>
+        | m {x:Thing q {y:Thing z:Thing}}* <[ 1 ]>
+        | m {x:Thing q {y:Thing z:Thing}*}* <[ 1 ]>
         (*
         | f (x:Thing y:Thing) <[ 1 ]>
         *)

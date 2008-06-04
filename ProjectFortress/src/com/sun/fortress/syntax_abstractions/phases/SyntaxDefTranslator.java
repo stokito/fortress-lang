@@ -163,7 +163,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 		List<Element> elms = new LinkedList<Element>();
 		// Translate the symbols
 		for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
-			elms.addAll(sym.accept(new SymbolTranslator()));
+			elms.addAll(sym.accept(new SymbolTranslator(new SyntaxDeclEnv(syntaxDef))));
 		}
 		String newName = FreshName.getFreshName(name).toUpperCase();
 		ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, new SyntaxDeclEnv(syntaxDef));
@@ -177,6 +177,15 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     }
 
 	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
+
+		private SyntaxDeclEnv env;
+		public SymbolTranslator( SyntaxDeclEnv env ){
+			this.env = env;
+		}
+
+		public SyntaxDeclEnv getEnv(){
+			return env;
+		}
 
 		@Override
 			public List<Element> forAnyCharacterSymbol(AnyCharacterSymbol that) {
@@ -396,7 +405,14 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             for (int index = 0; index < varCount ; index++) {
                 PrefixedSymbol sym = varSyms.get(index);
                 String varName = sym.getId().unwrap().toString();
-                String baseType = sym.getType().unwrap().toString(); // FIXME: need check?
+                String baseType = inner.getEnv().getType( sym.getId().unwrap() ).toString();
+		/*
+		if ( sym.getType().isSome() ){
+			baseType = sym.getType().unwrap().toString(); // FIXME: need check?
+		} else {
+			baseType = "???";
+		}
+		*/
                 String fullType = varMap.get(sym).getType(baseType);
                 indents2.add(1);
                 code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
