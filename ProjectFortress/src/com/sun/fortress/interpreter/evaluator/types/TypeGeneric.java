@@ -16,12 +16,11 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.TraitDecl;
 
 
 public class TypeGeneric {
-    BetterEnv env;
+    Environment env;
     TraitDecl t;
 }

@@ -17,17 +17,9 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Iterator;
-
+import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeFn2;
-import com.sun.fortress.interpreter.evaluator.values.*;
-import com.sun.fortress.interpreter.evaluator.types.*;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * Functions on Any type.

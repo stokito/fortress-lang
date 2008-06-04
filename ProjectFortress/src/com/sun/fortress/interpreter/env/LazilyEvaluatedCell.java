@@ -17,19 +17,19 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes_util.NodeUtil;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-
 public class LazilyEvaluatedCell extends IndirectionCell {
     Expr exp;
-    BetterEnv e;
+    Environment e;
 
-    public LazilyEvaluatedCell( Expr exp, BetterEnv e) {
+    public LazilyEvaluatedCell( Expr exp, Environment e) {
         this.exp = exp;
         this.e = e;
     }
@@ -56,7 +56,7 @@ public class LazilyEvaluatedCell extends IndirectionCell {
             synchronized (this) {
                 if (theValue == null) {
                     Expr exp0 = exp;
-                    BetterEnv e0 = e;
+                    Environment e0 = e;
                     exp = null;
                     e = null;
                     theValue = (new Evaluator(e0)).eval(exp0);

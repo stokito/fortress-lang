@@ -17,21 +17,18 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
-import com.sun.fortress.useful.HasAt;
-
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpSkip;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbstractNode;
 
 abstract public class SymbolicType extends FTypeTrait {
 
@@ -44,7 +41,7 @@ abstract public class SymbolicType extends FTypeTrait {
         return false;
     }
 
-    public SymbolicType(String name, BetterEnv interior, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+    public SymbolicType(String name, Environment interior, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
         super(name, interior, interior.getAt(), members, decl);
         membersInitialized = true;
     }

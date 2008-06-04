@@ -17,28 +17,25 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
-import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public abstract class NonPrimitive extends Simple_fcn {
 
@@ -56,7 +53,7 @@ public abstract class NonPrimitive extends Simple_fcn {
 
     protected abstract HasAt getAt();
 
-    NonPrimitive(BetterEnv within) {
+    NonPrimitive(Environment within) {
         super(within);
     }
 
@@ -187,19 +184,19 @@ public abstract class NonPrimitive extends Simple_fcn {
      * Intended to be called from Closure.
      * @throws Error
      */
-    public BetterEnv buildEnvFromParams(List<FValue> args, HasAt loc)
+    public Environment buildEnvFromParams(List<FValue> args, HasAt loc)
             throws Error {
-        BetterEnv env = within.extendAt(getAt());
+        Environment env = within.extendAt(getAt());
         return buildEnvFromParams(args, env, loc);
     }
 
-    public BetterEnv buildEnvFromEnvAndParams(BetterEnv env, List<FValue> args, HasAt loc)
+    public Environment buildEnvFromEnvAndParams(Environment env, List<FValue> args, HasAt loc)
             throws Error {
         env = env.extendAt(getAt());
         return buildEnvFromParams(args, env, loc);
     }
 
-    public BetterEnv buildEnvFromParams(List<FValue> args, BetterEnv env,
+    public Environment buildEnvFromParams(List<FValue> args, Environment env,
             HasAt loc) throws Error {
         // TODO Here is where we deal with rest parameters.
         args = fixupArgCount(args,loc);

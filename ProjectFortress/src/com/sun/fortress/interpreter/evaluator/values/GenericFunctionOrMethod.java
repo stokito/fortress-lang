@@ -21,9 +21,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeComparator;

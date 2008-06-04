@@ -17,16 +17,15 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.List;
 
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * Like a tuple, but not. Useful for intermediate results from array pastings

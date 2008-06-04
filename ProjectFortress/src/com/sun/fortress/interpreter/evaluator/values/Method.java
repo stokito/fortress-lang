@@ -19,10 +19,10 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.useful.HasAt;
 
 
 public interface Method {
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference);
+    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, Environment envForInference);
 }

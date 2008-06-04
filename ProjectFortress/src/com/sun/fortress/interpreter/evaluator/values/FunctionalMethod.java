@@ -17,22 +17,19 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FunctionalMethod extends Closure implements HasSelfParameter {
 
@@ -40,7 +37,7 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     final private FTraitOrObjectOrGeneric selfParameterType;
     final private String mname;
 
-    public FunctionalMethod(BetterEnv e, Applicable fndef, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
+    public FunctionalMethod(Environment e, Applicable fndef, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
         super(e, fndef, true);
         selfParameterIndex = self_parameter_index;
         selfParameterType = self_parameter_type;
@@ -48,7 +45,7 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
         // TODO Auto-generated constructor stub
     }
 
-    protected FunctionalMethod(BetterEnv e, Applicable fndef, List<FType> static_args, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
+    protected FunctionalMethod(Environment e, Applicable fndef, List<FType> static_args, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
         super(e, fndef, static_args);
         selfParameterIndex = self_parameter_index;
         selfParameterType = self_parameter_type;
@@ -57,7 +54,7 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     }
 
     public MethodClosure getApplicableClosure(List<FValue> args0,
-                                              HasAt loc, BetterEnv envForInference) {
+                                              HasAt loc, Environment envForInference) {
         FValue selfVal = args0.get(selfParameterIndex);
         DottedMethodApplication ma =
             DottedMethodApplication.make(selfVal,s(def),mname,loc);
@@ -79,7 +76,7 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
      * @see com.sun.fortress.interpreter.evaluator.values.Closure#applyInner(java.util.List, com.sun.fortress.interpreter.useful.HasAt, com.sun.fortress.interpreter.env.BetterEnv)
      */
     @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
         FValue selfVal = args.get(selfParameterIndex);
         args = Useful.removeIndex(selfParameterIndex, args);
         return DottedMethodApplication.invokeMethod(selfVal, s(def), mname, args,

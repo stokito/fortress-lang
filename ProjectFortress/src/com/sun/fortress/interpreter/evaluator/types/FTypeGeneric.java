@@ -25,10 +25,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.rewrite.OprInstantiater;
@@ -38,23 +37,23 @@ import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.OpArg;
+import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitParam;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -63,6 +62,8 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.LazyFactory1P;
 import com.sun.fortress.useful.LazyMemo1PCL;
 import com.sun.fortress.useful.Useful;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
 
@@ -89,7 +90,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     private final Generic def;
     private final FTypeGeneric original;
 
-    public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+    public FTypeGeneric(Environment e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
         super(NodeUtil.stringName(d), e, decl);
         def = d;
         params = d.getStaticParams();
@@ -264,7 +265,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
     static  FTraitOrObject make(List<FType> bind_args, List<FType> key_args, HasAt within,
             Map<List<FType>, FTraitOrObject> map, FTypeGeneric gen) {
-        BetterEnv clenv = gen.env.extendAt(within);
+        Environment clenv = gen.env.extendAt(within);
         // List<StaticParam> params = def.getTypeParams().getVal();
         EvalType.bindGenericParameters(gen.params, bind_args, clenv, within,
                 gen.genericAt);
@@ -359,7 +360,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         return r;
     }
 
-    public FType typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
+    public FType typeApply(List<StaticArg> args, Environment e, HasAt x) {
         List<StaticParam> static_params = def.getStaticParams();
 
         // Evaluate each of the args in e, inject into clenv.

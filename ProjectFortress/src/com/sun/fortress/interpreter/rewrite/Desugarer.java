@@ -32,6 +32,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -381,7 +382,7 @@ public class Desugarer extends Rewrite {
      * expressions encountered the tree(s) processed by this Disambiguator.
      * @param env
      */
-    public void registerObjectExprs(BetterEnv env) {
+    public void registerObjectExprs(Environment env) {
         for (_RewriteObjectExpr oe : objectExprs) {
             String name = oe.getGenSymName();
             List<StaticParam> params = oe.getStaticParams();

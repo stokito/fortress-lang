@@ -21,14 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.Useful;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 
 public class OverloadedMethod extends OverloadedFunction implements Method {
@@ -37,13 +34,13 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
         new BATreeEC<List<FValue>, List<FType>, MethodClosure>(FValue.asTypesList);
 
 
-    public OverloadedMethod(String fnName, BetterEnv within) {
+    public OverloadedMethod(String fnName, Environment within) {
         super(NodeFactory.makeId(fnName), within);
         // TODO Auto-generated constructor stub
     }
 
     public OverloadedMethod(String fnName, Set<? extends Simple_fcn> ssf,
-                            BetterEnv within) {
+            Environment within) {
         super(NodeFactory.makeId(fnName), ssf, within);
         // TODO Auto-generated constructor stub
     }
@@ -56,7 +53,7 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
      *  of the applicable method.
      */
     public MethodClosure getApplicableMethod(List<FValue> args, HasAt loc,
-                                             BetterEnv envForInference) {
+            Environment envForInference) {
         MethodClosure best_f = mcache.get(args);
         if (best_f == null) {
             List<Overload>  someOverloads = overloads;
@@ -70,7 +67,7 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
     }
 
     public FValue applyMethod(List<FValue> args, FObject selfValue,
-                              HasAt loc, BetterEnv envForInference) {
+                              HasAt loc, Environment envForInference) {
         Method best_f = getApplicableMethod(args,loc,envForInference);
         return best_f.applyMethod(args, selfValue, loc, envForInference);
     }

@@ -16,11 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import java.io.BufferedWriter;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
+import java.io.BufferedWriter;
+
+import com.sun.fortress.interpreter.evaluator.types.FType;
 
 public class FAsIf extends FConstructedValue {
     private final FValue fvalue;

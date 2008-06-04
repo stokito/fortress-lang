@@ -17,40 +17,35 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-import java.util.List;
-import java.lang.String;
+/* import java.lang.String; /* SPARE COPY  */
+import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
+import java.util.List;
+
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
-import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
-import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
-import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.interpreter.glue.NativeMeth2;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.GenericWithParams;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class Thread extends NativeConstructor {
 
-    public Thread(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public Thread(Environment env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
     }
 

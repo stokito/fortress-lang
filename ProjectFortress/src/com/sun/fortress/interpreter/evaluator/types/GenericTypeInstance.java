@@ -19,8 +19,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.interpreter.evaluator.Environment;
 
 public interface GenericTypeInstance {
     /**
@@ -49,7 +48,7 @@ public interface GenericTypeInstance {
      * For purposes of inferring functional methods in overloadings.
      * @return
      */
-    public BetterEnv getWithin();
+    public Environment getWithin();
 
     public List<FType> getTransitiveExtends();
 

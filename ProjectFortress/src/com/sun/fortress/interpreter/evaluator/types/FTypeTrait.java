@@ -16,20 +16,18 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 import java.util.List;
 import java.util.Set;
 
-import com.sun.fortress.useful.Useful;
-import com.sun.fortress.useful.BASet;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
-
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeTrait extends FTraitOrObject {
 
@@ -42,13 +40,13 @@ public class FTypeTrait extends FTraitOrObject {
      * itself; those are obtained by lookup from $self,
      * which is defined as part of method invocation.
      */
-    BetterEnv methodEnv;
+    Environment methodEnv;
     Set<FType> comprises;
     volatile BetterEnv declaredMembersOf;
     volatile protected boolean membersInitialized; // initially false
     protected volatile Set<FType> transitiveComprises;
 
-    public FTypeTrait(String name, BetterEnv interior, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+    public FTypeTrait(String name, Environment interior, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
         super(name, interior, at, members, decl);
         this.declaredMembersOf = new BetterEnv(at);
     }
@@ -87,12 +85,12 @@ public class FTypeTrait extends FTraitOrObject {
 
     protected void finishInitializing() {
         declaredMembersOf.bless();
-        BetterEnv interior = getWithin();
+        Environment interior = getWithin();
         methodEnv = interior.extend();
         methodEnv.bless();
     }
 
-    public BetterEnv getMethodExecutionEnv() {
+    public Environment getMethodExecutionEnv() {
         if (methodEnv == null) {
             bug("Internal error, get of unset methodEnv");
         }
@@ -100,8 +98,8 @@ public class FTypeTrait extends FTraitOrObject {
     }
 
     protected void initializeMembers() {
-        BetterEnv into = getMembersInternal();
-        BetterEnv forTraitMethods = getMethodExecutionEnv();
+        Environment into = getMembersInternal();
+        Environment forTraitMethods = getMethodExecutionEnv();
         List<? extends AbsDeclOrDecl> defs = getASTmembers();
 
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,

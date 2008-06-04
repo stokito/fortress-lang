@@ -17,8 +17,6 @@
 
 package com.sun.fortress.interpreter.glue.test;
 
-import java.util.List;
-
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;

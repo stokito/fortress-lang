@@ -17,33 +17,34 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 import java.util.List;
 
-import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.useful.HasAt;
 
 public abstract class NativeConstructor extends Constructor {
 
-    private volatile BetterEnv selfEnv;
-    private volatile BetterEnv lexEnv;
+    private volatile Environment selfEnv;
+    private volatile Environment lexEnv;
 
-    public NativeConstructor(BetterEnv env,
+    public NativeConstructor(Environment env,
                              FTypeObject selfType,
                              GenericWithParams def) {
         super(env,selfType,def);
     }
 
-    public BetterEnv getSelfEnv() {
+    public Environment getSelfEnv() {
         return selfEnv;
     }
 
-    public BetterEnv getLexicalEnv() {
+    public Environment getLexicalEnv() {
         return lexEnv;
     }
     
@@ -64,15 +65,18 @@ public abstract class NativeConstructor extends Constructor {
         /**
          * All the getters operate in terms of getConstructor.
          */
-        public BetterEnv getSelfEnv() {
+        public Environment getSelfEnv() {
             return getConstructor().getSelfEnv();
         }
 
-        public BetterEnv getLexicalEnv() {
+        public Environment getLexicalEnv() {
             return getConstructor().getLexicalEnv();
         }
 
         public FType type() {
+            if (getConstructor() == null) {
+                getConstructor();
+            }
             return getConstructor().selfType;
         }
     }
@@ -84,8 +88,9 @@ public abstract class NativeConstructor extends Constructor {
      * of object expressions.
      *
      */
+    @Override
     public FValue applyConstructor(
-            List<FValue> args, HasAt loc, BetterEnv lex_env) {
+            List<FValue> args, HasAt loc, Environment lex_env) {
         if (!finished) {
             bug(loc, "applyConstructor before finished!");
         }
@@ -97,12 +102,12 @@ public abstract class NativeConstructor extends Constructor {
         return makeNativeObject(args, this);
     }
 
-    private void initializeSelfEnv(List<FValue> args, HasAt loc, BetterEnv lex_env) {
+    private void initializeSelfEnv(List<FValue> args, HasAt loc, Environment lex_env) {
         // Problem -- we need to detach self-env from other env.
         if (methodsEnv == null)
             bug("Null methods env for " + this);
 
-        BetterEnv self_env =
+        Environment self_env =
             buildEnvFromEnvAndParams(methodsEnv, args, loc);
 
         // TODO this is WRONG.  The vars need to be inserted into
@@ -130,7 +135,7 @@ public abstract class NativeConstructor extends Constructor {
      * Code to run once, just before self_env is initialized.
      * At that point we have locked this.
      */
-    protected void oneTimeInit(BetterEnv self_env) {
+    protected void oneTimeInit(Environment self_env) {
     }
 
     protected abstract FNativeObject makeNativeObject(List<FValue> args,

@@ -17,17 +17,19 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.io.PrintStream;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.FortressException;
@@ -41,11 +43,9 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes_util.ErrorMsgMaker;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.Factory1P;
@@ -53,10 +53,6 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
 import com.sun.fortress.useful.Ordinal;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class  OverloadedFunction extends Fcn
     implements Factory1P<List<FType>, Fcn, HasAt> {
@@ -351,7 +347,7 @@ public class  OverloadedFunction extends Fcn
 
         }
 
-        public void completeOverloadingCheck(Overload o1, Overload o2, Collection<Overload> new_overloads, BetterEnv within) {
+        public void completeOverloadingCheck(Overload o1, Overload o2, Collection<Overload> new_overloads, Environment within) {
 
             OverloadComparisonResult ocr = this;
 
@@ -541,7 +537,7 @@ public class  OverloadedFunction extends Fcn
         }
 
         private void describeOverloadingFailure(Overload o1, Overload o2,
-                BetterEnv within,
+                Environment within,
                 List<FType> pl1, List<FType> pl2) {
             if (distinct) return;
             OverloadComparisonResult ocr = this;
@@ -678,12 +674,12 @@ public class  OverloadedFunction extends Fcn
      *
      * @param within
      */
-    public OverloadedFunction(IdOrOpOrAnonymousName fnName, BetterEnv within) {
+    public OverloadedFunction(IdOrOpOrAnonymousName fnName, Environment within) {
         super(within);
         this.fnName = fnName;
     }
 
-    public OverloadedFunction(IdOrOpOrAnonymousName fnName, Set<? extends Simple_fcn> ssf, BetterEnv within) {
+    public OverloadedFunction(IdOrOpOrAnonymousName fnName, Set<? extends Simple_fcn> ssf, Environment within) {
         this(fnName, within);
         for (Simple_fcn sf : ssf) {
             addOverload(sf);
@@ -760,7 +756,7 @@ public class  OverloadedFunction extends Fcn
 
     // TODO continue audit of functions in here.
     @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
 
         SingleFcn best_f = cache.get(args);
 
@@ -789,7 +785,7 @@ public class  OverloadedFunction extends Fcn
      * Returns index of best match for args among the overloaded functions.
      * @throws Error
      */
-     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference, List<Overload> someOverloads) throws Error {
+     public int bestMatchIndex(List<FValue> args, HasAt loc, Environment envForInference, List<Overload> someOverloads) throws Error {
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
             bug(loc, "Cannot call before 'setFinished()'");
 
@@ -807,7 +803,7 @@ public class  OverloadedFunction extends Fcn
     }
 
     private int bestMatchIndexInternal(List<FValue> args, HasAt loc,
-            BetterEnv envForInference, List<Overload> someOverloads) {
+            Environment envForInference, List<Overload> someOverloads) {
         int best = -1;
         SingleFcn best_sfn = null;
 
@@ -973,7 +969,7 @@ public class  OverloadedFunction extends Fcn
        return true;
     }
 
-    public Fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt location) {
+    public Fcn typeApply(List<StaticArg> args, Environment e, HasAt location) {
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory
         // to pass two parameters instead of one.
@@ -992,7 +988,7 @@ public class  OverloadedFunction extends Fcn
      * @return
      * @throws ProgramError
      */
-    Fcn typeApply(BetterEnv e, HasAt location, List<FType> argValues) throws ProgramError {
+    Fcn typeApply(Environment e, HasAt location, List<FType> argValues) throws ProgramError {
         // Need to filter for matching generics in the overloaded type.
         return make(argValues, location);
     }

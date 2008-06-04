@@ -32,16 +32,16 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 public class BuildObjectEnvironment extends BuildTraitEnvironment {
 
 
-    public BuildObjectEnvironment(BetterEnv within, BetterEnv methodEnvironment, FType definer, Set<String> fields) {
+    public BuildObjectEnvironment(Environment within, Environment methodEnvironment, FType definer, Set<String> fields) {
         super(within, methodEnvironment, definer, fields);
         // TODO Auto-generated constructor stub
     }
 
-    protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
+    protected Simple_fcn newClosure(Environment e, Applicable x) {
         return new MethodClosure(containing,x, definer);
     }
 
-    protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {
+    protected GenericMethod newGenericClosure(Environment e, FnAbsDeclOrDecl x) {
         return new GenericMethod(containing, e, x, definer, false);
     }
 

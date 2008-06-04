@@ -17,18 +17,20 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.Collection;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
-import com.sun.fortress.interpreter.evaluator.BuildObjectEnvironment;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
@@ -36,25 +38,14 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.nodes.AbsFnDecl;
-import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.ConstructorFnName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierOverride;
-import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.nodes.NodeVisitor_void;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.nodes.HasParams;
-import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.GHashMap;
 import com.sun.fortress.useful.HasAt;
@@ -62,9 +53,7 @@ import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.ReversedList;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import edu.rice.cs.plt.tuple.Option;
 
 public class Constructor extends NonPrimitive {
 
@@ -111,9 +100,9 @@ public class Constructor extends NonPrimitive {
     int[] overloadMembership;  // 0 = no overload
     int overloadCount = 0; // first overload is indexed at 1.
 
-    BetterEnv methodsEnv;
+    Environment methodsEnv;
 
-    public Constructor(BetterEnv env,
+    public Constructor(Environment env,
             FTypeObject selfType,
             GenericWithParams def) {
         this(env,
@@ -126,7 +115,7 @@ public class Constructor extends NonPrimitive {
  //       addParamsToCollection(def, parameterNames);
     }
 
-    public Constructor(BetterEnv env,
+    public Constructor(Environment env,
             FTypeObject selfType,
             GenericWithParams def,
             Option<List<Param>> params) {
@@ -183,7 +172,7 @@ public class Constructor extends NonPrimitive {
 
     // TODO need to copy the field names
 
-    public Constructor(BetterEnv env, FTypeObject selfType, HasAt def,
+    public Constructor(Environment env, FTypeObject selfType, HasAt def,
                 IdOrOpOrAnonymousName name, List<? extends AbsDeclOrDecl> defs,
                 Option<List<Param>> params) {
         super(env); // TODO verify that this is the proper env.
@@ -208,12 +197,12 @@ public class Constructor extends NonPrimitive {
             setParams(Collections.<Parameter> emptyList());
         }
 
-        BetterEnv bte = selfType.getMethodExecutionEnv(); // new BetterEnv(getWithin(), getAt());
+        Environment bte = selfType.getMethodExecutionEnv(); // new BetterEnv(getWithin(), getAt());
         selfType.getMembers(); // has initializing side-effect.
         finishInitializing(bte);
     }
 
-    private void finishInitializing(BetterEnv bte) {
+    private void finishInitializing(Environment bte) {
 
        // HashSet<String> fields = new HashSet<String>();
          // HashMap<String, String> com.sun.fortress.interpreter.rewrite =
@@ -487,8 +476,8 @@ public class Constructor extends NonPrimitive {
             Set<String> newOverrides,
             GHashMap<SingleFcn, FTraitOrObject> signaturesToTraitsContainingMethods,
             MultiMap<String, GenericMethod> generics,
-            Map<String, List<FType>> genericArgs, FTraitOrObject ft, BetterEnv e) {
-        for (String s : e) {
+            Map<String, List<FType>> genericArgs, FTraitOrObject ft, Environment e) {
+        for (String s : e.youngestFrame()) {
             FValue fv = e.getValue(s);
             if (alreadyOverridden == null || ! alreadyOverridden.contains(s)) {
 
@@ -533,8 +522,8 @@ public class Constructor extends NonPrimitive {
 
     private void accumulateGenericMethods(
             MultiMap<String, GenericMethod> generics,
-            FTraitOrObject ft, BetterEnv e) {
-        for (String s : e) {
+            FTraitOrObject ft, Environment e) {
+        for (String s : e.youngestFrame()) {
             FValue fv = e.getValue(s);
             if (fv instanceof GenericMethod) {
                 // TODO This is VERY approximate
@@ -566,8 +555,8 @@ public class Constructor extends NonPrimitive {
 
     @Override
     public FValue applyInner(
-            List<FValue> args, HasAt loc, BetterEnv envForInference) {
-        BetterEnv lex_env = getWithin();
+            List<FValue> args, HasAt loc, Environment envForInference) {
+        Environment lex_env = getWithin();
         return applyConstructor(args, loc, lex_env);
     }
     /**
@@ -578,12 +567,12 @@ public class Constructor extends NonPrimitive {
      *
      */
     public FValue applyConstructor(
-            List<FValue> args, HasAt loc, BetterEnv lex_env) {
+            List<FValue> args, HasAt loc, Environment lex_env) {
         // Problem -- we need to detach self-env from other env.
         if (methodsEnv == null)
             bug("Null methods env for " + this);
 
-        BetterEnv self_env = buildEnvFromEnvAndParams(methodsEnv, args, loc);
+        Environment self_env = buildEnvFromEnvAndParams(methodsEnv, args, loc);
 
         FObject theObject = makeAnObject(lex_env, self_env);
 
@@ -606,7 +595,7 @@ public class Constructor extends NonPrimitive {
     }
 
     private FObject stripTransient(FObject original) {
-        BetterEnv selfEnv = original.getSelfEnv();
+        Environment selfEnv = original.getSelfEnv();
         for (Parameter param : getParameters()) {
             if (param.isTransient())
                 selfEnv.removeVar(param.getName());
@@ -614,9 +603,9 @@ public class Constructor extends NonPrimitive {
         return makeAnObject(original.getLexicalEnv(), selfEnv);
     }
 
-    public FValue applyOEConstructor(HasAt loc, BetterEnv lex_env) {
+    public FValue applyOEConstructor(HasAt loc, Environment lex_env) {
         // Problem -- we need to detach self-env from other env.
-        BetterEnv self_env = methodsEnv.extendAt(loc);
+        Environment self_env = methodsEnv.extendAt(loc);
 
         FValue surroundSelf = lex_env.getValueNull(WellKnownNames.secretSelfName);
         if (surroundSelf != null)
@@ -642,7 +631,7 @@ public class Constructor extends NonPrimitive {
         return theObject;
     }
 
-    private void addMethodsToEnv(BetterEnv self_env) {
+    private void addMethodsToEnv(Environment self_env) {
         OverloadedMethod[] overloads = new OverloadedMethod[overloadCount+1];
 
         // First initialize an array of environments.
@@ -681,7 +670,7 @@ public class Constructor extends NonPrimitive {
         }
     }
 
-    protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
+    protected FObject makeAnObject(Environment lex_env, Environment self_env) {
         return new FOrdinaryObject(selfType, lex_env, self_env);
     }
 

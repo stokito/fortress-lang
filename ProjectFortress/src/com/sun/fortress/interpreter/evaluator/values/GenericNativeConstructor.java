@@ -19,10 +19,8 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.Param;
@@ -34,14 +32,14 @@ public class GenericNativeConstructor extends GenericConstructor {
 
     private String name;
 
-    public GenericNativeConstructor(BetterEnv env,
+    public GenericNativeConstructor(Environment env,
             GenericWithParams odefOrDecl, String name) {
         super(env, odefOrDecl, NodeFactory.makeId(name));
         this.name = name;
     }
 
     @Override
-    protected Constructor constructAConstructor(BetterEnv clenv,
+    protected Constructor constructAConstructor(Environment clenv,
             FTypeObject objectType,
             Option<List<Param>> params) {
         return BuildNativeEnvironment.nativeConstructor(clenv, objectType, odefOrDecl, name);
