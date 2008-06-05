@@ -96,6 +96,13 @@ public class ActionCreaterUtil {
     }
 
     private static String getFortressList(Id id, List<String> code, List<Integer> indents) {
+        String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeListAST";
+        String astName = FreshName.getFreshName("ast");
+        indents.add(4);
+        code.add("Expr "+ast+" = "+converter+"("+id.getText()+")");
+        return astName;
+
+        /*
         String enclosingName = FreshName.getFreshName("enclosingFixity");
         indents.add(4);
         code.add("EnclosingFixity "+enclosingName+" = new EnclosingFixity();");
@@ -146,19 +153,28 @@ public class ActionCreaterUtil {
         indents.add(4);
         code.add("OpExpr "+opExprName+" = new OpExpr(true, "+opRefName+", "+tlsName+");");
         return opExprName;
+        */
     }
 
     private static String getFortressMaybe(Id id, List<String> code, List<Integer> indents, SyntaxDeclEnv syntaxDeclEnv) {
+        String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeMaybeAST";
+        String astName = FreshName.getFreshName("ast");
+        indents.add(4);
+        code.add("Expr "+ast+" = "+converter+"("+id.getText()+")");
+        return astName;
+
+        /*
+
         int codeSize = code.size();
         String spanName = JavaAstPrettyPrinter.getSpan(id, code);
         for (int inx=codeSize; inx<code.size(); inx++) {
             indents.add(3);
         }        
-       
+
         String name = FreshName.getFreshName("option");
         indents.add(3);
         code.add("Expr "+name+" = null;");
-        
+
         String staticArgs = FreshName.getFreshName("staticArgs");
         indents.add(3);
         code.add("List<StaticArg> "+staticArgs+"= new LinkedList<StaticArg>();");
@@ -182,15 +198,16 @@ public class ActionCreaterUtil {
         indents.add(3);
         code.add("}");
         return name;
+        */
     }
-    
+
     private static String getFortressCharacterClass(Id id, List<String> code, List<Integer> indents) {
         String name = FreshName.getFreshName("characterClass");
         indents.add(3);
         code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id.getText()+");");
         return name;
     }
-    
+
     private static String getFortressAnyChar(Id id, List<String> code,
             List<Integer> indents) {
         String name = FreshName.getFreshName("anyCharacter");
@@ -198,7 +215,7 @@ public class ActionCreaterUtil {
         code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id.getText()+");");
         return name;
     }
-    
+
     public static List<String> createRatsAction(String serializedComponent, List<Integer> indents) {
         List<String> code = new LinkedList<String>();
         String[] sc = Utilities.SPACE_NEWLINE_SPACE.split(serializedComponent);
