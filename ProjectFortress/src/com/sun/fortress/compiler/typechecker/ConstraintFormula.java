@@ -17,22 +17,21 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.Collections;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.lambda.Lambda;
-
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.InferenceVarType;
-
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
-
 import static com.sun.fortress.compiler.Types.ANY;
 import static com.sun.fortress.compiler.Types.BOTTOM;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
-import static edu.rice.cs.plt.debug.DebugUtil.error;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
+import com.sun.fortress.nodes.InferenceVarType;
+import com.sun.fortress.nodes.Type;
+
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 
 /**
  * An immutable representation of constraints on a set of inference variables.  Certain typing 
@@ -48,6 +47,7 @@ public abstract class ConstraintFormula {
     
     /** Merge this and another formula by asserting that one of the two must be true. */
     public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
+    
     
     /**
      * Apply a type substitution to the contents of a formula.  Callers assume responsibility
@@ -66,6 +66,10 @@ public abstract class ConstraintFormula {
     /** Determine whether there exists some choice for inference variables that makes the formula true. */
     public boolean isSatisfiable() { return !isFalse(); }
 
+    /** Get the map of inference variable types to upper bounds **/
+    public Map<InferenceVarType,Type> getMap(){
+    	return Collections.emptyMap();
+    }
     
     public static final ConstraintFormula TRUE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return f; }
@@ -75,7 +79,7 @@ public abstract class ConstraintFormula {
         public boolean isFalse() { return false; }
         public String toString() { return "(true)"; }
     };
-
+    
     public static final ConstraintFormula FALSE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return this; }
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return f; }
@@ -100,7 +104,16 @@ public abstract class ConstraintFormula {
             _lowerBounds = lowerBounds;
         }
 
-        public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) {
+        
+        
+        @Override
+		public Map<InferenceVarType, Type> getMap() {
+			return Collections.unmodifiableMap(_upperBounds);
+		}
+
+
+
+		public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) {
             if (f.isTrue()) { return this; }
             else if (f.isFalse()) { return f; }
             else if (f instanceof SimpleFormula) { return merge((SimpleFormula) f, history); }

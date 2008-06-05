@@ -278,8 +278,18 @@ public class Fortress {
 
 		// Additional optimization phases can be inserted here
 
+		
+		// NEB: These weird loops are here because the interpreter cannot yet handle the unanbiguous
+		// types. Remove the first loop and change the second loop to use the uncommented header when
+		// that works.
+		for (Map.Entry<APIName, ApiIndex> newApi : 
+			IndexBuilder.buildApis(apis, System.currentTimeMillis()).apis().entrySet()) {
+			_repository.addApi(newApi.getKey(), newApi.getValue());
+		}
+//		for (Map.Entry<APIName, ComponentIndex> newComponent :
+//			componentSR.components().entrySet()) {
 		for (Map.Entry<APIName, ComponentIndex> newComponent :
-			componentSR.components().entrySet()) {
+			rawComponentIR.components().entrySet()) {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());
 		}
 

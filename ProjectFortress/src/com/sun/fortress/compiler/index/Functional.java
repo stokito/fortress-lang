@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.List;
 import java.util.Map;
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.Type;
@@ -49,5 +50,4 @@ public abstract class Functional {
     public Option<Expr> body() {
         return NI.nyi();
     }
-    
 }

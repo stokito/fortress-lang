@@ -663,17 +663,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          comprisesResult, fieldsResult, methodsResult);
     }
 
-//    public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
-//        if (var_result.isSome()) {
-//            return new TypeCheckerResult(that, varType);
-//        } else {
-//            TypeError error =
-//                TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
-//                                 that);
-//            return new TypeCheckerResult(that, error);
-//        }
-//    }
-
+    
     
     public TypeCheckerResult forIfOnly(If that,
                                        List<TypeCheckerResult> clauses_result,
@@ -756,37 +746,46 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // IfClause's type is body's type.
         if (body_result.type().isSome()) {
-            return TypeCheckerResult.compose(that, body_result.type().unwrap(), subtypeChecker, test_result, body_result, result);
+            return TypeCheckerResult.compose(that, 
+            		body_result.type().unwrap(), subtypeChecker, test_result, body_result, result);
         } else {
             return TypeCheckerResult.compose(that, subtypeChecker, test_result, body_result, result);
         }
     }
 
-    private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseGetBindings(GeneratorClause that, boolean mustBeCondition) {
-        // We just don't visit the Ids at all, and let the environment handle shadowing.    	
+    private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseGetBindings(GeneratorClause that, 
+    		                                                                        boolean mustBeCondition) {
+        // We just don't visit the Ids at all, and let a different pass handle shadowing    	
         TypeCheckerResult init_result = that.getInit().accept(this);
         return forGeneratorClauseOnlyGetBindings(that, init_result, mustBeCondition);
     }
     
-    private boolean isSomeGeneratorType(Type t) {
-    	// TODO do we need this?
-    	return true;
-    }
-    
-    private boolean isSomeConditionType(Type t) {
-    	// TODO IMPLEMENT
-    	return true;
-    }
-    
-//    private Type getGeneratorType(Type t) {
-//    	// TODO IMPLEMENT
-//    	return Types.OBJECT;
-//    }
-    
-    private Pair<ConstraintFormula, Type> getGeneratorType(Type sub) {
+    /**
+     * Returns a type checker result and the a Type that is the type of the
+     * generator. The given type is checked to be a sub-type of
+     * Generator[\T\] where T is an inference variable, and the inferred type
+     * T is returned.
+     */
+    private Pair<TypeCheckerResult, Type> getGeneratorType(Type sub, Node ast, String error) {
     	Type infer_type = NodeFactory.makeInferenceVarType();
     	Type generator_type = Types.makeGeneratorType(infer_type);
-    	return Pair.make( this.subtypeChecker.subtype(sub, generator_type), infer_type );
+    	TypeCheckerResult result = this.checkSubtype(sub, generator_type, ast, error);
+    	
+    	return Pair.make( result, infer_type );
+    }
+    
+    /**
+     * Returns a type checker result and the a Type that is the type of the
+     * condition. The given type is checked to be a sub-type of
+     * Condition[\T\] where T is an inference variable, and the inferred type
+     * T is returned.
+     */
+    private Pair<TypeCheckerResult, Type> getConditionType(Type sub, Node ast, String error) {
+    	Type infer_type = NodeFactory.makeInferenceVarType();
+    	Type generator_type = Types.makeConditionType(infer_type);
+    	TypeCheckerResult result = this.checkSubtype(sub, generator_type, ast, error);
+    	
+    	return Pair.make( result, infer_type );
     }
     
     private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseOnlyGetBindings(GeneratorClause that,
@@ -811,57 +810,46 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	
     	// Otherwise, we may actually have bindings!
     	Type init_type = init_result.type().unwrap();
-    	TypeCheckerResult gen_result;
-    	if( mustBeCondition ? isSomeConditionType(init_type) : isSomeGeneratorType(init_type) ) {
-    		// Happy path. init is generator
-    	}
-    	else {
-    		// this is bad
-    		String error_msg = "Init expression of generator must be a sub-type of " +
-    		(mustBeCondition ? "Condition" : "Generator") +
-    				" but is type " + init_result.type().unwrap() + ".";
-    		gen_result = new TypeCheckerResult(that, TypeError.make(error_msg, that.getInit()));
-    		return Pair.make(TypeCheckerResult.compose(that, 
-    				subtypeChecker, init_result, gen_result), Collections.<LValueBind>emptyList());
-    	}
-    	
-	
-		Type generator_type = null; //= getGeneratorType(init_type);
-		TypeCheckerResult this_result;
-		List<LValueBind> bindings;
+		String type_err_msg = "Init expression of generator must be a sub-type of " +
+			(mustBeCondition ? "Condition" : "Generator") +
+			" but is type " + init_result.type().unwrap() + ".";
+    	// Get the type of the Generator
+		Pair<TypeCheckerResult, Type> generator_pair = 
+			mustBeCondition ? this.getConditionType(init_type, that.getInit(), type_err_msg) :
+				 	          this.getGeneratorType(init_type, that.getInit(), type_err_msg);
 		
-    	if( that.getBind().size() == 1 ){
+		Type generator_type = generator_pair.second();
+		TypeCheckerResult this_result = generator_pair.first();
+		int bindings_count = that.getBind().size();
+		
+		List<LValueBind> result_bindings;
+		// Now create the bindings
+		if( bindings_count == 1 ){
     		// Just one binding
     		LValueBind lval = NodeFactory.makeLValue(that.getBind().get(0), generator_type);
-    		this_result = new TypeCheckerResult(that);
-    		bindings = Collections.singletonList(lval);
+    		result_bindings = Collections.singletonList(lval);
     	}
-    	else if (generator_type instanceof TupleType ) {
-    		TupleType tuple=(TupleType)generator_type;
-    		List<Type> tupletypes=tuple.getElements();
-    		if(tupletypes.size()==that.getBind().size()) {
-    			// get type for each element of the tuple
-    			bindings = new ArrayList<LValueBind>(that.getBind().size());
-    			Iterator<Id> itr=that.getBind().iterator();
-    			for(Type t : tupletypes) {
-    				LValueBind lval = NodeFactory.makeLValue(itr.next(), t);
-    				bindings.add(lval);
-    			}
-    			this_result = new TypeCheckerResult(that);
+    	else {
+    		// Because generator_type is almost certainly a InferenceVar, we have to declare a new tuple
+    		// that is the size of the binding and declare one to be a sub-type of the other.
+    		List<Type> inference_vars = new ArrayList<Type>(bindings_count);
+    		for( int i = 0; i<bindings_count;i++ ) {
+    			inference_vars.add(NodeFactory.makeInferenceVarType());
     		}
-    		else { // bad, different tuple sizes
-    			String err= "Number of declared variables ("+ that.getBind().size()+
-    				")does not match generator size ("+ tupletypes.size() + ").";
-        		this_result = new TypeCheckerResult(that, TypeError.make(err,that.getInit()));
-        		bindings = Collections.emptyList();
-    		}
+    		// Assert that this new tuple type is a subtype of the generator type
+    		String tup_err_msg = "If more than one variable is bound in a generator, generator must have tuple type "+
+    			"but " + that.getInit() + " does not or has different number of arguments.";
+    		TypeCheckerResult tuple_result = 
+    			this.checkSubtype(Types.makeTuple(inference_vars), generator_type, that.getInit(), tup_err_msg);
+    		this_result = TypeCheckerResult.compose(that, subtypeChecker, tuple_result, this_result);
+    		// Now just create the lvalues with the newly created inference variable type
+    		Iterator<Id> id_iter = that.getBind().iterator();
+    		result_bindings = new ArrayList<LValueBind>(bindings_count);
+    		for( Type inference_var : inference_vars ) {
+    			result_bindings.add(NodeFactory.makeLValue(id_iter.next(), inference_var));
+    		}	
     	}
-    	else { // bad, generator is not a tuple but should be
-    		String err= "Generator does not have tuple type but multiple bindings have been declared.";
-    		this_result = new TypeCheckerResult(that, TypeError.make(err,that.getInit()));
-    		bindings = Collections.emptyList();
-    	}
-    	return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, this_result, init_result), bindings);
+    	return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, this_result, init_result), result_bindings);
     }
     
     // In the end, this whole method may be pointless. We probably want a method that will
@@ -984,18 +972,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     
     @Override
     public TypeCheckerResult forForOnly(For that, List<TypeCheckerResult> gens_result, TypeCheckerResult body_result) {
-    	gens_result.add(body_result);
+    	
+    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(gens_result);
+		all_results.add(body_result);
     	if(body_result.type().isNone()){
-			return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, gens_result);
+			return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, all_results);
 		}
 		
 		if( !body_result.type().unwrap().equals(Types.VOID) ) {
-			gens_result.add(new TypeCheckerResult(that, 
+			all_results.add(new TypeCheckerResult(that, 
 					TypeError.make("Body of while loop must have type (), but had type " +
 							body_result.type().unwrap(), that.getBody())));
 		}
 		
-		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, gens_result);
+		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, all_results);
     }
     
     public TypeCheckerResult forOpRefOnly(OpRef that,
@@ -1044,8 +1034,70 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                      subtypeChecker, newChecker.recurOnListOfExpr(that.getBody())));
         return result;
     }
+    
+    @Override
+	public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that,
+			TypeCheckerResult obj_result, TypeCheckerResult method_result,
+			List<TypeCheckerResult> staticArgs_result,
+			TypeCheckerResult arg_result) {
+    	
+    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(staticArgs_result.size() + 3);
+    	all_results.add(obj_result);
+    	all_results.add(method_result);
+    	all_results.addAll(staticArgs_result);
+    	all_results.add(arg_result);
+    	
+    	// We need the type of the receiver
+    	if( obj_result.type().isNone() ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    	}
+    	
+    	if( arg_result.type().isNone() ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    	}
+    	
+    	Type rcvr_type = obj_result.type().unwrap();
+    	if( rcvr_type instanceof NamedType ) {
+    		NamedType named_rcvr_type = (NamedType)rcvr_type;
+    		TypeConsIndex index = table.typeCons(named_rcvr_type.getName());
+    		if( index instanceof TraitIndex ) {
+    			TraitIndex trait_index = (TraitIndex)index;
+    			Set<Method> methods_with_name = trait_index.dottedMethods().getSeconds(that.getMethod());
+    			List<Method> candidates=new ArrayList<Method>();
+    			for( Method m : methods_with_name ) {
+    				// same number of static args
+    				// this will have to be changed once we start inferring static arguments
+    				if(m.staticParameters().size()!=that.getStaticArgs().size()){
+    					continue;
+    				}
+    				Type[] stat=new Type[that.getStaticArgs().size()];
+    				stat=that.getStaticArgs().toArray(stat);
+    				Type mtype = m.instantiatedType(stat);
+    				// input < expected
+    				if(!(mtype instanceof ArrowType)){
+    					return NI.nyi();
+    				}
+    				return NI.nyi();
+    				// constraint satisfiable?
+    			}
+    			//join all
+    			
+    			//return
+    		}
+    		else {
+    			return NI.nyi();
+    		}
+    	}
+    	else {
+    		return NI.nyi();
+    	}
+    	
+    	
+		return super.forMethodInvocationOnly(that, obj_result, method_result,
+				staticArgs_result, arg_result);
+	}
 
-    public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
+	public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
         TypeCheckerResult result = new TypeCheckerResult(that);
         if (that.getRhs().isSome()) {
             result = TypeCheckerResult.compose(that, subtypeChecker, result, that.getRhs().unwrap().accept(this));

@@ -18,9 +18,11 @@
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.*;
+
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 import com.sun.fortress.nodes.*;
+
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
@@ -45,10 +47,16 @@ public class TypeCheckerResult extends StaticPhaseResult {
     	return ConstraintFormula.bigAnd(constraints, empty_history);
     }
     
-    public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
+    
+    public Map<InferenceVarType, Type> getMap() {
+		return nodeConstraints.getMap();
+	}
+
+
+
+	public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
                                             TypeAnalyzer type_analyzer, 
                                             TypeCheckerResult... results) {
-    	Arrays.asList();
         return new TypeCheckerResult(_ast, _type,
                                      collectErrors(Arrays.asList(results)),
                                      collectConstraints(Arrays.asList(results), type_analyzer));
@@ -126,6 +134,11 @@ public class TypeCheckerResult extends StaticPhaseResult {
     	errs.add(s_err);
     	    	
     	return new TypeCheckerResult(result.ast, result.type(), errs, result.nodeConstraints);
+    }
+    
+    /** Takes a TypeCheckerResult and returns a copy with the new AST **/
+    public static TypeCheckerResult replaceAST(TypeCheckerResult result, Node _ast){
+    	return new TypeCheckerResult(_ast, result.type(),result.errors(),result.nodeConstraints);
     }
     
     public TypeCheckerResult(Node _ast, Type _type,

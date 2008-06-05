@@ -17,7 +17,10 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.List;
+
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.StaticParam;
 
 public class DeclaredFunction extends Function {
     private final FnAbsDeclOrDecl _ast;
