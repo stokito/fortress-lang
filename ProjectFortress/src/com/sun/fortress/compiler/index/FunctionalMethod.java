@@ -17,8 +17,11 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.List;
+
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.StaticParam;
 
 /**
  * Note that this is a {@link Function}, not a {@link Method}, despite the name

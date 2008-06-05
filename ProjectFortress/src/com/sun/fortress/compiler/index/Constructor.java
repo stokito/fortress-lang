@@ -17,8 +17,14 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 import com.sun.fortress.nodes.*;
+
+import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 public class Constructor extends Function {
@@ -47,4 +53,33 @@ public class Constructor extends Function {
     public Option<List<Param>> params() { return _params; }
     public Option<List<BaseType>> throwsClause() { return _throwsClause; }
     public WhereClause where() { return _where; }
+
+	@Override
+	public Option<Expr> body() {
+		return Option.none();
+	}
+
+//	@Override
+//	public Map<Id, Param> parameters() {
+//		if( this._params.isNone() ) {
+//			return Collections.emptyMap();
+//		}
+//		else {
+//			Map<Id,Param> result;
+//			
+//		}
+//	}
+
+	@Override
+	public Map<Id, StaticParam> staticParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Iterable<Type> thrownTypes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

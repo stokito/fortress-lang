@@ -17,8 +17,12 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.StaticParam;
 
 public class FieldSetterMethod extends Method {
 
