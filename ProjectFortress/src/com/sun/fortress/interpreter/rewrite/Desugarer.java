@@ -130,14 +130,17 @@ public class Desugarer extends Rewrite {
     public final static VarRef NEST_NAME =
         ExprFactory.makeVarRef(WellKnownNames.nest);
 
-    public final static Id HOLDS_NAME =
-        NodeFactory.makeId(WellKnownNames.holds);
-
     public final static VarRef COND_NAME =
         ExprFactory.makeVarRef(WellKnownNames.cond);
 
     public final static VarRef WHILECOND_NAME =
         ExprFactory.makeVarRef(WellKnownNames.whileCond);
+
+    public final static VarRef BIGOP_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.bigOperator);
+
+    public final static VarRef FILTER_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.filter);
 
     private boolean isLibrary;
     private final static boolean debug = false;

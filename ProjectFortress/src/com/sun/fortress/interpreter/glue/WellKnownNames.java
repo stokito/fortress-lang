@@ -37,11 +37,10 @@ public class WellKnownNames {
     public static String nest = "__nest";
     public static String map = "__map";
     public static String singleton = "__singleton";
-    public static String holds = "holds";
     public static String cond = "__cond";
     public static String whileCond = "__whileCond";
-
-    public static String generatorCross = "cross";
+    public static String bigOperator = "__bigOperator";
+    public static String filter = "__filter";
 
     public static String generatorTypeName = "Generator";
     public static String generatorMatchName = "MATCH";
