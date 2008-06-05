@@ -168,7 +168,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             elms.addAll(sym.accept(new SymbolTranslator(new SyntaxDeclEnv(syntaxDef))));
         }
         String newName = FreshName.getFreshName(name).toUpperCase();
-        ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, new SyntaxDeclEnv(syntaxDef));
+        ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, new SyntaxDeclEnv(syntaxDef), syntaxDef.accept(syntaxDef) );
         if (!acr.isSuccessful()) { new Result(acr.errors()); }  /* FIXME: suspicious */
         elms.add(acr.action());
         return new Sequence(new SequenceName(newName), elms);
@@ -389,6 +389,10 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 return defaultCase(that);
             }
 
+        private String lookupAstType( String nonterminal ){
+            return null;
+        }
+
         /**
          * Extract the pattern variables from the group and bind them.
          */
@@ -425,7 +429,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     Id varId = sym.getId().unwrap();
                     String varName = varId.toString();
                     String ntName = inner.getEnv().getNonterminalName(varId).getText();
-                    String baseFortressType = inner.getEnv().getType(varId).toString();
+                    // String baseFortressType = inner.getEnv().getType(varId).toString();
+                    String baseFortressType = lookupAstType(ntName);
                     System.out.println( String.format("Prefix '%s' has non terminal '%s'", varName, ntName) );
                     /* FIXME: get the java node ast type, not the fortress type */
                     // System.out.println( String.format( "Java type for baseType %s is %s", baseType, inner.getEnv().getType( sym.getId().unwrap() ).getClass().getName() ) ); 

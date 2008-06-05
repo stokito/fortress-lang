@@ -36,6 +36,7 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
     public interface Depth {
         public String getType(String baseType);
         public boolean isOptional();
+        public String createCode(String id, List<String> code, List<Integer> indents);
     }
 
     private Depth depth;
@@ -47,6 +48,9 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
                 }
                 public boolean isOptional() {
                     return false;
+                }
+                public String createCode(String id, List<String> code, List<Integer> indents){
+                    return id;
                 }
             };
     }
@@ -101,6 +105,14 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
                 }
                 public boolean isOptional() {
                     return false;
+                }
+
+                public String createCode(String id, List<String> code, List<Integer> indents){
+                    /*
+                    code.add( "for ( %s n ){ ... }" );
+                    indents.add( 1 );
+                    */
+                    return ActionCreaterUtil.getFortressList(d.createCode(id, code, indents), code, indents);
                 }
             };
     }

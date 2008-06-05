@@ -50,11 +50,23 @@ public class ActionCreaterUtil {
 
     public static List<String> createVariableBinding(List<Integer> indents,
             SyntaxDeclEnv syntaxDeclEnv, String BOUND_VARIABLES,
-            boolean isTemplate) {
+            boolean isTemplate, Map<PrefixedSymbol,VariableCollector.Depth> variables) {
         List<String> code = new LinkedList<String>();
         indents.add(3);
         code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
         List<String> listCode = new LinkedList<String>();
+        List<Integer> listIndents = new LinkedList<Integer>();
+
+        for ( Map.Entry<PrefixedSymbol,VariableCollector.Depth> pair : variables ){
+            if ( isTemplate ){
+                PrefixedSymbol sym = pair.getKey();
+                VariableCollector.Depth depth = pair.getValue();
+                String var = depth.createCode(sym.getId().getText(), listCode, listIndents);
+                indents.add(3);
+                code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
+            }
+        }
+        /*
         for(Id id: syntaxDeclEnv.getVariables()) {
             String var = id.getText();
             if (isTemplate) {
@@ -77,7 +89,9 @@ public class ActionCreaterUtil {
             indents.add(3);
             code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
         }
+        */
         listCode.addAll(code);
+        indents.addAll(0,listIndents);
         return listCode;
     }
 
