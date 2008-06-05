@@ -84,7 +84,7 @@ api FortressAst
 
    object LValueBind(name:Id, atype:Maybe[\Type\], mods:List[\Modifier\], mutable:Boolean) extends { LValue, Lhs } end
    trait Unpasting extends LValue end
-   object UnpastingBind(name:Id, dims:List[\ExtentRange\]) extends Unpasting end
+   object UnpastingBind[\T\](name:Id, dims:List[\ExtentRange[\T\]\]) extends Unpasting end
    object UnpastingSplit(elems:List[\Unpasting\], dims:ZZ32) extends Unpasting end
 
    (**
@@ -185,7 +185,7 @@ api FortressAst
      object Block(exprs:List[\Expr\]) extends DelimitedExpr end
      object CaseExpr(param:CaseParam, compare:Maybe[\Op\], clauses:List[\CaseClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
      object Do(fronts:List[\DoFront\]) extends DelimitedExpr end
-     object For(gens:List[\Generator\], body:DoFront) extends DelimitedExpr end
+     object For[\T\](gens:List[\Generator[\T\]\], body:DoFront) extends DelimitedExpr end
      object If(clauses:List[\IfClause\], elseClause:Maybe[\Block\]) extends DelimitedExpr end
      object Label(name:Id, body:Block) extends DelimitedExpr end
      object Try(body:Block, catchClause:Maybe[\Catch\], forbids:List[\TraitType\], finallyClause:Maybe[\Block\]) extends DelimitedExpr end
@@ -198,7 +198,7 @@ api FortressAst
 
      trait FlowExpr extends Expr end
        trait BigOpApp extends FlowExpr end
-         object Accumulator(aopr:Op, gens:List[\Generator\], body:Expr) extends FlowExpr end
+         object Accumulator[\T\](aopr:Op, gens:List[\Generator[\T\]\], body:Expr) extends FlowExpr end
 
        object AtomicExpr(expr:Expr) extends FlowExpr end
        object Exit(target:Maybe[\Id\], returnExpr:Maybe[\Expr\]) extends FlowExpr end
@@ -214,7 +214,7 @@ api FortressAst
        object LetFn(body:List[\Expr\], fns:List[\FnDef\]) extends LetExpr end
        object LocalVarDecl(lhs:List[\LValue\], rhs:Maybe[\IntLiteralExpr\]) extends LetExpr end
 
-     object GeneratedExpr(expr:Expr, gens:List[\Generator\]) extends FlowExpr end
+     object GeneratedExpr[\T\](expr:Expr, gens:List[\Generator[\T\]\]) extends FlowExpr end
 
      trait SimpleExpr extends FlowExpr end
       (* object SubscriptExpr(obj:Expr, subs:List[\Expr\], op:Maybe[\SubscriptOp\]) extends { Lhs, OpExpr } end *)
@@ -278,12 +278,12 @@ api FortressAst
    Exception in thread "main" java.lang.IllegalArgumentException: Visitor com.sun.fortress.interpreter.evaluator.EvalType does not support visiting values of type com.sun.fortress.nodes.TaggedDimType
    object ArrayComprehension(List[\ArrayComprehensionClause\] clauses) extends Comprehension end
 *)
-   trait GeneratedComprehension extends Comprehension
-      gens:List[\Generator\]
+   trait GeneratedComprehension[\T\] extends Comprehension
+      gens:List[\Generator[\T\]\]
    end
-   object SetComprehension(gens:List[\Generator\], element:Expr) extends GeneratedComprehension end
-   object MapComprehension(gens:List[\Generator\], entry:Entry) extends GeneratedComprehension end
-   object ListComprehension(gens:List[\Generator\], element:Expr) extends GeneratedComprehension end
+   object SetComprehension[\T\](gens:List[\Generator[\T\]\], element:Expr) extends GeneratedComprehension[\T\] end
+   object MapComprehension[\T\](gens:List[\Generator[\T\]\], entry:Entry) extends GeneratedComprehension[\T\] end
+   object ListComprehension[\T\](gens:List[\Generator[\T\]\], element:Expr) extends GeneratedComprehension[\T\] end
 
    trait Type extends AbstractNode end
    object ArrowType(domain:Type, range:Type, throwsClause:Maybe[\List[\TraitType\]\]) extends Type end
@@ -292,7 +292,7 @@ api FortressAst
    trait TraitType extends NonArrowType end
    object ArrayType(element:Type, indices:Indices) extends TraitType end
    object IdType(name:Id) extends TraitType end
-   object MatrixType(element:Type, dimensions:List[\ExtentRange\]) extends TraitType end
+   object MatrixType[\T\](element:Type, dimensions:List[\ExtentRange[\T\]\]) extends TraitType end
    object InstantiatedType(name:Id, args:List[\StaticArg\]) extends TraitType end
 
    object TupleType(elements:List[\Type\], varargs:Maybe[\VarargsType\], keywords:List[\KeywordType\]) extends NonArrowType end
@@ -536,7 +536,7 @@ api FortressAst
      * ArraySize ::= ExtentRange(, ExtentRange)*
      * e.g.) 3, 2#1, 3:5
      *)
-   object FixedDim(extents:List[\ExtentRange\]) extends Indices end
+   object FixedDim[\T\](extents:List[\ExtentRange[\T\]\]) extends Indices end
 
    (* TODO: Implement DimUnitOps *)
 
