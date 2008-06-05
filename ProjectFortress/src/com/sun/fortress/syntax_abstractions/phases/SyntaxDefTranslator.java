@@ -426,6 +426,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     String varName = varId.toString();
                     String ntName = inner.getEnv().getNonterminalName(varId).getText();
                     String baseFortressType = inner.getEnv().getType(varId).toString();
+                    System.out.println( String.format("Prefix '%s' has non terminal '%s'", varName, ntName) );
                     /* FIXME: get the java node ast type, not the fortress type */
                     // System.out.println( String.format( "Java type for baseType %s is %s", baseType, inner.getEnv().getType( sym.getId().unwrap() ).getClass().getName() ) ); 
                     /*
@@ -439,6 +440,15 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     indents2.add(1);
                     code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
                 }
+
+                /* HACK! Rats! sets yyValue to yyResult.semanticValue() after each parser action
+                 * but the last yyResult is the result of parsing the group which will probably
+                 * be a Pair<Object[]>. This will result in a class cast exception since yyValue
+                 * is an Expr. Rats! shouldn't set yyValue after each parser action but since we
+                 * don't care what yyResult is anyway we set it to a bogus value.
+                 */
+                indents2.add(1);
+                code2.add("yyResult = new SemanticValue(null,0);");
                 Element unpack = new ParserAction(new Action(code2, indents2));
 
                 return mkList(pack, unpack);

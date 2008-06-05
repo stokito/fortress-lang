@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.InFixity;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
+import com.sun.fortress.nodes.MultiFixity;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
@@ -120,6 +121,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
 	    this.code.add( String.format("InFixity %s = new InFixity(%s);", rVarName, sVarName) );
 	    return rVarName;
+    }
+    
+    @Override
+    public String forMultiFixityOnly(MultiFixity that) {
+        String rVarName = FreshName.getFreshName("multiFixity");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add( String.format("MultiFixity %s = new MultiFixity(%s);", rVarName, sVarName) );
+        return rVarName;
     }
 
     @Override
