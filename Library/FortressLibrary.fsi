@@ -1444,19 +1444,19 @@ trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
     isZero(l:L): Boolean
 end
 
-trait BigOperator[\I,R\]
-    getter reduction(): Reduction[\R\]
-    getter body(): I->R
+trait BigOperator[\I,R,L\]
+    abstract getter reduction(): ActualReduction[\R,L\]
+    abstract getter body(): I->R
 end
 
-object BigReduction[\R\](r:Reduction[\R\]) extends BigOperator[\R,R\]
-    getter reduction(): Reduction[\R\]
+object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,L\]
+    getter reduction(): ActualReduction[\R,L\]
     getter body(): R->R
 end
 
-object Comprehension[\I,R\](r: Reduction[\R\], singleton:I->R)
-        extends BigOperator[\I,R\]
-    getter reduction(): Reduction[\R\]
+object Comprehension[\I,R,L\](r: ActualReduction[\R,L\], singleton:I->R)
+        extends BigOperator[\I,R,L\]
+    getter reduction(): ActualReduction[\R,L\]
     getter body(): I->R
 end
 
