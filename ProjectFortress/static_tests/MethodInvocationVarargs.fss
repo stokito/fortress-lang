@@ -15,37 +15,30 @@ a
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component MethodInvocationSimple
+component MethodInvocationVarargs
   export Executable
 
-  (* Check that some method call does in fact exist.
-     No complicated overloading or inference. *)
+  (* We'd like var args to work properly. The problem is
+     properly selecting the correct method when many
+     different tuple types are possible. *)
 
-  trait Foo
-    singleArg(s:String):String
+  trait VarArgT
+    takeVararg(i_1:ZZ32, s_2:String, s_s:String...):ZZ32
 
-    doFoo[\A\](a:ZZ32,b:String):String
-    doFoo[\A\](a:ZZ64,b:String):String
-
-    doFoo[\A\](g:Generator[\A\],b:String) : ZZ32
-
-    (* This is just TightJuxt actually. *) 
-    callLocalMethod(s:String):String = singleArg(s)
+    takeMoreVararg(s_s:String...):ZZ32
   end
 
-  methodCaller(a_1:ZZ32, b_1:String,f_1:Foo, g:Generator[\ZZ32\]) : () = do
-    var s:String
-    s := f_1.doFoo[\ZZ32\](a_1,b_1)
+  foo(a:ZZ32, s:String, vat:VarArgT) : () = do
+    var result : ZZ32
 
-    (* Ensure that when we call a different one it does return
-       a different static type. *)
-    var i:ZZ32
-    i := f_1.doFoo[\ZZ32\](g,b_1)
-   
-    (* I hope single args work, because we create a tuple type. *)
-    s := f_1.singleArg(b_1)
+    result := vat.takeVararg(a,s,s,s,s,s)
+    result := vat.takeVararg(a,s)
+
+    result := vat.takeMoreVararg()
+    result := vat.takeMoreVararg(s)
+    result := vat.takeMoreVararg(s,s)
   end
-  
+
   run(args:String...):() = ()
 
 end

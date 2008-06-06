@@ -1036,31 +1036,59 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return result;
     }
 
+    /**
+     * For method calls, return a constraint formula matching the parameters to 
+     * the type of the argument. Assumes that this is being used for a method call,
+     * because it makes some assumptions about the type of the argument.
+     */
 	private ConstraintFormula argsMatchParams(List<Param> params, Type arg_type) {
-    	//handle domain
-    	if(!params.isEmpty()){
-    		//handle defaults (nyi)
+		final int arg_size;
+		if( arg_type instanceof TupleType )
+			arg_size = ((TupleType)arg_type).getElements().size();
+		else if( arg_type instanceof VoidType )
+			arg_size = 0;
+		else
+			arg_size = 1;
+		
+		//handle domain
+		Type domain_type;
+    	if(!params.isEmpty()) {
+    		
+    		// Regular parameters & var args
+    		List<Type> param_types =
+    		IterUtil.fold(params, new LinkedList<Type>(), new Lambda2<LinkedList<Type>,Param,LinkedList<Type>>(){
+				// How many types have we accumulated thus far?
+				int typeCount = 0;
+    			
+    			public LinkedList<Type> value(LinkedList<Type> arg0, Param arg1) {
+    				if( arg1 instanceof NormalParam ) {
+    					typeCount++;
+    					arg0.add(((NormalParam)arg1).getType().unwrap());
+    					return arg0;
+    				}
+    				else { // VarargParam, add until the sizes are equal
+    					int to_add = arg_size - typeCount;
+    					while( to_add > 0 ) { 
+    					  arg0.add(((VarargsParam)arg1).getType());
+    					  to_add--;
+    					}
+    					return arg0;
+    				}
+				}});
+			
+			//handle defaults (nyi)
     		if(params.get(params.size()-1) instanceof NormalParam
     			&& ((NormalParam)params.get(params.size()-1)).getDefaultExpr().isSome()){
     			return NI.nyi();
     		}
-			//handle varargs
-    		for(Param p: params){
-    			if(p instanceof VarargsParam){
-    	    		return NI.nyi();
-    	    	}
-    		}
-	    	//regular parameters
-			List<Type> types=IterUtil.asList(IterUtil.map(params, new Lambda<Param,Type>(){
-				public Type value(Param arg0) {
-					return (arg0 instanceof NormalParam) ? ((NormalParam)arg0).getType().unwrap() : 
-						((VarargsParam)arg0).getType();
-				}}));
-			TupleType domain = NodeFactory.makeTupleType(types);
-			return this.subtypeChecker.subtype(arg_type,domain);
+			
+			domain_type = NodeFactory.makeTupleType(param_types);
     	}
-		//is void
-    	return this.subtypeChecker.subtype(arg_type,Types.VOID);	
+    	else {
+			//is void
+	    	domain_type = Types.VOID;
+    	}
+    	return this.subtypeChecker.subtype(arg_type, domain_type);
     }
     
     @Override
@@ -1071,7 +1099,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	
     	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(staticArgs_result.size() + 3);
     	all_results.add(obj_result);
-    	//all_results.add(method_result); Ignore!
+    	//all_results.add(method_result); Ignore! This will try to look up method in local context
     	all_results.addAll(staticArgs_result);
     	all_results.add(arg_result);
     	
@@ -1095,38 +1123,47 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			List<Method> candidates = new ArrayList<Method>();
     			for( Method m : methods_with_name ) {
     				// same number of static args
+    				List<StaticArg> static_args = that.getStaticArgs();
     				if( m.staticParameters().size() > 0 && that.getStaticArgs().size() == 0 ) {
     					// we need to infer static arguments
-    					return NI.nyi();
+    					List<StaticArg> static_inference_params =
+    						IterUtil.asList(
+    								IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
+    									public StaticArg value(StaticParam arg0) {
+    										Type ivt = NodeFactory.makeInferenceVarType();
+    										return new TypeArg(ivt);
+    									}}
+    								));
+    					static_args = static_inference_params;
     				}
-    				else if(m.staticParameters().size()!=that.getStaticArgs().size()){
+    				else if(m.staticParameters().size()!=that.getStaticArgs().size()) {
     					// we don't need to infer, and they have different numbers of args
     					continue;
     				}
+    				// Same number of static parameters			
     				// Do they have the same number of parameters, or at least can they be matched.
     				// we know this cast works
-    				Method im=(Method)m.instantiate(that.getStaticArgs());
-    				ConstraintFormula mc=this.argsMatchParams(im.parameters(), arg_result.type().unwrap());
+    				Method im = (Method)m.instantiate(static_args);
+    				ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_result.type().unwrap());
     				// constraint satisfiable?
-    				if(mc.isSatisfiable()){
+    				if(mc.isSatisfiable()) {
     					//add method to candidates
     					candidates.add(im);
     					all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
     				}
+    				
     			}
-    			//join all
-    			
+    			// Now we join together the results, or return an error if there are no candidates.
     			if(candidates.isEmpty()){
     				String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
     				all_results.add(new TypeCheckerResult(that,TypeError.make(err,that)));
     			}
     			List<Type> ranges = IterUtil.asList(IterUtil.map(candidates, new Lambda<Method,Type>(){
-
 					public Type value(Method arg0) {
 						return arg0.getReturnType();
 					}}));
-    			Type range = this.subtypeChecker.join(ranges);
     			
+    			Type range = this.subtypeChecker.join(ranges);
     			return TypeCheckerResult.compose(that,range,this.subtypeChecker,all_results);
     		}
     		else {
