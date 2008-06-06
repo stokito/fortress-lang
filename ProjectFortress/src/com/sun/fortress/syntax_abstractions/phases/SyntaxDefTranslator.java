@@ -431,7 +431,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     String ntName = inner.getEnv().getNonterminalName(varId).getText();
                     // String baseFortressType = inner.getEnv().getType(varId).toString();
                     String baseFortressType = lookupAstType(ntName);
-                    System.out.println( String.format("Prefix '%s' has non terminal '%s'", varName, ntName) );
+                    // System.out.println( String.format("Prefix '%s' has non terminal '%s'", varName, ntName) );
                     /* FIXME: get the java node ast type, not the fortress type */
                     // System.out.println( String.format( "Java type for baseType %s is %s", baseType, inner.getEnv().getType( sym.getId().unwrap() ).getClass().getName() ) ); 
                     /*

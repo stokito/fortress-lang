@@ -83,13 +83,17 @@ api Xml2
     | x:XExprs+ <[ x ]>
     *)
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
+      e:Expr <[ <! CData("" e) asif Content !> ]>
+    | x:XExprs+ <[ x ]>
+    (*
       s:Strings <[ <| (CData(s) asif Content) |> ]>
-    | {x:XExpr SPACE}+ <[ <| x |> ]>
+      *)
+      (*
+    | {x:XExpr SPACE}+ <[ x ]>
+    *)
 
-(*
     XExprs:Element :Expr:=
       x:XExpr SPACE <[ x ]>
-      *)
 
     XmlEnd:String :Expr:= (* type: String *)
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
