@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.util;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import xtc.util.Utilities;
 
@@ -41,6 +42,7 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
+import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
 
@@ -57,22 +59,24 @@ public class ActionCreaterUtil {
         final List<String> listCode = new LinkedList<String>();
         final List<Integer> listIndents = new LinkedList<Integer>();
 
-        for ( Map.Entry<PrefixedSymbol,VariableCollector.Depth> pair : variables ){
+        for ( Map.Entry<PrefixedSymbol,VariableCollector.Depth> pair : variables.entrySet() ){
             if ( isTemplate ){
                 final PrefixedSymbol sym = pair.getKey();
                 VariableCollector.Depth depth = pair.getValue();
-                class DepthConvertVisitor implements VariableCollector.DepthVisitor {
+                class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                     String base;
                     int indent;
                     DepthConvertVisitor(String base, int indent) {
                         this.base = base;
                         this.indent = indent;
                     }
-                    public String forBaseDepth(VisitorCollector.Depth d) {
+
+                    public String forBaseDepth(VariableCollector.Depth d) {
                         return base;
                     }
-                    public String forListDepth(VisitorCollector.Depth d) {
-                        String fresh = FreshName.getFreshName();
+
+                    public String forListDepth(VariableCollector.Depth d) {
+                        String fresh = FreshName.getFreshName("oplist");
                         String innerType = d.getParent().getType("Object"); // FIXME
                         listIndents.add(indent);
                         listCode.add
@@ -88,8 +92,9 @@ public class ActionCreaterUtil {
                         listCode.add("}");
                         return getFortressList(fresh, listCode, listIndents);
                     }
-                    public String forOptionDepth(VisitorCollector.Depth d) {
-                        String fresh = FreshName.getFreshName();
+
+                    public String forOptionDepth(VariableCollector.Depth d) {
+                        String fresh = FreshName.getFreshName("option");
                         String innerType = d.getParent().getType("Object"); // FIXME
                         listIndents.add(indent);
                         listCode.add(String.format("Expr %s = null;", fresh));
@@ -103,10 +108,13 @@ public class ActionCreaterUtil {
                         listCode.add("}");
                         return getFortressList(fresh, listCode, listIndents);
                     }
-                });
+                };
+                /*
                 String var = depth.createCode(sym.getId().getText(), listCode, listIndents);
                 indents.add(3);
-                code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
+                */
+                String var = depth.accept(new DepthConvertVisitor(sym.getId().unwrap().getText(), 3));
+                code.add(BOUND_VARIABLES+".put(\""+sym.getId().unwrap().getText()+"\""+", "+var+");");
             }
         }
         /*
@@ -142,7 +150,7 @@ public class ActionCreaterUtil {
         String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeListAST";
         String astName = FreshName.getFreshName("ast");
         indents.add(4);
-        code.add("Expr "+ast+" = "+converter+"("+id+")");
+        code.add("Expr "+astName+" = "+converter+"("+id+")");
         return astName;
 
         /*
@@ -203,7 +211,7 @@ public class ActionCreaterUtil {
         String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeMaybeAST";
         String astName = FreshName.getFreshName("ast");
         indents.add(4);
-        code.add("Expr "+ast+" = "+converter+"("+id.getText()+")");
+        code.add("Expr "+astName+" = "+converter+"("+id+")");
         return astName;
 
         /*

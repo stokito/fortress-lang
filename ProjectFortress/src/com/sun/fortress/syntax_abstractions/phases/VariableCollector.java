@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.phases;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collection;
+import java.util.List;
 import java.util.LinkedList;
 
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -32,6 +33,8 @@ import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 
 public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol, VariableCollector.Depth>> {
+    
+    private Depth depth;
 
     public interface Depth {
         public Depth getParent();
@@ -46,7 +49,7 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         T forOptionDepth(Depth d);
     }
 
-    static class BaseDepth {
+    static class BaseDepth implements Depth {
         public Depth getParent() {
             throw new UnsupportedOperationException("cannot get parent of BaseDepth");
         }
@@ -58,9 +61,12 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         }
     }
 
-    static class ListDepth {
+    static class ListDepth implements Depth {
         private Depth d;
         ListDepth(Depth d) { this.d = d; }
+        public Depth getParent(){
+            return d;
+        }
         public String getType(String baseType){
             return "List<" + d.getType(baseType) + ">";
         }
@@ -69,18 +75,19 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         }
     }
 
-    static class OptionDepth {
+    static class OptionDepth implements Depth {
         private Depth d;
         OptionDepth(Depth d) { this.d = d; }
+        public Depth getParent(){
+            return d;
+        }
         public String getType(String baseType) {
             return "Option<" + d.getType(baseType) + ">";
         }
         public <T> T accept(DepthVisitor<T> visitor) {
-            return that.forOptionDepth(this);
+            return visitor.forOptionDepth(this);
         }
     }
-
-    private Depth depth;
 
     public VariableCollector() {
         this.depth = new BaseDepth();
@@ -136,7 +143,7 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         return new ListDepth(d);
     }
     private Depth addOptional(Depth d) {
-        return new OptionalDepth(d);
+        return new OptionDepth(d);
     }
 
 }

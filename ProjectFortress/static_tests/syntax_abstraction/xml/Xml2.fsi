@@ -69,7 +69,7 @@ api Xml2
       OpenBracket# s:String Slash# CloseBracket
       <[ Header(s,emptyList[\Attribute\]()) ]>
     | OpenBracket# s:String a:Attributes+ Slash# CloseBracket
-      <[ Header(s,a) ]>
+     ) <[ Header(s,a) ]>
 
     XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
@@ -77,17 +77,19 @@ api Xml2
     | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
       <[ Header(s, a) ]>
 
-    (x:A y:A)*
-    x:AA*
-    y:AA*
-    AA = x:a y:a <[ x y ]>
-
+(*
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
       s:Strings <[ <| (CData(s) asif Content) |> ]>
     | x:XExprs+ <[ x ]>
+    *)
+    XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
+      s:Strings <[ <| (CData(s) asif Content) |> ]>
+    | {x:XExpr SPACE}+ <[ <| x |> ]>
 
+(*
     XExprs:Element :Expr:=
       x:XExpr SPACE <[ x ]>
+      *)
 
     XmlEnd:String :Expr:= (* type: String *)
       o1:OpenBracket# Slash# s:String# o2:CloseBracket

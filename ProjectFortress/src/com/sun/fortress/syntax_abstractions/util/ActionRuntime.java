@@ -15,11 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
+package com.sun.fortress.syntax_abstractions.util;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import xtc.util.Utilities;
+import xtc.util.Pair;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Enclosing;
@@ -38,25 +41,23 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
 
-
-package com.sun.fortress.syntax_abstractions.util;
-
 /* Runtime support for ActionCreaterUtil
  */
-class ActionRuntime {
+public class ActionRuntime {
 
     public static Expr makeListAST(Pair<Expr> x) {
         // x is a rats-list of Expr
         Op op1 = new Op(Option.<APIName>none(),
                         "<|", 
                         Option.<Fixity>some(new EnclosingFixity()));
-        Op op2 = new Op(Option.<APINode>none(),
+        Op op2 = new Op(Option.<APIName>none(),
                         "|>",
                         Option.<Fixity>some(new EnclosingFixity()));
         Enclosing enclosing = new Enclosing(Option.<APIName>none(), op1, op2);

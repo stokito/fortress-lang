@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import xtc.parser.Action;
 import xtc.parser.ParseError;
@@ -81,7 +82,7 @@ public class ActionCreater {
             TransformationDecl transformation,
             BaseType type,
             SyntaxDeclEnv syntaxDeclEnv,
-            Map<PrefixedSymbol,VariableCollector.Depth> variables,
+            Map<PrefixedSymbol,com.sun.fortress.syntax_abstractions.phases.VariableCollector.Depth> variables
             ) {
         ActionCreater ac = new ActionCreater();
         Collection<StaticError> errors = new LinkedList<StaticError>();

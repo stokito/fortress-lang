@@ -25,6 +25,27 @@ run(args:String...) = do
     b-a-d b
     b-a-d c
     b-a-d d
+    b-a-d d
+
+    println (b-a-d f a b hi b)
+
+(*
+    b-a-d m1 b-a-d a q b-a-d a b-a-d a
+    b-a-d m2 b-a-d a q b-a-d a b-a-d a
+    b-a-d m3 b-a-d a q
+    b-a-d m3
+    *)
+    (*
+        | m4 p:`+ <[ 1 ]>
+        | m5 p:`+? <[ 1 ]>
+        | m6 p:`+* <[ 1 ]>
+        | m7 {p:`+} <[ 1 ]>
+        | m8 {p:`+*} <[ 1 ]>
+        | m9 {p:`+?} <[ 1 ]>
+        | m10 {p:`+}? <[ 1 ]>
+        | m11 {p:`+}* <[ 1 ]>
+        *)
+
 end
 
 end
