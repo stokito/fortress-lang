@@ -1,0 +1,61 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component HiLoInference
+
+export Executable
+
+trait T
+end
+
+trait U extends T
+end
+
+trait V extends U
+end
+
+object ov extends V end
+
+object ou extends U end
+
+object ot extends T end
+
+f[\W\](x:W, e:W->W) = println "F called"
+
+g(t:T):T = t
+h(u:U):U = u
+i(u:U):T = u
+j(v:V):V = v
+k(v:V):U = v
+l(v:V):T = v
+
+run(args:String... ):() = do
+  f(ot, g)
+
+  f(ou, g)
+  f(ou, h)
+  f(ou, i)
+  
+  f(ov, g)
+  f(ov, h)
+  f(ov, i)
+  f(ov, j)
+  f(ov, k)
+  f(ov, l)
+end
+
+end
