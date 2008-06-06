@@ -54,13 +54,56 @@ public class ActionCreaterUtil {
         List<String> code = new LinkedList<String>();
         indents.add(3);
         code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
-        List<String> listCode = new LinkedList<String>();
-        List<Integer> listIndents = new LinkedList<Integer>();
+        final List<String> listCode = new LinkedList<String>();
+        final List<Integer> listIndents = new LinkedList<Integer>();
 
         for ( Map.Entry<PrefixedSymbol,VariableCollector.Depth> pair : variables ){
             if ( isTemplate ){
-                PrefixedSymbol sym = pair.getKey();
+                final PrefixedSymbol sym = pair.getKey();
                 VariableCollector.Depth depth = pair.getValue();
+                class DepthConvertVisitor implements VariableCollector.DepthVisitor {
+                    String base;
+                    int indent;
+                    DepthConvertVisitor(String base, int indent) {
+                        this.base = base;
+                        this.indent = indent;
+                    }
+                    public String forBaseDepth(VisitorCollector.Depth d) {
+                        return base;
+                    }
+                    public String forListDepth(VisitorCollector.Depth d) {
+                        String fresh = FreshName.getFreshName();
+                        String innerType = d.getParent().getType("Object"); // FIXME
+                        listIndents.add(indent);
+                        listCode.add
+                            (String.format("List<Expr> %s = new LinkedList<Expr>();", fresh));
+                        listIndents.add(indent);
+                        listCode.add
+                            (String.format("for (%s %s : %s) {", innerType, fresh, base));
+                        String parentVar = d.getParent().accept
+                            (new DepthConvertVisitor(fresh, indent + 2));
+                        listIndents.add(indent+2);
+                        listCode.add(String.format("%s.add(%s);", fresh, parentVar));
+                        listIndents.add(indent);
+                        listCode.add("}");
+                        return getFortressList(fresh, listCode, listIndents);
+                    }
+                    public String forOptionDepth(VisitorCollector.Depth d) {
+                        String fresh = FreshName.getFreshName();
+                        String innerType = d.getParent().getType("Object"); // FIXME
+                        listIndents.add(indent);
+                        listCode.add(String.format("Expr %s = null;", fresh));
+                        listIndents.add(indent);
+                        listCode.add(String.format("if (%s != null) {", base));
+                        String parentVar = d.getParent().accept
+                            (new DepthConvertVisitor(fresh, indent + 2));
+                        listIndents.add(indent+2);
+                        listCode.add(String.format("%s = %s;", fresh, parentVar));
+                        listIndents.add(indent);
+                        listCode.add("}");
+                        return getFortressList(fresh, listCode, listIndents);
+                    }
+                });
                 String var = depth.createCode(sym.getId().getText(), listCode, listIndents);
                 indents.add(3);
                 code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
@@ -95,11 +138,11 @@ public class ActionCreaterUtil {
         return listCode;
     }
 
-    private static String getFortressList(Id id, List<String> code, List<Integer> indents) {
+    private static String getFortressList(String id, List<String> code, List<Integer> indents) {
         String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeListAST";
         String astName = FreshName.getFreshName("ast");
         indents.add(4);
-        code.add("Expr "+ast+" = "+converter+"("+id.getText()+")");
+        code.add("Expr "+ast+" = "+converter+"("+id+")");
         return astName;
 
         /*
@@ -156,7 +199,7 @@ public class ActionCreaterUtil {
         */
     }
 
-    private static String getFortressMaybe(Id id, List<String> code, List<Integer> indents, SyntaxDeclEnv syntaxDeclEnv) {
+    private static String getFortressMaybe(String id, List<String> code, List<Integer> indents) {
         String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeMaybeAST";
         String astName = FreshName.getFreshName("ast");
         indents.add(4);
