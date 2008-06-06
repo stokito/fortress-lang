@@ -51,8 +51,8 @@ public abstract class Functional {
     
     /**
      * Returns an instantiated version of this. We needed this because instantiatedType
-     * does not deal with varargs and keywordargs.
-     * 
+     * does not deal with varargs and keywordargs. The contract of this method requires
+     * that all implementing subtypes must return their own type, rather than a supertype.
      */
     public abstract Functional instantiate(List<StaticArg> args);
     
