@@ -135,8 +135,8 @@ NormalParam AbsPlainParam =
 NormalParam AbsParam = AbsPlainParam ;
 
 /* OpHeaderFront ::=
-     opr (w BIG)? w ({ w |-> | LeftEncloser | Encloser) (w StaticParams)? w
-     Params w (RightEncloser | Encloser)
+     opr (w BIG)? w ({ w |-> | LeftEncloser | Encloser) (w StaticParams)?
+     (w Params)? w (RightEncloser | Encloser)
    | opr w ValParam w (Op | ExponentOp) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
@@ -147,7 +147,7 @@ FnHeaderFront OpHeaderFront =
                                                 "{|->");}
          / LeftEncloser
          / Encloser)
-     opa2:(w StaticParams)? w opa3:Params w opa4:(RightEncloser / Encloser)
+     opa2:(w StaticParams)? opa3:(w Params)? w opa4:(RightEncloser / Encloser)
      { IdOrOpOrAnonymousName name;
        Span span = createSpan(yyStart,yyCount);
        Op leftOp = (Op)opa1;
@@ -165,6 +165,7 @@ FnHeaderFront OpHeaderFront =
                               "Mismatched enclosing operator definition: " +
                               left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
+       if (opa3 == null) opa3 = FortressUtil.emptyParams();
        yyValue = new FnHeaderFront(name, opa2, opa3);
      }
    / opr w a1:ValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
