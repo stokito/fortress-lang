@@ -218,7 +218,7 @@ SyntaxSymbol SyntaxSymbol =
     / s1:Symbol type:(void:colon Type)?
       { Option<Id> prefix = Option.none();
         Option<Type> type1 = Option.none();
-	System.out.println( "Matched symbol " + s1 );
+	// System.out.println( "Matched symbol " + s1 );
         if (null != type) type1 = Option.some(type);
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();

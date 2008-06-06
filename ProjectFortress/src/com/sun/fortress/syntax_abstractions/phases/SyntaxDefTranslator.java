@@ -168,7 +168,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             elms.addAll(sym.accept(new SymbolTranslator(new SyntaxDeclEnv(syntaxDef))));
         }
         String newName = FreshName.getFreshName(name).toUpperCase();
-        ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, new SyntaxDeclEnv(syntaxDef), syntaxDef.accept(syntaxDef) );
+        ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, new SyntaxDeclEnv(syntaxDef), syntaxDef.accept(new VariableCollector()) );
         if (!acr.isSuccessful()) { new Result(acr.errors()); }  /* FIXME: suspicious */
         elms.add(acr.action());
         return new Sequence(new SequenceName(newName), elms);

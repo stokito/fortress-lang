@@ -35,10 +35,21 @@ api SyntaxNodes
                 end ]>
         | e x:Decl <[ println x ]>
         | g {Thing} <[ 1 ]>
-        | f {x:Thing y:Thing} <[ 1 ]>
+        | f {x:Thing y:Thing} {hi z:Thing} <[ x + y + z ]>
         | n {x:Thing q {y:Thing z:Thing}} <[ 1 ]>
         | m {x:Thing q {y:Thing z:Thing}}* <[ 1 ]>
-        | m {x:Thing q {y:Thing z:Thing}*}* <[ 1 ]>
+        | m1 {x:Thing q {y:Thing z:Thing}}+ <[ 1 ]>
+        | m2 {x:Thing q {y:Thing z:Thing}*}* <[ 1 ]>
+        | m3 {x:Thing q}? <[ 1 ]>
+        | m4 p:`+ <[ 1 ]>
+        | m5 p:`+? <[ 1 ]>
+        | m6 p:`+* <[ 1 ]>
+        | m7 {p:`+} <[ 1 ]>
+        | m8 {p:`+*} <[ 1 ]>
+        | m9 {p:`+?} <[ 1 ]>
+        | m10 {p:`+}? <[ 1 ]>
+        | m11 {p:`+}* <[ 1 ]>
+
         (*
         | f (x:Thing y:Thing) <[ 1 ]>
         *)
