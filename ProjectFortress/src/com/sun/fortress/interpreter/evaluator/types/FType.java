@@ -546,7 +546,7 @@ abstract public class FType implements Comparable<FType> {
             VarType id_val = (VarType) val;
             String nm = NodeUtil.nameString(id_val.getName());
             if (tp_set.contains(nm)) {
-                if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this);
+                if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this + "(" + val.getClass().getSimpleName() + ")" );
                 try {
                     abm.joinPut(nm, this);
                 } catch (EmptyLatticeIntervalError el) {
@@ -564,7 +564,7 @@ abstract public class FType implements Comparable<FType> {
                 if (DUMP_UNIFY) System.out.println(" result abm= " + abm);
                 return;
             }
-        }
+        } 
         /* We want to unify with the most specific subtype possible, so */
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
