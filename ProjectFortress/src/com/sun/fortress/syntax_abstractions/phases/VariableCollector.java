@@ -34,25 +34,56 @@ import com.sun.fortress.nodes.OptionalSymbol;
 public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol, VariableCollector.Depth>> {
 
     public interface Depth {
+        public Depth getParent();
         public String getType(String baseType);
-        public boolean isOptional();
-        public String createCode(String id, List<String> code, List<Integer> indents);
+        public <T> T accept(DepthVisitor<T> visitor);
+        // public String createCode(String id, List<String> code, List<Integer> indents);
+    }
+
+    public interface DepthVisitor<T> {
+        T forBaseDepth(Depth d);
+        T forListDepth(Depth d);
+        T forOptionDepth(Depth d);
+    }
+
+    static class BaseDepth {
+        public Depth getParent() {
+            throw new UnsupportedOperationException("cannot get parent of BaseDepth");
+        }
+        public String getType(String baseType) {
+            return baseType;
+        }
+        public <T> T accept(DepthVisitor<T> visitor) {
+            return visitor.forBaseDepth(this);
+        }
+    }
+
+    static class ListDepth {
+        private Depth d;
+        ListDepth(Depth d) { this.d = d; }
+        public String getType(String baseType){
+            return "List<" + d.getType(baseType) + ">";
+        }
+        public <T> T accept(DepthVisitor<T> visitor) {
+            return visitor.forListDepth(this);
+        }
+    }
+
+    static class OptionDepth {
+        private Depth d;
+        OptionDepth(Depth d) { this.d = d; }
+        public String getType(String baseType) {
+            return "Option<" + d.getType(baseType) + ">";
+        }
+        public <T> T accept(DepthVisitor<T> visitor) {
+            return that.forOptionDepth(this);
+        }
     }
 
     private Depth depth;
 
     public VariableCollector() {
-        this.depth = new Depth() {
-                public String getType(String baseType) {
-                    return baseType;
-                }
-                public boolean isOptional() {
-                    return false;
-                }
-                public String createCode(String id, List<String> code, List<Integer> indents){
-                    return id;
-                }
-            };
+        this.depth = new BaseDepth();
     }
 
     private VariableCollector(Depth depth) {
@@ -98,36 +129,14 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         return that.getSymbol().accept(new VariableCollector(addOptional(depth)));
     }
 
-    private Depth addStar(final Depth d) {
-        return new Depth() {
-                public String getType(String baseType) {
-                    return "List<" + d.getType(baseType) + ">";
-                }
-                public boolean isOptional() {
-                    return false;
-                }
-
-                public String createCode(String id, List<String> code, List<Integer> indents){
-                    /*
-                    code.add( "for ( %s n ){ ... }" );
-                    indents.add( 1 );
-                    */
-                    return ActionCreaterUtil.getFortressList(d.createCode(id, code, indents), code, indents);
-                }
-            };
+    private Depth addStar(Depth d) {
+        return new ListDepth(d);
     }
     private Depth addPlus(Depth d) {
-        return addStar(d);
+        return new ListDepth(d);
     }
-    private Depth addOptional(final Depth d) {
-        return new Depth() {
-                public String getType(String baseType) {
-                    return d.getType(baseType);
-                }
-                public boolean isOptional() {
-                    return true;
-                }
-            };
+    private Depth addOptional(Depth d) {
+        return new OptionalDepth(d);
     }
 
 }
