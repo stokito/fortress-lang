@@ -64,48 +64,56 @@ public class ActionCreaterUtil {
                 final PrefixedSymbol sym = pair.getKey();
                 VariableCollector.Depth depth = pair.getValue();
                 class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
-                    String base;
+                    String source;
                     int indent;
-                    DepthConvertVisitor(String base, int indent) {
-                        this.base = base;
+                    DepthConvertVisitor(String source, int indent) {
+                        this.source = source;
                         this.indent = indent;
                     }
 
                     public String forBaseDepth(VariableCollector.Depth d) {
-                        return base;
+                        return source;
+                    }
+
+                    private void addCodeLine(String line){
+                        listIndents.add(indent);
+                        listCode.add(line);
                     }
 
                     public String forListDepth(VariableCollector.Depth d) {
-                        String fresh = FreshName.getFreshName("oplist");
+                        String fresh = FreshName.getFreshName("list");
                         String innerType = d.getParent().getType("Object"); // FIXME
-                        listIndents.add(indent);
-                        listCode.add
-                            (String.format("List<Expr> %s = new LinkedList<Expr>();", fresh));
-                        listIndents.add(indent);
-                        listCode.add
-                            (String.format("for (%s %s : %s) {", innerType, fresh, base));
+                        String iterator = FreshName.getFreshName("iter");
+                        addCodeLine(String.format("List<Expr> %s = new LinkedList<Expr>();", fresh));
+
+                        addCodeLine(String.format("for (%s %s : %s) {", innerType, iterator, source));
+
                         String parentVar = d.getParent().accept
-                            (new DepthConvertVisitor(fresh, indent + 2));
-                        listIndents.add(indent+2);
-                        listCode.add(String.format("%s.add(%s);", fresh, parentVar));
-                        listIndents.add(indent);
-                        listCode.add("}");
+                            (new DepthConvertVisitor(iterator, indent + 2));
+
+                        indent += 2;
+                        addCodeLine(String.format("%s.add(%s);", fresh, parentVar));
+                        indent -= 2;
+
+                        addCodeLine( "}" );
                         return getFortressList(fresh, listCode, listIndents);
                     }
 
                     public String forOptionDepth(VariableCollector.Depth d) {
                         String fresh = FreshName.getFreshName("option");
                         String innerType = d.getParent().getType("Object"); // FIXME
-                        listIndents.add(indent);
-                        listCode.add(String.format("Expr %s = null;", fresh));
-                        listIndents.add(indent);
-                        listCode.add(String.format("if (%s != null) {", base));
+                        addCodeLine(String.format("Expr %s = null;", fresh));
+
+                        addCodeLine(String.format("if (%s != null) {", source));
+
                         String parentVar = d.getParent().accept
                             (new DepthConvertVisitor(fresh, indent + 2));
-                        listIndents.add(indent+2);
-                        listCode.add(String.format("%s = %s;", fresh, parentVar));
-                        listIndents.add(indent);
-                        listCode.add("}");
+                        indent += 2;
+                        addCodeLine(String.format("%s = %s;", fresh, parentVar));
+                        indent -= 2;
+
+                        addCodeLine("}");
+
                         return getFortressList(fresh, listCode, listIndents);
                     }
                 };
@@ -114,6 +122,7 @@ public class ActionCreaterUtil {
                 indents.add(3);
                 */
                 String var = depth.accept(new DepthConvertVisitor(sym.getId().unwrap().getText(), 3));
+                indents.add(3);
                 code.add(BOUND_VARIABLES+".put(\""+sym.getId().unwrap().getText()+"\""+", "+var+");");
             }
         }
@@ -149,8 +158,8 @@ public class ActionCreaterUtil {
     private static String getFortressList(String id, List<String> code, List<Integer> indents) {
         String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeListAST";
         String astName = FreshName.getFreshName("ast");
-        indents.add(4);
-        code.add("Expr "+astName+" = "+converter+"("+id+")");
+        indents.add(3);
+        code.add(String.format("Expr %s = %s(%s);",astName, converter, id));
         return astName;
 
         /*

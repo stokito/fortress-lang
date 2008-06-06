@@ -47,6 +47,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.PreFixity;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateGapExpr;
@@ -120,6 +121,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	    String rVarName = FreshName.getFreshName("inFixity");
 	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
 	    this.code.add( String.format("InFixity %s = new InFixity(%s);", rVarName, sVarName) );
+	    return rVarName;
+    }
+
+    @Override
+    public String forPreFixityOnly(PreFixity that){
+	    String rVarName = FreshName.getFreshName("preFixity");
+	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+	    this.code.add( String.format("PreFixity %s = new PreFixity(%s);", rVarName, sVarName) );
 	    return rVarName;
     }
     

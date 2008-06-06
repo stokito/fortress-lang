@@ -69,7 +69,7 @@ public class GrammarTranslator {
 			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {	
 
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
-                    System.out.println( String.format( "Translating module %s '%s'", module.getClass().getName(), module.getName() ) );
+                    // System.out.println( String.format( "Translating module %s '%s'", module.getClass().getName(), module.getName() ) );
 			if (module instanceof FortressModule) {
 				ratsModules.add(makeFortressModule((FortressModule) module));
 			}

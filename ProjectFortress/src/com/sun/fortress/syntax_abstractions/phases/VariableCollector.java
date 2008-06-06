@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.SyntaxDef;
 
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
@@ -110,6 +111,15 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         }
         return c;
     }
+    
+    @Override
+    public Map<PrefixedSymbol,Depth> forSyntaxDef(SyntaxDef that) {
+        Map<PrefixedSymbol,Depth> all = new HashMap<PrefixedSymbol,Depth>();
+        for ( SyntaxSymbol s : that.getSyntaxSymbols() ){
+            all.putAll( s.accept(this) );
+        }
+        return all;
+    }
 
     @Override
     public Map<PrefixedSymbol,Depth> forGroupSymbol(GroupSymbol that) {
@@ -117,7 +127,7 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         for ( SyntaxSymbol symbol : that.getSymbols() ){
             c.putAll( symbol.accept(this) );
         }
-        // System.out.println( "Bound symbols for group: " + c );
+        System.out.println( "Bound symbols for group: " + c );
         return c;
     }
 
