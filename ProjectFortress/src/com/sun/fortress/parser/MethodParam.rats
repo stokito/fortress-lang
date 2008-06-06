@@ -98,8 +98,8 @@ FnHeaderFront OpHeaderFront :=
    / ... ;
 
 /* AbsOpMdHeaderFront ::=
-     opr (w BIG)? w ({| w -> | LeftEncloser | Encloser) (w StaticParams)? w
-     AbsParams w (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
+     opr (w BIG)? w ({| w -> | LeftEncloser | Encloser) (w StaticParams)?
+     (w AbsParams)? w (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
    | opr w AbsValParam w (Op | ExponentOp) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
  */
@@ -110,7 +110,7 @@ FnHeaderFront AbsOpHeaderFront :=
                                                 "{|->");}
          / LeftEncloser
          / Encloser)
-     opa2:(w StaticParams)? w opa3:AbsParams w opa4:(RightEncloser / Encloser)
+     opa2:(w StaticParams)? opa3:(w AbsParams)? w opa4:(RightEncloser / Encloser)
      opa5:(w void:colonequals w openparen w AbsSubscriptAssignParam w closeparen)?
      { IdOrOpOrAnonymousName name;
        Span span = createSpan(yyStart,yyCount);
@@ -129,6 +129,7 @@ FnHeaderFront AbsOpHeaderFront :=
                               "Mismatched enclosing operator definition: " +
                               left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
+       if (opa3 == null) opa3 = FortressUtil.emptyParams();
        Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa2, opa3, opparam);
      }
