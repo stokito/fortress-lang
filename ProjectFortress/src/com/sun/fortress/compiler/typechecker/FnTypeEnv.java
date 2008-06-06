@@ -77,14 +77,14 @@ class FnTypeEnv extends TypeEnv {
                 final Constructor _fn = (Constructor)fn;
                 Span loc = _fn.declaringTrait().getSpan();
                 Type selfType = makeTraitType(_fn.declaringTrait(),
-                                              staticParamsToArgs(_fn.staticParams()));
+                                              staticParamsToArgs(_fn.staticParameters()));
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
-                overloadedTypes.add(new _RewriteGenericArrowType(loc, _fn.staticParams(),
-                                                                 domainFromParams(_fn.params().unwrap()),
+                overloadedTypes.add(new _RewriteGenericArrowType(loc, _fn.staticParameters(),
+                                                                 domainFromParams(_fn.parameters()),
                                                                  selfType,
-                                                                 makeEffect(loc.getEnd(), _fn.throwsClause()),
+                                                                 makeEffect(loc.getEnd(), IterUtil.asList(_fn.thrownTypes())),
                                                                  _fn.where()));
             }
         }

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -49,9 +50,9 @@ public class Constructor extends Function {
     }
 
     public Id declaringTrait() { return _declaringTrait; }
-    public List<StaticParam> staticParams() { return _staticParams; }
-    public Option<List<Param>> params() { return _params; }
-    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
+//    public List<StaticParam> staticParams() { return _staticParams; }
+//    public Option<List<Param>> params() { return _params; }
+//    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
     public WhereClause where() { return _where; }
 
 	@Override
@@ -59,27 +60,48 @@ public class Constructor extends Function {
 		return Option.none();
 	}
 
-//	@Override
-//	public Map<Id, Param> parameters() {
-//		if( this._params.isNone() ) {
-//			return Collections.emptyMap();
-//		}
-//		else {
-//			Map<Id,Param> result;
-//			
-//		}
-//	}
-
 	@Override
-	public Map<Id, StaticParam> staticParameters() {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrowType instantiatedType(List<StaticArg> args) {
+		return NI.nyi();
 	}
 
 	@Override
-	public Iterable<Type> thrownTypes() {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrowType asArrowType() {
+		return NI.nyi();
+	}
+	
+	@Override
+	public List<Param> parameters() {
+		if( _params.isNone() )
+			return Collections.emptyList();
+		else
+			return Collections.unmodifiableList(_params.unwrap());
 	}
 
+	@Override
+	public List<StaticParam> staticParameters() {
+		return Collections.unmodifiableList(_staticParams);
+	}
+
+	@Override
+	public Iterable<BaseType> thrownTypes() {
+		if( _throwsClause.isNone() )
+			return Collections.emptyList();
+		else
+			return Collections.unmodifiableList(_throwsClause.unwrap());
+	}
+
+	@Override
+	public Functional instantiate(List<StaticArg> args) {
+		// TODO Auto-generated method stub
+		return NI.nyi();
+	}
+
+	@Override
+	public Type getReturnType() {
+		// TODO Auto-generated method stub
+		return NI.nyi();
+	}
+	
+	
 }

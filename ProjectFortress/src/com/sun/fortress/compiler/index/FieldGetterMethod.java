@@ -20,9 +20,18 @@ package com.sun.fortress.compiler.index;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.useful.NI;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public class FieldGetterMethod extends Method {
 
@@ -35,4 +44,47 @@ public class FieldGetterMethod extends Method {
     }
 
     public LValueBind ast() { return _ast; }
+
+	@Override
+	public Option<Expr> body() {
+		return Option.none();
+	}
+
+	@Override
+	public ArrowType instantiatedType(List<StaticArg> args) {
+		return NI.nyi();
+	}
+
+	@Override
+	public ArrowType asArrowType() {
+		return NI.nyi();
+	}
+	
+	@Override
+	public List<Param> parameters() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<StaticParam> staticParameters() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public Iterable<BaseType> thrownTypes() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public Functional instantiate(List<StaticArg> args) {
+		// TODO Auto-generated method stub
+		return NI.nyi();
+	}
+
+	@Override
+	public Type getReturnType() {
+		return _ast.getType().unwrap();
+	}
+	
+	
 }

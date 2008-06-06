@@ -530,7 +530,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						// then we are good
 						Method m = ti.getters().get(field_name); // Declare WITH NO STATIC PARAMS
 						
-						return TypeCheckerResult.compose(that, m.instantiatedType(), subtypeChecker, new TypeCheckerResult(that), obj_result);
+						return TypeCheckerResult.compose(that, m.instantiatedType(Collections.<StaticArg>emptyList()),
+								subtypeChecker, new TypeCheckerResult(that), obj_result);
 					}
 					else if( ti instanceof ObjectTraitIndex ) {
 						// it could still be an actual field...
@@ -1034,6 +1035,33 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                      subtypeChecker, newChecker.recurOnListOfExpr(that.getBody())));
         return result;
     }
+
+	private ConstraintFormula argsMatchParams(List<Param> params, Type arg_type) {
+    	//handle domain
+    	if(!params.isEmpty()){
+    		//handle defaults (nyi)
+    		if(params.get(params.size()-1) instanceof NormalParam
+    			&& ((NormalParam)params.get(params.size()-1)).getDefaultExpr().isSome()){
+    			return NI.nyi();
+    		}
+			//handle varargs
+    		for(Param p: params){
+    			if(p instanceof VarargsParam){
+    	    		return NI.nyi();
+    	    	}
+    		}
+	    	//regular parameters
+			List<Type> types=IterUtil.asList(IterUtil.map(params, new Lambda<Param,Type>(){
+				public Type value(Param arg0) {
+					return (arg0 instanceof NormalParam) ? ((NormalParam)arg0).getType().unwrap() : 
+						((VarargsParam)arg0).getType();
+				}}));
+			TupleType domain = NodeFactory.makeTupleType(types);
+			return this.subtypeChecker.subtype(arg_type,domain);
+    	}
+		//is void
+    	return this.subtypeChecker.subtype(arg_type,Types.VOID);	
+    }
     
     @Override
 	public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that,
@@ -1043,7 +1071,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	
     	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(staticArgs_result.size() + 3);
     	all_results.add(obj_result);
-    	all_results.add(method_result);
+    	//all_results.add(method_result); Ignore!
     	all_results.addAll(staticArgs_result);
     	all_results.add(arg_result);
     	
@@ -1051,11 +1079,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	if( obj_result.type().isNone() ) {
     		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
     	}
-    	
+    	// Did the arguments typecheck?
     	if( arg_result.type().isNone() ) {
     		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
     	}
-    	
+    	// Check whether reciever has methods
     	Type rcvr_type = obj_result.type().unwrap();
     	if( rcvr_type instanceof NamedType ) {
     		NamedType named_rcvr_type = (NamedType)rcvr_type;
@@ -1063,26 +1091,43 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		if( index instanceof TraitIndex ) {
     			TraitIndex trait_index = (TraitIndex)index;
     			Set<Method> methods_with_name = trait_index.dottedMethods().getSeconds(that.getMethod());
-    			List<Method> candidates=new ArrayList<Method>();
+    			//get methods with the right name
+    			List<Method> candidates = new ArrayList<Method>();
     			for( Method m : methods_with_name ) {
     				// same number of static args
-    				// this will have to be changed once we start inferring static arguments
-    				if(m.staticParameters().size()!=that.getStaticArgs().size()){
-    					continue;
-    				}
-    				Type[] stat=new Type[that.getStaticArgs().size()];
-    				stat=that.getStaticArgs().toArray(stat);
-    				Type mtype = m.instantiatedType(stat);
-    				// input < expected
-    				if(!(mtype instanceof ArrowType)){
+    				if( m.staticParameters().size() > 0 && that.getStaticArgs().size() == 0 ) {
+    					// we need to infer static arguments
     					return NI.nyi();
     				}
-    				return NI.nyi();
+    				else if(m.staticParameters().size()!=that.getStaticArgs().size()){
+    					// we don't need to infer, and they have different numbers of args
+    					continue;
+    				}
+    				// Do they have the same number of parameters, or at least can they be matched.
+    				// we know this cast works
+    				Method im=(Method)m.instantiate(that.getStaticArgs());
+    				ConstraintFormula mc=this.argsMatchParams(im.parameters(), arg_result.type().unwrap());
     				// constraint satisfiable?
+    				if(mc.isSatisfiable()){
+    					//add method to candidates
+    					candidates.add(im);
+    					all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
+    				}
     			}
     			//join all
     			
-    			//return
+    			if(candidates.isEmpty()){
+    				String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
+    				all_results.add(new TypeCheckerResult(that,TypeError.make(err,that)));
+    			}
+    			List<Type> ranges = IterUtil.asList(IterUtil.map(candidates, new Lambda<Method,Type>(){
+
+					public Type value(Method arg0) {
+						return arg0.getReturnType();
+					}}));
+    			Type range = this.subtypeChecker.join(ranges);
+    			
+    			return TypeCheckerResult.compose(that,range,this.subtypeChecker,all_results);
     		}
     		else {
     			return NI.nyi();
@@ -1091,10 +1136,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	else {
     		return NI.nyi();
     	}
-    	
-    	
-		return super.forMethodInvocationOnly(that, obj_result, method_result,
-				staticArgs_result, arg_result);
 	}
 
 	public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
@@ -1103,10 +1144,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             result = TypeCheckerResult.compose(that, subtypeChecker, result, that.getRhs().unwrap().accept(this));
         }
         TypeChecker newChecker = this.extend(that);
+        
+        // A LocalVarDecl is like a let. It has a body, and it's type is the type of the body
+        List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody());
+        Option<Type> body_type = that.getBody().size() == 0 ? 
+        		Option.<Type>some(Types.VOID) :
+        	    body_results.get(body_results.size()-1).type();
+        
         return TypeCheckerResult.compose(that,
+        		                         body_type,
                                          subtypeChecker,
                                          result, TypeCheckerResult.compose(that,
-                                                                   subtypeChecker, newChecker.recurOnListOfExpr(that.getBody())));
+                                                                   subtypeChecker, body_results));
     }
 
     public TypeCheckerResult forArgExprOnly(ArgExpr that,
@@ -2218,15 +2267,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		if(body_result.type().isNone()){
 			return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result);
 		}
-		
-		if( !body_result.type().unwrap().equals(Types.VOID) ) {
-			return TypeCheckerResult.compose(that,
-					Types.VOID, subtypeChecker, new TypeCheckerResult(that, 
-											TypeError.make("Body of while loop must have type (), but had type " +
-													body_result.type().unwrap(), that.getBody())), test_result, body_result);
-		}
-		
-		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result);
-		
+
+		String void_err = "Body of while loop must have type (), but had type " +
+			body_result.type().unwrap();
+		TypeCheckerResult void_result = this.checkSubtype(body_result.type().unwrap(), Types.VOID, that.getBody(), void_err);
+		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result, void_result);
 	}
 }
