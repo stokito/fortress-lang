@@ -499,6 +499,9 @@ end
    reduction desugaring. *)
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R
 
+__filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\]
+__bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
+
 (* Not currently used for desugaring, but will be used in future.
 __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\]
 
@@ -1444,20 +1447,23 @@ trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
     isZero(l:L): Boolean
 end
 
-trait BigOperator[\I,R,L\]
+trait BigOperator[\I,O,R,L\]
     abstract getter reduction(): ActualReduction[\R,L\]
     abstract getter body(): I->R
+    abstract getter unwrap(): R->O
 end
 
-object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,L\]
+object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
     getter reduction(): ActualReduction[\R,L\]
     getter body(): R->R
+    getter unwrap(): R->R
 end
 
-object Comprehension[\I,R,L\](r: ActualReduction[\R,L\], singleton:I->R)
-        extends BigOperator[\I,R,L\]
+object Comprehension[\I,O,R,L\](u: R->O, r: ActualReduction[\R,L\], singleton:I->R)
+        extends BigOperator[\I,O,R,L\]
     getter reduction(): ActualReduction[\R,L\]
     getter body(): I->R
+    getter unwrap(): R->O
 end
 
 (** VoidReduction is usually done for effect, so we pretend that

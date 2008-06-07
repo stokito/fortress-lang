@@ -1039,9 +1039,10 @@ public class Desugarer extends Rewrite {
         VarRef unitVar = ExprFactory.makeVarRef(unitFn);
         int i = gens.size();
         if (i==0) {
-            /* Boolean guard */
+            /* Single generator as body, with no generator clauses. */
             body = new TightJuxt(span, false,
-                             Useful.list(GENERATE_NAME,body,redVar,unitVar));
+                             Useful.list(GENERATE_NAME,
+                                         ExprFactory.makeTuple(body,redVar,unitVar)));
         } else {
             body = new TightJuxt(body.getSpan(), false,
                                  Useful.list(unitVar, body));
@@ -1058,7 +1059,10 @@ public class Desugarer extends Rewrite {
     Expr visitAccumulator(Span span, List<GeneratorClause> gens,
                           OpName op, Expr body, List<StaticArg> staticArgs) {
         body = visitGenerators(span, gens, body);
-        Expr res = ExprFactory.makeOpExpr(span,op,body,staticArgs);
+        Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
+        Expr res = new TightJuxt(span, false,
+                                 Useful.list(BIGOP_NAME,
+                                             ExprFactory.makeTuple(opexp,body)));
         // System.out.println("Desugared to "+res.toStringVerbose());
         return (Expr)visitNode(res);
     }

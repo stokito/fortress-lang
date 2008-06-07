@@ -84,12 +84,11 @@ set[\E extends StandardTotalOrder[\E\], T extends E\](g: Generator[\T\]): Set[\E
 opr {[\E extends StandardTotalOrder[\E\]\] es: E... }: Set[\E\] =
     es.generate[\Set[\E\]\](Union[\E\],
                                 fn (e:E): Set[\E\] => singleton[\E\](e))
-opr BIG {[\T extends StandardTotalOrder[\T\]\]
-         g: ( Reduction[\SomeList\], T->SomeList) -> SomeList } : Set[\T\] =
-    set(covariantComprehension[\T\](g))
+opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Set[\T\] =
+    covariantComprehension[\T,Set[\T\]\](fn x => set(x))
 
-opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
-                    Set[\R\] = g(Union[\R\], identity[\R\])
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\] =
+    BigReduction[\Set[\R\],Set[\R\]\](Union[\R\])
 
 object Union[\E extends StandardTotalOrder[\E\]\] extends CommutativeMonoidReduction[\Set[\E\]\]
     getter toString(): String = "Union reduction"
@@ -97,12 +96,9 @@ object Union[\E extends StandardTotalOrder[\E\]\] extends CommutativeMonoidReduc
     join(a:Set[\E\], b:Set[\E\]): Set[\E\] = a UNION b
 end
 
-opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g:(Reduction[\Maybe[\Set[\R\]\]\],
-                             Set[\R\]->Maybe[\Set[\R\]\]) ->
-                            Maybe[\Set[\R\]\]): Set[\R\] =
-    Intersection[\R\].unlift(g(Intersection[\R\],
-                               fn (s:Set[\R\]):Just[\Set[\R\]\] =>
-                                   Intersection[\R\].lift(s)))
+opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\]():
+        BigReduction[\Set[\R\],AnyMaybe\] =
+    BigReduction[\Set[\R\],AnyMaybe\](Intersection[\R\])
 
 object Intersection[\E extends StandardTotalOrder[\E\]\]
         extends { CommutativeReduction[\Set[\E\]\],

@@ -21,7 +21,7 @@ export Executable
 object Map[\K,V\] end
 
 opr { |->[\ K,V \] xs: (K,V)... }: Map[\K,V\] = Map[\K,V\]
-opr BIG {|->[\K,V,T\] g: (Reduction[\Map[\K,V\]\], T -> Map[\K,V\]) -> Map[\K,V\] }: Map[\K,V\] = Map[\K,V\]
+opr BIG {|->[\K,V,T\] }: Map[\K,V\] = Map[\K,V\]
 
 run(args:String...):() = ()
 
