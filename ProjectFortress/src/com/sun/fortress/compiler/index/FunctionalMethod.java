@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -41,15 +41,15 @@ import edu.rice.cs.plt.tuple.Option;
  * (methods have distinct receivers).
  */
 public class FunctionalMethod extends Function {
-    
+
     private final FnAbsDeclOrDecl _ast;
     private final Id _declaringTrait;
-    
+
     public FunctionalMethod(FnAbsDeclOrDecl ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
-    
+
     public FnAbsDeclOrDecl ast() { return _ast; }
 
 	@Override
@@ -75,7 +75,7 @@ public class FunctionalMethod extends Function {
 	public ArrowType asArrowType() {
 		return NI.nyi();
 	}
-	
+
 	@Override
 	public List<Param> parameters() {
 		return _ast.getParams();
@@ -104,7 +104,7 @@ public class FunctionalMethod extends Function {
 	public Type getReturnType() {
 		return _ast.getReturnType().unwrap();
 	}
-	
-	
-	
+
+
+
 }

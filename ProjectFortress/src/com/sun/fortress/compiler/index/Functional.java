@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -37,10 +37,10 @@ public abstract class Functional {
 	 * parameters returned by the method {@link Functional#staticParameters()},
 	 * returns the type of this method as an arrow type. Note that some {@link Functionals},
 	 * for instance methods, do not really have arrow type since they are not first class.
-	 * Still we can express their types as such. 
+	 * Still we can express their types as such.
 	 */
     public abstract ArrowType instantiatedType(List<StaticArg> args);
-    
+
     /**
      * Returns the type of this method as an arrow type, without any instantiated
      * type parameters. Note that some {@link Functionals}, for instance methods,
@@ -48,21 +48,21 @@ public abstract class Functional {
      * express their types as such.
      */
     public abstract ArrowType asArrowType();
-    
+
     /**
      * Returns an instantiated version of this. We needed this because instantiatedType
      * does not deal with varargs and keywordargs. The contract of this method requires
      * that all implementing subtypes must return their own type, rather than a supertype.
      */
     public abstract Functional instantiate(List<StaticArg> args);
-    
+
     public abstract Type getReturnType();
-    
+
     public abstract List<StaticParam> staticParameters();
-    
+
     public abstract List<Param> parameters();
-    
+
     public abstract Iterable<BaseType> thrownTypes();
-    
+
     public abstract Option<Expr> body();
 }
