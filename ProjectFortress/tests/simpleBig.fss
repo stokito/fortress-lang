@@ -19,8 +19,8 @@ component simpleBig
 import List.{...}
 export Executable
 
-opr BIG STAR[\T\](g:(Reduction[\Number\],T->Number)->Number):Number =
-    g(SumReduction,cast[\Number\])
+opr BIG STAR[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, SumReduction, cast[\Number\])
 
 run(args:String...):() = do
     body(x:ZZ32): RR64 = if x MOD 2 = 0 then x else 1.0 x end

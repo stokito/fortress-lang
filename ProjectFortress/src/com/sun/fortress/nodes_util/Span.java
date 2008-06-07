@@ -122,7 +122,7 @@ public class Span implements Serializable {
         w.append(String.valueOf(left_col));
         if (file_names_differ || begin.getLine() != end.getLine()
                 || left_col != right_col) {
-            w.append(Printer.tilde);
+            w.append(printer ? Printer.tilde : "-");
             if (file_names_differ) {
                 if (printer) w.append("\"");
                 // Need to add escapes to the file name

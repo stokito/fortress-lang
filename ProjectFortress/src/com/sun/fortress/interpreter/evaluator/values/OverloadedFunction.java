@@ -250,13 +250,9 @@ public class  OverloadedFunction extends Fcn
         for (int i = 0; i< new_overloads.size(); i++) {
             Overload o1 = new_overloads.get(i);
             Fcn fn = o1.getFn();
-            if (fn instanceof GenericFunctionalMethod) {
-                // Any reason not to just ignore these?
-                // They never get type info, right?
-                // continue;
-            } else {
+            if (!(fn instanceof FGenericFunction)) {
                 FType ty = fn.type();
-                ftalist.add(ty);
+                if (ty != null) ftalist.add(ty);
             }
 
             if (!noCheck && !o1.guaranteedOK) {

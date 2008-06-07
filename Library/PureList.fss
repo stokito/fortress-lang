@@ -79,8 +79,8 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList|>: List[\T\] =
-    list(covariantComprehension[\T\](g))
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\] =
+    covariantComprehension[\T,List[\T\]\](fn x => list(x))
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
