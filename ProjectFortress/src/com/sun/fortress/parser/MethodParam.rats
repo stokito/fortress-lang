@@ -72,7 +72,7 @@ FnHeaderFront OpHeaderFront :=
                                                 "{|->");}
          / LeftEncloser
          / Encloser)
-     opa2:(w StaticParams)? opa3:(w Params) w opa4:(RightEncloser / Encloser)
+     opa2:(w StaticParams)? opa3:(w Params)? w opa4:(RightEncloser / Encloser)
      opa5:(w void:colonequals w openparen w SubscriptAssignParam w closeparen)?
      { IdOrOpOrAnonymousName name;
        Span span = createSpan(yyStart,yyCount);

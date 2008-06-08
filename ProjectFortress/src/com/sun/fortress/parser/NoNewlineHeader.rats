@@ -159,7 +159,7 @@ WhereBinding WhereBinding =
                              "underscore, and contains at least two distinct " +
                              "letters is an operator name.");
      }
-   / a1:OpName a2:(w a2:Extends)?
+   / a1:OpName a2:(w a2:Extends)? // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid type parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
