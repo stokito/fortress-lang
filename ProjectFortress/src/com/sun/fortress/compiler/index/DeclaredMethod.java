@@ -72,24 +72,6 @@ public class DeclaredMethod extends Method {
 			}
 		});
 	}
-
-	@Override
-	public ArrowType instantiatedType(List<StaticArg> args) {
-		return this.instantiate(args).asArrowType();
-
-	}
-
-	@Override
-	public ArrowType asArrowType() {
-		List<Type> types=IterUtil.asList(IterUtil.map(_ast.getParams(), new Lambda<Param,Type>(){
-			public Type value(Param arg0) {
-				return (arg0 instanceof NormalParam) ? ((NormalParam)arg0).getType().unwrap() : 
-					((VarargsParam)arg0).getType();
-			}}));
-		TupleType domain = NodeFactory.makeTupleType(types);
-		return NodeFactory.makeArrowType(new Span(), domain, _ast.getReturnType().unwrap());
-	}
-
 	
 	@Override
 	public List<Param> parameters() {

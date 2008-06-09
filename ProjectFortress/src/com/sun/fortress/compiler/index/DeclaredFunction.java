@@ -57,16 +57,6 @@ public class DeclaredFunction extends Function {
 	}
 
 	@Override
-	public ArrowType instantiatedType(List<StaticArg> args) {
-		return NI.nyi();
-	}
-
-	@Override
-	public ArrowType asArrowType() {
-		return NI.nyi();
-	}
-
-	@Override
 	public List<Param> parameters() {
 		return _ast.getParams();
 	}
