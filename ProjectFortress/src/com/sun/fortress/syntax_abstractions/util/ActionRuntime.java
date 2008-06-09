@@ -51,8 +51,13 @@ import edu.rice.cs.plt.tuple.Option;
 /* Runtime support for ActionCreaterUtil
  */
 public class ActionRuntime {
-
+    
     public static Expr makeListAST(Pair<Expr> x) {
+        return makeListAST(x.list());
+    }
+
+    /* FIXME: we shouldnt implicitly convert List<Expr> into a fortress list */
+    public static Expr makeListAST(List<Expr> x) {
         // x is a rats-list of Expr
         Op op1 = new Op(Option.<APIName>none(),
                         "<|", 
@@ -65,7 +70,7 @@ public class ActionRuntime {
         ls.add(enclosing);
         OpRef opRef = new OpRef(false, ls, new LinkedList<StaticArg>());
         List<Expr> tls = new LinkedList<Expr>();
-        tls.addAll(x.list());
+        tls.addAll(x);
         OpExpr opExpr = new OpExpr(true, opRef, tls);
         return opExpr;
     }

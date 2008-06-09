@@ -26,6 +26,7 @@ import java.util.Set;
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;

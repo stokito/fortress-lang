@@ -399,7 +399,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             if (this.syntaxDeclEnv.isRepeat(id)) {
                 return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
             }
-            return that.getVar().toString();
+            // return that.getVar().toString();
+            return String.format("(Expr) %s.get(\"%s\")", ActionCreater.BOUND_VARIABLES, that.getVar().toString() );
         }
         return super.forVarRef(that);
     }
@@ -487,6 +488,15 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return handleTemplateGap(that);
     }
 
+    private String lookupAstNode(Id id){
+        if ( syntaxDeclEnv.getNonterminalName(id) == null ){
+            /* FIXME ?? */
+            return "StringLiteralExpr";
+        } else {
+            return GrammarEnv.getMemberEnv(syntaxDeclEnv.getNonterminalName(id)).getType().toString();
+        }
+    }
+
     private String handleTemplateGap(TemplateGap t) {
         // Is the template t an instance of a template application
         // or a template variable?
@@ -542,7 +552,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
                 return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
             }
             if (this.syntaxDeclEnv.isNonterminal(id)) {
-                return id.getText();
+                // return id.getText();
+                return String.format("(%s) %s.get(\"%s\")", lookupAstNode(id), ActionCreater.BOUND_VARIABLES, id.getText() );
             }
             NI.nyi();
         }

@@ -389,8 +389,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 return defaultCase(that);
             }
 
-        private String lookupAstType( String nonterminal ){
-            return null;
+        private String lookupAstType( Id nonterminal ){
+            return GrammarEnv.getMemberEnv(nonterminal).getType().toString();
         }
 
         /**
@@ -428,10 +428,10 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     PrefixedSymbol sym = varSyms.get(index);
                     Id varId = sym.getId().unwrap();
                     String varName = varId.toString();
-                    String ntName = inner.getEnv().getNonterminalName(varId).getText();
+                    Id ntName = inner.getEnv().getNonterminalName(varId);
                     // String baseFortressType = inner.getEnv().getType(varId).toString();
                     String baseFortressType = lookupAstType(ntName);
-                    // System.out.println( String.format("Prefix '%s' has non terminal '%s'", varName, ntName) );
+                    // System.out.println( String.format("Prefix '%s' has non terminal '%s' with type %s", varName, ntName, baseFortressType) );
                     /* FIXME: get the java node ast type, not the fortress type */
                     // System.out.println( String.format( "Java type for baseType %s is %s", baseType, inner.getEnv().getType( sym.getId().unwrap() ).getClass().getName() ) ); 
                     /*
@@ -441,7 +441,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                        baseType = "???";
                        }
                        */
-                    String fullType = varMap.get(sym).getType(/*baseType*/ "Object");
+                    String fullType = varMap.get(sym).getType(baseFortressType); 
                     indents2.add(1);
                     code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
                 }
