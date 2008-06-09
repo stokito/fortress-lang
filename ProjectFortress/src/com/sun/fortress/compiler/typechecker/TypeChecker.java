@@ -1079,46 +1079,92 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
     	return this.subtypeChecker.subtype(arg_type, domain_type);
     }
+	
+	private Option<Type> findFieldInTraitHierarchy(List<Type> supers, FieldRef that) {
 		
+		List<Type> new_supers = new ArrayList<Type>();
+		Option<Type> result = Option.none();
+		
+		for( Type my_super : supers ) {		
+			Option<TraitIndex> is_trait=getIndexOfType(my_super);
+	    	
+			if(is_trait.isSome()){
+	    		TraitIndex trait_index=is_trait.unwrap();
+	    		
+	    		// Map to list of supertypes
+	    		List<Type> extends_types = 
+	    			IterUtil.asList(IterUtil.map(trait_index.extendsTypes(), 
+	    					new Lambda<TraitTypeWhere,Type>(){
+								public Type value(TraitTypeWhere arg0) {
+									return arg0.getType();
+								}}));
+	    		new_supers.addAll(extends_types);
+	    		
+	    		// check if trait has a getter
+	    		Map<Id,Method> getters=trait_index.getters();
+	    		if(getters.containsKey(that.getField())) {
+	    			Method field=getters.get(that.getField());
+	    			return Option.some(field.getReturnType());
+	    		}
+	    		else {
+	    			//check if trait is an object
+	    			if(trait_index instanceof ObjectTraitIndex){
+	    				//Check if object has field
+	    				ObjectTraitIndex object_index=(ObjectTraitIndex)trait_index;
+	    				Map<Id,Variable> fields=object_index.fields();
+	    				if(fields.containsKey(that.getField())){
+	    					Variable field=fields.get(that.getField());
+	    					Option<BindingLookup> type=this.typeEnv.binding(that.getField());
+	    					return Option.some(type.unwrap().getType().unwrap());
+	    				}
+	    			}
+	    			//error no such field
+	    		}
+	    		//error receiver not a trait
+	    	}
+		}
+
+		if( result.isNone() && !new_supers.isEmpty() ) {
+			// recur
+			return this.findFieldInTraitHierarchy(new_supers, that);
+		}
+		else {
+			return Option.none();
+		}
+	}
 	
 	@Override
 	public TypeCheckerResult forFieldRefOnly(FieldRef that,
 			TypeCheckerResult obj_result, TypeCheckerResult field_result) {
 		
-		List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(3);
-    	all_results.add(obj_result);
     	// We need the type of the receiver
     	if( obj_result.type().isNone() ) {
-    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    		return TypeCheckerResult.compose(that, subtypeChecker, obj_result);
     	}
     	//check whether receiver can have fields
     	Type recvr_type=obj_result.type().unwrap();
-    	Option<TraitIndex> is_trait=getIndexOfType(recvr_type);
-    	if(is_trait.isSome()){
-    		TraitIndex trait_index=is_trait.unwrap();
-    		// check if trait has a getter
-    		Map<Id,Method> getters=trait_index.getters();
-    		if(getters.containsKey(that.getField())){
-    			Method field=getters.get(that.getField());
-    			return TypeCheckerResult.compose(that,field.getReturnType(),this.subtypeChecker,all_results);
+    	TypeCheckerResult result;
+    	Option<Type> result_type;
+    	if( recvr_type instanceof TraitType ) {
+    		Option<Type> f_type = this.findFieldInTraitHierarchy(Collections.singletonList(recvr_type), that);
+    		if( f_type.isSome() ) {
+    			result = new TypeCheckerResult(that);
+    			result_type = f_type;
     		}
-    		else{
-    			//check if trait is an object
-    			if(trait_index instanceof ObjectTraitIndex){
-    				//Check if object has field
-    				ObjectTraitIndex object_index=(ObjectTraitIndex)trait_index;
-    				Map<Id,Variable> fields=object_index.fields();
-    				if(fields.containsKey(that.getField())){
-    					Variable field=fields.get(that.getField());
-    					Option<BindingLookup> type=this.typeEnv.binding(that.getField());
-    					return TypeCheckerResult.compose(that,type.unwrap().getType().unwrap(),this.subtypeChecker,all_results);
-    				}
-    			}
-    			//error no such field
+    		else {
+    			String no_field = "Field " + that.getField() + " could not be found in type" +
+    				recvr_type + ".";
+    			result = new TypeCheckerResult(that, TypeError.make(no_field, that));
+    			result_type = Option.none();
     		}
-    		//error receiver not a trait
     	}
-		return NI.nyi();
+    	else {
+    		String not_trait = "Receiver of field expression must be a trait or object, but " 
+    			+ recvr_type + " is neither.";
+    		result = new TypeCheckerResult(that, TypeError.make(not_trait, that));
+    		result_type = Option.none();
+    	}
+    	return TypeCheckerResult.compose(that, result_type, this.subtypeChecker, obj_result, result);
 	}
 	
 	private Option<TraitIndex> getIndexOfType(Type rcvr_type){
@@ -1213,7 +1259,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	// Check whether receiver can have methods
     	Type recvr_type=obj_result.type().unwrap();
     	Option<TraitIndex> is_trait=getIndexOfType(recvr_type);
-    	if(!is_trait.isSome()){
+    	if(is_trait.isNone()){
     		//error receiver not a trait
     		String trait_err = "Target of a method invocation must have trait type, while this receiver has type " + recvr_type + ".";
     		all_results.add(new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj())));
