@@ -88,7 +88,7 @@ end
 (** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
-opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\T\]
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]

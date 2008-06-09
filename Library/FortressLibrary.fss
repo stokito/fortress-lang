@@ -2383,7 +2383,7 @@ end
 
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary. **)
-opr BIG ||(): String =
+opr BIG ||(): Comprehension[\Any,String,String,String\] =
     Comprehension[\Any,String,String,String\](
         identity[\String\],StringReduction,fn (x:Any)=> "" x)
 
