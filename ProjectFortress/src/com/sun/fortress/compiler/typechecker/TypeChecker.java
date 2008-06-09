@@ -1082,7 +1082,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	
 	
 	
-	
+	private findFieldInHierarchy(FieldRef ) {
+		
+	}
 	
 	@Override
 	public TypeCheckerResult forFieldRefOnly(FieldRef that,
@@ -1135,6 +1137,65 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	return Option.none();
 	}
     
+	private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(List<Type> supers, Type arg_result, MethodInvocation that){
+		List<StaticArg> static_args = that.getStaticArgs();
+		Id method_name = that.getMethod();
+		List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
+		List<Method> candidates=new ArrayList<Method>();
+		List<Type> new_supers=new ArrayList<Type>();
+		for(Type type: supers){
+			Option<TraitIndex> is_trait=getIndexOfType(type);
+			if(is_trait.isSome()){
+				TraitIndex trait_index= is_trait.unwrap();
+				List<Type> temp = IterUtil.asList(IterUtil.map(trait_index.extendsTypes(),
+					new Lambda<TraitTypeWhere,Type>(){
+
+						public Type value(TraitTypeWhere arg0) {
+							return arg0.getType();
+						}}
+				));
+				new_supers.addAll(temp);
+				Set<Method> methods_with_name = trait_index.dottedMethods().getSeconds(method_name);
+				//get methods with the right name
+				for( Method m : methods_with_name ) {
+					// same number of static args
+					if( m.staticParameters().size() > 0 && static_args.size() == 0 ) {
+						// we need to infer static arguments
+						List<StaticArg> static_inference_params =
+							IterUtil.asList(
+									IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
+										public StaticArg value(StaticParam arg0) {
+											Type ivt = NodeFactory.makeInferenceVarType();
+											return new TypeArg(ivt);
+										}}
+									));
+						static_args = static_inference_params;
+					}
+					else if(m.staticParameters().size()!=static_args.size()) {
+						// we don't need to infer, and they have different numbers of args
+						continue;
+					}
+					// Same number of static parameters			
+					// Do they have the same number of parameters, or at least can they be matched.
+					// we know this cast works
+					Method im = (Method)m.instantiate(static_args);
+					ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_result);
+					// constraint satisfiable?
+					if(mc.isSatisfiable()) {
+						//add method to candidates
+						candidates.add(im);
+						all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
+					}
+	    				
+	    		}
+			}
+		}
+		if(candidates.isEmpty() && !new_supers.isEmpty()){
+			return findMethodsInTraitHierarchy(new_supers, arg_result,that);
+		}
+		return Pair.make(candidates,all_results);
+	}
+	
     @Override
 	public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that,
 			TypeCheckerResult obj_result, TypeCheckerResult method_result,
@@ -1146,60 +1207,33 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	//all_results.add(method_result); Ignore! This will try to look up method in local context
     	all_results.addAll(staticArgs_result);
     	all_results.add(arg_result);
-    	
-    	// We need the type of the receiver
-    	if( obj_result.type().isNone() ) {
-    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-    	}
     	// Did the arguments typecheck?
     	if( arg_result.type().isNone() ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    	}
+    	// We need the type of the receiver
+    	if( obj_result.type().isNone() ) {
     		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
     	}
     	// Check whether receiver can have methods
     	Type recvr_type=obj_result.type().unwrap();
     	Option<TraitIndex> is_trait=getIndexOfType(recvr_type);
-    	if(is_trait.isSome()){
-    		TraitIndex trait_index= is_trait.unwrap();
-			Set<Method> methods_with_name = trait_index.dottedMethods().getSeconds(that.getMethod());
-			//get methods with the right name
-			List<Method> candidates = new ArrayList<Method>();
-			for( Method m : methods_with_name ) {
-				// same number of static args
-				List<StaticArg> static_args = that.getStaticArgs();
-				if( m.staticParameters().size() > 0 && that.getStaticArgs().size() == 0 ) {
-					// we need to infer static arguments
-					List<StaticArg> static_inference_params =
-						IterUtil.asList(
-								IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
-									public StaticArg value(StaticParam arg0) {
-										Type ivt = NodeFactory.makeInferenceVarType();
-										return new TypeArg(ivt);
-									}}
-								));
-					static_args = static_inference_params;
-				}
-				else if(m.staticParameters().size()!=that.getStaticArgs().size()) {
-					// we don't need to infer, and they have different numbers of args
-					continue;
-				}
-				// Same number of static parameters			
-				// Do they have the same number of parameters, or at least can they be matched.
-				// we know this cast works
-				Method im = (Method)m.instantiate(static_args);
-				ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_result.type().unwrap());
-				// constraint satisfiable?
-				if(mc.isSatisfiable()) {
-					//add method to candidates
-					candidates.add(im);
-					all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
-				}
-    				
-    		}
+    	if(!is_trait.isSome()){
+    		//error receiver not a trait
+    		String trait_err = "Target of a method invocation must have trait type, while this receiver has type " + recvr_type + ".";
+    		all_results.add(new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj())));
+    		return TypeCheckerResult.compose(that, this.subtypeChecker, all_results);
+    	}
+    	else{
+    		Pair<List<Method>,List<TypeCheckerResult>> candidate_pair = findMethodsInTraitHierarchy(Collections.singletonList(recvr_type),arg_result.type().unwrap(),that);
+    		List<Method> candidates = candidate_pair.first();
+    		all_results.addAll(candidate_pair.second());
 			// Now we join together the results, or return an error if there are no candidates.
 			if(candidates.isEmpty()){
 				String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
 				all_results.add(new TypeCheckerResult(that,TypeError.make(err,that)));
 			}
+			
 			List<Type> ranges = IterUtil.asList(IterUtil.map(candidates, new Lambda<Method,Type>(){
 				public Type value(Method arg0) {
 					return arg0.getReturnType();
@@ -1207,10 +1241,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			
 			Type range = this.subtypeChecker.join(ranges);
 			return TypeCheckerResult.compose(that,range,this.subtypeChecker,all_results);
-    	}
-    	else {
-    		//error reciever not a trait
-    		return NI.nyi();
     	}
 	}
 
