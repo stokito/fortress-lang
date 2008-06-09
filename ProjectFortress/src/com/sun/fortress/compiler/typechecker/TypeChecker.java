@@ -1079,12 +1079,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
     	return this.subtypeChecker.subtype(arg_type, domain_type);
     }
-	
-	
-	
-	private findFieldInHierarchy(FieldRef ) {
 		
-	}
 	
 	@Override
 	public TypeCheckerResult forFieldRefOnly(FieldRef that,
