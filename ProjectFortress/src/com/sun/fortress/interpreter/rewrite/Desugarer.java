@@ -1025,6 +1025,88 @@ public class Desugarer extends Rewrite {
         return (Expr)visitNode(body);
     }
 
+    /** Given outer generator clauses and inner body expression,
+     * determine if there's an opportunity for generator-of-generator.
+     * This is true if the generator expression has the form
+     *   BIG OP1[gs1, xs <- gOfg] BIG OP2[x <- xs, gs2] body
+     * In this case we should desugar into a generator-of-generators
+     * which we can naively think of as this:
+     *   BIG OP1[gs1] (BIG OP1[xs<-gOfg] BIG OP2 [x<-xs] (BIG OP2[gs2] body))
+     * where the middle two are accomplished by a single call to
+     * __generate2 with a pair of reductions.
+     */
+    boolean nestedGeneratorOpportunity(List<GeneratorClause> gens, Expr body) {
+        // Make sure there are outer generators.
+        int gs = gens.size();
+        if (gs==0) return false;
+        // Make sure body is an Accumulator expression.
+        if (!(body instanceof Accumulator)) return false;
+        Accumulator bodyAccum = (Accumulator)body;
+        // Make sure innermost generator of outer accumulator yields a single variable.
+        GeneratorClause outerGen = gens.get(gs-1);
+        List<Id> outerVars = outerGen.getBind();
+        if (outerVars.size()!=1) return false;
+        Id outerVar = outerVars.get(0);
+        // Find outermost generator of inner accumulator (might be body)
+        List<GeneratorClause> bodyGens = bodyAccum.getGens();
+        Expr bodyOuterInit;
+        if (bodyGens.size()==0) {
+            bodyOuterInit = bodyAccum.getBody();
+        } else {
+            GeneratorClause bodyOuterGen = bodyGens.get(0);
+            bodyOuterInit = bodyOuterGen.getInit();
+        }
+        // Make sure innermost generator is a single variable matching outerVar
+        if (!(bodyOuterInit instanceof VarRef)) return false;
+        Id innerVar = ((VarRef)bodyOuterInit).getVar();
+        return (outerVar.equals(innerVar));
+    }
+
+    /** Given a list of generator clauses and a position i, determine
+     * if the i^th generator clause is a predicate that can be fused
+     * with the first immediately preceding variable-labeled generator
+     * clause.  This requires that the comprehension be of the form:
+     * x <- gs, p(x) where p(x) is literally a function call, but where
+     * x might actually be a tuple of variables.  That way we can pass
+     * the literal function p to filter and make use of its
+     * properties.  When we have full type checking, we can simply
+     * unconditionally fuse predicates; that will be strictly better
+     * than the present approach.
+     */
+    boolean filterSqueezeOpportunity(List<GeneratorClause> gens, int i) {
+        if (i == 0) return false;
+        GeneratorClause gen = gens.get(i);
+        // Clause is predicate
+        if (gen.getBind().size()!=0) return false;
+        // Check shape of clause expression
+        Expr predicate = gen.getInit();
+        if (!(predicate instanceof TightJuxt)) return false;
+        List<Expr>exprs = ((TightJuxt)predicate).getExprs();
+        if (exprs.size() != 2) return false;
+        Expr fn = exprs.get(0);
+        if (!(fn instanceof VarRef)) return false;
+        // Argument handling.  Handle (a,b,c) <- xs, p(a,b,c) as well.
+        Expr arg = exprs.get(1);
+        List<Expr> args;
+        if (arg instanceof VarRef) {
+            args = Collections.<Expr>singletonList(arg);
+        } else if (arg instanceof TupleExpr) {
+            args = ((TupleExpr) arg).getExprs();
+        } else {
+            return false;
+        }
+        // Find all the argument variables.
+        List<Id> argVars = new ArrayList<Id>(args.size());
+        for (Expr a : args) {
+            if (!(a instanceof VarRef)) return false;
+            argVars.add(((VarRef)a).getVar());
+        }
+        // Find previous generator, and check its variables against the arguments.
+        // TODO: handle multiple well-formed predicates.
+        GeneratorClause prevGen = gens.get(i-1);
+        return prevGen.getBind().equals(argVars);
+    }
+
     /** Given a list of generators, return an expression that computes
      *  a composite generator given a reduction and a unit.  Desugars
      *  to fn(r,u) => D where D is as follows:
@@ -1044,9 +1126,16 @@ public class Desugarer extends Rewrite {
                              Useful.list(GENERATE_NAME,
                                          ExprFactory.makeTuple(body,redVar,unitVar)));
         } else {
+            if (nestedGeneratorOpportunity(gens,body)) {
+                System.out.println(span+" and\n"+body.getSpan()+
+                                   ": Generator of generator opportunity?");
+            }
             body = new TightJuxt(body.getSpan(), false,
                                  Useful.list(unitVar, body));
             for (i--; i>=0; i--) {
+                if (filterSqueezeOpportunity(gens,i)) {
+                    bug(gens.get(i),"filter squeeze opportunity!");
+                }
                 body = oneGenerator(gens.get(i), redVar, body);
             }
         }
