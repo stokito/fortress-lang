@@ -257,7 +257,75 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                               name);
     }
 
-    /** Ignore unsupported nodes for now. */
+    
+    @Override
+	public TypeCheckerResult forFnExpr(FnExpr that) {
+    	
+    	// Fn expressions have arrow type. They cannot have static arguments.
+    	// They cannot have where clauses.
+    	
+    	// Ignore b/c we don't want to look up the name
+    	// TypeCheckerResult name_result = that.getName().accept(this);
+        
+    	// Should be impossible
+    	//List<TypeCheckerResult> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+        
+        Option<TypeCheckerResult> returnType_result = recurOnOptionOfType(that.getReturnType());
+        
+        //TypeCheckerResult where_result = that.getWhere().accept(this);
+        
+        List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>();
+        
+        Option<List<TypeCheckerResult>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
+        
+        
+        List<TypeCheckerResult> params_result = recurOnListOfParam(that.getParams());
+    	// Grab bindings and introduce them. For the time-being, they must have types.        
+        TypeChecker extended_checker = this;
+        for( Param p : that.getParams() ) {
+        	extended_checker = extended_checker.extend(p);
+        }
+        TypeCheckerResult body_result = that.getBody().accept(extended_checker);
+
+        // Get all results together
+        all_results.addAll(params_result);
+        all_results.add(body_result);
+        if( returnType_result.isSome() )
+        	all_results.add(returnType_result.unwrap());
+        if( throwsClause_result.isSome() )
+        	all_results.addAll(throwsClause_result.unwrap());
+        
+        // If return type is given, we check that it is a supertype of the inferred super-type
+        // and we use it, otherwise the return type is what we infer.
+        Type return_type;
+        if( body_result.type().isNone() ) {
+        	// We've got errors in the body
+        	return_type = Types.BOTTOM;
+        }
+        else if( that.getReturnType().isSome() ) {
+        	return_type = that.getReturnType().unwrap();
+        	TypeCheckerResult subtype_result = 
+        		this.checkSubtype(body_result.type().unwrap(), return_type, that.getBody(),
+        				"Type of body of Fn expression must be a subtype of declared return type ("+
+        				return_type +") but is " + body_result.type().unwrap() +".");
+        	all_results.add(subtype_result);
+        }
+        else {
+        	return_type = body_result.type().unwrap();
+        }
+        
+        // All throws types must be a subtype of exception
+        if( that.getThrowsClause().isSome() ) {
+        	for( BaseType exn : that.getThrowsClause().unwrap() ) {
+        		all_results.add(this.checkSubtype(exn, Types.EXCEPTION, that,
+        				"Types in throws clause must be subtypes of Exception, but "+
+        				exn + " is not."));
+        	}
+        }
+        return TypeCheckerResult.compose(that, return_type, this.subtypeChecker, all_results);
+	}
+
+	/** Ignore unsupported nodes for now. */
     /*public TypeCheckerResult defaultCase(Node that) {
         return new TypeCheckerResult(that, Types.VOID, IterUtil.<TypeError>empty());
     }*/
