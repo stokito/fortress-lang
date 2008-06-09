@@ -59,16 +59,6 @@ public class Constructor extends Function {
 	public Option<Expr> body() {
 		return Option.none();
 	}
-
-	@Override
-	public ArrowType instantiatedType(List<StaticArg> args) {
-		return NI.nyi();
-	}
-
-	@Override
-	public ArrowType asArrowType() {
-		return NI.nyi();
-	}
 	
 	@Override
 	public List<Param> parameters() {

@@ -50,16 +50,6 @@ public class FieldSetterMethod extends Method {
 	public Option<Expr> body() {
 		return Option.none();
 	}
-
-	@Override
-	public ArrowType instantiatedType(List<StaticArg> args) {
-		return NI.nyi();
-	}
-
-	@Override
-	public ArrowType asArrowType() {
-		return NI.nyi();
-	}
 	
 	@Override
 	public List<Param> parameters() {
@@ -78,8 +68,8 @@ public class FieldSetterMethod extends Method {
 
 	@Override
 	public Functional instantiate(List<StaticArg> args) {
-		// TODO Auto-generated method stub
-		return null;
+		assert(args.size()==0);
+		return this;
 	}
 
 	@Override

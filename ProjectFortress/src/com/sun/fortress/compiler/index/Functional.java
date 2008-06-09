@@ -32,23 +32,6 @@ import edu.rice.cs.plt.tuple.Option;
 /** Comprises {@link Function} and {@link Method}. */
 public abstract class Functional {
 
-	/**
-	 * Given the static arguments which must correspond with the static
-	 * parameters returned by the method {@link Functional#staticParameters()},
-	 * returns the type of this method as an arrow type. Note that some {@link Functionals},
-	 * for instance methods, do not really have arrow type since they are not first class.
-	 * Still we can express their types as such.
-	 */
-    public abstract ArrowType instantiatedType(List<StaticArg> args);
-
-    /**
-     * Returns the type of this method as an arrow type, without any instantiated
-     * type parameters. Note that some {@link Functionals}, for instance methods,
-     * do not really have arrow type since they are not first class. Still we can
-     * express their types as such.
-     */
-    public abstract ArrowType asArrowType();
-
     /**
      * Returns an instantiated version of this. We needed this because instantiatedType
      * does not deal with varargs and keywordargs. The contract of this method requires

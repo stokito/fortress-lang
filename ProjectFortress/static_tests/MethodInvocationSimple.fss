@@ -32,7 +32,11 @@ component MethodInvocationSimple
     (* This is just TightJuxt actually. *) 
     callLocalMethod(s:String):String = singleArg(s)
   end
-
+  
+  object Bar
+    doIt():() = ()
+  end
+   
   methodCaller(a_1:ZZ32, b_1:String,f_1:Foo, g:Generator[\ZZ32\]) : () = do
     var s:String
     s := f_1.doFoo[\ZZ32\](a_1,b_1)
@@ -46,6 +50,6 @@ component MethodInvocationSimple
     s := f_1.singleArg(b_1)
   end
   
-  run(args:String...):() = ()
+  run(args:String...):() = Bar.doIt()
 
 end

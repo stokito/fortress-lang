@@ -19,31 +19,29 @@ component Label
 export Executable
 
   (* Test various properly formed label expressions. *)
-
   run(args:String...):() = do
   
     (* type of outer should be Boolean OR Boolean *)
-    label outer
+    ignore(label outer
       (* type of inner should be ZZ32 OR ZZ32 *)
-      label inner
+      ignore(label inner
         exit inner with 1
         exit outer with true
         5
-      end inner as IntLiteral
+      end inner as IntLiteral)
       false
-    end outer as Boolean
+    end outer as Boolean)
     
     (* type of outer should be ZZ32 OR ZZ32 *)
-    label outer
+    ignore(label outer
       (* type of inner should be Boolean OR Boolean *)
-      label inner
+      ignore(label inner
         exit inner with true (* remove the 'inner' when disambiguator works *)
         exit outer with 5
         false
-      end inner as Boolean
+      end inner as Boolean)
       3
-    end outer as IntLiteral
-
+    end outer as IntLiteral)
     ()
   end
 
