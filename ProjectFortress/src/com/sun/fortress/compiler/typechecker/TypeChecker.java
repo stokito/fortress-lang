@@ -1133,7 +1133,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
     
 	private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(List<Type> supers, Type arg_result, MethodInvocation that){
-		List<StaticArg> static_args = that.getStaticArgs();
 		Id method_name = that.getMethod();
 		List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
 		List<Method> candidates=new ArrayList<Method>();
@@ -1153,8 +1152,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				Set<Method> methods_with_name = trait_index.dottedMethods().getSeconds(method_name);
 				//get methods with the right name
 				for( Method m : methods_with_name ) {
+					List<StaticArg> static_args = new ArrayList<StaticArg>(that.getStaticArgs());
 					// same number of static args
-					if( m.staticParameters().size() > 0 && static_args.size() == 0 ) {
+					if( m.staticParameters().size() > 0 && that.getStaticArgs().size() == 0 ) {
 						// we need to infer static arguments
 						List<StaticArg> static_inference_params =
 							IterUtil.asList(

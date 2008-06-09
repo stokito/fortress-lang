@@ -25,10 +25,8 @@ component MethodInvocationStaticInfer2
 
   foo(a:ZZ32, g:Generator[\String\], f:Foo) : () = do
     var a_2 : ZZ32    
-(*
     a_2 := f.doIt(a,a)
     a_2 := f.doIt(a,g)
-*)
   end
 
   run(args:String...):() = ()
