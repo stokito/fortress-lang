@@ -152,7 +152,11 @@ public class CommandInterpreter {
             Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, nolib, args);
 
             for (StaticError error: errors) {
-                System.err.println(error);
+                if ( error instanceof Fortress.WrappedException ){
+                    ((Fortress.WrappedException)error).getCause().printStackTrace();
+                } else {
+                    System.err.println(error);
+                }
             }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }

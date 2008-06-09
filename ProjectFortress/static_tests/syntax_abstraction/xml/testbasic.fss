@@ -39,8 +39,9 @@ run(args:String...) = do
     println "Answer is " <a />
     println "Answer is " <x></x>
 
-    println "Answer is " <aaa>aa</aaa>
+    println "Answer is " ( <aaa>aa</aaa> );
 
+(*
     println "Answer is "  <aaa><foobar /></aaa>
     println "Answer is " <aaa foo="bar" />
     println "Answer is " <aaa><aa>aa</aa></aaa>
@@ -119,6 +120,7 @@ run(args:String...) = do
     *)
     (* println ( <aaaa>) *)
     println "ok"
+    *)
 end
 
 end

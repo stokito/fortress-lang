@@ -118,7 +118,7 @@ public class MemberEnv {
 	}
 
 	public String toString() {
-		return this.name+", var types: "+this.varToTypeMap+", Params: "+Arrays.toString(params)+", "+this.syntaxDefToEnv;
+		return this.name+", type: " + this.getType() + " var types: "+this.varToTypeMap+", Params: "+Arrays.toString(params)+", "+this.syntaxDefToEnv;
 	}
 
     public Type getType() {

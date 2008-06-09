@@ -42,6 +42,7 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
@@ -50,10 +51,10 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ActionCreaterUtil {
 
-    public static List<String> createVariableBinding(List<Integer> indents,
-            SyntaxDeclEnv syntaxDeclEnv, String BOUND_VARIABLES,
+    public static List<String> createVariableBinding(final List<Integer> indents,
+            final SyntaxDeclEnv syntaxDeclEnv, String BOUND_VARIABLES,
             boolean isTemplate, Map<PrefixedSymbol,VariableCollector.Depth> variables) {
-        List<String> code = new LinkedList<String>();
+        final List<String> code = new LinkedList<String>();
         indents.add(3);
         code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
         final List<String> listCode = new LinkedList<String>();
@@ -63,6 +64,14 @@ public class ActionCreaterUtil {
             if ( isTemplate ){
                 final PrefixedSymbol sym = pair.getKey();
                 VariableCollector.Depth depth = pair.getValue();
+                String temp;
+                if ( syntaxDeclEnv.getNonterminalName(sym.getId().unwrap()) == null ){
+                    /* FIXME ?? */
+                    temp = "StringLiteralExpr";
+                } else {
+                    temp = GrammarEnv.getMemberEnv(syntaxDeclEnv.getNonterminalName(sym.getId().unwrap())).getType().toString();
+                }
+                final String astNode = temp;
                 class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                     String source;
                     int indent;
@@ -72,6 +81,15 @@ public class ActionCreaterUtil {
                     }
 
                     public String forBaseDepth(VariableCollector.Depth d) {
+                        Id id = sym.getId().unwrap();
+                        if (syntaxDeclEnv.isCharacterClass(id)){
+                            return getFortressCharacterClass(source, code, indents);  
+                        }
+
+                        if (syntaxDeclEnv.isAnyChar(id)) {
+                            return getFortressAnyChar(source, code, indents);  
+                        }
+
                         return source;
                     }
 
@@ -82,7 +100,8 @@ public class ActionCreaterUtil {
 
                     public String forListDepth(VariableCollector.Depth d) {
                         String fresh = FreshName.getFreshName("list");
-                        String innerType = d.getParent().getType("Object"); // FIXME
+                        // String innerType = d.getParent().getType("Object"); // FIXME
+                        String innerType = d.getParent().getType(astNode);
                         String iterator = FreshName.getFreshName("iter");
                         addCodeLine(String.format("List<Expr> %s = new LinkedList<Expr>();", fresh));
 
@@ -261,18 +280,18 @@ public class ActionCreaterUtil {
         */
     }
 
-    private static String getFortressCharacterClass(Id id, List<String> code, List<Integer> indents) {
+    private static String getFortressCharacterClass(String id, List<String> code, List<Integer> indents) {
         String name = FreshName.getFreshName("characterClass");
         indents.add(3);
-        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id.getText()+");");
+        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id+");");
         return name;
     }
 
-    private static String getFortressAnyChar(Id id, List<String> code,
+    private static String getFortressAnyChar(String id, List<String> code,
             List<Integer> indents) {
         String name = FreshName.getFreshName("anyCharacter");
         indents.add(3);
-        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id.getText()+");");
+        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id+");");
         return name;
     }
 

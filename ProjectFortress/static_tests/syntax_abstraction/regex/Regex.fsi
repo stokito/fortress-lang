@@ -43,7 +43,7 @@ api Regex
         Slash:String :StringLiteralExpr:=
             / <[ "/" ]>
     
-        AnyChar:String :StringLiteralExpr:=
-            x:[A:Za:z] <[ x ]>
+        AnyChar:String :Expr:=
+            x:[A:Za:z] <[ "a" ]>
     end
 end
