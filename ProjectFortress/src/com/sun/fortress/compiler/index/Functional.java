@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,36 +18,34 @@
 package com.sun.fortress.compiler.index;
 
 import java.util.List;
-import java.util.Map;
-import edu.rice.cs.plt.tuple.Option;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.Id;
 
-import com.sun.fortress.useful.NI;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
+
+import edu.rice.cs.plt.tuple.Option;
 
 /** Comprises {@link Function} and {@link Method}. */
 public abstract class Functional {
-    
-    public Type instantiatedType(Type... staticArgs) {
-        return NI.nyi();
-    }
-    
-    public Map<Id, StaticParam> staticParameters() {
-        return NI.nyi();
-    }
-    
-    public Map<Id, Param> parameters() {
-        return NI.nyi();
-    }
-    
-    public Iterable<Type> thrownTypes() {
-        return NI.nyi();
-    }
-    
-    public Option<Expr> body() {
-        return NI.nyi();
-    }
+
+    /**
+     * Returns an instantiated version of this. We needed this because instantiatedType
+     * does not deal with varargs and keywordargs. The contract of this method requires
+     * that all implementing subtypes must return their own type, rather than a supertype.
+     */
+    public abstract Functional instantiate(List<StaticArg> args);
+
+    public abstract Type getReturnType();
+
+    public abstract List<StaticParam> staticParameters();
+
+    public abstract List<Param> parameters();
+
+    public abstract Iterable<BaseType> thrownTypes();
+
+    public abstract Option<Expr> body();
 }

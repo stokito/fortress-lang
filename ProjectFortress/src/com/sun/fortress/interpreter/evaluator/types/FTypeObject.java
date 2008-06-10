@@ -126,7 +126,7 @@ public class FTypeObject extends FTraitOrObject {
         // This is a minor hack to deal with messed-up object environments.
         for(AbsDeclOrDecl v : members) {
             if (v instanceof FnAbsDeclOrDecl) {
-                String s = ((FnAbsDeclOrDecl)v).getName().stringName();
+                String s = NodeUtil.nameAsMethod((FnAbsDeclOrDecl)v);//.getName().stringName();
                 declaredMembersOf.putValueUnconditionally(s,  methodEnv.getValue(s));
             }
         }

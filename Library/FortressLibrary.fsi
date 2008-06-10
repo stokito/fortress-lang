@@ -499,6 +499,9 @@ end
    reduction desugaring. *)
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R
 
+__filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\]
+__bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
+
 (* Not currently used for desugaring, but will be used in future.
 __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\]
 
@@ -1420,12 +1423,12 @@ trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
 end
 
 (** The usual lifting to Maybe for identity-less operators **)
-trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
+trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
     empty(): Nothing[\R\]
-    join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\]
-    abstract simpleJoin(a:R, b:R): R
-    lift(r:R): Maybe[\R\]
-    unlift(r:Maybe[\R\]): R
+    join(a: AnyMaybe, b: AnyMaybe): AnyMaybe
+    abstract simpleJoin(a:Any, b:Any): Any
+    lift(r:Any): AnyMaybe
+    unlift(r:AnyMaybe): R
 end
 
 trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
@@ -1444,20 +1447,23 @@ trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
     isZero(l:L): Boolean
 end
 
-trait BigOperator[\I,R,L\]
+trait BigOperator[\I,O,R,L\]
     abstract getter reduction(): ActualReduction[\R,L\]
     abstract getter body(): I->R
+    abstract getter unwrap(): R->O
 end
 
-object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,L\]
+object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
     getter reduction(): ActualReduction[\R,L\]
     getter body(): R->R
+    getter unwrap(): R->R
 end
 
-object Comprehension[\I,R,L\](r: ActualReduction[\R,L\], singleton:I->R)
-        extends BigOperator[\I,R,L\]
+object Comprehension[\I,O,R,L\](u: R->O, r: ActualReduction[\R,L\], singleton:I->R)
+        extends BigOperator[\I,O,R,L\]
     getter reduction(): ActualReduction[\R,L\]
     getter body(): I->R
+    getter unwrap(): R->O
 end
 
 (** VoidReduction is usually done for effect, so we pretend that
@@ -1477,7 +1483,7 @@ object SumReduction extends CommutativeMonoidReduction[\Number\]
     join(a: Number, b: Number): Number
 end
 
-opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
+opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
 object ProdReduction extends CommutativeMonoidReduction[\Number\]
     getter toString()
@@ -1485,27 +1491,25 @@ object ProdReduction extends CommutativeMonoidReduction[\Number\]
     join(a:Number, b:Number): Number
 end
 
-opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
+opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
     simpleJoin(a:T, b:T): T
 end
 
-opr BIG MIN[\T extends StandardMin[\T\]\]
-           (g:(MinReduction[\T\],T->AnyMaybe)->AnyMaybe): T
+opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\]
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
     simpleJoin(a:T, b:T): T
 end
 
-opr BIG MAX[\T extends StandardMax[\T\]\]
-           (g:(MaxReduction[\T\],T->AnyMaybe)->AnyMaybe): T
+opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\]
 
-opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
+opr BIG MINNUM(): BigReduction[\RR64,RR64\]
 
-opr BIG MAXNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
+opr BIG MAXNUM(): BigReduction[\RR64,RR64\]
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction
@@ -1517,7 +1521,7 @@ object AndReduction
     isZero(a:Boolean): Boolean
 end
 
-opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
+opr BIG AND[\T\](): BigReduction[\Boolean,Boolean\]
 
 object OrReduction
         extends { CommutativeMonoidReduction[\Boolean\],
@@ -1528,7 +1532,7 @@ object OrReduction
     isZero(a:Boolean): Boolean
 end
 
-opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
+opr BIG OR[\T\]():BigReduction[\Boolean, Boolean\]
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
@@ -1552,17 +1556,17 @@ end
 
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary. **)
-opr BIG ||(g:(Reduction[\String\],Any->String)->String): String
+opr BIG ||(): Comprehension[\Any,String,String,String\]
 
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary, and separating
     non-empty components by a space. **)
-opr BIG |||(g:(Reduction[\String\],Any->String)->String): String
+opr BIG |||(): Comprehension[\Any,String,String,String\]
 
 (** This operator performs string concatenation with newline
     separation, first converting its inputs (of type Any) to String if
     necessary. **)
-opr BIG //(g:(Reduction[\Maybe[\String\]\],Any->Maybe[\String\])->Maybe[\String\]): String
+opr BIG //(): Comprehension[\Any,String,AnyMaybe,AnyMaybe\]
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
@@ -1589,7 +1593,7 @@ end
 (*
 embiggen[\T,opr OP\](z:T): ((Reduction[\T\],T->T) -> T) -> T
 *)
-embiggen[\T\](j:(Any,Any)->T, z:Any, g:(Reduction[\T\],T->Any) -> Any) : T
+embiggen[\T\](j:(Any,Any)->T, z:T) : Comprehension[\T,T,Any,Any\]
 
 (************************************************************
 * \subsection*{Ranges}

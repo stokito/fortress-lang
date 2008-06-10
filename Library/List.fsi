@@ -114,7 +114,7 @@ end
 (** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
-opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\T\]
+opr BIG <|[\T\]|>:Comprehension[\T,List[\T\],List[\T\],List[\T\]\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]
@@ -138,6 +138,6 @@ end
 
 (** Utility for cooking up covariant comprehensions of other
     (non-covariant) types. **)
-covariantComprehension[\T\]( g: (Reduction[\SomeList\], T->SomeList) -> SomeList): List[\T\]
+covariantComprehension[\T,R\](unwrap:List[\T\]->R): Comprehension[\T,R,List[\T\],List[\T\]\]
 
 end
