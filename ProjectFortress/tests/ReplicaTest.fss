@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component ReplicaTest
+export Executiable
+
+(* Bug 125: replica is returning an inappropriately-typed result. *)
+
+expect[\T\](a:Array1[\T,0,5\]): () = println("OK")
+
+expect2[\T\](a:Array2[\T,0,5,0,5\]): () = println("OK")
+
+expect3[\T\](a:Array3[\T,0,5,0,5,0,5\]): () = println("OK")
+
+run(args:String...) : () = do
+    y : ZZ32[5] = array1[\ZZ32,5\](17)
+    expect[\ZZ32\](y)
+    l = y.replica[\ZZ32\]()
+    expect[\ZZ32\](l)
+    m = y.replica[\RR64\]()
+    expect[\RR64\](m)
+    yy = y.map[\(ZZ32,ZZ32)\](fn (i:ZZ32):(ZZ32,ZZ32) => (i,i+1))
+    expect[\(ZZ32,ZZ32)\](yy)
+    x : ZZ32[5,5] = array2[\ZZ32,5,5\](17)
+    expect2[\ZZ32\](x)
+    n = x.replica[\RR64\]()
+    expect2[\RR64\](n)
+    w : ZZ32[5,5,5] = array3[\ZZ32,5,5,5\]().fill(17)
+    expect3[\ZZ32\](w)
+    p = w.replica[\RR64\]()
+    expect3[\RR64\](p)
+  end
+
+end

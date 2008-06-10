@@ -35,8 +35,8 @@ showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
         end
     end
     println(
-        BIG STRING [(i,l) <- headers.indexValuePairs()]
-            "\n" l (BIG STRING [row <- data] "," row[i]))
+        BIG ||[(i,l) <- headers.indexValuePairs()]
+            //l (BIG ||[row <- data] "," row[i]))
   end
 
 checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
@@ -82,22 +82,14 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
         end
     end
 
-tre = Nothing[\(ZZ32,ZZ32,ZZ32)\]
-
-unj(_:Nothing[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = (0,0,0)
-unj(j:Just[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = j.get()
-
-object TestReduction extends Reduction[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\]
-    empty() = tre
-    join(a:Maybe[\(ZZ32,ZZ32,ZZ32)\], b:Maybe[\(ZZ32,ZZ32,ZZ32)\]) =
-        fail("join: no applicable case.")
-    join(a:Nothing[\(ZZ32,ZZ32,ZZ32)\], b:Maybe[\(ZZ32,ZZ32,ZZ32)\]) = b
-    join(a:Just[\(ZZ32,ZZ32,ZZ32)\], b:Nothing[\(ZZ32,ZZ32,ZZ32)\]) = a
-    join(a:Just[\(ZZ32,ZZ32,ZZ32)\], b:Just[\(ZZ32,ZZ32,ZZ32)\]) = do
-        (mn_a,sz_a,mx_a) = a.get()
-        (mn_b,sz_b,mx_b) = b.get()
+object TestReduction extends AssociativeReduction[\(ZZ32,ZZ32,ZZ32)\]
+    getter toString(): String = "HeapShakedown.TestReduction"
+    simpleJoin(a:Any, b:Any): Any = fail("Bogus non-tuple data in TestReduction")
+    simpleJoin(a:(ZZ32,ZZ32,ZZ32), b:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
+        (mn_a,sz_a,mx_a) = a
+        (mn_b,sz_b,mx_b) = b
         assert(mx_a <= mn_b, "Left max " mx_a " larger than right min " mn_b)
-        Just[\(ZZ32,ZZ32,ZZ32)\](mn_a,sz_a+sz_b,mx_a)
+        (mn_a,sz_a+sz_b,mx_a)
       end
 end
 
@@ -110,7 +102,7 @@ checkGen(h:Heap[\ZZ32,ZZ32\], n:ZZ32): () = do
         end
         Just[\(ZZ32,ZZ32,ZZ32)\](k,1,k)
       end
-    (mn,sz,mx) = unj(h.generate[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\](TestReduction, sing))
+    (mn,sz,mx) = h.generate[\AnyMaybe\](TestReduction, sing).getDefault(0,0,0)
     assert(n,sz," size versus computed size")
     if (sz > 0) then
         (mn_k, mn_v) = h.minimum().get()

@@ -21,15 +21,16 @@ export Executable
   (* Type of do block with multiple do fronts is union of block types. *)
 
   run(args:String...):() = do
-    
-    do
-      0
+    var b:Boolean
+
+    b:= do
+      ()
       true
     also atomic do
-      "asdasd"
+      ()
       false
     also do
-      1
+      ()
       false
     end as Boolean
     ()

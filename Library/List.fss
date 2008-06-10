@@ -159,7 +159,7 @@ trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
                                              else emptyList[\E\]() end)
     toString():String =
       "<|" (if (h,t) <- extractLeft() then
-                h (BIG STRING [e<-t] ", " e)
+                h (BIG ||[e<-t] ", " e)
             else " " end) "|>"
     (** %concatMap% is an in-place version of the %nest% method from
         %Generator%; it flattens the result into an actual list, rather than
@@ -175,11 +175,12 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\T\] =
-    covariantComprehension[\T\](g)
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\] =
+    covariantComprehension[\T,List[\T\]\](fn (x) => x)
 
-covariantComprehension[\T\]( g: (Reduction[\SomeList\], T->SomeList) -> SomeList): List[\T\] =
-    g(CVConcat[\T\],cvSingleton).append(emptyList[\T\]())
+covariantComprehension[\T,R\](unwrap:SomeList->R): Comprehension[\T,R,SomeList,SomeList\] =
+    Comprehension[\T,R,SomeList,SomeList\](
+        fn xs => unwrap(xs.append(emptyList[\T\]())), CVConcat[\T\], cvSingleton)
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -225,19 +226,22 @@ concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
   end
 
 (** A reduction object for concatenating lists. *)
-private object Concat[\E\] extends Reduction[\ List[\E\] \]
+private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter toString():String = "List concatenation"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
 end
 
 (** A reduction object for concatenating lists covariantly. *)
-private object CVConcat[\T\] extends Reduction[\SomeList\]
+private object CVConcat[\T\] extends MonoidReduction[\SomeList\]
+  getter toString():String = "Covariant list concatenation"
   empty(): SomeList = emptyList[\T\]()
   join(a:SomeList, b:SomeList): SomeList = a.append(b)
 end
 
 (** The same for reverse concatenation *)
-private object RevConcat[\E\] extends Reduction[\ List[\E\] \]
+private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter toString():String = "List reversal concatenation"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
 end

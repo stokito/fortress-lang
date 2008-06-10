@@ -16,7 +16,6 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import com.sun.fortress.useful.MagicNumbers;
 
 public class FInt extends NativeConstructor.FNativeObject implements HasIntValue {
     private final int val;

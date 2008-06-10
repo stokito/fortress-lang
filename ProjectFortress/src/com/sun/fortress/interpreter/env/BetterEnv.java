@@ -17,7 +17,10 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.nodes_util.NodeUtil;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,14 +46,11 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 
 public final class BetterEnv extends CommonEnv implements Environment, Iterable<String>  {
@@ -83,9 +83,9 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     private final static Comparator<String> comparator = StringComparer.V;
 
-    public BetterEnv installPrimitives() {
-        Primitives.installPrimitives(this);
-        return this;
+    public Environment installPrimitives() {
+         Primitives.installPrimitives(this);
+         return this;
     }
 
     public void visit(Visitor2<String, FType> vt,
@@ -136,15 +136,15 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return r;
     }
 
-    public static BetterEnv primitive() {
+    public static Environment primitive() {
         return empty().installPrimitives();
     }
 
-    public static BetterEnv primitive(String x) {
+    public static Environment primitive(String x) {
         return (new BetterEnv(x)).installPrimitives();
     }
 
-    public static BetterEnv primitive(HasAt x) {
+    public static Environment primitive(HasAt x) {
         return (new BetterEnv(x)).installPrimitives();
     }
 
@@ -189,14 +189,29 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
      * @param additions
      */
     private BetterEnv(BetterEnv existing, BetterEnv additions) {
-        if ( !existing.blessed || !additions.blessed )
+        if ( !existing.getBlessed() || !additions.getBlessed() )
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
         augment(existing, additions);
         parent = existing;
         bless();
     }
     
-     private void augment(BetterEnv existing, BetterEnv additions) {
+    private BetterEnv(BetterEnv existing, Environment additions) {
+        this(existing);
+        if ( !existing.getBlessed() || !additions.getBlessed() )
+            bug(within,existing,"Internal error, attempt to copy environment still under construction");
+        
+        if (additions instanceof BetterEnv) {
+            augment(existing, (BetterEnv) additions);
+        } else {
+            augment(this, additions);
+        }
+        
+        
+        bless();
+    }
+    
+    private void augment(BetterEnv existing, BetterEnv additions) {
         type_env = augment(existing.type_env, additions.type_env);
         nat_env = augment(existing.nat_env, additions.nat_env);
         int_env = augment(existing.int_env, additions.int_env);
@@ -205,6 +220,42 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         api_env = augment(existing.api_env, additions.api_env);
         cmp_env = augment(existing.cmp_env, additions.cmp_env);
         dcl_env = augment(existing.dcl_env, additions.dcl_env);
+    }
+    
+    private static void augment(final Environment existing, final Environment additions) {
+        final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
+            public void visit(String s, FType o) {
+                existing.putType(s, o);
+            }
+        };
+        final Visitor2<String, Number> vn = new Visitor2<String, Number>() {
+            public void visit(String s, Number o) {
+                existing.putNat(s, o);
+            }
+        };
+        final Visitor2<String, Number> vi = new Visitor2<String, Number>() {
+            public void visit(String s, Number o) {
+                existing.putInt(s, o);
+            }
+        };
+        final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
+            public void visit(String s, FValue o) {
+              
+                    FType ft = additions.getVarTypeNull(s);
+                    if (ft != null)
+                       existing.putValueUnconditionally(s, o, ft);
+                    else 
+                       existing.putValueUnconditionally(s, o);
+            }
+        };
+        final Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
+            public void visit(String s, Boolean o) {
+                existing.putBool(s, o);
+            }
+        };
+        
+        existing.visit(vt,vn,vi,vv,vb);
+        
     }
 
    private static <Result> BATreeNode<String, Result> augment(
@@ -400,15 +451,22 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         }
     }
 
-    public BetterEnv extend(BetterEnv additions) {
+    public Environment extend(BetterEnv additions) {
         return new BetterEnv(this, additions);
     }
 
-    public BetterEnv extendAt(HasAt x) {
+    public Environment extend(Environment additions) {
+        if (additions instanceof BetterEnv) {
+            return new BetterEnv(this, (BetterEnv) additions);
+        }
+        return new BetterEnv(this, additions);
+    }
+
+    public Environment extendAt(HasAt x) {
         return new BetterEnv(this, x);
     }
 
-    public BetterEnv extend() {
+    public Environment extend() {
         return new BetterEnv(this, this.getAt());
     }
 
@@ -509,7 +567,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     }
 
-    public BetterEnv genericLeafEnvHack(BetterEnv genericEnv, HasAt loc) {
+    public BetterEnv genericLeafEnvHack(Environment genericEnv, HasAt loc) {
         return new BetterEnv(this, genericEnv);
     }
 
@@ -784,6 +842,11 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         if (var_env == null)
             return;
         var_env = var_env.delete(s, comparator);
+    }
+
+    public Iterable<String> youngestFrame() {
+        // TODO Auto-generated method stub
+        return this;
     }
 
 

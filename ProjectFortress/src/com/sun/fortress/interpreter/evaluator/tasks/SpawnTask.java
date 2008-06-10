@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
@@ -45,7 +46,7 @@ public class SpawnTask extends BaseTask {
         runner.setCurrentTask(this);
         List<FValue> args = new ArrayList<FValue>();
         HasAt loc = new HasAt.FromString("FRED");
-        BetterEnv e = eval.e;
+        Environment e = eval.e;
         val = fcn.apply(args, loc, e);
     }
 

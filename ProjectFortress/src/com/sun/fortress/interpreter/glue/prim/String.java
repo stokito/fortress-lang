@@ -18,30 +18,25 @@
 package com.sun.fortress.interpreter.glue.prim;
 
 import java.util.List;
-import java.util.Collections;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FChar;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.glue.NativeFn0;
+import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FChar;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FString;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.GenericWithParams;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-
 
 public class String extends NativeConstructor {
 
-    public String(BetterEnv env,
+    public String(Environment env,
                   FTypeObject selfType,
                   GenericWithParams def) {
         super(env,selfType,def);
@@ -51,6 +46,13 @@ public class String extends NativeConstructor {
                                              NativeConstructor con) {
         FString.setConstructor(this);
         return FString.EMPTY;
+    }
+
+    private static abstract class ss2S extends NativeMeth1 {
+        protected abstract java.lang.String f(java.lang.String s, java.lang.String o);
+        protected final FString act(FObject self, FValue other) {
+            return FString.make(f(self.getString(),other.getString()));
+        }
     }
 
     private static abstract class ss2B extends NativeMeth1 {
@@ -141,4 +143,11 @@ public class String extends NativeConstructor {
             return self.charAt(i);
         }
     }
+
+    public static final class App extends ss2S {
+        protected java.lang.String f(java.lang.String x, java.lang.String y) {
+            return x + y;
+        }
+    }
+
 }

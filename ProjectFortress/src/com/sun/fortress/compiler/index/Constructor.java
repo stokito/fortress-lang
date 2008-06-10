@@ -17,8 +17,15 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.NI;
+
+import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 public class Constructor extends Function {
@@ -43,8 +50,48 @@ public class Constructor extends Function {
     }
 
     public Id declaringTrait() { return _declaringTrait; }
-    public List<StaticParam> staticParams() { return _staticParams; }
-    public Option<List<Param>> params() { return _params; }
-    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
+//    public List<StaticParam> staticParams() { return _staticParams; }
+//    public Option<List<Param>> params() { return _params; }
+//    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
     public WhereClause where() { return _where; }
+
+	@Override
+	public Option<Expr> body() {
+		return Option.none();
+	}
+	
+	@Override
+	public List<Param> parameters() {
+		if( _params.isNone() )
+			return Collections.emptyList();
+		else
+			return Collections.unmodifiableList(_params.unwrap());
+	}
+
+	@Override
+	public List<StaticParam> staticParameters() {
+		return Collections.unmodifiableList(_staticParams);
+	}
+
+	@Override
+	public Iterable<BaseType> thrownTypes() {
+		if( _throwsClause.isNone() )
+			return Collections.emptyList();
+		else
+			return Collections.unmodifiableList(_throwsClause.unwrap());
+	}
+
+	@Override
+	public Functional instantiate(List<StaticArg> args) {
+		// TODO Auto-generated method stub
+		return NI.nyi();
+	}
+
+	@Override
+	public Type getReturnType() {
+		// TODO Auto-generated method stub
+		return NI.nyi();
+	}
+	
+	
 }

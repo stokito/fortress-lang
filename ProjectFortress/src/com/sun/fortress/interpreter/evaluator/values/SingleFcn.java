@@ -20,29 +20,30 @@
  */
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicBool;
+import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.DimParam;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OpParam;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeAlias;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.WhereExtends;
@@ -53,12 +54,9 @@ import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-
 public abstract class SingleFcn extends Fcn implements HasAt {
 
-    public SingleFcn(BetterEnv within) {
+    public SingleFcn(Environment within) {
         super(within);
     }
 
@@ -148,7 +146,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      *
      * @throws Error
      */
-    static public List<FType> createSymbolicInstantiation(BetterEnv bte, Applicable ap, HasAt location) throws Error {
+    static public List<FType> createSymbolicInstantiation(Environment bte, Applicable ap, HasAt location) throws Error {
         List<StaticParam> tpl = ap.getStaticParams();
         WhereClause wcl = ap.getWhere();
 
@@ -157,7 +155,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         // want to contaminate a "real" environment with these names.
         // We also don't want "crosstalk" between type parameters
         // to different overloaded things.
-        BetterEnv ge = bte.extendAt(location);
+        Environment ge = bte.extendAt(location);
 
         // Note that we must arrange for the symbolic things
         // to meet the constraints required by the object.
@@ -171,7 +169,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         return instantiationTypes;
     }
 
-    static public List<FType> createSymbolicInstantiation(BetterEnv bte, List<StaticParam> tpl, WhereClause wcl, HasAt location) throws Error {
+    static public List<FType> createSymbolicInstantiation(Environment bte, List<StaticParam> tpl, WhereClause wcl, HasAt location) throws Error {
         return createSymbolicInstantiation(tpl, wcl, bte.extendAt(location));
     }
     /**
@@ -180,7 +178,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      * @param ge The generic environment that is being populated by this instantiation.
      * @throws Error
      */
-    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, WhereClause wcl, BetterEnv ge) throws Error {
+    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, WhereClause wcl, Environment ge) throws Error {
         ArrayList<FType> a = new ArrayList<FType>();
         for (StaticParam tp: tpl) {
             String name = NodeUtil.getName(tp);

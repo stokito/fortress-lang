@@ -17,7 +17,7 @@ syn region   fortressComment start="(\*" end="\*)" contains=fortressComment
 syn match    fortressEnd    "\<end\>"
 
 " syn match    fortressKeyword "\<getter\>"
-syn keyword  fortressKeyword getter else var
+syn keyword  fortressKeyword getter else var test
 syn keyword  fortressExternal import export
 
 syn region   fortressString       start=+"+ skip=+\\\\\|\\"+ end=+"+

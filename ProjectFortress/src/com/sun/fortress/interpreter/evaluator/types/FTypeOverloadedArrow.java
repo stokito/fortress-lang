@@ -23,9 +23,6 @@ import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-
 public class FTypeOverloadedArrow extends FType {
 
     private static class Factory implements Factory1<List<FType>, FType> {

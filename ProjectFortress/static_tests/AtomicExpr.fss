@@ -22,7 +22,7 @@ export Executable
 
   run(args:String...):() = do
     
-    (atomic true) as Boolean
+    ignore((atomic true) as Boolean)
     ()
 
   end

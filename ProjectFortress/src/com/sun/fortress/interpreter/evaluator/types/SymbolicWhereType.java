@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,10 +20,9 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Collections;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.useful.NI;
 
 public class SymbolicWhereType extends SymbolicType {
@@ -32,7 +31,7 @@ public class SymbolicWhereType extends SymbolicType {
      * @param name
      * @param interior
      */
-    public SymbolicWhereType(String name, BetterEnv interior, AbstractNode decl) {
+    public SymbolicWhereType(String name, Environment interior, AbstractNode decl) {
         super(name, interior, Collections.<AbsDeclOrDecl>emptyList(), decl);
         NI.nyi("Where clauses cause a stack overflow error");
         // TODO Auto-generated constructor stub

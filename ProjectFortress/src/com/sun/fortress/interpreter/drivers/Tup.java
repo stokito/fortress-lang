@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,9 +19,9 @@ package com.sun.fortress.interpreter.drivers;
 
 import java.io.BufferedReader;
 
+import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Unprinter;
-import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Useful;
 
 public class Tup extends MainBase {

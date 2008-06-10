@@ -17,6 +17,9 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,9 +29,6 @@ import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class TypeRange {
     FTypeNat base;

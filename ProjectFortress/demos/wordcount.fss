@@ -70,20 +70,16 @@ opr UNIONSUM(a:Map[\CaseInsensitiveString,ZZ32\],
              b:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\] =
         a.union(fn(_,x,y)=>x+y, b)
 
-opr BIG UNIONSUM(g:(Reduction[\Map[\CaseInsensitiveString,ZZ32\]\],
-                    Map[\CaseInsensitiveString,ZZ32\]->Map[\CaseInsensitiveString,ZZ32\]) ->
-                   Map[\CaseInsensitiveString,ZZ32\]): Map[\CaseInsensitiveString,ZZ32\] =
-    embiggen[\Map[\CaseInsensitiveString,ZZ32\]\](fn (a,b) => a UNIONSUM b,
-                                            mapping[\CaseInsensitiveString,ZZ32\](), g)
+opr BIG UNIONSUM(): BigReduction[\Map[\CaseInsensitiveString,ZZ32\],
+                                 Map[\CaseInsensitiveString,ZZ32\]\] =
+    embiggen[\Map[\CaseInsensitiveString,ZZ32\]\](
+        fn (a,b) => a UNIONSUM b, {[\CaseInsensitiveString,ZZ32\]})
 
 opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
     a.union(fn(k,x,y) =>x.append(y),b)
 
-opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\],
-                      Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\]) ->
-                     Map[\ZZ32,List[\String\]\]): Map[\ZZ32,List[\String\]\] =
-    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b,
-                                    mapping[\ZZ32,List[\String\]\](),g)
+opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
 
 processFile(name:String):() = do
     println("Processing file " name)

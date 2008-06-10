@@ -38,6 +38,7 @@ public interface StringMap {
     public static String asEnvOrReflect(String s) {
         s = s.toUpperCase();
         s = s.replace('.', '_');
+        s = s.replace('-', '_');
         return s;
     }
    }

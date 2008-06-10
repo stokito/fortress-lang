@@ -20,8 +20,6 @@ package com.sun.fortress.interpreter.drivers;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
-import java.util.Properties;
 
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.StringMap;

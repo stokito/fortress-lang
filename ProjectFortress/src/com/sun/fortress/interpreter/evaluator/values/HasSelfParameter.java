@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,7 +17,6 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
-import com.sun.fortress.interpreter.evaluator.types.FType;
 
 public interface HasSelfParameter {
     public int getSelfParameterIndex();

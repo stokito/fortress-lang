@@ -17,11 +17,14 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -29,24 +32,19 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionOrMethod.FunctionsAndState;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeComparator;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class FGenericFunction extends SingleFcn
                               implements GenericFunctionOrMethod,
@@ -119,7 +117,7 @@ public class FGenericFunction extends SingleFcn
 
     public boolean seqv(FValue v) { return false; }
 
-    protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
+    protected Simple_fcn newClosure(Environment clenv, List<FType> args) {
         Closure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
         cl.finishInitializing();
         return cl;
@@ -131,7 +129,7 @@ public class FGenericFunction extends SingleFcn
     private class Factory implements Factory1P<List<FType>, Simple_fcn, HasAt> {
 
         public Simple_fcn make(List<FType> args, HasAt location) {
-            BetterEnv clenv = getEnv().extendAt(location);
+            Environment clenv = getEnv().extendAt(location);
             List<StaticParam> params = getStaticParams();
             EvalType.bindGenericParameters(params, args, clenv, location, fndef);
 
@@ -151,16 +149,16 @@ public class FGenericFunction extends SingleFcn
         return fndef;
     }
 
-    public BetterEnv getEnv() {
+    public Environment getEnv() {
         return getWithin();
     }
 
-    public FGenericFunction(BetterEnv e, FnAbsDeclOrDecl fndef) {
+    public FGenericFunction(Environment e, FnAbsDeclOrDecl fndef) {
         super(e);
         this.fndef = fndef;
     }
 
-    public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt location) {
+    public Simple_fcn typeApply(List<StaticArg> args, Environment e, HasAt location) {
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory
         // to pass two parameters instead of one.
@@ -179,7 +177,7 @@ public class FGenericFunction extends SingleFcn
      * @return
      * @throws ProgramError
      */
-    Simple_fcn typeApply(BetterEnv e, HasAt location, List<FType> argValues) throws ProgramError {
+    Simple_fcn typeApply(Environment e, HasAt location, List<FType> argValues) throws ProgramError {
         List<StaticParam> params = getStaticParams();
 
         // Evaluate each of the args in e, inject into clenv.
@@ -210,7 +208,7 @@ public class FGenericFunction extends SingleFcn
     }
 
     @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
         // TODO Auto-generated method stub
         Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
         return foo.apply(args, loc, envForInference);

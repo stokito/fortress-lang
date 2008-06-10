@@ -17,13 +17,13 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.Set;
 
 import com.sun.fortress.useful.DualLattice;
 import com.sun.fortress.useful.LatticeOps;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class TypeLatticeOps implements LatticeOps<FType> {
     public boolean isForward() { return true; }

@@ -29,6 +29,6 @@ unit meter_squared = square meter
 
 trait Float[\unit U absorbs unit, nat e, nat s\] end
 
-run(args:String...) = print "Hello, World!\n"
+run(args:String...) = println "Hello, World!"
 
 end

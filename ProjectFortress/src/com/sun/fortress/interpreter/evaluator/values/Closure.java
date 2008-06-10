@@ -17,30 +17,25 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import java.util.List;
+
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.scopes.Scope;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
-import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.FnExpr;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierOverride;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -48,8 +43,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * A Closure value is a function, plus some environment information.
@@ -60,17 +54,17 @@ public class Closure extends NonPrimitive implements Scope {
     protected List<FType> instArgs;
     protected Applicable def;
 
-    public Closure(BetterEnv e, Applicable fndef) {
+    public Closure(Environment e, Applicable fndef) {
         super(e); // TODO verify that this is the proper environment
         def = NativeApp.checkAndLoadNative(fndef);
     }
 
-    public Closure(BetterEnv e, Applicable fndef, boolean isFunctionalMethod) {
+    public Closure(Environment e, Applicable fndef, boolean isFunctionalMethod) {
         super(e); // TODO verify that this is the proper environment
         def = NativeApp.checkAndLoadNative(fndef,isFunctionalMethod);
     }
 
-    protected Closure(BetterEnv e, Applicable fndef, List<FType> args) {
+    protected Closure(Environment e, Applicable fndef, List<FType> args) {
         super(e);
         def = NativeApp.checkAndLoadNative(fndef);
         instArgs = args;
@@ -79,7 +73,7 @@ public class Closure extends NonPrimitive implements Scope {
     /*
      * Just like the PartiallyDefinedMethod, but used a specific environemnt
      */
-    public Closure(TraitMethod method, BetterEnv environment) {
+    public Closure(TraitMethod method, Environment environment) {
         super(environment);
         def = NativeApp.checkAndLoadNative(method.def);
         instArgs = method.instArgs;
@@ -197,7 +191,7 @@ public class Closure extends NonPrimitive implements Scope {
 
 
     public FValue applyInner(List<FValue> args, HasAt loc,
-                             BetterEnv envForInference) {
+                             Environment envForInference) {
         if (def instanceof NativeApp) {
             args = typecheckParams(args,loc);
             try {
@@ -216,14 +210,14 @@ public class Closure extends NonPrimitive implements Scope {
     /**
      * The environment, sort of, in which the closure's name is bound.
      */
-    public BetterEnv getEnv() {
+    public Environment getEnv() {
         return getWithin();
     }
 
     /**
      * The environment used to evaluate the closure.
      */
-    public BetterEnv getEvalEnv() {
+    public Environment getEvalEnv() {
         return getWithin();
     }
 
@@ -246,7 +240,7 @@ public class Closure extends NonPrimitive implements Scope {
         Applicable x = getDef();
         List<Param> params = x.getParams();
         Option<Type> rt = x.getReturnType();
-        BetterEnv env = getEvalEnv(); // should need this for types,
+        Environment env = getEvalEnv(); // should need this for types,
                                     // below.
         FType ft = EvalType.getFTypeFromOption(rt, env, BottomType.ONLY);
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);

@@ -17,35 +17,33 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-import java.lang.String;
-import java.util.List;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
-import com.sun.fortress.useful.Useful;
+/* import java.lang.String; /* SPARE COPY  */
+import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
+
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FOrdinaryObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.GenericWithParams;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import com.sun.fortress.useful.Useful;
 
 public class FileWriteStream extends NativeConstructor {
     private static NativeConstructor con = null;
 
-    public FileWriteStream(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public FileWriteStream(Environment env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
     }
 

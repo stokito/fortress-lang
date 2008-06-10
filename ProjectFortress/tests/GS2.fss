@@ -31,9 +31,9 @@ object G[\T\]
 end
 
 run(args:String...):()= do
-   println(if G[\String\].n = G[\String\].n then "PASS" else "FAIL" end)
-   println(if G[\String\].n = G[\ZZ32\].n then "FAIL" else "PASS" end)
-   
+   println(if G[\String\].n = G[\String\].n then "PASS" else "FAIL")
+   println(if G[\String\].n = G[\ZZ32\].n then "FAIL" else "PASS")
+
    end
 
 end

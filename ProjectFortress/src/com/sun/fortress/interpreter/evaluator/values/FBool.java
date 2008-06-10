@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 
 public class FBool extends NativeConstructor.FNativeObject {
     public final static FBool TRUE = new FBool(true);

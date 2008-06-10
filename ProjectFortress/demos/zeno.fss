@@ -43,7 +43,7 @@ export Executable
  * This is a great test of sparse concurrent bit-backed arrays.
  **)
 
-rounds : ZZ32 = 20
+rounds : ZZ32 = 10
 
 (** Represents m / 2^n and 2 - (m / 2^n) **)
 value object Frac(m : ZZ32, n : ZZ32)

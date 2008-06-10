@@ -17,6 +17,10 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,28 +28,22 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.FortressException;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.interpreter.evaluator.values.Overload.MethodOverload;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
-import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.HasAt;
@@ -53,10 +51,6 @@ import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
 
@@ -108,7 +102,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
      * @param excludes
      * @param replacementEnv
      */
-    final public void setExtendsAndExcludes(List<FType> extends_, List<FType> excludes, BetterEnv replacementEnv) {
+    final public void setExtendsAndExcludes(List<FType> extends_, List<FType> excludes, Environment replacementEnv) {
         env = replacementEnv;
         setExtendsAndExcludes(extends_, excludes);
     }
@@ -230,7 +224,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         }
     }
 
-    public FTraitOrObject(String name, BetterEnv env, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode def) {
+    public FTraitOrObject(String name, Environment env, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode def) {
         super(name, env, def);
         this.members = members;
         this.at = at;
@@ -292,7 +286,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
      * implement GenericTypeInstance.  They should override
      * unifyNonVar with a call to this method.
      */
-    protected final boolean unifyNonVarGeneric(BetterEnv e, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
+    protected final boolean unifyNonVarGeneric(Environment e, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (DUMP_UNIFY)
             System.out.println("unify GT/O  "+this+" and "+val + " abm= " + abm);
         if (!(val instanceof TraitType)) {

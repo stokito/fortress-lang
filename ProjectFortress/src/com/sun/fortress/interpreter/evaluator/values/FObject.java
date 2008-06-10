@@ -17,17 +17,16 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.Environment;
 
 
 public abstract class FObject extends FValue implements Selectable {
     /**
      * The environment that you get from "self."
      */
-    public abstract BetterEnv getSelfEnv();
+    public abstract Environment getSelfEnv();
 
-    public abstract BetterEnv getLexicalEnv();
+    public abstract Environment getLexicalEnv();
 
     public FValue select(String s) {
         return getSelfEnv().getValue(s);

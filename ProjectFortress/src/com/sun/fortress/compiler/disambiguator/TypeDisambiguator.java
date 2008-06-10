@@ -358,8 +358,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
 
     private StaticArg updateStaticArg(final StaticArg a, final StaticParam p) {
-        return a;
-        /* Commented out due to assumptions in the interpreter that this *isn't* implemented:
+        // return a;
+        /* Commented out due to assumptions in the interpreter that this *isn't* implemented: */
         StaticArg fixed = a.accept(new NodeAbstractVisitor<StaticArg>() {
 
             @Override public StaticArg forTypeArg(final TypeArg a) {
@@ -456,7 +456,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         });
         return (StaticArg) fixed.accept(this);
-        */
+        
     }
 
     private Pair<List<Id>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {

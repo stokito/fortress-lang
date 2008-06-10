@@ -20,23 +20,19 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.compiler.Types;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.AbstractTupleType;
-import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Domain;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.Factory2;
 import com.sun.fortress.useful.Fn2;
 import com.sun.fortress.useful.Memo2;
 import com.sun.fortress.useful.Useful;
-import com.sun.fortress.compiler.Types;
 
 
 // TODO Need to memoize this to preserve Equality.
@@ -158,7 +154,7 @@ public class FTypeArrow extends FType {
     }
 
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
+    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify arrow "+this+" and "+val+", abm="+abm);

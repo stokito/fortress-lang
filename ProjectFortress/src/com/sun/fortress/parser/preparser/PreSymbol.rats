@@ -27,26 +27,23 @@ import Keyword;
 option setOfString(FORTRESS_KEYWORDS);
 
 Op Encloser = a1:encloser
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
-Op LeftEncloser = a1:leftEncloser
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+Op LeftEncloser = !(opendoublesquare) a1:leftEncloser
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
 Op RightEncloser = a1:rightEncloser
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
-/*
-Op ExponentOp = a1:exponentOp
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
-*/
-
-/* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
+/* EncloserPair ::=
+     (LeftEncloser | Encloser) (w DOT)? w (RightEncloser | Encloser)
+ */
 Enclosing EncloserPair =
-     a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
+     a1:(LeftEncloser / Encloser) (w DOT)? w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
            yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else
-           yyValue = error(a2, "Mismatched Enclosers.");
+           yyValue = syntaxError(a2.getSpan(), "Mismatched Enclosers.");
      };
 
 transient void bar = "|";
@@ -91,8 +88,6 @@ private String rightEncloserMulti =
    / "/\\/\\/]" / "/\\/]"
    ;
 
-private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
-
 /* Finally, a nonreserved word that is made up of a mixture of uppercase
  * letters and underscores (but no digits), does not begin or end with an
  * underscore, and contains at least two distinct letters is also an
@@ -102,12 +97,12 @@ private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
  * all-caps with underscores; it doesn't look it up anywhere, and
  * shouldn't since this set of operators is open-ended.
  */
-private String OpName =
-     !(cross) opn:id &{FortressUtil.validOp(opn) } ;
+String OpName =
+     opn:id &{FortressUtil.validOp(opn) };
 
 Op Op =
      a1:(condOp / op !(equalsOp) / compOp)
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
+     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
 
 private String compOp =
      "==="
@@ -116,8 +111,12 @@ private String compOp =
    / ">=" ;
 
 private String condOp =
-     a1:":" a2:op a3:colon { yyValue = a1+a2+a3; }
-   / a1:op a2:colon        { yyValue = a1+a2; };
+     ":::"                 // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Three or more colons are not valid operators in Fortress.");
+     }
+   / a1:":" a2:(encloser / op) a3:colon { yyValue = a1+a2+a3; }
+   / a1:(encloser / op) a2:colon        { yyValue = a1+a2; };
 
 private String multiOp =
      "-/->"
@@ -134,8 +133,8 @@ private String multiOp =
    / doublerightarrow
    / ">>"
    / "<<"
-   / "**"
    / "!!"
+   / "::"
    / !(rightEncloserMulti) "///"
    / !(rightEncloserMulti) "//"
    ;
@@ -153,45 +152,22 @@ String op =
 /* The operator "=>" should not be in the left-hand sides of
    case/typecase expressions. */
 String doublerightarrow = "=>"; /* &(w NoNewlineExpr w match); */
-
 String leftarrow = "<-";
-
-String caret = "^";
-String colonequals = ":=";
-String equals = "=" (!op);
 String equalsOp = "=":singleOp;
 String semicolon = ";";
-String one = "1";
-
+String closecurly = "}";
+String opencurly = "{":leftEncloser;
 String colon = ":" (!op);
-String colonOp = ":":singleOp;
-String closesquare = "]";
-String opensquare = "[":leftEncloser;
 String ellipses = "...";
+String DOT = "DOT":OpName;
 
-transient void closecurly = "}";
-transient void closeangle = "|>";
 transient void closedoublesquare = "\\]";
 transient void closeparen = ")";
-transient void cross = "BY";
-transient void DOT = "DOT":OpName;
-transient void mapsto = "|->";
 transient void match = "=>";
-transient void minus = "-":singleOp;
-transient void opencurly = "{":leftEncloser;
-transient void openangle = "<|":leftEncloser;
 transient void opendoublesquare = "[\\";
 transient void openparen = !(leftEncloser) "(";
-transient void plus = "+":singleOp;
-transient void pound = "#":singleOp;
-transient void slash = "/":singleOp;
-transient void star = "*":singleOp;
-transient void rightarrow = "->";
-transient void underscore = "_";
-
 transient void comma = ",";
 transient void dot   = ".";
 
 /* from Delimited expr */
-
 String mapstoOp = "|->" ;

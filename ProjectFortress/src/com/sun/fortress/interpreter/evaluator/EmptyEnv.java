@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 
+import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -28,6 +29,8 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Visitor2;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -292,7 +295,7 @@ public class EmptyEnv extends CommonEnv {
 
     @Override
     public Declaration getDeclNull(String str) {
-        // TODO Auto-generated method stub
+        bug("Empty environment does not support this operation");
         return null;
     }
 
@@ -313,6 +316,197 @@ public class EmptyEnv extends CommonEnv {
     public Iterator<String> iterator() {
 
         return Collections.<String>emptySet().iterator();
+    }
+
+
+
+    public void bless() {
+        bug("Empty environment does not support this operation");
+        
+    }
+
+
+
+    public Environment extend(Environment additions) {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public Environment extend() {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public Environment extendAt(HasAt x) {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public HasAt getAt() {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public boolean getBlessed() {
+                bug("Empty environment does not support this operation"); 
+        return false;
+    }
+
+
+
+    public Closure getClosure(String toBeRun) {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public Number getIntNull(String s) {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public FValue getValueRaw(String s) {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public Environment installPrimitives() {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public boolean isTopLevel() {
+                bug("Empty environment does not support this operation"); 
+        return false;
+    }
+
+
+
+    public void noteName(String s) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putFunctionalMethodInstance(String fndodname, FValue cl) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putInt(String add_as, Number cnnf) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putValueNoShadowFn(String fndodname, FValue cl) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putValueShadowFn(String fname, FValue cl) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putValueUnconditionally(String name, FValue value, FType ft) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putVariable(String s, FValue value) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putVariable(String string, FType fvt) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void putVariablePlaceholder(String sname) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void removeType(String s) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void removeVar(String name) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void storeType(HasAt x, String sname, FType ft) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void visit(Visitor2<String, Object> nameCollector) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public void visit(Visitor2<String, FType> vt, Visitor2<String, Number> vn,
+            Visitor2<String, Number> vi, Visitor2<String, FValue> vv,
+            Visitor2<String, Boolean> vb) {
+                bug("Empty environment does not support this operation"); 
+        
+    }
+
+
+
+    public Iterable<String> youngestFrame() {
+                bug("Empty environment does not support this operation"); 
+        return null;
+    }
+
+
+
+    public void setTopLevel() {
+        // TODO Auto-generated method stub
+        
     }
 
 }

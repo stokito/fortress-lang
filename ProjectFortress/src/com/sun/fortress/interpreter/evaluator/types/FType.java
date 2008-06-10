@@ -17,7 +17,13 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import com.sun.fortress.nodes_util.NodeUtil;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpSkip;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,11 +36,11 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.VoidType;
-import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.VoidType;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
@@ -43,14 +49,6 @@ import com.sun.fortress.useful.ListComparer;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpSkip;
 
 abstract public class FType implements Comparable<FType> {
 
@@ -312,7 +310,7 @@ abstract public class FType implements Comparable<FType> {
         return true;
     }
 
-    public BetterEnv getWithin() {
+    public Environment getWithin() {
         return BetterEnv.blessedEmpty();
     }
 
@@ -471,7 +469,7 @@ abstract public class FType implements Comparable<FType> {
             (sz==0 || !(candidate.get(sz-1) instanceof FTypeRest));
     }
 
-    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
+    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         boolean rc = false;
         FType other = null;
@@ -517,7 +515,7 @@ abstract public class FType implements Comparable<FType> {
     /** Utility function that provides unifyNonVar implementation for
      * symbolic types such as nat and bool.
      */
-    public static boolean unifySymbolic(FType self, BetterEnv env, Set<String> tp_set,
+    public static boolean unifySymbolic(FType self, Environment env, Set<String> tp_set,
                 BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         /* Unification has failed due to a fundamental kind error.
            Report that and fail. */
@@ -538,7 +536,7 @@ abstract public class FType implements Comparable<FType> {
      * unifyNonVar; this is why that method is overridable while this
      * one is final.
      */
-    public final void unify(BetterEnv env, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
+    public final void unify(Environment env, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         /* anything can unify with Any */
         if (val instanceof AnyType) {
             return;
@@ -548,7 +546,7 @@ abstract public class FType implements Comparable<FType> {
             VarType id_val = (VarType) val;
             String nm = NodeUtil.nameString(id_val.getName());
             if (tp_set.contains(nm)) {
-                if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this);
+                if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this + "(" + val.getClass().getSimpleName() + ")" );
                 try {
                     abm.joinPut(nm, this);
                 } catch (EmptyLatticeIntervalError el) {
@@ -566,7 +564,7 @@ abstract public class FType implements Comparable<FType> {
                 if (DUMP_UNIFY) System.out.println(" result abm= " + abm);
                 return;
             }
-        }
+        } 
         /* We want to unify with the most specific subtype possible, so */
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
@@ -590,7 +588,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     /** Unify with a static arg. */
-    public void unifyStaticArg(BetterEnv env, Set<String> tp_set,
+    public void unifyStaticArg(Environment env, Set<String> tp_set,
                                BoundingMap<String, FType, TypeLatticeOps> abm,
                                StaticArg val) {
         if (DUMP_UNIFY)

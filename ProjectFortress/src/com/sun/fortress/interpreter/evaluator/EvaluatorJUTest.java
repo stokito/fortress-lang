@@ -55,7 +55,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
      runner.setCurrentTask(this);
 
      try {
-  BetterEnv e = BetterEnv.primitive();
+  BetterEnv e = (BetterEnv) BetterEnv.primitive();
   e.bless();
   BetterEnv s = new BetterEnv(e, "s");
   s.bless();
@@ -86,7 +86,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
   }
 
   public void testEnvironment3() throws IOException {
-      BetterEnv e = BetterEnv.primitive("primitive");
+      BetterEnv e =  (BetterEnv) BetterEnv.primitive("primitive");
       e.bless();
       BetterEnv s = new BetterEnv(e, "s");
       s.bless();

@@ -17,23 +17,20 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-import java.lang.String;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-import com.sun.fortress.interpreter.glue.NativeFn0;
+/* import java.lang.String; /* SPARE COPY  */
+import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
+
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import com.sun.fortress.interpreter.glue.NativeFn0;
 
 /**
  * Functions from String.
  */
 public class StringPrim {
-
-public static final class App extends Util.SS2S {
-    protected String f(String x, String y) { return x + y; }
-}
 
 public static final class Print extends Util.S2V {
     protected void f(String x) { System.out.print(x); }

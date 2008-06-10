@@ -22,8 +22,10 @@ import com.sun.fortress.compiler.typechecker.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Node;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -51,6 +53,7 @@ public class StaticChecker {
      * StaticTest sets typecheck to true before running type checking tests.
      */
     public static boolean typecheck = ProjectProperties.getBoolean("fortress.test.typecheck", false);
+    
     
     public static class ApiResult extends StaticPhaseResult {
         private Map<APIName, ApiIndex> _apis;
@@ -121,17 +124,23 @@ public class StaticChecker {
                                                       StaticParamEnv.make(),
                                                       typeEnv,
                                                       component);
-            
-//        TypeCheckerResult result = new 
-//        // Iterate over top-level functions, checking the body of each.
-//        for (Function fn: component.functions()) {
-//            typeChecker.check(fn);
-//        }
            
-            // Iterate over trait and object definitions.
-            //for (
+            TypeCheckerResult result =  component.ast().accept(typeChecker);
             
-            return component.ast().accept(typeChecker);
+            // We need to make sure type inference succeeded.
+            if( !result.getNodeConstraints().isSatisfiable() ) {
+            	// Oh no! Type inference failed. Our error message will suck.
+            	String err = "Type inference failed.";
+            	result = TypeCheckerResult.addError(result, TypeError.make(err, component.ast()));
+            	return result;
+            }
+            else{
+            	InferenceVarReplacer rep=new InferenceVarReplacer(result.getMap());
+            	Node replaced = result.ast().accept(rep);
+            	
+            	
+            	return TypeCheckerResult.replaceAST(result, replaced);
+            }
         } else {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
         }

@@ -17,19 +17,20 @@
 
 package com.sun.fortress.interpreter.env;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+
+import java.util.Set;
+
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
 import com.sun.fortress.interpreter.evaluator.transactions.Recoverable;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
-import java.util.Set;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 /**
  * What the interpreter stores mutable things (fields, variables)
