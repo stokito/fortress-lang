@@ -36,15 +36,16 @@ end
 
 run(args:String...) = do
 
+    println "Answer is " ( <aaa foo="bar" /> )
+    (*
     println "Answer is " <a />
     println "Answer is " <x></x>
 
-    println "Answer is " ( <aaa>aa</aaa> );
+    println "Answer is " ( <aaa>aa</aaa> )
+    println "Answer is " ( <aaa><q /></aaa> )
 
     println "Answer is "  <aaa><foobar /></aaa>
-(*
-    println "Answer is " <aaa foo="bar" />
-    println "Answer is " <aaa><aa>aa</aa></aaa>
+    println "Answer is " ( <aaa> <aa>aa</aa> </aaa> )
 
     println "Answer is " <hello><world>hi mom</world></hello>
     println "Answer is " <hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello>
@@ -119,7 +120,7 @@ run(args:String...) = do
     println "Answer is " ( aa)
     *)
     (* println ( <aaaa>) *)
-*)
+    *)
     println "ok"
 end
 

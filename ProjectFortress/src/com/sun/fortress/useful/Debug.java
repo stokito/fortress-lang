@@ -33,4 +33,12 @@ public abstract class Debug{
             System.out.println( s );
         }
     }
+
+    public static void debugArray( int level, Object[] o ){
+        debug( level, String.format( "Array %s", o.toString() ) );
+        for ( Object n : o ){
+            debug( level, n.toString() );
+        }
+        debug( level, String.format( "End of Array %s", o.toString() ) );
+    }
 }

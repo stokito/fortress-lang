@@ -407,14 +407,26 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 }
 
                 List<Integer> indents = new LinkedList<Integer>();
-                indents.add(1);
                 List<String> code = new LinkedList<String>();
                 StringBuilder variables = new StringBuilder();
                 for (PrefixedSymbol sym : varSyms) {
                     variables.append( sym.getId().unwrap().toString() ).append( "," );
                 }
                 code.add(String.format("yyValue = new Object[] { %s };", variables.toString()));
-                all.add(new ParserAction(new Action(code, indents)));
+                indents.add(1);
+                
+                /*
+                code.add(String.format("if ( 2 > 1 ){ return yyResult.createValue(yyValue, yyError); }"));
+                indents.add(1);
+                */
+
+                /*
+                code.add(String.format("com.sun.fortress.useful.Debug.debugArray( 1, (Object[]) yyValue );"));
+                indents.add(1);
+                */
+
+                // all.add(new ParserAction(new Action(code, indents)));
+                all.add(new Action(code, indents));
                 Element pack = new Binding(freshName, modifier.makePack(new Sequence(all)));
                 // Element pack = new Binding(freshName, new xtc.parser.Repetition(isPlus, new Sequence(all)));
 
@@ -452,9 +464,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                  * is an Expr. Rats! shouldn't set yyValue after each parser action but since we
                  * don't care what yyResult is anyway we set it to a bogus value.
                  */
+                /*
                 indents2.add(1);
                 code2.add("yyResult = new SemanticValue(null,0);");
-                Element unpack = new ParserAction(new Action(code2, indents2));
+                */
+                Element unpack = new Action(code2, indents2);
 
                 return mkList(pack, unpack);
             }

@@ -238,7 +238,7 @@ SyntaxSymbol SyntaxSymbol =
 SyntaxSymbol GroupSymbol =
       "{" w syms:SyntaxSymbolsX w "}"
       {
-        System.out.println( "Matched a group: " + syms );
+        com.sun.fortress.useful.Debug.debug( 1, "Matched a group: " + syms );
         yyValue = new GroupSymbol(createSpan(yyStart, yyCount), syms);
       };
 
