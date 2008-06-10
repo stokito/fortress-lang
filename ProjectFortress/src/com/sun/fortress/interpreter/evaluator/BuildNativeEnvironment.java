@@ -20,7 +20,6 @@ package com.sun.fortress.interpreter.evaluator;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -47,12 +46,12 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class BuildNativeEnvironment extends BuildEnvironments {
 
-    public BuildNativeEnvironment(BetterEnv within) {
+    public BuildNativeEnvironment(Environment within) {
         super(within);
         // TODO Auto-generated constructor stub
     }
 
-    public static Constructor nativeConstructor(BetterEnv containing,
+    public static Constructor nativeConstructor(Environment containing,
             FTypeObject ft, GenericWithParams x, String fname) {
         String pack = containing.getValue("package").getString();
         String classname = pack + "." + fname;
@@ -62,7 +61,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
             // cl must have a constructor BetterEnv env, FTypeObject selfType,
             // GenericWithParams def
             java.lang.reflect.Constructor ccl = cl.getDeclaredConstructor(
-                    BetterEnv.class, FTypeObject.class,
+                    Environment.class, FTypeObject.class,
                     GenericWithParams.class);
             return (Constructor)ccl.newInstance(containing, ft, x);
         } catch (ClassCastException e) {
@@ -72,7 +71,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
         } catch (InstantiationException e) {
             return bug(x,containing,
                        errorMsg("Native class must have constructor ", classname,
-                                "(BetterEnv, FTypeObject, GenericWithParams)"),
+                                "(Environment, FTypeObject, GenericWithParams)"),
                        e);
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block

@@ -44,8 +44,8 @@ import Spacing;
    | for w GeneratorClauseList w DoFront w end
    | if w GeneratorClause w then w BlockElems (w Elifs)? (w Else)? w end
    | ( w if w GeneratorClause w then w BlockElems (w Elifs)? w Else (w end)? w )
-   | case w Expr (w Op)? w of w CaseClauses (w CaseElse)? w end
-   | case w most w Op w of w CaseClauses w end
+   | case w Expr (w (Encloser / Op))? w of w CaseClauses (w CaseElse)? w end
+   | case w most w (Encloser / Op) w of w CaseClauses w end
    | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
    | try w BlockElems (w Catch)? (w forbid w TraitTypes)?
        (w finally w BlockElems)? w end
@@ -65,6 +65,15 @@ Expr DelimitedExpr =
                          "Mismatched identifiers for label expressions.");
        yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
+   / label w a1:OpName w a2:BlockElems w end w a3:OpName // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             a1 + " is not a valid label name.\n" +
+                             "A non-reserved word that is made up of a mixture" +
+                             " of uppercase letters and underscores (but no " +
+                             "digits), does not begin or end with an " +
+                             "underscore, and contains at least two distinct " +
+                             "letters is an operator name.");
+     }
    / while w a1:GeneratorClause w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
    / for w a1:GeneratorClauseList w a2:DoFront w end
@@ -76,6 +85,14 @@ Expr DelimitedExpr =
        Option<Block> elseC = Option.wrap(a4);
        yyValue = new If(createSpan(yyStart,yyCount), false, clauses, elseC);
      }
+   / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
+     (w end)? &(w closeparen)
+     { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
+       List<IfClause> clauses = FortressUtil.mkList(ic);
+       if (a3 != null) clauses.addAll(a3);
+       yyValue = new If(createSpan(yyStart,yyCount),false,clauses,
+                        Option.some(a4));
+     }
    / openparen w if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
        (w end)? w closeparen
      { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
@@ -84,7 +101,8 @@ Expr DelimitedExpr =
        yyValue = new If(createSpan(yyStart,yyCount),false,clauses,
                         Option.some(a4));
      }
-   / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
+   / case w a1:Expr a2:(w (Encloser / Op))? w of w a3:CaseClauses
+     a4:(w CaseElse)? w end
      { Option<Op> compare;
        if (a2 == null) compare = Option.none();
        else            compare = Option.some(a2);
@@ -95,7 +113,7 @@ Expr DelimitedExpr =
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
                               Option.some(a1), compare, a3, _else);
      }
-   / case w most w a1:Op w of w a2:CaseClauses w end
+   / case w most w a1:(Encloser / Op) w of w a2:CaseClauses w end
      { Option<Op> compare = Option.some(a1);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
                               Option.<Expr>none(), compare, a2,

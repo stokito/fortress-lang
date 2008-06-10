@@ -39,7 +39,7 @@ shredMaker():(()->T) = do
 end
 
 check(x:Boolean) = do
-  println(if x then "PASS" else "FAIL" end)
+  println(if x then "PASS" else "FAIL")
 end
 
 run(args:String...):()=do

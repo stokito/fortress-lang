@@ -24,9 +24,9 @@ object G[\T\] extends Equality[\G[\T\]\]
 end
 
 run(args:String...):()= do
-   println(if G[\String\] = G[\String\] then "PASS" else "FAIL" end)
-   println(if G[\String\] = G[\ZZ32\] then "FAIL" else "PASS" end)
-   
+   println(if G[\String\] = G[\String\] then "PASS" else "FAIL")
+   println(if G[\String\] = G[\ZZ32\] then "FAIL" else "PASS")
+
    end
 
 end

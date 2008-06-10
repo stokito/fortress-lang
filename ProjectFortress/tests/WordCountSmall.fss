@@ -25,13 +25,13 @@ export Executable
 
 isDelimiter(c:Char):Boolean =   c IN <| ' ',  ',', '.', '?' |>
 
-maybeAddWord(word:String, 
+maybeAddWord(word:String,
                          database:Map[\String,ZZ32\]):Map[\String,ZZ32\]= do
     var result:Map[\String,ZZ32\] := mapping[\String,ZZ32\]()
     occurs = database.member(word,0)
-    if occurs > 0 then 
+    if occurs > 0 then
         result := database.update(word,occurs+1)
-    else 
+    else
         result := database.add(word,1)
     end
     result
@@ -72,34 +72,36 @@ end
 
 opr UNIONSUM(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a.union(fn(k,x,y)=>x+y, b)
 
-opr BIG UNIONSUM(g:(Reduction[\Map[\String,ZZ32\]\], Map[\String,ZZ32\]->Map[\String,ZZ32\])->Map[\String,ZZ32\]):Map[\String,ZZ32\]=
-    embiggen[\Map[\String,ZZ32\]\](fn (a,b) => a UNIONSUM b, mapping[\String,ZZ32\](), g)
+opr BIG UNIONSUM(): BigReduction[\Map[\String,ZZ32\],
+                                 Map[\String,ZZ32\]\] =
+    embiggen[\Map[\String,ZZ32\]\](fn (a,b) => a UNIONSUM b, {[\String,ZZ32\]})
 
-opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] = a.union(fn(k,x,y) =>x.append(y),b)
+opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
+    a.union(fn(k,x,y) =>x.append(y),b)
 
-opr BIG UNIONUNION(g:(Reduction[\Map[\ZZ32,List[\String\]\]\], Map[\ZZ32,List[\String\]\]->Map[\ZZ32,List[\String\]\])->Map[\ZZ32,List[\String\]\]):Map[\ZZ32,List[\String\]\] =
-    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, mapping[\ZZ32,List[\String\]\](),g)
+opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
 
 processFile(name:String):() = do
     println("Processing file " name)
     var rs:FileReadStream = FileReadStream(name)
+    rs.close()
     database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
     var invDatabase:Map[\ZZ32,List[\String\]\] = BIG UNIONUNION [(x,y) <-database] (makeInv(x,y))
-    try 
-        for i <- seq(1#100) do 
+    try
+        for i <- seq(1#100) do
             (c:ZZ32,m:List[\String\]) = invDatabase.maximum().get()
             invDatabase := invDatabase.deleteMaximum()
-            println(m ": " c " times") 
-        end 
-    catch e 
+            println(m ": " c " times")
+        end
+    catch e
             NotFound => println("end")
     end
-    rs.close()
 end
 
 
 run(args:String...)= do
-    processFile(getEnvironment("fortress.autohome", ".") "/ProjectFortress/tests/presidents")   
+    processFile(getEnvironment("fortress.autohome", ".") "/ProjectFortress/tests/presidents")
 end
 end
 

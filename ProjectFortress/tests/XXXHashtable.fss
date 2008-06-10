@@ -30,7 +30,7 @@ end
 trait Indexed2[\ nat n \]
 end
 
-trait Array1[\T, nat b0, nat s0\] extends {Indexed1 [\ s0 \], Rank[\ 1 \]}
+trait Array1[\T, nat b0, nat s0\] extends {Indexed1[\ s0 \], Rank[\ 1 \]}
   (* Get and put come from implementation. *)
   get(i:ZZ32):T
   put(i:ZZ32, v:T)
@@ -41,7 +41,7 @@ trait Array1[\T, nat b0, nat s0\] extends {Indexed1 [\ s0 \], Rank[\ 1 \]}
 end
 
 trait Array2[\T, nat b0, nat s0, nat b1, nat s1\] extends {
-  Indexed1 [\ s0 \], Indexed2 [\ s1 \] , Rank[\ 2 \]}
+  Indexed1[\ s0 \], Indexed2[\ s1 \] , Rank[\ 2 \]}
   put(t:(ZZ32,ZZ32), v:T) = do
      (i,j)=t
      self[i-b0, j-b1] := v
@@ -99,8 +99,7 @@ object SimpleHashTable[\T extends Hashable, nat startingSize\]() extends HashTab
 
   add(x:T):() = (if member(x)
                  then error()
-                 else basis[calcHash(x)]=(Some(x))
-                end)
+                 else basis[calcHash(x)]=(Some(x)))
 
 end
 

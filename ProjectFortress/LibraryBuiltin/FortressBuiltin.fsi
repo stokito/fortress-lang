@@ -116,6 +116,42 @@ object String extends { StandardTotalOrder[\String\] }
         of the string, returning the empty string, in order to permit some convenient
         string-trimming idioms. **)
     opr[r0:Range[\ZZ32\]] : String
+
+
+    (** The operator %||% with at least one String argument converts to string and
+        appends **)
+    opr ||(self, b:String):String
+    opr ||(self, b:Number):String
+    opr ||(self, c:Char):String
+    opr ||(self, b:()):String
+    opr ||(self, b:(Any,Any)):String
+    opr ||(self, b:(Any,Any,Any)):String
+    opr ||(a:Any, self):String
+    opr ||(self, b:Any):String
+
+    (** The operator %|||% with at least one String argument converts to string,
+        then appends with a whitespace separator unless one of the two arguments is
+        empty.  If there is an empty argument, the other argument is returned. **)
+    opr |||(self, b:String): String
+    opr |||(self, b:Any): String
+    opr |||(a:Any, self): String
+
+    (** Right now for backward compatibility juxtaposition works like %||% **)
+    opr juxtaposition(a:Any, self):String
+    opr juxtaposition(self, b:String):String
+    opr juxtaposition(self, b:Any):String
+
+    (** opr // appends with a single newline separator. **)
+    opr //(self) : String
+    opr //(self, a:String): String
+    opr //(self, a:Any): String
+    opr //(a:Any, self): String
+
+    (** opr /// appends with a double newline separator **)
+    opr ///(self) : String
+    opr ///(self, a:String): String
+    opr ///(self, a:Any): String
+    opr ///(a:Any, self): String
 end
 
 object Thread[\T\](fcn:()->T)

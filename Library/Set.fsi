@@ -59,15 +59,13 @@ singleton[\E\](x:E): Set[\E\]
 set[\E\](): Set[\E\]
 set[\E\](g: Generator[\E\]): Set[\E\]
 opr {[\E\] es: E... }: Set[\E\]
-opr BIG {[\T,U\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList } : Set[\U\]
+opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Set[\T\]
 
-opr BIG UNION[\R\](g:(Reduction[\Set[\R\]\], Set[\R\]->Set[\R\])->Set[\R\]):
-                    Set[\R\]
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\]
 
-object Union[\E\] extends Reduction[\Set[\E\]\] end
+object Union[\E\] extends CommutativeMonoidReduction[\Set[\E\]\] end
 
-opr BIG INTERSECTION[\R\](g:(Reduction[\Maybe[\Set[\R\]\]\],
-                             Set[\R\]->Maybe[\Set[\R\]\]) ->
-                            Maybe[\Set[\R\]\]): Set[\R\]
+opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\]():
+        BigReduction[\Set[\R\],AnyMaybe\]
 
 end

@@ -457,7 +457,7 @@ object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
                 NonLeafNode[\Key,Val\]}
 
   getter keys():Array[\Key,ZZ32\] = keys
-  getter children():Array[\LeafNode,ZZ32\] = children
+  getter children():Array[\LeafNode[\Key,Val\],ZZ32\] = children
 
   singleton(keys':Array[\Key,ZZ32\], children':Array[\LeafNode[\Key,Val\],ZZ32\]) : InternalLevel1[\Key,Val\] = InternalLevel1[\Key,Val\](keys',children')
 

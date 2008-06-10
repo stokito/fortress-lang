@@ -17,33 +17,28 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-// import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.transactions.AtomicFTypeArray;
-import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.GenericWithParams;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class PrimitiveArray extends NativeConstructor {
     int s0;
 
-    public PrimitiveArray(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public PrimitiveArray(Environment env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }
@@ -52,7 +47,8 @@ public class PrimitiveArray extends NativeConstructor {
         return new AtomicFTypeArray(con,s0);
     }
 
-    protected void oneTimeInit(BetterEnv self_env) {
+    @Override
+    protected void oneTimeInit(Environment self_env) {
         s0 = self_env.getValue("s0").getInt();
     }
 

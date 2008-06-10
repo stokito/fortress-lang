@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.lang.Double;
 
 public class FFloat extends NativeConstructor.FNativeObject {
     private final double val;

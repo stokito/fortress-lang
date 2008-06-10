@@ -39,6 +39,10 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             return recursiveToStringBuffer(new StringBuffer(), false, " ").toString();
         }
 
+        public String recursiveToStringLines() {
+            return recursiveToStringBuffer(new StringBuffer(), false, "\n").toString();
+        }
+
         public StringBuffer recursiveToStringBuffer(StringBuffer b, boolean withParens, String sep) {
             if (left != null || right != null) {
                 if (withParens)

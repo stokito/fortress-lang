@@ -66,7 +66,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
                                               else emptyList[\E\]() end)
   toString():String =
       "<|" (if (h,t) <- extractLeft() then
-                h (BIG STRING [e<-t] ", " e)
+                h (BIG ||[e<-t] ", " e)
             else " " end) "|>"
   concatMap[\G\](f: E->List[\G\]): List[\G\] =
       generate[\List[\G\]\](Concat[\G\],f)
@@ -79,8 +79,8 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList|>: List[\T\] =
-    list(covariantComprehension[\T\](g))
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\] =
+    covariantComprehension[\T,List[\T\]\](fn x => list(x))
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -91,19 +91,22 @@ list[\E\](g:Generator[\E\]):List[\E\] =
 concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
 
 (** A reduction object for concatenating lists. *)
-private object Concat[\E\] extends Reduction[\ List[\E\] \]
+private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter toString(): String = "List concatenation reduction"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
 end
 
 (** The same for reverse concatenation *)
-private object RevConcat[\E\] extends Reduction[\ List[\E\] \]
+private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter toString(): String = "List reversal reduction"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
 end
 
 (** A reduction object for concatenating specifically PureLists. *)
-private object PLConcat[\E\] extends Reduction[\ PureList[\E\] \]
+private object PLConcat[\E\] extends MonoidReduction[\ PureList[\E\] \]
+  getter toString(): String = "PureList concatenation reduction"
   empty(): PureList[\E\] = D0[\E\]
   join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
 end

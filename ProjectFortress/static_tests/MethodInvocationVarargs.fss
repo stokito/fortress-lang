@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+a
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component MethodInvocationVarargs
+  export Executable
+
+  (* We'd like var args to work properly. The problem is
+     properly selecting the correct method when many
+     different tuple types are possible. *)
+
+  trait VarArgT
+    takeVararg(i_1:ZZ32, s_2:String, s_s:String...):ZZ32
+
+    takeMoreVararg(s_s:String...):ZZ32
+  end
+
+  foo(a:ZZ32, s:String, vat:VarArgT) : () = do
+    var result : ZZ32
+
+    result := vat.takeVararg(a,s,s,s,s,s)
+    result := vat.takeVararg(a,s)
+
+    result := vat.takeMoreVararg()
+    result := vat.takeMoreVararg(s)
+    result := vat.takeMoreVararg(s,s)
+  end
+
+  run(args:String...):() = ()
+
+end

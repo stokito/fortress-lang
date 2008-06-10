@@ -55,7 +55,7 @@ public final class Types {
     public static final TraitType CHAR = makeTraitType("FortressBuiltin", "Char");
     public static final TraitType STRING = makeTraitType("FortressBuiltin", "String");
     public static final TraitType REGION = makeTraitType("FortressLibrary", "Region");
-    public static final TraitType EXCEPTION = makeTraitType("FortressLibrary", "Exception"); // hmm... NEB
+    public static final TraitType EXCEPTION = makeTraitType("FortressLibrary", "Exception");
     
     public static final LabelType LABEL = new LabelType();
     
@@ -69,11 +69,21 @@ public final class Types {
                              makeTypeArg(typeArg));
     }
     
+    /**
+     * Create a type {@code FortressLibrary.Generator[\typeArg\]}.
+     */
     public static TraitType makeGeneratorType(Type typeArg) {
         return makeTraitType(makeId("FortressLibrary", "Generator"),
                              makeTypeArg(typeArg));
     }
     
+    /**
+     * Create a type {@code FortressLibrary.Condition[\typeArg\]}.
+     */
+    public static TraitType makeConditionType(Type typeArg) {
+        return makeTraitType(makeId("FortressLibrary", "Condition"),
+                             makeTypeArg(typeArg));
+    }
     
     /** Construct the appropriate type from a list of union elements. */
     public static Type makeUnion(Iterable<Type> disjuncts) {

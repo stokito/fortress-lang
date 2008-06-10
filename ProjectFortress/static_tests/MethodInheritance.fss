@@ -1,0 +1,9 @@
+component MethodInheritance
+  export Executable
+  trait foo
+    doIt():String = "blah"
+  end
+  object bar extends foo
+  end
+  run(args:String...):() = ignore(bar.doIt())
+end 

@@ -17,13 +17,12 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
@@ -32,30 +31,19 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericComparer;
-import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes_util.NodeComparator;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.Factory1P;
-import com.sun.fortress.useful.Factory2P;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.Memo1P;
 import com.sun.fortress.useful.Memo1PCL;
-import com.sun.fortress.useful.Memo2PCL;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import edu.rice.cs.plt.tuple.Option;
 
 public class GenericConstructor
     extends SingleFcn
@@ -75,7 +63,7 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
         FTypeObject ft = (FTypeObject) gt.make(args, odefOrDecl);
 
             // Use the augmented environment from the specific type.
-            BetterEnv clenv = ft.getWithin();
+        Environment clenv = ft.getWithin();
 
         // Build the constructor
         //            Option<List<Param>> params = odefOrDecl.getParams();
@@ -97,7 +85,7 @@ public Constructor make(List<FType> l,  HasAt within) {
     return memo.make(l,  within);
 }
 
-public GenericConstructor(BetterEnv env, GenericWithParams odefOrDecl, IdOrOpOrAnonymousName cfn) {
+public GenericConstructor(Environment env, GenericWithParams odefOrDecl, IdOrOpOrAnonymousName cfn) {
     super(env);
     this.env = env;
     this.odefOrDecl = odefOrDecl;
@@ -120,13 +108,13 @@ public String getString() {
 
 public boolean seqv(FValue v) { return false; }
 
-protected Constructor constructAConstructor(BetterEnv clenv,
+protected Constructor constructAConstructor(Environment clenv,
                                             FTypeObject objectType,
                                             Option<List<Param>> objectParams) {
     return new Constructor(clenv, objectType, odefOrDecl, objectParams);
 }
 
-private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, Option<List<Param>> objectParams) {
+private Constructor makeAConstructor(Environment clenv, FTypeObject objectType, Option<List<Param>> objectParams) {
     Constructor cl = constructAConstructor(clenv, objectType, objectParams);
     cl.finishInitializing();
     return cl;
@@ -136,7 +124,7 @@ public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws Progra
     return make(argValues, location);
 }
 
-public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
+public Simple_fcn typeApply(List<StaticArg> args, Environment e, HasAt x) {
     List<StaticParam> params = odefOrDecl.getStaticParams();
 
     ArrayList<FType> argValues = argsToTypes(args, e, x, params);
@@ -144,7 +132,7 @@ public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
 }
 
 public static ArrayList<FType> argsToTypes(List<StaticArg> args,
-                                           BetterEnv e, HasAt x,
+        Environment e, HasAt x,
                                            List<StaticParam> params) {
     // Evaluate each of the args in e, inject into clenv.
     if (args.size() != params.size() ) {
@@ -165,7 +153,7 @@ public String at() {
 }
 
 @Override
-public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
     // TODO Auto-generated method stub
     Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
     return foo.apply(args, loc, envForInference);

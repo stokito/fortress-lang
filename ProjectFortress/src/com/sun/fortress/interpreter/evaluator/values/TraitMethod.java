@@ -19,26 +19,21 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.Evaluator;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * Trait methods are only partially defined.
  */
 public class TraitMethod extends MethodClosure {
 
-    protected BetterEnv evaluationEnv;
+    protected Environment evaluationEnv;
 
-    public BetterEnv getEvalEnv() {
+    public Environment getEvalEnv() {
         return evaluationEnv;
     }
 
@@ -47,14 +42,14 @@ public class TraitMethod extends MethodClosure {
                 s(def) : (s(def) + Useful.listInOxfords(instArgs))) + def.at();
     }
 
-    public TraitMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer) {
+    public TraitMethod(Environment within, Environment evaluationEnv, Applicable fndef, FType definer) {
         super(within, fndef, definer); // TODO verify that this is the proper environment
         if (!evaluationEnv.getBlessed())
             System.err.println("urp!");
         this.evaluationEnv = evaluationEnv;
      }
 
-    protected TraitMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef, FType definer, List<FType> args) {
+    protected TraitMethod(Environment within, Environment evaluationEnv, Applicable fndef, FType definer, List<FType> args) {
         super(within, fndef, definer, args);
         this.evaluationEnv = evaluationEnv;
         if (!evaluationEnv.getBlessed())
@@ -63,7 +58,7 @@ public class TraitMethod extends MethodClosure {
     }
 
     @Override
-    protected BetterEnv envForApplication(FObject selfValue, HasAt loc) {
+    protected Environment envForApplication(FObject selfValue, HasAt loc) {
         return getEvalEnv();
     }
 

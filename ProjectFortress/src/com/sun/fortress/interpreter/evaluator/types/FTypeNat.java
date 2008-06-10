@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.Set;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 
@@ -44,7 +44,7 @@ abstract public class FTypeNat extends FType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<String> tp_set,
+    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         return FType.unifySymbolic(this,env,tp_set,abm,val);
     }

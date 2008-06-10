@@ -31,6 +31,6 @@ value object Chicken extends Monoidish[\ Chicken, OVUM \]
 end
 
 run(args:String...):() =
-  println(if (Chicken EGG Chicken).isChicken() then "PASS" else "FAIL" end)
+  println(if (Chicken EGG Chicken).isChicken() then "PASS" else "FAIL")
 
 end

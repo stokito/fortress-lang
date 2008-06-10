@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.*;
+
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
@@ -71,7 +72,7 @@ public class TypeAnalyzer {
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, WhereClause whereClause) {
         this(enclosing._table, enclosing._staticParamEnv.extend(params, whereClause), enclosing._cache);
     }
-
+    
     private TypeAnalyzer(TraitTable table, StaticParamEnv staticParamEnv, SubtypeCache parentCache) {
         _table = table;
         _staticParamEnv = staticParamEnv;
@@ -81,7 +82,8 @@ public class TypeAnalyzer {
     
     /** Verify that fundamental types are present in the current environment. */
     private void validateEnvironment() {
-        assertTraitIndex(OBJECT.getName());
+        // TODO NEB: Reinsert the following call after Jan puts Object into the library
+    	// assertTraitIndex(OBJECT.getName());
     }
     
     /** Verify that the given name is defined and is a TraitIndex. */
@@ -94,6 +96,19 @@ public class TypeAnalyzer {
         }
     }
 
+    /**
+     * Factory method for creating empty type analyzers.
+     */
+    public static TypeAnalyzer make(TraitTable _table) {
+    	return new TypeAnalyzer(_table);
+    }
+    
+    /**
+     * Extend this type analyzer with the given static parameters and WhereClause constraints.
+     */
+    public TypeAnalyzer extend(List<StaticParam> params, WhereClause whereClause) {
+    	return new TypeAnalyzer(this, params, whereClause);
+    }
 
     /**
      * <p>Convert the type to a normal form.  The argument is assumed to be
@@ -593,8 +608,12 @@ public class TypeAnalyzer {
                 result = result.or(f, h);
                 if (result.isTrue()) { break; }
             }
-            if (!s.equals(OBJECT)) {
-                result = result.or(sub(OBJECT, t, h), h);
+            // TODO NEB: Reinsert the following conditional after Jan puts object into the library
+//            if (!s.equals(OBJECT)) {
+//                result = result.or(sub(OBJECT, t, h), h);
+//            }
+            if( !s.equals(ANY) ) {
+            	result = result.or(sub(ANY,t,h), h);
             }
         }
         return result;
@@ -1019,6 +1038,17 @@ public class TypeAnalyzer {
         public String toString() {
           return IterUtil.multilineToString(_entries) + "\n" + _expansions + " expansions";
         }
+        
+        public SubtypeHistory combine(SubtypeHistory h){
+        	int newexpand = Math.max(this._expansions,h._expansions);
+        	Relation<Type,Type> newrel= new HashRelation<Type,Type>();
+        	newrel.addAll(this._entries);
+        	newrel.addAll(h._entries);
+        	// TODO: NEB we are trying this out but we are not
+        	// sure why we should choose the other one.
+        	return new SubtypeHistory(newrel, newexpand);
+        }
+        
     }
 
 

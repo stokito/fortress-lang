@@ -30,11 +30,10 @@ run(args:String...):() = do
   y : WrapZZ = WrapZZ(7)
   z = x y
   w = x + y
-  print("z = " z.n "\nw = " w.n "\n")
+  println("z = " z.n // "w = " w.n)
   if z.n =/= 35 OR w.n =/= 12 then
-    print("EXPECTED 35 and 12\n")
+    println("EXPECTED 35 and 12")
     1 / 0
-    print("")
   end
 end
 

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import edu.rice.cs.plt.iter.IterUtil;
 
+import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -37,7 +38,9 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Visitor2;
 
 
 class LeafEnv extends CommonEnv {
@@ -435,5 +438,142 @@ class LeafEnv extends CommonEnv {
         if (var_env != null)
             return var_env.keySet().iterator();
         return Collections.<String>emptySet().iterator();
+    }
+
+    public void bless() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public Environment extend(Environment additions) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Environment extend() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Environment extendAt(HasAt x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public HasAt getAt() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean getBlessed() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public Closure getClosure(String toBeRun) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Number getIntNull(String s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getValueRaw(String s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Environment installPrimitives() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean isTopLevel() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void noteName(String s) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putFunctionalMethodInstance(String fndodname, FValue cl) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putInt(String add_as, Number cnnf) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putValueNoShadowFn(String fndodname, FValue cl) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putValueShadowFn(String fname, FValue cl) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putValueUnconditionally(String name, FValue value, FType ft) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putVariable(String s, FValue value) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putVariable(String string, FType fvt) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putVariablePlaceholder(String sname) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void removeType(String s) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void removeVar(String name) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void storeType(HasAt x, String sname, FType ft) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void visit(Visitor2<String, Object> nameCollector) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void visit(Visitor2<String, FType> vt, Visitor2<String, Number> vn,
+            Visitor2<String, Number> vi, Visitor2<String, FValue> vv,
+            Visitor2<String, Boolean> vb) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public Iterable<String> youngestFrame() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setTopLevel() {
+        // TODO Auto-generated method stub
+        
     }
 }

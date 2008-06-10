@@ -37,7 +37,7 @@ object End[\T\](x:T) extends List[\T\]
 end
 
 
-t(b:Boolean) = println (if b then "pass" else "fail" end)
+t(b:Boolean) = println (if b then "pass" else "fail")
 
 run(args:String...):()=do
   wun=End[\String\]("cat", "extraparameter") (* should fail here *)

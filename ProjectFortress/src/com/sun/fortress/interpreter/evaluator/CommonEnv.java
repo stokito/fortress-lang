@@ -44,7 +44,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.Environment#genericLeafEnvHack(com.sun.fortress.interpreter.evaluator.SpineEnv)
      */
-    public BetterEnv genericLeafEnvHack(BetterEnv genericEnv, HasAt within) {
+    public Environment genericLeafEnvHack(Environment genericEnv, HasAt within) {
         return NI.na("This only works for SpineEnv");
     }
 

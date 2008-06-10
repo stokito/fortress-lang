@@ -23,18 +23,15 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.List;
 import java.util.SortedSet;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierValue;
-import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -43,7 +40,7 @@ import com.sun.fortress.useful.Useful;
 
 public abstract class FTraitOrObjectOrGeneric extends FType {
 
-    protected FTraitOrObjectOrGeneric(String s, BetterEnv env, AbstractNode def) {
+    protected FTraitOrObjectOrGeneric(String s, Environment env, AbstractNode def) {
         super(s);
         this.env = env;
         this.decl = def;
@@ -59,7 +56,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
 
     List<? extends AbsDeclOrDecl> members;
 
-    BetterEnv env;
+    Environment env;
 
     boolean functionalMethodsFinished;
 
@@ -76,7 +73,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     }
 
     @Override
-    final public BetterEnv getWithin() {
+    final public Environment getWithin() {
         return env;
     }
 
@@ -88,7 +85,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         initializeFunctionalMethods(getWithin());
 
     }
-    public final void initializeFunctionalMethods(BetterEnv topLevel) {
+    public final void initializeFunctionalMethods(Environment topLevel) {
         if (isSymbolic)
             return;
         FTraitOrObjectOrGeneric x = this;
@@ -155,12 +152,12 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     public void finishFunctionalMethods() {
         if (functionalMethodsFinished)
             return;
-        BetterEnv topLevel = getWithin();
+        Environment topLevel = getWithin();
         finishFunctionalMethods(topLevel);
         functionalMethodsFinished = true;
     }
 
-    public void finishFunctionalMethods(BetterEnv topLevel) {
+    public void finishFunctionalMethods(Environment topLevel) {
         if (isSymbolic)
             return;
 

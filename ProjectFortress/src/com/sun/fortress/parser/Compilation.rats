@@ -109,9 +109,7 @@ private Component Component =
            yyValue = new Component(span, true, a2, a3, a4, a5);
      };
 
-/* Api ::=
-     (native w)? api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
- */
+/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
 private Api Api =
      native w api w APIName (w Imports w semicolon?)?
      (w AbsDecls w semicolon?)? w end    // Error production
@@ -203,7 +201,7 @@ private List<IdOrOpOrAnonymousName> SimpleNameList =
 
 /* AliasedSimpleName ::=
      Id (w as w Id)?
-   | opr w Op (w as w Op)?
+   | opr w (Encloser / Op) (w as w (Encloser / Op))?
    | opr w EncloserPair (w as w EncloserPair)?
  */
 private AliasedSimpleName AliasedSimpleName =
@@ -214,7 +212,7 @@ private AliasedSimpleName AliasedSimpleName =
        else
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      }
-   / opr w a1:Op a2:(w as w Op)?
+   / opr w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
      { Span span = createSpan(yyStart,yyCount);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1);

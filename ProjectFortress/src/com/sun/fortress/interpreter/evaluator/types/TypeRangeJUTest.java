@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import junit.framework.TestCase;
 
 public class TypeRangeJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 

@@ -23,8 +23,11 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
 import com.sun.fortress.nodes.*;
@@ -55,7 +58,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private StaticParamEnv staticParamEnv;
     private TypeEnv typeEnv;
     private final CompilationUnitIndex compilationUnit;
-    private final SubtypeChecker subtypeChecker;
+    //private final SubtypeChecker subtypeChecker;
+    private final TypeAnalyzer subtypeChecker;
     private final Map<Id, Option<Set<Type>>> labelExitTypes; // Note: this is mutable state.
 
     public TypeChecker(TraitTable _table,
@@ -67,7 +71,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         staticParamEnv = _staticParams;
         typeEnv = _typeEnv;
         compilationUnit = _compilationUnit;
-        subtypeChecker = SubtypeChecker.make(table);
+        subtypeChecker = TypeAnalyzer.make(table);
         labelExitTypes = new HashMap<Id, Option<Set<Type>>>();
     }
 
@@ -75,7 +79,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                        StaticParamEnv _staticParams,
                        TypeEnv _typeEnv,
                        CompilationUnitIndex _compilationUnit,
-                       SubtypeChecker _subtypeChecker,
+                       TypeAnalyzer _subtypeChecker,
                        Map<Id, Option<Set<Type>>> _labelExitTypes)
     {
         table = _table;
@@ -98,6 +102,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return NodeFactory.makeTupleType(results);
     }
 
+    /**
+     * Given a qualified ID, returns an unqualified version with the same span.
+     */
+    private static Id unqualifiedIdFromId(Id id) {
+    	return new Id(id.getSpan(), id.getText());
+    }
+    
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
         return new TypeChecker(table,
                                staticParamEnv.extend(newStaticParams, whereClause),
@@ -209,10 +220,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      * for the given node with the a TypeError and the given error message will be returned.
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, String error) {
-        if (!subtypeChecker.subtype(subtype, supertype)) {
+    	ConstraintFormula constraint = subtypeChecker.subtype(subtype, supertype); 
+    	if( !constraint.isSatisfiable() ) {
+    		// note that if it's satisfiable, it could still be later found to not be
             return new TypeCheckerResult(ast, TypeError.make(error, ast));
         } else {
-            return new TypeCheckerResult(ast);
+            return new TypeCheckerResult(ast, constraint);
         }
     }
 
@@ -224,10 +237,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      * for the given node with the a TypeError and the given error message will be returned.
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, Type resultType, String error) {
-        if (!subtypeChecker.subtype(subtype, supertype)) {
+    	ConstraintFormula constraint = subtypeChecker.subtype(subtype, supertype); 
+    	if( !constraint.isSatisfiable() ) {
+    		// note that if it's satisfiable, it could still be later found to not be
             return new TypeCheckerResult(ast, resultType, TypeError.make(error, ast));
         } else {
-            return new TypeCheckerResult(ast, resultType);
+            return new TypeCheckerResult(ast, resultType, constraint);
         }
     }
 
@@ -242,7 +257,75 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                               name);
     }
 
-    /** Ignore unsupported nodes for now. */
+    
+    @Override
+	public TypeCheckerResult forFnExpr(FnExpr that) {
+    	
+    	// Fn expressions have arrow type. They cannot have static arguments.
+    	// They cannot have where clauses.
+    	
+    	// Ignore b/c we don't want to look up the name
+    	// TypeCheckerResult name_result = that.getName().accept(this);
+        
+    	// Should be impossible
+    	//List<TypeCheckerResult> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+        
+        Option<TypeCheckerResult> returnType_result = recurOnOptionOfType(that.getReturnType());
+        
+        //TypeCheckerResult where_result = that.getWhere().accept(this);
+        
+        List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>();
+        
+        Option<List<TypeCheckerResult>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
+        
+        
+        List<TypeCheckerResult> params_result = recurOnListOfParam(that.getParams());
+    	// Grab bindings and introduce them. For the time-being, they must have types.        
+        TypeChecker extended_checker = this;
+        for( Param p : that.getParams() ) {
+        	extended_checker = extended_checker.extend(p);
+        }
+        TypeCheckerResult body_result = that.getBody().accept(extended_checker);
+
+        // Get all results together
+        all_results.addAll(params_result);
+        all_results.add(body_result);
+        if( returnType_result.isSome() )
+        	all_results.add(returnType_result.unwrap());
+        if( throwsClause_result.isSome() )
+        	all_results.addAll(throwsClause_result.unwrap());
+        
+        // If return type is given, we check that it is a supertype of the inferred super-type
+        // and we use it, otherwise the return type is what we infer.
+        Type return_type;
+        if( body_result.type().isNone() ) {
+        	// We've got errors in the body
+        	return_type = Types.BOTTOM;
+        }
+        else if( that.getReturnType().isSome() ) {
+        	return_type = that.getReturnType().unwrap();
+        	TypeCheckerResult subtype_result = 
+        		this.checkSubtype(body_result.type().unwrap(), return_type, that.getBody(),
+        				"Type of body of Fn expression must be a subtype of declared return type ("+
+        				return_type +") but is " + body_result.type().unwrap() +".");
+        	all_results.add(subtype_result);
+        }
+        else {
+        	return_type = body_result.type().unwrap();
+        }
+        
+        // All throws types must be a subtype of exception
+        if( that.getThrowsClause().isSome() ) {
+        	for( BaseType exn : that.getThrowsClause().unwrap() ) {
+        		all_results.add(this.checkSubtype(exn, Types.EXCEPTION, that,
+        				"Types in throws clause must be subtypes of Exception, but "+
+        				exn + " is not."));
+        	}
+        }
+        return TypeCheckerResult.compose(that, return_type, this.subtypeChecker, all_results);
+	}
+
+	/** Ignore unsupported nodes for now. */
     /*public TypeCheckerResult defaultCase(Node that) {
         return new TypeCheckerResult(that, Types.VOID, IterUtil.<TypeError>empty());
     }*/
@@ -279,7 +362,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                (Contract)contractResult.ast(),
                                                that.getSelfName(),
                                                (Expr)bodyResult.ast()),
-                                     contractResult, bodyResult, result);
+                                     subtypeChecker, contractResult, bodyResult, result);
     }
 
 
@@ -303,7 +386,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
                                                                  lhs,
                                                                  (Expr)initResult.ast()),
-                                                     initResult);
+                                                     subtypeChecker, initResult);
                 }
                 return checkSubtype(initResult.type().unwrap(),
                                     varType.unwrap(),
@@ -323,7 +406,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
                                                              lhs,
                                                              (Expr)initResult.ast()),
-                                                 initResult);
+                                                 subtypeChecker, initResult);
             }
             return checkSubtype(initResult.type().unwrap(),
                                 varType,
@@ -332,7 +415,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          "with an expression of type ", initResult.type().unwrap()));
         }
     }
+    
 
+    
     public TypeCheckerResult forId(Id name) {
         Option<APIName> apiName = name.getApi();
         if (apiName.isSome()) {
@@ -344,7 +429,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
             }
 
-            Option<Type> type = apiTypeEnv.type(name);
+            Option<Type> type = apiTypeEnv.type(unqualifiedIdFromId(name));
             if (type.isSome()) {
                 Type _type = type.unwrap();
                 if (_type instanceof NamedType) { // Do we need to qualify?
@@ -446,51 +531,32 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
     
-    
-    
-	@Override
-	public TypeCheckerResult for_RewriteFieldRef(_RewriteFieldRef that) {
-		// TODO Auto-generated method stub
-		return super.for_RewriteFieldRef(that);
-	}
-
-	@Override
-	public TypeCheckerResult for_RewriteFieldRefOnly(_RewriteFieldRef that,
-			TypeCheckerResult obj_result, TypeCheckerResult field_result) {
-		// TODO Auto-generated method stub
-		return super.for_RewriteFieldRefOnly(that, obj_result, field_result);
-	}
-
-	@Override
-	public TypeCheckerResult forFieldRefForSure(FieldRefForSure that) {
-		// TODO Auto-generated method stub
-		return super.forFieldRefForSure(that);
-	}
-
-	@Override
-	public TypeCheckerResult forFieldRefOnly(FieldRef that,
-			TypeCheckerResult obj_result, TypeCheckerResult field_result) {
 	
-		return super.forFieldRefOnly(that, obj_result, field_result);
-	}
+	
 
+	
 	public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
         Option<Type> varType = var_result.type();
         if (varType.isSome()) {
-            return TypeCheckerResult.compose(that, varType.unwrap(), var_result);
+            return TypeCheckerResult.compose(that, varType.unwrap(), subtypeChecker, var_result);
         } else {
-            return TypeCheckerResult.compose(that, var_result);
+            return TypeCheckerResult.compose(that, subtypeChecker, var_result);
         }
     }
 
+	private static TypeChecker addSelf(Id name, TypeChecker newChecker, List<StaticParam> static_params){
+    	TraitType self_type = NodeFactory.makeTraitType(name,TypeEnv.staticParamsToArgs(static_params));
+    	return newChecker.extend(Collections.singletonList(NodeFactory.makeLValue("self", self_type)));
+    }
+	
     public TypeCheckerResult forObjectDecl(ObjectDecl that) {
-        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
+        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
         TypeCheckerResult nameResult = that.getName().accept(this);
-        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
-        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfStaticParam(that.getStaticParams()));
+        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
         TypeCheckerResult whereResult = that.getWhere().accept(this);
-        TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfParam(that.getParams()));
-        TypeCheckerResult throwsClauseResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfBaseType(that.getThrowsClause()));
+        TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnOptionOfListOfParam(that.getParams()));
+        TypeCheckerResult throwsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnOptionOfListOfBaseType(that.getThrowsClause()));
 
         TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
@@ -500,7 +566,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         for (Decl decl: that.getDecls()) {
             if (decl instanceof VarDecl) {
                 VarDecl _decl = (VarDecl)decl;
-                fieldsResult = TypeCheckerResult.compose(that, _decl.accept(newChecker), fieldsResult);
+                fieldsResult = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(newChecker), fieldsResult);
                 newChecker = newChecker.extend(_decl.getLhs());
             }
         }
@@ -511,31 +577,36 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
 
+        // Extend checker with self
+        
+        newChecker = TypeChecker.addSelf(that.getName(),newChecker,thatIndex.staticParameters());
+
+        
         TypeCheckerResult methodsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
             if (decl instanceof FnDecl) {
-                methodsResult = TypeCheckerResult.compose(that, decl.accept(newChecker), methodsResult);
+                methodsResult = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(newChecker), methodsResult);
             }
         }
 
-        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult,
-                                         extendsClauseResult, whereResult, paramsResult, throwsClauseResult,
-                                         contractResult, fieldsResult, methodsResult);
+        return TypeCheckerResult.compose(that, subtypeChecker, modsResult, nameResult,
+                                         staticParamsResult, extendsClauseResult, whereResult, paramsResult,
+                                         throwsClauseResult, contractResult, fieldsResult, methodsResult);
     }
 
     public TypeCheckerResult forTraitDecl(TraitDecl that) {
-        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
-        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
-        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
+        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfStaticParam(that.getStaticParams()));
+        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
         TypeCheckerResult whereResult = that.getWhere().accept(this);
-        TypeCheckerResult excludesResult = TypeCheckerResult.compose(that, recurOnListOfBaseType(that.getExcludes()));
+        TypeCheckerResult excludesResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfBaseType(that.getExcludes()));
 
         TypeCheckerResult comprisesResult = new TypeCheckerResult(that);
         Option<List<BaseType>> comprises = that.getComprises();
         if (comprises.isSome()) {
             comprisesResult =
                 TypeCheckerResult.compose
-                    (that, recurOnOptionOfListOfBaseType(that.getComprises()).unwrap());
+                    (that, subtypeChecker, recurOnOptionOfListOfBaseType(that.getComprises()).unwrap());
         }
 
         TypeChecker newChecker = this.extend(that.getStaticParams(), that.getWhere());
@@ -546,7 +617,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             if (decl instanceof VarDecl) {
                 VarDecl _decl = (VarDecl)decl;
 
-                fieldsResult = TypeCheckerResult.compose(that, _decl.accept(newChecker), fieldsResult);
+                fieldsResult = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(newChecker), fieldsResult);
                 newChecker = newChecker.extend(_decl.getLhs());
             }
         }
@@ -556,30 +627,23 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
-
+        //add self param
+        newChecker = TypeChecker.addSelf(that.getName(),newChecker,thatIndex.staticParameters());
+        
         TypeCheckerResult methodsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
             if (decl instanceof FnDecl) {
-                methodsResult = TypeCheckerResult.compose(that, decl.accept(newChecker), methodsResult);
+                methodsResult = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(newChecker), methodsResult);
             }
         }
 
-        return TypeCheckerResult.compose(that, modsResult, staticParamsResult,
-                                         extendsClauseResult, whereResult, excludesResult, comprisesResult,
-                                         fieldsResult, methodsResult);
+        return TypeCheckerResult.compose(that, subtypeChecker, modsResult,
+                                         staticParamsResult, extendsClauseResult, whereResult, excludesResult,
+                                         comprisesResult, fieldsResult, methodsResult);
     }
 
-//    public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
-//        if (var_result.isSome()) {
-//            return new TypeCheckerResult(that, varType);
-//        } else {
-//            TypeError error =
-//                TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
-//                                 that);
-//            return new TypeCheckerResult(that, error);
-//        }
-//    }
-
+    
+    
     public TypeCheckerResult forIfOnly(If that,
                                        List<TypeCheckerResult> clauses_result,
                                        Option<TypeCheckerResult> elseClause_result) {
@@ -599,8 +663,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
             return TypeCheckerResult.compose(that,
                                              subtypeChecker.join(clauseTypes),
-                                             TypeCheckerResult.compose(that, clauses_result),
-                                             TypeCheckerResult.compose(that, elseResult));
+                                             subtypeChecker,
+                                             TypeCheckerResult.compose(that, subtypeChecker, clauses_result), TypeCheckerResult.compose(that, subtypeChecker, elseResult));
         } else {
             // Check that each if/elif clause has void type
             TypeCheckerResult result = new TypeCheckerResult(that);
@@ -609,8 +673,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     Type clauseType = clauseResult.type().unwrap();
                     result = TypeCheckerResult.compose(
                         that,
-                        result,
-                        checkSubtype(clauseType,
+                        subtypeChecker,
+                        result, checkSubtype(clauseType,
                                      Types.VOID,
                                      that,
                                      errorMsg("An 'if' clause without corresponding 'else' has type ",
@@ -619,11 +683,27 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
             return TypeCheckerResult.compose(that,
                                              Types.VOID,
-                                             TypeCheckerResult.compose(that, clauses_result),
-                                             result);
+                                             subtypeChecker,
+                                             TypeCheckerResult.compose(that, subtypeChecker, clauses_result), result);
         }
     }
 
+    @Override
+    public TypeCheckerResult forIfClause(IfClause that) {
+    	// For generalized 'if' we must introduce new bindings.
+    	Pair<TypeCheckerResult, List<LValueBind>> result_and_binds =
+    		this.forGeneratorClauseGetBindings(that.getTest(), true);
+    	
+    	// Destruct result
+    	TypeCheckerResult test_result = result_and_binds.first();
+    	List<LValueBind> bindings = result_and_binds.second();
+    	
+    	// Check body with new bindings
+    	TypeChecker tc_with_new_bindings = this.extend(bindings);
+    	TypeCheckerResult body_result = that.getBody().accept(tc_with_new_bindings);
+        return forIfClauseOnly(that, test_result, body_result);
+    }
+    
     public TypeCheckerResult forIfClauseOnly(IfClause that,
                                              TypeCheckerResult test_result,
                                              TypeCheckerResult body_result) {
@@ -635,27 +715,157 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Type testType = test_result.type().unwrap();
             result = TypeCheckerResult.compose(
                 that,
+                subtypeChecker,
                 checkSubtype(testType,
                              Types.BOOLEAN,
                              that,
                              errorMsg("Attempt to use expression of type ", testType, " ",
-                                      "as a test condition")),
-                result);
+                                      "as a test condition")), result);
         }
 
         // IfClause's type is body's type.
         if (body_result.type().isSome()) {
-            return TypeCheckerResult.compose(that, body_result.type().unwrap(), test_result, body_result, result);
+            return TypeCheckerResult.compose(that, 
+            		body_result.type().unwrap(), subtypeChecker, test_result, body_result, result);
         } else {
-            return TypeCheckerResult.compose(that, test_result, body_result, result);
+            return TypeCheckerResult.compose(that, subtypeChecker, test_result, body_result, result);
         }
     }
 
+    private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseGetBindings(GeneratorClause that, 
+    		                                                                        boolean mustBeCondition) {
+        // We just don't visit the Ids at all, and let a different pass handle shadowing    	
+        TypeCheckerResult init_result = that.getInit().accept(this);
+        return forGeneratorClauseOnlyGetBindings(that, init_result, mustBeCondition);
+    }
+    
+    /**
+     * Returns a type checker result and the a Type that is the type of the
+     * generator. The given type is checked to be a sub-type of
+     * Generator[\T\] where T is an inference variable, and the inferred type
+     * T is returned.
+     */
+    private Pair<TypeCheckerResult, Type> getGeneratorType(Type sub, Node ast, String error) {
+    	Type infer_type = NodeFactory.makeInferenceVarType();
+    	Type generator_type = Types.makeGeneratorType(infer_type);
+    	TypeCheckerResult result = this.checkSubtype(sub, generator_type, ast, error);
+    	
+    	return Pair.make( result, infer_type );
+    }
+    
+    /**
+     * Returns a type checker result and the a Type that is the type of the
+     * condition. The given type is checked to be a sub-type of
+     * Condition[\T\] where T is an inference variable, and the inferred type
+     * T is returned.
+     */
+    private Pair<TypeCheckerResult, Type> getConditionType(Type sub, Node ast, String error) {
+    	Type infer_type = NodeFactory.makeInferenceVarType();
+    	Type generator_type = Types.makeConditionType(infer_type);
+    	TypeCheckerResult result = this.checkSubtype(sub, generator_type, ast, error);
+    	
+    	return Pair.make( result, infer_type );
+    }
+    
+    private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseOnlyGetBindings(GeneratorClause that,
+            TypeCheckerResult init_result, boolean mustBeCondition) {
+    	
+    	if( init_result.type().isNone() ) {
+    		// Subexpr failed, we can go no further
+    		return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, init_result), 
+    				Collections.<LValueBind>emptyList());
+    	}
+    	
+    	if( that.getBind().isEmpty() ) {
+        	// If bindings are empty, then init_result must be of type boolean, a filter, 13.14
+    		TypeCheckerResult bool_result =
+    		this.checkSubtype(init_result.type().unwrap(), Types.BOOLEAN, that.getInit(), 
+    				"Filter expressions in generator clauses must have type boolean, but " +
+    				that.getInit() + " had type " + init_result.type().unwrap() + ".");
+    		
+    		return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, init_result, bool_result),
+    				Collections.<LValueBind>emptyList());
+    	}
+    	
+    	// Otherwise, we may actually have bindings!
+    	Type init_type = init_result.type().unwrap();
+		String type_err_msg = "Init expression of generator must be a sub-type of " +
+			(mustBeCondition ? "Condition" : "Generator") +
+			" but is type " + init_result.type().unwrap() + ".";
+    	// Get the type of the Generator
+		Pair<TypeCheckerResult, Type> generator_pair = 
+			mustBeCondition ? this.getConditionType(init_type, that.getInit(), type_err_msg) :
+				 	          this.getGeneratorType(init_type, that.getInit(), type_err_msg);
+		
+		Type generator_type = generator_pair.second();
+		TypeCheckerResult this_result = generator_pair.first();
+		int bindings_count = that.getBind().size();
+		
+		List<LValueBind> result_bindings;
+		// Now create the bindings
+		if( bindings_count == 1 ){
+    		// Just one binding
+    		LValueBind lval = NodeFactory.makeLValue(that.getBind().get(0), generator_type);
+    		result_bindings = Collections.singletonList(lval);
+    	}
+    	else {
+    		// Because generator_type is almost certainly a InferenceVar, we have to declare a new tuple
+    		// that is the size of the binding and declare one to be a sub-type of the other.
+    		List<Type> inference_vars = new ArrayList<Type>(bindings_count);
+    		for( int i = 0; i<bindings_count;i++ ) {
+    			inference_vars.add(NodeFactory.makeInferenceVarType());
+    		}
+    		// Assert that this new tuple type is a subtype of the generator type
+    		String tup_err_msg = "If more than one variable is bound in a generator, generator must have tuple type "+
+    			"but " + that.getInit() + " does not or has different number of arguments.";
+    		TypeCheckerResult tuple_result = 
+    			this.checkSubtype(Types.makeTuple(inference_vars), generator_type, that.getInit(), tup_err_msg);
+    		this_result = TypeCheckerResult.compose(that, subtypeChecker, tuple_result, this_result);
+    		// Now just create the lvalues with the newly created inference variable type
+    		Iterator<Id> id_iter = that.getBind().iterator();
+    		result_bindings = new ArrayList<LValueBind>(bindings_count);
+    		for( Type inference_var : inference_vars ) {
+    			result_bindings.add(NodeFactory.makeLValue(id_iter.next(), inference_var));
+    		}	
+    	}
+    	return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, this_result, init_result), result_bindings);
+    }
+    
+    // In the end, this whole method may be pointless. We probably want a method that will
+    // return the bindings so that other methods can actually use this.
     public TypeCheckerResult forGeneratorClauseOnly(GeneratorClause that,
                                                     List<TypeCheckerResult> bind_result,
                                                     TypeCheckerResult init_result) {
-        TypeCheckerResult result = new TypeCheckerResult(that);
-        return TypeCheckerResult.compose(that, init_result, result);
+    	
+    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(bind_result.size()+2);
+    	all_results.addAll(bind_result);
+    	all_results.add(init_result);
+    	
+    	if( init_result.type().isNone() ) {
+    		// Subexpr failed, we can go no further
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    	}
+    	
+    	if( bind_result.isEmpty() ) {
+        	// If bindings are empty, then init_result must be of type boolean, a filter, 13.14
+    		TypeCheckerResult bool_result =
+    		this.checkSubtype(init_result.type().unwrap(), Types.BOOLEAN, that.getInit(), 
+    				"Filter expressions in generator clauses must have type boolean, but " +
+    				that.getInit() + " had type " + init_result.type().unwrap() + ".");
+    		
+    		all_results.add(bool_result);
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    	}
+    	
+    	// Otherwise, init expr must have type generator, 13.14
+    	// I don't think that passing 'any' to make generator type will work...
+		TypeCheckerResult gen_result =
+    		this.checkSubtype(init_result.type().unwrap(), Types.makeGeneratorType(Types.ANY), that.getInit(), 
+    				"Generator initializers must have type Generator, but " +
+    				that.getInit() + " had type " + init_result.type().unwrap() + ".");
+    		
+    	all_results.add(gen_result);
+    	return TypeCheckerResult.compose(that, subtypeChecker, all_results);
     }
 
     public TypeCheckerResult forDoOnly(Do that, List<TypeCheckerResult> fronts_result) {
@@ -666,7 +876,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 frontTypes.add(frontResult.type().unwrap());
             }
         }
-        return TypeCheckerResult.compose(that, subtypeChecker.join(frontTypes), fronts_result);
+        return TypeCheckerResult.compose(that, subtypeChecker.join(frontTypes), subtypeChecker, fronts_result);
     }
 
     public TypeCheckerResult forDoFront(DoFront that) {
@@ -683,15 +893,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             if (result.type().isSome()) {
                 Type locType = result.type().unwrap();
                 result = TypeCheckerResult.compose(that,
-                                                   result,
-                                                   checkSubtype(locType,
+                                                   subtypeChecker,
+                                                   result, checkSubtype(locType,
                                                                 Types.REGION,
                                                                 loc,
                                                                 errorMsg("Location of 'do' block must ",
                                                                          "have type Region: ", locType)));
             }
         }
-        return TypeCheckerResult.compose(that, bodyResult.type(), bodyResult, result);
+        return TypeCheckerResult.compose(that, bodyResult.type(), subtypeChecker, bodyResult, result);
     }
 
     public TypeCheckerResult forFnRefOnly(FnRef that,
@@ -711,10 +921,52 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         return TypeCheckerResult.compose(that,
                                          type,
-                                         TypeCheckerResult.compose(that, fns_result),
-                                         TypeCheckerResult.compose(that, staticArgs_result));
+                                         subtypeChecker,
+                                         TypeCheckerResult.compose(that, subtypeChecker, fns_result), TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
     }
 
+    
+    
+    @Override
+    public TypeCheckerResult forFor(For that) {
+        Pair<List<TypeCheckerResult>,List<LValueBind>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
+        TypeChecker extend = this.extend(pair.second());
+        TypeCheckerResult body_result = that.getBody().accept(extend);
+        return forForOnly(that, pair.first(), body_result);
+    }
+ 
+   private Pair<List<TypeCheckerResult>, List<LValueBind>> recurOnListsOfGeneratorClauseBindings(List<GeneratorClause> gens){
+	   GeneratorClause gen = gens.get(0);
+	   Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(gen, false);
+	   if(gens.size()>1){
+		   TypeChecker extend = this.extend(pair.second());
+		   Pair<List<TypeCheckerResult>,List<LValueBind>> pair2 =extend.recurOnListsOfGeneratorClauseBindings(gens.subList(1, gens.size()-1));
+		   pair2.first().add(0,pair.first());
+		   pair2.second().addAll(0,pair.second());
+		   return pair2;
+	   } else
+		   return Pair.make(Collections.singletonList(pair.first()), pair.second());
+	   
+   }
+    
+    @Override
+    public TypeCheckerResult forForOnly(For that, List<TypeCheckerResult> gens_result, TypeCheckerResult body_result) {
+    	
+    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(gens_result);
+		all_results.add(body_result);
+    	if(body_result.type().isNone()){
+			return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, all_results);
+		}
+		
+		if( !body_result.type().unwrap().equals(Types.VOID) ) {
+			all_results.add(new TypeCheckerResult(that, 
+					TypeError.make("Body of while loop must have type (), but had type " +
+							body_result.type().unwrap(), that.getBody())));
+		}
+		
+		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, all_results);
+    }
+    
     public TypeCheckerResult forOpRefOnly(OpRef that,
                                           List<TypeCheckerResult> ops_result,
                                           List<TypeCheckerResult> staticArgs_result) {
@@ -731,16 +983,27 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                 Option.<Type>some(new IntersectionType(overloadedTypes));
         return TypeCheckerResult.compose(that,
                                          type,
-                                         TypeCheckerResult.compose(that, ops_result),
-                                         TypeCheckerResult.compose(that, staticArgs_result));
+                                         subtypeChecker,
+                                         TypeCheckerResult.compose(that, subtypeChecker, ops_result), TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
     }
 
     public TypeCheckerResult forBlockOnly(Block that, List<TypeCheckerResult> exprs_result) {
-        // Type is type of last expression or void if none.
+    	// Type is type of last expression or void if none.
         if (exprs_result.isEmpty()) {
-            return TypeCheckerResult.compose(that, Types.VOID, exprs_result);
+            return TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, exprs_result);
         } else {
-            return TypeCheckerResult.compose(that, exprs_result.get(exprs_result.size()-1).type(), exprs_result);
+        	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(2*exprs_result.size()-1);
+        	all_results.addAll(exprs_result);
+        	// every other expression except for the last must be void
+        	String void_err = "All expressions except the last in a block must have VOID type.";
+        	for( int i=0; i<exprs_result.size()-1; i++ ) {
+        		TypeCheckerResult r_i = exprs_result.get(i);
+        		if( r_i.type().isSome() ) {
+        			all_results.add(this.checkSubtype(r_i.type().unwrap(), 
+        					Types.VOID, that.getExprs().get(i), void_err));
+        		}
+        	}        	
+            return TypeCheckerResult.compose(that, exprs_result.get(exprs_result.size()-1).type(), subtypeChecker, all_results);
         }
     }
 
@@ -753,25 +1016,293 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         TypeChecker newChecker = this.extendWithFnDefs(fnDefs);
         for (FnDef fnDef : that.getFns()) {
-            result = TypeCheckerResult.compose(that, result, fnDef.accept(newChecker));
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, fnDef.accept(newChecker));
         }
         result = TypeCheckerResult.compose(that,
-                                           result,
-                                           TypeCheckerResult.compose(that,
-                                                                     newChecker.recurOnListOfExpr(that.getBody())));
+                                           subtypeChecker,
+                                           result, TypeCheckerResult.compose(that,
+                                                                     subtypeChecker, newChecker.recurOnListOfExpr(that.getBody())));
         return result;
     }
 
-    public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
+    /**
+     * For method calls, return a constraint formula matching the parameters to 
+     * the type of the argument. Assumes that this is being used for a method call,
+     * because it makes some assumptions about the type of the argument.
+     */
+	private ConstraintFormula argsMatchParams(List<Param> params, Type arg_type) {
+		final int arg_size;
+		if( arg_type instanceof TupleType )
+			arg_size = ((TupleType)arg_type).getElements().size();
+		else if( arg_type instanceof VoidType )
+			arg_size = 0;
+		else
+			arg_size = 1;
+		
+		//handle domain
+		Type domain_type;
+    	if(!params.isEmpty()) {
+    		
+    		// Regular parameters & var args
+    		List<Type> param_types =
+    		IterUtil.fold(params, new LinkedList<Type>(), new Lambda2<LinkedList<Type>,Param,LinkedList<Type>>(){
+				// How many types have we accumulated thus far?
+				int typeCount = 0;
+    			
+    			public LinkedList<Type> value(LinkedList<Type> arg0, Param arg1) {
+    				if( arg1 instanceof NormalParam ) {
+    					typeCount++;
+    					arg0.add(((NormalParam)arg1).getType().unwrap());
+    					return arg0;
+    				}
+    				else { // VarargParam, add until the sizes are equal
+    					int to_add = arg_size - typeCount;
+    					while( to_add > 0 ) { 
+    					  arg0.add(((VarargsParam)arg1).getType());
+    					  to_add--;
+    					}
+    					return arg0;
+    				}
+				}});
+			
+			//handle defaults (nyi)
+    		if(params.get(params.size()-1) instanceof NormalParam
+    			&& ((NormalParam)params.get(params.size()-1)).getDefaultExpr().isSome()){
+    			return NI.nyi();
+    		}
+			
+			domain_type = NodeFactory.makeTupleType(param_types);
+    	}
+    	else {
+			//is void
+	    	domain_type = Types.VOID;
+    	}
+    	return this.subtypeChecker.subtype(arg_type, domain_type);
+    }
+	
+	private Option<Type> findFieldInTraitHierarchy(List<Type> supers, FieldRef that) {
+		
+		List<Type> new_supers = new ArrayList<Type>();
+		Option<Type> result = Option.none();
+		
+		for( Type my_super : supers ) {		
+			Option<TraitIndex> is_trait=getIndexOfType(my_super);
+	    	
+			if(is_trait.isSome()){
+	    		TraitIndex trait_index=is_trait.unwrap();
+	    		
+	    		// Map to list of supertypes
+	    		List<Type> extends_types = 
+	    			IterUtil.asList(IterUtil.map(trait_index.extendsTypes(), 
+	    					new Lambda<TraitTypeWhere,Type>(){
+								public Type value(TraitTypeWhere arg0) {
+									return arg0.getType();
+								}}));
+	    		new_supers.addAll(extends_types);
+	    		
+	    		// check if trait has a getter
+	    		Map<Id,Method> getters=trait_index.getters();
+	    		if(getters.containsKey(that.getField())) {
+	    			Method field=getters.get(that.getField());
+	    			return Option.some(field.getReturnType());
+	    		}
+	    		else {
+	    			//check if trait is an object
+	    			if(trait_index instanceof ObjectTraitIndex){
+	    				//Check if object has field
+	    				ObjectTraitIndex object_index=(ObjectTraitIndex)trait_index;
+	    				Map<Id,Variable> fields=object_index.fields();
+	    				if(fields.containsKey(that.getField())){
+	    					Variable field=fields.get(that.getField());
+	    					Option<BindingLookup> type=this.typeEnv.binding(that.getField());
+	    					return Option.some(type.unwrap().getType().unwrap());
+	    				}
+	    			}
+	    			//error no such field
+	    		}
+	    		//error receiver not a trait
+	    	}
+		}
+
+		if( result.isNone() && !new_supers.isEmpty() ) {
+			// recur
+			return this.findFieldInTraitHierarchy(new_supers, that);
+		}
+		else {
+			return Option.none();
+		}
+	}
+	
+	@Override
+	public TypeCheckerResult forFieldRefOnly(FieldRef that,
+			TypeCheckerResult obj_result, TypeCheckerResult field_result) {
+		
+    	// We need the type of the receiver
+    	if( obj_result.type().isNone() ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, obj_result);
+    	}
+    	//check whether receiver can have fields
+    	Type recvr_type=obj_result.type().unwrap();
+    	TypeCheckerResult result;
+    	Option<Type> result_type;
+    	if( recvr_type instanceof TraitType ) {
+    		Option<Type> f_type = this.findFieldInTraitHierarchy(Collections.singletonList(recvr_type), that);
+    		if( f_type.isSome() ) {
+    			result = new TypeCheckerResult(that);
+    			result_type = f_type;
+    		}
+    		else {
+    			String no_field = "Field " + that.getField() + " could not be found in type" +
+    				recvr_type + ".";
+    			result = new TypeCheckerResult(that, TypeError.make(no_field, that));
+    			result_type = Option.none();
+    		}
+    	}
+    	else {
+    		String not_trait = "Receiver of field expression must be a trait or object, but " 
+    			+ recvr_type + " is neither.";
+    		result = new TypeCheckerResult(that, TypeError.make(not_trait, that));
+    		result_type = Option.none();
+    	}
+    	return TypeCheckerResult.compose(that, result_type, this.subtypeChecker, obj_result, result);
+	}
+	
+	private Option<TraitIndex> getIndexOfType(Type rcvr_type){
+    	if( rcvr_type instanceof NamedType ) {
+    		NamedType named_rcvr_type = (NamedType)rcvr_type;
+    		TypeConsIndex index = table.typeCons(named_rcvr_type.getName());
+    		if( index instanceof TraitIndex ) {
+    			return Option.some((TraitIndex)index);
+    		}
+    	}
+    	return Option.none();
+	}
+    
+	private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(List<Type> supers, Type arg_result, MethodInvocation that){
+		Id method_name = that.getMethod();
+		List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
+		List<Method> candidates=new ArrayList<Method>();
+		List<Type> new_supers=new ArrayList<Type>();
+		for(Type type: supers){
+			Option<TraitIndex> is_trait=getIndexOfType(type);
+			if(is_trait.isSome()){
+				TraitIndex trait_index= is_trait.unwrap();
+				List<Type> temp = IterUtil.asList(IterUtil.map(trait_index.extendsTypes(),
+					new Lambda<TraitTypeWhere,Type>(){
+
+						public Type value(TraitTypeWhere arg0) {
+							return arg0.getType();
+						}}
+				));
+				new_supers.addAll(temp);
+				Set<Method> methods_with_name = trait_index.dottedMethods().getSeconds(method_name);
+				//get methods with the right name
+				for( Method m : methods_with_name ) {
+					List<StaticArg> static_args = new ArrayList<StaticArg>(that.getStaticArgs());
+					// same number of static args
+					if( m.staticParameters().size() > 0 && that.getStaticArgs().size() == 0 ) {
+						// we need to infer static arguments
+						List<StaticArg> static_inference_params =
+							IterUtil.asList(
+									IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
+										public StaticArg value(StaticParam arg0) {
+											Type ivt = NodeFactory.makeInferenceVarType();
+											return new TypeArg(ivt);
+										}}
+									));
+						static_args = static_inference_params;
+					}
+					else if(m.staticParameters().size()!=static_args.size()) {
+						// we don't need to infer, and they have different numbers of args
+						continue;
+					}
+					// Same number of static parameters			
+					// Do they have the same number of parameters, or at least can they be matched.
+					// we know this cast works
+					Method im = (Method)m.instantiate(static_args);
+					ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_result);
+					// constraint satisfiable?
+					if(mc.isSatisfiable()) {
+						//add method to candidates
+						candidates.add(im);
+						all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
+					}
+	    				
+	    		}
+			}
+		}
+		if(candidates.isEmpty() && !new_supers.isEmpty()){
+			return findMethodsInTraitHierarchy(new_supers, arg_result,that);
+		}
+		return Pair.make(candidates,all_results);
+	}
+	
+    @Override
+	public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that,
+			TypeCheckerResult obj_result, TypeCheckerResult method_result,
+			List<TypeCheckerResult> staticArgs_result,
+			TypeCheckerResult arg_result) {
+    	
+    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(staticArgs_result.size() + 3);
+    	all_results.add(obj_result);
+    	//all_results.add(method_result); Ignore! This will try to look up method in local context
+    	all_results.addAll(staticArgs_result);
+    	all_results.add(arg_result);
+    	// Did the arguments typecheck?
+    	if( arg_result.type().isNone() ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    	}
+    	// We need the type of the receiver
+    	if( obj_result.type().isNone() ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    	}
+    	// Check whether receiver can have methods
+    	Type recvr_type=obj_result.type().unwrap();
+    	Option<TraitIndex> is_trait=getIndexOfType(recvr_type);
+    	if(is_trait.isNone()){
+    		//error receiver not a trait
+    		String trait_err = "Target of a method invocation must have trait type, while this receiver has type " + recvr_type + ".";
+    		all_results.add(new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj())));
+    		return TypeCheckerResult.compose(that, this.subtypeChecker, all_results);
+    	}
+    	else{
+    		Pair<List<Method>,List<TypeCheckerResult>> candidate_pair = findMethodsInTraitHierarchy(Collections.singletonList(recvr_type),arg_result.type().unwrap(),that);
+    		List<Method> candidates = candidate_pair.first();
+    		all_results.addAll(candidate_pair.second());
+			// Now we join together the results, or return an error if there are no candidates.
+			if(candidates.isEmpty()){
+				String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
+				all_results.add(new TypeCheckerResult(that,TypeError.make(err,that)));
+			}
+			
+			List<Type> ranges = IterUtil.asList(IterUtil.map(candidates, new Lambda<Method,Type>(){
+				public Type value(Method arg0) {
+					return arg0.getReturnType();
+				}}));
+			
+			Type range = this.subtypeChecker.join(ranges);
+			return TypeCheckerResult.compose(that,range,this.subtypeChecker,all_results);
+    	}
+	}
+
+	public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
         TypeCheckerResult result = new TypeCheckerResult(that);
         if (that.getRhs().isSome()) {
-            result = TypeCheckerResult.compose(that, result, that.getRhs().unwrap().accept(this));
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, that.getRhs().unwrap().accept(this));
         }
         TypeChecker newChecker = this.extend(that);
+        
+        // A LocalVarDecl is like a let. It has a body, and it's type is the type of the body
+        List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody());
+        Option<Type> body_type = that.getBody().size() == 0 ? 
+        		Option.<Type>some(Types.VOID) :
+        	    body_results.get(body_results.size()-1).type();
+        
         return TypeCheckerResult.compose(that,
-                                         result,
-                                         TypeCheckerResult.compose(that,
-                                                                   newChecker.recurOnListOfExpr(that.getBody())));
+        		                         body_type,
+                                         subtypeChecker,
+                                         result, TypeCheckerResult.compose(that,
+                                                                   subtypeChecker, body_results));
     }
 
     public TypeCheckerResult forArgExprOnly(ArgExpr that,
@@ -780,17 +1311,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                             List<TypeCheckerResult> keywords_result) {
         if (varargs_result.isSome()) {
             return TypeCheckerResult.compose(that,
-                                             TypeCheckerResult.compose(that, exprs_result),
-                                             TypeCheckerResult.compose(that, varargs_result.unwrap()),
-                                             TypeCheckerResult.compose(that, keywords_result));
+                                             subtypeChecker,
+                                             TypeCheckerResult.compose(that, subtypeChecker, exprs_result),
+                                             TypeCheckerResult.compose(that, subtypeChecker, varargs_result.unwrap()), TypeCheckerResult.compose(that, subtypeChecker, keywords_result));
         } else {
             return TypeCheckerResult.compose(that,
-                                             TypeCheckerResult.compose(that, exprs_result),
-                                             TypeCheckerResult.compose(that, keywords_result));
+                                             subtypeChecker,
+                                             TypeCheckerResult.compose(that, subtypeChecker, exprs_result), TypeCheckerResult.compose(that, subtypeChecker, keywords_result));
         }
     }
 
-    private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,
+    
+   
+
+	private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,
                                                        TypeCheckerResult expr_result,
                                                        String errorMsg) {
         // Check that expression type <: annotated type.
@@ -800,15 +1334,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return TypeCheckerResult.compose(
                 that,
                 annotatedType,
-                expr_result,
-                checkSubtype(exprType,
+                subtypeChecker,
+                expr_result, checkSubtype(exprType,
                              annotatedType,
                              expr_result.ast(),
                              errorMsg));
         } else {
             return TypeCheckerResult.compose(that,
                                              annotatedType,
-                                             expr_result);
+                                             subtypeChecker, expr_result);
         }
     }
 
@@ -833,39 +1367,61 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
 
-    // This method is brittle to additions to the LHS type. Isn't there a better way to get these?
+    /**
+     * Returns the Id of the lhs variable or none for LHS that do not have Ids.
+     */
     private static Option<? extends IdOrOpOrAnonymousName> getIdOfLHS(LHS lhs) {
-    	if( lhs instanceof _RewriteFieldRef ) {
-    		Name n = ((_RewriteFieldRef)lhs).getField();
-    		assert(n instanceof IdOrOpOrAnonymousName);
-    		return Option.some(((IdOrOpOrAnonymousName)n));
-    	}
-    	else if( lhs instanceof FieldRef ) {
-    		return Option.some(((FieldRef)lhs).getField());
-    	}
-    	else if( lhs instanceof FieldRefForSure ) {
-    		return Option.some(((FieldRefForSure)lhs).getField());
-    	}
-    	else if( lhs instanceof LValueBind ) {
-    		return Option.some(((LValueBind)lhs).getName());
-    	}
-    	else if( lhs instanceof SubscriptExpr ) {
-    		return Option.none();
-    	}
-    	else if( lhs instanceof VarRef ) {
-    		return Option.some(((VarRef)lhs).getVar());
-    	}
-    	else {
-    		assert(false);
-    		return Option.none();
-    	}
+    
+    	Option<? extends IdOrOpOrAnonymousName> result =
+    	lhs.accept(new NodeDepthFirstVisitor<Option<? extends IdOrOpOrAnonymousName>>(){
+			@Override
+			public Option<? extends IdOrOpOrAnonymousName> defaultCase(Node that) {
+				assert(false);
+				return Option.none();
+			}
+			@Override
+			public Option<? extends IdOrOpOrAnonymousName> for_RewriteFieldRef(
+					_RewriteFieldRef that) {
+				// NEB: Pretty sure this case is wrong. Don't we need to look up
+				// the api if it's different from this one?
+	    		Name n = that.getField();
+	    		assert(n instanceof IdOrOpOrAnonymousName);
+	    		return Option.some(((IdOrOpOrAnonymousName)n));
+			}
+			@Override
+			public Option<? extends IdOrOpOrAnonymousName> forFieldRef(
+					FieldRef that) {
+				return Option.some(that.getField());
+			}
+			@Override
+			public Option<? extends IdOrOpOrAnonymousName> forFieldRefForSure(
+					FieldRefForSure that) {
+				return Option.some(that.getField());
+			}
+			@Override
+			public Option<? extends IdOrOpOrAnonymousName> forLValueBind(
+					LValueBind that) {
+				return Option.some(that.getName());
+			}
+			@Override
+			public Option<? extends IdOrOpOrAnonymousName> forSubscriptExpr(
+					SubscriptExpr that) {
+				return Option.none();
+			}
+			@Override
+			public Option<? extends IdOrOpOrAnonymousName> forVarRef(VarRef that) {
+				return Option.some(that.getVar());
+			}    		
+    	});
+    	return result;
     }
     
     
     @Override
 	public TypeCheckerResult forAssignmentOnly(Assignment that,
-			List<TypeCheckerResult> lhs_results,
-			Option<TypeCheckerResult> opr_result, TypeCheckerResult rhs_result) {
+			                                   List<TypeCheckerResult> lhs_results,
+			                                   Option<TypeCheckerResult> opr_result,
+			                                   TypeCheckerResult rhs_result) {
     	// If LHS.size() > 1 then rhs must be a tuple and their types must match.
     	// LHS vars must have already been declared
     	// must be assignable
@@ -898,7 +1454,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	
     	if( rhs_result.type().isNone() ) {
     		// Typechecking of subexpr already failed...
-    		return TypeCheckerResult.compose(that, all_results);
+    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
     	}
     	Type rhs_type = rhs_result.type().unwrap();
     	    	
@@ -909,7 +1465,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		TypeCheckerResult lhs_result = lhs_results.get(0);
     		if( lhs_result.type().isNone() ) {
         		// Typechecking of subexpr already failed...
-        		return TypeCheckerResult.compose(that, all_results);    			
+        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);    			
     		}
     		else {
     			lhs_type = lhs_result.type().unwrap();
@@ -921,7 +1477,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		for( TypeCheckerResult lhs_result : lhs_results ) {
     			if( lhs_result.type().isNone() ) {
             		// Typechecking of subexpr already failed...
-            		return TypeCheckerResult.compose(that, all_results);    				
+            		return TypeCheckerResult.compose(that, subtypeChecker, all_results);    				
     			}
     			else {
     				element_types.add(lhs_result.type().unwrap());
@@ -937,7 +1493,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		TypeCheckerResult opr_result_ = opr_result.unwrap();
     		if( opr_result_.type().isNone() ) {
         		// Typechecking of subexpr already failed...
-        		return TypeCheckerResult.compose(that, all_results);    			
+        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);    			
     		}
     		else {
     			// By this point, all subexpressions have typechecked properly
@@ -950,7 +1506,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			if( result_type.isSome() ) {
     				// successful
     				all_results.add(new TypeCheckerResult(that));
-    				result = TypeCheckerResult.compose(that, result_type.unwrap(), all_results);
+    				result = TypeCheckerResult.compose(that, result_type.unwrap(), subtypeChecker, all_results);
     			}
     			else {
 					// no operator found for these types
@@ -969,7 +1525,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         	this.checkSubtype(rhs_type, lhs_type, that);
     		
     		all_results.add(subtype_result);
-    		result = TypeCheckerResult.compose(that, Types.VOID, all_results);
+    		result = TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
     	}
     	
 		return result;
@@ -980,11 +1536,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         List<Type> types = new ArrayList<Type>(exprs_result.size());
         for (TypeCheckerResult r : exprs_result) {
             if (r.type().isNone()) {
-                return TypeCheckerResult.compose(that, exprs_result);
+                return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
             }
             types.add(r.type().unwrap());
         }
-        return TypeCheckerResult.compose(that, NodeFactory.makeTupleType(types), exprs_result);
+        return TypeCheckerResult.compose(that, NodeFactory.makeTupleType(types), subtypeChecker, exprs_result);
     }
 
     public TypeCheckerResult forContractOnly(Contract that,
@@ -1000,8 +1556,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 Type exprType = r.type().unwrap();
                 result = TypeCheckerResult.compose(
                         that,
-                        result,
-                        checkSubtype(exprType,
+                        subtypeChecker,
+                        result, checkSubtype(exprType,
                                 Types.BOOLEAN,
                                 r.ast(),
                                 errorMsg("Attempt to use expression of type ", exprType,
@@ -1010,10 +1566,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         return TypeCheckerResult.compose(that,
-                TypeCheckerResult.compose(that, requires_result),
-                TypeCheckerResult.compose(that, ensures_result),
-                TypeCheckerResult.compose(that, invariants_result),
-                                         result);
+                subtypeChecker,
+                TypeCheckerResult.compose(that, subtypeChecker, requires_result),
+                TypeCheckerResult.compose(that, subtypeChecker, ensures_result),
+                                         TypeCheckerResult.compose(that, subtypeChecker, invariants_result), result);
     }
 
     @Override
@@ -1024,11 +1580,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Check if we are dealing with a normal case (i.e. not a "most" case)
         if (that.getParam().isSome()) {
             Expr param = that.getParam().unwrap();
-            result = TypeCheckerResult.compose(that, forCaseExprNormal(that, param));
+            result = TypeCheckerResult.compose(that, subtypeChecker, forCaseExprNormal(that, param));
         } else {
-            result = TypeCheckerResult.compose(that, forCaseExprMost(that));
+            result = TypeCheckerResult.compose(that, subtypeChecker, forCaseExprMost(that));
         }
-        return TypeCheckerResult.compose(that, wrap(caseType), result);
+        return TypeCheckerResult.compose(that, wrap(caseType), subtypeChecker, result);
     }
 
     private TypeCheckerResult forCaseExprNormal(CaseExpr that, Expr param) {
@@ -1036,7 +1592,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // Try to type check everything before giving up on an error.
         TypeCheckerResult paramResult = param.accept(this);
-        result = TypeCheckerResult.compose(that, result, paramResult);
+        result = TypeCheckerResult.compose(that, subtypeChecker, result, paramResult);
 
         // Maps a distinct guard types to the first guard expr with said type
         Relation<Type, Expr> guards = new HashRelation<Type, Expr>(true, false);
@@ -1046,12 +1602,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Type check each guard and block
         for (CaseClause clause : that.getClauses()) {
             TypeCheckerResult guardResult = clause.getMatch().accept(this);
-            result = TypeCheckerResult.compose(that, result, guardResult);
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, guardResult);
             if (guardResult.type().isSome()) {
                 guards.add(guardResult.type().unwrap(), clause.getMatch());
             }
             TypeCheckerResult blockResult = clause.getBody().accept(this);
-            result = TypeCheckerResult.compose(that, result, blockResult);
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, blockResult);
             if (blockResult.type().isSome()) {
                 clauseTypes.add(blockResult.type().unwrap());
             }
@@ -1061,7 +1617,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Type check the else clause
         if (that.getElseClause().isSome()) {
             TypeCheckerResult blockResult = that.getElseClause().unwrap().accept(this);
-            result = TypeCheckerResult.compose(that, result, blockResult);
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, blockResult);
             if (blockResult.type().isSome()) {
                 clauseTypes.add(blockResult.type().unwrap());
             }
@@ -1078,7 +1634,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Op eqOp = new Op("EQ", some((Fixity)new InFixity()));
         if (that.getCompare().isSome()) {
             TypeCheckerResult opResult = givenOp.accept(this);
-            result = TypeCheckerResult.compose(that, result, opResult);
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, opResult);
             givenOpType = opResult.type().unwrap(null);
         } else {
             inOpType = inOp.accept(this).type().unwrap(null);
@@ -1101,7 +1657,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Op op = givenOp;
             Type opType = givenOpType;
             if (opType == null) {
-                if (subtypeChecker.subtype(guardType, paramGeneratorType)) {
+            	// This check used to just check for sub-typing, but had to change after
+            	// type inference was introduced.
+                if (subtypeChecker.subtype(guardType, paramGeneratorType).isSatisfiable()) {
                     op = inOp;
                     opType = inOpType;
                 } else {
@@ -1115,16 +1673,27 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                           new ArgList(paramType, guardType));
 
             // Check if "opType paramType guardType" application has type Boolean
-            if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
-                for (Expr guardExpr : guards.getSeconds(guardType)) {
-                    result = TypeCheckerResult.compose(that, result,
-                            new TypeCheckerResult(guardExpr,
-                                    TypeError.make(errorMsg("Guard expression has type ", guardType, ", which is invalid ",
-                                                            "for 'case' parameter type ", paramType, " and operator ",
-                                                            op.getText(), "."),
-                                                   guardExpr)));
-                }
+//            if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
+//            	for (Expr guardExpr : guards.getSeconds(guardType)) {
+//            		result = TypeCheckerResult.compose(that, result,
+//            				new TypeCheckerResult(guardExpr,
+//            						TypeError.make(errorMsg("Guard expression has type ", guardType, ", which is invalid ",
+//            								"for 'case' parameter type ", paramType, " and operator ",
+//            								op.getText(), "."),
+//            								guardExpr)));
+//            	}
+//            }
+            
+            // Old check didn't work with type inference. Error messages may suck here.
+            // Check if "opType paramType guardType" application has type Boolean
+            if( applicationType.isSome() ) {
+            	result = 
+            		TypeCheckerResult.compose(that,
+            				subtypeChecker,
+            				this.checkSubtype(applicationType.unwrap(), Types.BOOLEAN, that, 
+            				"Guard expression is invalid for 'case' parameter type and operator."), result);
             }
+            
         }
 
         // Get the type of the whole expression
@@ -1133,7 +1702,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             // Only set a type for this node if all clauses were typed
             caseType = subtypeChecker.join(clauseTypes);
         }
-        return TypeCheckerResult.compose(that, caseType, result);
+        return TypeCheckerResult.compose(that, caseType, subtypeChecker, result);
     }
 
     private TypeCheckerResult forCaseExprMost(CaseExpr that) {
@@ -1143,7 +1712,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         assert(that.getCompare().isSome());
         Op op = that.getCompare().unwrap();
         TypeCheckerResult opResult = op.accept(this);
-        result = TypeCheckerResult.compose(that, result, opResult);
+        result = TypeCheckerResult.compose(that, subtypeChecker, result, opResult);
         assert(opResult.type().isSome());
         Type opType = opResult.type().unwrap();
 
@@ -1154,12 +1723,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Type check each guard and block
         for (CaseClause clause : that.getClauses()) {
             TypeCheckerResult guardResult = clause.getMatch().accept(this);
-            result = TypeCheckerResult.compose(that, result, guardResult);
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, guardResult);
             if (guardResult.type().isSome()) {
                 guards.add(guardResult.type().unwrap(), clause.getMatch());
             }
             TypeCheckerResult blockResult = clause.getBody().accept(this);
-            result = TypeCheckerResult.compose(that, result, blockResult);
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, blockResult);
             if (blockResult.type().isSome()) {
                 clauseTypes.add(blockResult.type().unwrap());
             }
@@ -1179,23 +1748,33 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypesUtil.applicationType(subtypeChecker, opType,
                                           new ArgList(guardTypeL, guardTypeR));
 
+//            // Check if "opType guardType_i guardType_j" application has type Boolean
+//            if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
+//
+//                // The list of expressions for which to generate errors is got from both types'
+//                // lists of guard expressions. If the types are equal, do not compose these lists.
+//                Iterable<Expr> guardExprsForTypes =
+//                    (guardTypeL.equals(guardTypeR)) ? guards.getSeconds(guardTypeL)
+//                                                    : IterUtil.compose(guards.getSeconds(guardTypeL),
+//                                                                       guards.getSeconds(guardTypeR));
+//                for (Expr guardExpr : guardExprsForTypes) {
+//                    result = TypeCheckerResult.compose(that, result,
+//                            new TypeCheckerResult(guardExpr,
+//                                    TypeError.make(errorMsg("Guard expression types are invalid for ",
+//                                                            "extremum operator: ", guardTypeL, " ",
+//                                                            op.getText(), " ", guardTypeR),
+//                                                   guardExpr)));
+//                }
+//            }
+            
+            // Old check didn't work with type inference. Error messages may suck here.
             // Check if "opType guardType_i guardType_j" application has type Boolean
-            if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
-
-                // The list of expressions for which to generate errors is got from both types'
-                // lists of guard expressions. If the types are equal, do not compose these lists.
-                Iterable<Expr> guardExprsForTypes =
-                    (guardTypeL.equals(guardTypeR)) ? guards.getSeconds(guardTypeL)
-                                                    : IterUtil.compose(guards.getSeconds(guardTypeL),
-                                                                       guards.getSeconds(guardTypeR));
-                for (Expr guardExpr : guardExprsForTypes) {
-                    result = TypeCheckerResult.compose(that, result,
-                            new TypeCheckerResult(guardExpr,
-                                    TypeError.make(errorMsg("Guard expression types are invalid for ",
-                                                            "extremum operator: ", guardTypeL, " ",
-                                                            op.getText(), " ", guardTypeR),
-                                                   guardExpr)));
-                }
+            if( applicationType.isSome() ) {
+            	result = 
+            		TypeCheckerResult.compose(that,
+            				subtypeChecker,
+            				this.checkSubtype(applicationType.unwrap(), Types.BOOLEAN, that, 
+            				"Guard expression is invalid for 'case' parameter type and operator."), result);
             }
         }
 
@@ -1205,7 +1784,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             // Only set a type for this node if all clauses were typed
             caseType = subtypeChecker.join(clauseTypes);
         }
-        return TypeCheckerResult.compose(that, caseType, result);
+        return TypeCheckerResult.compose(that, caseType, subtypeChecker, result);
     }
 
 //    public TypeCheckerResult forChainExpr(ChainExpr that) {
@@ -1274,9 +1853,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     // are created by disambiguation, not by the user.
                     OpName opName = that.getOp().getOps().get(0);
                     return TypeCheckerResult.compose(that,
+                            subtypeChecker,
                             op_result,
-                            TypeCheckerResult.compose(that, args_result),
-                            new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator ",
+                            TypeCheckerResult.compose(that, subtypeChecker, args_result), new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator ",
                                                                                 opName,
                                                                                 " has invalid arguments."),
                                                                        that)));
@@ -1285,8 +1864,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         return TypeCheckerResult.compose(that,
                                          applicationType,
-                                         op_result,
-                                         TypeCheckerResult.compose(that, args_result));
+                                         subtypeChecker,
+                                         op_result, TypeCheckerResult.compose(that, subtypeChecker, args_result));
     }
 
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that,
@@ -1304,7 +1883,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          TypesUtil.applicationType(subtypeChecker,
                                                                    lhsType,
                                                                    new ArgList(rhsType)),
-                                         exprs_result);
+                                         subtypeChecker, exprs_result);
     }
 
     @Override
@@ -1314,7 +1893,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	// but expr must have type Exception
     	if( expr_result.type().isNone() ) {
     		// Failure in subexpr
-    		return TypeCheckerResult.compose(that, Types.BOTTOM, expr_result);
+    		return TypeCheckerResult.compose(that, Types.BOTTOM, subtypeChecker, expr_result);
     	}
     	else {
     		List<TypeCheckerResult> results = new ArrayList<TypeCheckerResult>(2);
@@ -1323,7 +1902,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     				"This expression is of type " + expr_result.type().unwrap());
     		results.add(expr_is_exn);
     		results.add(expr_result);
-    		return TypeCheckerResult.compose(that, Types.BOTTOM, results);
+    		return TypeCheckerResult.compose(that, Types.BOTTOM, subtypeChecker, results);
     	}
 	}
 
@@ -1334,21 +1913,21 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if (b.isSome()) {
             TypeCheckerResult bodyResult = that.getBody().accept(this);
             return TypeCheckerResult.compose(that,
+                subtypeChecker,
                 new TypeCheckerResult(that, TypeError.make(errorMsg("Cannot use an existing identifier ",
                                                                     "for a 'label' expression: ",
                                                                     that.getName()),
-                                                           that)),
-                bodyResult);
+                                                           that)), bodyResult);
         }
 
         // Check for nested label of same name
         if (labelExitTypes.containsKey(that.getName())) {
             TypeCheckerResult bodyResult = that.getBody().accept(this);
             return TypeCheckerResult.compose(that,
+                subtypeChecker,
                 new TypeCheckerResult(that, TypeError.make(errorMsg("Name of 'label' expression ",
                                                                     "already in scope: ", that.getName()),
-                                                           that)),
-                bodyResult);
+                                                           that)), bodyResult);
         }
 
         // Initialize the set of exit types
@@ -1372,7 +1951,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // Destroy the mappings for this label
         labelExitTypes.remove(that.getName());
-        return TypeCheckerResult.compose(that, labelType, bodyResult);
+        return TypeCheckerResult.compose(that, labelType, subtypeChecker, bodyResult);
     }
 
     public TypeCheckerResult forExit(Exit that) {
@@ -1385,11 +1964,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return TypeCheckerResult.compose(
                     that,
                     Types.BOTTOM,
+                    subtypeChecker,
                     new TypeCheckerResult(that,
                                           TypeError.make(errorMsg("Could not find 'label' expression with name: ",
                                                                   labelName),
-                                                         labelName)),
-                    withResult);
+                                                         labelName)), withResult);
         }
         Type targetType = b.unwrap().getType().unwrap(null);
         if (!(targetType instanceof LabelType)) {
@@ -1397,11 +1976,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return TypeCheckerResult.compose(
                     that,
                     Types.BOTTOM,
+                    subtypeChecker,
                     new TypeCheckerResult(that,
                                          TypeError.make(errorMsg("Target of 'exit' expression is not a label name: ",
                                                                  labelName),
-                                                        labelName)),
-                    withResult);
+                                                        labelName)), withResult);
         }
 
         // Append the 'with' type to the list for this label
@@ -1412,7 +1991,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             assert (labelExitTypes.get(labelName).isSome());
             labelExitTypes.get(labelName).unwrap().add(withResult.type().unwrap());
         }
-        return TypeCheckerResult.compose(that, Types.BOTTOM, withResult);
+        return TypeCheckerResult.compose(that, Types.BOTTOM, subtypeChecker, withResult);
     }
 
     public TypeCheckerResult forSpawn(Spawn that) {
@@ -1422,9 +2001,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if (bodyResult.type().isSome()) {
             return TypeCheckerResult.compose(that,
                                              Types.makeThreadType(bodyResult.type().unwrap()),
-                                             bodyResult);
+                                             subtypeChecker, bodyResult);
         } else {
-            return TypeCheckerResult.compose(that, bodyResult);
+            return TypeCheckerResult.compose(that, subtypeChecker, bodyResult);
         }
     }
 
@@ -1434,13 +2013,94 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                          errorMsg("A 'spawn' expression must not occur inside an 'atomic' expression."));
     }
 
+	@Override
+	public TypeCheckerResult forCatch(Catch that) {
+		// We have to pass the name down so it can be bound to each exn type in turn
+		Id bound_name = that.getName();
+		List<TypeCheckerResult> clause_results = 
+			recurOnCatchClausesWithIdToBind(that.getClauses(),bound_name);
+		// Gather all the types of the catch clauses
+		List<Type> clause_types = new ArrayList<Type>(clause_results.size());
+		for( TypeCheckerResult r : clause_results ) {
+			if( r.type().isSome() )
+				clause_types.add(r.type().unwrap());
+		}
+		// resulting type is the join of those types
+		return TypeCheckerResult.compose(that, this.subtypeChecker.join(clause_types), subtypeChecker, clause_results);
+	}
 
+	/**
+	 * Recur on the given list of catch clauses, binding the Id passed along to whatever exn type
+	 * the clause declares it catches. This is needed because the bound Id comes from a 
+	 * super-expression, Catch, but it cannot be bound until we are down in the CatchClause,
+	 * where the exception type is known.
+	 */
+	private List<TypeCheckerResult> recurOnCatchClausesWithIdToBind(List<CatchClause> catch_clauses, 
+			                                                        Id id_to_bind) {
+		List<TypeCheckerResult> result = new ArrayList<TypeCheckerResult>(catch_clauses.size());
+		for( CatchClause catch_clause : catch_clauses ) {
+			result.add(forCatchClauseWithIdToBind(catch_clause, id_to_bind));
+		}
+		return result;
+	}
+	
+	/**
+	 * Given the CatchClause and an Id, the Id will be bound to the exception type that the catch
+	 * clause declares to catch, and then its body will be type-checked.
+	 */
+	private TypeCheckerResult forCatchClauseWithIdToBind(CatchClause that, 
+			                                             Id id_to_bind) {
+		TypeCheckerResult match_result = that.getMatch().accept(this);
+		// type must be an exception
+		TypeCheckerResult is_exn_result = checkSubtype(that.getMatch(), Types.EXCEPTION, that.getMatch(), 
+				"Catch clauses must catch sub-types of Exception, but " + that.getMatch() + " is not.");
+		
+		// bind id and check the body
+		LValueBind lval = NodeFactory.makeLValue(id_to_bind, that.getMatch());
+		TypeChecker extend_tc = this.extend(Collections.singletonList(lval));
+		TypeCheckerResult body_result = that.getBody().accept(extend_tc);
 
+		// result has body type
+		return TypeCheckerResult.compose(that, body_result.type(), subtypeChecker, match_result, is_exn_result, body_result);
+	}
+	
 	@Override
 	public TypeCheckerResult forTryAtomicExpr(TryAtomicExpr that) {
 		return forAtomic(that,
                 that.getExpr(),
                 errorMsg("A 'spawn' expression must not occur inside a 'try atomic' expression."));
+	}
+	
+	@Override
+	public TypeCheckerResult forTryOnly(Try that,
+			                            TypeCheckerResult body_result,
+			                            Option<TypeCheckerResult> catch_result,
+			                            List<TypeCheckerResult> forbid_result,
+			                            Option<TypeCheckerResult> finally_result) {
+		// gather all sub-results
+		List<TypeCheckerResult> all_results = new LinkedList<TypeCheckerResult>();
+		all_results.add(body_result);
+		if( catch_result.isSome() ) all_results.add(catch_result.unwrap());
+		all_results.addAll(forbid_result);
+		if( finally_result.isSome() ) all_results.add(finally_result.unwrap());
+		
+		// Check that all forbids are subtypes of exception 
+		for( Type t : that.getForbid() ) {
+			TypeCheckerResult r =
+			this.checkSubtype(t, Types.EXCEPTION, t,"All types in 'forbids' clause must be subtypes of " +
+					"Exception, but "+ t + " is not.");
+			all_results.add(r);
+		}
+		// the resulting type is the join of try, catches, and finally
+		List<Type> all_types = new LinkedList<Type>();
+		if( body_result.type().isSome() ) 
+			all_types.add(body_result.type().unwrap());
+		if( catch_result.isSome() && catch_result.unwrap().type().isSome() )
+			all_types.add(catch_result.unwrap().type().unwrap());
+		if( finally_result.isSome() && finally_result.unwrap().type().isSome() )
+			all_types.add(finally_result.unwrap().type().unwrap());
+		
+		return TypeCheckerResult.compose(that, this.subtypeChecker.join(all_types), subtypeChecker, all_results);
 	}
 
 	private TypeCheckerResult forAtomic(Node that, Expr body, final String errorMsg) {
@@ -1454,14 +2114,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 // Use TypeChecker's forSpawn method, but compose an error onto the result
                 return TypeCheckerResult.compose(
                         that,
+                        subtypeChecker,
                         new TypeCheckerResult(that,
                                              TypeError.make(errorMsg,
-                                                            that)),
-                        that.accept(TypeChecker.this));
+                                                            that)), that.accept(TypeChecker.this));
             }
         };
         TypeCheckerResult bodyResult = body.accept(newChecker);
-        return TypeCheckerResult.compose(that, bodyResult.type(), bodyResult);
+        return TypeCheckerResult.compose(that, bodyResult.type(), subtypeChecker, bodyResult);
     }
 
     // TRIVIAL NODES ---------------------
@@ -1504,7 +2164,149 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return new TypeCheckerResult(that);
     }
 
-    public TypeCheckerResult forTypeArg(TypeArg that) {
+    
+    
+    @Override
+	public TypeCheckerResult forTypecase(Typecase that) {
+    	// typecase is a somewhat interesting case
+    	List<TypeCheckerResult> clauses_result;
+    	List<TypeCheckerResult> bind_results = new LinkedList<TypeCheckerResult>();
+    	List<Id> bindings = that.getBind().getA();
+    	
+    	if( that.getBind().getB().isSome()){
+    		TypeCheckerResult expr=that.getBind().getB().unwrap().accept(this);
+    		if(expr.type().isNone()){
+    			return expr;
+    		}
+    		Type original_type=expr.type().unwrap();
+    		
+			if(bindings.size()>1){
+				// typecase (a,b,c) = someX of ...
+    			if(!(original_type instanceof TupleType)){
+    				String err="Right hand side of binding not a tuple";
+    				return TypeCheckerResult.compose(that, 
+    						subtypeChecker,new TypeCheckerResult(that,TypeError.make(err, that.getBind().getB().unwrap())), expr);
+    			}
+    			TupleType tuple=(TupleType)original_type;
+    			if(tuple.getElements().size()!=bindings.size()){
+    				String err="Number of bindings does not match type of expression";
+    				return TypeCheckerResult.compose(that, 
+    						subtypeChecker,new TypeCheckerResult(that,TypeError.make(err, that.getBind().getB().unwrap())), expr);
+    			}
+    			clauses_result = recurOnListOfTypecaseClauseWithBindings(that.getClauses(),bindings,original_type);
+    		}
+    		else{
+    			// x = some_expr
+    			clauses_result = recurOnListOfTypecaseClauseWithBindings(that.getClauses(),bindings,original_type);
+    		}
+    	}
+    	else {
+    		// typecase x of ...
+    		bind_results = this.recurOnListOfId(bindings);
+    		
+    		List<Type> bind_types = new ArrayList<Type>(bindings.size());
+    		for( TypeCheckerResult bind_result : bind_results ) {
+    			if( bind_result.type().isNone() ) {
+    				return TypeCheckerResult.compose(that, subtypeChecker, bind_results);
+    			}
+    			else {
+    				bind_types.add(bind_result.type().unwrap());
+    			}
+    		}
+    		
+    		// make sure that all bound vars are immutable
+    		for( Id id : bindings ) {
+    			Option<BindingLookup> lookup = this.typeEnv.binding(id);
+    			assert(lookup.isSome());
+    			// According to spec, ids must be immutable b/c they are rebound
+    			if( lookup.unwrap().isMutable() ) {
+    				String err = "Bound identifiers in a typecase expresion must be immutable and " + 
+    					id + " is not.";
+    				TypeCheckerResult mut_result = new TypeCheckerResult(that, TypeError.make(err, id));
+    				bind_results.add(mut_result);
+    				return TypeCheckerResult.compose(that, subtypeChecker, bind_results);
+    			}
+    		}
+    		
+    		// make type
+    		Type original_type;
+    		if( bindings.size() == 1 ) {
+    			original_type = bind_types.get(0);
+    		}
+    		else {
+    			original_type = NodeFactory.makeTupleType(bind_types);
+    		}
+    		clauses_result = recurOnListOfTypecaseClauseWithBindings(that.getClauses(), bindings, original_type);
+    	}
+    	
+        Option<TypeCheckerResult> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
+        if( elseClause_result.isSome() ) {
+        	clauses_result.add(elseClause_result.unwrap());
+        }
+        
+        List<Type> all_types = new ArrayList<Type>(clauses_result.size()+1);
+        for( TypeCheckerResult result : clauses_result ) {
+        	if( result.type().isSome() ) {
+        		all_types.add(result.type().unwrap());
+        	}
+        }
+        
+        clauses_result.addAll(bind_results);
+        return TypeCheckerResult.compose(that, this.subtypeChecker.join(all_types), subtypeChecker, clauses_result);
+	}
+
+    /**
+     * Recursively type-check the TypecaseClauses given, using the given Ids to bind to the type of
+     * each TypecaseClause.
+     * @param original_type Since typecase clauses use the intersection of the original type and the clause
+     * type, the original type must be passed along.
+     */
+    private List<TypeCheckerResult> recurOnListOfTypecaseClauseWithBindings(List<TypecaseClause> clauses,
+    		List<Id> to_bind, Type original_type) {
+    	List<TypeCheckerResult> result = new ArrayList<TypeCheckerResult>(clauses.size());
+    	for( TypecaseClause clause : clauses ) {
+    		result.add(forTypecaseClauseWithBindings(clause, to_bind, original_type));
+    	}
+    	return result;
+    }
+    
+    private TypeCheckerResult forTypecaseClauseWithBindings(TypecaseClause clause, List<Id> to_bind, Type original_type) {
+        //Assumption: forTypeCase assures that original_type is a tuple of the same size as to_bind.size()
+    	List<TypeCheckerResult> match_result = recurOnListOfType(clause.getMatch());
+    	TypeChecker extend;
+        if(to_bind.size()==1){
+    		Type meet;
+    		if(clause.getMatch().size()>1){
+    			meet=this.subtypeChecker.meet(NodeFactory.makeTupleType(clause.getMatch()),original_type);
+    		}
+    		else{
+    			meet=this.subtypeChecker.meet(clause.getMatch().get(0),original_type);
+    		}
+    		LValueBind bind = NodeFactory.makeLValue(to_bind.get(0), meet);
+    		extend=this.extend(Collections.singletonList(bind));
+    	}else{
+    		if(to_bind.size()!=clause.getMatch().size()){
+    			return new TypeCheckerResult(clause, TypeError.make("Tuple sizes don't match",clause));
+    		}
+    		else{
+    			List<LValueBind> binds=new ArrayList<LValueBind>(to_bind.size());
+    			Iterator<Type> mitr=clause.getMatch().iterator();
+    			assert(original_type instanceof TupleType);
+    			TupleType tuple=(TupleType)original_type;
+    			Iterator<Type> titr=tuple.getElements().iterator();
+    			for(Id id : to_bind){
+    				Type meet = this.subtypeChecker.meet(mitr.next(),titr.next());
+    				binds.add(NodeFactory.makeLValue(id, meet));
+    			}
+    			extend=this.extend(binds);
+    		}
+    	}
+    	TypeCheckerResult result=clause.getBody().accept(extend);
+    	match_result.add(result);
+    	return TypeCheckerResult.compose(clause,result.type(),subtypeChecker, match_result);
+    }
+
+	public TypeCheckerResult forTypeArg(TypeArg that) {
         // No checks needed to be performed on a TypeArg.
         return new TypeCheckerResult(that);
     }
@@ -1552,7 +2354,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forTraitTypeWhereOnly(TraitTypeWhere that,
                                                    TypeCheckerResult type_result,
                                                    TypeCheckerResult where_result) {
-        return TypeCheckerResult.compose(that, type_result, where_result);
+        return TypeCheckerResult.compose(that, subtypeChecker, type_result, where_result);
     }
 
     // STUBS -----------------------------
@@ -1563,10 +2365,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               List<TypeCheckerResult> exports_result,
                                               List<TypeCheckerResult> decls_result) {
         return TypeCheckerResult.compose(that,
+                                         subtypeChecker,
                                          name_result,
-                                         TypeCheckerResult.compose(that, imports_result),
-                                         TypeCheckerResult.compose(that, exports_result),
-                                         TypeCheckerResult.compose(that, decls_result));
+                                         TypeCheckerResult.compose(that, subtypeChecker, imports_result),
+                                         TypeCheckerResult.compose(that, subtypeChecker, exports_result), TypeCheckerResult.compose(that, subtypeChecker, decls_result));
     }
 
     public TypeCheckerResult forWhereClause(WhereClause that) {
@@ -1577,2166 +2379,49 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
- /* Fails until we do implement type checking generators
+    
+    
+@Override
+	public TypeCheckerResult forGeneratedExpr(GeneratedExpr that) {
+		Pair<List<TypeCheckerResult>,List<LValueBind>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
+		TypeChecker extend=this.extend(pair.second());
+		TypeCheckerResult body_result = that.getExpr().accept(extend);
+		//make sure body has type void?
+		List<TypeCheckerResult> res = pair.first();
+		res.add(body_result);
+		if( !body_result.type().unwrap().equals(Types.VOID) ) {
+			res.add(new TypeCheckerResult(that,TypeError.make("Body of generated expression must have type (), but had type " +
+									body_result.type().unwrap(), that.getExpr())));
+		}
+		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, res);
+	}
+
+	@Override
+    public TypeCheckerResult forWhile(While that) {
+	
+		Pair<TypeCheckerResult,List<LValueBind>> res=this.forGeneratorClauseGetBindings(that.getTest(), true);
+		TypeChecker extended=this.extend(res.second());
+		TypeCheckerResult body_result = that.getBody().accept(extended);
+		return forWhileOnly(that, res.first(), body_result);
+	}
+
 	@Override
 	public TypeCheckerResult forWhileOnly(While that,
-			TypeCheckerResult test_result, TypeCheckerResult body_result) {
+			                              TypeCheckerResult test_result,
+			                              TypeCheckerResult body_result) {
 
 		//is test a type
-		if(test_result.type().isNone() || body_result.type().isNone()){
-			return TypeCheckerResult.compose(that,Types.VOID, test_result, body_result);
+		if(body_result.type().isNone()){
+			return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result);
 		}
 
-		 TypeCheckerResult this_result = new TypeCheckerResult(that);
-		 //This test will crash until we implement generators
-		 if( !test_result.type().unwrap().equals(Types.BOOLEAN) ) {
-			this_result = TypeCheckerResult.compose(that, 
-					Types.VOID, new TypeCheckerResult(that, 
-							TypeError.make("Condition of while loop must have type Boolean, but had type " +
-									test_result.type().unwrap(), that.getTest())), test_result, body_result );
-		}
-		
-		if( !body_result.type().unwrap().equals(Types.VOID) ) {
-			this_result = TypeCheckerResult.compose(that,
-					Types.VOID, new TypeCheckerResult(that, 
-							TypeError.make("Body of while loop must have type (), but had type " +
-									body_result.type().unwrap(), that.getBody())), this_result, test_result, body_result);
-		}
-		
-		return this_result;
-		
+		String void_err = "Body of while loop must have type (), but had type " +
+			body_result.type().unwrap();
+		TypeCheckerResult void_result = this.checkSubtype(body_result.type().unwrap(), Types.VOID, that.getBody(), void_err);
+		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result, void_result);
+	}
+
+
+	
+	
 }
-*/
-    
-}
-    /* Methods copied from superclass, to make it easier to incrementally define
-     * overridings here.
-     */
-
-//    public RetType forAbsTraitDecl(AbsTraitDecl that) {
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        List<RetType> excludes_result = recurOnListOfBaseType(that.getExcludes());
-//        Option<List<RetType>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
-//
-//
-//        List<RetType> decls_result = recurOnListOfAbsDecl(that.getDecls());
-//        return forAbsTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                   where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forTraitDecl(TraitDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        List<RetType> excludes_result = recurOnListOfBaseType(that.getExcludes());
-//        Option<List<RetType>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
-//        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forAbsObjectDecl(AbsObjectDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        Option<List<RetType>> params_result = recurOnOptionOfListOfParam(that.getParams());
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-//        RetType contract_result = that.getContract().accept(this);
-//        List<RetType> decls_result = recurOnListOfAbsDecl(that.getDecls());
-//        return forAbsObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                    where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-
-//    public RetType forObjectDecl(ObjectDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        Option<List<RetType>> params_result = recurOnOptionOfListOfParam(that.getParams());
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-//        RetType contract_result = that.getContract().accept(this);
-//        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                 where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-//
-//    public RetType forTraitObjectAbsDeclOrDeclOnly(TraitObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result,
-//                                                   List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result,
-//                                                   List<RetType> decls_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forTraitAbsDeclOrDeclOnly(TraitAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
-//                                             List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result,
-//                                             Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, decls_result);
-//    }
-//
-//    public RetType forAbsTraitDeclOnly(AbsTraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
-//                                       List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result,
-//                                       Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                         where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forTraitDeclOnly(TraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
-//                                    List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result,
-//                                    Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                         where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forObjectAbsDeclOrDeclOnly(ObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
-//                                              List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result,
-//                                              Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forTraitObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, decls_result);
-//    }
-//
-//    public RetType forAbsObjectDeclOnly(AbsObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
-//                                        List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result,
-//                                        Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                          where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-//
-//    public RetType forObjectDeclOnly(ObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
-//                                     List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result,
-//                                     Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-//                                          where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-
-//    public RetType forAbstractNodeOnly(AbstractNode that) {
-//        return defaultCase(that);
-//    }
-//
-//    public RetType forCompilationUnitOnly(CompilationUnit that, RetType name_result, List<RetType> imports_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forApiOnly(Api that, RetType name_result, List<RetType> imports_result, List<RetType> decls_result) {
-//        return forCompilationUnitOnly(that, name_result, imports_result);
-//    }
-//
-//    public RetType forImportOnly(Import that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forImportedNamesOnly(ImportedNames that, RetType api_result) {
-//        return forImportOnly(that);
-//    }
-//
-//    public RetType forImportStarOnly(ImportStar that, RetType api_result, List<RetType> except_result) {
-//        return forImportedNamesOnly(that, api_result);
-//    }
-//
-//    public RetType forImportNamesOnly(ImportNames that, RetType api_result, List<RetType> aliasedNames_result) {
-//        return forImportedNamesOnly(that, api_result);
-//    }
-//
-//    public RetType forImportApiOnly(ImportApi that, List<RetType> apis_result) {
-//        return forImportOnly(that);
-//    }
-//
-//    public RetType forAliasedSimpleNameOnly(AliasedSimpleName that, RetType name_result, Option<RetType> alias_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forAliasedAPINameOnly(AliasedAPIName that, RetType api_result, Option<RetType> alias_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forExportOnly(Export that, List<RetType> apis_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forTraitObjectAbsDeclOrDeclOnly(TraitObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, List<RetType> decls_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forTraitAbsDeclOrDeclOnly(TraitAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result, Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, decls_result);
-//    }
-//
-//    public RetType forAbsTraitDeclOnly(AbsTraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result, Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forTraitDeclOnly(TraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result, Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forObjectAbsDeclOrDeclOnly(ObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result, Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forTraitObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, decls_result);
-//    }
-//
-//    public RetType forAbsObjectDeclOnly(AbsObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result, Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-//
-//    public RetType forObjectDeclOnly(ObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result, Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-//
-//    public RetType forVarAbsDeclOrDeclOnly(VarAbsDeclOrDecl that, List<RetType> lhs_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forAbsVarDeclOnly(AbsVarDecl that, List<RetType> lhs_result) {
-//        return forVarAbsDeclOrDeclOnly(that, lhs_result);
-//    }
-//
-//    public RetType forVarDeclOnly(VarDecl that, List<RetType> lhs_result, RetType init_result) {
-//        return forVarAbsDeclOrDeclOnly(that, lhs_result);
-//    }
-//
-//    public RetType forLValueOnly(LValue that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forLValueBindOnly(LValueBind that, RetType name_result, Option<RetType> type_result, List<RetType> mods_result) {
-//        return forLValueOnly(that);
-//    }
-//
-//    public RetType forUnpastingOnly(Unpasting that) {
-//        return forLValueOnly(that);
-//    }
-//
-//    public RetType forUnpastingBindOnly(UnpastingBind that, RetType name_result, List<RetType> dim_result) {
-//        return forUnpastingOnly(that);
-//    }
-//
-//    public RetType forUnpastingSplitOnly(UnpastingSplit that, List<RetType> elems_result) {
-//        return forUnpastingOnly(that);
-//    }
-//
-//    public RetType forFnAbsDeclOrDeclOnly(FnAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> params_result, Option<RetType> returnType_result, Option<List<RetType>> throwsClause_result, RetType where_result, RetType contract_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forAbsFnDeclOnly(AbsFnDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> params_result, Option<RetType> returnType_result, Option<List<RetType>> throwsClause_result, RetType where_result, RetType contract_result) {
-//        return forFnAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result);
-//    }
-//
-//    public RetType forFnDeclOnly(FnDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> params_result, Option<RetType> returnType_result, Option<List<RetType>> throwsClause_result, RetType where_result, RetType contract_result) {
-//        return forFnAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result);
-//    }
-//
-//    public RetType forFnDefOnly(FnDef that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, List<RetType> params_result, Option<RetType> returnType_result, Option<List<RetType>> throwsClause_result, RetType where_result, RetType contract_result, RetType body_result) {
-//        return forFnDeclOnly(that, mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result);
-//    }
-//
-//    public RetType forParamOnly(Param that, List<RetType> mods_result, RetType name_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forNormalParamOnly(NormalParam that, List<RetType> mods_result, RetType name_result, Option<RetType> type_result, Option<RetType> defaultExpr_result) {
-//        return forParamOnly(that, mods_result, name_result);
-//    }
-//
-//    public RetType forVarargsParamOnly(VarargsParam that, List<RetType> mods_result, RetType name_result, RetType varargsType_result) {
-//        return forParamOnly(that, mods_result, name_result);
-//    }
-//
-//    public RetType forDimUnitDeclOnly(DimUnitDecl that, Option<RetType> dim_result, Option<RetType> derived_result, Option<RetType> default_result, List<RetType> units_result, Option<RetType> def_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forTestDeclOnly(TestDecl that, RetType name_result, List<RetType> gens_result, RetType expr_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forPropertyDeclOnly(PropertyDecl that, Option<RetType> name_result, List<RetType> params_result, RetType expr_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forExternalSyntaxAbsDeclOrDeclOnly(ExternalSyntaxAbsDeclOrDecl that, RetType openExpander_result, RetType name_result, RetType closeExpander_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forAbsExternalSyntaxOnly(AbsExternalSyntax that, RetType openExpander_result, RetType name_result, RetType closeExpander_result) {
-//        return forExternalSyntaxAbsDeclOrDeclOnly(that, openExpander_result, name_result, closeExpander_result);
-//    }
-//
-//    public RetType forExternalSyntaxOnly(ExternalSyntax that, RetType openExpander_result, RetType name_result, RetType closeExpander_result, RetType expr_result) {
-//        return forExternalSyntaxAbsDeclOrDeclOnly(that, openExpander_result, name_result, closeExpander_result);
-//    }
-//
-//    public RetType forGrammarDeclOnly(GrammarDecl that, RetType name_result, List<RetType> extends_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forGrammarDefOnly(GrammarDef that, RetType name_result, List<RetType> extends_result, List<RetType> nonterminal_result) {
-//        return forGrammarDeclOnly(that, name_result, extends_result);
-//    }
-//
-//    public RetType forProductionDeclOnly(ProductionDecl that, Option<RetType> modifier_result, RetType name_result, RetType type_result, Option<RetType> extends_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forProductionDefOnly(ProductionDef that, Option<RetType> modifier_result, RetType name_result, RetType type_result, Option<RetType> extends_result, List<RetType> syntaxDefs_result) {
-//        return forProductionDeclOnly(that, modifier_result, name_result, type_result, extends_result);
-//    }
-//
-//    public RetType forSyntaxDeclOnly(SyntaxDecl that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forSyntaxDefOnly(SyntaxDef that, List<RetType> syntaxSymbols_result, RetType transformationExpression_result) {
-//        return forSyntaxDeclOnly(that);
-//    }
-//
-//    public RetType forSyntaxSymbolOnly(SyntaxSymbol that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forPrefixedSymbolOnly(PrefixedSymbol that, Option<RetType> id_result, RetType symbol_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forOptionalSymbolOnly(OptionalSymbol that, RetType symbol_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forRepeatSymbolOnly(RepeatSymbol that, RetType symbol_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forRepeatOneOrMoreSymbolOnly(RepeatOneOrMoreSymbol that, RetType symbol_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forWhitespaceSymbolOnly(WhitespaceSymbol that, RetType symbol_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forItemSymbolOnly(ItemSymbol that) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forNonterminalSymbolOnly(NonterminalSymbol that, RetType nonterminal_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forKeywordSymbolOnly(KeywordSymbol that) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forTokenSymbolOnly(TokenSymbol that) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forNotPredicateSymbolOnly(NotPredicateSymbol that, RetType symbol_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forAndPredicateSymbolOnly(AndPredicateSymbol that, RetType symbol_result) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forExprOnly(Expr that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forAsIfExprOnly(AsIfExpr that, RetType expr_result, RetType type_result) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forAssignmentOnly(Assignment that, List<RetType> lhs_result, Option<RetType> opr_result, RetType rhs_result) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forDelimitedExprOnly(DelimitedExpr that) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forForOnly(For that, List<RetType> gens_result, RetType body_result) {
-//        return forDelimitedExprOnly(that);
-//    }
-//
-//    public RetType forLabelOnly(Label that, RetType name_result, RetType body_result) {
-//        return forDelimitedExprOnly(that);
-//    }
-//
-//    public RetType forAbstractObjectExprOnly(AbstractObjectExpr that, List<RetType> extendsClause_result, List<RetType> decls_result) {
-//        return forDelimitedExprOnly(that);
-//    }
-//
-//    public RetType forObjectExprOnly(ObjectExpr that, List<RetType> extendsClause_result, List<RetType> decls_result) {
-//        return forAbstractObjectExprOnly(that, extendsClause_result, decls_result);
-//    }
-//
-//    public RetType for_RewriteObjectExprOnly(_RewriteObjectExpr that, List<RetType> extendsClause_result, List<RetType> decls_result, List<RetType> staticParams_result, List<RetType> staticArgs_result, Option<List<RetType>> params_result) {
-//        return forAbstractObjectExprOnly(that, extendsClause_result, decls_result);
-//    }
-//
-//    public RetType forTryOnly(Try that, RetType body_result, Option<RetType> catchClause_result, List<RetType> forbid_result, Option<RetType> finallyClause_result) {
-//        return forDelimitedExprOnly(that);
-//    }
-//
-//    public RetType forTypecaseOnly(Typecase that, List<RetType> bind_result, List<RetType> clauses_result, Option<RetType> elseClause_result) {
-//        return forDelimitedExprOnly(that);
-//    }
-//
-//    public RetType forWhileOnly(While that, RetType test_result, RetType body_result) {
-//        return forDelimitedExprOnly(that);
-//    }
-//
-//    public RetType forFlowExprOnly(FlowExpr that) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forAccumulatorOnly(Accumulator that, RetType opr_result, List<RetType> gens_result, RetType body_result) {
-//        return forFlowExprOnly(that);
-//    }
-//
-//    public RetType forArrayComprehensionOnly(ArrayComprehension that, List<RetType> clauses_result) {
-//        return forFlowExprOnly(that);
-//    }
-//
-//    public RetType forAtomicExprOnly(AtomicExpr that, RetType expr_result) {
-//        return forFlowExprOnly(that);
-//    }
-//
-//    public RetType forExitOnly(Exit that, Option<RetType> target_result, Option<RetType> returnExpr_result) {
-//        return forFlowExprOnly(that);
-//    }
-//
-//    public RetType forSpawnOnly(Spawn that, RetType body_result) {
-//        return forFlowExprOnly(that);
-//    }
-//
-//    public RetType forThrowOnly(Throw that, RetType expr_result) {
-//        return forFlowExprOnly(that);
-//    }
-//
-//    public RetType forTryAtomicExprOnly(TryAtomicExpr that, RetType expr_result) {
-//        return forFlowExprOnly(that);
-//    }
-//
-//    public RetType forFnExprOnly(FnExpr that, RetType name_result, List<RetType> staticParams_result, List<RetType> params_result, Option<RetType> returnType_result, RetType where_result, Option<List<RetType>> throwsClause_result, RetType body_result) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forLetExprOnly(LetExpr that, List<RetType> body_result) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forLocalVarDeclOnly(LocalVarDecl that, List<RetType> body_result, List<RetType> lhs_result, Option<RetType> rhs_result) {
-//        return forLetExprOnly(that, body_result);
-//    }
-//
-//    public RetType forGeneratedExprOnly(GeneratedExpr that, RetType expr_result, List<RetType> gens_result) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forSimpleExprOnly(SimpleExpr that) {
-//        return forExprOnly(that);
-//    }
-//
-//    public RetType forOpExprOnly(OpExpr that, List<RetType> ops_result, List<RetType> args_result) {
-//        return forSimpleExprOnly(that);
-//    }
-//
-//    public RetType forSubscriptExprOnly(SubscriptExpr that, RetType obj_result, List<RetType> subs_result, Option<RetType> op_result) {
-//        return forSimpleExprOnly(that);
-//    }
-//
-//    public RetType forPrimaryOnly(Primary that) {
-//        return forSimpleExprOnly(that);
-//    }
-//
-//    public RetType forCoercionInvocationOnly(CoercionInvocation that, RetType type_result, List<RetType> staticArgs_result, RetType arg_result) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType forMethodInvocationOnly(MethodInvocation that, RetType obj_result, RetType method_result, List<RetType> staticArgs_result, RetType arg_result) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType forAbstractFieldRefOnly(AbstractFieldRef that, RetType obj_result) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType forFieldRefOnly(FieldRef that, RetType obj_result, RetType field_result) {
-//        return forAbstractFieldRefOnly(that, obj_result);
-//    }
-//
-//
-//    public RetType for_RewriteFieldRefOnly(_RewriteFieldRef that, RetType obj_result, RetType field_result) {
-//        return forAbstractFieldRefOnly(that, obj_result);
-//    }
-//
-//    public RetType forJuxtOnly(Juxt that, List<RetType> exprs_result) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType forLooseJuxtOnly(LooseJuxt that, List<RetType> exprs_result) {
-//        return forJuxtOnly(that, exprs_result);
-//    }
-//
-//    public RetType forMathPrimaryOnly(MathPrimary that, RetType front_result, List<RetType> rest_result) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType for_RewriteFnRefOnly(_RewriteFnRef that, RetType fn_result, List<RetType> staticArgs_result) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType forBaseExprOnly(BaseExpr that) {
-//        return forPrimaryOnly(that);
-//    }
-//
-//    public RetType forVarRefOnly(VarRef that, RetType var_result) {
-//        return forBaseExprOnly(that);
-//    }
-//
-//    public RetType forArrayExprOnly(ArrayExpr that) {
-//        return forBaseExprOnly(that);
-//    }
-//
-//    public RetType forArrayElementOnly(ArrayElement that, RetType element_result) {
-//        return forArrayExprOnly(that);
-//    }
-//
-//    public RetType forArrayElementsOnly(ArrayElements that, List<RetType> elements_result) {
-//        return forArrayExprOnly(that);
-//    }
-//
-//    public RetType forTypeOnly(Type that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forArrowTypeOnly(ArrowType that, RetType domain_result, RetType range_result, Option<List<RetType>> throwsClause_result) {
-//        return forTypeOnly(that);
-//    }
-//
-//    public RetType for_RewriteGenericArrowTypeOnly(_RewriteGenericArrowType that, RetType domain_result, RetType range_result, Option<List<RetType>> throwsClause_result, List<RetType> staticParams_result, RetType where_result) {
-//        return forArrowTypeOnly(that, domain_result, range_result, throwsClause_result);
-//    }
-//
-//    public RetType forNonArrowTypeOnly(NonArrowType that) {
-//        return forTypeOnly(that);
-//    }
-//
-//    public RetType forBottomTypeOnly(BottomType that) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forBaseTypeOnly(BaseType that) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forArrayTypeOnly(ArrayType that, RetType element_result, RetType indices_result) {
-//        return forBaseTypeOnly(that);
-//    }
-//
-//    public RetType forVarTypeOnly(VarType that, RetType name_result) {
-//        return forBaseTypeOnly(that);
-//    }
-//
-//    public RetType forInferenceVarTypeOnly(InferenceVarType that) {
-//        return forBaseTypeOnly(that);
-//    }
-//
-//    public RetType forMatrixTypeOnly(MatrixType that, RetType element_result, List<RetType> dimensions_result) {
-//        return forBaseTypeOnly(that);
-//    }
-//
-//    public RetType forTraitTypeOnly(TraitType that, RetType name_result, List<RetType> args_result) {
-//        return forBaseTypeOnly(that);
-//    }
-//
-//    public RetType forVoidTypeOnly(VoidType that) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forDimTypeOnly(DimType that, RetType type_result) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
-//    public RetType forTaggedDimTypeOnly(TaggedDimType that, RetType type_result, RetType dim_result, Option<RetType> unit_result) {
-//        return forDimTypeOnly(that, type_result);
-//    }
-//
-//    public RetType forTaggedUnitTypeOnly(TaggedUnitType that, RetType type_result, RetType unit_result) {
-//        return forDimTypeOnly(that, type_result);
-//    }
-//
-//    public RetType forStaticArgOnly(StaticArg that) {
-//        return forTypeOnly(that);
-//    }
-//
-//    public RetType forTypeArgOnly(TypeArg that, RetType type_result) {
-//        return forStaticArgOnly(that);
-//    }
-//
-//    public RetType forIntArgOnly(IntArg that, RetType val_result) {
-//        return forStaticArgOnly(that);
-//    }
-//
-//    public RetType forBoolArgOnly(BoolArg that, RetType bool_result) {
-//        return forStaticArgOnly(that);
-//    }
-//
-//    public RetType forOpArgOnly(OpArg that, RetType name_result) {
-//        return forStaticArgOnly(that);
-//    }
-//
-//    public RetType forDimArgOnly(DimArg that, RetType dim_result) {
-//        return forStaticArgOnly(that);
-//    }
-//
-//    public RetType forUnitArgOnly(UnitArg that, RetType unit_result) {
-//        return forStaticArgOnly(that);
-//    }
-//
-//    public RetType for_RewriteImplicitTypeOnly(_RewriteImplicitType that) {
-//        return forTypeOnly(that);
-//    }
-//
-//    public RetType for_RewriteIntersectionTypeOnly(_RewriteIntersectionType that, List<RetType> elements_result) {
-//        return forTypeOnly(that);
-//    }
-//
-//    public RetType for_RewriteUnionTypeOnly(_RewriteUnionType that, List<RetType> elements_result) {
-//        return forTypeOnly(that);
-//    }
-//
-//    public RetType for_RewriteFixedPointTypeOnly(_RewriteFixedPointType that, RetType var_result, RetType body_result) {
-//        return forTypeOnly(that);
-//    }
-//
-//    public RetType forStaticExprOnly(StaticExpr that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forIntExprOnly(IntExpr that) {
-//        return forStaticExprOnly(that);
-//    }
-//
-//    public RetType forIntValOnly(IntVal that) {
-//        return forIntExprOnly(that);
-//    }
-//
-//    public RetType forNumberConstraintOnly(NumberConstraint that, RetType val_result) {
-//        return forIntValOnly(that);
-//    }
-//
-//    public RetType forIntRefOnly(IntRef that, RetType name_result) {
-//        return forIntValOnly(that);
-//    }
-//
-//    public RetType forIntOpExprOnly(IntOpExpr that, RetType left_result, RetType right_result) {
-//        return forIntExprOnly(that);
-//    }
-//
-//    public RetType forSumConstraintOnly(SumConstraint that, RetType left_result, RetType right_result) {
-//        return forIntOpExprOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forMinusConstraintOnly(MinusConstraint that, RetType left_result, RetType right_result) {
-//        return forIntOpExprOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forProductConstraintOnly(ProductConstraint that, RetType left_result, RetType right_result) {
-//        return forIntOpExprOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forExponentConstraintOnly(ExponentConstraint that, RetType left_result, RetType right_result) {
-//        return forIntOpExprOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forBoolExprOnly(BoolExpr that) {
-//        return forStaticExprOnly(that);
-//    }
-//
-//    public RetType forBoolValOnly(BoolVal that) {
-//        return forBoolExprOnly(that);
-//    }
-//
-//    public RetType forBoolConstantOnly(BoolConstant that) {
-//        return forBoolValOnly(that);
-//    }
-//
-//    public RetType forBoolRefOnly(BoolRef that, RetType name_result) {
-//        return forBoolValOnly(that);
-//    }
-//
-//    public RetType forBoolConstraintOnly(BoolConstraint that) {
-//        return forBoolExprOnly(that);
-//    }
-//
-//    public RetType forNotConstraintOnly(NotConstraint that, RetType bool_result) {
-//        return forBoolConstraintOnly(that);
-//    }
-//
-//    public RetType forBinaryBoolConstraintOnly(BinaryBoolConstraint that, RetType left_result, RetType right_result) {
-//        return forBoolConstraintOnly(that);
-//    }
-//
-//    public RetType forOrConstraintOnly(OrConstraint that, RetType left_result, RetType right_result) {
-//        return forBinaryBoolConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forAndConstraintOnly(AndConstraint that, RetType left_result, RetType right_result) {
-//        return forBinaryBoolConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forImpliesConstraintOnly(ImpliesConstraint that, RetType left_result, RetType right_result) {
-//        return forBinaryBoolConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forBEConstraintOnly(BEConstraint that, RetType left_result, RetType right_result) {
-//        return forBinaryBoolConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forDimExprOnly(DimExpr that) {
-//        return forStaticExprOnly(that);
-//    }
-//
-//    public RetType forBaseDimOnly(BaseDim that) {
-//        return forDimExprOnly(that);
-//    }
-//
-//    public RetType forDimRefOnly(DimRef that, RetType name_result) {
-//        return forDimExprOnly(that);
-//    }
-//
-//    public RetType forProductDimOnly(ProductDim that, RetType multiplier_result, RetType multiplicand_result) {
-//        return forDimExprOnly(that);
-//    }
-//
-//    public RetType forQuotientDimOnly(QuotientDim that, RetType numerator_result, RetType denominator_result) {
-//        return forDimExprOnly(that);
-//    }
-//
-//    public RetType forExponentDimOnly(ExponentDim that, RetType base_result, RetType power_result) {
-//        return forDimExprOnly(that);
-//    }
-//
-//    public RetType forOpDimOnly(OpDim that, RetType val_result, RetType op_result) {
-//        return forDimExprOnly(that);
-//    }
-//
-//    public RetType forWhereBindingOnly(WhereBinding that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forWhereTypeOnly(WhereType that, RetType name_result, List<RetType> supers_result) {
-//        return forWhereBindingOnly(that);
-//    }
-//
-//    public RetType forWhereNatOnly(WhereNat that, RetType name_result) {
-//        return forWhereBindingOnly(that);
-//    }
-//
-//    public RetType forWhereIntOnly(WhereInt that, RetType name_result) {
-//        return forWhereBindingOnly(that);
-//    }
-//
-//    public RetType forWhereBoolOnly(WhereBool that, RetType name_result) {
-//        return forWhereBindingOnly(that);
-//    }
-//
-//    public RetType forWhereUnitOnly(WhereUnit that, RetType name_result) {
-//        return forWhereBindingOnly(that);
-//    }
-//
-//    public RetType forWhereConstraintOnly(WhereConstraint that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forWhereExtendsOnly(WhereExtends that, RetType name_result, List<RetType> supers_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forTypeAliasOnly(TypeAlias that, RetType name_result, List<RetType> staticParams_result, RetType type_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forWhereCoercesOnly(WhereCoerces that, RetType left_result, RetType right_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forWhereWidensOnly(WhereWidens that, RetType left_result, RetType right_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forWhereWidensCoercesOnly(WhereWidensCoerces that, RetType left_result, RetType right_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forWhereEqualsOnly(WhereEquals that, RetType left_result, RetType right_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forUnitConstraintOnly(UnitConstraint that, RetType name_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forIntConstraintOnly(IntConstraint that, RetType left_result, RetType right_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forLEConstraintOnly(LEConstraint that, RetType left_result, RetType right_result) {
-//        return forIntConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forLTConstraintOnly(LTConstraint that, RetType left_result, RetType right_result) {
-//        return forIntConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forGEConstraintOnly(GEConstraint that, RetType left_result, RetType right_result) {
-//        return forIntConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forGTConstraintOnly(GTConstraint that, RetType left_result, RetType right_result) {
-//        return forIntConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forIEConstraintOnly(IEConstraint that, RetType left_result, RetType right_result) {
-//        return forIntConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forBoolConstraintExprOnly(BoolConstraintExpr that, RetType constraint_result) {
-//        return forWhereConstraintOnly(that);
-//    }
-//
-//    public RetType forContractOnly(Contract that, Option<List<RetType>> requires_result, Option<List<RetType>> ensures_result, Option<List<RetType>> invariants_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forEnsuresClauseOnly(EnsuresClause that, RetType post_result, Option<RetType> pre_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forModifierOnly(Modifier that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forModifierAbstractOnly(ModifierAbstract that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierAtomicOnly(ModifierAtomic that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierGetterOnly(ModifierGetter that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierHiddenOnly(ModifierHidden that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierIOOnly(ModifierIO that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierOverrideOnly(ModifierOverride that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierPrivateOnly(ModifierPrivate that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierSettableOnly(ModifierSettable that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierSetterOnly(ModifierSetter that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierTestOnly(ModifierTest that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierTransientOnly(ModifierTransient that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierValueOnly(ModifierValue that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierVarOnly(ModifierVar that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierWidensOnly(ModifierWidens that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forModifierWrappedOnly(ModifierWrapped that) {
-//        return forModifierOnly(that);
-//    }
-//
-//    public RetType forStaticParamOnly(StaticParam that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forOpParamOnly(OpParam that, RetType name_result) {
-//        return forStaticParamOnly(that);
-//    }
-//
-//    public RetType forIdStaticParamOnly(IdStaticParam that, RetType name_result) {
-//        return forStaticParamOnly(that);
-//    }
-//
-//    public RetType forBoolParamOnly(BoolParam that, RetType name_result) {
-//        return forIdStaticParamOnly(that, name_result);
-//    }
-//
-//    public RetType forDimParamOnly(DimParam that, RetType name_result) {
-//        return forIdStaticParamOnly(that, name_result);
-//    }
-//
-//    public RetType forIntParamOnly(IntParam that, RetType name_result) {
-//        return forIdStaticParamOnly(that, name_result);
-//    }
-//
-//    public RetType forNatParamOnly(NatParam that, RetType name_result) {
-//        return forIdStaticParamOnly(that, name_result);
-//    }
-//
-//    public RetType forTypeParamOnly(TypeParam that, RetType name_result, List<RetType> extendsClause_result) {
-//        return forIdStaticParamOnly(that, name_result);
-//    }
-//
-//    public RetType forUnitParamOnly(UnitParam that, RetType name_result, Option<RetType> dim_result) {
-//        return forIdStaticParamOnly(that, name_result);
-//    }
-//
-//    public RetType forNameOnly(Name that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forAPINameOnly(APIName that, List<RetType> ids_result) {
-//        return forNameOnly(that);
-//    }
-//
-//    public RetType forIdOrOpOrAnonymousNameOnly(IdOrOpOrAnonymousName that, Option<RetType> api_result, RetType name_result) {
-//        return forNameOnly(that);
-//    }
-//
-//    public RetType forIdOrOpOrAnonymousNameOnly(IdOrOpOrAnonymousName that) {
-//        return forNameOnly(that);
-//    }
-//
-//    public RetType forIdOnly(Id that) {
-//        return forIdOrOpOrAnonymousNameOnly(that);
-//    }
-//
-//    public RetType forOpNameOnly(OpName that) {
-//        return forIdOrOpOrAnonymousNameOnly(that);
-//    }
-//
-//    public RetType forEnclosingOnly(Enclosing that, RetType open_result, RetType close_result) {
-//        return forOpNameOnly(that);
-//    }
-//
-//    public RetType forAnonymousFnNameOnly(AnonymousFnName that) {
-//        return forIdOrOpOrAnonymousNameOnly(that);
-//    }
-//
-//    public RetType forConstructorFnNameOnly(ConstructorFnName that, RetType def_result) {
-//        return forIdOrOpOrAnonymousNameOnly(that);
-//    }
-//
-//    public RetType forArrayComprehensionClauseOnly(ArrayComprehensionClause that, List<RetType> bind_result, RetType init_result, List<RetType> gens_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forKeywordExprOnly(KeywordExpr that, RetType name_result, RetType init_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forCaseClauseOnly(CaseClause that, RetType match_result, RetType body_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forCatchOnly(Catch that, RetType name_result, List<RetType> clauses_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forCatchClauseOnly(CatchClause that, RetType match_result, RetType body_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forTypecaseClauseOnly(TypecaseClause that, List<RetType> match_result, RetType body_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forExtentRangeOnly(ExtentRange that, Option<RetType> base_result, Option<RetType> size_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forGeneratorClauseOnly(GeneratorClause that, List<RetType> bind_result, RetType init_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forVarargsExprOnly(VarargsExpr that, RetType varargs_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forKeywordTypeOnly(KeywordType that, RetType name_result, RetType type_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forIndicesOnly(Indices that, List<RetType> extents_result) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forDimUnitOpOnly(DimUnitOp that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forSquareDimUnitOnly(SquareDimUnit that) {
-//        return forDimUnitOpOnly(that);
-//    }
-//
-//    public RetType forCubicDimUnitOnly(CubicDimUnit that) {
-//        return forDimUnitOpOnly(that);
-//    }
-//
-//    public RetType forInverseDimUnitOnly(InverseDimUnit that) {
-//        return forDimUnitOpOnly(that);
-//    }
-//
-//    public RetType forMathItemOnly(MathItem that) {
-//        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forExprMIOnly(ExprMI that, RetType expr_result) {
-//        return forMathItemOnly(that);
-//    }
-//
-//    public RetType forParenthesisDelimitedMIOnly(ParenthesisDelimitedMI that, RetType expr_result) {
-//        return forExprMIOnly(that, expr_result);
-//    }
-//
-//    public RetType forNonParenthesisDelimitedMIOnly(NonParenthesisDelimitedMI that, RetType expr_result) {
-//        return forExprMIOnly(that, expr_result);
-//    }
-//
-//    public RetType forNonExprMIOnly(NonExprMI that) {
-//        return forMathItemOnly(that);
-//    }
-//
-//    public RetType forExponentiationMIOnly(ExponentiationMI that, RetType op_result, Option<RetType> expr_result) {
-//        return forNonExprMIOnly(that);
-//    }
-//
-//    public RetType forSubscriptingMIOnly(SubscriptingMI that, RetType op_result, List<RetType> exprs_result) {
-//        return forNonExprMIOnly(that);
-//    }
-//
-//
-//    /** Methods to recur on each child. */
-//    public RetType forComponent(Component that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> imports_result = recurOnListOfImport(that.getImports());
-//        List<RetType> exports_result = recurOnListOfExport(that.getExports());
-//        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forComponentOnly(that, name_result, imports_result, exports_result, decls_result);
-//    }
-//
-//    public RetType forApi(Api that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> imports_result = recurOnListOfImport(that.getImports());
-//        List<RetType> decls_result = recurOnListOfAbsDecl(that.getDecls());
-//        return forApiOnly(that, name_result, imports_result, decls_result);
-//    }
-//
-//    public RetType forImportStar(ImportStar that) {
-//        RetType api_result = that.getApi().accept(this);
-//        List<RetType> except_result = recurOnListOfIdOrOpOrAnonymousName(that.getExcept());
-//        return forImportStarOnly(that, api_result, except_result);
-//    }
-//
-//    public RetType forImportNames(ImportNames that) {
-//        RetType api_result = that.getApi().accept(this);
-//        List<RetType> aliasedNames_result = recurOnListOfAliasedIdOrOpOrAnonymousName(that.getAliasedNames());
-//        return forImportNamesOnly(that, api_result, aliasedNames_result);
-//    }
-//
-//    public RetType forImportApi(ImportApi that) {
-//        List<RetType> apis_result = recurOnListOfAliasedAPIName(that.getApis());
-//        return forImportApiOnly(that, apis_result);
-//    }
-//
-//    public RetType forAliasedSimpleName(AliasedSimpleName that) {
-//        RetType name_result = that.getName().accept(this);
-//        Option<RetType> alias_result = recurOnOptionOfIdOrOpOrAnonymousName(that.getAlias());
-//        return forAliasedSimpleNameOnly(that, name_result, alias_result);
-//    }
-//
-//    public RetType forAliasedAPIName(AliasedAPIName that) {
-//        RetType api_result = that.getApi().accept(this);
-//        Option<RetType> alias_result = recurOnOptionOfId(that.getAlias());
-//        return forAliasedAPINameOnly(that, api_result, alias_result);
-//    }
-//
-//    public RetType forExport(Export that) {
-//        List<RetType> apis_result = recurOnListOfAPIName(that.getApis());
-//        return forExportOnly(that, apis_result);
-//    }
-//
-//    public RetType forAbsTraitDecl(AbsTraitDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        List<RetType> excludes_result = recurOnListOfBaseType(that.getExcludes());
-//        Option<List<RetType>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
-//        List<RetType> decls_result = recurOnListOfAbsDecl(that.getDecls());
-//        return forAbsTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forTraitDecl(TraitDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        List<RetType> excludes_result = recurOnListOfBaseType(that.getExcludes());
-//        Option<List<RetType>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
-//        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, excludes_result, comprises_result, decls_result);
-//    }
-//
-//    public RetType forAbsObjectDecl(AbsObjectDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        Option<List<RetType>> params_result = recurOnOptionOfListOfParam(that.getParams());
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-//        RetType contract_result = that.getContract().accept(this);
-//        List<RetType> decls_result = recurOnListOfAbsDecl(that.getDecls());
-//        return forAbsObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-//
-//    public RetType forObjectDecl(ObjectDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        Option<List<RetType>> params_result = recurOnOptionOfListOfParam(that.getParams());
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-//        RetType contract_result = that.getContract().accept(this);
-//        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, params_result, throwsClause_result, contract_result, decls_result);
-//    }
-//
-//    public RetType forAbsVarDecl(AbsVarDecl that) {
-//        List<RetType> lhs_result = recurOnListOfLValueBind(that.getLhs());
-//        return forAbsVarDeclOnly(that, lhs_result);
-//    }
-//
-//    public RetType forVarDecl(VarDecl that) {
-//        List<RetType> lhs_result = recurOnListOfLValueBind(that.getLhs());
-//        RetType init_result = that.getInit().accept(this);
-//        return forVarDeclOnly(that, lhs_result, init_result);
-//    }
-//
-//    public RetType forLValueBind(LValueBind that) {
-//        RetType name_result = that.getName().accept(this);
-//        Option<RetType> type_result = recurOnOptionOfType(that.getType());
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        return forLValueBindOnly(that, name_result, type_result, mods_result);
-//    }
-//
-//    public RetType forUnpastingBind(UnpastingBind that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> dim_result = recurOnListOfExtentRange(that.getDim());
-//        return forUnpastingBindOnly(that, name_result, dim_result);
-//    }
-//
-//    public RetType forUnpastingSplit(UnpastingSplit that) {
-//        List<RetType> elems_result = recurOnListOfUnpasting(that.getElems());
-//        return forUnpastingSplitOnly(that, elems_result);
-//    }
-//
-//    public RetType forAbsFnDecl(AbsFnDecl that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> params_result = recurOnListOfParam(that.getParams());
-//        Option<RetType> returnType_result = recurOnOptionOfType(that.getReturnType());
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        RetType contract_result = that.getContract().accept(this);
-//        return forAbsFnDeclOnly(that, mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result);
-//    }
-//
-//    public RetType forFnDef(FnDef that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> params_result = recurOnListOfParam(that.getParams());
-//        Option<RetType> returnType_result = recurOnOptionOfType(that.getReturnType());
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-//        RetType where_result = that.getWhere().accept(this);
-//        RetType contract_result = that.getContract().accept(this);
-//        RetType body_result = that.getBody().accept(this);
-//        return forFnDefOnly(that, mods_result, name_result, staticParams_result, params_result, returnType_result, throwsClause_result, where_result, contract_result, body_result);
-//    }
-//
-//    public RetType forVarargsParam(VarargsParam that) {
-//        List<RetType> mods_result = recurOnListOfModifier(that.getMods());
-//        RetType name_result = that.getName().accept(this);
-//        RetType varargsType_result = that.getType().accept(this);
-//        return forVarargsParamOnly(that, mods_result, name_result, varargsType_result);
-//    }
-//
-//    public RetType forDimUnitDecl(DimUnitDecl that) {
-//        Option<RetType> dim_result = recurOnOptionOfId(that.getDim());
-//        Option<RetType> derived_result = recurOnOptionOfDimExpr(that.getDerived());
-//        Option<RetType> default_result = recurOnOptionOfId(that.getDefault());
-//        List<RetType> units_result = recurOnListOfId(that.getUnits());
-//        Option<RetType> def_result = recurOnOptionOfExpr(that.getDef());
-//        return forDimUnitDeclOnly(that, dim_result, derived_result, default_result, units_result, def_result);
-//    }
-//
-//    public RetType forTestDecl(TestDecl that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> gens_result = recurOnListOfGeneratorClause(that.getGens());
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forTestDeclOnly(that, name_result, gens_result, expr_result);
-//    }
-//
-//    public RetType forPropertyDecl(PropertyDecl that) {
-//        Option<RetType> name_result = recurOnOptionOfId(that.getName());
-//        List<RetType> params_result = recurOnListOfParam(that.getParams());
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forPropertyDeclOnly(that, name_result, params_result, expr_result);
-//    }
-//
-//    public RetType forAbsExternalSyntax(AbsExternalSyntax that) {
-//        RetType openExpander_result = that.getOpenExpander().accept(this);
-//        RetType name_result = that.getName().accept(this);
-//        RetType closeExpander_result = that.getCloseExpander().accept(this);
-//        return forAbsExternalSyntaxOnly(that, openExpander_result, name_result, closeExpander_result);
-//    }
-//
-//    public RetType forExternalSyntax(ExternalSyntax that) {
-//        RetType openExpander_result = that.getOpenExpander().accept(this);
-//        RetType name_result = that.getName().accept(this);
-//        RetType closeExpander_result = that.getCloseExpander().accept(this);
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forExternalSyntaxOnly(that, openExpander_result, name_result, closeExpander_result, expr_result);
-//    }
-//
-//    public RetType forGrammarDef(GrammarDef that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> extends_result = recurOnListOfId(that.getExtends());
-//        List<RetType> productions_result = recurOnListOfProductionDef(that.getProductions());
-//        return forGrammarDefOnly(that, name_result, extends_result, productions_result);
-//    }
-//
-//    public RetType forProductionDef(ProductionDef that) {
-//        Option<RetType> modifier_result = recurOnOptionOfModifier(that.getModifier());
-//        RetType name_result = that.getName().accept(this);
-//        RetType type_result = that.getType().accept(this);
-//        Option<RetType> extends_result = recurOnOptionOfId(that.getExtends());
-//        List<RetType> syntaxDefs_result = recurOnListOfSyntaxDef(that.getSyntaxDefs());
-//        return forProductionDefOnly(that, modifier_result, name_result, type_result, extends_result, syntaxDefs_result);
-//    }
-//
-//    public RetType forSyntaxDef(SyntaxDef that) {
-//        List<RetType> syntaxSymbols_result = recurOnListOfSyntaxSymbol(that.getSyntaxSymbols());
-//        RetType transformationExpression_result = that.getTransformationExpression().accept(this);
-//        return forSyntaxDefOnly(that, syntaxSymbols_result, transformationExpression_result);
-//    }
-//
-//    public RetType forSyntaxSymbol(SyntaxSymbol that) {
-//        return forSyntaxSymbolOnly(that);
-//    }
-//
-//    public RetType forPrefixedSymbol(PrefixedSymbol that) {
-//        Option<RetType> id_result = recurOnOptionOfId(that.getId());
-//        RetType symbol_result = that.getSymbol().accept(this);
-//        return forPrefixedSymbolOnly(that, id_result, symbol_result);
-//    }
-//
-//    public RetType forOptionalSymbol(OptionalSymbol that) {
-//        RetType symbol_result = that.getSymbol().accept(this);
-//        return forOptionalSymbolOnly(that, symbol_result);
-//    }
-//
-//    public RetType forRepeatSymbol(RepeatSymbol that) {
-//        RetType symbol_result = that.getSymbol().accept(this);
-//        return forRepeatSymbolOnly(that, symbol_result);
-//    }
-//
-//    public RetType forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
-//        RetType symbol_result = that.getSymbol().accept(this);
-//        return forRepeatOneOrMoreSymbolOnly(that, symbol_result);
-//    }
-//
-//    public RetType forWhitespaceSymbol(WhitespaceSymbol that) {
-//        RetType symbol_result = that.getSymbol().accept(this);
-//        return forWhitespaceSymbolOnly(that, symbol_result);
-//    }
-//
-//    public RetType forItemSymbol(ItemSymbol that) {
-//        return forItemSymbolOnly(that);
-//    }
-//
-//    public RetType forNonterminalSymbol(NonterminalSymbol that) {
-//        RetType nonterminal_result = that.getNonterminal().accept(this);
-//        return forNonterminalSymbolOnly(that, nonterminal_result);
-//    }
-//
-//    public RetType forKeywordSymbol(KeywordSymbol that) {
-//        return forKeywordSymbolOnly(that);
-//    }
-//
-//    public RetType forTokenSymbol(TokenSymbol that) {
-//        return forTokenSymbolOnly(that);
-//    }
-//
-//    public RetType forNotPredicateSymbol(NotPredicateSymbol that) {
-//        RetType symbol_result = that.getSymbol().accept(this);
-//        return forNotPredicateSymbolOnly(that, symbol_result);
-//    }
-//
-//    public RetType forAndPredicateSymbol(AndPredicateSymbol that) {
-//        RetType symbol_result = that.getSymbol().accept(this);
-//        return forAndPredicateSymbolOnly(that, symbol_result);
-//    }
-//
-//    public RetType forAsExpr(AsExpr that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        RetType type_result = that.getType().accept(this);
-//        return forAsExprOnly(that, expr_result, type_result);
-//    }
-//
-//    public RetType forAsIfExpr(AsIfExpr that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        RetType type_result = that.getType().accept(this);
-//        return forAsIfExprOnly(that, expr_result, type_result);
-//    }
-//
-//    public RetType forAssignment(Assignment that) {
-//        List<RetType> lhs_result = recurOnListOfLHS(that.getLhs());
-//        Option<RetType> opr_result = recurOnOptionOfOp(that.getOpr());
-//        RetType rhs_result = that.getRhs().accept(this);
-//        return forAssignmentOnly(that, lhs_result, opr_result, rhs_result);
-//    }
-//
-//    public RetType forCaseExpr(CaseExpr that) {
-//        Option<RetType> param_result = recurOnOptionOfExpr(that.getParam());
-//        Option<RetType> compare_result = recurOnOptionOfOp(that.getCompare());
-//        List<RetType> clauses_result = recurOnListOfCaseClause(that.getClauses());
-//        Option<RetType> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
-//        return forCaseExprOnly(that, param_result, compare_result, clauses_result, elseClause_result);
-//    }
-//
-//    public RetType forDo(Do that) {
-//        List<RetType> fronts_result = recurOnListOfDoFront(that.getFronts());
-//        return forDoOnly(that, fronts_result);
-//    }
-//
-//    public RetType forFor(For that) {
-//        List<RetType> gens_result = recurOnListOfGeneratorClause(that.getGens());
-//        RetType body_result = that.getBody().accept(this);
-//        return forForOnly(that, gens_result, body_result);
-//    }
-//
-//    public RetType forIf(If that) {
-//        List<RetType> clauses_result = recurOnListOfIfClause(that.getClauses());
-//        Option<RetType> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
-//        return forIfOnly(that, clauses_result, elseClause_result);
-//    }
-//
-//    public RetType forLabel(Label that) {
-//        RetType name_result = that.getName().accept(this);
-//        RetType body_result = that.getBody().accept(this);
-//        return forLabelOnly(that, name_result, body_result);
-//    }
-//
-//    public RetType forObjectExpr(ObjectExpr that) {
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forObjectExprOnly(that, extendsClause_result, decls_result);
-//    }
-//
-//    public RetType for_RewriteObjectExpr(_RewriteObjectExpr that) {
-//        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-//        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
-//        Option<List<RetType>> params_result = recurOnOptionOfListOfParam(that.getParams());
-//        return for_RewriteObjectExprOnly(that, extendsClause_result, decls_result, staticParams_result, staticArgs_result, params_result);
-//    }
-//
-//    public RetType forTry(Try that) {
-//        RetType body_result = that.getBody().accept(this);
-//        Option<RetType> catchClause_result = recurOnOptionOfCatch(that.getCatchClause());
-//        List<RetType> forbid_result = recurOnListOfBaseType(that.getForbid());
-//        Option<RetType> finallyClause_result = recurOnOptionOfBlock(that.getFinallyClause());
-//        return forTryOnly(that, body_result, catchClause_result, forbid_result, finallyClause_result);
-//    }
-//
-//    public RetType forArgExpr(ArgExpr that) {
-//        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
-//        RetType varargs_result = that.getVarargs().accept(this);
-//        return forArgExprOnly(that, exprs_result, varargs_result);
-//    }
-//
-//    public RetType forTupleExpr(TupleExpr that) {
-//        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
-//        return forArgExprOnly(that, exprs_result);
-//    }
-//
-//    public RetType forTypecase(Typecase that) {
-//        List<RetType> bind_result = recurOnListOfBinding(that.getBind());
-//        List<RetType> clauses_result = recurOnListOfTypecaseClause(that.getClauses());
-//        Option<RetType> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
-//        return forTypecaseOnly(that, bind_result, clauses_result, elseClause_result);
-//    }
-//
-//    public RetType forWhile(While that) {
-//        RetType test_result = that.getTest().accept(this);
-//        RetType body_result = that.getBody().accept(this);
-//        return forWhileOnly(that, test_result, body_result);
-//    }
-//
-//    public RetType forAccumulator(Accumulator that) {
-//        RetType opr_result = that.getOpr().accept(this);
-//        List<RetType> gens_result = recurOnListOfGeneratorClause(that.getGens());
-//        RetType body_result = that.getBody().accept(this);
-//        return forAccumulatorOnly(that, opr_result, gens_result, body_result);
-//    }
-//
-//    public RetType forArrayComprehension(ArrayComprehension that) {
-//        List<RetType> clauses_result = recurOnListOfArrayComprehensionClause(that.getClauses());
-//        return forArrayComprehensionOnly(that, clauses_result);
-//    }
-//
-//    public RetType forAtomicExpr(AtomicExpr that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forAtomicExprOnly(that, expr_result);
-//    }
-//
-//    public RetType forExit(Exit that) {
-//        Option<RetType> target_result = recurOnOptionOfId(that.getTarget());
-//        Option<RetType> returnExpr_result = recurOnOptionOfExpr(that.getReturnExpr());
-//        return forExitOnly(that, target_result, returnExpr_result);
-//    }
-//
-//    public RetType forSpawn(Spawn that) {
-//        RetType body_result = that.getBody().accept(this);
-//        return forSpawnOnly(that, body_result);
-//    }
-//
-//    public RetType forThrow(Throw that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forThrowOnly(that, expr_result);
-//    }
-//
-//    public RetType forTryAtomicExpr(TryAtomicExpr that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forTryAtomicExprOnly(that, expr_result);
-//    }
-//
-//    public RetType forFnExpr(FnExpr that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        List<RetType> params_result = recurOnListOfParam(that.getParams());
-//        Option<RetType> returnType_result = recurOnOptionOfType(that.getReturnType());
-//        RetType where_result = that.getWhere().accept(this);
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-//        RetType body_result = that.getBody().accept(this);
-//        return forFnExprOnly(that, name_result, staticParams_result, params_result, returnType_result, where_result, throwsClause_result, body_result);
-//    }
-//
-//    public RetType forGeneratedExpr(GeneratedExpr that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        List<RetType> gens_result = recurOnListOfGeneratorClause(that.getGens());
-//        return forGeneratedExprOnly(that, expr_result, gens_result);
-//    }
-//
-//    public RetType forOpExpr(OpExpr that) {
-//        List<RetType> ops_result = recurOnListOfOpName(that.getOps());
-//        List<RetType> args_result = recurOnListOfExpr(that.getArgs());
-//        return forOpExprOnly(that, ops_result, args_result);
-//    }
-//
-//    public RetType forSubscriptExpr(SubscriptExpr that) {
-//        RetType obj_result = that.getObj().accept(this);
-//        List<RetType> subs_result = recurOnListOfExpr(that.getSubs());
-//        Option<RetType> op_result = recurOnOptionOfEnclosing(that.getOp());
-//        return forSubscriptExprOnly(that, obj_result, subs_result, op_result);
-//    }
-//
-//    public RetType forCoercionInvocation(CoercionInvocation that) {
-//        RetType type_result = that.getType().accept(this);
-//        List<RetType> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
-//        RetType arg_result = that.getArg().accept(this);
-//        return forCoercionInvocationOnly(that, type_result, staticArgs_result, arg_result);
-//    }
-//
-//    public RetType forMethodInvocation(MethodInvocation that) {
-//        RetType obj_result = that.getObj().accept(this);
-//        RetType method_result = that.getMethod().accept(this);
-//        List<RetType> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
-//        RetType arg_result = that.getArg().accept(this);
-//        return forMethodInvocationOnly(that, obj_result, method_result, staticArgs_result, arg_result);
-//    }
-//
-//    public RetType forFieldRef(FieldRef that) {
-//        RetType obj_result = that.getObj().accept(this);
-//        RetType field_result = that.getField().accept(this);
-//        return forFieldRefOnly(that, obj_result, field_result);
-//    }
-//
-//    public RetType forFieldRefForSure(FieldRefForSure that) {
-//        RetType obj_result = that.getObj().accept(this);
-//        RetType field_result = that.getField().accept(this);
-//        return forFieldRefForSureOnly(that, obj_result, field_result);
-//    }
-//
-//    public RetType for_RewriteFieldRef(_RewriteFieldRef that) {
-//        RetType obj_result = that.getObj().accept(this);
-//        RetType field_result = that.getField().accept(this);
-//        return for_RewriteFieldRefOnly(that, obj_result, field_result);
-//    }
-//
-//    public RetType forLooseJuxt(LooseJuxt that) {
-//        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
-//        return forLooseJuxtOnly(that, exprs_result);
-//    }
-//
-//    public RetType forMathPrimary(MathPrimary that) {
-//        RetType front_result = that.getFront().accept(this);
-//        List<RetType> rest_result = recurOnListOfMathItem(that.getRest());
-//        return forMathPrimaryOnly(that, front_result, rest_result);
-//    }
-//
-//    public RetType forFnRef(FnRef that) {
-//        List<RetType> fns_result = recurOnListOfId(that.getFns());
-//        List<RetType> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
-//        return forFnRefOnly(that, fns_result, staticArgs_result);
-//    }
-//
-//    public RetType for_RewriteFnRef(_RewriteFnRef that) {
-//        RetType fn_result = that.getFn().accept(this);
-//        List<RetType> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
-//        return for_RewriteFnRefOnly(that, fn_result, staticArgs_result);
-//    }
-//
-//    public RetType forVarRef(VarRef that) {
-//        RetType var_result = that.getVar().accept(this);
-//        return forVarRefOnly(that, var_result);
-//    }
-//
-//    public RetType forArrayElement(ArrayElement that) {
-//        RetType element_result = that.getElement().accept(this);
-//        return forArrayElementOnly(that, element_result);
-//    }
-//
-//    public RetType forArrayElements(ArrayElements that) {
-//        List<RetType> elements_result = recurOnListOfArrayExpr(that.getElements());
-//        return forArrayElementsOnly(that, elements_result);
-//    }
-//
-//    public RetType forArrowType(ArrowType that) {
-//        RetType domain_result = that.getDomain().accept(this);
-//        RetType range_result = that.getRange().accept(this);
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfType(that.getThrowsClause());
-//        return forArrowTypeOnly(that, domain_result, range_result, throwsClause_result);
-//    }
-//
-//    public RetType for_RewriteGenericArrowType(_RewriteGenericArrowType that) {
-//        RetType domain_result = that.getDomain().accept(this);
-//        RetType range_result = that.getRange().accept(this);
-//        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfType(that.getThrowsClause());
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        RetType where_result = that.getWhere().accept(this);
-//        return for_RewriteGenericArrowTypeOnly(that, domain_result, range_result, throwsClause_result, staticParams_result, where_result);
-//    }
-//
-//    public RetType forBottomType(BottomType that) {
-//        return forBottomTypeOnly(that);
-//    }
-//
-//    public RetType forArrayType(ArrayType that) {
-//        RetType element_result = that.getElement().accept(this);
-//        RetType indices_result = that.getIndices().accept(this);
-//        return forArrayTypeOnly(that, element_result, indices_result);
-//    }
-//
-//    public RetType forVarType(VarType that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forVarTypeOnly(that, name_result);
-//    }
-//
-//    public RetType forInferenceVarType(InferenceVarType that) {
-//        return forInferenceVarTypeOnly(that);
-//    }
-//
-//    public RetType forMatrixType(MatrixType that) {
-//        RetType element_result = that.getElement().accept(this);
-//        List<RetType> dimensions_result = recurOnListOfExtentRange(that.getDimensions());
-//        return forMatrixTypeOnly(that, element_result, dimensions_result);
-//    }
-//
-//    public RetType forTraitType(TraitType that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> args_result = recurOnListOfStaticArg(that.getArgs());
-//        return forTraitTypeOnly(that, name_result, args_result);
-//    }
-//
-//    public RetType forVarargTupleType(VarargTupleType that) {
-//        List<RetType> elements_result = recurOnListOfType(that.getElements());
-//        RetType varargs_result = that.getVarargs().accept(this);
-//        return forVarargTupleTypeOnly(that, elements_result, varargs_result);
-//    }
-//
-//    public RetType forTupleType(TupleType that) {
-//        List<RetType> elements_result = recurOnListOfType(that.getElements());
-//        return forTupleTypeOnly(that, elements_result, varargs_result, keywords_result);
-//    }
-//
-//    public RetType forVoidType(VoidType that) {
-//        return forVoidTypeOnly(that);
-//    }
-//
-//    public RetType forTaggedDimType(TaggedDimType that) {
-//        RetType type_result = that.getType().accept(this);
-//        RetType dim_result = that.getDim().accept(this);
-//        Option<RetType> unit_result = recurOnOptionOfExpr(that.getUnit());
-//        return forTaggedDimTypeOnly(that, type_result, dim_result, unit_result);
-//    }
-//
-//    public RetType forTaggedUnitType(TaggedUnitType that) {
-//        RetType type_result = that.getType().accept(this);
-//        RetType unit_result = that.getUnit().accept(this);
-//        return forTaggedUnitTypeOnly(that, type_result, unit_result);
-//    }
-//
-//    public RetType forTypeArg(TypeArg that) {
-//        RetType type_result = that.getType().accept(this);
-//        return forTypeArgOnly(that, type_result);
-//    }
-//
-//    public RetType forIntArg(IntArg that) {
-//        RetType val_result = that.getVal().accept(this);
-//        return forIntArgOnly(that, val_result);
-//    }
-//
-//    public RetType forBoolArg(BoolArg that) {
-//        RetType bool_result = that.getBool().accept(this);
-//        return forBoolArgOnly(that, bool_result);
-//    }
-//
-//    public RetType forOpArg(OpArg that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forOpArgOnly(that, name_result);
-//    }
-//
-//    public RetType forDimArg(DimArg that) {
-//        RetType dim_result = that.getDim().accept(this);
-//        return forDimArgOnly(that, dim_result);
-//    }
-//
-//    public RetType forUnitArg(UnitArg that) {
-//        RetType unit_result = that.getUnit().accept(this);
-//        return forUnitArgOnly(that, unit_result);
-//    }
-//
-//    public RetType for_RewriteImplicitType(_RewriteImplicitType that) {
-//        return for_RewriteImplicitTypeOnly(that);
-//    }
-//
-//    public RetType for_RewriteIntersectionType(_RewriteIntersectionType that) {
-//        List<RetType> elements_result = recurOnListOfType(that.getElements());
-//        return for_RewriteIntersectionTypeOnly(that, elements_result);
-//    }
-//
-//    public RetType for_RewriteUnionType(_RewriteUnionType that) {
-//        List<RetType> elements_result = recurOnListOfType(that.getElements());
-//        return for_RewriteUnionTypeOnly(that, elements_result);
-//    }
-//
-//    public RetType for_RewriteFixedPointType(_RewriteFixedPointType that) {
-//        RetType var_result = that.getVar().accept(this);
-//        RetType body_result = that.getBody().accept(this);
-//        return for_RewriteFixedPointTypeOnly(that, var_result, body_result);
-//    }
-//
-//    public RetType forNumberConstraint(NumberConstraint that) {
-//        RetType val_result = that.getVal().accept(this);
-//        return forNumberConstraintOnly(that, val_result);
-//    }
-//
-//    public RetType forIntRef(IntRef that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forIntRefOnly(that, name_result);
-//    }
-//
-//    public RetType forSumConstraint(SumConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forSumConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forMinusConstraint(MinusConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forMinusConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forProductConstraint(ProductConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forProductConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forExponentConstraint(ExponentConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forExponentConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forBoolConstant(BoolConstant that) {
-//        return forBoolConstantOnly(that);
-//    }
-//
-//    public RetType forBoolRef(BoolRef that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forBoolRefOnly(that, name_result);
-//    }
-//
-//    public RetType forNotConstraint(NotConstraint that) {
-//        RetType bool_result = that.getBool().accept(this);
-//        return forNotConstraintOnly(that, bool_result);
-//    }
-//
-//    public RetType forOrConstraint(OrConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forOrConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forAndConstraint(AndConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forAndConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forImpliesConstraint(ImpliesConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forImpliesConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forBEConstraint(BEConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forBEConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forBaseDim(BaseDim that) {
-//        return forBaseDimOnly(that);
-//    }
-//
-//    public RetType forDimRef(DimRef that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forDimRefOnly(that, name_result);
-//    }
-//
-//    public RetType forProductDim(ProductDim that) {
-//        RetType multiplier_result = that.getMultiplier().accept(this);
-//        RetType multiplicand_result = that.getMultiplicand().accept(this);
-//        return forProductDimOnly(that, multiplier_result, multiplicand_result);
-//    }
-//
-//    public RetType forQuotientDim(QuotientDim that) {
-//        RetType numerator_result = that.getNumerator().accept(this);
-//        RetType denominator_result = that.getDenominator().accept(this);
-//        return forQuotientDimOnly(that, numerator_result, denominator_result);
-//    }
-//
-//    public RetType forExponentDim(ExponentDim that) {
-//        RetType base_result = that.getBase().accept(this);
-//        RetType power_result = that.getPower().accept(this);
-//        return forExponentDimOnly(that, base_result, power_result);
-//    }
-//
-//    public RetType forOpDim(OpDim that) {
-//        RetType val_result = that.getVal().accept(this);
-//        RetType op_result = that.getOp().accept(this);
-//        return forOpDimOnly(that, val_result, op_result);
-//    }
-//
-//    public RetType forWhereType(WhereType that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> supers_result = recurOnListOfBaseType(that.getSupers());
-//        return forWhereTypeOnly(that, name_result, supers_result);
-//    }
-//
-//    public RetType forWhereNat(WhereNat that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forWhereNatOnly(that, name_result);
-//    }
-//
-//    public RetType forWhereInt(WhereInt that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forWhereIntOnly(that, name_result);
-//    }
-//
-//    public RetType forWhereBool(WhereBool that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forWhereBoolOnly(that, name_result);
-//    }
-//
-//    public RetType forWhereUnit(WhereUnit that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forWhereUnitOnly(that, name_result);
-//    }
-//
-//    public RetType forWhereExtends(WhereExtends that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> supers_result = recurOnListOfBaseType(that.getSupers());
-//        return forWhereExtendsOnly(that, name_result, supers_result);
-//    }
-//
-//    public RetType forTypeAlias(TypeAlias that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-//        RetType type_result = that.getType().accept(this);
-//        return forTypeAliasOnly(that, name_result, staticParams_result, type_result);
-//    }
-//
-//    public RetType forWhereCoerces(WhereCoerces that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forWhereCoercesOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forWhereWidens(WhereWidens that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forWhereWidensOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forWhereWidensCoerces(WhereWidensCoerces that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forWhereWidensCoercesOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forWhereEquals(WhereEquals that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forWhereEqualsOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forUnitConstraint(UnitConstraint that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forUnitConstraintOnly(that, name_result);
-//    }
-//
-//    public RetType forLEConstraint(LEConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forLEConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forLTConstraint(LTConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forLTConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forGEConstraint(GEConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forGEConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forGTConstraint(GTConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forGTConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forIEConstraint(IEConstraint that) {
-//        RetType left_result = that.getLeft().accept(this);
-//        RetType right_result = that.getRight().accept(this);
-//        return forIEConstraintOnly(that, left_result, right_result);
-//    }
-//
-//    public RetType forBoolConstraintExpr(BoolConstraintExpr that) {
-//        RetType constraint_result = that.getConstraint().accept(this);
-//        return forBoolConstraintExprOnly(that, constraint_result);
-//    }
-//
-//    public RetType forContract(Contract that) {
-//        Option<List<RetType>> requires_result = recurOnOptionOfListOfExpr(that.getRequires());
-//        Option<List<RetType>> ensures_result = recurOnOptionOfListOfEnsuresClause(that.getEnsures());
-//        Option<List<RetType>> invariants_result = recurOnOptionOfListOfExpr(that.getInvariants());
-//        return forContractOnly(that, requires_result, ensures_result, invariants_result);
-//    }
-//
-//    public RetType forEnsuresClause(EnsuresClause that) {
-//        RetType post_result = that.getPost().accept(this);
-//        Option<RetType> pre_result = recurOnOptionOfExpr(that.getPre());
-//        return forEnsuresClauseOnly(that, post_result, pre_result);
-//    }
-//
-//    public RetType forModifierAbstract(ModifierAbstract that) {
-//        return forModifierAbstractOnly(that);
-//    }
-//
-//    public RetType forModifierAtomic(ModifierAtomic that) {
-//        return forModifierAtomicOnly(that);
-//    }
-//
-//    public RetType forModifierGetter(ModifierGetter that) {
-//        return forModifierGetterOnly(that);
-//    }
-//
-//    public RetType forModifierHidden(ModifierHidden that) {
-//        return forModifierHiddenOnly(that);
-//    }
-//
-//    public RetType forModifierIO(ModifierIO that) {
-//        return forModifierIOOnly(that);
-//    }
-//
-//    public RetType forModifierOverride(ModifierOverride that) {
-//        return forModifierOverrideOnly(that);
-//    }
-//
-//    public RetType forModifierPrivate(ModifierPrivate that) {
-//        return forModifierPrivateOnly(that);
-//    }
-//
-//    public RetType forModifierSettable(ModifierSettable that) {
-//        return forModifierSettableOnly(that);
-//    }
-//
-//    public RetType forModifierSetter(ModifierSetter that) {
-//        return forModifierSetterOnly(that);
-//    }
-//
-//    public RetType forModifierTest(ModifierTest that) {
-//        return forModifierTestOnly(that);
-//    }
-//
-//    public RetType forModifierTransient(ModifierTransient that) {
-//        return forModifierTransientOnly(that);
-//    }
-//
-//    public RetType forModifierValue(ModifierValue that) {
-//        return forModifierValueOnly(that);
-//    }
-//
-//    public RetType forModifierVar(ModifierVar that) {
-//        return forModifierVarOnly(that);
-//    }
-//
-//    public RetType forModifierWidens(ModifierWidens that) {
-//        return forModifierWidensOnly(that);
-//    }
-//
-//    public RetType forModifierWrapped(ModifierWrapped that) {
-//        return forModifierWrappedOnly(that);
-//    }
-//
-//    public RetType forOpParam(OpParam that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forOpParamOnly(that, name_result);
-//    }
-//
-//    public RetType forBoolParam(BoolParam that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forBoolParamOnly(that, name_result);
-//    }
-//
-//    public RetType forDimParam(DimParam that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forDimParamOnly(that, name_result);
-//    }
-//
-//    public RetType forIntParam(IntParam that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forIntParamOnly(that, name_result);
-//    }
-//
-//    public RetType forNatParam(NatParam that) {
-//        RetType name_result = that.getName().accept(this);
-//        return forNatParamOnly(that, name_result);
-//    }
-//
-//    public RetType forUnitParam(UnitParam that) {
-//        RetType name_result = that.getName().accept(this);
-//        Option<RetType> dim_result = recurOnOptionOfDimExpr(that.getDim());
-//        return forUnitParamOnly(that, name_result, dim_result);
-//    }
-//
-//    public RetType forAPIName(APIName that) {
-//        List<RetType> ids_result = recurOnListOfId(that.getIds());
-//        return forAPINameOnly(that, ids_result);
-//    }
-//
-//    public RetType forId(Id that) {
-//        Option<RetType> api_result = recurOnOptionOfAPIName(that.getApi());
-//        RetType name_result = that.getName().accept(this);
-//        return forIdOnly(that, api_result, name_result);
-//    }
-//
-//    public RetType forOp(Op that) {
-//        return forOpOnly(that);
-//    }
-//
-//    public RetType forEnclosing(Enclosing that) {
-//        RetType open_result = that.getOpen().accept(this);
-//        RetType close_result = that.getClose().accept(this);
-//        return forEnclosingOnly(that, open_result, close_result);
-//    }
-//
-//    public RetType forAnonymousFnName(AnonymousFnName that) {
-//        return forAnonymousFnNameOnly(that);
-//    }
-//
-//    public RetType forConstructorFnName(ConstructorFnName that) {
-//        RetType def_result = that.getDef().accept(this);
-//        return forConstructorFnNameOnly(that, def_result);
-//    }
-//
-//    public RetType forArrayComprehensionClause(ArrayComprehensionClause that) {
-//        List<RetType> bind_result = recurOnListOfExpr(that.getBind());
-//        RetType init_result = that.getInit().accept(this);
-//        List<RetType> gens_result = recurOnListOfGeneratorClause(that.getGens());
-//        return forArrayComprehensionClauseOnly(that, bind_result, init_result, gens_result);
-//    }
-//
-//    public RetType forKeywordExpr(KeywordExpr that) {
-//        RetType name_result = that.getName().accept(this);
-//        RetType init_result = that.getInit().accept(this);
-//        return forKeywordExprOnly(that, name_result, init_result);
-//    }
-//
-//    public RetType forCaseClause(CaseClause that) {
-//        RetType match_result = that.getMatch().accept(this);
-//        RetType body_result = that.getBody().accept(this);
-//        return forCaseClauseOnly(that, match_result, body_result);
-//    }
-//
-//    public RetType forCatch(Catch that) {
-//        RetType name_result = that.getName().accept(this);
-//        List<RetType> clauses_result = recurOnListOfCatchClause(that.getClauses());
-//        return forCatchOnly(that, name_result, clauses_result);
-//    }
-//
-//    public RetType forCatchClause(CatchClause that) {
-//        RetType match_result = that.getMatch().accept(this);
-//        RetType body_result = that.getBody().accept(this);
-//        return forCatchClauseOnly(that, match_result, body_result);
-//    }
-//
-//    public RetType forDoFront(DoFront that) {
-//        Option<RetType> loc_result = recurOnOptionOfExpr(that.getLoc());
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forDoFrontOnly(that, loc_result, expr_result);
-//    }
-//
-//    public RetType forIfClause(IfClause that) {
-//        RetType test_result = that.getTest().accept(this);
-//        RetType body_result = that.getBody().accept(this);
-//        return forIfClauseOnly(that, test_result, body_result);
-//    }
-//
-//    public RetType forTypecaseClause(TypecaseClause that) {
-//        List<RetType> match_result = recurOnListOfType(that.getMatch());
-//        RetType body_result = that.getBody().accept(this);
-//        return forTypecaseClauseOnly(that, match_result, body_result);
-//    }
-//
-//    public RetType forExtentRange(ExtentRange that) {
-//        Option<RetType> base_result = recurOnOptionOfStaticArg(that.getBase());
-//        Option<RetType> size_result = recurOnOptionOfStaticArg(that.getSize());
-//        return forExtentRangeOnly(that, base_result, size_result);
-//    }
-//
-//    public RetType forGeneratorClause(GeneratorClause that) {
-//        List<RetType> bind_result = recurOnListOfId(that.getBind());
-//        RetType init_result = that.getInit().accept(this);
-//        return forGeneratorClauseOnly(that, bind_result, init_result);
-//    }
-//
-//    public RetType forVarargsExpr(VarargsExpr that) {
-//        RetType varargs_result = that.getVarargs().accept(this);
-//        return forVarargsExprOnly(that, varargs_result);
-//    }
-//
-//    public RetType forKeywordType(KeywordType that) {
-//        RetType name_result = that.getName().accept(this);
-//        RetType type_result = that.getType().accept(this);
-//        return forKeywordTypeOnly(that, name_result, type_result);
-//    }
-//
-//    public RetType forTraitTypeWhere(TraitTypeWhere that) {
-//        RetType type_result = that.getType().accept(this);
-//        RetType where_result = that.getWhere().accept(this);
-//        return forTraitTypeWhereOnly(that, type_result, where_result);
-//    }
-//
-//    public RetType forIndices(Indices that) {
-//        List<RetType> extents_result = recurOnListOfExtentRange(that.getExtents());
-//        return forIndicesOnly(that, extents_result);
-//    }
-//
-//    public RetType forSquareDimUnit(SquareDimUnit that) {
-//        return forSquareDimUnitOnly(that);
-//    }
-//
-//    public RetType forCubicDimUnit(CubicDimUnit that) {
-//        return forCubicDimUnitOnly(that);
-//    }
-//
-//    public RetType forInverseDimUnit(InverseDimUnit that) {
-//        return forInverseDimUnitOnly(that);
-//    }
-//
-//    public RetType forParenthesisDelimitedMI(ParenthesisDelimitedMI that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forParenthesisDelimitedMIOnly(that, expr_result);
-//    }
-//
-//    public RetType forNonParenthesisDelimitedMI(NonParenthesisDelimitedMI that) {
-//        RetType expr_result = that.getExpr().accept(this);
-//        return forNonParenthesisDelimitedMIOnly(that, expr_result);
-//    }
-//
-//    public RetType forExponentiationMI(ExponentiationMI that) {
-//        RetType op_result = that.getOp().accept(this);
-//        Option<RetType> expr_result = recurOnOptionOfExpr(that.getExpr());
-//        return forExponentiationMIOnly(that, op_result, expr_result);
-//    }
-//
-//    public RetType forSubscriptingMI(SubscriptingMI that) {
-//        RetType op_result = that.getOp().accept(this);
-//        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
-//        return forSubscriptingMIOnly(that, op_result, exprs_result);
-//    }

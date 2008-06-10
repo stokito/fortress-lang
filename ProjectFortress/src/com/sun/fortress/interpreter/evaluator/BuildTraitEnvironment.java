@@ -45,11 +45,11 @@ public class BuildTraitEnvironment extends BuildEnvironments {
 
     Set<String> fields;
 
-    BetterEnv methodEnvironment;
+    Environment methodEnvironment;
 
     FType definer;
 
-    public BuildTraitEnvironment(BetterEnv within, BetterEnv methodEnvironment,
+    public BuildTraitEnvironment(Environment within, Environment methodEnvironment,
             FType definer, Set<String> fields) {
         super(within);
         this.definer = definer;
@@ -57,11 +57,11 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         this.methodEnvironment = methodEnvironment;
     }
 
-    protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
+    protected Simple_fcn newClosure(Environment e, Applicable x) {
         return new TraitMethod(containing, methodEnvironment, x, definer);
     }
 
-    protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {
+    protected GenericMethod newGenericClosure(Environment e, FnAbsDeclOrDecl x) {
         return new GenericMethod(containing, methodEnvironment, x, definer, true);
     }
 
@@ -73,14 +73,14 @@ public class BuildTraitEnvironment extends BuildEnvironments {
      * @param value
      * @param ft
      */
-    protected void putValue(BetterEnv e, String name, FValue value, FType ft) {
+    protected void putValue(Environment e, String name, FValue value, FType ft) {
         e.putValueUnconditionally(name, value, ft);
     }
 
     /**
      * Put a value, perhaps unconditionally depending on subtype's choice
      */
-    protected void putValue(BetterEnv e, String name, FValue value) {
+    protected void putValue(Environment e, String name, FValue value) {
         e.putValueUnconditionally(name, value);
     }
 

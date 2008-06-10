@@ -17,13 +17,15 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.glue.test.Bar;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -31,23 +33,20 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-
 public class MethodClosure extends Closure implements Method {
 
     final int selfParameterIndex;
 
     final FType definer;
 
-    public MethodClosure(BetterEnv within, Applicable fndef, FType definer) {
+    public MethodClosure(Environment within, Applicable fndef, FType definer) {
         super(within, fndef);
         this.definer = definer;
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
 
     }
 
-    public MethodClosure(BetterEnv within, Applicable fndef, FType definer, List<FType> args) {
+    public MethodClosure(Environment within, Applicable fndef, FType definer, List<FType> args) {
         super(within, fndef, args);
         this.definer = definer;
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
@@ -67,12 +66,12 @@ public class MethodClosure extends Closure implements Method {
     // The choice of evaluation environment is the only difference between applying
     // a MethodClosure and applying its subclass, a PartiallyDefinedMethod (which
     // appears to actually represent some piece of a functional method in practice).
-    protected BetterEnv envForApplication(FObject selfValue, HasAt loc) {
+    protected Environment envForApplication(FObject selfValue, HasAt loc) {
         return selfValue.getLexicalEnv();
     }
 
     public FValue applyMethod(List<FValue> args, FObject selfValue,
-                              HasAt loc, BetterEnv envForInference) {
+                              HasAt loc, Environment envForInference) {
         args = conditionallyUnwrapTupledArgs(args);
         Expr body = getBodyNull();
 
@@ -110,7 +109,7 @@ public class MethodClosure extends Closure implements Method {
      *      we've already dealt with the type information.
      */
     public FValue applyInner(List<FValue> args, HasAt loc,
-                             BetterEnv envForInference) {
+                             Environment envForInference) {
         if (selfParameterIndex == -1) {
             return bug(loc,errorMsg("MethodClosure for dotted method ",this,
                                     " was invoked as if it were a functional method."));

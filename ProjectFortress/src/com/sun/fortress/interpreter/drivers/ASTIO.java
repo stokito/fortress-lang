@@ -26,9 +26,7 @@ import xtc.parser.Result;
 import xtc.parser.SemanticValue;
 
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.parser.Fortress;

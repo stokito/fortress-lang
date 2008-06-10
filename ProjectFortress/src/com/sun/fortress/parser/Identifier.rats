@@ -69,24 +69,74 @@ List<Id> BindIdOrBindIdTuple =
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
-/* SimpleName ::= Id | opr w Op | opr w EncloserPair */
+/* SimpleName ::= Id | opr w (Encloser / Op) | opr w EncloserPair */
 IdOrOpOrAnonymousName SimpleName =
      Id
-   / opr w Op
+   / opr w (Encloser / Op)
    / opr w EncloserPair;
+
+private String idOrKeyword = s:(idstart idrest*) &{ true };
 
 /* APIName ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */
 APIName APIName =
-     a1:Id &(w ellipses)
-     { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount), a1); }
-   / a1:Id a2s:(dot Id)* &(w ellipses)
-     { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount),
-                                         IterUtil.compose(a1, a2s.list()));
+     a1:idOrKeyword &(w ellipses)
+     { Span span = createSpan(yyStart,yyCount);
+       if (FORTRESS_KEYWORDS.contains(a1))
+           yyValue = syntaxError(span, a1 + " is a Fortress keyword.\n");
+       else if (FortressUtil.validId(a1))
+           yyValue = NodeFactory.makeAPIName(span, new Id(span, a1));
+       else if (FortressUtil.validOp(a1))
+           yyValue = syntaxError(span,
+                                 a1 + " is not a valid Fortress identifier.\n" +
+                                 "A non-reserved word that is made up of a mixture" +
+                                 " of uppercase letters and underscores (but no " +
+                                 "digits), does not begin or end with an " +
+                                 "underscore, and contains at least two distinct " +
+                                 "letters is an operator name.");
+       else yyValue = syntaxError(span, a1 + " is not a valid Fortress identifier.\n");
      }
-   / a1:Id a2s:(dot Id)*
-     { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount),
-                                         IterUtil.compose(a1, a2s.list()));
+   / a1:idOrKeyword a2s:(dot idOrKeyword)* &(w ellipses)
+     { Span span = createSpan(yyStart,yyCount);
+       List<Id> ids = IterUtil.asList(IterUtil.compose(new Id(span, a1),
+                                                       IterUtil.map(a2s.list(),
+                                                                    NodeUtil.StringToIdFn)));
+       for (Id _id : ids) {
+           String id = _id.getText();
+           if (FORTRESS_KEYWORDS.contains(id))
+               syntaxError(span, id + " is a Fortress keyword.\n");
+           else if (FortressUtil.validOp(id))
+               syntaxError(span, id + " is not a valid Fortress identifier.\n" +
+                           "A non-reserved word that is made up of a mixture" +
+                           " of uppercase letters and underscores (but no " +
+                           "digits), does not begin or end with an " +
+                           "underscore, and contains at least two distinct " +
+                           "letters is an operator name.");
+           else if (!FortressUtil.validId(id))
+               syntaxError(span, id + " is not a valid Fortress identifier.\n");
+       }
+       yyValue = NodeFactory.makeAPIName(span, ids);
+     }
+   / a1:idOrKeyword a2s:(dot idOrKeyword)*
+     { Span span = createSpan(yyStart,yyCount);
+       List<Id> ids = IterUtil.asList(IterUtil.compose(new Id(span, a1),
+                                                       IterUtil.map(a2s.list(),
+                                                                    NodeUtil.StringToIdFn)));
+       for (Id _id : ids) {
+           String id = _id.getText();
+           if (FORTRESS_KEYWORDS.contains(id))
+               syntaxError(span, id + " is a Fortress keyword.\n");
+           else if (FortressUtil.validOp(id))
+               syntaxError(span, id + " is not a valid Fortress identifier.\n" +
+                           "A non-reserved word that is made up of a mixture" +
+                           " of uppercase letters and underscores (but no " +
+                           "digits), does not begin or end with an " +
+                           "underscore, and contains at least two distinct " +
+                           "letters is an operator name.");
+           else if (!FortressUtil.validId(id))
+               syntaxError(span, id + " is not a valid Fortress identifier.\n");
+       }
+       yyValue = NodeFactory.makeAPIName(span, ids);
      };
 
 /* QualifiedName ::= Id(.Id)* */

@@ -88,7 +88,7 @@ end
 (** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
-opr BIG <|[\T\] g: ( Reduction[\SomeList\], T->SomeList) -> SomeList |>: List[\T\]
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]
@@ -100,7 +100,7 @@ emptyList[\E\](): List[\E\]
 singleton[\E\](e:E): List[\E\]
 
 (** A reduction object for concatenating lists. *)
-object Concat[\E\] extends Reduction[\ List[\E\] \]
+object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
   empty(): List[\E\]
   join(a:List[\E\], b:List[\E\]): List[\E\]
 end

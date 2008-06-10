@@ -52,14 +52,14 @@ end
 testSparse[\nat n\](A: Csr[\RR64,n,n\]) = do
   D = matrix[\RR64,n,n\]().assign(A)
   if D=/=A then
-    println("FAIL: dense =/= sparse\nD" D "\nA" A)
+    println("FAIL: dense =/= sparse" // "D" D // "A" A)
   else
     println("dense OK")
   end
   A2 = identity[\Csr[\RR64,n,n\]\](A A.t())
   D2 = D D.t()
   if D2=/=A2 then
-    println("FAIL: dense^2 =/= sparse^2\nD^2" D2 "\nA^2" A2)
+    println("FAIL: dense^2 =/= sparse^2" // "D^2" D2 // "A^2" A2)
   else
     println("dense^2 OK")
   end
@@ -69,7 +69,7 @@ testSparse[\nat n\](A: Csr[\RR64,n,n\]) = do
   (* Small variations may occur based on summation order for dot
      product. *)
   if ||Dv - Av|| > 0.000000000001 then
-    println("Fail: Dv =/= Av\nDv = " Dv "\nAv = " Av)
+    println("Fail: Dv =/= Av" // "Dv = " Dv // "Av = " Av)
   else
     println("Dv OK")
   end
@@ -100,7 +100,7 @@ conjGrad[\Elt extends Number, nat N,
     rho := r DOT r
     beta = rho / rho0
     p := r + beta p
-    println("Iter " j " alpha = " alpha "\nz" z)
+    println("Iter " j " alpha = " alpha // "z" z)
   end
   (z, ||x - A z||)
 end

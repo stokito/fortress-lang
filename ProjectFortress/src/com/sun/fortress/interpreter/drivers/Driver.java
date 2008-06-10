@@ -17,11 +17,11 @@
 
 package com.sun.fortress.interpreter.drivers;
 
-import java.io.BufferedReader;
-import java.io.File;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,32 +32,23 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
-import edu.rice.cs.plt.tuple.Option;
-
 
 import com.sun.fortress.compiler.FortressRepository;
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
-import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.RedefinitionError;
+import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
-import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
-import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.glue.Glue;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.AbsExternalSyntax;
 import com.sun.fortress.nodes.AbsFnDecl;
@@ -70,58 +61,47 @@ import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.ImportNames;
+import com.sun.fortress.nodes.ImportStar;
+import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.ImportNames;
-import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TestDecl;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.VarAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.interpreter.rewrite.Desugarer;
-import com.sun.fortress.shell.AutocachingRepository;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
-import com.sun.fortress.shell.FileBasedRepository;
-import com.sun.fortress.shell.PathBasedRepository;
-import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.Path;
-import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import edu.rice.cs.plt.tuple.Option;
 
 public class Driver {
 
@@ -156,7 +136,7 @@ public class Driver {
     static public void runTests() {
     }
 
-    public static BetterEnv evalComponent(CompilationUnit p,
+    public static Environment evalComponent(CompilationUnit p,
             FortressRepository fr) throws IOException {
         return evalComponent(p, false, fr);
     }
@@ -263,7 +243,7 @@ public class Driver {
         }
     }
 
-    public static BetterEnv evalComponent(CompilationUnit p,
+    public static Environment evalComponent(CompilationUnit p,
                                           boolean woLibrary,
                                           FortressRepository fr) throws IOException {
 
@@ -440,7 +420,7 @@ public class Driver {
         List<Import> imports = c.getImports();
         List<Importer> importers = new ArrayList<Importer>();
 
-        final BetterEnv e = cw.getEnvironment();
+        final Environment e = cw.getEnvironment();
 
         /* First handle all imports that name the things they introduce. */
 
@@ -481,8 +461,8 @@ public class Driver {
                 String from_apiname = NodeUtil.nameString(source);
 
                 ComponentWrapper from_cw = linker.get(from_apiname);
-                BetterEnv from_e = from_cw.getEnvironment();
-                BetterEnv api_e = from_cw.getExportedCW(from_apiname)
+                Environment from_e = from_cw.getEnvironment();
+                Environment api_e = from_cw.getExportedCW(from_apiname)
                         .getEnvironment();
 
                 /* Pull in names, UNqualified */
@@ -526,9 +506,9 @@ public class Driver {
                 String from_apiname = NodeUtil.nameString(source);
 
                 ComponentWrapper from_cw = linker.get(from_apiname);
-                BetterEnv from_e = from_cw.getEnvironment();
+                Environment from_e = from_cw.getEnvironment();
                 ComponentWrapper api_cw = from_cw.getExportedCW(from_apiname);
-                BetterEnv api_e = api_cw.getEnvironment();
+                Environment api_e = api_cw.getEnvironment();
 
                 /* Pull in names, UNqualified */
 
@@ -643,7 +623,7 @@ public class Driver {
         return change;
     }
 
-    private static void scanAllFunctionalMethods(final BetterEnv e) {
+    private static void scanAllFunctionalMethods(final Environment e) {
         Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
                 if (o instanceof FTraitOrObjectOrGeneric) {
@@ -662,7 +642,7 @@ public class Driver {
         e.visit(vt, null, null, null, null);
     }
 
-    private static void finishAllFunctionalMethods(final BetterEnv e) {
+    private static void finishAllFunctionalMethods(final Environment e) {
         Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
                 if (o instanceof FTraitOrObjectOrGeneric) {
@@ -709,9 +689,9 @@ public class Driver {
      *
      */
     private static Importer importAllExcept(final CompilationUnit fromApi,
-            final BetterEnv into_e,
-            final BetterEnv api_e,
-            final BetterEnv from_e,
+            final Environment into_e,
+            final Environment api_e,
+            final Environment from_e,
             final Collection<String> except_names,
             final String a,
             final String c,
@@ -741,7 +721,7 @@ public class Driver {
 
         }
 
-        private boolean trysomeImports(final BetterEnv api_e,
+        private boolean trysomeImports(final Environment api_e,
                 final Set<String> vnames, final Set<String> tnames) {
             boolean flag = false;
             for (String s : vnames) {
@@ -1007,7 +987,7 @@ public class Driver {
             }
     }
 
-    private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
+    private static void inject(Environment e, Environment api_e, Environment from_e,
             IdOrOpOrAnonymousName name, Option<IdOrOpOrAnonymousName> alias, String a, String c,
             ComponentWrapper importer) {
         String s = NodeUtil.nameString(name);
@@ -1027,7 +1007,7 @@ public class Driver {
                 e.putInt(add_as, NI.cnnf(from_e.getIntNull(s)));
             }
             if (api_e.getBoolNull(s) != null) {
-                e.putBool(add_as, NI.cnnf(from_e.getBoolNull(s)));
+                e.putBool(add_as, NI.<Boolean>cnnf(from_e.getBoolNull(s)));
             }
             if (api_e.getTypeNull(s) != null) {
                 e.putType(add_as, NI.cnnf(from_e.getTypeNull(s)));
@@ -1139,7 +1119,7 @@ public class Driver {
     {
 
         FortressTests.reset();
-        BetterEnv e = evalComponent(p, woLibrary, fr);
+        Environment e = evalComponent(p, woLibrary, fr);
 
         Closure run_fn = e.getClosure(toBeRun);
         Toplevel toplevel = new Toplevel();

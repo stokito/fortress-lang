@@ -20,27 +20,26 @@ package com.sun.fortress.interpreter.glue.prim;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FChar;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FString;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FChar;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FString;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import com.sun.fortress.nodes.GenericWithParams;
 
 /**
  * The Char type.
  */
 public class Char extends NativeConstructor {
 
-    public Char(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public Char(Environment env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
     }
 

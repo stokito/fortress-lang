@@ -19,14 +19,14 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
 import java.util.Set;
-import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
+
+import edu.rice.cs.plt.tuple.Option;
 
 
 public class FTypeObjectInstance extends FTypeObject implements
@@ -35,7 +35,7 @@ public class FTypeObjectInstance extends FTypeObject implements
     /**
     @deprecated
     */
-    public FTypeObjectInstance(String name, BetterEnv interior,
+    public FTypeObjectInstance(String name, Environment interior,
                                FTypeGeneric generic, List<FType> bind_args,
                                List<FType> name_args, Option<List<Param>> params,
                                List<? extends AbsDeclOrDecl> members, Type instantiation_type) {
@@ -45,7 +45,7 @@ public class FTypeObjectInstance extends FTypeObject implements
         this.name_args = name_args;
     }
 
-    public FTypeObjectInstance(String name, BetterEnv interior,
+    public FTypeObjectInstance(String name, Environment interior,
                                FTypeGeneric generic,
                                List<FType> bind_args, List<FType> name_args,
                                Option<List<Param>> params,
@@ -80,7 +80,7 @@ public class FTypeObjectInstance extends FTypeObject implements
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv unify_env, Set<String> tp_set,
+    protected boolean unifyNonVar(Environment unify_env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         return unifyNonVarGeneric(unify_env,tp_set,abm,val);
     }

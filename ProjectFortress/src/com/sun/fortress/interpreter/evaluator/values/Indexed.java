@@ -16,12 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class Indexed extends FValue implements IndexedShape, IndexedTarget {
   final FType elementType;

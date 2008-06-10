@@ -20,14 +20,14 @@ export Executable
 
 equiv(a:Any, b:Any, other: Any...): () =
     if NOT (a SEQV b AND b SEQV a) then
-        res = BIG STRING [x<-other] ("" x)
+        res = BIG ||[x<-other] x
         fail(a " not SEQV " b ": " res)
     end
 
 
 nequiv(a:Any, b:Any, other: Any...): () =
     if a SEQV b OR b SEQV a then
-        res = BIG STRING [x<-other] ("" x)
+        res = BIG ||[x<-other] x
         fail(a " SEQV " b ": " res)
     end
 

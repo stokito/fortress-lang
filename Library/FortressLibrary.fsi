@@ -99,15 +99,22 @@ trait Equality[\Self extends Equality[\Self\]\]
 end
 
 (** Total ordering *)
-
-object LexicographicPartialReduction extends Reduction[\Comparison\]
+object LexicographicPartialReduction
+        extends { MonoidReduction[\Comparison\],
+                  ReductionWithZeroes[\Comparison, Comparison\] }
     empty(): Comparison
     join(a:Comparison, b:Comparison):Comparison
+    isZero(_:Unordered): Boolean
+    isZero(_:Comparison): Boolean
 end
 
-object LexicographicReduction extends Reduction[\TotalComparison\]
+object LexicographicReduction
+        extends { MonoidReduction[\TotalComparison\],
+                  ReductionWithZeroes[\TotalComparison, TotalComparison\] }
     empty(): TotalComparison
     join(a:TotalComparison, b:TotalComparison):TotalComparison
+    isLeftZero(_:EqualTo): Boolean
+    isLeftZero(_:Comparison): Boolean
 end
 
 trait Comparison
@@ -491,6 +498,9 @@ end
    in interpreter type inference, and are intended for use by
    reduction desugaring. *)
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R
+
+__filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\]
+__bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
 
 (* Not currently used for desugaring, but will be used in future.
 __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\]
@@ -1368,102 +1378,212 @@ array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\]
 * \subsection*{Reductions}
 ************************************************************)
 
-trait Reduction[\ R \]
-    abstract getter toString():String
-    abstract empty(): R
-    abstract join(a: R, b: R): R
+trait Reduction[\R\] end
+
+(** Invariants:
+    join must be associative with identity empty
+    unlift(lift(x)) = x
+ **)
+trait ActualReduction[\R,L\] extends Reduction[\R\]
+    abstract getter toString()
+    abstract empty(): L
+    abstract join(a: L, b: L): L
+    abstract lift(r:R): L
+    abstract unlift(l:L): R
+    (** If this reduction left-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    leftDistribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\]
+    (** If this reduction right-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    rightDistribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\]
+    (** If this reduction distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    distribute(r: Reduction[\R\]): Maybe[\(Reduction[\R\],Reduction[\R\])\]
 end
 
-object VoidReduction extends Reduction[\()\]
+trait PossibleReductionPair[\R\] extends Condition[\SomeReductionPair[\R\]\]
+    comprises { NoReductionPair[\R\], SomeReductionPair[\R\] }
+end
+
+object NoReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
+end
+
+trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
+    abstract getter outer(): Reduction[\R\]
+    abstract getter inner(): Reduction[\R\]
+end
+
+trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
+    abstract getter outer(): ActualReduction[\R,L\]
+    abstract getter inner(): ActualReduction[\R,L\]
+end
+
+(** The usual lifting to Maybe for identity-less operators **)
+trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
+    empty(): Nothing[\R\]
+    join(a: AnyMaybe, b: AnyMaybe): AnyMaybe
+    abstract simpleJoin(a:Any, b:Any): Any
+    lift(r:Any): AnyMaybe
+    unlift(r:AnyMaybe): R
+end
+
+trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
+
+(** Monoids don't require a special lift and unlift operation. **)
+trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
+    lift(r:R): R
+    unlift(r:R): R
+end
+
+trait CommutativeMonoidReduction[\R\] extends MonoidReduction[\R\] end
+
+trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
+    isLeftZero(l:L): Boolean
+    isRightZero(l:L): Boolean
+    isZero(l:L): Boolean
+end
+
+trait BigOperator[\I,O,R,L\]
+    abstract getter reduction(): ActualReduction[\R,L\]
+    abstract getter body(): I->R
+    abstract getter unwrap(): R->O
+end
+
+object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
+    getter reduction(): ActualReduction[\R,L\]
+    getter body(): R->R
+    getter unwrap(): R->R
+end
+
+object Comprehension[\I,O,R,L\](u: R->O, r: ActualReduction[\R,L\], singleton:I->R)
+        extends BigOperator[\I,O,R,L\]
+    getter reduction(): ActualReduction[\R,L\]
+    getter body(): I->R
+    getter unwrap(): R->O
+end
+
+(** VoidReduction is usually done for effect, so we pretend that
+    the completion performs the effects.  This rules out things
+    distributing over void (that would change the number of effects in
+    our program) but not void distributing over other things. **)
+object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     getter toString()
     empty(): ()
     join(a: (), b: ()): ()
 end
 
-(** Hack to permit any %Number% to work non-parametrically. **)
-object SumReduction extends Reduction[\Number\]
+(* Hack to permit any Number to work non-parametrically. *)
+object SumReduction extends CommutativeMonoidReduction[\Number\]
     getter toString()
     empty(): Number
     join(a: Number, b: Number): Number
 end
 
-opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
+opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
-object ProdReduction extends Reduction[\Number\]
+object ProdReduction extends CommutativeMonoidReduction[\Number\]
     getter toString()
     empty(): Number
     join(a:Number, b:Number): Number
 end
 
-opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
+opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
-object MinReduction[\T extends StandardMin[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
-    empty(): AnyMaybe
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe
+    simpleJoin(a:T, b:T): T
 end
 
-opr BIG MIN[\T extends StandardMin[\T\]\]
-           (g:(MinReduction[\T\],T->AnyMaybe)->AnyMaybe): T
+opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\]
 
-object MaxReduction[\T extends StandardMax[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
-    empty(): AnyMaybe
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe
+    simpleJoin(a:T, b:T): T
 end
 
-opr BIG MAX[\T extends StandardMax[\T\]\]
-           (g:(MaxReduction[\T\],T->AnyMaybe)->AnyMaybe): T
+opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\]
 
-opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
+opr BIG MINNUM(): BigReduction[\RR64,RR64\]
 
-opr BIG MAXNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64
+opr BIG MAXNUM(): BigReduction[\RR64,RR64\]
 
-(** %AndReduction% and %OrReduction% take advantage of natural zeroes for early exit. **)
-object AndReduction extends Reduction[\Boolean\]
+(** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
+object AndReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString()
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
+    isZero(a:Boolean): Boolean
 end
 
-opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
+opr BIG AND[\T\](): BigReduction[\Boolean,Boolean\]
 
-object OrReduction extends Reduction[\Boolean\]
+object OrReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString()
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
+    isZero(a:Boolean): Boolean
 end
 
-opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
+opr BIG OR[\T\]():BigReduction[\Boolean, Boolean\]
 
 (** A reduction performing String concatenation **)
-object StringReduction extends Reduction[\String\]
+object StringReduction extends MonoidReduction[\String\]
     getter toString()
     empty(): String
     join(a:String, b:String): String
 end
 
+(** A reduction performing String concatenation with a space **)
+object SpaceReduction extends MonoidReduction[\String\]
+    getter toString()
+    empty(): String
+    join(a:String, b:String): String
+end
+
+(** A reduction performing String concatenation with newline separation **)
+object NewlineReduction extends AssociativeReduction[\String\]
+    getter toString()
+    simpleJoin(a:String, b:String): String
+end
+
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary. **)
-opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String
+opr BIG ||(): Comprehension[\Any,String,String,String\]
+
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary, and separating
+    non-empty components by a space. **)
+opr BIG |||(): Comprehension[\Any,String,String,String\]
+
+(** This operator performs string concatenation with newline
+    separation, first converting its inputs (of type Any) to String if
+    necessary. **)
+opr BIG //(): Comprehension[\Any,String,AnyMaybe,AnyMaybe\]
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
-object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
+object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
     getter toString()
     empty(): R
     join(a:R, b:R): R
 end
 
-(** Given an operator OP: (T,T) -> T and its identity z:T, create
-    the corresponding reduction.  OP must be associative. *)
-object OprReduction[\T,opr OP\](z:T) extends Reduction[\T\]
+(** A %MIMapReduceReduction% takes an associative binary function %j% on
+    arguments of type %R%, and the identity of that function %z%, and
+    returns the corresponding reduction. **)
+object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
     getter toString()
-    empty():T
-    join(a:T, b:T): T
+    empty(): R
+    join(a:Any, b:Any): R
 end
 
 (** %embiggen% takes a type %T% and an operation (either an operator
@@ -1473,7 +1593,7 @@ end
 (*
 embiggen[\T,opr OP\](z:T): ((Reduction[\T\],T->T) -> T) -> T
 *)
-embiggen[\T\](j:(Any,Any)->T, z:Any, g:(Reduction[\T\],T->Any) -> Any) : T
+embiggen[\T\](j:(Any,Any)->T, z:T) : Comprehension[\T,T,Any,Any\]
 
 (************************************************************
 * \subsection*{Ranges}
@@ -1620,39 +1740,6 @@ random(a:Number):RR64
     gracefully with %Char%s outside the 16-bit plane. **)
 char(a:ZZ32):Char
 
-opr DOT(a:String, b:String):String
-opr juxtaposition
-     (a:String, b:String):String
-opr DOT(a:Number, b:String):String
-opr juxtaposition
-     (a:Number, b:String):String
-opr DOT(a:String, b:Number):String
-opr juxtaposition
-     (a:String, b:Number):String
-opr DOT(a:Boolean, b:String):String
-opr juxtaposition
-     (a:Boolean, b:String):String
-opr DOT(a:String, b:Boolean):String
-opr juxtaposition
-     (a:String, b:Boolean):String
-opr DOT(a:String, c:Char):String
-opr juxtaposition
-     (a:String, c:Char):String
-opr DOT(c:Char, a:String):String
-opr juxtaposition
-     (c:Char, a:String):String
-opr DOT(a:String, b:()):String
-opr juxtaposition(a:String, b:()):String
-opr DOT(a:String, b:(Any,Any)):String
-opr juxtaposition(a:String, b:(Any,Any)):String
-opr juxtaposition(a:String, b:(Any,Any,Any)):String
-opr DOT(a:(), b:String):String
-opr juxtaposition(a:(), b:String):String
-opr DOT(a:Any, b:String):String
-opr juxtaposition(a:Any, b:String):String
-opr DOT(a:String, b:Any):String
-opr juxtaposition(a:String, b:Any):String
-
 print(a:String):()
 println(a:String):()
 print(a:Number):()
@@ -1665,6 +1752,12 @@ println(a:Any):()
 (** 0-argument versions handle passing of () to single-argument versions. **)
 print():()
 println():()
+
+(** opr // appends a single newline separator. **)
+opr (x:Any)// : String
+
+(** opr /// appends a double newline separator **)
+opr (x:Any)/// : String
 
 (* A way to get environment information from inside of fortress *)
 getEnvironment(name:String, defaultValue:String):String

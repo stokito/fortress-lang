@@ -18,61 +18,127 @@
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.*;
+
 import com.sun.fortress.compiler.*;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 import com.sun.fortress.nodes.*;
+
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
+
 
 public class TypeCheckerResult extends StaticPhaseResult {
     private final Node ast;
     private final Option<Type> type;
     private final ConstraintFormula nodeConstraints;
 
-    public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
+    private static ConstraintFormula 
+    collectConstraints(Iterable<? extends TypeCheckerResult> results,
+    		           TypeAnalyzer checker) {
+    	SubtypeHistory empty_history = checker.new SubtypeHistory();
+
+    	Iterable<ConstraintFormula> constraints =
+    		IterUtil.map(results, new Lambda<TypeCheckerResult, ConstraintFormula>(){
+    			public ConstraintFormula value(TypeCheckerResult arg0) {
+    				return arg0.nodeConstraints;
+    			}});    	
+
+    	return ConstraintFormula.bigAnd(constraints, empty_history);
+    }
+    
+    
+    public Map<InferenceVarType, Type> getMap() {
+		return nodeConstraints.getMap();
+	}
+
+
+
+	public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
+                                            TypeAnalyzer type_analyzer, 
                                             TypeCheckerResult... results) {
         return new TypeCheckerResult(_ast, _type,
-                                     collectErrors(Arrays.asList(results)));
+                                     collectErrors(Arrays.asList(results)),
+                                     collectConstraints(Arrays.asList(results), type_analyzer));
     }
     
     public static TypeCheckerResult compose(Node _ast, Type _type,
+                                            TypeAnalyzer type_analyzer, 
                                             TypeCheckerResult... results) {
         return new TypeCheckerResult(_ast, _type,
-                                     collectErrors(Arrays.asList(results)));
+                                     collectErrors(Arrays.asList(results)),
+                                     collectConstraints(Arrays.asList(results), type_analyzer));
     }
     
     public static TypeCheckerResult compose(Node _ast,
-                                            TypeCheckerResult... results) {
+    		                                TypeAnalyzer type_analyzer,
+    		                                TypeCheckerResult... results) {
         return new TypeCheckerResult(_ast,
                                      Option.<Type>none(),
-                                     collectErrors(Arrays.asList(results)));
+                                     collectErrors(Arrays.asList(results)),
+                                     collectConstraints(Arrays.asList(results), type_analyzer));
     }
     
-    public static TypeCheckerResult compose(Node _ast, List<TypeCheckerResult> results) {
+    public static TypeCheckerResult compose(Node _ast, 
+    		                                TypeAnalyzer type_analyzer, 
+    		                                List<TypeCheckerResult> results) {
         return new TypeCheckerResult(_ast,
                                      Option.<Type>none(),
-                                     collectErrors(results));
+                                     collectErrors(results),
+                                     collectConstraints(results, type_analyzer));
     }
     
-    public static TypeCheckerResult compose(Node _ast, Type _type, List<TypeCheckerResult> results) {
+    public static TypeCheckerResult compose(Node _ast, 
+    		                                Type _type, 
+    		                                TypeAnalyzer type_analyzer, 
+    		                                List<TypeCheckerResult> results) {
         return new TypeCheckerResult(_ast,
                                      Option.wrap(_type),
-                                     collectErrors(results));
+                                     collectErrors(results),
+                                     collectConstraints(results, type_analyzer));
     }
     
-    public static TypeCheckerResult compose(Node _ast, Option<Type> _type, List<TypeCheckerResult> results) {
+    public static TypeCheckerResult compose(Node _ast, 
+    		                                Option<Type> _type, 
+    		                                TypeAnalyzer type_analyzer,
+    		                                List<TypeCheckerResult> results) {
         return new TypeCheckerResult(_ast,
                                      _type,
-                                     collectErrors(results));
+                                     collectErrors(results),
+                                     collectConstraints(results, type_analyzer));
     }
     
-    public static TypeCheckerResult compose(Node _ast, Option<List<TypeCheckerResult>> results) {
+    public static TypeCheckerResult compose(Node _ast, 
+    		                                TypeAnalyzer type_analyzer,
+    		                                Option<List<TypeCheckerResult>> results) {
         if (results.isSome()) {
             return new TypeCheckerResult(_ast,
                                          Option.<Type>none(),
-                                         collectErrors(results.unwrap()));
+                                         collectErrors(results.unwrap()),
+                                         collectConstraints(results.unwrap(), type_analyzer));
         } else {
             return new TypeCheckerResult(_ast);
         }
+    }
+    
+    /**
+     * Generally compose should be called instead of this method. This method is
+     * only to be called if you no longer care about propagating constraints upwards.
+     */
+    public static TypeCheckerResult addError(TypeCheckerResult result,
+    		                                 StaticError s_err) {
+    	List<StaticError> errs = new ArrayList<StaticError>();
+    	for( StaticError err : result.errors() ) {
+    		errs.add(err);
+    	}
+    	errs.add(s_err);
+    	    	
+    	return new TypeCheckerResult(result.ast, result.type(), errs, result.nodeConstraints);
+    }
+    
+    /** Takes a TypeCheckerResult and returns a copy with the new AST **/
+    public static TypeCheckerResult replaceAST(TypeCheckerResult result, Node _ast){
+    	return new TypeCheckerResult(_ast, result.type(),result.errors(),result.nodeConstraints);
     }
     
     public TypeCheckerResult(Node _ast, Type _type,
@@ -81,6 +147,15 @@ public class TypeCheckerResult extends StaticPhaseResult {
         ast = _ast;
         type = Option.wrap(_type);
         nodeConstraints = ConstraintFormula.TRUE;
+    }
+    
+    public TypeCheckerResult(Node _ast, Type _type,
+    		                 Iterable<? extends StaticError> _errors,
+    		                 ConstraintFormula c) {
+    	super(_errors);
+    	ast = _ast;
+    	type = Option.wrap(_type);
+    	nodeConstraints = c;
     }
     
     public TypeCheckerResult(Node _ast, 
@@ -118,6 +193,16 @@ public class TypeCheckerResult extends StaticPhaseResult {
         type = _type;
         nodeConstraints = ConstraintFormula.TRUE;
     }
+    
+    public TypeCheckerResult(Node _ast,
+    		                 Option<Type> _type, 
+    		                 Iterable<? extends StaticError> _errors,
+    		                 ConstraintFormula c) {
+        super(_errors);
+        ast = _ast;
+        type = _type;
+        nodeConstraints = c;
+    }    
     
     public TypeCheckerResult(Node _ast, StaticError _error) {
         super(IterUtil.make(_error));
@@ -159,4 +244,8 @@ public class TypeCheckerResult extends StaticPhaseResult {
     
     public Node ast() { return ast; }
     public Option<Type> type() { return type; }
+
+	public ConstraintFormula getNodeConstraints() {
+		return nodeConstraints;
+	}
 }

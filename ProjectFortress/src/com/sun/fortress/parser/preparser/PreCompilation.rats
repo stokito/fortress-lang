@@ -16,9 +16,10 @@
  ******************************************************************************/
 
 /*
- * Definition of Fortress precomponents which also accepts APIs.
+ * Definition of Fortress components and APIs that are accepted by the preparser.
  */
-module com.sun.fortress.parser.preparser.PreCompilation(Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.preparser.PreCompilation(Identifier, Keyword,
+                                                        Symbol, Spacing);
 
 import Identifier;
 import Keyword;
@@ -26,45 +27,72 @@ import Symbol;
 import Spacing;
 
 /* File ::=
-     w CompilationUnit w
-   | (w Imports w ;?)? w Exports w ;? (w Decls w ;?)? w
-   | (w Imports w ;?)? w AbsDecls w ;? w
-   | w Imports w ;? (w AbsDecls w ;?)? w
+     w CompilationUnit w EndOfFile
+   | (w Imports w ;?)? w Exports w ;? (w Decls w ;?)? w EndOfFile
+   | (w Imports w ;?)? w AbsDecls w ;? w EndOfFile
+   | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
  */
 public CompilationUnit File =
-     w CompilationUnit w
-   / a1:(w yyValue:Imports w semicolon?)? w
+     w yyValue:CompilationUnit
+     { Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName filename = NodeFactory.makeAPIName(span, file, "\\.");
+       if (!filename.equals(yyValue.getName()))
+           yyValue = syntaxError(createSpan(yyStart,yyCount),
+                                 "Component/API names must match their enclosing file names.");
+     }
+   / w Exports w semicolon? w Imports w semicolon? w (_)* // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Import statements should come before export statements.");
+     }
+   / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w (_)*
      { if (a1 == null) a1 = Collections.<Import>emptyList();
+       List<Decl> a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPIName(span, file, "\\.");
-       List<Export> a3 = Collections.<Export>emptyList();
-       List<Decl> a4 = Collections.<Decl>emptyList();
-       yyValue = new Component(span, name, a1, a3, a4);
+       yyValue = new Component(span, name, a1, a2, a3);
+     }
+   / w a1:Imports w semicolon? w (_)*
+     { if (a1 == null) a1 = Collections.<Import>emptyList();
+       List<AbsDecl> a2 = Collections.<AbsDecl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPIName(span, file, "\\.");
+       yyValue = new Api(span, name, a1, a2);
      };
-
-//transient void EndOfFile = !_ ;
 
 /* CompilationUnit ::=
      Component
+   | Api
  */
 private CompilationUnit CompilationUnit =
      Component
-     / Api ;
+   / Api ;
 
-/* Component ::= component w APIName (w Imports w ;?)? w  end */
-private Component Component =
-     component w  a1:APIName a2:(w yyValue:Imports w semicolon?)? w (_)*
-     {  if (a2 == null) a2 = Collections.<Import>emptyList();
-        List<Export> a3 = Collections.<Export>emptyList();
-        List<Decl> a4 = Collections.<Decl>emptyList();
-        yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);};
-
-/* Api ::=
-     api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
+/* Component ::=
+     (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
+     (w Decls w ;?)? w end
  */
+private Component Component =
+     a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w (_)*
+     { if (a3 == null) a3 = Collections.<Import>emptyList();
+       List<Export> a4 = Collections.<Export>emptyList();
+       List<Decl> a5 = Collections.<Decl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       if (a1 == null)
+           yyValue = new Component(span, a2, a3, a4, a5);
+       else
+           yyValue = new Component(span, true, a2, a3, a4, a5);
+     };
+
+/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
 private Api Api =
-    api w a1:APIName a2:(w yyValue:Imports w semicolon?)? (_)*
+     native w api w APIName (w Imports w semicolon?)? w (_)* // Error production
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "The native modifier is only for components not for APIs.");
+     }
+   / api w a1:APIName a2:(w yyValue:Imports w semicolon?)? w (_)*
      { if (a2 == null) a2 = Collections.<Import>emptyList();
        List<AbsDecl> a3 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
@@ -138,44 +166,33 @@ private List<Import> ImportedNames =
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
 private List<IdOrOpOrAnonymousName> SimpleNames =
-     a1:SimpleName
-     { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w SimpleNameList w closecurly ;
+     a1:SimpleName { yyValue = FortressUtil.mkList(a1); }
+   / void:opencurly w SimpleNameList w void:closecurly ;
 
 /* SimpleNameList ::= SimpleName (w , w SimpleName)* */
 private List<IdOrOpOrAnonymousName> SimpleNameList =
      a1:SimpleName a2s:(w comma w SimpleName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* AliasedSimpleNames ::=
-     AliasedSimpleName
-   | { w AliasedSimpleNameList w }
- */
-private List<AliasedSimpleName> AliasedSimpleNames =
-     a1:AliasedSimpleName
-     { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w AliasedSimpleNameList w closecurly ;
-
 /* AliasedSimpleName ::=
      Id (w as w Id)?
-   | opr w Op (w as w Op)?
+   | opr w (Encloser / Op) (w as w (Encloser / Op))?
    | opr w EncloserPair (w as w EncloserPair)?
  */
 private AliasedSimpleName AliasedSimpleName =
      a1:Id a2:(w as w Id)?
-     { if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(createSpan(yyStart,yyCount), a1);
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
        else
-           yyValue = NodeFactory.makeAliasedSimpleName(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      }
-   / opr w a1:Op a2:(w as w Op)?
-     { if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(createSpan(yyStart,yyCount),
-                                                 a1);
+   / opr w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
        else
-           yyValue = NodeFactory.makeAliasedSimpleName(createSpan(yyStart,yyCount),
-                                                 a1,
-                                                 a2);
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      }
    / opr w a1:EncloserPair a2:(w as w EncloserPair)?
      { Span span = createSpan(yyStart,yyCount);
@@ -183,15 +200,6 @@ private AliasedSimpleName AliasedSimpleName =
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
        else
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
-     };
-
-/* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
-private Enclosing EncloserPair =
-     a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
-     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
-           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
-       else
-           yyValue = error(a2, "Mismatched Enclosers.");
      };
 
 /* AliasedSimpleNameList ::= AliasedSimpleName (w , w AliasedSimpleName)* */
@@ -204,25 +212,31 @@ private List<AliasedSimpleName> AliasedSimpleNameList =
    | { w AliasedAPINameList w }
  */
 private List<AliasedAPIName> AliasedAPINames =
-     a1:AliasedAPIName
-     { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w AliasedAPINameList w closecurly ;
+     a1:AliasedAPIName { yyValue = FortressUtil.mkList(a1); }
+   / void:opencurly w AliasedAPINameList w void:closecurly ;
 
 /* AliasedAPIName ::= APIName (w as w Id)? */
 private AliasedAPIName AliasedAPIName =
      a1:APIName a2:(w as w Id)?
-     { if (a2 == null)
-           yyValue = new AliasedAPIName(createSpan(yyStart,yyCount), a1,
-                                           Option.<Id>none());
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null)
+           yyValue = new AliasedAPIName(span, a1, Option.<Id>none());
        else
-           yyValue = new AliasedAPIName(createSpan(yyStart,yyCount), a1,
-                                           Option.some(a2));
+           yyValue = new AliasedAPIName(span, a1, Option.some(a2));
      };
 
 /* AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)* */
 private List<AliasedAPIName> AliasedAPINameList =
      a1:AliasedAPIName a2s:(w comma w AliasedAPIName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* Exports ::= Export (br Export)* */
+private List<Export> Exports = a1:Export a2s:(br Export)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* Export ::= export w APINames */
+private Export Export = export w a1:APINames
+     { yyValue = new Export(createSpan(yyStart,yyCount), a1); };
 
 /* APINames ::=
      APIName

@@ -317,6 +317,10 @@ public class ExprFactory {
                           Arrays.asList(first, second));
     }
 
+    public static OpExpr makeOpExpr(Span span, OpName op, List<StaticArg> staticArgs) {
+        return new OpExpr(span, false, makeOpRef(op, staticArgs));
+    }
+
     public static OpExpr makeOpExpr(Span span, OpName op, Expr arg,
                                       List<StaticArg> staticArgs) {
         return new OpExpr(span, false, makeOpRef(op, staticArgs),

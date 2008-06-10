@@ -19,9 +19,8 @@ component SimpleTuple
 export Executable
 
 (* Check a simple tuple expression works. *)
-
 run(args:String...):() = do
-  (5, true, 1.0)
+  ignore(5, true, 1.0)
   ()
 end
 

@@ -51,6 +51,8 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 public class Fortress {
 
+	public static boolean passDisambiguatedResultsToInterpreter = ProjectProperties.getBoolean("fortress.test-dis-int", false);
+	 
 	private final FortressRepository _repository;
 
 	public Fortress(FortressRepository repository) { _repository = repository; }
@@ -278,9 +280,21 @@ public class Fortress {
 
 		// Additional optimization phases can be inserted here
 
-		for (Map.Entry<APIName, ComponentIndex> newComponent :
-			componentSR.components().entrySet()) {
+		
+		if(passDisambiguatedResultsToInterpreter){
+			for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());
+			}
+		}
+		else{
+			for (Map.Entry<APIName, ApiIndex> newApi : 
+				IndexBuilder.buildApis(apis, System.currentTimeMillis()).apis().entrySet()) {
+				_repository.addApi(newApi.getKey(), newApi.getValue());
+			}
+			for (Map.Entry<APIName, ComponentIndex> newComponent :
+				rawComponentIR.components().entrySet()) {
+				_repository.addComponent(newComponent.getKey(), newComponent.getValue());
+			}
 		}
 
 		return IterUtil.empty();

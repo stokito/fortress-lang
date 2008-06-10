@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
@@ -168,7 +167,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
 
     }
 
-    public EvalVarsEnvironment(BetterEnv within, BetterEnv bind_into) {
+    public EvalVarsEnvironment(Environment within, Environment bind_into) {
         super(within, bind_into);
         // TODO Auto-generated constructor stub
     }

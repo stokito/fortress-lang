@@ -152,15 +152,15 @@ object Sudoku(var cands : ZZ32, var props : ZZ32,
     getter cost(): ZZ32 = 6 81 - 5 props - cands
     getter isComplete(): ZZ32 = isConsistent() AND: props = 81
     getter longString(): String =
-        (BIG STRING [i<-0#9] (
-             BIG STRING [j<-0#9] (
-                 (BIG STRING [k<-0#9] if state[i,j,k].working() then "."
-                                      elif state[i,j,k].cand() then "" (k+1)
-                                      else " " end) "|")
-             ) "\n") "Remaining: " cands " Fixed: " props
+        (BIG ||[i<-0#9] (
+             BIG ||[j<-0#9] (
+                 (BIG ||[k<-0#9] if state[i,j,k].working() then "."
+                                 elif state[i,j,k].cand() then "" (k+1)
+                                 else " " end) "|")
+             )) // "Remaining: " cands " Fixed: " props
     getter toString(): String =
-        (BIG STRING [i<-0#9] (
-             BIG STRING [j<-0#9] do
+        (BIG ||[i<-0#9] (
+             BIG ||[j<-0#9] do
                  str : String := "X"
                  for k<-0#9 do
                      if state[i,j,k].working() then str := "."
@@ -301,7 +301,7 @@ verifySudoku(st0) =
     if legalState(st0.state) then
         st0
     else
-        fail("Bad initial state:\n" res)
+        fail("Bad initial state:" // res)
     end
 
 sudoku(givens:(ZZ32,ZZ32,ZZ32)...): Sudoku = do
@@ -368,10 +368,10 @@ run(args:String...):()=do
         (res,searchTime) = timing (fn ():Maybe[\Sudoku\] => aStar[\Sudoku,ZZ32\](init))
         println("searchTime = " searchTime)
         if r <- res then
-            println("Final result:\n" r)
+            println("Final result:" // r)
         else
             spuriousInconsistency := true
-            println("FAIL: INCONSISTENT:\n" init)
+            println("FAIL: INCONSISTENT:" // init)
         end
     end
     if spuriousInconsistency then fail("Spurious inconsistencies found.") end

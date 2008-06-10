@@ -84,8 +84,7 @@ end
 
 fail(s:String) = do
    println("FAIL: " s)
-   printTaskTrace()
-   throwError(s)
+   (* throwError(s) *)
    throw FailCalled(s)
 end
 
@@ -134,14 +133,24 @@ end
 
 (** Total ordering *)
 
-object LexicographicPartialReduction extends Reduction[\Comparison\]
+object LexicographicPartialReduction
+        extends { MonoidReduction[\Comparison\],
+                  ReductionWithZeroes[\Comparison, Comparison\] }
+    getter toString():String = "Lexicographic reduction on partial order"
     empty(): Comparison = EqualTo
     join(a:Comparison, b:Comparison):Comparison = a LEXICO b
+    isZero(_:Unordered): Boolean = true
+    isZero(_:Comparison): Boolean = false
 end
 
-object LexicographicReduction extends Reduction[\TotalComparison\]
+object LexicographicReduction
+        extends { MonoidReduction[\TotalComparison\],
+                  ReductionWithZeroes[\TotalComparison, TotalComparison\] }
+    getter toString():String = "Lexicographic reduction on total order"
     empty(): TotalComparison = EqualTo
     join(a:TotalComparison, b:TotalComparison):TotalComparison = a LEXICO b
+    isLeftZero(_:EqualTo): Boolean = false
+    isLeftZero(_:Comparison): Boolean = true
 end
 
 trait Comparison
@@ -281,7 +290,7 @@ assert(flag: Boolean, failMsg: String): () =
 
 assert(x:Any, y:Any, failMsg: Any...): () =
     if x =/= y then
-        msg = x " =/= " y "; " (BIG STRING failMsg)
+        msg = x " =/= " y "; " (BIG || failMsg)
         fail(msg)
     end
 
@@ -518,7 +527,7 @@ trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
     opr BITNOT(self):ZZ64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
-    opr ^(self, b:Integral):Number =
+    opr ^(self, b:Integral):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
     narrow(self):ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$FromLong")
@@ -610,6 +619,12 @@ trait Generator[\E\]
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
         SimpleNestedGenerator[\E,G\](self,f)
 
+    (** Filtering data from a generator.  Only elements that satisfy
+        the predicate p are retained.  Natural order and cross product
+        properties are otherwise preserved. **)
+    filter(f: E -> Condition[\()\]): Generator[\E\] =
+        SimpleFilterGenerator[\E\](self,f)
+
     (** Cross product of two generators.  This is specifically
         designed to be overloaded, such that pairs of independent
         generators can be combined to produce a generator which
@@ -689,15 +704,36 @@ __whileCond[\E\](c:Condition[\E\], b:E->()): () =
     c.cond[\Boolean\](fn (e): Boolean => do b(e); true end, fn ():Boolean => false)
 
 (** Unlike the user-visible dotted map method, this method is used for
-    the internals of comprehension desugaring.  As a result we know
-    that its result will immediately be consumed, and we should *not*
-    create an intermediate collection if we're passed a
-    collection. **)
+    the internals of comprehension desugaring [except that at present
+    it is not actually in use, but we're planning to use it].  As a
+    result we know that its result will immediately be consumed, and
+    we should *not* create an intermediate collection if we're passed
+    a collection. **)
 __map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
     typecase g of
+        SomeMappedGenerator[\E\] => g.map[\R\](f)
         SequentialGenerator[\E\] => SimpleMappedSeqGenerator[\E,R\](g,f)
         else => SimpleMappedGenerator[\E,R\](g,f)
     end
+
+(** Unlike the user-visible dotted filter method, but like the __map
+    method, this method is intended for use in the internals of
+    comprehension desugaring.  Again its result will immediately be
+    consumed, and we do not create an intermediate collection but
+    perform the filtering lazily on demand. **)
+__filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
+    typecase g of
+        FilterGenerator[\E\] => g.filter(p)
+        SequentialGenerator[\E\] => SimpleSeqFilterGenerator[\E\](g,p)
+        else => SimpleFilterGenerator[\E\](g,p)
+    end
+
+(** Application of a BIG operator, the topmost level of comprehension desugaring. **)
+__bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
+    r = o.reduction()
+    body(i): L = r.lift((o.body())(i))
+    (o.unwrap())(r.unlift(desugaredClauses(r,body)))
+  end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq(self) = self
@@ -725,13 +761,13 @@ end
 trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     getter isEmpty(): Boolean = NOT holds()
     getter holds(): Boolean = cond[\Boolean\](fn (_:E):Boolean => true, fn () => false)
-    getter size(): ZZ32 = if self then 1 else 0 end
+    getter size(): ZZ32 = if holds() then 1 else 0 end
     getter get(): E throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
     getter bounds(): FullRange[\ZZ32\] = 0 # |self|
     getter indices(): FullRange[\ZZ32\] = bounds()
     getter indexValuePairs(): Condition[\(ZZ32,E)\] =
         cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
-    opr |self|: ZZ32 = if self.holds() then 1 else 0 end
+    opr |self|: ZZ32 = if holds() then 1 else 0 end
     opr [i:ZZ32]:E throws NotFound = if i=0 then get() else throw NotFound end
     opr [r:Range[\ZZ32\]]: Condition[\E\] =
         cond[\E\](fn (e:E): Condition[\E\] => do
@@ -760,6 +796,14 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     loop(f:E->()): () = cond[\G\](f,fn ():() => ())
     opr IN(x:E, self):Boolean = cond[\Boolean\](fn (e:E):Boolean => x=e, fn () => false)
 end
+
+(** Conjunction and disjunction of condition functions **)
+opr ANDCOND[\I\](p1:I->Condition[\()\], p2:I->Condition[\()\]): I->Condition[\()\] =
+    fn (i:I):Boolean => p1(i).holds() AND: p2(i).holds()
+
+(** Conjunction and disjunction of condition functions **)
+opr ORCOND[\I\](p1:I->Condition[\()\], p2:I->Condition[\()\]): I->Condition[\()\] =
+    fn (i:I):Boolean => p1(i).holds() OR: p2(i).holds()
 
 (** Operations which use generation internally.  Should be functional
     methods of Generator, but that didn't work when last tested. **)
@@ -1354,8 +1398,8 @@ trait StandardMutableArrayType[\T extends StandardMutableArrayType[\T,E,I\],E,I\
                 s0.put(i,v)
             end
         else
-            fail("Can't assign indexed with bounds " a.bounds()
-                 "\n to differently-sized subarray " self.bounds())
+            fail("Can't assign indexed with bounds " a.bounds() //
+                 " to differently-sized subarray " self.bounds())
         end
       end
 
@@ -1581,7 +1625,7 @@ object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
   get(i:ZZ32):T = mem.get(i)
   put(i:ZZ32, v:T) = mem.put(i,v)
   init0(i:ZZ32, v:T) = mem.init0(i,v)
-  replica[\U\]() = array1[\T,s0\]()
+  replica[\U\]() = array1[\U,s0\]()
 end
 
 (* builtinFactory1 must be a non-overloaded 0-parameter factory for
@@ -2064,7 +2108,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     zeroIndices():Tuple3Range[\ZZ32,ZZ32,ZZ32\] = (0,0,0)#(s0,s1,s2)
 
     replica[\U\]():Array3[\U,b0,s0,b1,s1,b2,s2\] =
-        __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
+        __DefaultArray3[\U,b0,s0,b1,s1,b2,s2\]()
     copy():Array3[\T,b0,s0,b1,s1,b2,s2\] =
         self.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):T =>
                                      get(i-b0,j-b1,k-b2))
@@ -2139,237 +2183,240 @@ end
 * Reductions
 ************************************************************)
 
-trait Reduction[\R\]
-    getter toString() = "A Reduction without a toString() of its own"
-    empty(): R
-    join(a: R, b: R): R
+trait Reduction[\R\] end
+
+(** Invariants:
+    join must be associative with identity empty
+    unlift(lift(x)) = x
+ **)
+trait ActualReduction[\R,L\] extends Reduction[\L\]
+    getter toString():String
+    empty(): L
+    join(a: L, b: L): L
+    lift(r: Any): L
+    unlift(l:L): R
+    (** If this reduction left-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    leftDistribute(r: Reduction[\R\]): SomeReductionPair[\R\] =
+        distribute(r)
+    (** If this reduction right-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    rightDistribute(r: Reduction[\R\]): SomeReductionPair[\R\] =
+        distribute(r)
+    (** If this reduction distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    distribute[\K\](r: ActualReduction[\R,K\]): SomeReductionPair[\R\] =
+        NoReductionPair[\R\]
 end
 
-trait ReductionWithoutZero[\R\] extends Reduction[\Maybe[\R\]\]
-    getter toString() = "Associative reduction without identity"
+trait PossibleReductionPair[\R\] extends Condition[\SomeReductionPair[\R\]\]
+    comprises { NoReductionPair[\R\], SomeReductionPair[\R\] }
+end
+
+object NoReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean = false
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = e()
+end
+
+trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean = true
+    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = t(self)
+    getter outer(): Reduction[\R\]
+    getter inner(): Reduction[\R\]
+end
+
+trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
+    getter outer(): ActualReduction[\R,L\]
+    getter inner(): ActualReduction[\R,L\]
+end
+
+(** The usual lifting to Maybe for identity-less operators **)
+trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
     empty(): Nothing[\R\] = Nothing[\R\]
-    join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] =
+    join(a: AnyMaybe, b: AnyMaybe): AnyMaybe =
         if av <- a then
             if bv <- b then
-                Just[\R\](simpleJoin(a,b))
+                Just(simpleJoin(av,bv))
             else
                 a
             end
         else
             b
         end
-    simpleJoin(a:R, b:R): R
+    simpleJoin(a:Any, b:Any): Any
+    lift(r:Any): AnyMaybe = Just(r)
+    unlift(r:AnyMaybe): R = r.get()
 end
 
-trait CommutativeReduction[\R\] extends Reduction[\R\] end
+trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
 
-trait ReductionWithLeftZero[\R\] extends Reduction[\R\]
-    isLeftZero(r:R): Boolean
+(** Monoids don't require a special lift and unlift operation. **)
+trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
+    lift(r:Any): R = r
+    unlift(r:R): R = r
 end
 
-trait ReductionWithRightZero[\R\] extends Reduction[\R\]
-    isRightZero(r:R): Boolean
+trait CommutativeMonoidReduction[\R\] extends MonoidReduction[\R\] end
+
+trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
+    isLeftZero(l:L): Boolean = isZero(l)
+    isRightZero(l:L): Boolean = isZero(l)
+    isZero(l:L): Boolean = false
 end
 
-trait ReductionWithZero[\R\]
-        extends {ReductionWithLeftZero[\R\],ReductionWithRightZero[\R\]}
-    isZero(r:R): Boolean
-    isLeftZero(r:R): Boolean = isZero(r)
-    isRightZero(r:R): Boolean = isZero(r)
+trait BigOperator[\I,O,R,L\]
+    getter reduction(): ActualReduction[\R,L\]
+    getter body(): I->R
+    getter unwrap(): R->O
 end
 
-trait BigOperator[\I,R,O\] extends Reduction[\R\]
-    empty(): R
-    join(R,R): R
-    body(I): R
-    complete(R): O
+object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
+    getter reduction(): ActualReduction[\R,L\] = r
+    getter body(): R->R = fn x => x
+    getter unwrap(): R->R = fn x => x
 end
 
-trait SomeBigOperatorWithIdentityCompletion[\R\] extends Reduction[\R\] end
-
-trait BigOperatorWithIdentityCompletion[\I,R\]
-        extends { BigOperator[\I,R,R\], SomeBigOperatorWithIdentityCompletion[\R\] }
-    complete(r:R): R = r
+object Comprehension[\I,O,R,L\](u: R->O, r: ActualReduction[\R,L\], singleton:I->R)
+        extends BigOperator[\I,O,R,L\]
+    getter reduction(): ActualReduction[\R,L\] = r
+    getter body(): I->R = singleton
+    getter unwrap(): R->O = u
 end
 
-trait BigOperatorWithIdentityBody[\R,O\] extends BigOperator[\R,R,O\]
-    body(r:R): R = r
-end
-
-trait SimpleBigOperator[\R\]
-        extends { BigOperatorWithIdentityCompletion[\R,R\],
-                  BigOperatorWithIdentityBody[\R,R\] }
-end
-
-trait LeftDistributiveBigOperator[\I,R\]
-        extends BigOperatorWithIdentityBody[\I,R\]
-    leftDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
-end
-
-trait RightDistributiveBigOperator[\I,R\]
-        extends BigOperatorWithIdentityBody[\I,R\]
-    rightDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
-end
-
-trait DistributiveBigOperator[\I,R\]
-        extends { LeftDistributiveBigOperator[\I,R\],
-                  RightDistributiveBigOperator[\I,R\] }
-    distributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean = false
-    leftDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean =
-        distributesOver(b)
-    rightDistributesOver(b:SomeBigOperatorWithIdentityCompletion[\R\]): Boolean =
-        distributesOver(b)
-end
-
-object VoidReduction extends Reduction[\()\]
+(** VoidReduction is usually done for effect, so we pretend that
+    the completion performs the effects.  This rules out things
+    distributing over void (that would change the number of effects in
+    our program) but not void distributing over other things. **)
+object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     getter toString() = "VoidReduction"
     empty(): () = ()
     join(a: (), b: ()): () = ()
 end
 
 (* Hack to permit any Number to work non-parametrically. *)
-object SumReduction extends Reduction[\Number\]
+object SumReduction extends CommutativeMonoidReduction[\Number\]
     getter toString() = "SumReduction"
     empty(): Number = 0
     join(a: Number, b: Number): Number = a+b
 end
 
-opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
-    g(SumReduction,cast[\Number\])
+opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, SumReduction, cast[\Number\])
 
-object ProdReduction extends Reduction[\Number\]
+object ProdReduction extends CommutativeMonoidReduction[\Number\]
     getter toString() = "ProdReduction"
     empty(): Number = 1
     join(a:Number, b:Number): Number = a b
 end
 
-opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
-    g(ProdReduction,cast[\Number\])
+opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, ProdReduction, cast[\Number\])
 
-object MinReduction[\T extends StandardMin[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter toString() = "MinReduction"
-    empty(): AnyMaybe = Nothing[\T\]
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe =
-        if aa <- a then
-            if bb <- b then
-                just(aa MIN bb)
-            else
-                a
-            end
-        else
-            b
-        end
+    simpleJoin(a, b) = a MIN b
 end
 
-opr BIG MIN[\T extends StandardMin[\T\]\]
-           (g:(MinReduction[\T\],T->AnyMaybe)->AnyMaybe): T =
-        g(MinReduction[\T\],just).get()
+opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\] =
+    BigReduction[\T,AnyMaybe\](MinReduction[\T\])
 
-object MaxReduction[\T extends StandardMax[\T\]\]
-        extends Reduction[\AnyMaybe\]
+object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter toString() = "MaxReduction"
-    empty(): AnyMaybe = Nothing[\T\]
-    join(a:AnyMaybe,b:AnyMaybe): AnyMaybe =
-        if aa <- a then
-            if bb <- b then
-                just(aa MAX bb)
-            else
-                a
-            end
-        else
-            b
-        end
+    simpleJoin(a, b) = a MAX b
 end
 
-opr BIG MAX[\T extends StandardMax[\T\]\]
-           (g:(MaxReduction[\T\],T->AnyMaybe)->AnyMaybe): T =
-        g(MaxReduction[\T\],just).get()
+opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\] =
+    BigReduction[\T,AnyMaybe\](MaxReduction[\T\])
 
-opr BIG MINNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64 =
-    g(MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MINNUM b, 0.0/0.0),
-      identity[\RR64\])
+opr BIG MINNUM(): BigReduction[\RR64,RR64\] =
+    BigReduction[\RR64,RR64\](
+        MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MINNUM b, 0.0/0.0))
 
-opr BIG MAXNUM(g:(Reduction[\RR64\],RR64->RR64)->RR64): RR64 =
-    g(MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MINNUM b, 0.0/0.0),
-      identity[\RR64\])
+opr BIG MAXNUM(): BigReduction[\RR64,RR64\] =
+    BigReduction[\RR64,RR64\](
+        MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MAXNUM b, 0.0/0.0))
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
-object AndReduction extends Reduction[\Boolean\]
+object AndReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString() = "AndReduction"
     empty(): Boolean = true
     join(a: Boolean, b: Boolean): Boolean = a AND b
+    isZero(a:Boolean): Boolean = NOT a
 end
 
-opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
-    label MustBe
-        f(x): Boolean =
-            typecase x of
-                Boolean => if x then true else exit MustBe with false end
-                else => fail("BIG AND of non-boolean")
-            end
-        g(AndReduction, f)
-    end MustBe
+opr BIG AND[\T\](): BigReduction[\Boolean,Boolean\] =
+    BigReduction[\Boolean,Boolean\](AndReduction)
 
-object OrReduction extends Reduction[\Boolean\]
+object OrReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
     getter toString() = "OrReduction"
     empty(): Boolean = false
     join(a: Boolean, b: Boolean): Boolean = a OR b
+    isZero(a:Boolean): Boolean = a
 end
 
-opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
-    label MustBe
-        f(x): Boolean =
-            typecase x of
-                Boolean => if x then exit MustBe with true else false end
-                else => fail("BIG OR of non-boolean")
-            end
-        g(OrReduction, f)
-    end MustBe
+opr BIG OR[\T\]():BigReduction[\Boolean, Boolean\] =
+    BigReduction[\Boolean,Boolean\](OrReduction)
 
 (** A reduction performing String concatenation **)
-object StringReduction extends Reduction[\String\]
+object StringReduction extends MonoidReduction[\String\]
     getter toString() = "StringReduction"
     empty(): String = ""
-    join(a:String, b:String): String = a b
+    join(a:String, b:String): String = a || b
+end
+
+(** A reduction performing String concatenation with a space **)
+object SpaceReduction extends MonoidReduction[\String\]
+    getter toString() = "StringReduction"
+    empty(): String = ""
+    join(a:String, b:String): String = a ||| b
+end
+
+(** A reduction performing String concatenation with newline separation **)
+object NewlineReduction extends AssociativeReduction[\String\]
+    getter toString() = "StringReduction"
+    simpleJoin(a, b) = a // b
 end
 
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary. **)
-opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String =
-    g(StringReduction, fn (x:Any)=> "" x)
+opr BIG ||(): Comprehension[\Any,String,String,String\] =
+    Comprehension[\Any,String,String,String\](
+        identity[\String\],StringReduction,fn (x:Any)=> "" x)
+
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary, and separating
+    non-empty components by a space. **)
+opr BIG |||(): Comprehension[\Any,String,String,String\] =
+    Comprehension[\Any,String,String,String\](
+        identity[\String\],SpaceReduction,fn (x:Any)=> "" x)
+
+(** This operator performs string concatenation with newline
+    separation, first converting its inputs (of type Any) to String if
+    necessary. **)
+opr BIG //(): Comprehension[\Any,String,AnyMaybe,AnyMaybe\] =
+    Comprehension[\Any,String,AnyMaybe,AnyMaybe\](
+        fn x => x,NewlineReduction,fn (x:Any)=> "" x)
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
-object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
+object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
     getter toString()="mapReduceReduction"
     empty(): R = z
     join(a:R, b:R): R = (j)(a,b)
 end
 
-(** A %MapReduceReduction% takes an associative binary function %j% on
+(** A %MIMapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
-object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends Reduction[\Any\]
-    getter toString()="mapReduceReduction"
+object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
+    getter toString():String="MIMapReduceReduction from embiggen"
     empty(): R = z
     join(a:Any, b:Any): R = (j)(a,b)
-end
-
-(** Given an operator OP: (T,T) -> T and its identity z:T, create
-    the corresponding reduction.  OP must be associative. *)
-object OprReduction[\T,opr OP\](z:T) extends Reduction[\T\]
-    getter toString()="OprReduction"
-    empty():T = z
-    join(a:T, b:T): T = a OP b
-end
-
-(** As above, but with hacks for missing type information. *)
-object MIOprReduction[\T,opr OP\](z:Any) extends Reduction[\Any\]
-    getter toString()="OprReduction"
-    empty(): T = z
-    join(a:Any, b:Any): T = a OP b
 end
 
 (** %embiggen% takes a type %T% and an operation (either an operator
@@ -2380,15 +2427,16 @@ end
 embiggen[\T,opr OP\](z:Any, g:(Reduction[\Any\],T->Any) -> Any) : T =
     g(MIOprReduction[\T,OP\](z), fn (x) => x)
 *)
-embiggen[\T\](j:(Any,Any)->T, z:Any, g:(Reduction[\T\],T->Any) -> Any) : T =
-    g(MIMapReduceReduction[\T\](j,z), fn (x) => x)
+embiggen[\T\](j:(Any,Any)->T, z:T) : Comprehension[\T,T,Any,Any\] =
+    Comprehension[\T,T,Any,Any\](fn (x) => x, MIMapReduceReduction[\T\](j,z), fn (x) => x)
 
 (** Helpers for maps and cross products of generators.  These can be
     quite a bit more sophisticated (for example, we can hoist maps
     outwards if we think that'd be useful), but let's get this much
     working first. *)
+trait SomeMappedGenerator[\F\] extends Generator[\F\] end
 
-trait MappedGenerator[\E,F\] extends Generator[\F\]
+trait MappedGenerator[\E,F\] extends SomeMappedGenerator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> F
     getter toString(): String = g() ".map(f)"
@@ -2433,6 +2481,33 @@ object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
     getter f() = f0
     getter toString() = "seq(" g0 ".map(f))"
     seq(self): SimpleMappedSeqGenerator[\E,F\] = self
+end
+
+trait FilterGenerator[\E\] extends Generator[\E\]
+    getter g(): Generator[\E\]
+    getter p(): E -> Condition[\()\]
+    getter toString(): String = g() ".filter(p)"
+    generate[\R\](r:Reduction[\R\], m: E->R): R =
+        g().generate[\R\](r, fn(e:E):R => if (p())(e).holds() then m(e) else r.empty() end)
+    reduce(r: Reduction[\E\]): E =
+        g().generate[\E\](r, fn(e:E):E => if (p())(e).holds() then e else r.empty() end)
+    filter(p': E -> Condition[\E\]): SimpleFilterGenerator[\E\] =
+        SimpleFilterGenerator[\E\](g(), p() ANDCOND p')
+    seq(self) = SimpleSeqFilterGenerator[\E\](g(),p())
+end
+
+object SimpleFilterGenerator[\E\](g0:Generator[\E\], p0: E->Condition[\()\])
+        extends FilterGenerator[\E\]
+    getter g(): Generator[\E\]       = g0
+    getter p(): E -> Condition[\()\]  = p0
+end
+
+object SimpleSeqFilterGenerator[\E\](g0: SequentialGenerator[\E\], p0: E->Condition[\()\])
+        extends { FilterGenerator[\E\], SequentialGenerator[\E\] }
+    getter g(): Generator[\E\]       = g0
+    getter p(): E -> Condition[\()\]  = p0
+    getter toString() = "seq(" g0 ".filter(p))"
+    seq(self): SimpleSeqFilterGenerator[\E\] = self
 end
 
 trait NestedGenerator[\E,F\] extends Generator[\F\]
@@ -2933,7 +3008,7 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
         h = lo + ex
         l : N := lo
         acc : R = r.empty()
-        (* DO NOT DEFINE THIS USING RECURSION!!! *)
+        (* DON'T DEFINE THIS USING RECURSION!!! *)
         while l < h do
             b = m(l)
             acc := r.join(acc, b)
@@ -2944,7 +3019,7 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
     loop(f: N->()): () = do
         h = lo + ex
         l : N := lo
-        (* DO NOT DEFINE THIS USING RECURSION!!! *)
+        (* DON'T DEFINE THIS USING RECURSION!!! *)
         while l < h do
             f(l)
             l += 1
@@ -3075,54 +3150,19 @@ random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim
 
 char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")
 
-opr DOT(a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, c:Char):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (a:String, c:Char):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(c:Char, a:String):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition
-     (c:Char, a:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT(a:String, b:()):String = a "()"
-opr juxtaposition(a:String, b:()):String = a "()"
-opr DOT(a:String, b:(Any,Any)):String = do (i,j) = b; a "(" i "," j ")" end
-opr juxtaposition(a:String, b:(Any,Any)):String =
-    do (i,j) = b; a "(" i "," j ")" end
-opr juxtaposition(a:String, b:(Any,Any,Any)):String =
-    do (i,j,k) = b; a "(" i "," j "," k ")" end
-opr DOT(a:(), b:String):String = "()" b
-opr juxtaposition(a:(), b:String):String = "()" b
-opr DOT(a:Any, b:String):String = ("" a) b
-opr juxtaposition(a:Any, b:String):String = ("" a) b
-opr DOT(a:String, b:Any):String = a b.toString()
-opr juxtaposition(a:String, b:Any):String = a b.toString()
-
 print(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-print(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-println(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-print(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-println(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-println(a:Char):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-print(a:Char):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 print(a:Any):() = print("" a)
 println(a:Any):() = println("" a)
 (* 0-argument versions handle passing of () to single-argument versions. *)
 print():() = print("()")
 println():() = println("")
+
+(** opr // appends a single newline separator. **)
+opr (x:Any)// : String = x||"\n"
+
+(** opr /// appends a double newline separator **)
+opr (x:Any)/// : String = x||"\n\n"
 
 (* A way to get environment information from inside of fortress *)
 getEnvironment(name:String, defaultValue:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetEnvironment")

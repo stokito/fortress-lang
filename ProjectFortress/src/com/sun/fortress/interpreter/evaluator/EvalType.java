@@ -59,7 +59,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class EvalType extends NodeAbstractVisitor<FType> {
     
-    BetterEnv env;
+    Environment env;
     private EvalIndices ___evalIndices;
     private synchronized EvalIndices evalIndices() {
         if (___evalIndices == null)
@@ -75,7 +75,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return forId(t);
     }
 
-    public static FType getFTypeFromOption(Option<Type> t, final BetterEnv e, final FType ifMissing) {
+    public static FType getFTypeFromOption(Option<Type> t, final Environment e, final FType ifMissing) {
         return t.apply(new OptionVisitor<Type, FType>() {
             public FType forSome(Type t) { return getFType(t, e); }
             public FType forNone() { return ifMissing; }
@@ -89,7 +89,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         });
     }
 
-    public static FType getFTypeFromList(List<Type> l, BetterEnv e) {
+    public static FType getFTypeFromList(List<Type> l, Environment e) {
         return getFTypeFromList(l, new EvalType(e));
     }
 
@@ -100,7 +100,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return FTypeTuple.make(getFTypeListFromNonEmptyList(l, et));
     }
 
-    public static List<FType> getFTypeListFromList(List<? extends Type> l, BetterEnv e) {
+    public static List<FType> getFTypeListFromList(List<? extends Type> l, Environment e) {
         EvalType et = new EvalType(e);
         return et.getFTypeListFromList(l);
     }
@@ -131,7 +131,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return a;
     }
 
-    public static FType getFType(Type t, BetterEnv e) {
+    public static FType getFType(Type t, Environment e) {
         return t.accept(new EvalType(e));
     }
 
@@ -139,7 +139,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      return t.accept(this);
     }
 
-    public static List<Parameter> paramsToParameters(BetterEnv env,
+    public static List<Parameter> paramsToParameters(Environment env,
             List<Param> params) {
         if (params.size() == 0) {
             // There must be some way to get the generic parameter attached.
@@ -303,7 +303,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return argValues;
     }
 
-    public EvalType(BetterEnv _env) {
+    public EvalType(Environment _env) {
         env = _env;
     }
 

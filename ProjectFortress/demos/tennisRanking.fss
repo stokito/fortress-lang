@@ -198,7 +198,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
     end
 
   tostring():String =
-    name "    " (twoToStr totalWon) " / " totalLost " (" thisWon " / " thisLost ")      " (totalWon+totalLost) " (" (thisWon+thisLost) ")       " totalPoints " (" thisPoints ")\n"
+    name "    " (twoToStr totalWon) " / " totalLost " (" thisWon " / " thisLost ")      " (totalWon+totalLost) " (" (thisWon+thisLost) ")       " totalPoints " (" thisPoints ")"//
 
 (* toString() returns the following:
      ranking  name  totalWon / totalLost (thisWon / thisLost)  totalgames (thisGames)  totalPoints (thisPoints)
@@ -376,10 +376,10 @@ addGame(fout: FileWriteStream,
     then won(winner, loser, 10 diff + 100)
          lost(loser, winner, -5 diff - 50)
     else if NOT(validDiff)
-         then fout.print("Invalid game: ", winnerName, " vs ", loserName,
-                                 " has ", |diff|, " ranking differences. \n")
-         else fout.print("Invalid game: ", winnerName, " vs ", loserName,
-                                 " has played before. \n")
+         then fout.println("Invalid game: ", winnerName, " vs ", loserName,
+                                 " has ", |diff|, " ranking differences.")
+         else fout.println("Invalid game: ", winnerName, " vs ", loserName,
+                                 " has played before.")
          end
     end
   end
@@ -459,12 +459,12 @@ addGame(fout: FileWriteStream,
               5 (if diff > 0 OR even(diff) then -(diff DIV 2)
                  else -(diff DIV 2)+1 end) - 50)
     else if NOT(validDiff)
-         then fout.print("Invalid game: ", winnerName1, "/", winnerName2,
+         then fout.println("Invalid game: ", winnerName1, "/", winnerName2,
                                  " vs ", loserName1, "/", loserName2, " has ", |diff|,
-                                 " ranking differences. \n")
-         else fout.print("Invalid game: ", winnerName1, "/", winnerName2,
+                                 " ranking differences.")
+         else fout.println("Invalid game: ", winnerName1, "/", winnerName2,
                                  " vs ", loserName1, "/", loserName2, " has ",
-                                 "played before. \n")
+                                 "played before.")
          end
     end
   end
@@ -538,12 +538,12 @@ printMvpMepMip(fout:FileWriteStream, arr:Array[\(ZZ32,String),ZZ32\]) =
     end
 
     (* print MVP players and their points earned in this term *)
-    fout.print("MVP: ", (BIG STRING [p <- mvpPlayers] p " "))
-    fout.print("(", mvp, " points)\n")
+    fout.print("MVP: ", (BIG ||[p <- mvpPlayers] p " "))
+    fout.println("(", mvp, " points)")
 
     (* print MEP players and their games played in this term *)
-    fout.print("MEP: ", (BIG STRING [p <- mepPlayers] p " "))
-    fout.print("(", mep, " games)\n")
+    fout.print("MEP: ", (BIG ||[p <- mepPlayers] p " "))
+    fout.println("(", mep, " games)")
 
     (* print MIP players and their old and new rankings *)
     mipRec(p:String): String = do
@@ -551,16 +551,16 @@ printMvpMepMip(fout:FileWriteStream, arr:Array[\(ZZ32,String),ZZ32\]) =
         (" " player.name
          " (ranking " player.preRanking " => " player.ranking ")")
       end
-    fout.print("MIP:", (BIG STRING [p <- mipPlayers] mipRec(p)))
+    fout.print("MIP:", (BIG ||[p <- mipPlayers] mipRec(p)))
   end
 
 (* Print the result of this term *)
 printResult(fout: FileWriteStream, previous: String, today: String) =
   do
     (* print a header *)
-    fout.print("\n", previous, " ~ ", today, "\n\n")
-    fout.print("순위  선수         승패            경기수            포인트\n")
-    fout.print(tableBegin, "\n")
+    fout.println( "\n" previous " ~ " today "\n" )
+    fout.println("순위  선수         승패            경기수            포인트")
+    fout.println(tableBegin)
 
     (* 1. If a player did not play any game in this term, then -50 penalties.
        2. Find the biggest points earned in this term to find MVP players.
