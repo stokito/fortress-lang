@@ -279,7 +279,7 @@ public class Fortress {
 		if (!componentSR.isSuccessful()) { return componentSR.errors(); }
 
 		// Additional optimization phases can be inserted here
-
+        TopLevelEnvGenerator.generate(componentSR.components(), env);
 		
 		if(passDisambiguatedResultsToInterpreter){
 			for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {
