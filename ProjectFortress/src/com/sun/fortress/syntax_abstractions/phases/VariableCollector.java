@@ -135,16 +135,19 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
 
     @Override
     public Map<PrefixedSymbol,Depth> forRepeatSymbol(RepeatSymbol that) {
+        Debug.debug( 2, "Repeat symbol " + that.getSymbol() );
         return that.getSymbol().accept(new VariableCollector(addStar(depth)));
     }
 
     @Override
     public Map<PrefixedSymbol,Depth> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
+        Debug.debug( 2, "Repeat One or more symbol " + that.getSymbol() );
         return that.getSymbol().accept(new VariableCollector(addPlus(depth)));
     }
 
     @Override
     public Map<PrefixedSymbol,Depth> forOptionalSymbol(OptionalSymbol that) {
+        Debug.debug( 2, "Optional " + that.getSymbol() );
         return that.getSymbol().accept(new VariableCollector(addOptional(depth)));
     }
 
