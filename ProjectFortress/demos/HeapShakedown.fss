@@ -84,7 +84,8 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
 
 object TestReduction extends AssociativeReduction[\(ZZ32,ZZ32,ZZ32)\]
     getter toString(): String = "HeapShakedown.TestReduction"
-    simpleJoin(a:(ZZ32,ZZ32,ZZ32), b:(ZZ32,ZZ32,ZZ32)) = do
+    simpleJoin(a:Any, b:Any): Any = fail("Bogus non-tuple data in TestReduction")
+    simpleJoin(a:(ZZ32,ZZ32,ZZ32), b:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
         (mn_a,sz_a,mx_a) = a
         (mn_b,sz_b,mx_b) = b
         assert(mx_a <= mn_b, "Left max " mx_a " larger than right min " mn_b)
@@ -101,7 +102,7 @@ checkGen(h:Heap[\ZZ32,ZZ32\], n:ZZ32): () = do
         end
         Just[\(ZZ32,ZZ32,ZZ32)\](k,1,k)
       end
-    (mn,sz,mx) = h.generate[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\](TestReduction, sing).getDefault(0,0,0)
+    (mn,sz,mx) = h.generate[\AnyMaybe\](TestReduction, sing).getDefault(0,0,0)
     assert(n,sz," size versus computed size")
     if (sz > 0) then
         (mn_k, mn_v) = h.minimum().get()

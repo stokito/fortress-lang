@@ -65,7 +65,7 @@ Expr DelimitedExpr =
                          "Mismatched identifiers for label expressions.");
        yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
-   / label w a1:OpName w a2:BlockElems w end w a3:OpName
+   / label w a1:OpName w a2:BlockElems w end w a3:OpName // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid label name.\n" +
                              "A non-reserved word that is made up of a mixture" +

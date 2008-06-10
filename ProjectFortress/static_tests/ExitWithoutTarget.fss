@@ -23,15 +23,15 @@ export Executable
   run(args:String...):() = do
     
     (* type of outer should be ZZ32 OR ZZ32 *)
-    label outer
+    ignore(label outer
       (* type of inner should be Boolean OR Boolean *)
-      label inner
+      ignore(label inner
         exit with true
         exit outer with 5
         false
-      end inner as Boolean
+      end inner as Boolean)
       3
-    end outer as IntLiteral
+    end outer as IntLiteral)
     ()
 
   end

@@ -157,19 +157,14 @@ mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\] =
 opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\] =
     mapping[\Key,Val\](xs)
 
-opr BIG {|->[\Key,Val\] g: ( Reduction[\SomeList\], (Key,Val) -> SomeList) ->
-                           SomeList } : Map[\Key,Val\] =
-    mapping(covariantComprehension[\(Key,Val)\](g))
+opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],SomeList,SomeList\] =
+    covariantComprehension[\(Key,Val),Map[\Key,Val\]\](fn g => mapping(g))
 
-opr BIG UNION[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
-                              Map[\Key,Val\] -> Map[\Key,Val\]) ->
-                            Map[\Key,Val\] ) : Map[\Key,Val\] =
-    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UNION b, EmptyMap[\Key,Val\], g)
+opr BIG UNION[\Key,Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Any,Any\] =
+    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UNION b, EmptyMap[\Key,Val\])
 
-opr BIG UPLUS[\Key,Val\](g: ( Reduction[\Map[\Key,Val\]\],
-                              Map[\Key,Val\] -> Map[\Key,Val\]) ->
-                            Map[\Key,Val\] ) : Map[\Key,Val\] =
-    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UPLUS b, EmptyMap[\Key,Val\], g)
+opr BIG UPLUS[\Key,Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Any,Any\] =
+    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UPLUS b, EmptyMap[\Key,Val\])
 
 object SeqMapGenerator[\Key,Val\](o:Map[\Key,Val\])
     extends SequentialGenerator[\(Key,Val)\]

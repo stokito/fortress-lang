@@ -22,6 +22,7 @@ import java.util.Set;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntExpr;
+import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.NumberConstraint;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
@@ -137,7 +138,7 @@ public class IntNat extends FTypeNat {
     public void unifyStaticArg(Environment env, Set<String> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, StaticArg val) {
         if (FType.DUMP_UNIFY)
-            System.out.println("unifying IntNat "+this+" and "+val);
+            System.out.println("unifying IntNat "+this+" and "+ val.getClass().getSimpleName() + " " + val);
         if (val instanceof IntArg) {
             IntExpr n = ((IntArg)val).getVal();
             if (n instanceof NumberConstraint) {
@@ -145,6 +146,10 @@ public class IntNat extends FTypeNat {
                     // no error
                     return;
                 }
+            } else if (n instanceof IntRef) {
+                String nm = ((IntRef)n).getName().getText();
+                abm.joinPut(nm, this);
+                return;
             }
         }
         super.unifyStaticArg(env, tp_set, abm, val);
