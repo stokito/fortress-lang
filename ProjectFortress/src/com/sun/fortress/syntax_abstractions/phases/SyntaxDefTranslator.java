@@ -389,6 +389,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 return defaultCase(that);
             }
 
+        @Override
+        public List<Element> forPrefixedSymbol(PrefixedSymbol that){
+            return defaultCase(that);
+        }
+
         private String lookupAstType( Id nonterminal ){
             return GrammarEnv.getMemberEnv(nonterminal).getType().toString();
         }

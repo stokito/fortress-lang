@@ -54,8 +54,8 @@ api Xml2
     getter toString():String
   end
 
-  grammar xml extends {Literal, Symbols}
-    LiteralExpr:Element |Expr:= (* type: Content *)
+  grammar xml extends {Expression, Symbols}
+    Expr:Element |Expr:= (* type: Content *)
       x:XExpr <[ x ]>
 
     XExpr:Element :Expr:= (* type: Content *)
@@ -69,13 +69,13 @@ api Xml2
       OpenBracket# s:String Slash# CloseBracket
       <[ Header(s,emptyList[\Attribute\]()) ]>
     | OpenBracket# s:String a:Attributes+ Slash# CloseBracket
-     ) <[ Header(s,a) ]>
+     ) <[ Header(s,<| a |>) ]>
 
     XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
       <[ Header(s,emptyList[\Attribute\]()) ]>
-    | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
-      <[ Header(s, a) ]>
+    | o1:OpenBracket# s:String hey_you_look_at_this:Attributes+ o2:CloseBracket
+      <[ Header(s, <| hey_you_look_at_this |>) ]>
 
 (*
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)

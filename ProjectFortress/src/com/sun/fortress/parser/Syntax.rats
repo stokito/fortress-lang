@@ -197,19 +197,28 @@ SyntaxSymbol SyntaxSymbol =
         else {
            yyValue = new AndPredicateSymbol(createSpan(yyStart,yyCount), s1);
         }}
-    / gsym:GroupSymbol questionmark
-      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), gsym); }
-    / gsym:GroupSymbol star
-      { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), gsym); }
-    / gsym:GroupSymbol plus
-      { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), gsym); }
-    / yyValue:GroupSymbol
-    / a1:Id colon s1:Symbol type:(void:colon Type)?
+    / s:Single questionmark
+      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), s); }
+    / s:Single star
+      { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), s); }
+    / s:Single plus
+      { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), s); }
+    / yyValue:Single;
+      
+SyntaxSymbol Single =
+    yyValue:GroupSymbol
+    / s:BaseSymbol
+    { yyValue = new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(s)); }
+    ;
+
+SyntaxSymbol BaseSymbol =
+    a1:Id colon s1:Symbol type:(void:colon Type)?
       { Option<Id> prefix = Option.some(a1);
         Option<Type> type1 = Option.none();
         if (null != type) type1 = Option.some(type);
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
+      
           yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(), prefix, type1, tmp));
         }
         else {
@@ -246,10 +255,11 @@ SyntaxSymbol Breakline = a1:breakline
       { yyValue = new BreaklineSymbol(createSpan(yyStart,yyCount), a1); };
 
 SyntaxSymbol Symbol =
-      a1:Suffix hash
+      a1:Item hash
       { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
-     / yyValue:Suffix;
+     / yyValue:Item;
 
+/*
 SyntaxSymbol Suffix =
       a1:Item questionmark
       { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
@@ -258,6 +268,7 @@ SyntaxSymbol Suffix =
     / a1:Item plus
      { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), a1); }
     / yyValue:Item;
+    */
 
 SyntaxSymbol Item =
       !(w (leftDelimiter / do)) s:ItemText

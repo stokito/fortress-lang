@@ -46,6 +46,7 @@ import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -64,6 +65,7 @@ public class ActionCreaterUtil {
             if ( isTemplate ){
                 final PrefixedSymbol sym = pair.getKey();
                 VariableCollector.Depth depth = pair.getValue();
+                Debug.debug( 1, String.format("Depth for %s is %s", sym, depth ) );
                 String temp;
                 if ( syntaxDeclEnv.getNonterminalName(sym.getId().unwrap()) == null ){
                     /* FIXME ?? */
