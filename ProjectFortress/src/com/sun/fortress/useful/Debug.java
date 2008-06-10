@@ -20,9 +20,17 @@ package com.sun.fortress.useful;
 public abstract class Debug{
     private static int level = 0;
 
-    public static void debug( int level, Object... o ){
-        if ( Debug.level <= level ){
-            System.out.println( o );
+    public static void setDebug( int level ){
+        Debug.level = level;
+    }
+
+    public static int getDebug(){
+        return Debug.level;
+    }
+
+    public static void debug( int level, String s ){
+        if ( level <= Debug.level ){
+            System.out.println( s );
         }
     }
 }

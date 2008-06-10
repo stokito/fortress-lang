@@ -18,6 +18,9 @@ public class ArrayUnpacker {
     public static List<Object[]> convertPackedList(Pair<Object> packed) {
         List<Object[]> acc = new LinkedList<Object[]>();
         for (Object p : packed) {
+            if ( p == null ){
+                System.out.println( "**Warning** Packed object is null" );
+            }
             acc.add((Object[])p);
         }
         return acc;
