@@ -33,6 +33,8 @@ import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 
+import com.sun.fortress.useful.Debug;
+
 public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol, VariableCollector.Depth>> {
     
     private Depth depth;
@@ -127,7 +129,7 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         for ( SyntaxSymbol symbol : that.getSymbols() ){
             c.putAll( symbol.accept(this) );
         }
-        System.out.println( "Bound symbols for group: " + c );
+        Debug.debug( 1, "Bound symbols for group: " + c );
         return c;
     }
 
