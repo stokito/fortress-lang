@@ -66,6 +66,7 @@ import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -489,12 +490,75 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     private String lookupAstNode(Id id){
-        if ( syntaxDeclEnv.getNonterminalName(id) == null ){
-            /* FIXME ?? */
-            return "StringLiteralExpr";
-        } else {
-            return GrammarEnv.getMemberEnv(syntaxDeclEnv.getNonterminalName(id)).getType().toString();
+        return GrammarEnv.getType(id);
+    }
+
+    private String parameterizedGap(TemplateGap t){
+        Id id = t.getId();
+        String className = t.getClass().getSimpleName();
+
+        String paramEnv = FreshName.getFreshName("paramEnv");
+        this.code.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
+
+        Id memberName = this.syntaxDeclEnv.getNonterminalName(id);
+
+        if (!GrammarEnv.contains(memberName)) {
+            throw new RuntimeException("Grammar environment does not contain identifier: "+id);
         }
+        MemberEnv nEnv = GrammarEnv.getMemberEnv(memberName);
+
+        for (int inx=0;inx<t.getParams().size();inx++) {
+            this.code.add(paramEnv+".put(\""+nEnv.getParameter(inx)+"\", "+t.getParams().get(inx)+");");
+        }
+
+        Type type = this.syntaxDeclEnv.getType(id);
+        String typeName = type.toString();
+
+        String rVarName = FreshName.getFreshName("rs");            
+        this.code.add(typeName+" "+rVarName+" = ("+typeName+") "+id+".accept(new NodeUpdateVisitor() {");
+        this.code.add("  @Override");
+        this.code.add("  public Node for"+className +"("+className+" that) {");
+        this.code.add("    Node n = null;");
+        this.code.add("    String id = that.getId().getText();");
+        //            this.code.add("    System.err.println(\"Looking up: \"+id);");
+        this.code.add("    if (null != (n = "+paramEnv+".get(id))) {");
+        //            this.code.add("      System.err.println(\"Subs\");");
+        this.code.add("      return n;");
+        this.code.add("    }");
+        //            this.code.add("    System.err.println(\"No subs\");");
+        this.code.add("    return super.for"+className+"(that);");
+        this.code.add("  }");
+        this.code.add("});");
+        return rVarName;
+    }
+
+    private String normalGap(TemplateGap t){
+        Id id = t.getId();
+        if (this.syntaxDeclEnv.isRepeat(id)) {
+            Debug.debug( 4, String.format("%s is a repeat symbol", id.getText() ) );
+            return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+        }
+        if (this.syntaxDeclEnv.isOption(id)) {
+            Debug.debug( 4, String.format("%s is an optional symbol", id.getText() ) );
+            return "(Expr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+        }
+        if (this.syntaxDeclEnv.isCharacterClass(id)) {
+            Debug.debug( 4, String.format("%s is a character class", id.getText() ) );
+            return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+        }
+        if (this.syntaxDeclEnv.isAnyChar(id)) {
+            Debug.debug( 4, String.format("%s is an any char", id.getText() ) );
+            return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
+        }
+        if (this.syntaxDeclEnv.isNonterminal(id)) {
+            // return id.getText();
+            Id nonterminal = syntaxDeclEnv.getNonterminalName(id);
+            Debug.debug( 4, String.format("%s is a non-terminal of type %s", id.getText(), lookupAstNode(nonterminal) ) );
+            return String.format("(%s) %s.get(\"%s\")", lookupAstNode(nonterminal), ActionCreater.BOUND_VARIABLES, id.getText() );
+        }
+        NI.nyi();
+        /* will never get here */
+        return null;
     }
 
     private String handleTemplateGap(TemplateGap t) {
@@ -502,60 +566,11 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         // or a template variable?
         Id id = t.getId();
         if (!t.getParams().isEmpty()) {
-            String className = t.getClass().getSimpleName();
-
-            String paramEnv = FreshName.getFreshName("paramEnv");
-            this.code.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
-
-            Id memberName = this.syntaxDeclEnv.getNonterminalName(id);
-            
-            if (!GrammarEnv.contains(memberName)) {
-                throw new RuntimeException("Grammar environment does not contain identifier: "+id);
-            }
-            MemberEnv nEnv = GrammarEnv.getMemberEnv(memberName);
-                        
-            for (int inx=0;inx<t.getParams().size();inx++) {
-                this.code.add(paramEnv+".put(\""+nEnv.getParameter(inx)+"\", "+t.getParams().get(inx)+");");
-            }
-
-            Type type = this.syntaxDeclEnv.getType(id);
-            String typeName = type.toString();
-            
-            String rVarName = FreshName.getFreshName("rs");            
-            this.code.add(typeName+" "+rVarName+" = ("+typeName+") "+id+".accept(new NodeUpdateVisitor() {");
-            this.code.add("  @Override");
-            this.code.add("  public Node for"+className +"("+className+" that) {");
-            this.code.add("    Node n = null;");
-            this.code.add("    String id = that.getId().getText();");
-//            this.code.add("    System.err.println(\"Looking up: \"+id);");
-            this.code.add("    if (null != (n = "+paramEnv+".get(id))) {");
-//            this.code.add("      System.err.println(\"Subs\");");
-            this.code.add("      return n;");
-            this.code.add("    }");
-//            this.code.add("    System.err.println(\"No subs\");");
-            this.code.add("    return super.for"+className+"(that);");
-            this.code.add("  }");
-            this.code.add("});");
-            return rVarName;
+            return parameterizedGap(t);
         }
+
         if (this.syntaxDeclEnv.contains(id)) {
-            if (this.syntaxDeclEnv.isRepeat(id)) {
-                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
-            }
-            if (this.syntaxDeclEnv.isOption(id)) {
-                return "(Expr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
-            }
-            if (this.syntaxDeclEnv.isCharacterClass(id)) {
-                return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
-            }
-            if (this.syntaxDeclEnv.isAnyChar(id)) {
-                return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
-            }
-            if (this.syntaxDeclEnv.isNonterminal(id)) {
-                // return id.getText();
-                return String.format("(%s) %s.get(\"%s\")", lookupAstNode(id), ActionCreater.BOUND_VARIABLES, id.getText() );
-            }
-            NI.nyi();
+            return normalGap(t);
         }
         String varName = FreshName.getFreshName("template");
         String idVarName = FreshName.getFreshName("id");

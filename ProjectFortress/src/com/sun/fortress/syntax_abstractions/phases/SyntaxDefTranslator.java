@@ -524,7 +524,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
          * to null if the packedName is null otherwise set it to the index'th object.
          */
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
-            return String.format("%s %s = (%s == null ? null : %s[%d]);", fullType, varName, packedName, packedName, index);
+            return String.format("%s %s = (%s)(%s == null ? null : %s[%d]);", fullType, varName, fullType, packedName, packedName, index);
         }
     }
 
