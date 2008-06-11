@@ -30,10 +30,10 @@ component Xml2
   object Element(info:Header, content_:List[\Content\], endTag:String) extends Content
     toString():String =
       do
-        if info.getTag() =/= endTag then
-          println "Tags dont match start '" info.getTag() "' end '" endTag "'"
+        if info.startTag =/= endTag then
+          println "Tags dont match start '" info.startTag "' end '" endTag "'"
         end
-        var s:String = "<" info.getTag() (BIG || info.attributes) ">"
+        var s:String = "<" info.startTag (BIG || info.attributes) ">"
         for x <- seq(content_) do
           s := s x.toString()
         end
@@ -56,14 +56,14 @@ component Xml2
             else => false
         end
 
-    tag():String = info.getTag()
+    tag():String = info.startTag
+    
+    attributes():List[\Attribute\] = info.attributes
   end
-  Element(info:Header) = Element(info, emptyList[\Content\](), info.getTag())
+  Element(info:Header) = Element(info, emptyList[\Content\](), info.startTag)
   Element(info:Header, endTag:String) = Element(info, emptyList[\Content\](), endTag)
 
   object Header(startTag:String, attributes:List[\Attribute\])
-    getter getTag():String = startTag
-    getter attributes():String = attributes
   end
 
   object Attribute(key:String, val:String)
