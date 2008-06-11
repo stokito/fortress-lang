@@ -22,6 +22,7 @@ import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
@@ -304,11 +305,38 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         for( Param p : that.getParams() ) {
         	extended_checker = extended_checker.extend(p);
         }
-        TypeCheckerResult body_result = that.getBody().accept(extended_checker);
-
+        TypeCheckerResult body_result = that.getBody().accept(extended_checker);        
         // Get all results together
         all_results.addAll(params_result);
         all_results.add(body_result);
+        //get domain type
+        List<Type> dlist = new ArrayList<Type>();
+        Boolean varargs=false;
+        for(Param p: that.getParams()){
+        	if(p instanceof NormalParam){
+        		NormalParam n = (NormalParam)p;
+        		if(n.getType().isSome()){
+        			dlist.add(n.getType().unwrap());
+        		}
+        		else{
+        			NI.nyi();
+        		}
+        	}
+        	if(p instanceof VarargsParam){
+        		VarargsParam v = (VarargsParam) p;
+        		dlist.add(v.getType());
+        		varargs=true;
+        	}
+        }
+        AbstractTupleType domain;
+        if(varargs){
+        	Type var = dlist.remove(dlist.size()-1);
+        	domain = new VarargTupleType(dlist,var);
+        }
+        else{
+        	domain = NodeFactory.makeTupleType(dlist);
+        }
+        
         if( returnType_result.isSome() )
         	all_results.add(returnType_result.unwrap());
         if( throwsClause_result.isSome() )
@@ -341,7 +369,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         				exn + " is not."));
         	}
         }
-        return TypeCheckerResult.compose(that, return_type, this.subtypeChecker, all_results);
+        
+        ArrowType arr = NodeFactory.makeArrowType(new Span(), domain, return_type);
+        return TypeCheckerResult.compose(that, arr, this.subtypeChecker, all_results);
 	}
 
 	/** Ignore unsupported nodes for now. */
@@ -1221,7 +1251,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					// Same number of static parameters			
 					// Do they have the same number of parameters, or at least can they be matched.
 					// we know this cast works
-					Method im = (Method)m.instantiate(static_args);
+					Option<Functional> im_maybe=m.instantiate(static_args);
+					if(im_maybe.isNone()){
+						continue;
+					}
+					Method im = (Method)im_maybe.unwrap();
 					ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_result);
 					// constraint satisfiable?
 					if(mc.isSatisfiable()) {
@@ -1933,24 +1967,28 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         
         Type lhsType = exprs_result.get(0).type().unwrap();
         Type rhsType = exprs_result.get(1).type().unwrap();
-
-        // TODO: If LHS is not a function, treat juxtaposition as operator.
-        Option<Pair<Type,ConstraintFormula>> app_result = 
-        	TypesUtil.applicationType(subtypeChecker,
-                                      lhsType,
-                                      new ArgList(rhsType));
-        
-        Option<Type> result_type;
-        if( app_result.isSome() ) {
-        	all_results.add(new TypeCheckerResult(that,app_result.unwrap().second()));
-        	result_type = Option.some(app_result.unwrap().first());
+        // Check if LHS is an arrow
+        if(TypesUtil.isArrows(lhsType)){
+        	Option<Pair<Type,ConstraintFormula>> app_result = 
+            	TypesUtil.applicationType(subtypeChecker,
+                                          lhsType,
+                                          new ArgList(rhsType));
+            
+            Option<Type> result_type;
+            if( app_result.isSome() ) {
+            	all_results.add(new TypeCheckerResult(that,app_result.unwrap().second()));
+            	result_type = Option.some(app_result.unwrap().first());
+            }
+            else {
+            	result_type = Option.none();
+            }
+            
+            return TypeCheckerResult.compose(that, result_type,
+                                             subtypeChecker, all_results);
         }
         else {
-        	result_type = Option.none();
+        	return NI.nyi();
         }
-        
-        return TypeCheckerResult.compose(that, result_type,
-                                         subtypeChecker, all_results);
     }
 
     @Override

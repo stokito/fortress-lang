@@ -167,7 +167,7 @@ public class TypesUtil {
 							return Pair.make(Option.<AbstractArrowType>none(), ConstraintFormula.FALSE); 
 						}
 						// now apply the static arguments, 
-						that = (_RewriteGenericArrowType)
+						that = (AbstractArrowType)
 						that.accept(new StaticTypeReplacer(static_params,static_args_to_apply));
 						// and then check parameter sub-typing
 						ConstraintFormula valid = checker.subtype(args.argType(), Types.stripKeywords(that.getDomain()));
@@ -203,6 +203,23 @@ public class TypesUtil {
 					}});
 	        return Option.some(Pair.make(checker.meet(ranges), result_constraint));
     	}
+    }
+    
+    /**
+     * 
+     * Checks whether a type is an arrow or a conjunct of arrows
+     * 
+     */
+    public static Boolean isArrows(Type type){
+    	boolean valid=true;
+    	for(Type t: conjuncts(type)){
+    		valid&=t.accept(new NodeDepthFirstVisitor<Boolean>(){
+				@Override public Boolean defaultCase(Node that) {return false;				}
+				@Override public Boolean for_RewriteGenericArrowType(_RewriteGenericArrowType that) {return true;}
+				@Override public Boolean forArrowType(ArrowType that) {return true;}	
+    		});
+    	}
+    	return valid;
     }
     
     /**
