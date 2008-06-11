@@ -22,9 +22,9 @@ api SyntaxHelloWorldTemplate
 
   grammar helloworld extends Literal
     LiteralExpr |Expr:=
-       hello Beautiful World
+       h:hello Beautiful World
          do
-           StringLiteralExpr(hello.val " " Beautiful.val " " World.val)
+           StringLiteralExpr(h.val " " Beautiful.val " " World.val)
          end
      | hello a1:Beautiful a2:Beautiful World <[ hello " " a1 " " a2 " " World ]>
 

@@ -17,17 +17,23 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-
-
-
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.parser.Fortress;
+import com.sun.fortress.parser_util.IdentifierUtil;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
+import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
 
 /*
@@ -36,22 +42,23 @@ import com.sun.fortress.useful.Pair;
  */
 public class TemplateVarRewriter {
 
-	public static final String GAPSYNTAXPREFIX = "<!@#$%^&*< ";
-	public static final String GAPSYNTAXSUFFIX = " >*&^%$#@!>";
+	public static final String GAPSYNTAXPREFIX = "<!@#$%^&*<";
+	public static final String GAPSYNTAXSUFFIX = ">*&^%$#@!>";
 
-	public String rewriteVars(Collection<String> vars, String t) {
+	public String rewriteVars(Map<Id, BaseType> vs, String t) {
 		Map<String, String> varToGapName = new HashMap<String, String>();
 		String result = "";
 
-		L: for (int inx=0; inx<t.length(); inx++) {
-			for (String var: vars) {
-				// System.err.println("Testing: "+var);
-				int end = inx+var.length();
+		L:for (int inx=0; inx<t.length(); inx++) {
+		    for (Id id: vs.keySet()) {
+	            String var = id.getText();
+//	            System.err.println("Testing: "+var);
+	            int end = inx+var.length();
 
 				if (match(inx, end, var, t)) {
-					// System.err.println("Match...");
+//					System.err.println("Match... "+inx);
 					if (isVar(inx, end, t)) {
-						// System.err.println("isVar...");
+//						System.err.println("isVar...");
 						inx = end-1;
 						String tmp = "";
 						if (isTemplateApplication(end, t)) {
@@ -59,27 +66,39 @@ public class TemplateVarRewriter {
 							inx = p.getA();
 							tmp = p.getB();
 						}
-						result += getVar(var+tmp);						
+						String type = vs.get(id).accept(new BaseTypeCollector());
+                        result += getVar(var+tmp, type);
 						continue L;
 					}
 				}
-			}
-			result += t.charAt(inx);
+		    }
+            result += t.charAt(inx);
 		}	
 		return result;
 	}
 
 	private boolean isVar(int inx, int end, String t) {
 		if (startOfString(inx)) {
-			return isTemplateApplication(end, t) || toEndOfString(end, t) || t.charAt(end) == ' ';
+			return isTemplateApplication(end, t) || toEndOfString(end, t) || notIdOrOpOrKeyword(t.charAt(end));
 		} else if (endOfString(end, t)) {
-			return t.charAt(inx-1) == ' ';
+			return notIdOrOpOrKeyword(t.charAt(inx-1));
 		} else {
-			return (t.charAt(inx-1) == ' ' && isTemplateApplication(end, t)) || (t.charAt(inx-1) == ' ' && t.charAt(end) == ' ');
+			char c = t.charAt(inx-1);
+            return (notIdOrOpOrKeyword(c ) && isTemplateApplication(end, t)) || (notIdOrOpOrKeyword(c) && notIdOrOpOrKeyword(t.charAt(end)));
 		}
 	}
 
-	private boolean endOfString(int end, String t) {
+	/*
+	 * Todo: Add a check for operators
+	 */
+	private boolean notIdOrOpOrKeyword(char c) {
+        return !(IdentifierUtil.validId(""+c) || 
+                 Fortress.FORTRESS_KEYWORDS.contains(""+c) || 
+                 Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS.contains(c)
+                 );
+    }
+
+    private boolean endOfString(int end, String t) {
 		return end == t.length();
 	}
 
@@ -116,8 +135,8 @@ public class TemplateVarRewriter {
 		return new Pair<Integer,String>(-1, result);
 	}
 
-	private String getVar(String v) {
-		return TemplateVarRewriter.getGapString(v);
+	private String getVar(String v, String nonterminal) {
+		return TemplateVarRewriter.getGapString(v, nonterminal);
 	}
 
 	private int getEndOfTemplateApplication(int end, String t) {
@@ -145,8 +164,15 @@ public class TemplateVarRewriter {
 		return ls;
 	}
 
-	public static String getGapString(String var) {
-		return TemplateVarRewriter.GAPSYNTAXPREFIX+var+TemplateVarRewriter.GAPSYNTAXSUFFIX;
+	public static String getGapString(String var, String type) {
+		return getGapSyntaxPrefix(type)+" "+var+" "+TemplateVarRewriter.GAPSYNTAXSUFFIX;
 	}
+
+    public static String getGapSyntaxPrefix(String type) {
+        if (type.startsWith("THELLO")) {
+            return TemplateVarRewriter.GAPSYNTAXPREFIX+"StringLiteralExpr";
+        }
+        return TemplateVarRewriter.GAPSYNTAXPREFIX+type.trim();
+    }
 
 }

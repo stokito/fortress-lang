@@ -27,8 +27,11 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.HasAt;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -106,40 +109,29 @@ public class NonterminalNameDisambiguator {
 			Id newN;
 			if (originalApiGrammar == realApiGrammar) { newN = name; }
 			else { newN = NodeFactory.makeId(realApiGrammar, name); }
-
+//            System.err.println("newN: "+newN+" "+currentEnv.getGrammarIndex().getName());
 			if (!currentEnv.hasQualifiedNonterminal(newN)) {
-				error("Undefined nonterminal: " + NodeUtil.nameString(newN), newN);
-				return Option.none();
+			     error("Undefined qualified nonterminal: " + NodeUtil.nameString(newN), newN);
+				 return Option.none();
 			}
 			return Option.some(newN);
 		}
 		else { // Unqualified name
 			String uqname = name.getText();
-			// Is it defined in the current grammar?
-			if (currentEnv.hasNonterminal(uqname)) {
-				Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
-				if (names.size() > 1) {
-					error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
-					return Option.none();
-				}
-				if (names.isEmpty()) {
-					error("Internal error we know the nonterminal is there but can't see it: " + name, name);
-					return Option.none();
-				}
-				Id qname = IterUtil.first(names);
-				return Option.some(qname);
-			}
-			else {
-				Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
-				// If the nonterminal is not defined in the current grammar then look
-				// among the inherited nonterminal names
-				if (names.isEmpty()) {
-					names = currentEnv.inheritedNonterminalNames(uqname);
-				}
+            Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
+            // Is it defined in the current grammar?
+            if (1 == names.size()) {
+                Id qname = IterUtil.first(names);
+                return Option.some(qname);   
+            }
+            // If the nonterminal is not defined in the current grammar then look
+            // among the inherited nonterminal names
+            if (names.isEmpty()) {
+                names = currentEnv.inheritedNonterminalNames(uqname);
 
 				// if not there it is undefined
 				if (names.isEmpty()) {
-					error("Undefined nonterminal: " + uqname, name);
+					error("Undefined non-qualified nonterminal: " + uqname, name);
 					return Option.none();
 				}
 
@@ -148,10 +140,56 @@ public class NonterminalNameDisambiguator {
 					error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
 					return Option.none();
 				}
-				Id qname = IterUtil.first(names);
-				return Option.some(qname);
+//				// We need to repatriating the nonterminal to this grammar
+//				Id currentName = currentEnv.getGrammarIndex().getName();
+//                APIName currentApi = currentName.getApi().unwrap();
+//				Id qname = SyntaxAbstractionUtil.qualifyMemberName(currentApi, currentName.getText(), uqname);
+				return Option.some(IterUtil.first(names));
 			}
+            // names.size() > 1
+            error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
+            return Option.none();
 		}
 	}
 
+	/*
+	 *         else { // Unqualified name
+            String uqname = name.getText();
+            Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
+            // Is it defined in the current grammar?
+            if (currentEnv.hasNonterminal(uqname)) {
+                if (names.size() > 1) {
+                    error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
+                    return Option.none();
+                }
+                if (names.isEmpty()) {
+                    error("Internal error we know the nonterminal is there but can't see it: " + name, name);
+                    return Option.none();
+                }
+                Id qname = IterUtil.first(names);
+                return Option.some(qname);
+            }
+            else {
+                // If the nonterminal is not defined in the current grammar then look
+                // among the inherited nonterminal names
+                if (names.isEmpty()) {
+                    names = currentEnv.inheritedNonterminalNames(uqname);
+                }
+
+                // if not there it is undefined
+                if (names.isEmpty()) {
+                    error("Undefined non-qualified nonterminal: " + uqname, name);
+                    return Option.none();
+                }
+
+                // If too many are found we are not sure which one is the right...
+                if (names.size() > 1) {
+                    error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
+                    return Option.none();
+                }
+                Id qname = IterUtil.first(names);
+                return Option.some(qname);
+            }
+        }
+	 */
 }

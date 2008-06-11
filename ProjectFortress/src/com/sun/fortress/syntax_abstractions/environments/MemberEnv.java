@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
@@ -39,23 +40,22 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class MemberEnv {
 
-    private Type returnType;
+    private BaseType astType;
     private Id name;
+    private Id[] params;
+    
     private Map<SyntaxDef, SyntaxDeclEnv> syntaxDefToEnv;
-    
-    
-    private Map<Id, Type> varToTypeMap;
-	private Id[] params;
+    private Map<Id, Id> argsToNonterminalMap;
 
 	private MemberEnv() {
-		this.varToTypeMap = new HashMap<Id, Type>();
+		this.argsToNonterminalMap = new HashMap<Id, Id>();
 		this.syntaxDefToEnv = new HashMap<SyntaxDef, SyntaxDeclEnv>();
 	}
 	
 	public MemberEnv(NonterminalIndex<? extends GrammarMemberDecl> member) {
 		this();
 		this.name = member.getName();
-		this.returnType = member.getType();
+		this.astType = member.getAstType();
 		
 		if (member.getAst() instanceof NonterminalDecl) {
 			NonterminalDecl nd = (NonterminalDecl) member.getAst();
@@ -69,18 +69,20 @@ public class MemberEnv {
 		}
 	}
 	
-	private void initEnv(List<Pair<Id,Type>> ls, List<SyntaxDef> syntaxDefs) {
+	private void initEnv(List<Pair<Id,Id>> ls, List<SyntaxDef> syntaxDefs) {
 		Id[] params = new Id[ls.size()];
 		int inx = 0;
-		for (Pair<Id, Type> p: ls) {
+		for (Pair<Id, Id> p: ls) {
 			Id var = p.getA();
-			params[inx] = var; 
-			this.addVarType(var, p.getB());
+			params[inx] = var;
+            
+			this.addArgsNonterminal(var, p.getB());
+			inx++;
 		}
 		this.setParamArray(params);
 		
 		for (SyntaxDef sd: syntaxDefs) {
-			SyntaxDeclEnv sdEnv = new SyntaxDeclEnv(sd);
+			SyntaxDeclEnv sdEnv = new SyntaxDeclEnv(sd, this);
 			this.add(sd, sdEnv);
 		}
 	}
@@ -89,8 +91,8 @@ public class MemberEnv {
 		this.syntaxDefToEnv.put(sd, sdEnv);		
 	}
 
-	private void addVarType(Id var, Type t) {
-		this.varToTypeMap.put(var, t);		
+	private void addArgsNonterminal(Id var, Id t) {
+		this.argsToNonterminalMap.put(var, t);		
 	}
 	
 	private void setParamArray(Id[] params) {
@@ -112,16 +114,54 @@ public class MemberEnv {
 	public Option<SyntaxDeclEnv> getSyntaxDeclEnv(SyntaxDef syntaxDef) {
 		SyntaxDeclEnv sdEnv = null;
 		if (null != (sdEnv= this.syntaxDefToEnv.get(syntaxDef))) {
-			return Option.some(sdEnv);
+		    return Option.some(sdEnv);
 		}
 		return Option.none();
 	}
 
 	public String toString() {
-		return this.name+", var types: "+this.varToTypeMap+", Params: "+Arrays.toString(params)+", "+this.syntaxDefToEnv;
+	    String s = "params: ";
+	    for (Id id: params) {
+	        s += id+":"+this.argsToNonterminalMap.get(id)+", ";
+	    }
+		return this.name+", "+s+this.syntaxDefToEnv;
 	}
 
-    public Type getType() {
-        return this.returnType;
+    public BaseType getAstType() {
+        return this.astType;
+    }
+
+    /**
+     * Returns the nonterminal that the given parameter is mapped to
+     * @param id
+     * @return
+     */
+    public Id getParameter(Id id) {
+        return this.argsToNonterminalMap.get(id);
+    }
+
+    public boolean isParameter(Id id) {
+        return this.argsToNonterminalMap.containsKey(id);
+    }
+
+    /**
+     * Add all the bindings of the other environment to this environment
+     * Assume the parameters among the two environments are the same
+     * @param gntMEnv
+     */
+    public void merge(MemberEnv other) {
+        // TODO: Add subtype check
+//        if (!this.astType.equals(other.astType)) {
+//            throw new RuntimeException("Incompatible member environments, return types mismatch: "+this.astType+", "+other.astType);
+//        }
+        if (!Arrays.deepEquals(this.params, other.params)) {
+            throw new RuntimeException("Incompatible member environments, parameters mismatch");
+        }
+        this.argsToNonterminalMap.putAll(other.argsToNonterminalMap);
+        this.syntaxDefToEnv.putAll(other.syntaxDefToEnv);
+    }
+
+    public Id getName() {
+        return this.name;
     }
 }
