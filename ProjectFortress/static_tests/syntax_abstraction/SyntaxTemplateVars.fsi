@@ -26,10 +26,10 @@ api SyntaxTemplateVars
       hello a1:Beautiful a2:Beautiful a3:World <[ hello " " a1 " " a2 " " a3(a1) " " a3(hello) ]>
 
     World(e:Expr) :LooseJuxt:=
-      world <[ e " World" ]>
+      world <[ e " world" ]>
 
     Beautiful :StringLiteralExpr:=
-      beautiful <[ "Beautiful"]>
+      beautiful <[ "beautiful"]>
     | foobar do StringLiteralExpr("foobar") end
 
   end

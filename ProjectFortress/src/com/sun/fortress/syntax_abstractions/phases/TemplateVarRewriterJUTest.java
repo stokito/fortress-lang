@@ -174,14 +174,14 @@ public class TemplateVarRewriterJUTest extends TestCase {
         assertTrue(r.equals("("+v1+" \" world\""));
     }
 
-//    public void testRewriteVars10() {
-//        TemplateVarRewriter tvr = new TemplateVarRewriter();
-//        Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
-//        VarType expr = new VarType(NodeFactory.makeId("Expr"));
-//        vars.put(NodeFactory.makeId("e"), expr);
-//        String r = tvr.rewriteVars(vars, "\"e\"");
+    public void testRewriteVars10() {
+        TemplateVarRewriter tvr = new TemplateVarRewriter();
+        Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
+        VarType expr = new VarType(NodeFactory.makeId("Expr"));
+        vars.put(NodeFactory.makeId("e"), expr);
+        String r = tvr.rewriteVars(vars, "\"e\"");
 //        System.err.println(r);
 //        System.err.println("\"e\"");
-//        assertTrue(r.equals("\"e\""));
-//    }
+        assertTrue(r.equals("\"e\""));
+    }
 }
