@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.useful.Debug;
 
 /**
  * Contains a map from fully qualified nonterminal or terminal
@@ -30,66 +31,70 @@ import com.sun.fortress.nodes.Id;
  */
 public class GrammarEnv {
 
-	private static Map<Id, MemberEnv> members = new HashMap<Id, MemberEnv>();
+    private static Map<Id, MemberEnv> members = new HashMap<Id, MemberEnv>();
 
-	/**
-	 * Add name of terminal or nonterminal and its corresponding member environment
-	 * @param id
-	 * @param memberEnv
-	 */
+    /**
+     * Add name of terminal or nonterminal and its corresponding member environment
+     * @param id
+     * @param memberEnv
+     */
     public static void add(Id id, MemberEnv memberEnv) {
         GrammarEnv.members.put(id, memberEnv);
     }
-	
+
     /**
      * Returns true if the given name is contained in this environment
      * @param name
      * @return
      */
-	public static boolean contains(Id name) {
-		return GrammarEnv.members.containsKey(name);
-	}
+    public static boolean contains(Id name) {
+        return GrammarEnv.members.containsKey(name);
+    }
 
-	/**
-	 * Returns the member environment associated with the given name 
-	 * @param name
-	 * @return
-	 */
-	public static MemberEnv getMemberEnv(Id name) {
-		return GrammarEnv.members.get(name);
-	}
+    /**
+     * Returns the member environment associated with the given name 
+     * @param name
+     * @return
+     */
+    public static MemberEnv getMemberEnv(Id name) {
+        return GrammarEnv.members.get(name);
+    }
 
-        private static String cutPackage(String name){
-            int last = name.lastIndexOf('.');
-            if ( last != -1 ){
-                return name.substring( last + 1 );
-            }
-            return name;
+    private static String cutPackage(String name){
+        int last = name.lastIndexOf('.');
+        if ( last != -1 ){
+            return name.substring( last + 1 );
         }
+        return name;
+    }
 
-        public static String getType(Id name){
-            if ( name == null ){
-                return "StringLiteralExpr";
-            }
-            return cutPackage(GrammarEnv.members.get(name).getType().toString());
+    public static String getType(Id name){
+        Debug.debug( 4, "Looking up " + name.getText() + " in grammar env" );
+        if ( name == null  || GrammarEnv.members.get(name) == null ){
+            Debug.debug( 4, "Didn't find it.." );
+            return "StringLiteralExpr";
         }
+        String s = cutPackage(GrammarEnv.members.get(name).getType().toString());
+        Debug.debug( 4, "Found " + s );
+        return s;
+    }
 
-	/**
-	 * Dump the content of this environment as a string
-	 * @return
-	 */
-	public static String getDump() {
-		String s = "GrammarEnv: \n";
-		for (Id id: GrammarEnv.members.keySet()) {
-		    s += " - "+id.toString()+"\n";
-		    s += " - "+GrammarEnv.members.get(id).toString()+"\n";
-		}
-		return s;
-	}
+    /**
+     * Dump the content of this environment as a string
+     * @return
+     */
+    public static String getDump() {
+        String s = "GrammarEnv: \n";
+        for (Id id: GrammarEnv.members.keySet()) {
+            s += " - "+id.toString()+"\n";
+            s += " - "+GrammarEnv.members.get(id).toString()+"\n";
+        }
+        return s;
+    }
 
-	/**
-	 * Empty this environment
-	 */
+    /**
+     * Empty this environment
+     */
     public static void clear() {
         GrammarEnv.members.clear();
     }

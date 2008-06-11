@@ -131,14 +131,15 @@ public class ActionCreaterUtil {
                         addCodeLine(String.format("if (%s != null) {", source));
 
                         String parentVar = d.getParent().accept
-                            (new DepthConvertVisitor(fresh, indent + 2));
+                            (new DepthConvertVisitor(source, indent + 2));
                         indent += 2;
                         addCodeLine(String.format("%s = %s;", fresh, parentVar));
                         indent -= 2;
 
                         addCodeLine("}");
 
-                        return getFortressList(fresh, listCode, listIndents);
+                        // return getFortressList(fresh, listCode, listIndents);
+                        return fresh;
                     }
                 };
                 /*
