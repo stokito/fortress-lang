@@ -74,8 +74,8 @@ api Xml2
     XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
       <[ Header(s,emptyList[\Attribute\]()) ]>
-    | o1:OpenBracket# s:String hey_you_look_at_this:Attributes+ o2:CloseBracket
-      <[ Header(s, <| hey_you_look_at_this |>) ]>
+    | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
+      <[ Header(s, a) ]>
 
 (*
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
