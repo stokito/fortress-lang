@@ -35,8 +35,7 @@ rr rr RETURNRETURN sRETURN
     println "NewlineTest      : " nl
 nl nl NEWLINENEWLINE sNEWLINE
     println "SPACETest        : "  sp   sp sp SPACESPACE sSPACE
-    println "AnyCharTest      : " boz J sbar a baz
-
+    println "AnyCharTest      : " boz J sbar a baz boz T
   end
 
 end

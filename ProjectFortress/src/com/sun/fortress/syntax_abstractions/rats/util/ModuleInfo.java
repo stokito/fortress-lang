@@ -61,6 +61,7 @@ public class ModuleInfo {
   fortressModules.add("Field");
   fortressModules.add("Fortress");
   fortressModules.add("Function");
+  fortressModules.add("Gaps");
   fortressModules.add("Header");
   fortressModules.add("Identifier");
   fortressModules.add("Keyword");

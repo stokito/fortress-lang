@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -99,14 +100,16 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
             List<StaticParam> staticParams_result, Option<Type> type_result,
             WhereClause whereClause_result) {
         NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
+
+        // Disambiguate the name
         Option<Id> oname = pnd.handleNonterminalName(_currentEnv, that.getName());
-        this._errors.addAll(pnd.errors());
+        Id name = that.getName();
         if (oname.isSome()) {
-            Id name = oname.unwrap();
-            return new NonterminalHeader(that.getSpan(), modifier_result, name, that.getParams(), staticParams_result, type_result, whereClause_result);
+            name = oname.unwrap();
         }
-        return bug(that, "Bad Nonterminal header");
-        // return new NonterminalHeader(that.getSpan(), modifier_result, name_result, staticParams_result, type_result, whereClause_result);
+        
+        this._errors.addAll(pnd.errors());
+        return new NonterminalHeader(that.getSpan(), modifier_result, name, that.getParams(), staticParams_result, type_result, whereClause_result);
     }
 
     

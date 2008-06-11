@@ -33,6 +33,7 @@ package com.sun.fortress.nodes;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Set;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.*;
@@ -544,7 +545,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     NonterminalHeader(Option<ModifierPrivate> modifier
                         = Option.<ModifierPrivate>none(),
                       Id name,
-                      List<Pair<Id,Type>> params,
+                      List<Pair<Id,Id>> params,
                       List<StaticParam> staticParams
                         = Collections.<StaticParam>emptyList(),
                       Option<Type> type,
@@ -1008,9 +1009,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 abstract LiteralExpr(String text);
                     /**
+                     * Template gap for literal expressiont
+                     */
+                    TemplateGapLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                    /**
                      * number literal
                      */
                     abstract NumberLiteralExpr();
+                        /**
+                         * Template gap for number literals
+                         */
+                        TemplateGapNumberLiteralExpr(Id id, List<Id> params) implements TemplateGap;
                         /**
                          * float literal
                          * e.g.) 3.5
@@ -1019,27 +1028,47 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                          BigInteger intPart,
                                          BigInteger numerator, int denomBase,
                                          int denomPower);
+                            /**
+                             * Template gap for float literals
+                             */
+                            TemplateGapFloatLiteralExpr(Id id, List<Id> params) implements TemplateGap;
                         /**
                          * int literal
                          * e.g.) 7
                          */
                         IntLiteralExpr(String text = in_val.toString(),
                                        BigInteger val);
+                            /**
+                             * Template gap for int literals
+                             */
+                            TemplateGapIntLiteralExpr(Id id, List<Id> params) implements TemplateGap;
                     /**
                      * char literal
                      * e.g.) 'c'
                      */
                     CharLiteralExpr(int val = in_text.charAt(0));
+                        /**
+                         * Template gap for char literals
+                         */
+                        TemplateGapCharLiteralExpr(Id id, List<Id> params) implements TemplateGap;
                     /**
                      * string literal
                      * e.g.) "string"
                      */
                     StringLiteralExpr();
+                        /**
+                         * Template gap for string literals
+                         */
+                        TemplateGapStringLiteralExpr(Id id, List<Id> params) implements TemplateGap;
                     /**
                      * void literal
                      * e.g.) ()
                      */
                     VoidLiteralExpr(String text = "");
+                        /**
+                         * Template gap for void literals
+                         */
+                        TemplateGapVoidLiteralExpr(Id id, List<Id> params) implements TemplateGap;
                 /**
                  * variable reference
                  * VarOrFnRef ::= Id
@@ -1121,12 +1150,16 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * e.g.) myString.replace("foo", "few")
                      * e.g.) log log n
                      */
-                    abstract Juxt(List<Expr> exprs);
+                    abstract Juxt(List<Expr> exprs = new LinkedList<Expr>());
                         /**
                          * juxtaposition with intervening whitespace
                          * e.g.) 3 5
                          */
                         LooseJuxt();
+                            /**
+                             * Template gap for expressions
+                             */
+                            TemplateGapLooseJuxt(Id id, List<Id> params) implements TemplateGap;
                        /**
                          * juxtaposition without intervening whitespace
                          * e.g.) f(3+5)
@@ -1909,6 +1942,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) hashCode
                  */
                 Id(String text);
+                    /**
+                     * Template gap for expressions
+                     */
+                    TemplateGapId(Id id, List<Id> params) implements TemplateGap;
                 /**
                  * operator name
                  */

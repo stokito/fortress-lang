@@ -22,10 +22,10 @@ module      com.sun.fortress.parser.preparser.PreFortress;
 modify      com.sun.fortress.parser.preparser.PreCompilation (Identifier, Keyword, PreSymbol, Spacing);
 
 instantiate com.sun.fortress.parser.Spacing (PreSymbol) as Spacing;
-instantiate com.sun.fortress.parser.Identifier (Keyword, PreSymbol, Unicode, Spacing) as Identifier;
+instantiate com.sun.fortress.parser.Identifier (Keyword, PreSymbol, Unicode, Spacing, Gaps) as Identifier;
 instantiate com.sun.fortress.parser.Keyword (Identifier) as Keyword;
 instantiate com.sun.fortress.parser.Unicode as Unicode;
-
+instantiate com.sun.fortress.parser.Gaps(PreSymbol, Spacing, Identifier) as Gaps;
 instantiate com.sun.fortress.parser.preparser.PreSymbol (Identifier, Spacing, Keyword) as PreSymbol;
 
 header {
@@ -48,9 +48,7 @@ import com.sun.fortress.useful.Cons;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import xtc.util.Action;
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;

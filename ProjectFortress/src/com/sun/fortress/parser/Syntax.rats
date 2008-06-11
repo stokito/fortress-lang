@@ -102,7 +102,7 @@ private GrammarMemberDecl NonterminalDef =
 private NonterminalHeader NonterminalHeader =
         mod:(NonTermMod w)? name:Id params:(w NonterminalArguments)? staticParams:(w StaticParams)? type:(void:colon Type)? whereClauses:(w Where)?
         { if (mod == null) mod = Option.none();
-          if (params == null) params = new LinkedList<com.sun.fortress.useful.Pair<Id,Type>>();
+          if (params == null) params = new LinkedList<com.sun.fortress.useful.Pair<Id,Id>>();
           if (staticParams == null) staticParams = FortressUtil.emptyStaticParams();          
           Option<Type> type1 = Option.<Type>none();
           if (type != null) type1 = Option.some(type);
@@ -113,17 +113,17 @@ private NonterminalHeader NonterminalHeader =
 private Option<ModifierPrivate> NonTermMod =
         private {yyValue = Option.some(new ModifierPrivate(createSpan(yyStart,yyCount)));};
 
-private List<com.sun.fortress.useful.Pair<Id,Type>> NonterminalArguments =
+private List<com.sun.fortress.useful.Pair<Id,Id>> NonterminalArguments =
         void:openparen w DeclList w void:closeparen;
 
-private List<com.sun.fortress.useful.Pair<Id,Type>> DeclList =
+private List<com.sun.fortress.useful.Pair<Id,Id>> DeclList =
         a1:Decl w comma w a2s:DeclList
         { yyValue = FortressUtil.mkList(a1, a2s); }
      /  a1:Decl
         { yyValue = FortressUtil.mkList(a1); };
 
-private com.sun.fortress.useful.Pair<Id,Type> Decl =
-        a1:Id colon a2:Type
+private com.sun.fortress.useful.Pair<Id,Id> Decl =
+        a1:Id colon a2:Id
         { yyValue = new com.sun.fortress.useful.Pair(a1,a2); };
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/

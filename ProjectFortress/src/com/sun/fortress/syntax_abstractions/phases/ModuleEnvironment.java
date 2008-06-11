@@ -40,6 +40,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.ContractedNonterminal;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
@@ -114,9 +115,14 @@ public class ModuleEnvironment {
                 (member2 instanceof GrammarNonterminalIndex)) {
             GrammarNonterminalIndex<? extends NonterminalDecl> cni1 = (GrammarNonterminalIndex) member1;
             GrammarNonterminalIndex<? extends NonterminalDecl> cni2 = (GrammarNonterminalIndex) member2;
+
+            MemberEnv mEnv = GrammarEnv.getMemberEnv(cni1.getName());
+            // We may inherit the same alternative from multiple parents
+            // which is not currently allowed
             for (SyntaxDef s: cni2.getSyntaxDefs()) {
                 if (!cni1.getSyntaxDefs().contains(s)) {
                     cni1.getSyntaxDefs().add(s);
+                    mEnv.add(s, new SyntaxDeclEnv(s, mEnv));
                 }
             }
             m1.getDependencies().addAll(m2.getDependencies());
@@ -135,12 +141,14 @@ public class ModuleEnvironment {
                             (member2 instanceof GrammarNonterminalIndex)) {
                         GrammarNonterminalIndex<? extends NonterminalDecl> cni1 = (GrammarNonterminalIndex) member1;
                         GrammarNonterminalIndex<? extends NonterminalDecl> cni2 = (GrammarNonterminalIndex) member2;
-                                               
+
+                        MemberEnv mEnv = GrammarEnv.getMemberEnv(cni1.getName());
                         // We may inherit the same alternative from multiple parents
-                        // which is not allowed
+                        // which is not currently allowed
                         for (SyntaxDef s: cni2.getSyntaxDefs()) {
                             if (!cni1.getSyntaxDefs().contains(s)) {
                                 cni1.getSyntaxDefs().add(s);
+                                mEnv.add(s, new SyntaxDeclEnv(s, mEnv));
                             }
                         }
                         m1.getDependencies().addAll(m2.getDependencies());
@@ -181,6 +189,12 @@ public class ModuleEnvironment {
             ModuleName spacing = new ModuleName("Spacing");
             m.getDependencies().add(new ModuleImport(spacing));
             m.getParameters().add(spacing);
+            ModuleName identifier = new ModuleName("Identifier");
+            m.getDependencies().add(new ModuleImport(identifier));
+            m.getParameters().add(identifier);
+            ModuleName gaps = new ModuleName("Gaps");
+            m.getDependencies().add(new ModuleImport(gaps));
+            m.getParameters().add(gaps);
         }
         m.getParameters().addAll(makeParameters(nt.getDependencies()));
         m.getDependencies().addAll(makeDependencies(nt.getDependencies()));
