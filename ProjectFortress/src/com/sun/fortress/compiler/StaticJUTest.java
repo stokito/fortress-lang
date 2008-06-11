@@ -23,8 +23,9 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.useful.TestCaseWrapper;
 
-public class StaticJUTest extends TestCase {
+public class StaticJUTest extends TestCaseWrapper {
     
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/";
     private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList(

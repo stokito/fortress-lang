@@ -154,33 +154,57 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
+    private static OpName copyOpNameWithNewAPIName(OpName op, final APIName api) {
+    	OpName result = 
+    		op.accept(new NodeDepthFirstVisitor<OpName>(){
+    			@Override
+    			public OpName defaultCase(Node that) {
+    				return bug("Unexpected sub-type of OpName.");
+    			}
+    			@Override
+    			public OpName forEnclosing(Enclosing that) {
+    				return new Enclosing(that.getSpan(),Option.some(api),that.getOpen(),that.getClose());
+    			}
+    			@Override
+    			public OpName forOp(Op that) {
+    				return new Op(that.getSpan(),Option.some(api),that.getText(),that.getFixity());
+    			}});
+    	return result;
+    }
+    
     private void initializeOnDemandFunctionNames() {
-        for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-            for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
-                if (fnName instanceof Id) {
-                    Id _fnName = (Id)fnName;
-                    Id name = new Id(_fnName.getSpan(),
-                                     Option.some(apiEntry.getKey()),
-                                     _fnName.getText());
-                    if (_onDemandFunctionIdNames.containsKey(_fnName)) {
-                        _onDemandFunctionIdNames.get(_fnName).add(name);
-                    } else {
-                        Set<Id> matches = new HashSet<Id>();
-                        matches.add(name);
-                        _onDemandFunctionIdNames.put(_fnName, matches);
-                    }
-                } else { // fnName instanceof OpName
-                    OpName _fnName = (OpName)fnName;
-                    if (_onDemandFunctionOpNames.containsKey(_fnName)) {
-                        _onDemandFunctionOpNames.get(_fnName).add(_fnName);
-                    } else {
-                        Set<OpName> matches = new HashSet<OpName>();
-                        matches.add(_fnName);
-                        _onDemandFunctionOpNames.put(_fnName, matches);
-                    }
-                }
-            }
-        }
+    	for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
+    		for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
+
+    			if (fnName instanceof Id ) {
+    				Id _fnName = (Id)fnName;
+    				Id name = new Id(_fnName.getSpan(),
+    						Option.some(apiEntry.getKey()),
+    						_fnName.getText());
+    				if (_onDemandFunctionIdNames.containsKey(_fnName)) {
+    					_onDemandFunctionIdNames.get(_fnName).add(name);
+    				}
+    				else {
+    					Set<Id> matches = new HashSet<Id>();
+    					matches.add(name);
+    					_onDemandFunctionIdNames.put(_fnName, matches);
+    				}
+    			} 
+    			else { // fnName instanceof OpName
+    				OpName _opName = (OpName)fnName;
+    				OpName name = copyOpNameWithNewAPIName(_opName, apiEntry.getKey());
+    				// NEB: I put this code here because I don't see why we shouldn't qualify OpNames as well...
+
+    				if (_onDemandFunctionOpNames.containsKey(_opName)) {
+    					_onDemandFunctionOpNames.get(_opName).add(name);
+    				} else {
+    					Set<OpName> matches = new HashSet<OpName>();
+    					matches.add(name);
+    					_onDemandFunctionOpNames.put(_opName, matches);
+    				}
+    			}
+    		}
+    	}
     }
 
     private void initializeOnDemandGrammarNames() {
