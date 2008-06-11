@@ -395,7 +395,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         }
 
         private String lookupAstType( Id nonterminal ){
-            return GrammarEnv.getMemberEnv(nonterminal).getType().toString();
+            return GrammarEnv.getType(nonterminal);
         }
 
         /**
