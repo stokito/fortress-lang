@@ -56,6 +56,7 @@ public final class Types {
     public static final TraitType STRING = makeTraitType("FortressBuiltin", "String");
     public static final TraitType REGION = makeTraitType("FortressLibrary", "Region");
     public static final TraitType EXCEPTION = makeTraitType("FortressLibrary", "Exception");
+    public static final TraitType CHECKED_EXCEPTION = makeTraitType("FortressLibrary", "CheckedException");
     
     public static final LabelType LABEL = new LabelType();
     

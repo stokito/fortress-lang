@@ -37,6 +37,12 @@ import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
+/**
+ * Used for checking subtype relationships between two types.
+ * @deprecated This class has been replaced, for all intents and purposes, by 
+ * {@link com.sun.fortress.compiler.typechecker.TypeAnalyzer}.
+ */
+@Deprecated
 public abstract class SubtypeChecker {
 
     protected final TraitTable _table;
