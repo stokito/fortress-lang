@@ -53,7 +53,7 @@ import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
 
 
-public final class BetterEnv extends BaseEnv implements Environment, Iterable<String>  {
+public final class BetterEnv extends BaseEnv implements Iterable<String>  {
 
     private BATreeNode<String, FType> type_env;
     private BATreeNode<String, Number> nat_env;
