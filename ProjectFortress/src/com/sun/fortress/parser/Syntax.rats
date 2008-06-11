@@ -208,7 +208,11 @@ SyntaxSymbol SyntaxSymbol =
 SyntaxSymbol Single =
     yyValue:GroupSymbol
     / s:BaseSymbol
-    { yyValue = new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(s)); }
+    { if ( s instanceof NoWhitespaceSymbol ){
+        yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), ((NoWhitespaceSymbol) s).getSymbol() );
+      } else {
+        yyValue = new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(s)); }
+      }
     ;
 
 SyntaxSymbol BaseSymbol =
@@ -256,7 +260,7 @@ SyntaxSymbol Breakline = a1:breakline
 
 SyntaxSymbol Symbol =
       a1:Item hash
-      { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
+      { com.sun.fortress.useful.Debug.debug( 1, "[parser] Create whitespace symbol for " + a1 ); yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
      / yyValue:Item;
 
 /*
