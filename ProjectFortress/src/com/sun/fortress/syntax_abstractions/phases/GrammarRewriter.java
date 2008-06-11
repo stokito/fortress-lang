@@ -26,28 +26,40 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.NodeVisitor_void;
+import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.syntax_abstractions.GrammarIndexInitializer;
+import com.sun.fortress.syntax_abstractions.MacroCompiler.Result;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 /*
  * 1) Disambiguate item symbols and rewrite to either nonterminal,
  *    keyword or token symbol
- * 2) Remove whitespace where indicated by no-whitespace symbols
- * 3) Rewrite escaped symbols
- * 4) Create a terminal declaration for each keyword and token symbols,
+ * 2) Disambiguate nonterminal parameters
+ * 3) Remove whitespace where indicated by no-whitespace symbols
+ * 4) Rewrite escaped symbols
+ * 5) Create a terminal declaration for each keyword and token symbols,
  *    and rewrite keyword and token symbols to nonterminal symbols, referring
  *    to the corresponding terminal definitions
- * 5) TODO: Extract subsequences of syntax symbols into a new
+ * 6) TODO: Extract subsequences of syntax symbols into a new
  *    nonterminal with a fresh name
- * 6) Parse pretemplates and replace with real templates
+ * 7) Parse pretemplates and replace with real templates
  */
 public class GrammarRewriter {
 
@@ -71,38 +83,57 @@ public class GrammarRewriter {
         initializeGrammarIndexExtensions(apis);
 
         List<Api> results = new ArrayList<Api>();
+        List<StaticError> errors = new LinkedList<StaticError>();
         ItemDisambiguator id = new ItemDisambiguator(env);
-
+        errors.addAll(id.errors());
+        
         for (ApiIndex api: apis) {
             // 1) Disambiguate item symbols and rewrite to either nonterminal,
             //    keyword or token symbol
             Api idResult = (Api) api.ast().accept(id);
             if (id.errors().isEmpty()) {
-                // 2) Remove whitespace where instructed by non-whitespace symbols
+                // 2) Disambiguate nonterminal parameters
+                NonterminalParameterDisambiguator npd = new NonterminalParameterDisambiguator(env);
+                Api npdResult = (Api) idResult.accept(npd);
+                errors.addAll(npd.errors());
+                
+                // 3) Remove whitespace where instructed by non-whitespace symbols
                 WhitespaceElimination we = new WhitespaceElimination();
-                Api sdResult = (Api) idResult.accept(we);
-
-                // 3) Rewrite escaped characters
+                Api sdResult = (Api) npdResult.accept(we);
+                
+                // 4) Rewrite escaped characters
                 EscapeRewriter escapeRewriter = new EscapeRewriter();
                 Api erResult = (Api) sdResult.accept(escapeRewriter);
 
-                // 4) Rewrite terminals to be declared using terminal definitions
+                // 5) Rewrite terminals to be declared using terminal definitions
                 TerminalRewriter terminalRewriter = new TerminalRewriter();
                 Api trResult = (Api) erResult.accept(terminalRewriter);
 
-                // 6) Parse content of pretemplates and replace pretemplate 
-                // with a template
-                TemplateParser.Result tpr = TemplateParser.parseTemplates(trResult);
-                if (!tpr.isSuccessful()) { return new ApiResult(null, tpr.errors()); }
-                Api tpResult = tpr.api;
-
-                results.add(tpResult);
+                results.add(trResult);
             }
         }
+        // Rebuild ApiIndices.
+        IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(results, System.currentTimeMillis());
+        if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
+        initializeGrammarIndexExtensions(apiIR.apis().values());
+                
+        List<Api> rs = new ArrayList<Api>();
+        for (ApiIndex api: apiIR.apis().values()) { 
+            initGrammarEnv(api.grammars().values());
+        }
+               
+        for (ApiIndex api: apiIR.apis().values()) {
+            // 7) Parse content of pretemplates and replace pretemplate 
+            // with a real template
+            TemplateParser.Result tpr = TemplateParser.parseTemplates((Api)api.ast());
+            for (StaticError se: tpr.errors()) { errors.add(se); };
+            if (!tpr.isSuccessful()) { return new ApiResult(rs, errors); }
+            rs.add(tpr.api);
+        }
 
-        return new ApiResult(results, id.errors());
+        return new ApiResult(rs, errors);
     }
-
+    
     private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
         for (ApiIndex a2: apis) {
@@ -122,6 +153,12 @@ public class GrammarRewriter {
                 }
             }
         }
+    }
+    
+    private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
+        for (GrammarIndex g: grammarIndexs) {
+            GrammarEnv.add(g);
+        }        
     }
 
 }

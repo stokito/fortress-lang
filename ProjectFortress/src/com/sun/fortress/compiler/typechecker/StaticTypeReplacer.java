@@ -149,4 +149,23 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     public Node forVarRef(VarRef that) {
         return updateNode(that, that.getVar());
     }
+
+    /**
+     * Do the static arguments and parameters "match" in the limited sense that there
+     * are the same number and their kinds match (e.g., TypeArgs match TypeParams,
+     * nats match NatParams, etc.)
+     * @param static_args
+     * @param staticParams
+     * @return
+     */
+	public static boolean argsMatchParams(List<StaticArg> static_args,
+			List<StaticParam> static_params) {
+		if( static_args.size() != static_params.size() ) {
+			return false;
+		}
+		else {
+			// TODO implement
+			return true;
+		}
+	}
 }

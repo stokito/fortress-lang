@@ -18,7 +18,7 @@
 api SyntaxTest
 
   import FortressAst.{...}
-  import FortressSyntax.{...}
+  import FortressSyntax.{Literal}
   import List.{...}
 
   grammar Helloworld extends { Literal }

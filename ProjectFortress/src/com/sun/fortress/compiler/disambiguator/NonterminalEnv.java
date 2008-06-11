@@ -71,7 +71,7 @@ public class NonterminalEnv {
             if (optGd.isSome()) {
                 currentGrammar = optGd.unwrap();
             } else {
-                currentGrammar = bug("NonterminalEnv.initializeNonterminals is failed!");
+                currentGrammar = bug("NonterminalEnv.initializeNonterminals has failed!");
             }
 
             Span span = e.getName().getSpan();
@@ -116,16 +116,21 @@ public class NonterminalEnv {
     public boolean hasQualifiedNonterminal(Id name) {
         Option<APIName> optApi = name.getApi();
         if (optApi.isNone())
-            bug(name, "Expected to have an API name.");
+            bug(name, "A qualified identifier is supposed to have an API name, but the api is not present");
         APIName api = getApi(optApi.unwrap());
         Id gname = getGrammarNameFromLastIdInAPI(optApi.unwrap());
         Id grammarName = NodeFactory.makeId(api, gname);
 
+        Set<Id> names = null;
         if (grammarName.equals(this.current.getName())) {
-            Set<Id> names = this.declaredNonterminalNames(name.getText());
-            return !names.isEmpty();
+            names = this.declaredNonterminalNames(name.getText());
         }
-        return false;
+        // If the nonterminal is not defined in the current grammar then look
+        // among the inherited nonterminal names
+        else {
+            names = this.inheritedNonterminalNames(name.getText());
+        }
+        return !names.isEmpty();
     }
 
     /** Determine whether a nonterminal with the given name is defined.
