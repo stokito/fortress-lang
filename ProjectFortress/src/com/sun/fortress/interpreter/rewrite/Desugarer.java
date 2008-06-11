@@ -1073,18 +1073,17 @@ public class Desugarer extends Rewrite {
      * unconditionally fuse predicates; that will be strictly better
      * than the present approach.
      */
-    boolean filterSqueezeOpportunity(List<GeneratorClause> gens, int i) {
-        if (i == 0) return false;
-        GeneratorClause gen = gens.get(i);
+    GeneratorClause filterSqueezeOpportunity(GeneratorClause prevGen,
+                                             GeneratorClause gen) {
         // Clause is predicate
-        if (gen.getBind().size()!=0) return false;
+        if (gen.getBind().size()!=0) return null;
         // Check shape of clause expression
         Expr predicate = gen.getInit();
-        if (!(predicate instanceof TightJuxt)) return false;
-        List<Expr>exprs = ((TightJuxt)predicate).getExprs();
-        if (exprs.size() != 2) return false;
+        if (!(predicate instanceof Juxt)) return null;
+        List<Expr>exprs = ((Juxt)predicate).getExprs();
+        if (exprs.size() != 2) return null;
         Expr fn = exprs.get(0);
-        if (!(fn instanceof VarRef)) return false;
+        if (!(fn instanceof VarRef)) return null;
         // Argument handling.  Handle (a,b,c) <- xs, p(a,b,c) as well.
         Expr arg = exprs.get(1);
         List<Expr> args;
@@ -1093,18 +1092,27 @@ public class Desugarer extends Rewrite {
         } else if (arg instanceof TupleExpr) {
             args = ((TupleExpr) arg).getExprs();
         } else {
-            return false;
+            return null;
         }
-        // Find all the argument variables.
-        List<Id> argVars = new ArrayList<Id>(args.size());
+        // Find all the argument variables, and check that each matches the
+        // corresponding variable in the binding of the previous generator.
+        List<Id> binds = prevGen.getBind();
+        int i = 0;
+        if (binds.size() != args.size()) return null;
         for (Expr a : args) {
-            if (!(a instanceof VarRef)) return false;
-            argVars.add(((VarRef)a).getVar());
+            if (!(a instanceof VarRef)) return null;
+            if (!(binds.get(i).equals(((VarRef)a).getVar()))) return null;
+            i++;
         }
-        // Find previous generator, and check its variables against the arguments.
-        // TODO: handle multiple well-formed predicates.
-        GeneratorClause prevGen = gens.get(i-1);
-        return prevGen.getBind().equals(argVars);
+        // FILTER SQUEEZE.  Want to generate a new clause of the form
+        // binds <- __filter(init,fn)
+        Expr init = prevGen.getInit();
+        Expr filtered =
+            ExprFactory.makeTightJuxt(gen.getSpan(), FILTER_NAME,
+                                      ExprFactory.makeTuple(init,fn));
+        GeneratorClause res =
+            ExprFactory.makeGeneratorClause(prevGen.getSpan(), binds, filtered);
+        return res;
     }
 
     /** Given a list of generators, return an expression that computes
@@ -1126,6 +1134,24 @@ public class Desugarer extends Rewrite {
                              Useful.list(GENERATE_NAME,
                                          ExprFactory.makeTuple(body,redVar,unitVar)));
         } else {
+            List<GeneratorClause> squozenGens =
+                new ArrayList<GeneratorClause>(gens.size());
+            GeneratorClause prevGen = gens.get(0);
+            for (int j = 1; j < i; j++) {
+                GeneratorClause gen = gens.get(j);
+                GeneratorClause squeeze = filterSqueezeOpportunity(prevGen,gen);
+                if (squeeze!=null) {
+                    // System.out.println(gen+": Filter squeeze opportunity\n"+
+                    //                    squeeze.toStringVerbose());
+                    prevGen = squeeze;
+                } else {
+                    squozenGens.add(prevGen);
+                    prevGen=gen;
+                }
+            }
+            squozenGens.add(prevGen);
+            gens = squozenGens;
+            i = gens.size();
             if (nestedGeneratorOpportunity(gens,body)) {
                 System.out.println(span+" and\n"+body.getSpan()+
                                    ": Generator of generator opportunity?");
@@ -1133,9 +1159,6 @@ public class Desugarer extends Rewrite {
             body = new TightJuxt(body.getSpan(), false,
                                  Useful.list(unitVar, body));
             for (i--; i>=0; i--) {
-                if (filterSqueezeOpportunity(gens,i)) {
-                    bug(gens.get(i),"filter squeeze opportunity!");
-                }
                 body = oneGenerator(gens.get(i), redVar, body);
             }
         }

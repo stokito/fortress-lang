@@ -777,7 +777,7 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
                 fn (): Condition[\E\] => do r1 = (0#0)[r]; self end)
     getDefault(e:E): E = cond[\E\](identity[\E\], fn () => e)
     cond[\G\](t: E -> G, e: () -> G): G
-    generate[\G\](r:Reduction[\G\], body: E -> G): G = cond[\G\](t,fn () => r.empty())
+    generate[\G\](r:Reduction[\G\], body: E -> G): G = cond[\G\](body,fn () => r.empty())
 
     (** For a Condition, these methods run eagerly. **)
     map[\G\](f: E->G): Condition[\G\] =
@@ -2491,7 +2491,7 @@ trait FilterGenerator[\E\] extends Generator[\E\]
         g().generate[\R\](r, fn(e:E):R => if (p())(e).holds() then m(e) else r.empty() end)
     reduce(r: Reduction[\E\]): E =
         g().generate[\E\](r, fn(e:E):E => if (p())(e).holds() then e else r.empty() end)
-    filter(p': E -> Condition[\E\]): SimpleFilterGenerator[\E\] =
+    filter(p': E -> Condition[\()\]): SimpleFilterGenerator[\E\] =
         SimpleFilterGenerator[\E\](g(), p() ANDCOND p')
     seq(self) = SimpleSeqFilterGenerator[\E\](g(),p())
 end
