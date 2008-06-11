@@ -69,6 +69,8 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.shell.CommandInterpreter;
 
+import com.sun.fortress.useful.Debug;
+
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -168,6 +170,7 @@ public class InterpreterWrapper {
                 VarDecl vd = (VarDecl) d;
                 if (vd.getLhs().size() == 1) {
                     LValueBind vb = vd.getLhs().get(0);
+                    Debug.debug( 2, "[interpreter wrapper] Get variable for " + vb.getName() );
                     Object o = boundVariables.get(vb.getName().getText());
                     Expr n = new JavaASTToFortressAST(span).dispatch(o, vb.getType());
                     newDecls.add(new VarDecl(vd.getLhs(), n));
