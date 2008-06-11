@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
-import com.sun.fortress.interpreter.evaluator.CommonEnv;
+import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Primitives;
@@ -53,7 +53,7 @@ import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
 
 
-public final class BetterEnv extends CommonEnv implements Environment, Iterable<String>  {
+public final class BetterEnv extends BaseEnv implements Environment, Iterable<String>  {
 
     private BATreeNode<String, FType> type_env;
     private BATreeNode<String, Number> nat_env;
