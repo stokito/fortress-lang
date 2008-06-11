@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
@@ -106,9 +107,14 @@ abstract public class BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  Closure getRunClosure() ;
-
+    public Closure getRunClosure() {
+        return (Closure) getValue("run");
+    }
+    
     abstract public  FType getTypeNull(String str) ;
+
+    
+    
     final public  FType getType(String str)  {
         FType x = getTypeNull(str);
         if (x == null)
@@ -145,6 +151,11 @@ abstract public class BaseEnv implements Environment {
     }
 
     abstract public  SApi getApiNull(String str) ;
+
+    final public SApi getApiNull(APIName d) {
+        return getApiNull(NodeUtil.nameString(d));
+    }    
+    
     final public  SApi getApi(String str)  {
         SApi x = getApiNull(str);
         if (x == null)
@@ -153,13 +164,8 @@ abstract public class BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  SApi getApiNull(APIName d) ;
     final public  SApi getApi(APIName d)  {
-        SApi x = getApiNull(d);
-        if (x == null)
-            return error(errorMsg("Missing api ", d));
-        else
-            return x;
+    	return getApi(NodeUtil.nameString(d));
     }
 
     abstract public  SComponent getComponentNull(String str) ;
@@ -180,7 +186,10 @@ abstract public class BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  FType getTypeNull(Id q) ;
+    final public FType getTypeNull(Id name) {
+        return getTypeNull(NodeUtil.nameString(name));
+    }    
+    
     final public  FType getType(Id q)  {
         FType x = getTypeNull(q);
         if (x == null)
@@ -192,7 +201,10 @@ abstract public class BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  FValue getValueNull(Id q) ;
+    final public FValue getValueNull(Id name) {
+        return getValueNull(NodeUtil.nameString(name));
+    }    
+    
     final public  FValue getValue(Id q)  {
         FValue x = getValueNull(q);
         if (x == null)
@@ -200,4 +212,22 @@ abstract public class BaseEnv implements Environment {
         else
             return x;
     }
+    
+    public void putApi(APIName d, SApi x) {
+        putApi(NodeUtil.nameString(d), x);
+    }    
+    
+    
+    public void putComponent(APIName name, SComponent comp) {
+        putComponent(NodeUtil.nameString(name), comp);
+    }
+    
+    public void putType(Id name, FType x) {
+        putType(NodeUtil.nameString(name), x);
+    }
+
+    public void putValue(Id name, FValue x) {
+        putValue(NodeUtil.nameString(name), x);
+    }
+    
 }
