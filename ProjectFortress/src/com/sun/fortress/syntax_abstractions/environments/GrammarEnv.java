@@ -59,6 +59,21 @@ public class GrammarEnv {
 		return GrammarEnv.members.get(name);
 	}
 
+        private static String cutPackage(String name){
+            int last = name.lastIndexOf('.');
+            if ( last != -1 ){
+                return name.substring( last + 1 );
+            }
+            return name;
+        }
+
+        public static String getType(Id name){
+            if ( name == null ){
+                return "StringLiteralExpr";
+            }
+            return cutPackage(GrammarEnv.members.get(name).getType().toString());
+        }
+
 	/**
 	 * Dump the content of this environment as a string
 	 * @return

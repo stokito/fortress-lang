@@ -66,14 +66,16 @@ public class ActionCreaterUtil {
                 final PrefixedSymbol sym = pair.getKey();
                 VariableCollector.Depth depth = pair.getValue();
                 Debug.debug( 1, String.format("Depth for %s is %s", sym, depth ) );
+                /*
                 String temp;
                 if ( syntaxDeclEnv.getNonterminalName(sym.getId().unwrap()) == null ){
-                    /* FIXME ?? */
                     temp = "StringLiteralExpr";
                 } else {
-                    temp = GrammarEnv.getMemberEnv(syntaxDeclEnv.getNonterminalName(sym.getId().unwrap())).getType().toString();
+                    temp = cutPackage(GrammarEnv.getMemberEnv(syntaxDeclEnv.getNonterminalName(sym.getId().unwrap())).getType().toString());
                 }
                 final String astNode = temp;
+                */
+                final String astNode = GrammarEnv.getType(syntaxDeclEnv.getNonterminalName(sym.getId().unwrap()));
                 class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                     String source;
                     int indent;

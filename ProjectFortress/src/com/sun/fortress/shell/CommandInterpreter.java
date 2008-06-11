@@ -131,11 +131,12 @@ public class CommandInterpreter {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-                // ProjectProperties.debug = true;
                 Debug.setDebug( 99 );
                 if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
                     Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
                     rest = rest.subList( 1, rest.size() );
+                } else {
+                    ProjectProperties.debug = true;
                 }
             }
             if (s.equals("-test")) test= true;
