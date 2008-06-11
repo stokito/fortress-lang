@@ -42,131 +42,146 @@ import com.sun.fortress.useful.Pair;
  */
 public class TemplateVarRewriter {
 
-	public static final String GAPSYNTAXPREFIX = "<!@#$%^&*<";
-	public static final String GAPSYNTAXSUFFIX = ">*&^%$#@!>";
+    public static final String GAPSYNTAXPREFIX = "<!@#$%^&*<";
+    public static final String GAPSYNTAXSUFFIX = ">*&^%$#@!>";
 
-	public String rewriteVars(Map<Id, BaseType> vs, String t) {
-		Map<String, String> varToGapName = new HashMap<String, String>();
-		String result = "";
+    public String rewriteVars(Map<Id, BaseType> vs, String t) {
+        Map<String, String> varToGapName = new HashMap<String, String>();
+        String result = "";
+        boolean inSideString = false;
+        
+        L:for (int inx=0; inx<t.length(); inx++) {
+            
+            if (inSideString && (t.charAt(inx) == '\\') && (inx+1<t.length()) && (t.charAt(inx+1) == '\"')) {
+                result+= "\\\"";
+                inx+= 2;
+            }
+            if (isString(inx, t)) {
+                inSideString = !inSideString;
+            }
+            else if (!inSideString) {
+                for (Id id: vs.keySet()) {
+                    String var = id.getText();
+                    //	            System.err.println("Testing: "+var);
+                    int end = inx+var.length();
 
-		L:for (int inx=0; inx<t.length(); inx++) {
-		    for (Id id: vs.keySet()) {
-	            String var = id.getText();
-//	            System.err.println("Testing: "+var);
-	            int end = inx+var.length();
-
-				if (match(inx, end, var, t)) {
-//					System.err.println("Match... "+inx);
-					if (isVar(inx, end, t)) {
-//						System.err.println("isVar...");
-						inx = end-1;
-						String tmp = "";
-						if (isTemplateApplication(end, t)) {
-							Pair<Integer,String> p = parseTemplateApplication(varToGapName, end, t, var);
-							inx = p.getA();
-							tmp = p.getB();
-						}
-						String type = vs.get(id).accept(new BaseTypeCollector());
-                        result += getVar(var+tmp, type);
-						continue L;
-					}
-				}
-		    }
+                    if (match(inx, end, var, t)) {
+                        //					System.err.println("Match... "+inx);
+                        if (isVar(inx, end, t)) {
+                            //						System.err.println("isVar...");
+                            inx = end-1;
+                            String tmp = "";
+                            if (isTemplateApplication(end, t)) {
+                                Pair<Integer,String> p = parseTemplateApplication(varToGapName, end, t, var);
+                                inx = p.getA();
+                                tmp = p.getB();
+                            }
+                            String type = vs.get(id).accept(new BaseTypeCollector());
+                            result += getVar(var+tmp, type);
+                            continue L;
+                        }
+                    }
+                }
+            }
             result += t.charAt(inx);
-		}	
-		return result;
-	}
+        }	
+        return result;
+    }
 
-	private boolean isVar(int inx, int end, String t) {
-		if (startOfString(inx)) {
-			return isTemplateApplication(end, t) || toEndOfString(end, t) || notIdOrOpOrKeyword(t.charAt(end));
-		} else if (endOfString(end, t)) {
-			return notIdOrOpOrKeyword(t.charAt(inx-1));
-		} else {
-			char c = t.charAt(inx-1);
+    private boolean isString(int inx, String t) {
+        return t.charAt(inx) == '"';
+    }
+
+    private boolean isVar(int inx, int end, String t) {
+        if (startOfString(inx)) {
+            return isTemplateApplication(end, t) || toEndOfString(end, t) || notIdOrOpOrKeyword(t.charAt(end));
+        } else if (endOfString(end, t)) {
+            return notIdOrOpOrKeyword(t.charAt(inx-1));
+        } else {
+            char c = t.charAt(inx-1);
             return (notIdOrOpOrKeyword(c ) && isTemplateApplication(end, t)) || (notIdOrOpOrKeyword(c) && notIdOrOpOrKeyword(t.charAt(end)));
-		}
-	}
+        }
+    }
 
-	/*
-	 * Todo: Add a check for operators
-	 */
-	private boolean notIdOrOpOrKeyword(char c) {
+    /*
+     * Todo: Add a check for operators
+     */
+    private boolean notIdOrOpOrKeyword(char c) {
         return !(IdentifierUtil.validId(""+c) || 
-                 Fortress.FORTRESS_KEYWORDS.contains(""+c) || 
-                 Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS.contains(c)
-                 );
+                Fortress.FORTRESS_KEYWORDS.contains(""+c) || 
+                Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS.contains(c)
+        );
     }
 
     private boolean endOfString(int end, String t) {
-		return end == t.length();
-	}
+        return end == t.length();
+    }
 
-	private boolean toEndOfString(int end, String t) {
-		return endOfString(end, t) || isTemplateApplication(end, t);
-	}
+    private boolean toEndOfString(int end, String t) {
+        return endOfString(end, t) || isTemplateApplication(end, t);
+    }
 
-	private boolean match(int s, int e, String var, String t) {
-		if (e-1<t.length()) {
-			return t.substring(s, e).equals(var);
-		}
-		return false;
-	}
+    private boolean match(int s, int e, String var, String t) {
+        if (e-1<t.length()) {
+            return t.substring(s, e).equals(var);
+        }
+        return false;
+    }
 
-	private Pair<Integer,String> parseTemplateApplication(Map<String, String> varToGapName, int end, String t, String v) {
-		String result = "";
-		if (isTemplateApplication(end, t)) {
-			int jnx = getEndOfTemplateApplication(end,t);
-			List<String> params = parseArgs(varToGapName, t.substring(end+1, jnx));
-			if (!params.isEmpty()) {
-				result = "(";
-				Iterator<String> it = params.iterator();
-				while (it.hasNext()) {
-					result += it.next();
-					if (it.hasNext()) {
-						result += ", ";
-					}
-				}
-				result += ")";
-			}			
-			return new Pair<Integer,String>(jnx, result);
-		}
-		// return an error code
-		return new Pair<Integer,String>(-1, result);
-	}
+    private Pair<Integer,String> parseTemplateApplication(Map<String, String> varToGapName, int end, String t, String v) {
+        String result = "";
+        if (isTemplateApplication(end, t)) {
+            int jnx = getEndOfTemplateApplication(end,t);
+            List<String> params = parseArgs(varToGapName, t.substring(end+1, jnx));
+            if (!params.isEmpty()) {
+                result = "(";
+                Iterator<String> it = params.iterator();
+                while (it.hasNext()) {
+                    result += it.next();
+                    if (it.hasNext()) {
+                        result += ", ";
+                    }
+                }
+                result += ")";
+            }			
+            return new Pair<Integer,String>(jnx, result);
+        }
+        // return an error code
+        return new Pair<Integer,String>(-1, result);
+    }
 
-	private String getVar(String v, String nonterminal) {
-		return TemplateVarRewriter.getGapString(v, nonterminal);
-	}
+    private String getVar(String v, String nonterminal) {
+        return TemplateVarRewriter.getGapString(v, nonterminal);
+    }
 
-	private int getEndOfTemplateApplication(int end, String t) {
-		return t.indexOf(')', end);
-	}
-	
-	private boolean isTemplateApplication(int end, String t) {
-		int jnx = getEndOfTemplateApplication(end, t);		
-		if (jnx > -1) {
-			return t.length() > end && t.charAt(end) == '(';	
-		}
-		return false;
-	}
+    private int getEndOfTemplateApplication(int end, String t) {
+        return t.indexOf(')', end);
+    }
 
-	private boolean startOfString(int inx) {
-		return inx == 0;
-	}
+    private boolean isTemplateApplication(int end, String t) {
+        int jnx = getEndOfTemplateApplication(end, t);		
+        if (jnx > -1) {
+            return t.length() > end && t.charAt(end) == '(';	
+        }
+        return false;
+    }
 
-	private List<String> parseArgs(Map<String, String> varToGapName , String s) {
-		String[] tokens = s.split(",");
-		List<String> ls = new LinkedList<String>();
-		for (String token: tokens) {
-			ls.add(token.trim());
-		}
-		return ls;
-	}
+    private boolean startOfString(int inx) {
+        return inx == 0;
+    }
 
-	public static String getGapString(String var, String type) {
-		return getGapSyntaxPrefix(type)+" "+var+" "+TemplateVarRewriter.GAPSYNTAXSUFFIX;
-	}
+    private List<String> parseArgs(Map<String, String> varToGapName , String s) {
+        String[] tokens = s.split(",");
+        List<String> ls = new LinkedList<String>();
+        for (String token: tokens) {
+            ls.add(token.trim());
+        }
+        return ls;
+    }
+
+    public static String getGapString(String var, String type) {
+        return getGapSyntaxPrefix(type)+" "+var+" "+TemplateVarRewriter.GAPSYNTAXSUFFIX;
+    }
 
     public static String getGapSyntaxPrefix(String type) {
         if (type.startsWith("THELLO")) {
@@ -175,4 +190,37 @@ public class TemplateVarRewriter {
         return TemplateVarRewriter.GAPSYNTAXPREFIX+type.trim();
     }
 
+//    L:for (int inx=0; inx<t.length(); inx++) {
+//        
+//        if (isString(inx, t)) {
+//            consumeString();
+//        }
+//        else {
+//            for (Id id: vs.keySet()) {
+//                String var = id.getText();
+//                //              System.err.println("Testing: "+var);
+//                int end = inx+var.length();
+//
+//                if (match(inx, end, var, t)) {
+//                    //                  System.err.println("Match... "+inx);
+//                    if (isVar(inx, end, t)) {
+//                        //                      System.err.println("isVar...");
+//                        inx = end-1;
+//                        String tmp = "";
+//                        if (isTemplateApplication(end, t)) {
+//                            Pair<Integer,String> p = parseTemplateApplication(varToGapName, end, t, var);
+//                            inx = p.getA();
+//                            tmp = p.getB();
+//                        }
+//                        String type = vs.get(id).accept(new BaseTypeCollector());
+//                        result += getVar(var+tmp, type);
+//                        continue L;
+//                    }
+//                }
+//            }
+//            result += t.charAt(inx);
+//        }
+//    }   
+//    return result;
+    
 }
