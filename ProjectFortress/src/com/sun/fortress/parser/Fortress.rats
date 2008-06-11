@@ -86,7 +86,7 @@ instantiate com.sun.fortress.parser.Expression(Parameter, NoNewlineHeader,
                                                MayNewlineHeader, Type,
                                                DelimitedExpr, Literal,
                                                Identifier, Keyword, Symbol,
-                                               Spacing)
+                                               Spacing, Gaps)
             as Expression;
 instantiate com.sun.fortress.parser.DelimitedExpr(TraitObject, NoNewlineHeader,
                                                   MayNewlineHeader, Type,
@@ -101,7 +101,8 @@ instantiate com.sun.fortress.parser.NoSpaceExpr(Expression, Keyword, Symbol,
                                                 Spacing)
             as NoSpaceExpr;
 instantiate com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
-                                            NoSpaceExpr, Symbol, Spacing, Identifier)
+                                            NoSpaceExpr, Symbol,
+                                            Spacing, Identifier, Gaps)
             as Literal;
 instantiate com.sun.fortress.parser.LocalDecl(Variable, Function, Parameter,
                                               NoNewlineHeader, Type,
@@ -109,7 +110,8 @@ instantiate com.sun.fortress.parser.LocalDecl(Variable, Function, Parameter,
                                               Identifier, Keyword, Symbol,
                                               Spacing)
             as LocalDecl;
-instantiate com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode, Spacing)
+instantiate com.sun.fortress.parser.Identifier(Keyword, Symbol,
+                                               Unicode, Spacing, Gaps)
             as Identifier;
 instantiate com.sun.fortress.parser.Symbol(DelimitedExpr, LocalDecl,
                                            NoNewlineExpr, Type, Identifier,
@@ -121,6 +123,8 @@ instantiate com.sun.fortress.parser.Keyword(Identifier)
             as Keyword;
 instantiate com.sun.fortress.parser.Unicode
             as Unicode;
+instantiate com.sun.fortress.parser.Gaps(Symbol, Spacing, Identifier)
+            as Gaps;
 
 header {
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -139,6 +143,9 @@ import xtc.util.Action;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.parser_util.FortressUtil.syntaxError;

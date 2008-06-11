@@ -22,7 +22,7 @@ import SyntaxTemplateVars.helloworld
 export Executable
 
 run(args:String...) = do
-                        print (hello beautiful beautiful world)
-                        print (hello foobar foobar world)
+                        println (hello beautiful beautiful world)
+                        println (hello foobar foobar world)
                       end
 end

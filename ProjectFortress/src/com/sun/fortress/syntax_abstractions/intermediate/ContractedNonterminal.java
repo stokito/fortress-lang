@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -72,8 +73,14 @@ public class ContractedNonterminal {
      */
     public NonterminalIndex<? extends GrammarMemberDecl> getNonterminal() {
         List<SyntaxDef> syntaxDefs = new LinkedList<SyntaxDef>();
+        Span span = this.members.get(0).getAst().getSpan();
+        Option<BaseType> astType = this.members.get(0).getAst().getAstType();
+        NonterminalHeader header = this.members.get(0).getAst().getHeader();
+        MemberEnv mEnv = GrammarEnv.getMemberEnv(header.getName());
         for (NonterminalIndex/*<? extends GrammarMemberDecl>*/ gnt: this.members) {
             contractedNames.add(gnt.getName());
+            MemberEnv gntMEnv = GrammarEnv.getMemberEnv(gnt.getName());
+            mEnv.merge(gntMEnv);
             if (gnt instanceof GrammarNonterminalIndex) {
                 syntaxDefs.addAll(((GrammarNonterminalIndex) gnt).getSyntaxDefs());
             }
@@ -81,9 +88,6 @@ public class ContractedNonterminal {
                 syntaxDefs.add(((GrammarTerminalIndex) gnt).getSyntaxDef());
             }
         }
-        Span span = this.members.get(0).getAst().getSpan();
-        Option<BaseType> astType = this.members.get(0).getAst().getAstType();
-        NonterminalHeader header = this.members.get(0).getAst().getHeader();
 
         // We assume that an overriding nonterminal has the same number of arguments 
         // as the nonterminal it overrides

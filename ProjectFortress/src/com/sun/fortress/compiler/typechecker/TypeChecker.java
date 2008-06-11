@@ -103,10 +103,29 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     /**
-     * Given a qualified ID, returns an unqualified version with the same span.
+     * Given a qualified IdOrOpName, returns an unqualified version with the same
+     * details otherwise.
      */
-    private static Id unqualifiedIdFromId(Id id) {
-    	return new Id(id.getSpan(), id.getText());
+    private static IdOrOpName unqualifiedIdFromId(IdOrOpName id) {
+    	return
+    		id.accept(new NodeDepthFirstVisitor<IdOrOpName>(){
+				@Override
+				public IdOrOpName defaultCase(Node that) {
+					return bug("Unknown sub-expression of IdOrOpName.");
+				}
+				@Override
+				public IdOrOpName forEnclosing(Enclosing that) {
+					return new Enclosing(that.getSpan(),Option.<APIName>none(),that.getOpen(),that.getClose());
+				}
+				@Override
+				public IdOrOpName forId(Id that) {
+					return new Id(that.getSpan(), that.getText());
+				}
+				@Override
+				public IdOrOpName forOp(Op that) {
+					return new Op(that.getSpan(),Option.<APIName>none(),that.getText(),that.getFixity());
+				}
+    		});
     }
     
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
@@ -317,8 +336,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // All throws types must be a subtype of exception
         if( that.getThrowsClause().isSome() ) {
         	for( BaseType exn : that.getThrowsClause().unwrap() ) {
-        		all_results.add(this.checkSubtype(exn, Types.EXCEPTION, that,
-        				"Types in throws clause must be subtypes of Exception, but "+
+        		all_results.add(this.checkSubtype(exn, Types.CHECKED_EXCEPTION, that,
+        				"Types in throws clause must be subtypes of CheckedException, but "+
         				exn + " is not."));
         	}
         }
@@ -416,18 +435,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
     
-
+    private TypeEnv returnTypeEnvForApi(APIName api) {
+    	if( compilationUnit.ast().getName().equals(api) )
+    		return typeEnv;
+    	else
+    		return TypeEnv.make(table.compilationUnit(api));
+    }
     
     public TypeCheckerResult forId(Id name) {
         Option<APIName> apiName = name.getApi();
         if (apiName.isSome()) {
             APIName api = apiName.unwrap();
-            TypeEnv apiTypeEnv;
-            if (compilationUnit.ast().getName().equals(api)) {
-                apiTypeEnv = typeEnv;
-            } else {
-                apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
-            }
+            TypeEnv apiTypeEnv = returnTypeEnvForApi(api);
 
             Option<Type> type = apiTypeEnv.type(unqualifiedIdFromId(name));
             if (type.isSome()) {
@@ -903,29 +922,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         return TypeCheckerResult.compose(that, bodyResult.type(), subtypeChecker, bodyResult, result);
     }
-
-    public TypeCheckerResult forFnRefOnly(FnRef that,
-                                          List<TypeCheckerResult> fns_result,
-                                          List<TypeCheckerResult> staticArgs_result) {
-
-        // Get intersection of overloaded function types.
-        LinkedList<Type> overloadedTypes = new LinkedList<Type>();
-        for (TypeCheckerResult fn_result : fns_result) {
-            if (fn_result.type().isSome()) {
-              overloadedTypes.add(fn_result.type().unwrap());
-            }
-        }
-        Option<Type> type = (overloadedTypes.isEmpty()) ?
-                                Option.<Type>none() :
-                                Option.<Type>some(new IntersectionType(overloadedTypes));
-
-        return TypeCheckerResult.compose(that,
-                                         type,
-                                         subtypeChecker,
-                                         TypeCheckerResult.compose(that, subtypeChecker, fns_result), TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-    }
-
-    
     
     @Override
     public TypeCheckerResult forFor(For that) {
@@ -1202,6 +1198,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					// same number of static args
 					if( m.staticParameters().size() > 0 && that.getStaticArgs().size() == 0 ) {
 						// we need to infer static arguments
+						
+						// TODO if parameters are anything but TypeParam, we don't know 
+						// how to infer it yet.
+						for( StaticParam p : m.staticParameters() )
+							if( !(p instanceof TypeParam) ) continue;
+						// Otherwise, we've got all static parameters
 						List<StaticArg> static_inference_params =
 							IterUtil.asList(
 									IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
@@ -1499,14 +1501,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			// By this point, all subexpressions have typechecked properly
     			Type opr_type = opr_result_.type().unwrap();
     			// Now we get the type of the resulting application
-    			Option<Type> result_type = 
-    			TypesUtil.applicationType(subtypeChecker, opr_type,
-    					new ArgList(lhs_type, rhs_type));
-    			
-    			if( result_type.isSome() ) {
+    			Option<Pair<Type,ConstraintFormula>> application_result = 
+    				TypesUtil.applicationType(subtypeChecker, opr_type,
+    						new ArgList(lhs_type, rhs_type));
+
+    			if( application_result.isSome() ) {
     				// successful
-    				all_results.add(new TypeCheckerResult(that));
-    				result = TypeCheckerResult.compose(that, result_type.unwrap(), subtypeChecker, all_results);
+    				all_results.add(new TypeCheckerResult(that, application_result.unwrap().second()));
+    				result = TypeCheckerResult.compose(that, application_result.unwrap().first(), subtypeChecker, all_results);
     			}
     			else {
 					// no operator found for these types
@@ -1668,7 +1670,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 }
             }
 
-            Option<Type> applicationType =
+            Option<Pair<Type,ConstraintFormula>> app_result =
                 TypesUtil.applicationType(subtypeChecker, opType,
                                           new ArgList(paramType, guardType));
 
@@ -1686,12 +1688,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             
             // Old check didn't work with type inference. Error messages may suck here.
             // Check if "opType paramType guardType" application has type Boolean
-            if( applicationType.isSome() ) {
+            if( app_result.isSome() ) {
             	result = 
             		TypeCheckerResult.compose(that,
             				subtypeChecker,
-            				this.checkSubtype(applicationType.unwrap(), Types.BOOLEAN, that, 
+            				this.checkSubtype(app_result.unwrap().first(), Types.BOOLEAN, that, 
             				"Guard expression is invalid for 'case' parameter type and operator."), result);
+            	result = TypeCheckerResult.compose(that, subtypeChecker, result, new TypeCheckerResult(that,app_result.unwrap().second()));
             }
             
         }
@@ -1744,7 +1747,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Type guardTypeL = guardTypePair.first();
             Type guardTypeR = guardTypePair.second();
 
-            Option<Type> applicationType =
+            Option<Pair<Type,ConstraintFormula>> app_result =
                 TypesUtil.applicationType(subtypeChecker, opType,
                                           new ArgList(guardTypeL, guardTypeR));
 
@@ -1769,12 +1772,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             
             // Old check didn't work with type inference. Error messages may suck here.
             // Check if "opType guardType_i guardType_j" application has type Boolean
-            if( applicationType.isSome() ) {
+            if( app_result.isSome() ) {
             	result = 
             		TypeCheckerResult.compose(that,
             				subtypeChecker,
-            				this.checkSubtype(applicationType.unwrap(), Types.BOOLEAN, that, 
+            				this.checkSubtype(app_result.unwrap().first(), Types.BOOLEAN, that, 
             				"Guard expression is invalid for 'case' parameter type and operator."), result);
+            	result = TypeCheckerResult.compose(that, subtypeChecker, new TypeCheckerResult(that,app_result.unwrap().second()));
             }
         }
 
@@ -1808,6 +1812,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //    }
 
     public TypeCheckerResult forOp(Op that) {
+    	Option<APIName> api = that.getApi();
+    	if( api.isSome() ) {
+    		TypeEnv type_env = returnTypeEnvForApi(api.unwrap());
+    		Option<BindingLookup> binding = type_env.binding(unqualifiedIdFromId(that));
+    		if( binding.isSome() ) {
+    			return new TypeCheckerResult(that, binding.unwrap().getType());
+    		}
+    	}
+    	    	
         Option<BindingLookup> binding = typeEnv.binding(that);
         if (binding.isSome()) {
             return new TypeCheckerResult(that, binding.unwrap().getType());
@@ -1835,6 +1848,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                            TypeCheckerResult op_result,
                                            List<TypeCheckerResult> args_result) {
         Option<Type> applicationType = none();
+        List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(args_result);
+        
         if (op_result.type().isSome()) {
             Type arrowType = op_result.type().unwrap();
             ArgList argTypes = new ArgList();
@@ -1847,43 +1862,95 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 argTypes.add(r.type().unwrap());
             }
             if (success) {
-                applicationType = TypesUtil.applicationType(subtypeChecker, arrowType, argTypes);
-                if (applicationType.isNone()) {
+                Option<Pair<Type,ConstraintFormula>> app_result = TypesUtil.applicationType(subtypeChecker, arrowType, argTypes);
+                if (app_result.isNone()) {
                     // Guaranteed at least one operator because all the overloaded operators
                     // are created by disambiguation, not by the user.
-                    OpName opName = that.getOp().getOps().get(0);
-                    return TypeCheckerResult.compose(that,
-                            subtypeChecker,
-                            op_result,
-                            TypeCheckerResult.compose(that, subtypeChecker, args_result), new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator ",
-                                                                                opName,
-                                                                                " has invalid arguments."),
-                                                                       that)));
+                	OpName opName = that.getOp().getOps().get(0);
+                	return TypeCheckerResult.compose(that,
+                			subtypeChecker,
+                			op_result,
+                			TypeCheckerResult.compose(that, subtypeChecker, args_result), 
+                			new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator ",
+                					opName, " has invalid arguments."),
+                			that)));
+                }
+                else {
+                	applicationType = Option.some(app_result.unwrap().first());
+                	// If we have a type, constraints must be propagated up.
+                	all_results.add(new TypeCheckerResult(that,app_result.unwrap().second()));
                 }
             }
         }
         return TypeCheckerResult.compose(that,
                                          applicationType,
                                          subtypeChecker,
-                                         op_result, TypeCheckerResult.compose(that, subtypeChecker, args_result));
+                                         op_result, TypeCheckerResult.compose(that, 
+                                        		                              subtypeChecker, 
+                                        		                              all_results));
     }
 
+    public TypeCheckerResult forFnRefOnly(FnRef that,
+    		List<TypeCheckerResult> fns_result,
+    		List<TypeCheckerResult> staticArgs_result) {
+    	
+//  	Get intersection of overloaded function types.
+    	LinkedList<Type> overloadedTypes = new LinkedList<Type>();
+    	for (TypeCheckerResult fn_result : fns_result) {
+    		if (fn_result.type().isSome()) {
+    			// This is the ONLY location where we have access to the static arguments that were
+    			// explicitly passed, if there are any, so we should instantiate those arguments, and
+    			// remove any that cannot possibly match. 
+    			Option<Type> instantiated_type = 
+    				TypesUtil.applyStaticArgsIfPossible(fn_result.type().unwrap(),that.getStaticArgs());
+    			
+    			if( instantiated_type.isSome() )
+    				overloadedTypes.add(instantiated_type.unwrap());
+    		}
+    	}
+    	Option<Type> type = (overloadedTypes.isEmpty()) ?
+    			Option.<Type>none() :
+    				Option.<Type>some(new IntersectionType(overloadedTypes));
+
+    			return TypeCheckerResult.compose(that,
+    					type,
+    					subtypeChecker,
+    					TypeCheckerResult.compose(that, subtypeChecker, fns_result), TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+    }
+    
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that,
                                               List<TypeCheckerResult> exprs_result) {
         // The expressions list contains at least two elements.
         assert (exprs_result.size() >= 2);
-        assert (exprs_result.get(0).type().isSome());
-        assert (exprs_result.get(1).type().isSome());
-
+        List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(exprs_result);
+        
+        
+        // Did any subexpressions fail to type_check?
+        for( TypeCheckerResult expr_result : exprs_result ) {
+        	if( expr_result.type().isNone())
+        		return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
+        }
+        
         Type lhsType = exprs_result.get(0).type().unwrap();
         Type rhsType = exprs_result.get(1).type().unwrap();
 
         // TODO: If LHS is not a function, treat juxtaposition as operator.
-        return TypeCheckerResult.compose(that,
-                                         TypesUtil.applicationType(subtypeChecker,
-                                                                   lhsType,
-                                                                   new ArgList(rhsType)),
-                                         subtypeChecker, exprs_result);
+        Option<Pair<Type,ConstraintFormula>> app_result = 
+        	TypesUtil.applicationType(subtypeChecker,
+                                      lhsType,
+                                      new ArgList(rhsType));
+        
+        Option<Type> result_type;
+        if( app_result.isSome() ) {
+        	all_results.add(new TypeCheckerResult(that,app_result.unwrap().second()));
+        	result_type = Option.some(app_result.unwrap().first());
+        }
+        else {
+        	result_type = Option.none();
+        }
+        
+        return TypeCheckerResult.compose(that, result_type,
+                                         subtypeChecker, all_results);
     }
 
     @Override

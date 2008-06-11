@@ -17,6 +17,8 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +34,7 @@ import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntLiteralExpr;
@@ -76,12 +79,13 @@ public class SyntaxAbstractionUtil {
      * E.g. api: Foo.Bar, grammar name Baz, and member Gnu gives
      * APIName: Foo.Bar.Baz and id: Gnu.
      */
-    public static Id qualifyMemberName(APIName api, Id grammarName, Id memberName) {
+    public static Id qualifyMemberName(APIName api, String currentName, String uqname) {
         Collection<Id> names = new LinkedList<Id>();
         names.addAll(api.getIds());
-        names.add(grammarName);
+        names.add(NodeFactory.makeId(currentName));
         APIName apiGrammar = NodeFactory.makeAPIName(names);
-        return NodeFactory.makeId(apiGrammar, memberName);
+        Id uqName = NodeFactory.makeId(uqname);
+        return NodeFactory.makeId(apiGrammar, uqName);
     }
 
     /**
@@ -190,6 +194,53 @@ public class SyntaxAbstractionUtil {
         else {
             return SyntaxAbstractionUtil.makeNoParamObjectInstantiation(span, FORTRESSAST, NOTHING, maybeStaticArgs);
         }
+    }
+
+    public static String makeTemplateGap(List<String> code, List<Integer> indent, String basetype, String idName, String params, String sVarName) {
+        String templateName = FreshName.getFreshName("template");
+        indent.add(3);
+        code.add(String.format("if (%s == null) %s = new LinkedList<Id>();", params, params));
+        indent.add(3);
+        code.add(String.format("TemplateGap%s %s = ExprFactory.makeTemplateGap%s(%s, %s, %s);", basetype, templateName, basetype, sVarName, idName, params));
+        return templateName;
+    }
+
+    // TODO: add span
+    public static <T extends TemplateGap> T makeTemplateGap(Span span, Class<T> cls, Id id, List<Id> params) {
+        try {
+            Constructor<T> con = cls.getDeclaredConstructor();
+            con.setAccessible(true);
+            T t = (T) con.newInstance();
+            Field fld = cls.getDeclaredField("_id");
+            fld.setAccessible(true);
+            fld.set(t, id);
+            fld = cls.getDeclaredField("_params");
+            fld.setAccessible(true);
+            fld.set(t, params);
+            fld = getField(cls, "_span");
+            fld.setAccessible(true);
+            fld.set(t, span);
+            return t;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private static <T extends TemplateGap> Field getField(Class<T> cls, String fieldName) throws SecurityException, NoSuchFieldException {
+        boolean done = false;
+        Class<T> cl = cls;
+        while (!done) {
+            for (Field f: cl.getDeclaredFields()) {
+                if (f.getName().equals(fieldName)) {
+                    return cl.getDeclaredField(fieldName);
+                }
+            }
+            cl = (Class<T>) cl.getSuperclass();
+            if (cl == null) {
+                return null;        
+            }
+        }
+        return null;
     }
 
 }

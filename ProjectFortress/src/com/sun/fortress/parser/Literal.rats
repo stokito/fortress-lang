@@ -19,7 +19,8 @@
  * Definition of Fortress literals.
  */
 module com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
-                                       NoSpaceExpr, Symbol, Spacing, Identifier);
+                                       NoSpaceExpr, Symbol, Spacing,
+                                       Identifier, Gaps);
 
 import MayNewlineHeader;
 import DelimitedExpr;
@@ -27,6 +28,7 @@ import NoSpaceExpr;
 import Symbol;
 import Spacing;
 import Identifier;
+import Gaps;
 
 /* LiteralExpr ::=
      ( w )
@@ -35,21 +37,14 @@ import Identifier;
    | StringLiteralExpr
  */
 Expr LiteralExpr =
-     <GAP> "<!@#$%^&*<" w a1:Id params:ParamList? w ">*&^%$#@!>"
-     { if (params == null) params = new LinkedList<Id>();
-       yyValue = ExprFactory.makeTemplateGapExpr(createSpan(yyStart,yyCount), a1, params);
-     }
-   / <VOID> openparen w closeparen
-     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); }
+     ExprGap
+   / LooseJuxtGap
+   / LiteralExprGap
+   / <VOID> VoidLiteralExpr
    / <NUMERICAL> NumericLiteralExpr
    / <CHAR>CharLiteralExpr
    / <STRING> StringLiteralExpr
    ;
-
-
-List<Id> ParamList =
-     openparen a1:Id a2s:(w comma w Id)* closeparen
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
 ArrayExpr ArrayExpr =
@@ -72,27 +67,41 @@ com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
      a1:RectSeparator a2:NoSpaceExpr
      { yyValue = new com.sun.fortress.useful.Pair<Integer,Expr>(a1,a2); };
 
+Expr VoidLiteralExpr =
+     VoidLiteralExprGap
+   / <VOID> openparen w closeparen
+     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
+
 NumberLiteralExpr NumericLiteralExpr =
-     FloatLiteralExpr
+     NumberLiteralExprGap
+   / FloatLiteralExpr
    / IntLiteralExpr ;
 
-transient FloatLiteralExpr FloatLiteralExpr = a1:DigitString dot a2:DigitString
+transient FloatLiteralExpr FloatLiteralExpr = 
+     FloatLiteralExprGap
+   / a1:DigitString dot a2:DigitString
      { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
                                                   a1 + "." + a2); };
 
-transient IntLiteralExpr IntLiteralExpr = a1:DigitString
+transient IntLiteralExpr IntLiteralExpr = 
+     IntLiteralExprGap
+   / a1:DigitString
      { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount),
                                                 a1);
      };
 
 private transient String DigitString = [0-9]+;
 
-CharLiteralExpr CharLiteralExpr = "'" a1:CharLiteralContent "'"
+CharLiteralExpr CharLiteralExpr =
+     CharLiteralExprGap
+   / "'" a1:CharLiteralContent "'"
      { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
                                                  a1);
      };
 
-StringLiteralExpr StringLiteralExpr = ["] a1:StringLiteralContent* ["]
+StringLiteralExpr StringLiteralExpr = 
+     StringLiteralExprGap
+   / ["] a1:StringLiteralContent* ["]
      { String str = "";
        for (String c : (List<String>)a1.list()) {
            str = str.concat(c);

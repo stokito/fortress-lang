@@ -18,12 +18,14 @@
 /*
  * Definition of Fortress identifiers.
  */
-module com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode, Spacing);
+module com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode,
+                                          Spacing, Gaps);
 
 import Keyword;
 import Symbol;
 import Unicode;
 import Spacing;
+import Gaps;
 
 option setOfString(FORTRESS_KEYWORDS);
 
@@ -48,7 +50,9 @@ option setOfString(FORTRESS_KEYWORDS);
         String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
 private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
 
-Id Id = a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
+Id Id = 
+     IdGap
+   / a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
 /* BindId ::= Id / _ */
 Id BindId =
@@ -64,7 +68,8 @@ List<Id> BindIdList = a1:BindId a2s:(w comma w BindId)*
    | "(" w BindId w "," w BindIdList w ")"
  */
 List<Id> BindIdOrBindIdTuple =
-     a1:BindId
+     BindIdOrBindIdTupleGap
+   / a1:BindId
      { yyValue = FortressUtil.mkList(a1); }
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s); };

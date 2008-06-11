@@ -58,20 +58,9 @@ public class ActionCreaterUtil {
         for(Id id: syntaxDeclEnv.getVariables()) {
             String var = id.getText();
             if (isTemplate) {
-                if (syntaxDeclEnv.contains(id)) {
-                    if (syntaxDeclEnv.isRepeat(id)) {
-                        var = getFortressList(id, listCode, indents);  
-                    }
-                    if (syntaxDeclEnv.isOption(id)) {
-                        var = getFortressMaybe(id, code, indents, syntaxDeclEnv);  
-                    }
-                    if (syntaxDeclEnv.isCharacterClass(id)) {
-                        var = getFortressCharacterClass(id, code, indents);  
-                    }
-                    
-                    if (syntaxDeclEnv.isAnyChar(id)) {
-                        var = getFortressAnyChar(id, code, indents);  
-                    }
+                Option<String> op = FortressWrapper(id, syntaxDeclEnv, listCode, code, indents);
+                if (op.isSome()) {
+                    var = op.unwrap();
                 }
             }
             indents.add(3);
@@ -79,6 +68,24 @@ public class ActionCreaterUtil {
         }
         listCode.addAll(code);
         return listCode;
+    }
+
+    public static Option<String> FortressWrapper(Id id, SyntaxDeclEnv syntaxDeclEnv, List<String> listCode, List<String> code, List<Integer> indents) {
+        if (syntaxDeclEnv.contains(id)) {
+            if (syntaxDeclEnv.isRepeat(id)) {
+                return Option.some(getFortressList(id, listCode, indents));  
+            }
+            if (syntaxDeclEnv.isOption(id)) {
+                return Option.some(getFortressMaybe(id, code, indents, syntaxDeclEnv));  
+            }
+            if (syntaxDeclEnv.isCharacterClass(id)) {
+                return Option.some(getFortressCharacterClass(id, code, indents));  
+            }
+            if (syntaxDeclEnv.isAnyChar(id)) {
+                return Option.some(getFortressAnyChar(id, code, indents));  
+            }
+        }
+        return Option.none();
     }
 
     private static String getFortressList(Id id, List<String> code, List<Integer> indents) {

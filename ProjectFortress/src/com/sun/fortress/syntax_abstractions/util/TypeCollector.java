@@ -84,7 +84,7 @@ public class TypeCollector extends NodeDepthFirstVisitor<Type> {
             throw new RuntimeException("Grammar environment does not contain identifier: "+that.getNonterminal());
         }
         MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getNonterminal());
-        return memberEnv.getType();
+        return memberEnv.getAstType();
     }
 
     @Override

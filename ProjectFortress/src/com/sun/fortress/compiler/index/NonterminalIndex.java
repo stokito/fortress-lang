@@ -46,7 +46,7 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
         throw new RuntimeException("Production index without ast and thus no name");
     }
 
-    public BaseType getType() {
+    public BaseType getAstType() {
         if (this.ast().isSome()) {
             Option<BaseType> type = this.ast().unwrap().getAstType();
             if (type.isSome()) {

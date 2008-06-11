@@ -142,7 +142,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         List<StaticParam> st = new LinkedList<StaticParam>();
         Type t = NodeFactory.makeTraitType(NodeFactory.makeId("FortressLibrary", "String"));
         WhereClause whereClauses = new WhereClause(that.getSpan());
-        NonterminalHeader header = new NonterminalHeader(that.getSpan(), mods, name, new LinkedList<Pair<Id, Type>>(), st, Option.some(t), whereClauses);
+        NonterminalHeader header = new NonterminalHeader(that.getSpan(), mods, name, new LinkedList<Pair<Id, Id>>(), st, Option.some(t), whereClauses);
         this._terminalDefs.add(new _TerminalDef(that.getSpan(), header, type, syntaxDef));
 
         // Return a new nonterminal reference to the new terminal definition
