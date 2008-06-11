@@ -62,9 +62,10 @@ public class ActionCreaterUtil {
         final List<Integer> listIndents = new LinkedList<Integer>();
 
         for ( Map.Entry<PrefixedSymbol,VariableCollector.Depth> pair : variables.entrySet() ){
+            final PrefixedSymbol sym = pair.getKey();
+            VariableCollector.Depth depth = pair.getValue();
+            String var = sym.getId().unwrap().getText();
             if ( isTemplate ){
-                final PrefixedSymbol sym = pair.getKey();
-                VariableCollector.Depth depth = pair.getValue();
                 Debug.debug( 1, String.format("Depth for %s is %s", sym, depth ) );
                 /*
                 String temp;
@@ -144,10 +145,10 @@ public class ActionCreaterUtil {
                 String var = depth.createCode(sym.getId().getText(), listCode, listIndents);
                 indents.add(3);
                 */
-                String var = depth.accept(new DepthConvertVisitor(sym.getId().unwrap().getText(), 3));
-                indents.add(3);
-                code.add(BOUND_VARIABLES+".put(\""+sym.getId().unwrap().getText()+"\""+", "+var+");");
+                var = depth.accept(new DepthConvertVisitor(sym.getId().unwrap().getText(), 3));
             }
+            indents.add(3);
+            code.add(BOUND_VARIABLES+".put(\""+sym.getId().unwrap().getText()+"\""+", "+var+");");
         }
         /*
         for(Id id: syntaxDeclEnv.getVariables()) {
