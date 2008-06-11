@@ -34,7 +34,7 @@ import com.sun.fortress.useful.Visitor2;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
-public class EmptyEnv extends CommonEnv {
+public class EmptyEnv extends BaseEnv {
 
 
     /* (non-Javadoc)
