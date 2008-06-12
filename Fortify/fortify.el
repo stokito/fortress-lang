@@ -1218,9 +1218,13 @@ Fortress source code)."
 	;; Fixup for defining opr |self|
 	("\\\\KWD{opr} \\\\left|\\\\mathord{\\\\KWD{self}}|" "\\\\KWD{opr} \\\\left|\\\\mathord{\\\\KWD{self}}\\\\right|")
 	;; Fixup for defining opr BIG |||(
-	("\\\\KWD{opr} \\\\mathord{\\\\OPR{BIG}} \\\\left\\\\\\\\|(" "\\\\KWD{opr} \\\\left||\\\\right|(")
+	("\\\\KWD{opr} \\\\mathord{\\\\OPR{BIG}} \\\\left\\\\\\\\|(" "\\\\KWD{opr} \\\\OPR{BIG} \\\\left||\\\\right|(")
 	;; Fixup for defining opr BIG ||(
-	("\\\\KWD{opr} \\\\mathord{\\\\OPR{BIG}} \\\\left\\\\|(" "\\\\KWD{opr} \\\\left|\\\\right|(")
+	("\\\\KWD{opr} \\\\mathord{\\\\OPR{BIG}} \\\\left\\\\|(" "\\\\KWD{opr} \\\\OPR{BIG} \\\\left|\\\\right|(")
+	;; Fixup for using BIG |||
+	("\\\\OPR{BIG} \\\\left\\\\\\\\|" "\\\\OPR{BIG} \\\\left||\\\\right|")
+	;; Fixup for using BIG ||
+	("\\\\OPR{BIG} \\\\left\\\\|" "\\\\OPR{BIG} \\\\left|\\\\right|")
 	;; Fixup for defining opr |||(
 	("\\\\KWD{opr} \\\\left\\\\\\\\|(" "\\\\KWD{opr} \\\\left||\\\\right|(")
 	;; Fixup for defining opr ||(
