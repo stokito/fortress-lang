@@ -2,24 +2,25 @@ api Regex
 
     (* import FortressAst.{...} *)
     import FortressSyntax.{Expression}
+    import Set.{...}
     import List.{...}
 
+    trait Element
+    end
+    
     object Regexp( elements : List[\Element\] )
     end
 
-    object Element
+    object CharElement(s:String) extends Element
     end
 
-    object CharElement(s:String)
+    object RepeatElement(e:Element) extends Element
     end
 
-    object RepeatElement(e:Element)
+    object GroupElement(e:Element) extends Element
     end
 
-    object GroupElement(e:Element)
-    end
-
-    object RangeElement(s1:String,s2:String)
+    object RangeElement(s1:String,s2:String) extends Element
     end
 
     grammar regex extends {Expression, Symbols}
@@ -35,7 +36,7 @@ api Regex
         |   ( e:Element ) <[ GroupElement(e) ]>
 
         Item:Element :Expr:=
-            s:AnyChar <[ CharElement(s) ]>
+            s:AnyChar <[ (CharElement(s) asif Element) ]>
         |   s1:AnyChar# -# s2:AnyChar <[ RangeElement(s1,s2) ]> 
     end
 

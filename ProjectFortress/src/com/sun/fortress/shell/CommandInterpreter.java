@@ -169,6 +169,9 @@ public class CommandInterpreter {
 
             Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, nolib, args);
 
+            /* FIXME: this is a hack to get around some null pointer exceptions
+             * if a WrappedException is printed as-is.
+             */
             for (StaticError error: errors) {
                 if ( error instanceof Fortress.WrappedException ){
                     ((Fortress.WrappedException)error).getCause().printStackTrace();

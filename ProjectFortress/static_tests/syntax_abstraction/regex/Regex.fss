@@ -1,3 +1,23 @@
 component Regex
+import List.{...}
 export Regex
+
+    object Regexp( elements : List[\Element\] )
+    end
+
+    trait Element
+    end
+
+    object CharElement(s:String) extends Element
+    end
+
+    object RepeatElement(e:Element) extends Element
+    end
+
+    object GroupElement(e:Element) extends Element
+    end
+
+    object RangeElement(s1:String,s2:String) extends Element
+    end
+
 end
