@@ -23,15 +23,21 @@ run(args:String...):() = do
   a:String = "Hello "
   n:ZZ32 = 4
   f:String = a a
+  p:String = a||a
   assert(f,"Hello Hello ")
+  assert(f, p)
   g:String = a n
   assert(g,"Hello 4")
+  (* assert(g, a||n) *)
   h:String = a pi
   assert(h,"Hello 3.141592653589793")
+  (* assert(h,a||pi) *)
   i:String = n a
   assert(i,"4Hello ")
+  (* assert(i,n||a) *)
   j:String = pi a
   assert(j,"3.141592653589793Hello ")
+  (* assert(j,pi||a) *)
   try
       a[-2]
       fail("a[-2] didn't throw.")
