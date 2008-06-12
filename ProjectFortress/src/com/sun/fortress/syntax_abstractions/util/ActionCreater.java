@@ -23,21 +23,27 @@ import java.io.StringWriter;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import xtc.parser.Action;
 import xtc.parser.ParseError;
+
+import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.ArrayType;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Indices;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.PrefixedSymbol;
@@ -46,6 +52,9 @@ import com.sun.fortress.nodes.TransformationDecl;
 import com.sun.fortress.nodes.TransformationExpressionDef;
 import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
@@ -80,7 +89,9 @@ public class ActionCreater {
     public static Result create(String alternativeName,
             TransformationDecl transformation,
             BaseType type,
-            SyntaxDeclEnv syntaxDeclEnv) {
+            SyntaxDeclEnv syntaxDeclEnv,
+            Map<PrefixedSymbol,VariableCollector.Depth> variables
+            ) {
         ActionCreater ac = new ActionCreater();
         Collection<StaticError> errors = new LinkedList<StaticError>();
 
@@ -89,9 +100,9 @@ public class ActionCreater {
         List<Integer> indents = new LinkedList<Integer>();
         List<String> code = new LinkedList<String>();
         if (transformation instanceof TransformationExpressionDef) {
-            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false);
+            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false, variables );
             Expr e = ((TransformationExpressionDef) transformation).getTransformation();
-            Component component = ac.makeComponent(e, syntaxDeclEnv);
+            Component component = ac.makeComponent(e, syntaxDeclEnv, variables);
             String serializedComponent = ac.writeJavaAST(component);
             code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
 
@@ -101,7 +112,7 @@ public class ActionCreater {
             addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
         }
         else if (transformation instanceof TransformationTemplateDef) {
-            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true);
+            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
             AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
             String yyValue = n.accept(jpp);
@@ -125,7 +136,7 @@ public class ActionCreater {
         code.add(s);
     }
 
-    private Component makeComponent(Expr expression, SyntaxDeclEnv syntaxDeclEnv) {
+    private Component makeComponent(Expr expression, final SyntaxDeclEnv syntaxDeclEnv, Map<PrefixedSymbol,VariableCollector.Depth> variables ){
         APIName name = NodeFactory.makeAPIName("TransformationComponent");
         Span span = new Span();
         List<Import> imports = new LinkedList<Import>();
@@ -139,10 +150,30 @@ public class ActionCreater {
 
         // Decls:
         List<Decl> decls = new LinkedList<Decl>();
-        for (Id var: syntaxDeclEnv.getVariables()) {
+        for (Map.Entry<PrefixedSymbol, VariableCollector.Depth> var: variables.entrySet()) {
+            final PrefixedSymbol sym = var.getKey();
+            final VariableCollector.Depth depth = var.getValue();
             List<LValueBind> valueBindings = new LinkedList<LValueBind>();
-            Type type = syntaxDeclEnv.getType(var);
-            valueBindings.add(new LValueBind(var, Option.some(type), false));
+            // Type type = syntaxDeclEnv.getType(var);
+            Type type = depth.accept(new VariableCollector.DepthVisitor<Type>(){
+                    public Type forBaseDepth(VariableCollector.Depth d) {
+                        Id id = sym.getId().unwrap();
+                        return syntaxDeclEnv.getType(id);
+                    }
+
+                    public Type forListDepth(VariableCollector.Depth d) {
+                        List<StaticArg> args = new LinkedList<StaticArg>();
+                        args.add( new TypeArg( d.getParent().accept(this) ) );
+                        return new TraitType(NodeFactory.makeId(NodeFactory.makeAPIName("List"),NodeFactory.makeId("List")), args);
+                    }
+
+                    public Type forOptionDepth(VariableCollector.Depth d) {
+                        List<StaticArg> args = new LinkedList<StaticArg>();
+                        args.add( new TypeArg( d.getParent().accept( this ) ) );
+                        return new TraitType(NodeFactory.makeId(NodeFactory.makeAPIName("FortressLibrary"), NodeFactory.makeId("Maybe")), args);
+                    }
+                });
+            valueBindings.add(new LValueBind(sym.getId().unwrap(), Option.some(type), false));
             decls.add(new VarDecl(valueBindings, NodeFactory.makeIntLiteralExpr(7)));
         }
         // entry point

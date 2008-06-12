@@ -58,6 +58,11 @@ import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+/* ItemDisambiguator
+ * - infers names for syntax symbols without a prefix
+ *    eg, A -> A:A
+ * - ??? resolves names based on API, maybe grammar imports ???
+ */
 public class ItemDisambiguator extends NodeUpdateVisitor {
 
 	private Collection<StaticError> _errors;

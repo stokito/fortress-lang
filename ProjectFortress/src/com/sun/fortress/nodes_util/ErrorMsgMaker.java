@@ -24,7 +24,6 @@ import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
-import com.sun.java_cup.internal.runtime.Symbol;
 
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();

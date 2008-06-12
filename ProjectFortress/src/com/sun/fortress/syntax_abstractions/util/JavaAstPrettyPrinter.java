@@ -60,6 +60,7 @@ import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.PreFixity;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateGapExpr;
@@ -80,6 +81,7 @@ import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -107,46 +109,6 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return cs;
     }
 
-    public static String getSpan(AbstractNode that, List<String> code) {
-        Span span = that.getSpan();
-        String rVarName = FreshName.getFreshName("span");
-        String slStartVarName = FreshName.getFreshName("sl");
-        String slEndVarName = FreshName.getFreshName("sl");
-        String file = span.getBegin().getFileName();
-        int startLine = span.getBegin().getLine();
-        int startColumn = span.getBegin().column();
-        int startOffset = span.getBegin().getOffset();
-        code.add( String.format("SourceLocRats %s = new SourceLocRats(\"%s\", %s, %s, %s);", slStartVarName, file, startLine, startColumn, startOffset) );
-        int endLine = span.getBegin().getLine();
-        int endColumn = span.getBegin().column();
-        int endOffset = span.getBegin().getOffset();
-        code.add( String.format("SourceLocRats %s = new SourceLocRats(\"%s\", %s, %s, %s);", slEndVarName, file, endLine, endColumn, endOffset) );
-        code.add( String.format( "Span %s = new Span(%s,%s);", rVarName, slStartVarName, slEndVarName) );
-        return rVarName;
-    }
-
-    private String handleOption(Option<String> o, String type) {
-        String rVarName = FreshName.getFreshName("option");
-        String rhs = "Option.<"+type+">none()";
-        if (o.isSome()) {
-            rhs = "Option.<"+type+">some("+o.unwrap()+")";
-        }
-        this.code.add("Option<"+type+"> "+rVarName +" = " +rhs+";");
-        return rVarName;
-    }
-
-    private String handleOptionList(Option<List<String>> o, String type) {
-        String rVarName = FreshName.getFreshName("option");
-        String rhs = "Option.<List<"+type+">>none()";
-        if (o.isSome()) {
-            String lsName = FreshName.getFreshName("ls");
-            this.code.addAll(mkList(o.unwrap(), lsName , type));
-            rhs = "Option.<List<"+type+">>some("+lsName+")";
-        }
-        this.code.add("Option<List<"+type+">> "+rVarName +" = " +rhs+";");
-        return rVarName;
-    }
-
     /**
      * The defaultCase should never be used, each node should have a for...
      * method defined somewhere in this file.
@@ -156,7 +118,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
-        throw new RuntimeException("Warning: no method is defined in " + this.getClass().getName() + " for node " + that.getClass().getName());
+        throw new RuntimeException( "Warning: no method is defined in " + this.getClass().getName() + " for node " + that.getClass().getName() );
     }
 
     @Override
@@ -174,6 +136,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	    this.code.add( String.format("InFixity %s = new InFixity(%s);", rVarName, sVarName) );
 	    return rVarName;
     }
+
 
     @Override
     public String forAccumulatorOnly(Accumulator that,
@@ -213,19 +176,36 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return rVarName;
     }
 
+
+    @Override
+    public String forPreFixityOnly(PreFixity that){
+	    String rVarName = FreshName.getFreshName("preFixity");
+	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+	    this.code.add( String.format("PreFixity %s = new PreFixity(%s);", rVarName, sVarName) );
+	    return rVarName;
+    }
+    
+    @Override
+    public String forMultiFixityOnly(MultiFixity that) {
+        String rVarName = FreshName.getFreshName("multiFixity");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add( String.format("MultiFixity %s = new MultiFixity(%s);", rVarName, sVarName) );
+        return rVarName;
+    }
+
     @Override
     public String forChainExprOnly(ChainExpr that, String first_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
-        String rVarName = FreshName.getFreshName("chainExpr");
-	    String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-	    // this.code.add( String.format("ChainExpr %s = new ChainExpr(%s, %s, new ArrayList<Pair<Op,Expr>>());", rVarName, sVarName, first_result) );
-	    this.code.add( String.format("ChainExpr %s = new ChainExpr(%s, %s, new ArrayList());", rVarName, sVarName, first_result) );
-	    return rVarName;
+	String rVarName = FreshName.getFreshName("chainExpr");
+	String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+	// this.code.add( String.format("ChainExpr %s = new ChainExpr(%s, %s, new ArrayList<Pair<Op,Expr>>());", rVarName, sVarName, first_result) );
+	this.code.add( String.format("ChainExpr %s = new ChainExpr(%s, %s, new ArrayList());", rVarName, sVarName, first_result) );
+	return rVarName;
     }
 
-    @Override
+    @Override 
     public String forVoidLiteralExprOnly(VoidLiteralExpr that){
         String rVarName = FreshName.getFreshName("voidExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
@@ -329,6 +309,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return varName;
     }
 
+
     @Override
     public String forFnRefOnly(FnRef that, List<String> fns_result,
             List<String> staticArgs_result) {
@@ -369,7 +350,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.add(String.format("Id %s = new Id(%s, %s);", rVarName, sVarName, api) );
         return rVarName;
     }
-
+    
     @Override
     public String forIfOnly(If that, List<String> clauses_result,
             Option<String> elseClause_result) {
@@ -485,14 +466,6 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forMultiFixityOnly(MultiFixity that) {
-        String rVarName = FreshName.getFreshName("multiFixity");
-        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add( String.format("MultiFixity %s = new MultiFixity(%s);", rVarName, sVarName) );
-        return rVarName;
-    }
-
-    @Override
     public String forNormalParamOnly(NormalParam that,
             List<String> mods_result, String name_result,
             Option<String> type_result, Option<String> defaultExpr_result) {
@@ -592,14 +565,22 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             /* TODO: this same sort of code is used in handleTemplateGap.
              * It should probably be abstracted and turned into a function.
              */
+            /*
             if (this.syntaxDeclEnv.isRepeat(id)) {
-                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
+                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
             }
-            return that.getVar().toString();
+            // return that.getVar().toString();
+            // return String.format("(%s) %s.get(\"%s\")", GrammarEnv.getType(), ActionCreater.BOUND_VARIABLES, that.getVar().toString() );
+            Id nonterminal = syntaxDeclEnv.getNonterminalName(id);
+            Debug.debug( 4, String.format("%s is a non-terminal of type %s", id.getText(), lookupAstNode(nonterminal) ) );
+            return String.format("(%s) %s.get(\"%s\")", lookupAstNode(nonterminal), ActionCreater.BOUND_VARIABLES, id.getText() );
+            */
+            return extractVar(id);
+
         }
         return super.forVarRef(that);
     }
-
+    
     @Override
     public String forWhereClauseOnly(WhereClause that,
             List<String> bindings_result, List<String> constraints_result) {
@@ -649,6 +630,46 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.add( String.format("Op %s = new Op(%s, %s, \"%s\", %s);", rVarName, sVarName, apiVarName, that.getText(), fixityVarName) );
         return rVarName;
     }
+    
+    public static String getSpan(AbstractNode that, List<String> code) {
+        Span span = that.getSpan();
+        String rVarName = FreshName.getFreshName("span");
+        String slStartVarName = FreshName.getFreshName("sl");
+        String slEndVarName = FreshName.getFreshName("sl");
+        String file = span.getBegin().getFileName();
+        int startLine = span.getBegin().getLine();
+        int startColumn = span.getBegin().column();
+        int startOffset = span.getBegin().getOffset();
+        code.add( String.format("SourceLocRats %s = new SourceLocRats(\"%s\", %s, %s, %s);", slStartVarName, file, startLine, startColumn, startOffset) );
+        int endLine = span.getBegin().getLine();
+        int endColumn = span.getBegin().column();
+        int endOffset = span.getBegin().getOffset();
+        code.add( String.format("SourceLocRats %s = new SourceLocRats(\"%s\", %s, %s, %s);", slEndVarName, file, endLine, endColumn, endOffset) );
+        code.add( String.format( "Span %s = new Span(%s,%s);", rVarName, slStartVarName, slEndVarName) );        
+        return rVarName;
+    }
+    
+    private String handleOption(Option<String> o, String type) {
+        String rVarName = FreshName.getFreshName("option");
+        String rhs = "Option.<"+type+">none()";
+        if (o.isSome()) {
+            rhs = "Option.<"+type+">some("+o.unwrap()+")";
+        }
+        this.code.add("Option<"+type+"> "+rVarName +" = " +rhs+";"); 
+        return rVarName;
+    }
+
+    private String handleOptionList(Option<List<String>> o, String type) {
+        String rVarName = FreshName.getFreshName("option");
+        String rhs = "Option.<List<"+type+">>none()";
+        if (o.isSome()) {
+            String lsName = FreshName.getFreshName("ls");
+            this.code.addAll(mkList(o.unwrap(), lsName , type));
+            rhs = "Option.<List<"+type+">>some("+lsName+")";
+        }
+        this.code.add("Option<List<"+type+">> "+rVarName +" = " +rhs+";");
+        return rVarName;
+    }
 
     @Override
     public String forOpExprOnly(OpExpr that, String in_op_result, List<String> args_result) {
@@ -678,71 +699,100 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return rVarName;
     }
 
+	/*
+    @Override
+    public String forTemplateGapExpr(TemplateGapExpr that) {
+        return handleTemplateGap(that);
+    }
+    */
+
+    private String lookupAstNode(Id id){
+        return GrammarEnv.getType(id);
+    }
+
+    private String parameterizedGap(TemplateGap t){
+        Id id = t.getId();
+
+	MemberEnv mEnv = getMemberEnvironment(id);
+
+	String paramEnv = FreshName.getFreshName("paramEnv");
+	List<String> ls = new LinkedList<String>();
+	ls.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");            
+	for (int inx=0;inx<t.getParams().size();inx++) {
+		Id formalParam = mEnv.getParameter(inx);
+		Id actualParam = t.getParams().get(inx);
+		String var = actualParam.toString();
+		Option<String> op = ActionCreaterUtil.FortressWrapper(actualParam, this.syntaxDeclEnv, this.code, ls, new LinkedList<Integer>());
+		if (op.isSome()) {
+			var = op.unwrap();
+		}
+		ls.add(paramEnv+".put(\""+formalParam +"\", "+var+");");
+	}
+	this.code.addAll(ls);
+	return addParamHandlers(id, mEnv, t.getParams(), paramEnv, this.code);
+   }
+
+   private String extractVar(Id id){
+       if (this.syntaxDeclEnv.isRepeat(id)) {
+            Debug.debug( 4, String.format("%s is a repeat symbol", id.getText() ) );
+            return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+        }
+        if (this.syntaxDeclEnv.isOption(id)) {
+            Debug.debug( 4, String.format("%s is an optional symbol", id.getText() ) );
+            return "(Expr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+        }
+        if (this.syntaxDeclEnv.isCharacterClass(id)) {
+            Debug.debug( 4, String.format("%s is a character class", id.getText() ) );
+            return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+        }
+        if (this.syntaxDeclEnv.isAnyChar(id)) {
+            Debug.debug( 4, String.format("%s is an any char", id.getText() ) );
+            return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
+        }
+        if (this.syntaxDeclEnv.isNonterminal(id)) {
+            // return id.getText();
+            Id nonterminal = syntaxDeclEnv.getNonterminalName(id);
+            Debug.debug( 4, String.format("%s is a non-terminal of type %s", id.getText(), lookupAstNode(nonterminal) ) );
+            return String.format("(%s) %s.get(\"%s\")", lookupAstNode(nonterminal), ActionCreater.BOUND_VARIABLES, id.getText() );
+        }
+        NI.nyi();
+        /* will never get here */
+        return null;
+   }
+
+    private String normalGap(TemplateGap t){
+        return extractVar(t.getId());
+    }
+
     private String handleTemplateGap(TemplateGap t) {
         // Is the template t an instance of a template application
         // or a template variable?
-        if (ProjectProperties.debug) {
-            System.err.println("Handling template gap: "+t.getId()+", "+t.getClass());
-        }
         Id id = t.getId();
         if (!t.getParams().isEmpty()) {
-            if (ProjectProperties.debug) {
-                System.err.println("The gap has parameters: "+t.getParams());
-            }
-
-            MemberEnv mEnv = getMemberEnvironment(id);
-
-            String paramEnv = FreshName.getFreshName("paramEnv");
-            List<String> ls = new LinkedList<String>();
-            ls.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
-            for (int inx=0;inx<t.getParams().size();inx++) {
-                Id formalParam = mEnv.getParameter(inx);
-                Id actualParam = t.getParams().get(inx);
-                String var = actualParam.toString();
-                Option<String> op = ActionCreaterUtil.FortressWrapper(actualParam, this.syntaxDeclEnv, this.code, ls, new LinkedList<Integer>());
-                if (op.isSome()) {
-                    var = op.unwrap();
-                }
-                ls.add(paramEnv+".put(\""+formalParam +"\", "+var+");");
-            }
-            this.code.addAll(ls);
-            return addParamHandlers(id, mEnv, t.getParams(), paramEnv, this.code);
+            return parameterizedGap(t);
         }
+
         if (this.syntaxDeclEnv.contains(id)) {
-            if (this.syntaxDeclEnv.isRepeat(id)) {
-                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
-            }
-            if (this.syntaxDeclEnv.isOption(id)) {
-                return "(Expr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
-            }
-            if (this.syntaxDeclEnv.isCharacterClass(id)) {
-                return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
-            }
-            if (this.syntaxDeclEnv.isAnyChar(id)) {
-                return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
-            }
-            if (this.syntaxDeclEnv.isNonterminal(id)) {
-                return id.getText();
-            }
-            NI.nyi();
+            return normalGap(t);
         }
-        String idVarName = FreshName.getFreshName("id");
-        this.code.add("Id "+idVarName+" = new Id(\""+id+"\");");
+	String idVarName = FreshName.getFreshName("id");
+        this.code.add("Id "+idVarName+" = new Id(\""+id+"\");");       
         String params = FreshName.getFreshName("params");
         this.code.add("List<Id> "+params+" = new LinkedList<Id>();");
         String sVarName = JavaAstPrettyPrinter.getSpan((AbstractNode) t, this.code);
         String typeName = getMemberEnvironment(id).getAstType().accept(new BaseTypeCollector());
         return SyntaxAbstractionUtil.makeTemplateGap(code, new LinkedList<Integer>(), typeName, idVarName, params, sVarName);
+
     }
 
     private String addParamHandlers(Id id, MemberEnv env, List<Id> params, String paramEnv,
             List<String> code) {
         Type type = this.syntaxDeclEnv.getType(id);
         String typeName = type.toString();
-
-        String rVarName = FreshName.getFreshName("visitor");
+        
+        String rVarName = FreshName.getFreshName("visitor");            
         this.code.add(typeName+" "+rVarName+" = ("+typeName+") "+id+".accept(new NodeUpdateVisitor() {");
-
+        
         Set<String> templateTypes = new HashSet<String>();
         for (int inx=0;inx<params.size();inx++) {
             Id formalParam = env.getParameter(inx);
@@ -752,7 +802,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             String className = String.format("TemplateGap%s", templateTypeName);
             templateTypes.add(className);
         }
-
+        
         for (String className: templateTypes) {
             addMethod(className, code, paramEnv);
         }
@@ -772,20 +822,19 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         code.add("    }");
 //        this.code.add("    System.err.println(\"No subs\");");
         code.add("    throw new RuntimeException(\"Undefined variable: \"+id+\"in template: "+className+"\");");
-        code.add("  }");
+        code.add("  }");        
     }
 
     private MemberEnv getMemberEnvironment(Id id) {
         Id memberName = this.syntaxDeclEnv.getNonterminalName(id);
-
+        
         if (this.syntaxDeclEnv.getMemberEnv().isParameter(id)) {
-            memberName = this.syntaxDeclEnv.getMemberEnv().getParameter(id);
+            memberName = this.syntaxDeclEnv.getMemberEnv().getParameter(id); 
         }
-
+        
         if (!GrammarEnv.contains(memberName)) {
             throw new RuntimeException("Grammar environment does not contain identifier: "+memberName);
         }
         return GrammarEnv.getMemberEnv(memberName);
     }
-
 }

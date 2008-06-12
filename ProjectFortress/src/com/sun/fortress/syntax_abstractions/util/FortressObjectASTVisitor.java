@@ -61,6 +61,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -80,7 +81,7 @@ public class FortressObjectASTVisitor<T> {
     }
 
     public T dispatch(FValue value) {
-        System.err.println("Val: "+value.getClass());
+        Debug.debug( 2, "Val: "+value.getClass());
         if (value instanceof FString) {
             return (T) ((FString) value).getString();
         }
