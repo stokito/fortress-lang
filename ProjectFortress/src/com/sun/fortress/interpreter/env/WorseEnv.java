@@ -9,19 +9,11 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
 
 public class WorseEnv extends BaseEnv {
-
-	@Override
-	public void debugPrint(String debugString) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public Appendable dump(Appendable a) throws IOException {
@@ -48,12 +40,6 @@ public class WorseEnv extends BaseEnv {
 	}
 
 	@Override
-	public SComponent getComponentNull(APIName d) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Declaration getDeclNull(String str) {
 		// TODO Auto-generated method stub
 		return null;
@@ -67,18 +53,6 @@ public class WorseEnv extends BaseEnv {
 
 	@Override
 	public FType getTypeNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public FValue getValueNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public FType getVarTypeNull(String str) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -125,11 +99,6 @@ public class WorseEnv extends BaseEnv {
 		return false;
 	}
 
-	public Closure getClosure(String toBeRun) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Number getIntNull(String s) {
 		// TODO Auto-generated method stub
 		return null;
@@ -140,19 +109,9 @@ public class WorseEnv extends BaseEnv {
 		return null;
 	}
 
-	public boolean hasType(String str) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 	public boolean hasValue(String str) {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	public Environment installPrimitives() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public boolean isTopLevel() {
@@ -170,12 +129,10 @@ public class WorseEnv extends BaseEnv {
 
 	}
 
-
 	public void putBool(String str, Boolean f2) {
 		// TODO Auto-generated method stub
 
 	}
-
 
 	public void putComponent(String name, SComponent comp) {
 		// TODO Auto-generated method stub
@@ -207,44 +164,12 @@ public class WorseEnv extends BaseEnv {
 
 	}
 
-
 	public void putValue(String str, FValue f2) {
 		// TODO Auto-generated method stub
 
 	}
 
-
 	public void putValueNoShadowFn(String fndodname, FValue cl) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putValueShadowFn(String fname, FValue cl) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putValueUnconditionally(String name, FValue value, FType ft) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putVariable(String str, FValue f2, FType ft) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putVariable(String s, FValue value) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putVariable(String string, FType fvt) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putVariablePlaceholder(String sname) {
 		// TODO Auto-generated method stub
 
 	}
@@ -260,11 +185,6 @@ public class WorseEnv extends BaseEnv {
 	}
 
 	public void setTopLevel() {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void storeType(HasAt x, String sname, FType ft) {
 		// TODO Auto-generated method stub
 
 	}
