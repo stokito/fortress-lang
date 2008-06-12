@@ -292,7 +292,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
   // }
 
     public void testEnvironment() {
-        BetterEnv e = new BetterEnv("e");
+        BetterEnv e = BetterEnv.empty();
         e.putValue("x", FInt.make(7));
         e.bless();
         BetterEnv s = new BetterEnv(e, "s");
