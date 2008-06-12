@@ -303,6 +303,14 @@ public class ExprFactory {
         return makeTuple(Arrays.asList(exprs));
     }
 
+    public static OpRef makeMultiJuxt() {
+        return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp("juxtaposition")));
+    }
+
+    public static OpRef makeInfixJuxt() {
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("juxtaposition")));
+    }
+
     private static OpRef makeOpRef(OpName op) {
         return new OpRef(op.getSpan(), Collections.singletonList(op));
     }
@@ -800,31 +808,31 @@ public class ExprFactory {
     public static TemplateGapId makeTemplateGapId(Span s, Id id, List<Id> params) {
         return new TemplateGapId(s, "IdGap:"+id.getText(), id, params);
     }
-    
+
     public static TemplateGapLiteralExpr makeTemplateGapLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapLiteralExpr(s, "0", id, params);
     }
-    
+
     public static TemplateGapNumberLiteralExpr makeTemplateGapNumberLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapNumberLiteralExpr(s, "0", id, params);
     }
-    
+
     public static TemplateGapFloatLiteralExpr makeTemplateGapFloatLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapFloatLiteralExpr(s, "0", BigInteger.valueOf(0), BigInteger.valueOf(0), 0, 0, id, params);
     }
-    
+
     public static TemplateGapIntLiteralExpr makeTemplateGapIntLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapIntLiteralExpr(s, "0", BigInteger.valueOf(0), id, params);
     }
-    
+
     public static TemplateGapCharLiteralExpr makeTemplateGapCharLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapCharLiteralExpr(s, "", 0, id, params);
     }
-    
+
     public static TemplateGapStringLiteralExpr makeTemplateGapStringLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapStringLiteralExpr(s, "gap:"+id.getText(), id, params);
     }
-    
+
     public static TemplateGapVoidLiteralExpr makeTemplateGapVoidLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapVoidLiteralExpr(s, id, params);
     }

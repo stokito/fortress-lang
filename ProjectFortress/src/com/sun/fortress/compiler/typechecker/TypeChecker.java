@@ -1953,7 +1953,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that,
-                                              TypeCheckerResult op_result,
+                                              TypeCheckerResult multiJuxt_result,
+                                              TypeCheckerResult infixJuxt_result,
                                               List<TypeCheckerResult> exprs_result) {
         // The expressions list contains at least two elements.
         assert (exprs_result.size() >= 2);
