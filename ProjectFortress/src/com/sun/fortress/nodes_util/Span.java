@@ -113,7 +113,10 @@ public class Span implements Serializable {
         if (do_files) {
             if (printer) w.append("\"");
             // Need to add escapes to the file name
-            w.append(begin.getFileName());
+            String beginFileName;
+            if (printer) beginFileName = Unprinter.enQuote(begin.getFileName());
+            else beginFileName = begin.getFileName();
+            w.append(beginFileName);
             if (printer) w.append("\"");
             w.append(":");
         }
@@ -126,7 +129,10 @@ public class Span implements Serializable {
             if (file_names_differ) {
                 if (printer) w.append("\"");
                 // Need to add escapes to the file name
-                w.append(end.getFileName());
+                String endFileName;
+                if (printer) endFileName = Unprinter.enQuote(end.getFileName());
+                else endFileName = end.getFileName();                
+                w.append(endFileName);
                 if (printer) w.append("\"");
                 w.append(":");
             }

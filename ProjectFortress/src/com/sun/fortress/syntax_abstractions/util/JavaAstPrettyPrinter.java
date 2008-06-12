@@ -50,6 +50,7 @@ import com.sun.fortress.nodes.InFixity;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
+import com.sun.fortress.nodes.MultiFixity;
 import com.sun.fortress.nodes.NoFixity;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -120,20 +121,20 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         int endColumn = span.getBegin().column();
         int endOffset = span.getBegin().getOffset();
         code.add( String.format("SourceLocRats %s = new SourceLocRats(\"%s\", %s, %s, %s);", slEndVarName, file, endLine, endColumn, endOffset) );
-        code.add( String.format( "Span %s = new Span(%s,%s);", rVarName, slStartVarName, slEndVarName) );        
+        code.add( String.format( "Span %s = new Span(%s,%s);", rVarName, slStartVarName, slEndVarName) );
         return rVarName;
     }
-    
+
     private String handleOption(Option<String> o, String type) {
         String rVarName = FreshName.getFreshName("option");
         String rhs = "Option.<"+type+">none()";
         if (o.isSome()) {
             rhs = "Option.<"+type+">some("+o.unwrap()+")";
         }
-        this.code.add("Option<"+type+"> "+rVarName +" = " +rhs+";"); 
+        this.code.add("Option<"+type+"> "+rVarName +" = " +rhs+";");
         return rVarName;
     }
-    
+
     private String handleOptionList(Option<List<String>> o, String type) {
         String rVarName = FreshName.getFreshName("option");
         String rhs = "Option.<List<"+type+">>none()";
@@ -142,10 +143,10 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             this.code.addAll(mkList(o.unwrap(), lsName , type));
             rhs = "Option.<List<"+type+">>some("+lsName+")";
         }
-        this.code.add("Option<List<"+type+">> "+rVarName +" = " +rhs+";"); 
+        this.code.add("Option<List<"+type+">> "+rVarName +" = " +rhs+";");
         return rVarName;
     }
-    
+
     /**
      * The defaultCase should never be used, each node should have a for...
      * method defined somewhere in this file.
@@ -224,7 +225,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	    return rVarName;
     }
 
-    @Override 
+    @Override
     public String forVoidLiteralExprOnly(VoidLiteralExpr that){
         String rVarName = FreshName.getFreshName("voidExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
@@ -368,7 +369,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.add(String.format("Id %s = new Id(%s, %s);", rVarName, sVarName, api) );
         return rVarName;
     }
-    
+
     @Override
     public String forIfOnly(If that, List<String> clauses_result,
             Option<String> elseClause_result) {
@@ -378,7 +379,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("ifExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String clauses = FreshName.getFreshName("ls");
-        this.code.addAll(mkList(clauses_result, clauses, "IfClause"));   
+        this.code.addAll(mkList(clauses_result, clauses, "IfClause"));
         String elseClause = this.handleOption(elseClause_result, "Block");
         this.code.add( String.format("If %s = new If(%s,%s,%s,%s);", rVarName, sVarName, that.isParenthesized(), clauses, elseClause) );
         return rVarName;
@@ -405,7 +406,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("generatorClause");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String clauses = FreshName.getFreshName("ls");
-        this.code.addAll(mkList(bind_result, clauses, "Id"));   
+        this.code.addAll(mkList(bind_result, clauses, "Id"));
         this.code.add( String.format("GeneratorClause %s = new GeneratorClause(%s,%s,%s);", rVarName, sVarName, clauses, init_result) );
         return rVarName;
     }
@@ -429,7 +430,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             return handleTemplateGap( (TemplateGap) that);
         }
         String rVarName = FreshName.getFreshName("localVarDecl");
-        
+
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
 
         String body = FreshName.getFreshName("body");
@@ -439,13 +440,15 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.addAll(mkList(lhs_result, lhs, "LValue"));
 
         String rhs = this.handleOption(rhs_result, "Expr");
-        
+
         this.code.add( String.format("LocalVarDecl %s = new LocalVarDecl(%s, %s, %s, %s);", rVarName, sVarName, body, lhs, rhs) );
         return rVarName;
     }
 
     @Override
-    public String forLooseJuxtOnly(LooseJuxt that, List<String> exprs_result) {
+        public String forLooseJuxtOnly(LooseJuxt that, String multiJuxt_result,
+                                       String infixJuxt_result,
+                                       List<String> exprs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -453,7 +456,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String args = FreshName.getFreshName("ls");
         this.code.addAll(mkList(exprs_result, args, "Expr"));
-        this.code.add( String.format("LooseJuxt %s = new LooseJuxt(%s, %b, %s);", rVarName, sVarName, that.isParenthesized(), args) );
+        this.code.add( String.format("LooseJuxt %s = new LooseJuxt(%s, %b, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), multiJuxt_result, infixJuxt_result, args) );
         return rVarName;
     }
 
@@ -464,7 +467,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             return handleTemplateGap( (TemplateGap) that);
         }
         String rVarName = FreshName.getFreshName("lValueBind");
-        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);       
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String type = this.handleOption(type_result, "Type");
         String mods = FreshName.getFreshName("mods");
         this.code.addAll(mkList(mods_result, mods, "Modifier"));
@@ -479,6 +482,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add(String.format("NoFixity %s = new NoFixity(%s);", varName, sVarName));
         return varName;
+    }
+
+    @Override
+    public String forMultiFixityOnly(MultiFixity that) {
+        String rVarName = FreshName.getFreshName("multiFixity");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add( String.format("MultiFixity %s = new MultiFixity(%s);", rVarName, sVarName) );
+        return rVarName;
     }
 
     @Override
@@ -507,7 +518,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forTightJuxtOnly(TightJuxt that, List<String> exprs_result) {
+        public String forTightJuxtOnly(TightJuxt that, String multiJuxt_result,
+                                       String infixJuxt_result,
+                                       List<String> exprs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -515,7 +528,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("tj");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, varName, "Expr"));
-        this.code.add( String.format("TightJuxt %s = new TightJuxt(%s, %b, %s);", rVarName, sVarName, that.isParenthesized(), varName) );
+        this.code.add( String.format("TightJuxt %s = new TightJuxt(%s, %b, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), multiJuxt_result, infixJuxt_result, varName) );
         return rVarName;
     }
 
@@ -580,13 +593,13 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
              * It should probably be abstracted and turned into a function.
              */
             if (this.syntaxDeclEnv.isRepeat(id)) {
-                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
             }
             return that.getVar().toString();
         }
         return super.forVarRef(that);
     }
-    
+
     @Override
     public String forWhereClauseOnly(WhereClause that,
             List<String> bindings_result, List<String> constraints_result) {
@@ -636,7 +649,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.add( String.format("Op %s = new Op(%s, %s, \"%s\", %s);", rVarName, sVarName, apiVarName, that.getText(), fixityVarName) );
         return rVarName;
     }
-    
+
     @Override
     public String forOpExprOnly(OpExpr that, String in_op_result, List<String> args_result) {
         if (that instanceof TemplateGap) {
@@ -675,13 +688,13 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         if (!t.getParams().isEmpty()) {
             if (ProjectProperties.debug) {
                 System.err.println("The gap has parameters: "+t.getParams());
-            }    
+            }
 
             MemberEnv mEnv = getMemberEnvironment(id);
-            
+
             String paramEnv = FreshName.getFreshName("paramEnv");
             List<String> ls = new LinkedList<String>();
-            ls.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");            
+            ls.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
             for (int inx=0;inx<t.getParams().size();inx++) {
                 Id formalParam = mEnv.getParameter(inx);
                 Id actualParam = t.getParams().get(inx);
@@ -697,13 +710,13 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         }
         if (this.syntaxDeclEnv.contains(id)) {
             if (this.syntaxDeclEnv.isRepeat(id)) {
-                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+                return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
             }
             if (this.syntaxDeclEnv.isOption(id)) {
-                return "(Expr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+                return "(Expr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
             }
             if (this.syntaxDeclEnv.isCharacterClass(id)) {
-                return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
+                return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
             }
             if (this.syntaxDeclEnv.isAnyChar(id)) {
                 return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
@@ -714,7 +727,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             NI.nyi();
         }
         String idVarName = FreshName.getFreshName("id");
-        this.code.add("Id "+idVarName+" = new Id(\""+id+"\");");       
+        this.code.add("Id "+idVarName+" = new Id(\""+id+"\");");
         String params = FreshName.getFreshName("params");
         this.code.add("List<Id> "+params+" = new LinkedList<Id>();");
         String sVarName = JavaAstPrettyPrinter.getSpan((AbstractNode) t, this.code);
@@ -726,10 +739,10 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             List<String> code) {
         Type type = this.syntaxDeclEnv.getType(id);
         String typeName = type.toString();
-        
-        String rVarName = FreshName.getFreshName("visitor");            
+
+        String rVarName = FreshName.getFreshName("visitor");
         this.code.add(typeName+" "+rVarName+" = ("+typeName+") "+id+".accept(new NodeUpdateVisitor() {");
-        
+
         Set<String> templateTypes = new HashSet<String>();
         for (int inx=0;inx<params.size();inx++) {
             Id formalParam = env.getParameter(inx);
@@ -739,7 +752,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             String className = String.format("TemplateGap%s", templateTypeName);
             templateTypes.add(className);
         }
-        
+
         for (String className: templateTypes) {
             addMethod(className, code, paramEnv);
         }
@@ -759,16 +772,16 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         code.add("    }");
 //        this.code.add("    System.err.println(\"No subs\");");
         code.add("    throw new RuntimeException(\"Undefined variable: \"+id+\"in template: "+className+"\");");
-        code.add("  }");        
+        code.add("  }");
     }
 
     private MemberEnv getMemberEnvironment(Id id) {
         Id memberName = this.syntaxDeclEnv.getNonterminalName(id);
-        
+
         if (this.syntaxDeclEnv.getMemberEnv().isParameter(id)) {
-            memberName = this.syntaxDeclEnv.getMemberEnv().getParameter(id); 
+            memberName = this.syntaxDeclEnv.getMemberEnv().getParameter(id);
         }
-        
+
         if (!GrammarEnv.contains(memberName)) {
             throw new RuntimeException("Grammar environment does not contain identifier: "+memberName);
         }

@@ -735,6 +735,29 @@ __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L
     (o.unwrap())(r.unlift(desugaredClauses(r,body)))
   end
 
+(** Application of two nested BIG operators, possibly with fusion.  This only covers
+    a comprehension of the form:
+       BIG outer [ xs <- expr_o ] (BIG inner [x <- xs] expr_i)
+    The desugarer extracts comprehensions of this form from more complex nests of
+    comprehensions, using a combination of splitting:
+        BIG OP [ gs_1, gs_2 ] expr = BIG OP [ gs_1 ] (BIG OP [ gs_2 ] expr)
+    and filter squeezing:
+        BIG OP [ xs <- g, p(xs) ] expr = BIG OP [ xs <- g.filter(p) ] expr
+    There are some big caveats to this explanation in practice.  Most important is that
+    we don't unlift and lift or do input/output conversion except where neccessary, so
+    splitting skips these operations in between the inner and outer comprehension.
+    **)
+__bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
+                                    inner:BigOperator[\I,M,R2,L2\],
+                                    gg: Generator[\Generator[\E\]\],
+                                    innerBody:E->L2): L1 = do
+    o = outer.reduction()
+    i = inner.reduction()
+    gg.generate(o,fn (xs) =>
+                   o.lift((outer.wrap())((inner.unwrap())(i.unlift(
+                                                xs.generate(i,innerBody))))))
+  end
+
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq(self) = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
@@ -777,7 +800,7 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
                 fn (): Condition[\E\] => do r1 = (0#0)[r]; self end)
     getDefault(e:E): E = cond[\E\](identity[\E\], fn () => e)
     cond[\G\](t: E -> G, e: () -> G): G
-    generate[\G\](r:Reduction[\G\], body: E -> G): G = cond[\G\](t,fn () => r.empty())
+    generate[\G\](r:Reduction[\G\], body: E -> G): G = cond[\G\](body,fn () => r.empty())
 
     (** For a Condition, these methods run eagerly. **)
     map[\G\](f: E->G): Condition[\G\] =
@@ -2377,7 +2400,7 @@ end
 
 (** A reduction performing String concatenation with newline separation **)
 object NewlineReduction extends AssociativeReduction[\String\]
-    getter toString() = "StringReduction"
+    getter toString() = "NewlineReduction"
     simpleJoin(a, b) = a // b
 end
 
@@ -2397,8 +2420,8 @@ opr BIG |||(): Comprehension[\Any,String,String,String\] =
 (** This operator performs string concatenation with newline
     separation, first converting its inputs (of type Any) to String if
     necessary. **)
-opr BIG //(): Comprehension[\Any,String,AnyMaybe,AnyMaybe\] =
-    Comprehension[\Any,String,AnyMaybe,AnyMaybe\](
+opr BIG //(): Comprehension[\Any,String,String,AnyMaybe\] =
+    Comprehension[\Any,String,String,AnyMaybe\](
         fn x => x,NewlineReduction,fn (x:Any)=> "" x)
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
@@ -2491,7 +2514,7 @@ trait FilterGenerator[\E\] extends Generator[\E\]
         g().generate[\R\](r, fn(e:E):R => if (p())(e).holds() then m(e) else r.empty() end)
     reduce(r: Reduction[\E\]): E =
         g().generate[\E\](r, fn(e:E):E => if (p())(e).holds() then e else r.empty() end)
-    filter(p': E -> Condition[\E\]): SimpleFilterGenerator[\E\] =
+    filter(p': E -> Condition[\()\]): SimpleFilterGenerator[\E\] =
         SimpleFilterGenerator[\E\](g(), p() ANDCOND p')
     seq(self) = SimpleSeqFilterGenerator[\E\](g(),p())
 end

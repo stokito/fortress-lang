@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,29 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SubscriptedExpr
-
+component XXXparenOpArg
 export Executable
 
-object O
-  round: ZZ32[5] = array1[\ZZ32,5\]().fill(2)
-  flat : ZZ32[5] = array1[\ZZ32,5\]().fill(1)
-  opr(./i:ZZ32/.): ZZ32 = round[i]
-  opr(./i:ZZ32/.):=(v:ZZ32) = round[i] := v
-  opr[i:ZZ32]  : ZZ32 = flat[i]
-  opr[i:ZZ32]  :=(v:ZZ32) = flat[i] := v
+object O[\opr OPLUS\]
+  toString() = "O"
 end
 
-run(args:String...) =
-  if O[0] = O(./0/.) then
-    println "FAIL!"
-    println O[0]
-    println O(./0/.)
-  else
-    O(./2/.) := 11
-    O[2] := 12
-    assert(O(./2/.),11,"O(./2/.) wrong")
-    assert(O[2],12,"O[2] wrong")
-  end
+run(args:String...) = println O[\(+)\]
 
 end
