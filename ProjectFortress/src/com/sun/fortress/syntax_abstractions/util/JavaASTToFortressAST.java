@@ -77,15 +77,17 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
      return handleOption(value, it);
     }
     // or the result of a repetition
-    if ((value instanceof Pair) &&
+    if ((value instanceof List) &&
       it.getName().equals(NodeFactory.makeId("List","List"))) {
-     return handleRepetition((Pair) value, it);
+     return handleRepetition((List) value, it);
     }
 
+    /*
     if ( value instanceof List ){
         // return ActionRuntime.makeListAST( (List<Expr>) value );
         return handleRepetition((List) value, it );
     }
+    */
    }
   }
 
@@ -155,6 +157,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   return new OpExpr(new OpRef(ops), args);
  }
 
+ /*
  private Expr handleRepetition(Pair value, TraitType type) {
   if (value.list().isEmpty()) {
    return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
@@ -177,6 +180,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   }
   return new OpExpr(new OpRef(ops), args);
  }
+ */
 
  @Override
  public Expr forStringLiteralExpr(StringLiteralExpr that) {
