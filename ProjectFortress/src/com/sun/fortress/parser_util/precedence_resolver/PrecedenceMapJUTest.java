@@ -187,7 +187,7 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TestCaseWrapper
         assertEquals(false,pm.isLeft("*||"));
         assertEquals(false,pm.isLeft("<<<<<"));
         assertEquals(false,pm.isLeft("<|/"));
-        assertEquals(false,pm.isLeft("(/\\"));
+        assertEquals(false,pm.isLeft("(./\\"));
         assertEquals(false,pm.isLeft("(|"));
     }
     public void testManiaRight() {
@@ -200,7 +200,7 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TestCaseWrapper
         assertEquals(false,pm.isRight("*||"));
         assertEquals(false,pm.isRight(">>>>>"));
         assertEquals(false,pm.isRight("/|>"));
-        assertEquals(false,pm.isRight("/\\)"));
+        assertEquals(false,pm.isRight("/\\.)"));
         assertEquals(false,pm.isRight("|)"));
     }
     private void maniaPair(String l, String r) {
@@ -210,7 +210,7 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TestCaseWrapper
     }
     public void testManiaPair() {
         maniaPair("|.|||*|.||",       "||.|*|||.|"); // case 1
-        maniaPair("(//////",       "//////)"); // case 2
+        maniaPair("(.//////",       "//////.)"); // case 2
         maniaPair("{.///*/.//",       "//./*///.}"); // case 2
         maniaPair("[.\\\\\\*\\.\\\\", "\\\\.\\*\\\\\\.]"); // case 2
         maniaPair("<.<<|*|.||",       "||.|*|>>.>"); // case 3
