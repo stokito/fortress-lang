@@ -74,14 +74,9 @@ api Xml2
     XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
       <[ Header(s,emptyList[\Attribute\]()) ]>
-    | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
+    | o1:OpenBracket# s:String {a:Attribute SPACE}+ o2:CloseBracket
       <[ Header(s, a) ]>
 
-(*
-    XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
-      s:Strings <[ <| (CData(s) asif Content) |> ]>
-    | x:XExprs+ <[ x ]>
-    *)
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
       s:Strings <[ <| (CData(s) asif Content) |> ]>
     | {x:XExpr SPACE}+ <[ x ]>
@@ -91,13 +86,11 @@ api Xml2
       (*
     | x:XExprs+ <[ x ]>
     *)
-    (*
-      *)
-      (*
-    *)
 
+(*
     XExprs:Element :Expr:=
       x:XExpr SPACE <[ x ]>
+      *)
 
     XmlEnd:String :Expr:= (* type: String *)
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
@@ -108,8 +101,10 @@ api Xml2
       a:Attribute r:Attributes <[ a " " r ]>
     | a:Attribute <[ a ]>
     *)
+    (*
     Attributes:Attribute :Expr:=
       a:Attribute SPACE <[ a ]>
+      *)
 
     Attribute:Attribute :Expr:=
       key:String = " val:AttributeStrings " <[ Attribute(key,val) ]>
