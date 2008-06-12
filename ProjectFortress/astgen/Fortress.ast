@@ -1154,8 +1154,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * e.g.) myString.replace("foo", "few")
                      * e.g.) log log n
                      */
-                    abstract Juxt(OpRef op = new OpRef(new Span(),
-                                                       Collections.<OpName>singletonList(new Op("juxtaposition"))),
+                    abstract Juxt(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
+                                  OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
                                   List<Expr> exprs = new LinkedList<Expr>());
                         /**
                          * juxtaposition with intervening whitespace

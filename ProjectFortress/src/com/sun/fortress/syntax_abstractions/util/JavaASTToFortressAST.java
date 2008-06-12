@@ -204,7 +204,8 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  }
 
  @Override
-     public Expr forLooseJuxtOnly(LooseJuxt that, Expr op_result,
+     public Expr forLooseJuxtOnly(LooseJuxt that, Expr multiJuxt_result,
+                                  Expr infixJuxt_result,
                                   List<Expr> exprs_result) {
   List<Expr> args = new LinkedList<Expr>();
   args.add(SyntaxAbstractionUtil.makeList(this.span, exprs_result, "Expr"));
@@ -250,7 +251,8 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  }
 
  @Override
-     public Expr forTightJuxtOnly(TightJuxt that, Expr op_result,
+     public Expr forTightJuxtOnly(TightJuxt that, Expr multiJuxt_result,
+                                  Expr infixJuxt_result,
                                   List<Expr> exprs_result) {
   List<Expr> args = new LinkedList<Expr>();
   args.add(SyntaxAbstractionUtil.makeList(this.span, exprs_result, "Expr"));

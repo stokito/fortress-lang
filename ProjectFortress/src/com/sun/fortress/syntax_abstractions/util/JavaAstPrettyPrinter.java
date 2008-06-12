@@ -50,6 +50,7 @@ import com.sun.fortress.nodes.InFixity;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
+import com.sun.fortress.nodes.MultiFixity;
 import com.sun.fortress.nodes.NoFixity;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -445,7 +446,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-        public String forLooseJuxtOnly(LooseJuxt that, String op_result,
+        public String forLooseJuxtOnly(LooseJuxt that, String multiJuxt_result,
+                                       String infixJuxt_result,
                                        List<String> exprs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
@@ -454,7 +456,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String args = FreshName.getFreshName("ls");
         this.code.addAll(mkList(exprs_result, args, "Expr"));
-        this.code.add( String.format("LooseJuxt %s = new LooseJuxt(%s, %b, %s);", rVarName, sVarName, that.isParenthesized(), args) );
+        this.code.add( String.format("LooseJuxt %s = new LooseJuxt(%s, %b, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), multiJuxt_result, infixJuxt_result, args) );
         return rVarName;
     }
 
@@ -483,6 +485,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
+    public String forMultiFixityOnly(MultiFixity that) {
+        String rVarName = FreshName.getFreshName("multiFixity");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add( String.format("MultiFixity %s = new MultiFixity(%s);", rVarName, sVarName) );
+        return rVarName;
+    }
+
+    @Override
     public String forNormalParamOnly(NormalParam that,
             List<String> mods_result, String name_result,
             Option<String> type_result, Option<String> defaultExpr_result) {
@@ -508,7 +518,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-        public String forTightJuxtOnly(TightJuxt that, String op_result,
+        public String forTightJuxtOnly(TightJuxt that, String multiJuxt_result,
+                                       String infixJuxt_result,
                                        List<String> exprs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
@@ -517,7 +528,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String rVarName = FreshName.getFreshName("tj");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.addAll(mkList(exprs_result, varName, "Expr"));
-        this.code.add( String.format("TightJuxt %s = new TightJuxt(%s, %b, %s);", rVarName, sVarName, that.isParenthesized(), varName) );
+        this.code.add( String.format("TightJuxt %s = new TightJuxt(%s, %b, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), multiJuxt_result, infixJuxt_result, varName) );
         return rVarName;
     }
 
