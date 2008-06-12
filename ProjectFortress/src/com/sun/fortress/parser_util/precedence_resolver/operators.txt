@@ -504,15 +504,15 @@ enclosing_left
   mathematical left angle bracket, <|
   mathematical left double angle bracket, <<|
   left white curly bracket, {\
-  left white parenthesis, (\
-  z notation left image bracket, (/
+  left white parenthesis, (.\
+  z notation left image bracket, (./
   z notation left binding bracket, <||
   left square bracket with underbar, [.\
   left square bracket with tick in top corner, [.//
   left square bracket with tick in bottom corner, [.\\
   left angle bracket with dot, <.|
-  left arc less-than bracket, (<
-  double left arc greater-than bracket, ((>
+  left arc less-than bracket, (.<
+  double left arc greater-than bracket, ((.>
   left black tortoise shell bracket, [*/
   left wiggly fence, [/\/
   left double wiggly fence, [/\/\/
@@ -536,15 +536,15 @@ enclosing_right
   mathematical right angle bracket, |>
   mathematical right double angle bracket, |>>
   right white curly bracket, \}
-  right white parenthesis, \)
-  z notation right image bracket, /)
+  right white parenthesis, \.)
+  z notation right image bracket, /.)
   z notation right binding bracket, ||>
   right square bracket with underbar, \.]
   right square bracket with tick in bottom corner, //.]
   right square bracket with tick in top corner, \\.]
   right angle bracket with dot, |.>
-  right arc greater-than bracket, >)
-  double right arc less-than bracket, <))
+  right arc greater-than bracket, >.)
+  double right arc less-than bracket, <.))
   right black tortoise shell bracket, /*]
   right wiggly fence, /\/]
   right double wiggly fence, /\/\/]

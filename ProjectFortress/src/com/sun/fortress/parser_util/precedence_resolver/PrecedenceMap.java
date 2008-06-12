@@ -313,6 +313,8 @@ public class PrecedenceMap {
      */
     public boolean isLeft(String op) {
         CanonOp r = rep.get(op);
+        /* Special cases: (.< and ((.> */
+        if (op.equals("(.<") || op.equals("((.>")) return true;
         /* Special cases: Oxford bracket and anything comment-like */
         if (op.equals("[\\")) return false;
         if (op.startsWith("(*")) return false;
@@ -320,14 +322,14 @@ public class PrecedenceMap {
 
         /* Bracketmania!  See Spec 5.14.1.
          * lbracket = '|'+                                 (case 1)
-         *          | ( '(' | '{' | '[' ) ( '/'+ | '\'+ )  (case 2)
+         *          | ( "(." | '{' | '[' ) ( '/'+ | '\'+ ) (case 2)
          *          | '<'+ '|'+                            (case 3)
          *          | ( '<'+ | '|'+ ) ( '/'+ | '\'+ )      (case 4)
          *  Case 5: interleave '*' or '.' non-contiguously in above, ex "(".
          *
          * Simplifying a bit:
          *          | '<'* '|'+ (case 1/3)
-         *          | ( '(' | '{' | '[' | '<'+ | '|'+ ) ('/'+ | '\'+)
+         *          | ( "(." | '{' | '[' | '<'+ | '|'+ ) ('/'+ | '\'+)
          */
         op = case5(op);
         int len = op.length();
@@ -345,8 +347,9 @@ public class PrecedenceMap {
             while (c=='|' && i < len) c = op.charAt(i++);
             if (c=='|' && i == len) return true; // case 1
             break; // case 4
-        case '[':
         case '(':
+            if (op.charAt(i++)!='.') return false;
+        case '[':
         case '{':
             c = op.charAt(i++);
             break;
@@ -367,6 +370,8 @@ public class PrecedenceMap {
      */
     public boolean isRight(String op) {
         CanonOp r = rep.get(op);
+        /* Special cases: >.) and <.)) */
+        if (op.equals(">.)") || op.equals("<.))")) return true;
         /* Special cases: Oxford bracket and anything comment-like. */
         if (op.equals("\\]")) return false;
         if (op.endsWith("*)")) return false;
@@ -389,6 +394,7 @@ public class PrecedenceMap {
             if (c=='|' && i==0) return true; // case 1
             break;
         case ')':
+            if (op.charAt(--i)!='.') return false;
         case ']':
         case '}':
             c = op.charAt(--i);
@@ -411,6 +417,10 @@ public class PrecedenceMap {
      * check one of these two conditions.
      */
     public boolean matchedBrackets(String l, String r) {
+        /* "(.<" is paired with ">.)" */
+        if (l.equals("(.<") && r.equals(">.)")) return true;
+        /* "((.>" is paired with "<.))" */
+        if (l.equals("((.>") && r.equals("<.))")) return true;
 	/* "{|->" is paired with "}" */
         if (l.equals("{|->") && r.equals("}")) return true;
 	/* "BIG {|->" is paired with "BIG }" */
