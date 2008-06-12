@@ -1,6 +1,7 @@
 component t1
 
 import Regex.{...}
+import List.{...}
 export Executable
 
 run(s:String...) = do

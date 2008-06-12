@@ -36,22 +36,22 @@ end
 
 run(args:String...) = do
 
-    println "Answer is " ( <aaa /> )
-    println "Answer is " ( <aaa foo="bar">a</aaa> )
-    println "Answer is " ( <aaa foo="bar" /> )
-    println "Answer is " ( <aaa foo="bar" a="b" /> )
-    println "Answer is " ( <a /> )
-    println "Answer is " ( <x></x> )
+    println "Answer is " (<aaa />)
+    println "Answer is " (<aaa foo="bar">a</aaa>)
+    println "Answer is " (<aaa foo="bar" />)
+    println "Answer is " (<aaa foo="bar" a="b" />)
+    println "Answer is " (<a />)
+    println "Answer is " (<x></x>)
 
-    println "Answer is " ( <aaa>aa</aaa> )
-    println "Answer is " ( <aaa><q /></aaa> )
+    println "Answer is " (<aaa>aa</aaa>)
+    println "Answer is " (<aaa><q /></aaa>)
 
-    println "Answer is " ( <aaa><foobar /></aaa> )
-    println "Answer is " ( <aaa> <aa>aa</aa> </aaa> )
+    println "Answer is " (<aaa><foobar /></aaa>)
+    println "Answer is " (<aaa> <aa>aa</aa> </aaa>)
 
-    println "Answer is " ( <hello><world>hi mom</world></hello> )
-    println "Answer is " ( <hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello> )
-    println "Answer is " ( <hello attr="foobar" more="blah"><world>hi mom</world></hello> )
+    println "Answer is " (<hello><world>hi mom</world></hello>)
+    println "Answer is " (<hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello>)
+    println "Answer is " (<hello attr="foobar" more="blah"><world>hi mom</world></hello>)
 
     xml:Content = <note>hi</note>
     println "Xml: " xml
@@ -101,28 +101,6 @@ run(args:String...) = do
     println q2.children()
     println "Print tree for q2"
     printTree(q2,"")
-    (*
-    y = <t2> <t3>bread</t3> </t2>
-    println y.hasElements()
-    *)
-
-    (*
-    println "Answer is " ( <aaal> <aaaal> aal </aaaal> </aaal>)
-    println "Answer is " ( <aaal> <aaaal> <aal> aal </aal> </aaaal> </aaal>)
-    *)
-    (*
-    println "Answer is " ( <aaal> stuff </aaal>)
-    *)
-    (*
-    println "Answer is " ( <aaaaal>)
-    *)
-    (*
-    println "Answer is " ( a)
-    *)
-    (*
-    println "Answer is " ( aa)
-    *)
-    (* println ( <aaaa>) *)
     println "ok"
 end
 
