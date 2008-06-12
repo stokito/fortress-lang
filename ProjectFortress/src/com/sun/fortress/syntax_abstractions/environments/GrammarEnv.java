@@ -76,7 +76,7 @@ public class GrammarEnv {
     }
 
     public static String getType(Id name){
-        Debug.debug( 4, "Looking up " + name.getText() + " in grammar env" );
+        Debug.debug( 4, "Looking up " + name + " in grammar env" );
         if ( name == null  || GrammarEnv.members.get(name) == null ){
             Debug.debug( 4, "Didn't find it.." );
             return "StringLiteralExpr";

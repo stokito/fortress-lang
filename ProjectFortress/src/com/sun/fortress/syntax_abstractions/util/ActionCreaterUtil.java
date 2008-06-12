@@ -67,15 +67,6 @@ public class ActionCreaterUtil {
             String var = sym.getId().unwrap().getText();
             if ( isTemplate ){
                 Debug.debug( 1, String.format("Depth for %s is %s", sym, depth ) );
-                /*
-                String temp;
-                if ( syntaxDeclEnv.getNonterminalName(sym.getId().unwrap()) == null ){
-                    temp = "StringLiteralExpr";
-                } else {
-                    temp = cutPackage(GrammarEnv.getMemberEnv(syntaxDeclEnv.getNonterminalName(sym.getId().unwrap())).getType().toString());
-                }
-                final String astNode = temp;
-                */
                 final String astNode = GrammarEnv.getType(syntaxDeclEnv.getNonterminalName(sym.getId().unwrap()));
                 class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                     String source;
@@ -149,7 +140,8 @@ public class ActionCreaterUtil {
                 var = depth.accept(new DepthConvertVisitor(sym.getId().unwrap().getText(), 3));
             }
             indents.add(3);
-            code.add(BOUND_VARIABLES+".put(\""+sym.getId().unwrap().getText()+"\""+", "+var+");");
+            // code.add(BOUND_VARIABLES+".put(\""+sym.getId().unwrap().getText()+"\""+", "+var+");");
+            code.add(String.format("%s.put(\"%s\",%s);", BOUND_VARIABLES, sym.getId().unwrap().getText(), var));
         }
         /*
         for(Id id: syntaxDeclEnv.getVariables()) {
