@@ -137,10 +137,7 @@ public class InterpreterWrapper {
         //   e1.printStackTrace();
         //  }
         try {
-            if (ProjectProperties.debug) {
-                System.err.println("Running interpreter...");
-            }
-
+            Debug.debug( 1, "Running interpreter...");
 
             return new Result(runFunction(c), errors);
         } catch (FortressException e) {
@@ -206,7 +203,7 @@ public class InterpreterWrapper {
         if (evTask.causedException()) {
             throw evTask.taskException();
         }
-        System.err.println("EvTask: "+evTask.result());
+        Debug.debug( 2, "EvTask: "+evTask.result() );
         return evTask.result();
     }
 
@@ -224,5 +221,4 @@ public class InterpreterWrapper {
         bw.close();
         return sw.getBuffer().toString();
     }
-
 }
