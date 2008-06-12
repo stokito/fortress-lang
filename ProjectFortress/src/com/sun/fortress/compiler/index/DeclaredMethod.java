@@ -92,10 +92,13 @@ public class DeclaredMethod extends Method {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticArg> args) {
+	public Option<Functional> instantiate(List<StaticArg> args) {
+		if(!StaticTypeReplacer.argsMatchParams(args, this.staticParameters())){
+			return Option.none();
+		}
 		FnAbsDeclOrDecl replaced_decl = 
 			(FnAbsDeclOrDecl)_ast.accept(new StaticTypeReplacer(this.staticParameters(),args));
-		return new DeclaredMethod(replaced_decl,_declaringTrait);
+		return Option.<Functional>some(new DeclaredMethod(replaced_decl,_declaringTrait));
 	}
 
 	@Override
