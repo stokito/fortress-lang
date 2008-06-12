@@ -510,6 +510,23 @@ __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\]
 
 __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
 
+(** Application of two nested BIG operators, possibly with fusion.  This only covers
+    a comprehension of the form:
+       BIG outer [ xs <- expr_o ] (BIG inner [x <- xs] expr_i)
+    The desugarer extracts comprehensions of this form from more complex nests of
+    comprehensions, using a combination of splitting:
+        BIG OP [ gs_1, gs_2 ] expr = BIG OP [ gs_1 ] (BIG OP [ gs_2 ] expr)
+    and filter squeezing:
+        BIG OP [ xs <- g, p(xs) ] expr = BIG OP [ xs <- g.filter(p) ] expr
+    There are some big caveats to this explanation in practice.  Most important is that
+    we don't unlift and lift or do input/output conversion except where neccessary, so
+    splitting skips these operations in between the inner and outer comprehension.
+    **)
+__bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
+                                    inner:BigOperator[\I,M,R2,L2\],
+                                    gg: Generator[\Generator[\E\]\],
+                                    innerBody:E->L2): L1
+
 (* Not currently used for desugaring, but will be used in future.
 __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\]
 
