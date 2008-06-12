@@ -2377,7 +2377,7 @@ end
 
 (** A reduction performing String concatenation with newline separation **)
 object NewlineReduction extends AssociativeReduction[\String\]
-    getter toString() = "StringReduction"
+    getter toString() = "NewlineReduction"
     simpleJoin(a, b) = a // b
 end
 

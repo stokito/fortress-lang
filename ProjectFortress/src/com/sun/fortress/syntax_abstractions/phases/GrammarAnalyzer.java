@@ -64,7 +64,7 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 			String name, Analyzable<T> a) {
 		Set<NonterminalIndex<? extends GrammarMemberDecl>> rs = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
 		for (NonterminalIndex<? extends GrammarMemberDecl> n: getPotentiallyInheritedSet(a)) {
-			if (n.getName().getText().equals(name)) {
+		    if (n.getName().getText().equals(name)) {   
 				rs.add(n);
 			}
 		}
@@ -137,7 +137,7 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 		Collection<NonterminalIndex<? extends GrammarMemberDecl>> nonterminals = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
 		for (T gi: a.getExtended()) {
 			for (NonterminalIndex<? extends GrammarMemberDecl> n: this.getContainedSet(gi)) {
-				if (!n.isPrivate()) {
+				if (!n.isPrivate()) {  
 					nonterminals.add(n);
 				}
 			}

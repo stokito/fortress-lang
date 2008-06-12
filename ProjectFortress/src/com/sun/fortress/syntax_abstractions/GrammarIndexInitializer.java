@@ -37,9 +37,11 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
@@ -107,8 +109,6 @@ public class GrammarIndexInitializer {
         }
         // Make sure that a grammar index has a reference to the grammar index's it extends
         for (GrammarIndex g: grammarIndexs) {
-            //    // Init nonterminal envs
-            //    g.setEnv(new NonterminalEnv(g));
             if (g.ast().isSome()) {
                 List<GrammarIndex> gs = new LinkedList<GrammarIndex>();
                 for (Id otherName: g.ast().unwrap().getExtends()) {
@@ -126,45 +126,11 @@ public class GrammarIndexInitializer {
     
     private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
         for (GrammarIndex g: grammarIndexs) {
-            for (NonterminalIndex/*<? extends GrammarMemberDecl> Commented out due to bug in Sun Java 1.5.0_04 on Fedora Linux */ nt: g.getDeclaredNonterminals()) {
-                if (nt instanceof GrammarNonterminalIndex) {
-                    for (SyntaxDef sd: ((GrammarNonterminalIndex<? extends GrammarMemberDecl>) nt).getSyntaxDefs()) {
-                        sd.accept(new NameCollector(g));
-                    }
-                }
-                if (nt instanceof GrammarTerminalIndex) {
-                    ((GrammarTerminalIndex) nt).getSyntaxDef().accept(new NameCollector(g));
-                }
+            for (NonterminalIndex/*<? extends GrammarMemberDecl> Commented out due to a bug in Sun Java 1.5.0_04 on Fedora Linux */ nt: g.getDeclaredNonterminals()) {
+                GrammarEnv.add(nt.getName(), new MemberEnv(nt));
             }
         }        
     }
     
-    private static class NameCollector extends NodeDepthFirstVisitor_void {
-        
-        private GrammarIndex g;
-        private GrammarAnalyzer<GrammarIndex> ga;
-        
-        public NameCollector(
-                GrammarIndex g) {
-            this.g = g;
-            ga = new GrammarAnalyzer<GrammarIndex>();
-        }
-
-        @Override
-        public void forNonterminalSymbol(NonterminalSymbol that) {
-            Collection<Id> names = ga.getContained(that.getNonterminal().getText(), this.g);
-            if (1 == names.size()) {
-                Id name = IterUtil.first(names);
-                for(NonterminalIndex<? extends GrammarMemberDecl> nt: ga.getContainedSet(g)) {
-                    if (nt.getName().equals(name)) {
-                        GrammarEnv.add(name, new MemberEnv(nt));
-                    }
-                }
-            }
-            else {
-                throw new RuntimeException("Unexpect number of nonterminals with the same name: "+NodeUtil.namesString(names));
-            }
-        }
-    }
 
 }

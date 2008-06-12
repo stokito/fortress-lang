@@ -464,11 +464,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
         for (Id name: that.getExtends()) {
             Id nname = handleGrammarName(name);
-            ls.add(nname);
-
+            ls.add(nname);   
             Option<GrammarIndex> gi = this._env.grammarIndex(nname);
             if (gi.isSome()) {
-                gs.add(gi.unwrap());
+                gs.add(gi.unwrap());   
             }
             else {
                 error("Undefined grammar: " + NodeUtil.nameString(nname), name);

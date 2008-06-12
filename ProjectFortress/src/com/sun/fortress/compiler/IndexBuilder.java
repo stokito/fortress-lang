@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -102,11 +103,14 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.syntax_abstractions.GrammarIndexInitializer;
+import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter.ApiResult;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 public class IndexBuilder {

@@ -177,7 +177,7 @@ public abstract class Module implements Analyzable<Module> {
         Iterator<NonterminalIndex<? extends GrammarMemberDecl>> nit = this.declaredMembers.iterator();
         while (nit.hasNext()) {
             NonterminalIndex<? extends GrammarMemberDecl> member = nit.next();
-            s+= indent+"- "+member.getType()+" "+member.getName()+"\n";
+            s+= indent+"- "+member.getName()+":"+member.getAstType()+"\n";
             if (member.getAst() instanceof NonterminalDecl) {
                 for (SyntaxDef sd: ((NonterminalDecl) member.getAst()).getSyntaxDefs()) {
                     s+= indent+indent+" - "+toString(sd.getSyntaxSymbols())+"\n";

@@ -80,7 +80,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		this._errors.add(StaticError.make(msg, loc));
 	}
 
-	public Option<GrammarIndex> grammarIndex(final Id name) {
+	public Option<GrammarIndex> grammarIndex(Id name) {
 		if (name.getApi().isSome()) {
 			APIName api = name.getApi().unwrap();
 			if (this._globalEnv.definesApi(api)) {

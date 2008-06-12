@@ -21,7 +21,7 @@
 module com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
                                           MayNewlineHeader, Type, DelimitedExpr,
                                           Literal, Identifier, Keyword, Symbol,
-                                          Spacing);
+                                          Spacing, Gaps);
 
 import Param;
 import NoNewlineHeader;
@@ -33,6 +33,7 @@ import Identifier;
 import Keyword;
 import Symbol;
 import Spacing;
+import Gaps;
 
 /* Expr ::=
      AssignExpr
@@ -45,6 +46,7 @@ import Spacing;
  */
 Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
+   
 Expr ExprFront =
      AssignExpr
    / OpExpr

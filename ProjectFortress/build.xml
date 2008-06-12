@@ -610,6 +610,9 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 <uptodate targetfile="${preparser}/PreFortress.java">
                     <srcfiles dir="${preparser}" includes="**/*.rats"/>
                 </uptodate>
+                <uptodate targetfile="${parser}/templateparser/Expr.java">
+                    <srcfiles dir="${parser}/templateparser" includes="**/*.rats"/>
+                </uptodate>
             </and>
         </condition>
         <echo>Parser up to date? ${parser.uptodate}</echo>

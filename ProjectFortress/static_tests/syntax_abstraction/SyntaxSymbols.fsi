@@ -18,13 +18,13 @@
 api SyntaxSymbols
 
   import FortressAst.{...}
-  import FortressSyntax.{...}
+  import FortressSyntax.{Literal, Expression}
 
-  grammar A extends Literal
+  grammar A extends { Literal, Expression }
 (* mangler ??*)
 
     LiteralExpr |Expr:=
-        `FORMFEED [a`TAB] [b``c`TAB:J] [K:`TAB]   world  <[ "escape test   ok" ]>
+         `FORMFEED [a`TAB] [b``c`TAB:J] [K:`TAB]   world  <[ "escape test   ok" ]>
        | e:FunnyThingstest <[ e ]>
        | e:Operatortest <[ e ]>
        | e:Hashtest <[ e ]>
@@ -46,6 +46,7 @@ api SyntaxSymbols
     EscapePlustest :Expr:=
        `++ he`+llo h:hel`+lo NOT he`+llo <[ "escape plus test   ok" ]>
 *)
+
 
     FunnyThingstest :Expr:=
       hello ( world }   <[ "funny thing test   ok" ]>
@@ -78,7 +79,13 @@ api SyntaxSymbols
       h:sp# SPACE#  SPACEh:sp Space:sp SPACE SPACE SPACESPACE a:sSPACE <[ "SPACE test     ok" ]>
 
     AnyCharTest : Expr:=
-      boz a:_ _# bar _? baz <[ "Any char test " a "   ok"]>
+      boz a:_ _# bar _? baz b:AnyCharTest2 <[ "Any char test " a b(a, bar) "   ok"]>
+
+    AnyCharTest2(x:AnyChar, y:Expr) : Expr:=
+      boz a:_ <[ "boz " a " " x " " y ]>
+
+    AnyChar :CharLiteralExpr:= a:_ <[ a ]>
+
 (*
     Formfeedtest : Expr:=
       FORMFEED h:ff FORMFEEDh:ff Form_feed:FORMFEED FORMFEEDFORMFEED a:sFORMFEED <[ "form feed test   ok" ]>
