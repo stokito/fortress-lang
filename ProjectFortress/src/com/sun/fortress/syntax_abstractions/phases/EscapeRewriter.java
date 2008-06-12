@@ -40,6 +40,10 @@ import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
+/* EscapeRewriter
+ * Replaces escape sequences in strings (see Syntax.rats : EscapedSpecialChars, EscapedSpecialSymbol)
+ * - in KeywordSymbol, TokenSymbol, and prefixes
+ */
 public class EscapeRewriter extends NodeUpdateVisitor {
 
     private static final String ESCAPECHAR = "`";

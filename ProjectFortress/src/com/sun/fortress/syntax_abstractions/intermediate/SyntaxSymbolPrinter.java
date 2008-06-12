@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
+import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -131,6 +132,11 @@ public class SyntaxSymbolPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forNoWhitespaceSymbol(NoWhitespaceSymbol that) {
         return "NoWhitespaceSymbol()";
+    }
+
+    @Override
+    public String forGroupSymbolOnly(GroupSymbol that, List<String> symbols_result) {
+        return "GroupSymbol(" + symbols_result + ")";
     }
 
     @Override

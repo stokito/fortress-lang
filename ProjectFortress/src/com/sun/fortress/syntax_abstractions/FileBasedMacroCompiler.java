@@ -35,7 +35,7 @@ import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
 import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
-
+import com.sun.fortress.useful.Debug;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
@@ -44,7 +44,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 //	    for(GrammarIndex g: grammarIndexs) {
 //	        System.err.println(g.getName() + ", "+ g.isToplevel());
 //	    }
-   
+    
 		/*
 		 * Initialize GrammarIndex
 		 */
@@ -57,12 +57,19 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
 		if (!mrr.isSuccessful()) { return new Result(mrr.errors()); }
 
+                Debug.debug( 3, GrammarEnv.getDump() );
+
+                for (Module m: mrr.modules()) {
+                    Debug.debug( 3, m.toString() );
+                }
+                /*
 		if (ProjectProperties.debug) {
 			for (Module m: mrr.modules()) {
 				System.err.println(m);
 			}
 		}
-
+                */
+        
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */

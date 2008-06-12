@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.shell.ConvenientStrings.*;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -112,6 +113,15 @@ public class CommandInterpreter {
         else bug("Failed to make a compilation unit for " + fileName);
     }
 
+    private boolean isInteger( String s ){
+        try{
+            int i = Integer.valueOf(s);
+            return i == i;
+        } catch ( NumberFormatException n ){
+            return false;
+        }
+    }
+
     void run(List<String> args) throws UserError, IOException, Throwable {
         if (args.size() == 0) {
             throw new UserError("Need a file to run");
@@ -120,7 +130,15 @@ public class CommandInterpreter {
         List<String> rest = args.subList(1, args.size());
 
         if (s.startsWith("-")) {
-            if (s.equals("-debug")) ProjectProperties.debug = true;
+            if (s.equals("-debug")){
+                Debug.setDebug( 99 );
+                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
+                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
+                    rest = rest.subList( 1, rest.size() );
+                } else {
+                    ProjectProperties.debug = true;
+                }
+            }
             if (s.equals("-test")) test= true;
             if (s.equals("-nolib")) nolib= true;
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
@@ -152,7 +170,11 @@ public class CommandInterpreter {
             Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, nolib, args);
 
             for (StaticError error: errors) {
-                System.err.println(error);
+                if ( error instanceof Fortress.WrappedException ){
+                    ((Fortress.WrappedException)error).getCause().printStackTrace();
+                } else {
+                    System.err.println(error);
+                }
             }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }

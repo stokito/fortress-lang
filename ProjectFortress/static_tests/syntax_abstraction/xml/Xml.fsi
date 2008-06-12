@@ -50,6 +50,8 @@ api Xml
       <[ s ]>
     | OpenBracket# s:String a:Attributes Slash# CloseBracket
       <[ s " " a ]>
+    | OpenBracket# s:String a:Attributes Slash# CloseBracket
+      <[ s " " a ]>
 
     Attributes :Expr:=
       a:Attribute r:Attributes <[ a " " r ]>

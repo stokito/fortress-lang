@@ -1,0 +1,10 @@
+component t1
+
+import Regex.{...}
+export Executable
+
+run(s:String...) = do
+    n = /abc/
+end
+
+end

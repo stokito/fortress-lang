@@ -601,6 +601,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         NoWhitespaceSymbol(SyntaxSymbol symbol);
         /**
+         * groups of symbols
+         */
+        GroupSymbol(List<SyntaxSymbol> symbols);
+        /**
          * special symbols syntax symbol
          */
         abstract SpecialSymbol();

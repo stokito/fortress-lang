@@ -50,6 +50,7 @@ import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -69,6 +70,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
  public Expr dispatch(Object value, Option<Type> option) {
   // It is either the result of a optional
   if (option.isSome()) {
+      Debug.debug(1,"Dispatch on " + value + " and " + option.unwrap() );
    if (option.unwrap() instanceof TraitType) {
     TraitType it = (TraitType) option.unwrap();
     if (it.getName().equals(NodeFactory.makeId("FortressLibrary","Maybe"))) {
@@ -79,8 +81,17 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
       it.getName().equals(NodeFactory.makeId("List","List"))) {
      return handleRepetition((Pair) value, it);
     }
+
+    if ( value instanceof List ){
+        // return ActionRuntime.makeListAST( (List<Expr>) value );
+        return handleRepetition((List) value, it );
+    }
    }
   }
+
+  /*
+  */
+
   // It is a piece of AST
   if (value instanceof Node) {
    return handleNode((Node) value);
@@ -121,6 +132,29 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.JUST, args, it.getArgs());
  }
 
+ private Expr handleRepetition(List value, TraitType type) {
+  if (value.isEmpty()) {
+   return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
+  }
+  List<OpName> ops = new LinkedList<OpName>();
+  ops.add(NodeFactory.makeListOpName(this.span));
+  List<Expr> args = new LinkedList<Expr>();
+  boolean first = true;
+  for (Object o: value) {
+   Node n = (Node) o;
+   Debug.debug( 1, "Node: "+n.getClass());
+   JavaASTToFortressAST jaTofss = new JavaASTToFortressAST(n.getSpan());
+   Expr e = n.accept(jaTofss);
+   if (first) {
+    StaticArg t = IterUtil.first(type.getArgs());
+    e = new AsIfExpr(e, ((TypeArg) t).getType());
+    first = false;
+   }
+   args.add(e);
+  }
+  return new OpExpr(new OpRef(ops), args);
+ }
+
  private Expr handleRepetition(Pair value, TraitType type) {
   if (value.list().isEmpty()) {
    return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
@@ -131,7 +165,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
   boolean first = true;
   for (Object o: value.list()) {
    Node n = (Node) o;
-   System.err.println("Node: "+n.getClass());
+   Debug.debug( 1, "Node: "+n.getClass());
    JavaASTToFortressAST jaTofss = new JavaASTToFortressAST(n.getSpan());
    Expr e = n.accept(jaTofss);
    if (first) {

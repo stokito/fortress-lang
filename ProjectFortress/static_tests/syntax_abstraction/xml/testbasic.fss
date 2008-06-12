@@ -23,7 +23,7 @@ import List.{...}
 export Executable
 
 printTree(node,space) = do
-    print (space "" node.tag() ":")
+    print (space "" node.tag() " " (BIG ||| node.attributes()) ":")
     if node.hasElements() then
         println ""
         for i <- node.children() do
@@ -36,18 +36,22 @@ end
 
 run(args:String...) = do
 
-    println "Answer is " <a />
-    println "Answer is " <x></x>
+    println "Answer is " ( <aaa /> )
+    println "Answer is " ( <aaa foo="bar">a</aaa> )
+    println "Answer is " ( <aaa foo="bar" /> )
+    println "Answer is " ( <aaa foo="bar" a="b" /> )
+    println "Answer is " ( <a /> )
+    println "Answer is " ( <x></x> )
 
-    println "Answer is " <aaa>aa</aaa>
+    println "Answer is " ( <aaa>aa</aaa> )
+    println "Answer is " ( <aaa><q /></aaa> )
 
-    println "Answer is "  <aaa><foobar /></aaa>
-    println "Answer is " <aaa foo="bar" />
-    println "Answer is " <aaa><aa>aa</aa></aaa>
+    println "Answer is " ( <aaa><foobar /></aaa> )
+    println "Answer is " ( <aaa> <aa>aa</aa> </aaa> )
 
-    println "Answer is " <hello><world>hi mom</world></hello>
-    println "Answer is " <hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello>
-    println "Answer is " <hello attr="foobar" more="blah"><world>hi mom</world></hello>
+    println "Answer is " ( <hello><world>hi mom</world></hello> )
+    println "Answer is " ( <hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello> )
+    println "Answer is " ( <hello attr="foobar" more="blah"><world>hi mom</world></hello> )
 
     xml:Content = <note>hi</note>
     println "Xml: " xml
@@ -85,15 +89,17 @@ run(args:String...) = do
     println cast[\Element\](z).hasElements()
     q = <f><g></g></f>
     println cast[\Element\](q).hasElements()
-    q1 = <chicken><elbow>hi</elbow>
-                  <hand>
-                    <finger>pinky</finger>
-                    <finger>thumb</finger>
-                  </hand>
+    q1 = <chicken tastes="good">
+            <elbow>hi</elbow>
+            <hand status="swollen" number="9">
+                <finger>pinky</finger>
+                <finger>thumb</finger>
+            </hand>
          </chicken>
     q2 = cast[\Element\](q1)
     println q2.hasElements()
     println q2.children()
+    println "Print tree for q2"
     printTree(q2,"")
     (*
     y = <t2> <t3>bread</t3> </t2>
