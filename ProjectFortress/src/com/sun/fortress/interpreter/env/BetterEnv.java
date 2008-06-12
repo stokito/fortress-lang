@@ -49,11 +49,13 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.StringArrayIterator;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
 
 
-public final class BetterEnv extends BaseEnv implements Iterable<String>  {
+public final class BetterEnv extends BaseEnv implements Iterable<String> 
+{
 
     private BATreeNode<String, FType> type_env;
     private BATreeNode<String, Number> nat_env;
@@ -79,14 +81,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
     /** (Lexical) ancestor environment */
     BetterEnv parent;
 
-    static boolean debug = false;
-
     private final static Comparator<String> comparator = StringComparer.V;
-
-    public Environment installPrimitives() {
-         Primitives.installPrimitives(this);
-         return this;
-    }
 
     public void visit(Visitor2<String, FType> vt,
                       Visitor2<String, Number> vn,
@@ -148,7 +143,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
         return (new BetterEnv(x)).installPrimitives();
     }
 
-    public BetterEnv(String s) {
+    private BetterEnv(String s) {
         this(new HasAt.FromString(s));
     }
 
@@ -307,13 +302,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
             return new BATreeNode<String, Result> (index, value);
         } else {
             BATreeNode<String, Result> new_table = table.add(index, value, comparator);
-//            if (new_table.getWeight() == table.getWeight()) {
-//                BATreeNode<String, Result> original = table.getObject(index, comparator);
-//                if (original == null) {
-//                    bug("Duplicate entry in table, but not in table.");
-//                }
-//                throw new RedefinitionError(what, index, original.getValue(), value);
-//            }
             return new_table;
         }
     }
@@ -470,67 +458,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
         return new BetterEnv(this, this.getAt());
     }
 
-    static public String string(FValue f1) {
-        return ((FString) f1).getString();
-    }
-
-   public void assignValue(HasAt loc, String str, FValue value) {
-        FValue v = get(var_env, str);
-        if (v instanceof ReferenceCell) {
-            ReferenceCell rc = (ReferenceCell) v;
-            FType ft = rc.getType();
-            if (ft != null) {
-                if (!ft.typeMatch(value)) {
-                    String m = errorMsg("Type mismatch assigning ", value, " (type ",
-                                        value.type(), ") to ", str, " (type ", ft, ")");
-                    error(loc, m);
-                    return;
-                }
-            }
-            rc.assignValue(value);
-            return;
-        }
-        if (v == null)
-            error(loc, this, "Cannot assign to unbound variable " + str);
-        error(loc, this, "Cannot assign to immutable " + str);
-    }
-
-    public void storeType(HasAt loc, String str, FType f2) {
-        FValue v = get(var_env, str);
-        if (v instanceof ReferenceCell) {
-            ((ReferenceCell)v).storeType(f2);
-            return;
-        }
-        if (v == null)
-            error(loc, this, "Type stored to unbound variable " + str);
-        error(loc, this, "Type stored to immutable variable " + str);
-
-    }
-
-
-//    public void assignValue(FValue f1, FValue f2) {
-//        assignValue(string(f1), f2);
-//
-//    }
-
- 
-    public void debugPrint(String debugString) {
-        if (debug)
-            System.out.println(debugString);
-
-    }
-
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
-        try {
-            dump(sb);
-        } catch (IOException never) {
-
-        }
-        return sb.toString();
-    }
-
-    public Appendable dump(Appendable a) throws IOException {
+      public Appendable dump(Appendable a) throws IOException {
         if (within!=null) {
             a.append(within.at());
             a.append("\n");
@@ -567,10 +495,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
 
     }
 
-    public BetterEnv genericLeafEnvHack(Environment genericEnv, HasAt loc) {
-        return new BetterEnv(this, genericEnv);
-    }
-
     public SApi getApiNull(String str) {
         SApi v = get(api_env, str);
         return v;
@@ -584,10 +508,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
     public SComponent getComponentNull(String str) {
         SComponent v = get(cmp_env, str);
         return v;
-    }
-
-    public SComponent getComponentNull(APIName name) {
-        return getComponentNull(NodeUtil.nameString(name));
     }
 
     public Declaration getDeclNull(String str) {
@@ -605,30 +525,11 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
         return v;
     }
 
-    public Closure getClosure(String s) {
-        return (Closure) getValue(s);
-    }
-
-    public FType getTypeNull(String name) {
+     public FType getTypeNull(String name) {
         return get(type_env, name);
     }
 
-    public FValue getValueNull(String s) {
-        FValue v = get(var_env, s);
-        if (v == null)
-            return v;
-        if (v instanceof IndirectionCell) {
-            try {
-                v = ((IndirectionCell) v).getValueNull();
-            } catch (CircularDependenceError ce) {
-                ce.addParticipant(s);
-                throw ce;
-            }
-        }
-        return v;
-    }
-
-    /**
+     /**
      * Completely uninterpreted value, only to be used when
      * initializing from imports.
      *
@@ -640,19 +541,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
         return v;
     }
 
-    public FType getVarTypeNull(String str) {
-        FValue v = get(var_env, str);
-        if (v == null)
-            return null;
-        if (v instanceof ReferenceCell) {
-            return ((ReferenceCell) v).getType();
-        }
-        return null;
-    }
-
-    public boolean hasType(String str) {
-        return has(var_env, str);
-    }
 
     public boolean hasValue(String str) {
         return has(var_env, str) || has(bool_env, str) || has(nat_env, str);
@@ -698,20 +586,13 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
             var_env = putNoShadow(var_env, str, f2, "Var/value");
      }
 
-    public void putValueShadowFn(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false, false);
-        else
-            var_env = putNoShadow(var_env, str, f2, "Var/value");
-     }
-
     public void putValueNoShadowFn(String str, FValue f2) {
         if (f2 instanceof Fcn)
             var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", true, false);
         else
             var_env = putNoShadow(var_env, str, f2, "Var/value");
      }
-
+    
     /**
      *
      * @param str
@@ -724,64 +605,18 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>  {
             error(str + " must be a functional method instance ");
      }
 
-    public void putVariable(String str, FValue f2) {
-        putValue(str, new ReferenceCell(FTypeTop.ONLY, f2));
-     }
-
-    public void putVariablePlaceholder(String str) {
-        putValue(str, new ReferenceCell());
-     }
-
     public void putValueUnconditionally(String str, FValue f2) {
         var_env = putUnconditionally(var_env, str, f2, "Var/value");
      }
 
-    public void putValueUnconditionally(String str, FValue f2, FType ft) {
-        putValueUnconditionally(str, new ReferenceCell(ft, f2));
-     }
-
-    public void putVariable(String str, FValue f2, FType ft) {
-        putValue(str, new ReferenceCell(ft, f2));
-    }
-
-    public void putVariable(String str, FType ft) {
-        putValue(str, new ReferenceCell(ft));
-    }
-
+ 
     public Iterator<String> iterator() {
         if (var_env != null)
-            return new Iter(namesPut, namesPutCount);
+            return new StringArrayIterator(namesPut, namesPutCount);
         return Collections.<String>emptySet().iterator();
     }
 
     // Slightly wrong -- returns all, not just the most recently bound.
-
-    static class Iter implements Iterator<String> {
-        String[] a;
-        int n;
-        int i;
-
-        Iter(String[] a, int n) {
-            this.a = a;
-            this.n = n;
-        }
-
-        public boolean hasNext() {
-            return i < n;
-        }
-
-        public String next() {
-            if (hasNext()) {
-                return a[i++];
-            }
-            return null;
-        }
-
-        public void remove() {
-            bug("Applicative data structures cannot be changed!");
-        }
-
-    }
 
     public HasAt getAt() {
         return within;

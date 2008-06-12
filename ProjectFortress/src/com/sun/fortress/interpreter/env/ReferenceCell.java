@@ -50,7 +50,7 @@ public class ReferenceCell extends IndirectionCell {
      */
     public static final int CONFLICT_THRESHOLD = 8;
 
-    ReferenceCell(FType t, FValue v) {
+    public ReferenceCell(FType t, FValue v) {
         super();
         theType = t;
         node = new FNode(v);
@@ -60,7 +60,7 @@ public class ReferenceCell extends IndirectionCell {
         readers = new ReadSet();
     }
 
-    ReferenceCell(FType t) {
+    public ReferenceCell(FType t) {
         super();
         theType = t;
         node = new FNode();
@@ -70,7 +70,7 @@ public class ReferenceCell extends IndirectionCell {
         readers = new ReadSet();
     }
 
-    ReferenceCell() {
+    public ReferenceCell() {
         super();
         node = new FNode();
         rnode = (Recoverable)node;

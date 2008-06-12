@@ -104,7 +104,7 @@ public interface Environment  {
      */
     public abstract void putType(String str, FType f2);
 
-    public boolean hasType(String str);
+    //public boolean hasType(String str);
 
     public abstract Declaration getDecl(String str);
 
@@ -178,6 +178,11 @@ public interface Environment  {
 
     public Environment extend() ;
     
+    /**
+     * Returns the names of vars in the most recently added frame (everything 
+     * added since this environment was created with a call to "extend()" ).
+     */
+    
     public Iterable<String> youngestFrame() ;
 
     public boolean isTopLevel();
@@ -189,7 +194,7 @@ public interface Environment  {
 
     public abstract HasAt getAt();
 
-    public abstract void putValueShadowFn(String fname, FValue cl);
+    //public abstract void putValueShadowFn(String fname, FValue cl);
 
     // A notable name -- for overloading later, I think.
     public abstract void noteName(String s);
