@@ -139,6 +139,9 @@ public class Desugarer extends Rewrite {
     public final static VarRef BIGOP_NAME =
         ExprFactory.makeVarRef(WellKnownNames.bigOperator);
 
+    public final static VarRef BIGOP2_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.bigOperator);
+
     public final static VarRef FILTER_NAME =
         ExprFactory.makeVarRef(WellKnownNames.filter);
 
