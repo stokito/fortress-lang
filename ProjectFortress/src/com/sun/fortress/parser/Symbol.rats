@@ -76,14 +76,14 @@ private String leftEncloser =
    ;
 
 private String leftEncloserMulti =
-     "(" ("/"+ / "\\"+)
+     "(." ("/"+ / "\\"+)
    / "[/\\/\\/" / "[/\\/"
    / "[" (sd slashes)
    / "{" (sd slashes)
    / lesses sd (slashes / bars)
    / bars sd slashes
    / "{*" /  "[*"
-   / "((>" / "(<"
+   / "((.>" / "(.<"
    ;
 
 private String rightEncloser =
@@ -92,13 +92,13 @@ private String rightEncloser =
    ;
 
 private String rightEncloserMulti =
-     "/"+ ")"
-   / "\\"+ ")"
+     "/"+ ".)"
+   / "\\"+ ".)"
    / slashes sd (greaters / bars / [\]}])
    / bars sd greaters
    / "*]" / "*}"
    / "]" / "}"
-   / ">)" / "<))"
+   / ">.)" / "<.))"
    / "/\\/\\/]" / "/\\/]"
    ;
 

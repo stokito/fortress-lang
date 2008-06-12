@@ -463,7 +463,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         }
         // TODO this isn't right if it was a test function.
         // it belongs in a different namespace if it is.
-        bindInto.putValueShadowFn(fname, cl);
+        bindInto.putValue(fname, cl); // was "shadow"
         //LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
 
     }
@@ -1379,7 +1379,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 // TODO same treatment as regular functions.
                 FValue cl = newGenericClosure(containing, x);
                 // LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
-                bindInto.putValueShadowFn(fname, cl);
+                bindInto.putValue(fname, cl); // was "shadow"
 
 
         } else {
@@ -1387,7 +1387,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
                 Simple_fcn cl = newClosure(containing, x);
                 // LINKER putOrOverloadOrShadow(x, containing, name, cl);
-                bindInto.putValueShadowFn(fname, cl);
+                bindInto.putValue(fname, cl); // was "shadow"
 
         }
 

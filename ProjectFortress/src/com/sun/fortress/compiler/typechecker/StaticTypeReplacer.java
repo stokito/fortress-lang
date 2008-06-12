@@ -22,8 +22,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.BoolRef;
+import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.DimRef;
+import com.sun.fortress.nodes.IntParam;
+import com.sun.fortress.nodes.NatParam;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.TypeParam;
+import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdStaticParam;
@@ -48,10 +56,12 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteGenericSingletonType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
@@ -164,8 +174,83 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 			return false;
 		}
 		else {
-			// TODO implement
-			return true;
+			Boolean valid=true;
+			Iterable<Pair<StaticParam,StaticArg>> zip = IterUtil.zip(static_params, static_args);
+			for(Pair<StaticParam,StaticArg> temp : zip){
+				final StaticParam  param = temp.first();
+				final StaticArg arg = temp.second(); 
+				NodeDepthFirstVisitor<Boolean> outer = new NodeDepthFirstVisitor<Boolean>() {
+					@Override
+					public Boolean defaultCase(Node that) {
+						return InterpreterBug.bug("Static param has been extended since argMatchParams was written");
+					}
+	
+					@Override
+					public Boolean forBoolParam(BoolParam that) {
+						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
+							@Override public Boolean defaultCase(Node that) {return false;}
+							@Override public Boolean forBoolArg(BoolArg that) {return true;}
+						};
+						return arg.accept(inner);
+					}
+	
+					@Override
+					public Boolean forDimParam(DimParam that) {
+						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
+							@Override public Boolean defaultCase(Node that) {return false;}
+							@Override public Boolean forDimArg(DimArg that) {return true;}
+						};
+						return arg.accept(inner);
+					}
+	
+					@Override
+					public Boolean forIntParam(IntParam that) {
+						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
+							@Override public Boolean defaultCase(Node that) {return false;}
+							@Override public Boolean forIntArg(IntArg that) {return true;}
+						};
+						return arg.accept(inner);
+					}
+	
+					@Override
+					public Boolean forNatParam(NatParam that) {
+						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
+							@Override public Boolean defaultCase(Node that) {return false;}
+							@Override public Boolean forIntArg(IntArg that) {return NI.nyi();}
+						};
+						return arg.accept(inner);
+					}
+	
+					@Override
+					public Boolean forTypeParam(TypeParam that) {
+						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
+							@Override public Boolean defaultCase(Node that) {return false;}
+							@Override public Boolean forTypeArg(TypeArg that) {return true;}
+						};
+						return arg.accept(inner);
+					}
+	
+					@Override
+					public Boolean forUnitParam(UnitParam that) {
+						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
+							@Override public Boolean defaultCase(Node that) {return false;}
+							@Override public Boolean forUnitArg(UnitArg that) {return true;}
+						};
+						return arg.accept(inner);
+					}
+					
+					@Override
+					public Boolean forOpParam(OpParam that) {
+						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
+							@Override public Boolean defaultCase(Node that) {return false;}
+							@Override public Boolean forOpArg(OpArg that) {return true;}
+						};
+						return arg.accept(inner);
+					}
+				};
+				valid&=param.accept(outer);
+			}
+			return valid;
 		}
 	}
 }

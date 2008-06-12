@@ -46,7 +46,7 @@ import Gaps;
  */
 Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
-   
+
 Expr ExprFront =
      AssignExpr
    / OpExpr
@@ -302,7 +302,8 @@ PureList<PrecedenceOpExpr> LooseInfix =
 
 /* Primary ::= PrimaryItem (w , w PrimaryItem)* */
 constant PureList<Expr> Primary =
-     a1:PrimaryItem a2s:(w comma w PrimaryItem)+ &(w Encloser)
+    a1:PrimaryItem a2s:(w comma w PrimaryItem)+
+    &(Encloser (wr / br / w comma / w RightEncloser))
      { List<PureList<Expr>> elists = FortressUtil.mkList(a1, a2s.list());
        List<Expr> es = new ArrayList<Expr>();
        for (PureList<Expr> elist : elists) {

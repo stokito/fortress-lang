@@ -86,7 +86,7 @@ public class FunctionalMethod extends Function {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticArg> args) {
+	public Option<Functional> instantiate(List<StaticArg> args) {
 		// TODO Auto-generated method stub
 		return NI.nyi();
 	}

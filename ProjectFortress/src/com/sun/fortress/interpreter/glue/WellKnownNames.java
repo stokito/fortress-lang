@@ -40,6 +40,7 @@ public class WellKnownNames {
     public static String cond = "__cond";
     public static String whileCond = "__whileCond";
     public static String bigOperator = "__bigOperator";
+    public static String bigOperator2 = "__bigOperator2";
     public static String filter = "__filter";
 
     public static String generatorTypeName = "Generator";
