@@ -1144,13 +1144,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 abstract AppExpr();
                     /**
                      * juxtaposition of expressions
+                     * If this node turns out to actually be a juxtaposition,
+                     * based on the types, the op field is a reference to
+                     * the operator that should be used.
+                     *
                      * Primary ::= Primary . Id StaticArgs? ParenthesisDelimited
                      *           | Primary TupleExpr
                      *           | Primary Primary
                      * e.g.) myString.replace("foo", "few")
                      * e.g.) log log n
                      */
-                    abstract Juxt(List<Expr> exprs = new LinkedList<Expr>());
+                    abstract Juxt(OpRef op = new OpRef(new Span(),
+                                                       Collections.<OpName>singletonList(new Op("juxtaposition"))),
+                                  List<Expr> exprs = new LinkedList<Expr>());
                         /**
                          * juxtaposition with intervening whitespace
                          * e.g.) 3 5
@@ -1165,6 +1171,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          * e.g.) f(3+5)
                          */
                         TightJuxt();
+                    /**
+                     * functional application
+                     * Primary ::= Primary ArgExpr
+                     *           | Primary Primary
+                     * e.g.) x y
+                     */
+                    _RewriteFnApp(Expr function, Expr argument);
                     /**
                      * expression using operators
                      * (list of ops allows cross-API overloading)
