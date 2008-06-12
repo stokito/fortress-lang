@@ -561,11 +561,18 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             /* TODO: this same sort of code is used in handleTemplateGap.
              * It should probably be abstracted and turned into a function.
              */
+            /*
             if (this.syntaxDeclEnv.isRepeat(id)) {
                 return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
             }
             // return that.getVar().toString();
-            return String.format("(Expr) %s.get(\"%s\")", ActionCreater.BOUND_VARIABLES, that.getVar().toString() );
+            // return String.format("(%s) %s.get(\"%s\")", GrammarEnv.getType(), ActionCreater.BOUND_VARIABLES, that.getVar().toString() );
+            Id nonterminal = syntaxDeclEnv.getNonterminalName(id);
+            Debug.debug( 4, String.format("%s is a non-terminal of type %s", id.getText(), lookupAstNode(nonterminal) ) );
+            return String.format("(%s) %s.get(\"%s\")", lookupAstNode(nonterminal), ActionCreater.BOUND_VARIABLES, id.getText() );
+            */
+            return extractVar(id);
+
         }
         return super.forVarRef(that);
     }
@@ -721,9 +728,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 	return addParamHandlers(id, mEnv, t.getParams(), paramEnv, this.code);
    }
 
-    private String normalGap(TemplateGap t){
-        Id id = t.getId();
-        if (this.syntaxDeclEnv.isRepeat(id)) {
+   private String extractVar(Id id){
+       if (this.syntaxDeclEnv.isRepeat(id)) {
             Debug.debug( 4, String.format("%s is a repeat symbol", id.getText() ) );
             return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";  
         }
@@ -748,6 +754,10 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         NI.nyi();
         /* will never get here */
         return null;
+   }
+
+    private String normalGap(TemplateGap t){
+        return extractVar(t.getId());
     }
 
     private String handleTemplateGap(TemplateGap t) {
