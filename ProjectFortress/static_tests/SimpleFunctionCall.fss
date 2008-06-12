@@ -22,8 +22,10 @@ f(s:String):String = s
 g[\T extends Any\](x:T):T = x
 
 run(args:String...):() = do
-  f("asdad")
-  g[\String\]("asdad")
+  var s:String
+
+  s := f("asdad")
+  s := g[\String\]("asdad")
   ()
 end
 

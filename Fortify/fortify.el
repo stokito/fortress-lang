@@ -1217,10 +1217,22 @@ Fortress source code)."
 	("\\\\mathop{\\\\uplus}" "\\\\biguplus")
 	;; Fixup for defining opr |self|
 	("\\\\KWD{opr} \\\\left|\\\\mathord{\\\\KWD{self}}|" "\\\\KWD{opr} \\\\left|\\\\mathord{\\\\KWD{self}}\\\\right|")
+	;; Fixup for defining opr BIG |||(
+	("\\\\KWD{opr} \\\\mathord{\\\\OPR{BIG}} \\\\left\\\\\\\\|(" "\\\\KWD{opr} \\\\left||\\\\right|(")
+	;; Fixup for defining opr BIG ||(
+	("\\\\KWD{opr} \\\\mathord{\\\\OPR{BIG}} \\\\left\\\\|(" "\\\\KWD{opr} \\\\left|\\\\right|(")
+	;; Fixup for defining opr |||(
+	("\\\\KWD{opr} \\\\left\\\\\\\\|(" "\\\\KWD{opr} \\\\left||\\\\right|(")
+	;; Fixup for defining opr ||(
+	("\\\\KWD{opr} \\\\left\\\\|(" "\\\\KWD{opr} \\\\left|\\\\right|(")
 	;; Fixup for defining opr :
 	("\\\\KWD{opr} \\\\mathrel{\\\\mathtt{:}}" "\\\\KWD{opr} \\\\mathinner{\\\\mathtt{:}}")
 	;; Fixup for |self|
 	("\\\\left|\\\\mathord{\\\\KWD{self}}\\\\lfloor)" "\\\\left|\\\\mathord{\\\\KWD{self}}\\\\right|}")
+	;; Fixup for ||
+	("\\\\lhfloor)" "\\\\left|\\\\right|}")
+	;; Fixup for |||
+	("\\\\lhhfloor)" "\\\\left||\\\\right|}")
 	;; Fixup for defining opr ^(self, other)
 	("\\\\KWD{opr} \\^(" "\\\\KWD{opr} \\\\mathord{\\\\hbox{\\\\tt\\\\char'136}}(")
 	;; # operator

@@ -18,11 +18,16 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import java.lang.reflect.Method;
 
@@ -32,9 +37,18 @@ import xtc.parser.SemanticValue;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.Export;
+import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
@@ -45,7 +59,18 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TransformationPreTemplateDef;
 import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.parser.Fortress;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
+import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv.PrefixSymbolSymbolGetter;
+import com.sun.fortress.syntax_abstractions.util.InterpreterWrapper;
+import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
@@ -78,10 +103,12 @@ public class TemplateParser extends NodeUpdateVisitor {
 		public Api modules() { return api; }
 	}
 
+	
 	private Collection<Parser.Error> errors;
-	private Collection<String> vars;
-	private LinkedList<String> syntaxDefVars;
+	private Map<Id, BaseType> vars;
+	private Map<Id, BaseType> varsToNonterminalType;
 
+	
 	public TemplateParser() {
 		this.errors = new LinkedList<Parser.Error>();
 	}
@@ -105,16 +132,21 @@ public class TemplateParser extends NodeUpdateVisitor {
 
 	@Override
     public Node forNonterminalHeader(NonterminalHeader that) {
-        this.vars = new LinkedList<String>();
-        for (Pair<Id, Type> p: that.getParams()) {
-            this.vars.add(p.getA().toString());
+        this.vars = new HashMap<Id, BaseType>();
+        for (Pair<Id, Id> p: that.getParams()) {           
+            this.vars.put(p.getA(), getType(p.getB()));
         }
         return super.forNonterminalHeader(that);
     }
 
-	@Override
+	private BaseType getType(Id id) {
+	    MemberEnv mEnv = GrammarEnv.getMemberEnv(id);
+        return mEnv.getAstType();
+    }
+
+    @Override
 	public Node forSyntaxDef(SyntaxDef that) {
-		this.syntaxDefVars = new LinkedList<String>();
+		this.varsToNonterminalType = new HashMap<Id, BaseType>();
 		return super.forSyntaxDef(that);
 	}
 
@@ -122,16 +154,24 @@ public class TemplateParser extends NodeUpdateVisitor {
 	public Node forPrefixedSymbol(PrefixedSymbol that) {
 		// We assume that all prefixed symbols have an identifier.
 		// If that is not the case then it is an error in the disambiguation and not here.
-		this.syntaxDefVars.add(that.getId().unwrap().toString());
+	    Id id = that.getId().unwrap();
+	    PrefixSymbolSymbolGetter psg = new SyntaxDeclEnv.PrefixSymbolSymbolGetter(id);
+        that.getSymbol().accept(psg);
+        for (Entry<Id, Id> e: psg.getVarToNonterminalName().entrySet()) {
+            this.varsToNonterminalType.put(e.getKey(), getType(e.getValue()));
+        }
+        for (Id i: psg.getAnyChars()) {
+            this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
+        }
 		return super.forPrefixedSymbol(that);
 	}
 
 	@Override
 	public Node forTransformationPreTemplateDefOnly(TransformationPreTemplateDef that) {
 		TemplateVarRewriter tvs = new TemplateVarRewriter();
-		List<String> vs = new LinkedList<String>();
-		vs.addAll(this.vars);
-		vs.addAll(this.syntaxDefVars);
+		Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
+		vs.putAll(this.vars);
+		vs.putAll(this.varsToNonterminalType);
 		String p = tvs.rewriteVars(vs, that.getTransformation());
 		Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
 		return res.unwrap(that);
@@ -147,6 +187,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 			 * elsewhere?
 			 */
 			String fullName = "pExpression$" + production;
+		    // String fullName = "pExprOnly";
 			Method found = parser.getDeclaredMethod(fullName, int.class);
 
 			/* method is private by default so we have to make
@@ -168,7 +209,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 	 * Wraps the invoked method to return a xtc.parser.Result and also throws
 	 * IOException.
 	 */
-	private xtc.parser.Result invokeParseMethod( com.sun.fortress.parser.Fortress parser, Method method, int num ) throws IOException {
+	private xtc.parser.Result invokeParseMethod(Fortress parser, Method method, int num) throws IOException {
 		try{
 			return (xtc.parser.Result) method.invoke(parser, num);
 		} catch (IllegalAccessException e){
@@ -179,7 +220,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 	}
 
 	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
-		BufferedReader in = Useful.bufferedStringReader(transformation);
+		BufferedReader in = Useful.bufferedStringReader(transformation.trim());
 		com.sun.fortress.parser.Fortress parser =
 			new com.sun.fortress.parser.Fortress(in, span.getBegin().getFileName());
 		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
@@ -188,20 +229,47 @@ public class TemplateParser extends NodeUpdateVisitor {
 		}
 
 		try {
+//		    System.err.println("PARSING: "+transformation);
 			xtc.parser.Result parseResult = invokeParseMethod(parser,parse.unwrap(),0);
 			if (parseResult.hasValue()) {
 				Object cu = ((SemanticValue) parseResult).value;
 				if (cu instanceof AbstractNode) {
+//				    System.err.println("RESULT: "+writeJavaAST(makeComponent((Expr) cu)));
 					return Option.<Node>some(new TransformationTemplateDef(span, (AbstractNode) cu));
 				} 
 				throw new RuntimeException("Unexpected parse result: " + cu);
 			} 
+//			System.err.println("Error: "+((ParseError) parseResult).msg);
 			this.errors.add(new Parser.Error((ParseError) parseResult, parser));
 			return Option.none();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		}
-
 	}
+	
+    private Component makeComponent(Expr expression) {
+        APIName name = NodeFactory.makeAPIName("TransformationComponent");
+        Span span = new Span();
+
+        // Decls:
+        List<Decl> decls = new LinkedList<Decl>();
+        // entry point
+        decls.add(NodeFactory.makeFnDecl(InterpreterWrapper.FUNCTIONNAME, new Id("Type"), expression));
+        return new Component(span, name, new LinkedList<Import>(), new LinkedList<Export>(), decls);
+    }
+
+    public String writeJavaAST(Component component) {
+        try {
+            StringWriter sw = new StringWriter();
+            BufferedWriter bw = new BufferedWriter(sw);
+            ASTIO.writeJavaAst(component, bw);
+            bw.flush();
+            bw.close();
+            //   System.err.println(sw.getBuffer().toString());
+            return sw.getBuffer().toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Unexpected error: "+e.getMessage());
+        }
+    }
 }

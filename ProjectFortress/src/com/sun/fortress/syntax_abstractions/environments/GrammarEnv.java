@@ -20,10 +20,17 @@ package com.sun.fortress.syntax_abstractions.environments;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
 /**
  * Contains a map from fully qualified nonterminal or terminal
@@ -74,7 +81,7 @@ public class GrammarEnv {
             Debug.debug( 4, "Didn't find it.." );
             return "StringLiteralExpr";
         }
-        String s = cutPackage(GrammarEnv.members.get(name).getType().toString());
+        String s = cutPackage(GrammarEnv.members.get(name).getAstType().toString());
         Debug.debug( 4, "Found " + s );
         return s;
     }
@@ -96,6 +103,22 @@ public class GrammarEnv {
      * Empty this environment
      */
     public static void clear() {
-        GrammarEnv.members.clear();
+        GrammarEnv.members = new HashMap<Id, MemberEnv>();
     }
+    
+    public static void add(GrammarIndex g) {
+        GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
+        Collection<NonterminalIndex<? extends GrammarMemberDecl>> ls = ga.getContainedSet(g);
+        for (NonterminalIndex/*<? extends GrammarMemberDecl> Commented out due to a bug in Sun Java 1.5.0_04 on Fedora Linux */ nt: ls) {
+            APIName currentApi = g.getName().getApi().unwrap();
+            String currentName = g.getName().getText();
+            Id name = SyntaxAbstractionUtil.qualifyMemberName(currentApi, currentName, nt.getName().getText());
+            GrammarEnv.add(nt.getName(), new MemberEnv(nt));
+        }
+    }
+
+    public static boolean isEmpty() {
+        return GrammarEnv.members.isEmpty();
+    }
+
 }

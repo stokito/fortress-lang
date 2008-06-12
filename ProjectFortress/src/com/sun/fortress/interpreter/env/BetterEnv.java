@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
-import com.sun.fortress.interpreter.evaluator.CommonEnv;
+import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Primitives;
@@ -53,7 +53,7 @@ import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
 
 
-public final class BetterEnv extends CommonEnv implements Environment, Iterable<String>  {
+public final class BetterEnv extends BaseEnv implements Iterable<String>  {
 
     private BATreeNode<String, FType> type_env;
     private BATreeNode<String, Number> nat_env;
@@ -576,10 +576,6 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return v;
     }
 
-    public SApi getApiNull(APIName d) {
-        return getApiNull(NodeUtil.nameString(d));
-    }
-
     public Boolean getBoolNull(String str) {
         Boolean v = get(bool_env, str);
         return v;
@@ -609,24 +605,12 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return v;
     }
 
-    public Closure getRunClosure() {
-        return (Closure) getValue("run");
-    }
-
     public Closure getClosure(String s) {
         return (Closure) getValue(s);
     }
 
     public FType getTypeNull(String name) {
         return get(type_env, name);
-    }
-
-    public FType getTypeNull(Id name) {
-        return getTypeNull(NodeUtil.nameString(name));
-    }
-
-    public FValue getValueNull(Id name) {
-        return getValueNull(NodeUtil.nameString(name));
     }
 
     public FValue getValueNull(String s) {
@@ -678,20 +662,10 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         api_env = put(api_env, s, api, "API");
     }
 
-    public void putApi(APIName d, SApi x) {
-        putApi(NodeUtil.nameString(d), x);
-
-    }
-
     public void putBool(String str, Boolean f2) {
         bool_env = put(bool_env, str, f2, "Boolean type parameter");
         var_env = put(var_env, str, FBool.make(f2), "Nat param as var/value");
    }
-
-    public void putComponent(APIName name, SComponent comp) {
-        putComponent(NodeUtil.nameString(name), comp);
-
-    }
 
     public void putComponent(String name, SComponent comp) {
         cmp_env = put(cmp_env, name, comp, "Component");
@@ -715,10 +689,6 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public void putType(String str, FType f2) {
         type_env = put(type_env, str, f2, "Type");
-    }
-
-    public void putType(Id name, FType x) {
-        putType(NodeUtil.nameString(name), x);
     }
 
     public void putValue(String str, FValue f2) {
@@ -776,10 +746,6 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public void putVariable(String str, FType ft) {
         putValue(str, new ReferenceCell(ft));
-    }
-
-    public void putValue(Id name, FValue x) {
-        putValue(NodeUtil.nameString(name), x);
     }
 
     public Iterator<String> iterator() {

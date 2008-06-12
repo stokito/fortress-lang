@@ -78,6 +78,7 @@ import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
@@ -134,8 +135,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     @Override
         public List<Sequence> forNonterminalDef(NonterminalDef that) {
             BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
-            String name = that.getHeader().getName().getText();
-            return visitSyntaxDefs(that.getSyntaxDefs(), name, type);
+	    String name = that.getHeader().getName().getText();
+	    MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+	    return visitSyntaxDefs(that.getSyntaxDefs(), name, type, memberEnv);
         }
 
     @Override
@@ -147,28 +149,29 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         public List<Sequence> for_TerminalDef(_TerminalDef that) {
             BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
             String name = that.getHeader().getName().getText();
-            List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type));
+	    MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+	    List<Sequence> sequences = FortressUtil.mkList(visitSyntaxDef(that.getSyntaxDef(), name, type, memberEnv));
             return sequences;
         }
 
     private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs,
-            String name, BaseType type) {
+            String name, BaseType type, MemberEnv memberEnv) {
         List<Sequence> sequence = new LinkedList<Sequence>();
         int inx = 1;
         for (SyntaxDef syntaxDef: syntaxDefs) {
-            sequence.add(visitSyntaxDef(syntaxDef, name+"_"+inx, type));
+	    sequence.add(visitSyntaxDef(syntaxDef, name+"_"+inx, type, memberEnv));
         }
         return sequence;
     }
 
-    private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type) {
+    private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type, MemberEnv memberEnv) {
         List<Element> elms = new LinkedList<Element>();
         // Translate the symbols
         for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
-            elms.addAll(sym.accept(new SymbolTranslator(new SyntaxDeclEnv(syntaxDef))));
+            elms.addAll(sym.accept(new SymbolTranslator(new SyntaxDeclEnv(syntaxDef, memberEnv))));
         }
         String newName = FreshName.getFreshName(name).toUpperCase();
-        ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, new SyntaxDeclEnv(syntaxDef), syntaxDef.accept(new VariableCollector()) );
+        ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, memberEnv.getSyntaxDeclEnv(syntaxDef).unwrap(), syntaxDef.accept(new VariableCollector()) );
         if (!acr.isSuccessful()) { new Result(acr.errors()); }  /* FIXME: suspicious */
         elms.add(acr.action());
         return new Sequence(new SequenceName(newName), elms);

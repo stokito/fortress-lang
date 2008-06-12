@@ -241,7 +241,64 @@ public class ActionCreaterUtil {
         */
     }
 
-    private static String getFortressMaybe(String id, List<String> code, List<Integer> indents) {
+    public static Option<String> FortressWrapper(Id id, SyntaxDeclEnv syntaxDeclEnv, List<String> listCode, List<String> code, List<Integer> indents) {
+        if (syntaxDeclEnv.contains(id)) {
+            if (syntaxDeclEnv.isRepeat(id)) {
+                return Option.some(getFortressList(id.getText(), listCode, indents));  
+            }
+            if (syntaxDeclEnv.isOption(id)) {
+                // return Option.some(getFortressMaybe(id.getText(), code, indents, syntaxDeclEnv));  
+                return Option.some(getFortressMaybe(id.getText(), code, indents));  
+            }
+            if (syntaxDeclEnv.isCharacterClass(id)) {
+                return Option.some(getFortressCharacterClass(id.getText(), code, indents));  
+            }
+            if (syntaxDeclEnv.isAnyChar(id)) {
+                return Option.some(getFortressAnyChar(id.getText(), code, indents));  
+            }
+        }
+        return Option.none();
+    }
+
+    /*
+private static String getFortressMaybe(Id id, List<String> code, List<Integer> indents        , SyntaxDeclEnv syntaxDeclEnv) {
+        int codeSize = code.size();
+        String spanName = JavaAstPrettyPrinter.getSpan(id, code);
+        for (int inx=codeSize; inx<code.size(); inx++) {
+            indents.add(3);
+        }        
+       
+        String name = FreshName.getFreshName("option");
+        indents.add(3);
+        code.add("Expr "+name+" = null;");
+        
+        String staticArgs = FreshName.getFreshName("staticArgs");
+        indents.add(3);
+        code.add("List<StaticArg> "+staticArgs+"= new LinkedList<StaticArg>();");
+//        indents.add(3);
+//        code.add(staticArgs+".add(new TypeArg(new VarType(NodeFactory.makeId("+spanName+        ",\""+SyntaxAbstractionUtil.FORTRESSAST+"\", "+type+"))));");
+        indents.add(3);
+        code.add("if (null != "+id.getText()+") {");
+        String justArgs = FreshName.getFreshName("justArgs");
+        indents.add(3);
+        code.add("List<Expr> "+justArgs+" = new LinkedList<Expr>();");
+        indents.add(3);
+        code.add("    "+justArgs+".add("+id.getText()+");");
+        indents.add(3);
+        code.add("    "+name+" = com.sun.fortress.syntax_abstractions.util.SyntaxAbstracti        onUtil.makeObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+"\", \"        "+SyntaxAbstractionUtil.JUST+"\", "+justArgs+", "+staticArgs+");");
+        indents.add(3);
+        code.add("}");
+        indents.add(3);
+        code.add("else {");
+        indents.add(3);
+        code.add("    "+name+" = com.sun.fortress.syntax_abstractions.util.SyntaxAbstracti        onUtil.makeNoParamObjectInstantiation("+spanName+", \""+SyntaxAbstractionUtil.FORTRESSAST+        "\", \""+SyntaxAbstractionUtil.NOTHING+"\", "+staticArgs+");");
+        indents.add(3);
+        code.add("}");
+        return name;
+    }
+     */
+
+    private static String getFortressMaybe(String id, List<String> code, List<Integer> indents ) {
         String converter = "com.sun.fortress.syntax_abstractions.util.ActionRuntime.makeMaybeAST";
         String astName = FreshName.getFreshName("ast");
         indents.add(4);

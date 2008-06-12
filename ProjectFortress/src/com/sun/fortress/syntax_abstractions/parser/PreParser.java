@@ -34,6 +34,7 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
@@ -111,8 +112,10 @@ public class PreParser {
         Collection<GrammarIndex> result = new LinkedList<GrammarIndex>();
 		for (Component c: pr.components()) {
 			result.addAll(new ImportedApiCollector(env).collectApis(c));
-			if (!result.isEmpty()) {
-				System.err.println("Component: "+c.getName()+" imports grammars...");	
+			if (ProjectProperties.debug) {
+			    if (!result.isEmpty()) {
+			        System.err.println("Component: "+c.getName()+" imports grammars...");	
+			    }
 			}
 		}
 
