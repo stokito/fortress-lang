@@ -28,6 +28,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.compiler.environmentor.TopLevelEnvGenerator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ASTIO;
