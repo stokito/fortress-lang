@@ -59,6 +59,14 @@ public class NodeFactory {
     throwss, where, contract, selfName);
  }
 
+    public static Id makeTemporaryId() {
+        return makeId("$$bogus_name$$");
+    }
+
+    public static OpName makeTemporaryOpName() {
+        return makeOp("$$bogus_name$$");
+    }
+
     public static APIName makeAPINameSkipLast(Id first, Id rest) {
         List<Id> ids = new ArrayList<Id>();
         Id last = first;

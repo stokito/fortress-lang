@@ -228,9 +228,12 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
     }
 
     @Override
-    public Expr forFnRefOnly(FnRef that, List<Expr> fns_result,
-            List<Expr> staticArgs_result) {
+    public Expr forFnRefOnly(FnRef that,
+                             Expr originalName_result,
+                             List<Expr> fns_result,
+                             List<Expr> staticArgs_result) {
         List<Expr> args = new LinkedList<Expr>();
+        args.add(originalName_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, fns_result, "Id"));
         args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "FnRef", args);
@@ -248,6 +251,8 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
             Expr infixJuxt_result,
             List<Expr> exprs_result) {
         List<Expr> args = new LinkedList<Expr>();
+        args.add(multiJuxt_result);
+        args.add(infixJuxt_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, exprs_result, "Expr"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "LooseJuxt", args);
     }
@@ -273,9 +278,12 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
     }
 
     @Override
-    public Expr forOpRefOnly(OpRef that, List<Expr> ops_result,
+    public Expr forOpRefOnly(OpRef that,
+                             Expr originalName_result,
+                             List<Expr> ops_result,
             List<Expr> staticArgs_result) {
         List<Expr> args = new LinkedList<Expr>();
+        args.add(originalName_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, ops_result, "OpName"));
         args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "OpRef", args);
@@ -304,9 +312,11 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
 
     @Override
     public Expr forTightJuxtOnly(TightJuxt that, Expr multiJuxt_result,
-            Expr infixJuxt_result,
-            List<Expr> exprs_result) {
+                                 Expr infixJuxt_result,
+                                 List<Expr> exprs_result) {
         List<Expr> args = new LinkedList<Expr>();
+        args.add(multiJuxt_result);
+        args.add(infixJuxt_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, exprs_result, "Expr"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "TightJuxt", args);
     }
