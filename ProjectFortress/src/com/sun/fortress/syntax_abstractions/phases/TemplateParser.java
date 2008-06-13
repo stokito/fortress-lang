@@ -208,7 +208,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 	 * Wraps the invoked method to return a xtc.parser.Result and also throws
 	 * IOException.
 	 */
-	private xtc.parser.Result invokeParseMethod(Fortress parser, Method method, int num) throws IOException {
+	private xtc.parser.Result invokeParseMethod(com.sun.fortress.parser.templateparser.TemplateParser parser, Method method, int num) throws IOException {
 		try{
 			return (xtc.parser.Result) method.invoke(parser, num);
 		} catch (IllegalAccessException e){
@@ -220,8 +220,8 @@ public class TemplateParser extends NodeUpdateVisitor {
 
 	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
 		BufferedReader in = Useful.bufferedStringReader(transformation.trim());
-		com.sun.fortress.parser.Fortress parser =
-			new com.sun.fortress.parser.Fortress(in, span.getBegin().getFileName());
+		com.sun.fortress.parser.templateparser.TemplateParser parser =
+			new com.sun.fortress.parser.templateparser.TemplateParser(in, span.getBegin().getFileName());
 		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
 		if ( ! parse.isSome() ){
 			throw new RuntimeException("Did not find method " + productionName);
