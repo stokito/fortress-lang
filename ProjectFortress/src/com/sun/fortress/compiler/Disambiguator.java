@@ -52,6 +52,7 @@ import com.sun.fortress.compiler.disambiguator.NonterminalDisambiguator;
 import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
 import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
+import com.sun.fortress.exceptions.StaticError;
 
 /**
  * Eliminates ambiguities in an AST that can be resolved solely by knowing what

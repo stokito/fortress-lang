@@ -28,7 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * A _WrappedFValue permits the interpreter to incorporate intermediate

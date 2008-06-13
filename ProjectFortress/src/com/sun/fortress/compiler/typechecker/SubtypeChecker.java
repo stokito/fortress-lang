@@ -27,15 +27,15 @@ import edu.rice.cs.plt.lambda.Lambda;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.compiler.index.*;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.exceptions.ProgramError;
 
 import static java.lang.Boolean.TRUE;
 import static java.lang.Boolean.FALSE;
 import static com.sun.fortress.nodes_util.NodeUtil.getName;
 import static com.sun.fortress.nodes_util.NodeUtil.nameString;
 import static com.sun.fortress.compiler.Types.*;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
  * Used for checking subtype relationships between two types.

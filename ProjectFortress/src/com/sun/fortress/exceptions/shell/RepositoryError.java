@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,10 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell;
+package com.sun.fortress.exceptions.shell;
 
-public class ShellException extends RuntimeException {
-   public ShellException(Exception e) {
-      super(e.getMessage());
-   }
+public class RepositoryError extends RuntimeException {
+    public RepositoryError(String _message) {
+        super(_message);
+    }
+
 }

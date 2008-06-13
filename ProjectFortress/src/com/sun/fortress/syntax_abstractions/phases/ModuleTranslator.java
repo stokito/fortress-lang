@@ -28,9 +28,9 @@ import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleImport;
 import xtc.parser.ModuleName;
 
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;

@@ -36,8 +36,8 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.BaseEnv.debug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 /**
  * A BaseEnv supplies (enforces!) some overloadings that

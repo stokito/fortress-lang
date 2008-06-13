@@ -17,21 +17,21 @@
 
 package com.sun.fortress.interpreter.env;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
+import com.sun.fortress.exceptions.CircularDependenceError;
+import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Primitives;
-import com.sun.fortress.interpreter.evaluator.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;

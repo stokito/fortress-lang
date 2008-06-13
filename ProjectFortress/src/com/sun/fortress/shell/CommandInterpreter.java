@@ -24,8 +24,12 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.shell.RepositoryError;
+import com.sun.fortress.exceptions.shell.ShellException;
+import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.interpreter.drivers.*;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
@@ -33,7 +37,7 @@ import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.shell.ConvenientStrings.*;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.io.*;
 

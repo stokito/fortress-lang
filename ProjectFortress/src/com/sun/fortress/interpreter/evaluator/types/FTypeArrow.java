@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.Type;

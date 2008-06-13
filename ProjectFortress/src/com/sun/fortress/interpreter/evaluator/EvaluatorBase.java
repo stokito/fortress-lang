@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
@@ -48,9 +50,9 @@ import com.sun.fortress.useful.LatticeIntervalMap;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 

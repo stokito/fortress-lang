@@ -38,7 +38,7 @@ import com.sun.fortress.parser.Fortress;
 
 import edu.rice.cs.plt.tuple.Option;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /* EscapeRewriter
  * Replaces escape sequences in strings (see Syntax.rats : EscapedSpecialChars, EscapedSpecialSymbol)

@@ -15,10 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator;
+package com.sun.fortress.exceptions;
 
 
-import com.sun.fortress.compiler.StaticError;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.useful.HasAt;
 

@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDef;

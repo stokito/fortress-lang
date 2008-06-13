@@ -29,7 +29,7 @@ import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
 import edu.rice.cs.plt.tuple.Option;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /*
  * Collect the names of nonterminals referred form the alternatives of any

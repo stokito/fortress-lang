@@ -44,7 +44,7 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 // From Fortress/interpreter/ast/ast_utils.ml
 public class ASTUtil {

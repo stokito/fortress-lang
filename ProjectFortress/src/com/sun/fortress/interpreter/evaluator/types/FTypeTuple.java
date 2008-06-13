@@ -17,8 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import static com.sun.fortress.interpreter.evaluator.FortressException.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.FortressException.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
 
@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.UnificationError;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarargTupleType;

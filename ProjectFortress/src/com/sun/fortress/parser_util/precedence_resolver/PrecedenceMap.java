@@ -34,7 +34,7 @@ import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VarArgs;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /* The following file is the automatially-generated list of operator
  * sets and equivalences.  This fils is used as the primary data

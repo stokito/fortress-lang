@@ -34,9 +34,10 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 import edu.rice.cs.plt.tuple.Option;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import com.sun.fortress.exceptions.ProgramError;
+
+import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.nodes_util.OprUtil.noColonText;
 import static com.sun.fortress.parser_util.FortressUtil.spanTwo;
 

@@ -17,8 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
+import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;

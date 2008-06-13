@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator.transactions.exceptions;
+package com.sun.fortress.exceptions.transactions;
 
 /**
  * Thrown to indicate an error in the use of the transactional memory;

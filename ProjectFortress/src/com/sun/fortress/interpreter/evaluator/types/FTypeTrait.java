@@ -16,7 +16,7 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.List;
 import java.util.Set;

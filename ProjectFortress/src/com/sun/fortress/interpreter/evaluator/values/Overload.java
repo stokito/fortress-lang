@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.HasAt;

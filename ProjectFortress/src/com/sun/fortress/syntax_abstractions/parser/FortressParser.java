@@ -31,8 +31,9 @@ import xtc.parser.SemanticValue;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.Parser.Result;
+import com.sun.fortress.exceptions.ParserError;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
@@ -111,7 +112,7 @@ public class FortressParser {
 					throw new RuntimeException("Unexpected parse result: " + cu);
 
 				}
-				return new Result(new Parser.Error((ParseError) parseResult, p));
+				return new Result(new ParserError((ParseError) parseResult, p));
 			}
 			finally { in.close(); }
 		}

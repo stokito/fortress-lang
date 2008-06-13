@@ -17,9 +17,9 @@
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
+import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
 
 import java.lang.reflect.Array;

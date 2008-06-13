@@ -22,7 +22,6 @@ import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.GrammarIndex;
@@ -30,13 +29,14 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;

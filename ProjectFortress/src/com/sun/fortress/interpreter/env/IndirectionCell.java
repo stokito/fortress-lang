@@ -17,9 +17,9 @@
 
 package com.sun.fortress.interpreter.env;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;

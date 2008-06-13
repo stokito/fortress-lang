@@ -42,7 +42,7 @@ import com.sun.fortress.compiler.Types;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.NI;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * This visitor "refines" a bounding map by making its inferences more

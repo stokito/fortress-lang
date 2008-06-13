@@ -19,6 +19,7 @@ package com.sun.fortress.compiler;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
+import com.sun.fortress.exceptions.StaticError;
 
 import java.util.ArrayList;
 

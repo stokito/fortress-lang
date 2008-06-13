@@ -17,18 +17,18 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.UnificationError.unificationError;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.glue.Glue;

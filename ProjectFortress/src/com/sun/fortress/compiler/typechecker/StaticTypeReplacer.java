@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimParam;

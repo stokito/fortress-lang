@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.File;
 import junit.framework.TestCase;
 
+import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.nodes.*;
 
 /**

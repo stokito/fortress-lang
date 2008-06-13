@@ -20,7 +20,7 @@ package com.sun.fortress.nodes_util;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BATree2;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class UIDMapFactory {
     /**

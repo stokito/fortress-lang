@@ -29,6 +29,7 @@ import java.util.Stack;
 
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
@@ -41,7 +42,6 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.shell.RepositoryError;
 import com.sun.fortress.useful.MinimalMap;
 import com.sun.fortress.useful.MultiMap;
 

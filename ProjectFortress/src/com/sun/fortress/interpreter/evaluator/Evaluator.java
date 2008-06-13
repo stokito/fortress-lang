@@ -26,14 +26,17 @@ import java.util.Stack;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.exceptions.FortressError;
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.LabelException;
+import com.sun.fortress.exceptions.NamedLabelException;
+import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
@@ -168,9 +171,9 @@ import com.sun.fortress.useful.Useful;
 
 import java.util.concurrent.Callable;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class Evaluator extends EvaluatorBase<FValue> {
      boolean debug = false;

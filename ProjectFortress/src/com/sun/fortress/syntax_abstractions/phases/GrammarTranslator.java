@@ -30,9 +30,9 @@ import xtc.parser.ModuleList;
 import xtc.parser.ModuleName;
 import xtc.parser.Production;
 
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;

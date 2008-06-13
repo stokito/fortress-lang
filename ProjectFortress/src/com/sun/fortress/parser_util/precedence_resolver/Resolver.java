@@ -57,7 +57,7 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.nodes_util.OprUtil.noColonText;
 
 /*

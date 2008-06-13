@@ -37,10 +37,10 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.exceptions.ProgramError;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 public final class FortressUtil {
     public static <T> T syntaxError(Span span, String msg) {

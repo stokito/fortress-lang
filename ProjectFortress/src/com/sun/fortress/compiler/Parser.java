@@ -49,6 +49,8 @@ import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.exceptions.ParserError;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
 
@@ -104,33 +106,6 @@ public class Parser {
         public long lastModified() { return _lastModified; }
     }
 
-    public static class Error extends StaticError {
-        private final ParseError _parseError;
-        private final ParserBase _parser;
-
-        public Error(ParseError parseError, ParserBase parser) {
-            _parseError = parseError;
-            _parser = parser;
-        }
-
-        public String typeDescription() { return "Parse Error"; }
-
-        public String description() {
-            String result = _parseError.msg;
-            int size = result.length();
-            if (size > 8 && result.substring(size-8,size).equals("expected"))
-                 result = "Syntax Error";
-            else result = "Syntax Error: " + result;
-            // TODO: I don't know for sure whether this is allowed to be null
-            if (result == null || result.equals("")) { result = "Unspecified cause"; }
-            return result;
-        }
-
-        public String at() {
-            if (_parseError.index == -1) { return "Unspecified location"; }
-            else { return _parser.location(_parseError.index).toString(); }
-        }
-    }
 
     /**
      * Parse the given files and any additional files that are expected to contain
@@ -215,7 +190,7 @@ public class Parser {
 		            throw new RuntimeException("Unexpected parse result: " + cu);
 		        }
 		    } else {
-		        return new Result(new Parser.Error((ParseError) parseResult, p));
+		        return new Result(new ParserError((ParseError) parseResult, p));
 		    }
 		}
 		finally { in.close(); }

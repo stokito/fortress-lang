@@ -31,9 +31,10 @@ import xtc.parser.SemanticValue;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.exceptions.ParserError;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
@@ -142,7 +143,7 @@ public class PreParser {
 					}
 				}
 				else {
-					return new Parser.Result(new Parser.Error((ParseError) parseResult, p));
+					return new Parser.Result(new ParserError((ParseError) parseResult, p));
 				}
 			}
 			finally { in.close(); }

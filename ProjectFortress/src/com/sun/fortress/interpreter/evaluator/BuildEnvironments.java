@@ -24,6 +24,7 @@ import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
@@ -109,9 +110,9 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Voidoid;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 /**
  * This comment is not yet true; it is a goal.

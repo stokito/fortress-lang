@@ -28,7 +28,8 @@ import edu.rice.cs.plt.lambda.Lambda2;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.Types;
@@ -36,7 +37,6 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static edu.rice.cs.plt.tuple.Option.wrap;
 
 public class NodeFactory {
