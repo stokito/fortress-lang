@@ -24,8 +24,10 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;
+import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -37,28 +39,41 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
  */
 public class DependencyCollector extends NodeDepthFirstVisitor_void {
 
- private Set<Id> result;
+    private Set<Id> result;
 
- public DependencyCollector() {
-  this.result = new HashSet<Id>();
- }
+    public DependencyCollector() {
+        this.result = new HashSet<Id>();
+    }
 
- @Override
- public void forNonterminalSymbolOnly(NonterminalSymbol that) {
-  // We know that fortress modules are on the form FortressSyntax.moduleName.nonterminal
-  if (ModuleInfo.isFortressModule(that.getNonterminal())) {
-   if (that.getNonterminal().getApi().isNone())
-       bug(that, "Missing an API name...");
-   Id id = that.getNonterminal().getApi().unwrap().getIds().get(1);
-   result.add(id);
-  }
-  else {
-   result.add(that.getNonterminal());
-  }
- }
+    @Override
+    public void forNonterminalHeader(NonterminalHeader that) {
+        /* Blah(e:Expr), e is the first Id, Expr is the second */
+        for ( com.sun.fortress.useful.Pair<Id,Id> params : that.getParams() ){
+            Debug.debug( 1 , "Add non-terminal param module " + params.getB() );
+            addModule( params.getB() );
+        }
+    }
 
- public Set<Id> getResult() {
-  return this.result;
- }
+    @Override
+    public void forNonterminalSymbolOnly(NonterminalSymbol that) {
+        addModule(that.getNonterminal());
+    }
+
+    private void addModule(Id id){
+        // We know that fortress modules are on the form FortressSyntax.moduleName.nonterminal
+        if (ModuleInfo.isFortressModule(id)) {
+            if (id.getApi().isNone())
+                bug(id, "Missing an API name...");
+            Id name = id.getApi().unwrap().getIds().get(1);
+            result.add(name);
+        }
+        else {
+            result.add(id);
+        }
+    }
+
+    public Set<Id> getResult() {
+        return this.result;
+    }
 
 }

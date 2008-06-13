@@ -181,7 +181,7 @@ SyntaxSymbol SpaceOrBreakline =
     /  yyValue:Breakline;
 
 SyntaxSymbol SyntaxSymbol =
-      Not w s1:Symbol
+      Not w s1:SymbolMod
       {  if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
           yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new NotPredicateSymbol(s1.getSpan(), tmp));
@@ -189,7 +189,7 @@ SyntaxSymbol SyntaxSymbol =
         else {
            yyValue = new NotPredicateSymbol(createSpan(yyStart,yyCount), s1);
         }}
-    / And w s1:Symbol
+    / And w s1:SymbolMod
       {  if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
           yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new AndPredicateSymbol(s1.getSpan(), tmp));
@@ -197,19 +197,37 @@ SyntaxSymbol SyntaxSymbol =
         else {
            yyValue = new AndPredicateSymbol(createSpan(yyStart,yyCount), s1);
         }}
-    / s:Single questionmark
-      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), s); }
+    / yyValue:SymbolMod;
+
+SyntaxSymbol SymbolMod =
+    s:Single questionmark
+      { if ( s instanceof NoWhitespaceSymbol ){
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new OptionalSymbol(s.getSpan(), ((NoWhitespaceSymbol)s).getSymbol()));
+        } else {
+	  yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), s);
+	}
+      }
     / s:Single star
-      { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), s); }
+      { if ( s instanceof NoWhitespaceSymbol ){
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new RepeatSymbol(s.getSpan(), ((NoWhitespaceSymbol)s).getSymbol()));
+        } else {
+	  yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), s);
+	}
+      }
     / s:Single plus
-      { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), s); }
+      { if ( s instanceof NoWhitespaceSymbol ){
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new RepeatOneOrMoreSymbol(s.getSpan(), ((NoWhitespaceSymbol)s).getSymbol()));
+        } else {
+	  yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), s);
+	}
+      }
     / yyValue:Single;
       
 SyntaxSymbol Single =
     yyValue:GroupSymbol
     / s:BaseSymbol
     { if ( s instanceof NoWhitespaceSymbol ){
-        yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), ((NoWhitespaceSymbol) s).getSymbol() );
+        yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(((NoWhitespaceSymbol) s).getSymbol())) );
       } else {
         yyValue = new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(s)); }
       }
