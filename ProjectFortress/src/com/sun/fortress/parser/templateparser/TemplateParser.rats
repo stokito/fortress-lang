@@ -123,7 +123,7 @@ instantiate com.sun.fortress.parser.templateparser.Keyword(Identifier)
             as Keyword;
 instantiate com.sun.fortress.parser.templateparser.Unicode
             as Unicode;
-instantiate com.sun.fortress.parser.Gaps(Symbol, Spacing, Identifier)
+instantiate com.sun.fortress.parser.templateparser.Gaps(Symbol, Spacing, Identifier)
             as Gaps;
 
 header {

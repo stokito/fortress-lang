@@ -84,14 +84,18 @@ import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptingMI;
 import com.sun.fortress.nodes.TemplateGapCharLiteralExpr;
+import com.sun.fortress.nodes.TemplateGapDelimitedExpr;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.TemplateGapFloatLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapFnExpr;
+import com.sun.fortress.nodes.TemplateGapName;
 import com.sun.fortress.nodes.TemplateGapId;
 import com.sun.fortress.nodes.TemplateGapIntLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapLooseJuxt;
 import com.sun.fortress.nodes.TemplateGapNumberLiteralExpr;
+import com.sun.fortress.nodes.TemplateGapPrimary;
+import com.sun.fortress.nodes.TemplateGapSimpleExpr;
 import com.sun.fortress.nodes.TemplateGapStringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapVoidLiteralExpr;
 import com.sun.fortress.nodes.Throw;
@@ -810,6 +814,18 @@ public class ExprFactory {
         return new TemplateGapExpr(s, id, params);
     }
     
+    public static TemplateGapDelimitedExpr makeTemplateGapDelimitedExpr(Span s, Id id, List<Id> params) {
+        return new TemplateGapDelimitedExpr(s, id, params);
+    }
+    
+    public static TemplateGapSimpleExpr makeTemplateGapSimpleExpr(Span s, Id id, List<Id> params) {
+        return new TemplateGapSimpleExpr(s, id, params);
+    }
+    
+    public static TemplateGapPrimary makeTemplateGapPrimary(Span s, Id id, List<Id> params) {
+        return new TemplateGapPrimary(s, id, params);
+    }
+    
     public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
         Expr body = new VarRef(id);
         return new TemplateGapFnExpr(s, false, id, new LinkedList<Param>(), body, id, params);
@@ -819,6 +835,10 @@ public class ExprFactory {
         return new TemplateGapLooseJuxt(s, id, params);
     }
 
+    public static TemplateGapName makeTemplateGapName(Span s, Id id, List<Id> params) {
+        return new TemplateGapName(s, id, params);
+    }
+    
     public static TemplateGapId makeTemplateGapId(Span s, Id id, List<Id> params) {
         return new TemplateGapId(s, "IdGap:"+id.getText(), id, params);
     }

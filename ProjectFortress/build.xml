@@ -540,7 +540,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
-    <target name="testSyntaxAbs" depends="compile"
+    <target name="testsyntax" depends="compile"
             description="Run SyntaxAbstractionJUTests.">
         <mkdir dir="${test.results}"/>
         <junit printsummary="on"

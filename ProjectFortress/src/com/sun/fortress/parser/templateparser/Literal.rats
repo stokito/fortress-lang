@@ -31,4 +31,35 @@ import Identifier;
 import Gaps;
 
 modify com.sun.fortress.parser.Literal(MayNewlineHeader,
-DelimitedExpr, NoSpaceExpr, Symbol, Spacing, Identifier, Gaps);
+DelimitedExpr, NoSpaceExpr, Symbol, Spacing, Identifier);
+
+Expr LiteralExpr +=
+     ExprGap
+   / LooseJuxtGap
+   / SimpleExprGap
+   / PrimaryGap
+   / LiteralExprGap
+   / <VOID> ...;
+
+Expr VoidLiteralExpr +=
+     VoidLiteralExprGap
+   / <FIRST> ...;
+
+FloatLiteralExpr FloatLiteralExpr += 
+     NumberLiteralExprGap
+   / FloatLiteralExprGap
+   / <FIRST> ...;
+
+IntLiteralExpr IntLiteralExpr += 
+     NumberLiteralExprGap
+   / IntLiteralExprGap
+   / <FIRST> ...;
+
+CharLiteralExpr CharLiteralExpr +=
+     CharLiteralExprGap
+   / <FIRST> ...;
+
+StringLiteralExpr StringLiteralExpr += 
+     StringLiteralExprGap
+   / <FIRST> ... ;
+
