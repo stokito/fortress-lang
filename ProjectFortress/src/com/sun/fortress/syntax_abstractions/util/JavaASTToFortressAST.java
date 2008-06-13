@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.MultiFixity;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntLiteralExpr;
+import com.sun.fortress.nodes.InFixity;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -255,6 +256,12 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
     public Expr forMultiFixityOnly(MultiFixity that) {
         List<Expr> args = new LinkedList<Expr>();
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "MultiFixity", args);
+    }
+
+    @Override
+    public Expr forInFixity(InFixity that) {
+        List<Expr> args = new LinkedList<Expr>();
+        return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "InFixity", args);
     }
 
     @Override
