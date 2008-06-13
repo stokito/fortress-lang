@@ -85,7 +85,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * templates
      */
-    interface TemplateGap(Id id, List<Id> params);
+    interface TemplateGap(Id id, List<Id> templateParams);
 
 /**
  * functional declaration or function expression
@@ -687,7 +687,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * Template gap for expressions
          */
-        TemplateGapExpr(Id id, List<Id> params) implements TemplateGap;
+        TemplateGapExpr(Id id, List<Id> templateParams) implements TemplateGap;
         /**
          * expression annotated with a type
          */
@@ -949,6 +949,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                    = Option.<List<BaseType>>none(),
                Expr body)
               implements Applicable;
+            /**
+             * Template gap for FnExpr
+             */
+            TemplateGapFnExpr(Id id, List<Id> templateParams) implements TemplateGap;
         /**
          * expression used in block expressions
          * BlockElem ::= LocalVarFnDecl
@@ -1015,7 +1019,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     /**
                      * Template gap for literal expressiont
                      */
-                    TemplateGapLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                    TemplateGapLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * number literal
                      */
@@ -1023,7 +1027,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                         /**
                          * Template gap for number literals
                          */
-                        TemplateGapNumberLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                        TemplateGapNumberLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * float literal
                          * e.g.) 3.5
@@ -1035,7 +1039,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                             /**
                              * Template gap for float literals
                              */
-                            TemplateGapFloatLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                            TemplateGapFloatLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * int literal
                          * e.g.) 7
@@ -1045,7 +1049,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                             /**
                              * Template gap for int literals
                              */
-                            TemplateGapIntLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                            TemplateGapIntLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * char literal
                      * e.g.) 'c'
@@ -1054,7 +1058,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                         /**
                          * Template gap for char literals
                          */
-                        TemplateGapCharLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                        TemplateGapCharLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * string literal
                      * e.g.) "string"
@@ -1063,7 +1067,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                         /**
                          * Template gap for string literals
                          */
-                        TemplateGapStringLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                        TemplateGapStringLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * void literal
                      * e.g.) ()
@@ -1072,7 +1076,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                         /**
                          * Template gap for void literals
                          */
-                        TemplateGapVoidLiteralExpr(Id id, List<Id> params) implements TemplateGap;
+                        TemplateGapVoidLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                 /**
                  * variable reference
                  * VarOrFnRef ::= Id
@@ -1169,7 +1173,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                             /**
                              * Template gap for expressions
                              */
-                            TemplateGapLooseJuxt(Id id, List<Id> params) implements TemplateGap;
+                            TemplateGapLooseJuxt(Id id, List<Id> templateParams) implements TemplateGap;
                        /**
                          * juxtaposition without intervening whitespace
                          * e.g.) f(3+5)
@@ -1962,7 +1966,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     /**
                      * Template gap for expressions
                      */
-                    TemplateGapId(Id id, List<Id> params) implements TemplateGap;
+                    TemplateGapId(Id id, List<Id> templateParams) implements TemplateGap;
                 /**
                  * operator name
                  */

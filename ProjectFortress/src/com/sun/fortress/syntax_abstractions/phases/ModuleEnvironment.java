@@ -206,7 +206,9 @@ public class ModuleEnvironment {
     private Collection<ModuleName> makeParameters(Set<Id> dependencies) {
         Collection<ModuleName> dep = new LinkedList<ModuleName>();
         for (Id q: dependencies) {
-            dep.add(new ModuleName(q.toString()));
+            if (!ModuleInfo.isFortressModule(q)) {
+                dep.add(new ModuleName(q.toString()));
+            }
         }
         return dep;
     }
@@ -215,7 +217,9 @@ public class ModuleEnvironment {
             Set<Id> dependencies) {
         Collection<ModuleImport> dep = new LinkedList<ModuleImport>();
         for (Id q: dependencies) {
-            dep.add(new ModuleImport(new ModuleName(q.toString())));
+            if (!ModuleInfo.isFortressModule(q)) {
+                dep.add(new ModuleImport(new ModuleName(q.toString())));
+            }
         }
         return dep;
     }

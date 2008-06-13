@@ -18,16 +18,28 @@
 api SyntaxTemplateVars
 
   import FortressAst.{...}
-  import FortressSyntax.{Literal,Expression}
+  import FortressSyntax.{Literal,Expression,Identifier}
 
 (*  *)
-  grammar helloworld extends { Literal, Expression }
+  grammar helloworld extends { Literal, Expression, Identifier }
     LiteralExpr |Expr:=
       hello a1:Beautiful a2:Beautiful a3:World <[ hello " " a1 " " a2 " " a3(a1) " " a3(hello) ]>
 
+(*
+    | a b:BindIdOrBindIdTuple x:Id y:Id Foo <[ a " " Foo(b,x,y) ]> 
+*)
     World(e:Expr) :LooseJuxt:=
       world <[ e " world" ]>
 
+(*
+    Foo(b:BindIdOrBindIdTuple, x:Id, y:Id) :Expr:=
+      foo <[ 
+        do 
+          b = (7,6)
+          x * y
+        end
+      ]>
+*)
     Beautiful :StringLiteralExpr:=
       beautiful <[ "beautiful"]>
     | foobar do StringLiteralExpr("foobar") end

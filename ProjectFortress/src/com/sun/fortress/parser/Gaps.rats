@@ -37,6 +37,12 @@ Expr ExprGap =
        yyValue = ExprFactory.makeTemplateGapExpr(createSpan(yyStart,yyCount), a1, params);
      };
 
+FnExpr FnExprGap =
+     <GAP> prefix "FnExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapFnExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
 LooseJuxt LooseJuxtGap =
      <GAP> prefix "LooseJuxt" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
@@ -93,7 +99,7 @@ StringLiteralExpr StringLiteralExprGap =
      };
 
 VoidLiteralExpr VoidLiteralExprGap =
-     <GAP> "<!@#$%^&*<Void" w a1:Id params:ParamList? w ">*&^%$#@!>"
+     <GAP> prefix "Void" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
        yyValue = ExprFactory.makeTemplateGapVoidLiteralExpr(createSpan(yyStart,yyCount), a1, params);
      };
