@@ -178,11 +178,7 @@ public class CommandInterpreter {
              * if a WrappedException is printed as-is.
              */
             for (StaticError error: errors) {
-                if ( error instanceof WrappedException ){
-                    ((WrappedException)error).getCause().printStackTrace();
-                } else {
-                    System.err.println(error);
-                }
+                System.err.println(error);
             }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }
