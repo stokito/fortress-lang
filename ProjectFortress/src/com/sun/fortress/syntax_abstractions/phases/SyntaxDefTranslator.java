@@ -40,9 +40,9 @@ import xtc.parser.SequenceName;
 import xtc.parser.ParserAction;
 import xtc.parser.Action;
 
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;

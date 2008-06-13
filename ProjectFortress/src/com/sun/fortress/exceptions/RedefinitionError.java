@@ -15,7 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator;
+package com.sun.fortress.exceptions;
+
 
 public class RedefinitionError extends ProgramError {
 

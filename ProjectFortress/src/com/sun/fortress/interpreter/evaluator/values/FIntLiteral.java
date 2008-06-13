@@ -16,11 +16,11 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.math.BigInteger;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.exceptions.ProgramError;
 
 public class FIntLiteral extends NativeConstructor.FNativeObject
         implements HasIntValue {

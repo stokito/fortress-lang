@@ -29,6 +29,9 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.TypeError;
+import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
@@ -161,7 +164,7 @@ public final class StaticTestSuite extends TestSuite {
             for (StaticError error : allErrors) {
                 try { throw error; }
                 catch (TypeError e) { typeErrors.add(e); }
-                catch (Fortress.WrappedException e) {
+                catch (WrappedException e) {
                     e.getCause().printStackTrace();
                     message += "\nStaticError (wrapped): " + e.getCause().toString();
                 }
@@ -180,7 +183,7 @@ public final class StaticTestSuite extends TestSuite {
             String message = "Source " + f + " produces static errors:";
             for (StaticError error : errors) {
                 try { throw error; }
-                catch (Fortress.WrappedException e) {
+                catch (WrappedException e) {
                     e.getCause().printStackTrace();
                     message += "\nStaticError (wrapped): " + e.getCause().toString();
                 }

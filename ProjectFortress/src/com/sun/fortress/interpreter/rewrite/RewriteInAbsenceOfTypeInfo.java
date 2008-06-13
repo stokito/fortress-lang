@@ -37,7 +37,7 @@ import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class RewriteInAbsenceOfTypeInfo extends Rewrite {
 

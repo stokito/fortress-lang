@@ -26,9 +26,9 @@ import java.util.Collection;
 import java.util.Map;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.GrammarDef;
 
 public interface MacroCompiler {

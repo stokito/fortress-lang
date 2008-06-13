@@ -15,23 +15,26 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator;
+package com.sun.fortress.exceptions;
 
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
-public class LabelException extends RuntimeException {
-    final FValue res;
-    final HasAt loc;
+public class NamedLabelException extends LabelException {
+    final String name;
 
     public String toString() {
-        return (loc.at()+": exit without enclosing label block");
+        return (loc.at()+": exit from nonexistent label block "+name);
     }
 
-    public LabelException(HasAt loc, FValue r) {
-        super();
-        this.loc = loc;
-        res = r;
+    public String getName() {return name;}
+
+    public Boolean match(String n2) {
+      return name.equals(n2);
     }
-    public FValue res() { return res; }
+
+    public NamedLabelException(HasAt loc, String n, FValue r) {
+        super(loc,r);
+        name = n;
+    }
 }

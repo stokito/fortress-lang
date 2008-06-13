@@ -15,13 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator;
+package com.sun.fortress.exceptions;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-import com.sun.fortress.compiler.StaticError;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;

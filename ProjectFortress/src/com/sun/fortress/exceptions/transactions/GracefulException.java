@@ -15,27 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator.transactions.exceptions;
+package com.sun.fortress.exceptions.transactions;
+
 /**
- * Thrown by an attempt to open a <code>TMObject</code> to indicate
- * that the current transaction cannot commit.
+ * Thrown by the BaseContentionManager when the benchmark time has elapsed.
  **/
-public class AbortedException extends java.lang.RuntimeException {
+public class GracefulException extends java.lang.RuntimeException {
   static final long serialVersionUID = 6572490566353395650L;
 
   /**
-   * Creates a new <code>DeniedException</code> instance with no detail message.
+   * Creates a new <code>GracefulException</code> instance with no detail message.
    */
-  public AbortedException() {
-    super(Thread.currentThread().getName());
+  public GracefulException() {
+    super();
   }
 
-
-  /**
-   * Creates a new <code>Denied</code> instance with the specified detail message.
-   * @param msg the detail message.
-   */
-  public AbortedException(String msg) {
-    super(Thread.currentThread().getName() + " " + msg);
-  }
 }

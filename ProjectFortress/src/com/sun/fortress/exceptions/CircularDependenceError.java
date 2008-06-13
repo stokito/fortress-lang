@@ -18,10 +18,11 @@
  * Created on Jan 31, 2007
  *
  */
-package com.sun.fortress.interpreter.evaluator;
+package com.sun.fortress.exceptions;
 
 import java.util.Set;
 
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringComparer;

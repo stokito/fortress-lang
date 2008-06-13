@@ -29,7 +29,7 @@ instantiate com.sun.fortress.parser.Gaps(PreSymbol, Spacing, Identifier) as Gaps
 instantiate com.sun.fortress.parser.preparser.PreSymbol (Identifier, Spacing, Keyword) as PreSymbol;
 
 header {
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.parser_util.precedence_opexpr.PrecedenceOpExpr;
 import com.sun.fortress.parser_util.precedence_opexpr.Left;
 import com.sun.fortress.parser_util.precedence_opexpr.Right;
@@ -50,9 +50,9 @@ import edu.rice.cs.plt.iter.IterUtil;
 import xtc.util.Action;
 import java.util.*;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 }
 

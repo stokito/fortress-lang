@@ -23,7 +23,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.useful.HasAt;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class UIDObject implements HasAt {
 

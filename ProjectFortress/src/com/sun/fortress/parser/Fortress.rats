@@ -127,7 +127,7 @@ instantiate com.sun.fortress.parser.Gaps(Symbol, Spacing, Identifier)
             as Gaps;
 
 header {
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.parser_util.precedence_opexpr.*;
 import com.sun.fortress.parser_util.precedence_resolver.*;
 import com.sun.fortress.nodes.*;
@@ -147,7 +147,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 }

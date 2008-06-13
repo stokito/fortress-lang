@@ -21,8 +21,8 @@ package com.sun.fortress.interpreter.glue.prim;
 import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
 
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.util.List;
 

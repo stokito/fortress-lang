@@ -28,8 +28,8 @@ import com.sun.fortress.interpreter.evaluator.values.IndexedTarget;
 import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.useful.HasAt;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 /** This wrapper class is used in the implementation of pasting in
     LHSEvaluator and IUOTuple.

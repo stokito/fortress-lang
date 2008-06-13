@@ -29,7 +29,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 abstract public class NodeReflection {
     // For minor efficiency, cache the fields, classes, and constructors.

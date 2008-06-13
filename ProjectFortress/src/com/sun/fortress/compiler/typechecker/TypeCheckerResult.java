@@ -21,6 +21,7 @@ import java.util.*;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 
 import edu.rice.cs.plt.iter.IterUtil;

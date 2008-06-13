@@ -15,33 +15,23 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator;
+package com.sun.fortress.exceptions;
 
-public class NoDefinitionError extends ProgramError {
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 7454722307333300052L;
+public class LabelException extends RuntimeException {
+    final FValue res;
+    final HasAt loc;
 
-    public NoDefinitionError() {
+    public String toString() {
+        return (loc.at()+": exit without enclosing label block");
+    }
+
+    public LabelException(HasAt loc, FValue r) {
         super();
-        // TODO Auto-generated constructor stub
+        this.loc = loc;
+        res = r;
     }
-
-    public NoDefinitionError(String arg0) {
-        super(arg0);
-        // TODO Auto-generated constructor stub
-    }
-
-    public NoDefinitionError(String arg0, Throwable arg1) {
-        super(arg0, arg1);
-        // TODO Auto-generated constructor stub
-    }
-
-    public NoDefinitionError(Throwable arg0) {
-        super(arg0);
-        // TODO Auto-generated constructor stub
-    }
-
+    public FValue res() { return res; }
 }

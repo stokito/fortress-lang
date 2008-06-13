@@ -15,19 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator.transactions.exceptions;
+package com.sun.fortress.exceptions.shell;
 
-/**
- * Thrown by the BaseContentionManager when the benchmark time has elapsed.
- **/
-public class GracefulException extends java.lang.RuntimeException {
-  static final long serialVersionUID = 6572490566353395650L;
-
-  /**
-   * Creates a new <code>GracefulException</code> instance with no detail message.
-   */
-  public GracefulException() {
-    super();
-  }
-
+public class ShellException extends RuntimeException {
+   public ShellException(Exception e) {
+      super(e.getMessage());
+   }
 }

@@ -17,8 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
+import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 
 abstract class TransactorRecord {
     protected volatile Transaction t = null;

@@ -43,8 +43,8 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
  * A NativeApp indicates that an action is implemented natively; the

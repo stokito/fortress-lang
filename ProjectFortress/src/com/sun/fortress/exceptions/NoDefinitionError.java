@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2007 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,11 +15,34 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell;
+package com.sun.fortress.exceptions;
 
-public class RepositoryError extends RuntimeException {
-    public RepositoryError(String _message) {
-        super(_message);
+
+public class NoDefinitionError extends ProgramError {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7454722307333300052L;
+
+    public NoDefinitionError() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+    public NoDefinitionError(String arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
+    }
+
+    public NoDefinitionError(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+        // TODO Auto-generated constructor stub
+    }
+
+    public NoDefinitionError(Throwable arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
     }
 
 }

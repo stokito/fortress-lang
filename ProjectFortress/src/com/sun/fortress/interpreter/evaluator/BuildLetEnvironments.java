@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -42,8 +43,8 @@ import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
 

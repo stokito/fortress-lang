@@ -35,8 +35,9 @@ import xtc.parser.ParseError;
 import xtc.parser.SemanticValue;
 
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.exceptions.ParserError;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
@@ -104,13 +105,13 @@ public class TemplateParser extends NodeUpdateVisitor {
 	}
 
 	
-	private Collection<Parser.Error> errors;
+	private Collection<ParserError> errors;
 	private Map<Id, BaseType> vars;
 	private Map<Id, BaseType> varsToNonterminalType;
 
 	
 	public TemplateParser() {
-		this.errors = new LinkedList<Parser.Error>();
+		this.errors = new LinkedList<ParserError>();
 	}
 
 	private Collection<? extends StaticError> getErrors() {
@@ -240,7 +241,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 				throw new RuntimeException("Unexpected parse result: " + cu);
 			} 
 //			System.err.println("Error: "+((ParseError) parseResult).msg);
-			this.errors.add(new Parser.Error((ParseError) parseResult, parser));
+			this.errors.add(new ParserError((ParseError) parseResult, parser));
 			return Option.none();
 		} catch (IOException e) {
 			e.printStackTrace();

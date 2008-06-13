@@ -31,6 +31,8 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -51,8 +53,8 @@ import java.util.*;
 
 import java.io.PrintWriter;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.compiler.TypeError.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.TypeError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
