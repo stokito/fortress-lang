@@ -2077,8 +2077,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
     	// TODO
     	// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
-    	//OpExpr multi_op = new OpExpr(that.getSpan(),)
-    	//TypeCheckerResult multi_result =
+    	OpExpr multi_op_expr = new OpExpr(that.getSpan(),that.getMultiJuxt(),that.getExprs());
+    	TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
+    	if( multi_op_result.type().isSome() ) {
+    		return TypeCheckerResult.compose(multi_op_expr, multi_op_result.type(), subtypeChecker, multi_op_result);
+    	}
+
     	// if an applicable method cannot be found for the entire expression, then it is left-associated.
     	Iterator<Expr> expr_iter = that.getExprs().iterator();
     	Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
@@ -2090,7 +2094,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
     	// typecheck this result instead
     	TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
-    	return TypeCheckerResult.compose(cur_op_expr, op_expr_result.type(), subtypeChecker, op_expr_result, injuxt_result);
+    	return TypeCheckerResult.compose(cur_op_expr, op_expr_result.type(), subtypeChecker, op_expr_result);
     }
 
     @Override
