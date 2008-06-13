@@ -1,4 +1,4 @@
-package com.sun.fortress.compiler;
+package com.sun.fortress.compiler.environmentor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,13 +7,18 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;
+
+import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.Relation;
 
 
 public class TopLevelEnvGenerator {
@@ -34,7 +39,6 @@ public class TopLevelEnvGenerator {
 	private static final String FTYPE_DESCRIPTOR = "Lcom/sun/fortress/interpreter/evaluator/types/FType;";
 	
 	private static final String CLASSNAME_SUFFIX = "Env";
-	
 	
 	/**
 	 * Given a list of components, generate a Java bytecode compiled environment
@@ -66,26 +70,41 @@ public class TopLevelEnvGenerator {
 			                                   ComponentIndex componentIndex,
 			                                   GlobalEnvironment env) {
 		ClassWriter cw = new ClassWriter(0);
-        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, "java/lang/Object", null);
 
+		cw.visit(Opcodes.V1_5, 
+        		Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
+        		className, null, "java/lang/Object", null);
+
+    	Relation<String, Integer> fieldNameHashCodePair = new HashRelation<String,Integer>();        
+        
         // Create all variables as fields in the environment
         for(Id id : componentIndex.variables().keySet()) {
         	String idString = NodeUtil.nameString(id) + FVALUE_NAMESPACE;
-            cw.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();	
+            cw.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();
+            fieldNameHashCodePair.add(idString, idString.hashCode());
         }
         
         // Create all functions as fields in the environment
         for(IdOrOpOrAnonymousName id : componentIndex.functions().firstSet()) {
         	String idString = NodeUtil.nameString(id) + FVALUE_NAMESPACE;
             cw.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();	
+            fieldNameHashCodePair.add(idString, idString.hashCode());            
         }
 
         // Create all types as fields in the environment
         for(Id id : componentIndex.typeConses().keySet()) {
         	String idString = NodeUtil.nameString(id) + FTYPE_NAMESPACE;
             cw.visitField(Opcodes.ACC_PUBLIC, idString, FTYPE_DESCRIPTOR, null, null).visitEnd();	
+            fieldNameHashCodePair.add(idString, idString.hashCode());            
         }
-               
+
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
+        		"getValueRaw", 
+        		"(Ljava/lang/String;)" + 
+        		"Lcom/sun/fortress/interpreter/evaluator/values/FValue;", 
+        		null, null);        
+        mv.visitCode();           
+        mv.visitEnd();
         cw.visitEnd();
         
         return(cw.toByteArray());
