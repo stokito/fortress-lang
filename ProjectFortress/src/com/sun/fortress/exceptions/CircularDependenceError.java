@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -14,10 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-/*
- * Created on Jan 31, 2007
- *
- */
+
 package com.sun.fortress.exceptions;
 
 import java.util.Set;
@@ -75,13 +72,13 @@ public class CircularDependenceError extends ProgramError {
         super(loc, string, ex);
         // TODO Auto-generated constructor stub
     }
-    
+
     public void addParticipant(String s) {
         participants.add(s);
     }
-    
+
     Set<String> participants = new BASet<String>(StringComparer.V);
-    
+
     @Override
     public String getMessage() {
         return super.getMessage() + " Cycle participants are " + Useful.listInCurlies(participants) + ".";
