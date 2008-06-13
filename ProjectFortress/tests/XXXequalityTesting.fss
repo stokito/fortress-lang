@@ -1,4 +1,3 @@
-(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -15,40 +14,15 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-(** END COPYRIGHT **)
 
-component Expr.Assign.b
+component XXXequalityTesting
 export Executable
 
-f(x) = 0
-
-g() = do
-var x: ZZ32
-var a: ZZ32 = 1
-var b: ZZ32 = 3
-var c: ZZ32 = 5
-l = array1[\ZZ32, 2\](2)
-m = array1[\ZZ32, 2\](3)
-n = array1[\ZZ32, 2\](4)
-i = 1
-j = 1
-k = 0
-delta_x = 2
-delta_y = 5
-myBag = 3
-newItems = 7
-(** EXAMPLE **)
-x := f(0)
-(n[i j] = n[i j] + l[i k] m[k j])
-(a,b,c) := (b,c,a)      (* Permuta a, b, and c *)
-x += 1
-(x,y) += (delta_x,delta_y)
-myBag CUP= newItems
-(** END EXAMPLE **)
+run(args) = do
+  a:ZZ32[2] = [ 3 5 ]
+  a[0] = a[1]           (* should be parenthesized, should have type () *)
+  println (a[0] = a[1])
+  a[0] = a[1]           (* should be parenthesized *)
 end
-
-opr CUP(x, y) = x+y
-
-run(args:String...) = ()
 
 end
