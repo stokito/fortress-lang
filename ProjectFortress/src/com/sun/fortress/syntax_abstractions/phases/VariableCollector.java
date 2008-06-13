@@ -28,6 +28,8 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.AndPredicateSymbol;
+import com.sun.fortress.nodes.NotPredicateSymbol;
 
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
@@ -122,6 +124,16 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         }
         return all;
     }
+
+    public Map<PrefixedSymbol,Depth> forNotPredicateSymbol(NotPredicateSymbol that) {
+        return new HashMap<PrefixedSymbol,Depth>();
+    }
+
+    /*
+    public Map<PrefixedSymbol,Depth> forAndPredicateSymbol(AndPredicateSymbol that) {
+        return new HashMap<PrefixedSymbol,Depth>();
+    }
+    */
 
     @Override
     public Map<PrefixedSymbol,Depth> forGroupSymbol(GroupSymbol that) {

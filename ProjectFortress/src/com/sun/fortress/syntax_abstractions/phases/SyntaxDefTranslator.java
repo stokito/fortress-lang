@@ -323,12 +323,19 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         @Override
             public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
                     List<Element> symbol_result) {
+                if (symbol_result.isEmpty()) {
+                    throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
+                }
                 if (symbol_result.size() == 1) {
                     Element e = symbol_result.get(0);
                     return mkList(new FollowedBy(new Sequence(e)));
                 }
-                if (symbol_result.isEmpty()) {
-                    throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
+                /* FIXME: Hack! When the element was a group we know the second thing
+                 * in the sequence was an action. Is there a better way to know?
+                 */
+                if (symbol_result.size() == 2 && symbol_result.get(1) instanceof Action ){
+                    Element e = symbol_result.get(0);
+                    return mkList(new FollowedBy(new Sequence(e)));
                 }
                 throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
             }
@@ -336,12 +343,16 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         @Override
             public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
                     List<Element> symbol_result) {
+                if (symbol_result.isEmpty()) {
+                    throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
+                }
                 if (symbol_result.size() == 1) {
                     Element e = symbol_result.get(0);
                     return mkList(new NotFollowedBy(new Sequence(e)));
                 }
-                if (symbol_result.isEmpty()) {
-                    throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
+                if (symbol_result.size() == 2 && symbol_result.get(1) instanceof Action ){
+                    Element e = symbol_result.get(0);
+                    return mkList(new NotFollowedBy(new Sequence(e)));
                 }
                 throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
             }
@@ -423,20 +434,8 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 code.add(String.format("yyValue = new Object[] { %s };", variables.toString()));
                 indents.add(1);
                 
-                /*
-                code.add(String.format("if ( 2 > 1 ){ return yyResult.createValue(yyValue, yyError); }"));
-                indents.add(1);
-                */
-
-                /*
-                code.add(String.format("com.sun.fortress.useful.Debug.debugArray( 1, (Object[]) yyValue );"));
-                indents.add(1);
-                */
-
-                // all.add(new ParserAction(new Action(code, indents)));
                 all.add(new Action(code, indents));
                 Element pack = new Binding(freshName, modifier.makePack(new Sequence(all)));
-                // Element pack = new Binding(freshName, new xtc.parser.Repetition(isPlus, new Sequence(all)));
 
                 List<Integer> indents2 = new LinkedList<Integer>();
                 List<String> code2 = new LinkedList<String>();
@@ -449,33 +448,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     Id varId = sym.getId().unwrap();
                     String varName = varId.toString();
                     Id ntName = inner.getEnv().getNonterminalName(varId);
-                    // String baseFortressType = inner.getEnv().getType(varId).toString();
                     String baseFortressType = lookupAstType(ntName);
-                    // System.out.println( String.format("Prefix '%s' has non terminal '%s' with type %s", varName, ntName, baseFortressType) );
-                    /* FIXME: get the java node ast type, not the fortress type */
-                    // System.out.println( String.format( "Java type for baseType %s is %s", baseType, inner.getEnv().getType( sym.getId().unwrap() ).getClass().getName() ) ); 
-                    /*
-                       if ( sym.getType().isSome() ){
-                       baseType = sym.getType().unwrap().toString(); // FIXME: need check?
-                       } else {
-                       baseType = "???";
-                       }
-                       */
                     String fullType = varMap.get(sym).getType(baseFortressType); 
                     indents2.add(1);
                     code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
                 }
-
-                /* HACK! Rats! sets yyValue to yyResult.semanticValue() after each parser action
-                 * but the last yyResult is the result of parsing the group which will probably
-                 * be a Pair<Object[]>. This will result in a class cast exception since yyValue
-                 * is an Expr. Rats! shouldn't set yyValue after each parser action but since we
-                 * don't care what yyResult is anyway we set it to a bogus value.
-                 */
-                /*
-                indents2.add(1);
-                code2.add("yyResult = new SemanticValue(null,0);");
-                */
                 Element unpack = new Action(code2, indents2);
 
                 return mkList(pack, unpack);
