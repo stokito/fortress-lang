@@ -77,11 +77,11 @@ public class GrammarEnv {
 
     public static String getType(Id name){
         Debug.debug( 4, "Looking up " + name + " in grammar env" );
-        if ( name == null  || GrammarEnv.members.get(name) == null ){
+        if ( name == null  || GrammarEnv.getMemberEnv(name) == null ){
             Debug.debug( 4, "Didn't find it.." );
             return "StringLiteralExpr";
         }
-        String s = cutPackage(GrammarEnv.members.get(name).getAstType().toString());
+        String s = cutPackage(GrammarEnv.getMemberEnv(name).getAstType().toString());
         Debug.debug( 4, "Found " + s );
         return s;
     }

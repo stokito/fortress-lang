@@ -52,6 +52,8 @@ Expr ExprFront =
    / OpExpr
    / DelimitedExpr
    / <Flow> FlowExpr
+   / ExprGap
+   / FnExprGap
    / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
      { Option<Type> ty_opt = Option.wrap(a2);
        Option<List<BaseType>> tys = Option.wrap(a3);

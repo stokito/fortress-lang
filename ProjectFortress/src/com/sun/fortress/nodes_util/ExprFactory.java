@@ -86,6 +86,7 @@ import com.sun.fortress.nodes.SubscriptingMI;
 import com.sun.fortress.nodes.TemplateGapCharLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.TemplateGapFloatLiteralExpr;
+import com.sun.fortress.nodes.TemplateGapFnExpr;
 import com.sun.fortress.nodes.TemplateGapId;
 import com.sun.fortress.nodes.TemplateGapIntLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapLiteralExpr;
@@ -755,7 +756,7 @@ public class ExprFactory {
                         e.getStaticArgs());
             }
             public Expr forTemplateGapExpr(TemplateGapExpr e) {
-                return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getParams());
+                return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getTemplateParams());
             }
             public Expr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
@@ -807,6 +808,11 @@ public class ExprFactory {
 
     public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapExpr(s, id, params);
+    }
+    
+    public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
+        Expr body = new VarRef(id);
+        return new TemplateGapFnExpr(s, false, id, new LinkedList<Param>(), body, id, params);
     }
 
     public static TemplateGapLooseJuxt makeTemplateGapLooseJuxt(Span s, Id id, List<Id> params) {

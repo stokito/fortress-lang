@@ -26,10 +26,7 @@ import java.util.Set;
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.GroupSymbol;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
@@ -41,7 +38,6 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
 import com.sun.fortress.syntax_abstractions.util.TypeCollector;
 
-import edu.rice.cs.plt.tuple.Option;
 
 public class SyntaxDeclEnv {
 

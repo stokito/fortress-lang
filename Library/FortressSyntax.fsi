@@ -37,6 +37,9 @@ api FortressSyntax
       id : String
       idstart : String
       idrest : String
+      Id : Id
+      BindId : Id
+      BindIdOrBindIdTuple : List[\Id\]
   end
 
   grammar Literal 

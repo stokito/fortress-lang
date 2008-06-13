@@ -70,8 +70,6 @@ import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv.PrefixSymbolSymbolGetter;
 import com.sun.fortress.syntax_abstractions.util.InterpreterWrapper;
-import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
-import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
