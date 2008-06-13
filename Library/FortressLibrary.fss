@@ -1268,7 +1268,7 @@ trait ReadableArray[\E,I\]
     opr =(self, other:HasRank): Boolean =
         typecase other of
             ReadableArray[\E,I\] => indices().generate[\Boolean\](AndReduction,
-                                           fn (i:I):Boolean => self[i]=other[i])
+                                           fn (i:I):Boolean => (self[i]=other[i]))
             else => false
         end
 
