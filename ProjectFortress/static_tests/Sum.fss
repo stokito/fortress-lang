@@ -15,20 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SimpleFunctionCall
+component Sum
   export Executable
-  
-  f(s:String):String = s
-  g[\T extends Any\](x:T):T = x
 
-run(args:String...):() = do
-  var s:String
-  
-  s := f("asdad")
-  s := g[\String\]("asdad")
-  ()
+  foo( g : Generator[\ZZ32\] ) : () = do 
+    var i : ZZ32
+    i := SUM[x <- g] x
+  end
+
+  run(args:String...):() = ()
 end
-
-end
-
-  

@@ -28,6 +28,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.NI;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -280,7 +281,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * parameters and 'self'.
      * TODO: Handle variables bound in where clauses.
      */
-    @Override public Node forAbsFnDecl(final AbsFnDecl that) {
+    @Override public Node forAbsFnDecl(final AbsFnDecl that) { 
         Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).extend(params);
@@ -458,6 +459,38 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return result;
     }
 
+	@Override
+	public Node forAccumulatorOnly(Accumulator that,
+			List<StaticArg> staticArgs_result, OpName opr_result,
+			List<GeneratorClause> gens_result, Expr body_result) {
+		// This method is currently a complete special case that we
+		// are only using because the Accumulator node of the AST
+		// doesn't hold an OpRef, which I believe it should. NEB
+		OpName acc_op = that.getOpr();
+		Set<OpName> ops = _env.explicitFunctionNames(acc_op);
+		if( ops.isEmpty() ) {
+			ops = _env.onDemandFunctionNames(acc_op);
+			_onDemandImports.add(acc_op);
+		}
+		if( ops.isEmpty() ) {
+			return that;
+		}
+		
+		// This is where the hacking comes in
+		if( ops.size() > 1 ) {
+			return NI.nyi("This means that we need to change the AST.");
+		}
+		Expr result = new Accumulator(that.getSpan(),
+				                      that.isParenthesized(),
+				                      staticArgs_result,
+				                      IterUtil.first(ops),
+				                      gens_result, 
+				                      body_result);
+		return result;
+	}
+
+	// Note how this method does not delegate to 
+    // forOp().
     @Override public Node forOpRef(OpRef that) {
         OpName entity = IterUtil.first(that.getOps());
 

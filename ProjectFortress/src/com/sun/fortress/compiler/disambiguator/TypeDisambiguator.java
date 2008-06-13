@@ -352,9 +352,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      * Prevent recursion on function static args -- delayed until the function references
      * can be resolved.
      */
-    @Override public Node forFnRef(FnRef that) {
-        return that;
-    }
+//    @Override public Node forFnRef(FnRef that) {
+//        return that;
+//    }
 
 
     private StaticArg updateStaticArg(final StaticArg a, final StaticParam p) {

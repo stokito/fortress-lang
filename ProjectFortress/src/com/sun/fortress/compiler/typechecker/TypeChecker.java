@@ -32,10 +32,12 @@ import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
@@ -277,7 +279,35 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                               name);
     }
 
-
+//    @Override
+//	public TypeCheckerResult forAccumulator(Accumulator that) {
+//
+//    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>();
+//
+//    	TypeCheckerResult opr_result = that.getOpr().accept(this);
+//    	all_results.add(opr_result);
+//    	
+//    	if( that.getGens().isEmpty() ) {
+//        	// generator clauses could be empty in which case expr must be a generator
+//    		// In this case, the domain of BIG OP must match the generator type of
+//    		// 
+//    	}
+//    	else {
+//        	// otherwise, we must bind new bindings in typechecking expr
+//        	Pair<List<TypeCheckerResult>,List<LValueBind>> bindings =
+//        		this.recurOnListsOfGeneratorClauseBindings(that.getGens());
+//        	all_results.addAll(bindings.first());
+//        	
+//    		// In this case, type of expr must match domain of BIG OP
+//        	TypeChecker extended = this.extend(bindings.second());
+//        	TypeCheckerResult expr_result = that.getBody().accept(extended);
+//        	
+//        	
+//    	}
+//    	
+//    	return NI.nyi();
+//	}
+    
     @Override
 	public TypeCheckerResult forFnExpr(FnExpr that) {
 
@@ -1950,47 +1980,113 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     					type,
     					subtypeChecker,
     					TypeCheckerResult.compose(that, subtypeChecker, fns_result), TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-    }
+    }    
+    
+    @Override
+	public TypeCheckerResult for_RewriteFnAppOnly(_RewriteFnApp that,
+			TypeCheckerResult function_result, TypeCheckerResult argument_result) {
+    	// check sub expressions
+    	if( function_result.type().isNone() || argument_result.type().isNone() )
+    		return TypeCheckerResult.compose(that, subtypeChecker, function_result, argument_result);
+  
+    	Option<Pair<Type,ConstraintFormula>> app_result =
+    		TypesUtil.applicationType(subtypeChecker, function_result.type().unwrap(),
+    				new ArgList(argument_result.type().unwrap()));
 
-    public TypeCheckerResult forTightJuxtOnly(TightJuxt that,
-                                              TypeCheckerResult multiJuxt_result,
-                                              TypeCheckerResult infixJuxt_result,
-                                              List<TypeCheckerResult> exprs_result) {
-        // The expressions list contains at least two elements.
-        assert (exprs_result.size() >= 2);
-        List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(exprs_result);
+    	Option<Type> result_type;
+    	TypeCheckerResult result;
 
-
-        // Did any subexpressions fail to type_check?
-        for( TypeCheckerResult expr_result : exprs_result ) {
-        	if( expr_result.type().isNone())
-        		return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
-        }
-
-        Type lhsType = exprs_result.get(0).type().unwrap();
-        Type rhsType = exprs_result.get(1).type().unwrap();
-        // Check if LHS is an arrow
-        if(TypesUtil.isArrows(lhsType)){
-        	Option<Pair<Type,ConstraintFormula>> app_result =
-            	TypesUtil.applicationType(subtypeChecker,
-                                          lhsType,
-                                          new ArgList(rhsType));
-
-            Option<Type> result_type;
-            if( app_result.isSome() ) {
-            	all_results.add(new TypeCheckerResult(that,app_result.unwrap().second()));
-            	result_type = Option.some(app_result.unwrap().first());
-            }
-            else {
-            	result_type = Option.none();
-            }
-
-            return TypeCheckerResult.compose(that, result_type,
-                                             subtypeChecker, all_results);
-        }
-        else {
-        	return NI.nyi();
-        }
+    	if( app_result.isSome() ) {
+    		result = new TypeCheckerResult(that,app_result.unwrap().second());
+    		result_type = Option.some(app_result.unwrap().first());
+    	}
+    	else {
+    		String err = "Function application failed."; // error message needs work
+    		result = new TypeCheckerResult(that, TypeError.make(err, that));
+    		result_type = Option.none();
+    	}
+    	// The result should be a _RewriteFnApp
+    	return TypeCheckerResult.compose(that, result_type,
+    			subtypeChecker, function_result, argument_result, result);
+	}
+    
+    @Override
+	public TypeCheckerResult forTightJuxtOnly(TightJuxt that,
+    		                                  TypeCheckerResult multijuxt_result,
+    		                                  TypeCheckerResult injuxt_result,
+    		                                  List<TypeCheckerResult> exprs_result) {
+    	
+    	// TODO: Okay this was a problem I didn't think of. multijuxt_result so far has NO
+    	// valid overloadings and so it will be an error. We are just not passing it up for
+    	// now, but this is ugly...
+    	
+    	// New code works like this... Note that this method contains many comments from the spec
+    	// Did any subexpressions fail to type_check?
+    	for( TypeCheckerResult expr_result : exprs_result ) {
+    		if( expr_result.type().isNone())
+    			return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
+    	}
+    	
+    	if( that.getExprs().size() == 0 ) {
+    		bug("I really messed up something...");
+    	}
+    	
+    	if( that.getExprs().size() != exprs_result.size() ) {
+    		bug("Number of types don't match number of sub-expressions");
+    	}
+    	// new list of results and exprs, so we can modify this one in place and recurse on it
+    	List<TypeCheckerResult> new_exprs_result = new LinkedList<TypeCheckerResult>(exprs_result);
+    	List<Expr> new_exprs = new LinkedList<Expr>(that.getExprs());
+    	// list iters, so we can remove and add
+    	ListIterator<TypeCheckerResult> exprs_result_iter = new_exprs_result.listIterator();
+    	ListIterator<Expr> exprs_iter = new_exprs.listIterator();
+    	
+    	// 1.) Find the first function type
+    	while( exprs_result_iter.hasNext() ) {
+    		TypeCheckerResult cur_result =  exprs_result_iter.next();
+    		Expr cur_expr = exprs_iter.next();
+    		
+    		if( TypesUtil.isArrows(cur_result.type().unwrap()) ) {
+    			// or if only the last element is a function, go on to the next step.
+    			if( !exprs_result_iter.hasNext() ) break;
+    			// otherwise, remove this and the next (arg) results from this list,
+    			exprs_result_iter.remove(); exprs_iter.remove();
+    			TypeCheckerResult arg_result = exprs_result_iter.next(); 
+    			Expr arg = exprs_iter.next();
+    			exprs_result_iter.remove(); exprs_iter.remove();
+    			
+    			// create a new _RewriteFnApp, type-check it, recurse
+    			_RewriteFnApp fn_app = 
+    				new _RewriteFnApp(new Span(cur_expr.getSpan(),arg.getSpan()),cur_expr,arg);
+    			exprs_result_iter.add(this.for_RewriteFnAppOnly(fn_app, cur_result, arg_result));
+    			exprs_iter.add(fn_app);
+    			// recur
+    			return forTightJuxtOnly(ExprFactory.makeTightJuxt(that,new_exprs), multijuxt_result, injuxt_result, new_exprs_result);
+    		}
+    	}
+    	// 2.) If you have reached this point, The overall juxtaposition 
+    	//     now either is a single element or consists entirely of non-function elements.
+    	if( that.getExprs().size() == 1 ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, injuxt_result,
+    				TypeCheckerResult.compose(that, subtypeChecker, exprs_result));
+    	}
+    	// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
+    	// TODO
+    	// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply: 
+    	//OpExpr multi_op = new OpExpr(that.getSpan(),)
+    	//TypeCheckerResult multi_result = 
+    	// if an applicable method cannot be found for the entire expression, then it is left-associated.
+    	Iterator<Expr> expr_iter = that.getExprs().iterator();
+    	Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
+    	Expr expr_2 = expr_iter.next();
+    	OpExpr cur_op_expr = new OpExpr(new Span(expr_1.getSpan(),expr_2.getSpan()), that.getInfixJuxt(), Useful.list(expr_1,expr_2));
+    	while( expr_iter.hasNext() ) {
+    		Expr next_expr = expr_iter.next();
+    		cur_op_expr = new OpExpr(new Span(cur_op_expr.getSpan(),next_expr.getSpan()), that.getInfixJuxt(), Useful.list(cur_op_expr, next_expr));
+    	}
+    	// typecheck this result instead
+    	TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
+    	return TypeCheckerResult.compose(cur_op_expr, op_expr_result.type(), subtypeChecker, op_expr_result, injuxt_result);
     }
 
     @Override
