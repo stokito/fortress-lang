@@ -641,6 +641,31 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <echo>Templateparser up to date? ${templateparser.uptodate}</echo>
     </target>
 
+    <macrodef name="buildparser">
+	      <attribute name="name" />
+	      <attribute name="file" />
+	      <attribute name="dir" />
+	      <sequential>
+		      <echo message="Rebuilding @{name}..."/>
+		      <java fork="yes"
+			    failonerror="yes"
+			    dir="@{dir}"
+			    classname="xtc.parser.Rats"
+			    classpath="${xtc}/xtc.jar">
+			    <arg value="-in"/>
+			    <arg value="${src}"/>
+			    <arg value="@{file}"/>
+		      </java>
+	      </sequential>
+    </macrodef>
+
+    <target name="fortressparser" unless="fortreeparser.uptodate"
+            depends="checkFortressParserUptodate"
+            description="Fortress Parser">
+	    <buildparser name="Fortress" dir="${parser}" file="Fortress.rats" />
+    </target>
+
+    <!--
     <target name="fortressparser" unless="fortreeparser.uptodate"
             depends="checkFortressParserUptodate"
             description="Fortress Parser">
@@ -655,7 +680,15 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <arg value="Fortress.rats"/>
         </java>
     </target>
+    -->
 
+    <target name="preparser" unless="preparser.uptodate"
+            depends="checkPreparserUptodate"
+            description="Preparser">
+	    <buildparser name="preparser" dir="${preparser}" file="PreFortress.rats" />
+    </target>
+
+    <!--
     <target name="preparser" unless="preparser.uptodate"
             depends="checkPreparserUptodate"
             description="Preparser">
@@ -670,7 +703,15 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <arg value="PreFortress.rats"/>
         </java>
     </target>
+    -->
 
+    <target name="templateparser" unless="templateparser.uptodate"
+            depends="checkTemplateparserUptodate"
+            description="Templateparser">
+	    <buildparser name="template parser" dir="${templateparser}"
+		         file="TemplateParser.rats" />
+    </target>
+    <!--
     <target name="templateparser" unless="templateparser.uptodate"
             depends="checkTemplateparserUptodate"
             description="Templateparser">
@@ -685,10 +726,17 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <arg value="TemplateParser.rats"/>
         </java>
     </target>
+    -->
 
     <target name="parser" unless="parser.uptodate"
             depends="checkParserUptodate, operatorsGen"
             description="Fortress Parser">
+
+	    <ant target="fortressparser" />
+	    <ant target="preparser" />
+	    <ant target="templateparser" />
+
+	    <!--
        <echo message="Rebuilding parser..."/>
        <java fork="yes"
              failonerror="yes"
@@ -719,6 +767,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <arg value="${src}"/>
             <arg value="TemplateParser.rats"/>
         </java>
+	-->
     </target>
 
     <target name="doc" depends="compile">
