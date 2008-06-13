@@ -1223,6 +1223,8 @@ Fortress source code)."
 	("\\\\KWD{opr} \\\\mathord{\\\\OPR{BIG}} \\\\left\\\\|(" "\\\\KWD{opr} \\\\OPR{BIG} \\\\left|\\\\right|(")
 	;; Fixup for using BIG |||
 	("\\\\OPR{BIG} \\\\left\\\\\\\\|" "\\\\OPR{BIG} \\\\left||\\\\right|")
+	;; Fixup for using BIG |||
+	("\\\\OPR{BIG} \\\\left\\\\\\\\right\\\\|" "\\\\OPR{BIG} \\\\left||\\\\right|")
 	;; Fixup for using BIG ||
 	("\\\\OPR{BIG} \\\\left\\\\|" "\\\\OPR{BIG} \\\\left|\\\\right|")
 	;; Fixup for defining opr |||(
