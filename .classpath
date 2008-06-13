@@ -7,6 +7,5 @@
 	<classpathentry kind="lib" path="ProjectFortress/third_party/jsr166y/jsr166y.jar" sourcepath="third_party/jsr166y/jsr166/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant.jar"/>
-	<classpathentry kind="lib" path="/usr/java/jdk1.5.0_15/lib/tools.jar"/>
 	<classpathentry kind="output" path="ProjectFortress/build"/>
 </classpath>
