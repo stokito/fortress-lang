@@ -49,6 +49,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalDisambiguator;
+import com.sun.fortress.compiler.disambiguator.SelfParamDisambiguator;
 import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
 import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
@@ -106,10 +107,14 @@ public class Disambiguator {
             ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+            
+            SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
+            Api spd_result = (Api)api.accept(self_disambig);
+            
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
                 new TypeDisambiguator(env, onDemandImports, newErrs);
-            Api tdResult = (Api) api.accept(td);
+            Api tdResult = (Api) spd_result.accept(td);
             if (newErrs.isEmpty()) {
                 ExprDisambiguator ed = 
                     new ExprDisambiguator(env, onDemandImports, newErrs);
@@ -174,10 +179,13 @@ public class Disambiguator {
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
 
+            SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
+            Component spdResult = (Component) comp.accept(self_disambig);
+            
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
                 new TypeDisambiguator(env, onDemandImports, newErrs);
-            Component tdResult = (Component) comp.accept(td);
+            Component tdResult = (Component) spdResult.accept(td);
             if (newErrs.isEmpty()) {
                 ExprDisambiguator ed = 
                     new ExprDisambiguator(env, onDemandImports, newErrs);

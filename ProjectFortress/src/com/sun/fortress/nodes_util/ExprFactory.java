@@ -360,6 +360,14 @@ public class ExprFactory {
         return new FnRef(name.getSpan(), false, names, Collections.<StaticArg>emptyList());
     }
 
+    public static FnRef makeFnRef(Id name, Id orig){
+    	return new FnRef(name.getSpan(),false, orig, Collections.singletonList(name),Collections.<StaticArg>emptyList());
+    }
+    
+    public static FnRef makeFnRef(Id orig, List<Id> names){
+    	return new FnRef(orig.getSpan(),false, orig, names,Collections.<StaticArg>emptyList());
+    }
+    
     public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
         Id qName = NodeFactory.makeId(apiIds, name);
         List<Id> qNames = Collections.singletonList(qName);
