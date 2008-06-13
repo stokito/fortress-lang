@@ -1138,7 +1138,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * Primary ::= Id[\StaticArgList\]
                      * e.g.) identity[\String\]
                      */
-                    FnRef(List<Id> fns,
+                    FnRef(Id originalName = NodeFactory.makeTemporaryId(),
+                          List<Id> fns,
                           List<StaticArg> staticArgs
                               = Collections.<StaticArg>emptyList());
                     /**
@@ -1155,7 +1156,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * Primary ::= Op[\StaticArgList\]
                      * e.g.) +[\String\]
                      */
-                    OpRef(List<OpName> ops,
+                    OpRef(OpName originalName = NodeFactory.makeTemporaryOpName(),
+                          List<OpName> ops,
                           List<StaticArg> staticArgs
                               = Collections.<StaticArg>emptyList());
                 /**
