@@ -26,6 +26,7 @@ import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.exceptions.shell.ShellException;
 import com.sun.fortress.exceptions.shell.UserError;
@@ -177,8 +178,8 @@ public class CommandInterpreter {
              * if a WrappedException is printed as-is.
              */
             for (StaticError error: errors) {
-                if ( error instanceof Fortress.WrappedException ){
-                    ((Fortress.WrappedException)error).getCause().printStackTrace();
+                if ( error instanceof WrappedException ){
+                    ((WrappedException)error).getCause().printStackTrace();
                 } else {
                     System.err.println(error);
                 }

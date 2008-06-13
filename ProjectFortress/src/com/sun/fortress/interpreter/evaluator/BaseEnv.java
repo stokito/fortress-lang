@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.sun.fortress.exceptions.CircularDependenceError;
 import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.env.ReferenceCell;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
