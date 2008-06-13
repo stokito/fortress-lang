@@ -58,7 +58,8 @@
  <property name="nodesUtil"  location="${src}/${packagePrefix}/nodes_util"/>
  <!-- parser -->
  <property name="parser"  location="${src}/${packagePrefix}/parser"/>
- <property name="preparser"  location="${src}/${packagePrefix}/parser/preparser"/>
+ <property name="preparser" location="${src}/${packagePrefix}/parser/preparser"/>
+ <property name="templateparser"  location="${src}/${packagePrefix}/parser/templateparser"/>
  <property name="parserUtil"  location="${src}/${packagePrefix}/parser_util"/>
  <property name="precedence" location="${parserUtil}/precedence"/>
  <property name="precedenceResolver" location="${parserUtil}/precedence_resolver"/>
@@ -191,6 +192,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${parser}/Fortress.java"/>
         <delete file="${preparser}/PreFortress.java"/>
+        <delete file="${templateparser}/TemplateParser.java"/>
         <delete file="${precedenceResolver}/Operators.java"/>
         <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="FortressLibrary.ast"/>
@@ -610,6 +612,9 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 <uptodate targetfile="${preparser}/PreFortress.java">
                     <srcfiles dir="${preparser}" includes="**/*.rats"/>
                 </uptodate>
+                <uptodate targetfile="${templateparser}/TemplateParser.java">
+                    <srcfiles dir="${templateparser}" includes="**/*.rats"/>
+                </uptodate>
             </and>
         </condition>
         <echo>Parser up to date? ${parser.uptodate}</echo>
@@ -626,7 +631,14 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <uptodate property="preparser.uptodate" targetfile="${preparser}/PreFortress.java">
             <srcfiles dir="${preparser}" includes="**/*.rats"/>
         </uptodate>
-        <echo>Preparser up to date? ${parser.uptodate}</echo>
+        <echo>Preparser up to date? ${preparser.uptodate}</echo>
+    </target>
+
+    <target name="checkTemplateparserUptodate" depends="init">
+        <uptodate property="templateparser.uptodate" targetfile="${templateparser}/TemplateParser.java">
+            <srcfiles dir="${templateparser}" includes="**/*.rats"/>
+        </uptodate>
+        <echo>Templateparser up to date? ${templateparser.uptodate}</echo>
     </target>
 
     <target name="fortressparser" unless="fortreeparser.uptodate"
@@ -659,6 +671,21 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         </java>
     </target>
 
+    <target name="templateparser" unless="templateparser.uptodate"
+            depends="checkTemplateparserUptodate"
+            description="Templateparser">
+        <echo message="Rebuilding template parser..."/>
+       <java fork="yes"
+             failonerror="yes"
+             dir="${templateparser}"
+             classname="xtc.parser.Rats"
+             classpath="${xtc}/xtc.jar">
+            <arg value="-in"/>
+            <arg value="${src}"/>
+            <arg value="TemplateParser.rats"/>
+        </java>
+    </target>
+
     <target name="parser" unless="parser.uptodate"
             depends="checkParserUptodate, operatorsGen"
             description="Fortress Parser">
@@ -681,6 +708,16 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <arg value="-in"/>
             <arg value="${src}"/>
             <arg value="PreFortress.rats"/>
+        </java>
+        <echo message="Rebuilding the templateparser..."/>
+        <java fork="yes"
+            failonerror="yes"
+            dir="${templateparser}"
+            classname="xtc.parser.Rats"
+            classpath="${xtc}/xtc.jar">
+            <arg value="-in"/>
+            <arg value="${src}"/>
+            <arg value="TemplateParser.rats"/>
         </java>
     </target>
 
