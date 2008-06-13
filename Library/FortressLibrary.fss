@@ -813,10 +813,10 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
         cond[\G\](fn (e:E):Generator[\(E,G)\] => g.map[\(E,G)\](fn (g:G):(E,G) => (e,g)),
                fn () => Nothing[\(E,G)\])
     mapReduce[\R\](body: E->R, _:(R,R)->R, id:R): R =
-        cond[\G\](body, fn () => id)
+        cond[\R\](body, fn () => id)
     reduce(_:(E,E)->E, z:E):E = cond[\E\](identity[\E\], fn ():E => z)
     reduce(r: Reduction[\E\]):E = cond[\E\](identity[\E\], fn ():E => r.empty())
-    loop(f:E->()): () = cond[\G\](f,fn ():() => ())
+    loop(f:E->()): () = cond[\()\](f,fn ():() => ())
     opr IN(x:E, self):Boolean = cond[\Boolean\](fn (e:E):Boolean => x=e, fn () => false)
 end
 

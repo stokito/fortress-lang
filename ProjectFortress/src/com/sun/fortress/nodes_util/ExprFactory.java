@@ -395,6 +395,14 @@ public class ExprFactory {
         return new TightJuxt(span, false, Useful.list(first, second));
     }
 
+    /**
+     * Make a TightJuxt that is a copy of the given one in every way except
+     * with new exprs.
+     */
+    public static TightJuxt makeTightJuxt(TightJuxt that, List<Expr> exprs) {
+    	return new TightJuxt(that.getSpan(), that.isParenthesized(), that.getInfixJuxt(), that.getMultiJuxt(), exprs);
+    }
+    
     public static VarRef makeVarRef(Span span, String s) {
         return new VarRef(span, false, NodeFactory.makeId(span, s));
     }

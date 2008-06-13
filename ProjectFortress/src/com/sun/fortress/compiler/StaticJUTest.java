@@ -53,7 +53,8 @@ public class StaticJUTest extends TestCaseWrapper {
         "XXXUndefinedNestedRef.fss",
         "XXXUndefinedRefInLoop.fss",
         "XXXUndefinedVar.fss",
-        "XXXUndefinedTopLevelVar.fss"
+        "XXXUndefinedTopLevelVar.fss",
+        "Sum.fss"
     );
     
     public static TestSuite suite() {
