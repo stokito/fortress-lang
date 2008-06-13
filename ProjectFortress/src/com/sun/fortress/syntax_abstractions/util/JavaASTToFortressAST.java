@@ -233,7 +233,6 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
                              List<Expr> fns_result,
                              List<Expr> staticArgs_result) {
         List<Expr> args = new LinkedList<Expr>();
-        args.add(originalName_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, fns_result, "Id"));
         args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "FnRef", args);
@@ -251,8 +250,6 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
             Expr infixJuxt_result,
             List<Expr> exprs_result) {
         List<Expr> args = new LinkedList<Expr>();
-        args.add(multiJuxt_result);
-        args.add(infixJuxt_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, exprs_result, "Expr"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "LooseJuxt", args);
     }
@@ -283,7 +280,6 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
                              List<Expr> ops_result,
             List<Expr> staticArgs_result) {
         List<Expr> args = new LinkedList<Expr>();
-        args.add(originalName_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, ops_result, "OpName"));
         args.add(SyntaxAbstractionUtil.makeList(this.span, staticArgs_result, "StaticArg"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "OpRef", args);
@@ -315,8 +311,6 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
                                  Expr infixJuxt_result,
                                  List<Expr> exprs_result) {
         List<Expr> args = new LinkedList<Expr>();
-        args.add(multiJuxt_result);
-        args.add(infixJuxt_result);
         args.add(SyntaxAbstractionUtil.makeList(this.span, exprs_result, "Expr"));
         return SyntaxAbstractionUtil.makeVoidObjectInstantiation(this.span, "FortressAst", "TightJuxt", args);
     }
