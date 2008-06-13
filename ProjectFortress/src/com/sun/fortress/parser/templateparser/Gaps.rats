@@ -37,6 +37,24 @@ Expr ExprGap =
        yyValue = ExprFactory.makeTemplateGapExpr(createSpan(yyStart,yyCount), a1, params);
      };
 
+Expr DelimitedExprGap =
+     <GAP> prefix "DelimitedExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapDelimitedExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+Expr SimpleExprGap =
+     <GAP> prefix "SimpleExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapSimpleExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+Expr PrimaryGap =
+     <GAP> prefix "Primary" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapPrimary(createSpan(yyStart,yyCount), a1, params);
+     };
+
 FnExpr FnExprGap =
      <GAP> prefix "FnExpr" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
@@ -50,10 +68,16 @@ LooseJuxt LooseJuxtGap =
      };
 
 List<Id> BindIdOrBindIdTupleGap =
-     <GAP> prefix "BindIdOrBindIdTuple" w a1:Id params:ParamList? w suffix
+     <GAP> prefix "List<Id>" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
        TemplateGapId t = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params);
        yyValue = FortressUtil.<Id, TemplateGapId>mkList(t);
+     };
+
+Name NameGap = 
+     <GAP> prefix "Name" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapName(createSpan(yyStart,yyCount), a1, params);
      };
 
 Id IdGap = 

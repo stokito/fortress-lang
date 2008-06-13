@@ -28,4 +28,14 @@ import Spacing;
 import Gaps;
 
 modify com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode,
-Gaps, Spacing);
+Spacing);
+
+
+Id Id += 
+     NameGap
+   / IdGap
+   / <FIRST> ... ;
+
+List<Id> BindIdOrBindIdTuple +=
+     BindIdOrBindIdTupleGap
+   / <FIRST> ... ;

@@ -723,6 +723,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract DelimitedExpr();
             /**
+             * Template gap for expressions
+             */
+            TemplateGapDelimitedExpr(Id id, List<Id> templateParams) implements TemplateGap;
+            /**
              * sequence of block elements implicitly enclosed by do/end
              * BlockElems ::= BlockElem+
              * e.g.) y = x
@@ -998,6 +1002,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract SimpleExpr();
             /**
+             * Template gap for simple expressions
+             */
+            TemplateGapSimpleExpr(Id id, List<Id> templateParams) implements TemplateGap;
+            /**
              * subscripting expression
              * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
              * e.g.) a[i]
@@ -1011,6 +1019,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * primary expression
              */
             abstract Primary();
+                /**
+                 * Template gap for primary expressions
+                 */
+                TemplateGapPrimary(Id id, List<Id> templateParams) implements TemplateGap;
                 /**
                  * literal
                  * Primary ::= LiteralExpr
@@ -1939,6 +1951,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * name used in declarations and references
      */
     abstract Name();
+        /**
+         * Template gap for names
+         */
+        TemplateGapName(Id id, List<Id> templateParams) implements TemplateGap;
         /**
          * unstructured sequence of ids naming an API or component
          * APIName ::= Id(.Id)*

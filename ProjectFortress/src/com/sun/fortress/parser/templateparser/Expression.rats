@@ -37,4 +37,11 @@ import Gaps;
 
 modify com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
 MayNewlineHeader, Type, DelimitedExpr, Literal, Identifier, Keyword,
-Symbol, Spacing, Gaps);
+Symbol, Spacing);
+
+
+Expr ExprFront +=
+     ExprGap 
+   / LooseJuxtGap
+   / FnExprGap
+   / <Fn> ... ;

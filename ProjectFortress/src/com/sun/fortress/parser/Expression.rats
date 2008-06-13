@@ -21,7 +21,7 @@
 module com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
                                           MayNewlineHeader, Type, DelimitedExpr,
                                           Literal, Identifier, Keyword, Symbol,
-                                          Spacing, Gaps);
+                                          Spacing);
 
 import Param;
 import NoNewlineHeader;
@@ -33,7 +33,6 @@ import Identifier;
 import Keyword;
 import Symbol;
 import Spacing;
-import Gaps;
 
 /* Expr ::=
      AssignExpr
@@ -52,8 +51,6 @@ Expr ExprFront =
    / OpExpr
    / DelimitedExpr
    / <Flow> FlowExpr
-   / ExprGap
-   / FnExprGap
    / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
      { Option<Type> ty_opt = Option.wrap(a2);
        Option<List<BaseType>> tys = Option.wrap(a3);

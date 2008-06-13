@@ -86,7 +86,7 @@ instantiate com.sun.fortress.parser.Expression(Parameter, NoNewlineHeader,
                                                MayNewlineHeader, Type,
                                                DelimitedExpr, Literal,
                                                Identifier, Keyword, Symbol,
-                                               Spacing, Gaps)
+                                               Spacing)
             as Expression;
 instantiate com.sun.fortress.parser.DelimitedExpr(TraitObject, NoNewlineHeader,
                                                   MayNewlineHeader, Type,
@@ -102,7 +102,7 @@ instantiate com.sun.fortress.parser.NoSpaceExpr(Expression, Keyword, Symbol,
             as NoSpaceExpr;
 instantiate com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
                                             NoSpaceExpr, Symbol,
-                                            Spacing, Identifier, Gaps)
+                                            Spacing, Identifier)
             as Literal;
 instantiate com.sun.fortress.parser.LocalDecl(Variable, Function, Parameter,
                                               NoNewlineHeader, Type,
@@ -111,7 +111,7 @@ instantiate com.sun.fortress.parser.LocalDecl(Variable, Function, Parameter,
                                               Spacing)
             as LocalDecl;
 instantiate com.sun.fortress.parser.Identifier(Keyword, Symbol,
-                                               Unicode, Spacing, Gaps)
+                                               Unicode, Spacing)
             as Identifier;
 instantiate com.sun.fortress.parser.Symbol(DelimitedExpr, LocalDecl,
                                            NoNewlineExpr, Type, Identifier,
@@ -123,8 +123,6 @@ instantiate com.sun.fortress.parser.Keyword(Identifier)
             as Keyword;
 instantiate com.sun.fortress.parser.Unicode
             as Unicode;
-instantiate com.sun.fortress.parser.Gaps(Symbol, Spacing, Identifier)
-            as Gaps;
 
 header {
 import com.sun.fortress.exceptions.ProgramError;

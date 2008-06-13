@@ -192,9 +192,6 @@ public class ModuleEnvironment {
             ModuleName identifier = new ModuleName("Identifier");
             m.getDependencies().add(new ModuleImport(identifier));
             m.getParameters().add(identifier);
-            ModuleName gaps = new ModuleName("Gaps");
-            m.getDependencies().add(new ModuleImport(gaps));
-            m.getParameters().add(gaps);
         }
         m.getParameters().addAll(makeParameters(nt.getDependencies()));
         m.getDependencies().addAll(makeDependencies(nt.getDependencies()));
