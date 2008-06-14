@@ -589,7 +589,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             description="Run all tests, including those known not to pass yet.">
     </target>
 
-    <target name="testNightly" depends="test, testDemos"
+    <target name="testNightly" depends="test, testDemos, testsyntax"
             description="Run tests and demos.">
     </target>
 
