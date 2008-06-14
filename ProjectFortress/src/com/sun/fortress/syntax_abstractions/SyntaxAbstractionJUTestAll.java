@@ -36,6 +36,7 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         "SyntaxGrammarImportsA.fss",
         "SyntaxHiUse.fss",
         "SyntaxHi.fss",
+        "ChurchBooleansUse.fss",
         "XXXSyntaxGrammarImportsUse.fss",
         "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi");
     
