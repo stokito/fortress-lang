@@ -44,6 +44,7 @@ import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -183,6 +184,11 @@ public class SyntaxSymbolPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forWhitespaceSymbol(WhitespaceSymbol that) {
         return "WhitespaceSymbol()";
+    }
+
+    @Override
+    public String forVarType(VarType that) {
+        return that.getName().toString();
     }
 
 }
