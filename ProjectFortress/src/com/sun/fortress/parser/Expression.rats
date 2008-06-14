@@ -151,7 +151,7 @@ constant inline Action<Expr> FieldSelectionAssign =
    | Encloser
  */
 Expr OpExpr =
-     a1:OpExprNoEnc
+     <FIRST> a1:OpExprNoEnc
      { yyValue = Resolver.resolveOps(a1); }
    / a1:OpExprLeftEncloser
      { yyValue = Resolver.resolveOps(a1); }
@@ -167,7 +167,7 @@ Expr OpExpr =
    | Op
  */
 PureList<PrecedenceOpExpr> OpExprNoEnc =
-     OpExprPrimary
+     <FIRST> OpExprPrimary
    / OpExprPrefix
    / a1:Op
      { PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
