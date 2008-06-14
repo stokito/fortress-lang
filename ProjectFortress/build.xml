@@ -590,7 +590,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     </target>
 
     <target name="testNightly" depends="test, testDemos, testsyntax"
-            description="Run tests and demos.">
+            description="Run tests, demos, and syntax abstraction tests.">
     </target>
 
     <target name="reportNotPassing"
