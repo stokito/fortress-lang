@@ -55,9 +55,5 @@ x:BindIdOrBindIdTuple
 
   end 
 
-
-
-  __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\]
-
 end
 

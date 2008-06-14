@@ -203,12 +203,6 @@ public class ModuleEnvironment {
     private Collection<ModuleName> makeParameters(Set<Id> dependencies) {
         Collection<ModuleName> dep = new LinkedList<ModuleName>();
         for (Id q: dependencies) {
-            /* FIXME: What was this code doing??? */
-            /*
-            if (!ModuleInfo.isFortressModule(q)) {
-                dep.add(new ModuleName(q.toString()));
-            }
-            */
             dep.add(new ModuleName(q.toString()));
         }
         return dep;
