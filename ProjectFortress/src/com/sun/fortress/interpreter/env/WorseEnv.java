@@ -32,7 +32,27 @@ import com.sun.fortress.useful.Visitor2;
 
 public class WorseEnv extends BaseEnv {
 
-	@Override
+	public void putBoolRaw(String str, Boolean f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putIntRaw(String str, Number f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putNatRaw(String str, Number f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putValueRaw(String str, FValue f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
 	public Appendable dump(Appendable a) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
