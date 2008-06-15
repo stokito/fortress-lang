@@ -42,13 +42,9 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forFnRef(FnRef fr) {
-        List<Id> fns = fr.getFns();
+        List<Id> fns = fr.getFns(); // ignore this for now.
         List<StaticArg> sargs = fr.getStaticArgs();
-        Id idn = fns.get(0);
-
-        if (fns.size() != 1) {
-            return bug("Overloaded function in FnRef " + fr.toStringVerbose());
-        }
+        Id idn = fr.getOriginalName();
 
         if (sargs.size() > 0)
             return (new _RewriteFnRef(fr.getSpan(),

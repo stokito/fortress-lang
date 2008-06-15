@@ -1043,13 +1043,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private boolean isExponentiation(OpExpr expr) {
         OpRef ref = expr.getOp();
-        if (ref.getOps().size() != 1) return false;
-        else {
-            OpName name = ref.getOps().get(0);
+        
+            OpName name = ref.getOriginalName();
             if (!(name instanceof Op)) return false;
             else return (((Op)name).getText().equals("^") ||
                          OprUtil.isPostfix(name));
-        }
+        
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1.  At the
@@ -1057,10 +1056,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * is ever created. */
     public FValue forOpExpr(OpExpr x) {
         OpRef ref = x.getOp();
-        if (ref.getOps().size() != 1) {
-            return bug(x, errorMsg("OpExpr with multiple operators ",x));
-        }
-        OpName op = ref.getOps().get(0);
+        
+        OpName op = ref.getOriginalName();
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
         fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);

@@ -1190,14 +1190,12 @@ public class Desugarer extends Rewrite {
 
     private Expr cleanupOpExpr(OpExpr opExp) {
         OpRef ref = opExp.getOp();
-        if (ref.getOps().size() != 1) {
-            return bug(opExp,
-                errorMsg("OpExpr with multiple operators ",opExp));
-        }
-
+        
         List<Expr> args = opExp.getArgs();
+        
         if (args.size() <= 1) return opExp;
-        OpName qop = ref.getOps().get(0);
+        OpName qop = ref.getOriginalName();
+        
         if (OprUtil.isEnclosing(qop)) return opExp;
         if (OprUtil.isUnknownFixity(qop))
             return bug(opExp, "The operator fixity is unknown: " +

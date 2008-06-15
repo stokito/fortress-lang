@@ -85,7 +85,7 @@ public class ASTUtil {
             opr = NodeFactory.makeOpInfix(op);
         else
             opr = error(op, "Operator fixity is invalid in its application.");
-        OpRef ref = new OpRef(op.getSpan(),
+        OpRef ref = new OpRef(op.getSpan(), opr,
                               Collections.<OpName>singletonList(opr));
         return new OpExpr(span, false, ref, args);
     }
@@ -103,6 +103,7 @@ public class ASTUtil {
             Span s = FortressUtil.spanTwo(left, right);
             Enclosing en = new Enclosing(s, left, right);
             OpRef ref = new OpRef(s,
+                    en,
                                   Collections.<OpName>singletonList(en),
                                   sargs);
             return new OpExpr(span, false, ref, args);

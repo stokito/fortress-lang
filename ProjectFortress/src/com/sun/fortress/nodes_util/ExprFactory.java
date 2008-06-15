@@ -317,11 +317,11 @@ public class ExprFactory {
     }
 
     private static OpRef makeOpRef(OpName op) {
-        return new OpRef(op.getSpan(), Collections.singletonList(op));
+        return new OpRef(op.getSpan(), op, Collections.singletonList(op));
     }
 
     private static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
-        return new OpRef(op.getSpan(), Collections.singletonList(op), staticArgs);
+        return new OpRef(op.getSpan(), op, Collections.singletonList(op), staticArgs);
     }
 
     public static OpExpr makeOpExpr(Span span, OpName op) {
@@ -351,13 +351,13 @@ public class ExprFactory {
 
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
         List<Id> names = Collections.singletonList(name);
-        return new FnRef(span, false, names, sargs);
+        return new FnRef(span, false, name, names, sargs);
     }
 
     public static FnRef makeFnRef(Id name) {
         List<Id> names =
             Collections.singletonList(name);
-        return new FnRef(name.getSpan(), false, names, Collections.<StaticArg>emptyList());
+        return new FnRef(name.getSpan(), false, name, names, Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(Id name, Id orig){
@@ -371,14 +371,14 @@ public class ExprFactory {
     public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
         Id qName = NodeFactory.makeId(apiIds, name);
         List<Id> qNames = Collections.singletonList(qName);
-        return new FnRef(qName.getSpan(), false, qNames,
+        return new FnRef(qName.getSpan(), false, qName, qNames,
                 Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(APIName api, Id name) {
         Id qName = NodeFactory.makeId(api, name);
         List<Id> qNames = Collections.singletonList(qName);
-        return new FnRef(qName.getSpan(), false, qNames,
+        return new FnRef(qName.getSpan(), false, qName, qNames,
                 Collections.<StaticArg>emptyList());
     }
 
@@ -755,11 +755,11 @@ public class ExprFactory {
                 return new TightJuxt(e.getSpan(), true, e.getExprs());
             }
             public Expr forFnRef(FnRef e) {
-                return new FnRef(e.getSpan(), true, e.getFns(),
+                return new FnRef(e.getSpan(), true, e.getOriginalName(), e.getFns(),
                         e.getStaticArgs());
             }
             public Expr forOpRef(OpRef e) {
-                return new OpRef(e.getSpan(), true, e.getOps(),
+                return new OpRef(e.getSpan(), true, e.getOriginalName(), e.getOps(),
                         e.getStaticArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
