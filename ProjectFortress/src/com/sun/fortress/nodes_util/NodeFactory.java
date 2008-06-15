@@ -1093,7 +1093,7 @@ public class NodeFactory {
   public static FnRef makeFnRef(Span span, Id name) {
    List<Id> ids = new LinkedList<Id>();
    ids.add(name);
-   return new FnRef(span, ids);
+   return new FnRef(span, name, ids);
   }
 
   public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs) {
@@ -1108,7 +1108,7 @@ public class NodeFactory {
     List<StaticArg> staticArgs) {
    List<Id> ids = new LinkedList<Id>();
    ids.add(name);
-   return new FnRef(span, ids, staticArgs);
+   return new FnRef(span, name, ids, staticArgs);
   }
 
   public static OpName makeListOpName(Span span) {

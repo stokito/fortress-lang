@@ -153,7 +153,7 @@ public class SyntaxAbstractionUtil {
         Type type = new VarType(span, NodeFactory.makeId(typeName));
         staticArgs.add(new TypeArg(type));
 
-        OpRef opRef = new OpRef(span, ops, staticArgs);
+        OpRef opRef = new OpRef(span, opName, ops, staticArgs);
 
         List<Expr> exprs = new LinkedList<Expr>();
         if (args.isEmpty()) {

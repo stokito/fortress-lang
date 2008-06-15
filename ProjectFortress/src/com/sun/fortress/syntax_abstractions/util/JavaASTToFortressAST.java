@@ -141,7 +141,8 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
             return SyntaxAbstractionUtil.makeObjectInstantiation(this.span, "List", "emptyList", new LinkedList<Expr>(), type.getArgs());
         }
         List<OpName> ops = new LinkedList<OpName>();
-        ops.add(NodeFactory.makeListOpName(this.span));
+        OpName op = NodeFactory.makeListOpName(this.span);
+        ops.add(op);
         List<Expr> args = new LinkedList<Expr>();
         boolean first = true;
         for (Object o: value) {
@@ -156,7 +157,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
             }
             args.add(e);
         }
-        return new OpExpr(new OpRef(ops), args);
+        return new OpExpr(new OpRef(op, ops), args);
     }
 
     /*

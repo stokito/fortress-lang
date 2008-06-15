@@ -68,7 +68,7 @@ public class ActionRuntime {
         Enclosing enclosing = new Enclosing(Option.<APIName>none(), op1, op2);
         List<OpName> ls = new LinkedList<OpName>();
         ls.add(enclosing);
-        OpRef opRef = new OpRef(false, ls, new LinkedList<StaticArg>());
+        OpRef opRef = new OpRef(false, enclosing, ls, new LinkedList<StaticArg>());
         List<Expr> tls = new LinkedList<Expr>();
         tls.addAll(x);
         OpExpr opExpr = new OpExpr(true, opRef, tls);

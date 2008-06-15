@@ -81,6 +81,9 @@ public class FortressObjectASTVisitor<T> {
     }
 
     public T dispatch(FValue value) {
+        if (null == value) {
+            throw new RuntimeException("Unexpected value was null");
+        }
         Debug.debug( 2, "Val: "+value.getClass());
         if (value instanceof FString) {
             return (T) ((FString) value).getString();
@@ -88,9 +91,7 @@ public class FortressObjectASTVisitor<T> {
         if (value instanceof FObject) {
             return dispatch((FObject) value);
         }
-        if (null == value) {
-            throw new RuntimeException("Unexpected value was null");
-        }
+        
         throw new RuntimeException("Unexpected type of value: "+value.getClass());
     }
 
@@ -219,17 +220,19 @@ public class FortressObjectASTVisitor<T> {
     private T dispatchFnRef(FObject value) {
         FValue v1 = getField(value, "fns");
         List<Id> fns = dispatchList((FObject)v1);
+        Id originalName = fns.get(0); // HACK should be: (Id) dispatch((FObject)getField(value, "originalName")); //???
         FValue v2 = getField(value, "staticArgs");
         List<StaticArg> staticArgs = dispatchList((FObject)v2);
-        return (T) new FnRef(this.span, fns, staticArgs);
+        return (T) new FnRef(this.span, originalName, fns, staticArgs);
     }
 
     private T dispatchOpRef(FObject value) {
         FValue v1 = getField(value, "ops");
         List<OpName> ops = dispatchList((FObject)v1);
+        OpName originalName = ops.get(0); // HACK should be: (OpName) dispatch(getField(value, "originalName")); //???
         FValue v2 = getField(value, "staticArgs");
         List<StaticArg> staticArgs = dispatchList((FObject)v2);
-        return (T) new OpRef(this.span, ops, staticArgs);
+        return (T) new OpRef(this.span, originalName, ops, staticArgs);
     }
 
     private T dispatchLooseJuxt(FObject value) {
@@ -335,7 +338,11 @@ public class FortressObjectASTVisitor<T> {
     }
 
     private FValue getField(FObject fObject, String field) {
-        return fObject.getSelfEnv().getValueNull(field);
+        FValue val = fObject.getSelfEnv().getValueNull(field);
+        if (val == null) {
+            throw new Error("Object " + fObject + " lacks field " + field);
+        }
+        return val;
     }
 
 }
