@@ -6,10 +6,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -40,6 +42,11 @@ public class TopLevelEnvGenerator {
 	private static final String FTYPE_DESCRIPTOR = "Lcom/sun/fortress/interpreter/evaluator/types/FType;";
 	
 	private static final String CLASSNAME_SUFFIX = "Env";
+
+	// http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
+	public static String mangleIdentifier(String identifier) {
+		return null;
+	}
 	
 	/**
 	 * Given a list of components, generate a Java bytecode compiled environment
@@ -71,10 +78,11 @@ public class TopLevelEnvGenerator {
 			                                   ComponentIndex componentIndex,
 			                                   GlobalEnvironment env) {
 		ClassWriter cw = new ClassWriter(0);
-
-		cw.visit(Opcodes.V1_5, 
+		ClassVisitor cv = new CheckClassAdapter(cw);		
+		
+		cv.visit(Opcodes.V1_5, 
         		Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
-        		className, null, "java/lang/Object", null);
+        		className, null, "com/sun/fortress/interpreter/evaluator/BaseEnv", null);
 
 		// Implementing "static reflection"
 		// Please remove these data structures and all associated
@@ -82,16 +90,16 @@ public class TopLevelEnvGenerator {
     	Relation<String, Integer> fValueHashCode = new HashRelation<String,Integer>();        
     	Relation<String, Integer> fTypeHashCode = new HashRelation<String,Integer>();        
     	
-        writeFields(componentIndex, cw, fValueHashCode, fTypeHashCode);
+        writeFields(componentIndex, cv, fValueHashCode, fTypeHashCode);
 
-        writeMethodGetValueRaw(cw, className, fValueHashCode);        
+        writeMethodGetValueRaw(cv, className, fValueHashCode);        
 
-        cw.visitEnd();        
+        cv.visitEnd();        
         return(cw.toByteArray());
 	}
 
 	private static void writeFields(ComponentIndex componentIndex,
-			ClassWriter cw, Relation<String, Integer> fValueHashCode,
+			ClassVisitor cv, Relation<String, Integer> fValueHashCode,
 			Relation<String, Integer> fTypeHashCode) {
 		
 		// Create all variables as fields in the environment
@@ -99,7 +107,7 @@ public class TopLevelEnvGenerator {
         	String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());        	
         	idString = idString + FVALUE_NAMESPACE;
-            cw.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();
+            cv.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();
         }
         
         // Create all functions as fields in the environment
@@ -107,7 +115,8 @@ public class TopLevelEnvGenerator {
         	String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());        	
         	idString = idString + FVALUE_NAMESPACE;
-            cw.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();	
+        	System.err.println("idString: " + idString);
+            cv.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();	
         }
 
         // Create all types as fields in the environment
@@ -115,7 +124,7 @@ public class TopLevelEnvGenerator {
         	String idString = NodeUtil.nameString(id);
             fTypeHashCode.add(idString, idString.hashCode());        	
         	idString = idString + FTYPE_NAMESPACE;        	
-            cw.visitField(Opcodes.ACC_PUBLIC, idString, FTYPE_DESCRIPTOR, null, null).visitEnd();	
+            cv.visitField(Opcodes.ACC_PUBLIC, idString, FTYPE_DESCRIPTOR, null, null).visitEnd();	
         }
 	}
 
@@ -139,13 +148,13 @@ public class TopLevelEnvGenerator {
 	 * Implementing "static reflection" for the method getValueRaw
 	 * so the interpreter has O(log n) lookups based on the hash values
 	 * of String names in this namespace.        
-	 * @param cw
+	 * @param cv
 	 * @param className 
 	 * @param valueHashCode 
 	 */
-	private static void writeMethodGetValueRaw(ClassWriter cw, String className,
+	private static void writeMethodGetValueRaw(ClassVisitor cv, String className,
 			Relation<String, Integer> valueHashCode) {
-		MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
+		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
         		"getValueRaw", 
         		"(Ljava/lang/String;)" + 
         		"Lcom/sun/fortress/interpreter/evaluator/values/FValue;", 
@@ -198,7 +207,7 @@ public class TopLevelEnvGenerator {
 	}
 
 	/**
-	 * Given a Java bytecode class stored in a byte arrray, save that
+	 * Given a Java bytecode class stored in a byte array, save that
 	 * class into a file on disk.
 	 * @param bytecode
 	 * @param fileName
