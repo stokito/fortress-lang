@@ -19,22 +19,44 @@ component Regex
 import List.{...}
 export Regex
 
-    object Regexp( elements : List[\Element\] )
-    end
-
     trait Element
     end
 
+    object Regexp( elements : List[\Element\] )
+        toString():String = 
+            "/" (BIG || elements) "/"
+    end
+
     object CharElement(s:String) extends Element
+        toString():String = s
     end
 
     object RepeatElement(e:Element) extends Element
+        toString():String = e "*"
+    end
+    
+    object RepeatOneElement(e:Element) extends Element
+        toString():String = e "+"
     end
 
-    object GroupElement(e:Element) extends Element
+    object GroupElement(e:List[\Element\]) extends Element
+        toString():String = "(" (BIG || e) ")"
     end
 
     object RangeElement(s1:String,s2:String) extends Element
+        toString():String = s1 "-" s2
+    end
+    
+    object ClassElement(e:List[\Element\]) extends Element
+        toString():String = "[" (BIG || e) "]"
+    end
+    
+    object StartElement() extends Element
+        toString():String = "^"
+    end
+    
+    object EndElement() extends Element
+        toString():String = "$"
     end
 
 end

@@ -22,7 +22,15 @@ import List.{...}
 export Executable
 
 run(s:String...) = do
-    n = /abc/
+    (* println "// = " (//) *)
+    println "/abc/ = " (/abc/)
+    println "/a*bc/ = " (/a*bc/)
+    println "/a(bc)/ = " (/a(bc)/)
+    println "/a+bc/ = " (/a+bc/)
+    println "/(ab)*c/ = " (/(ab)*c/)
+    println "/^foo/ = " (/^foo/)
+    println "/bar$/ = " (/bar$/)
+    println "/^foo$/ = " (/^foo$/)
 end
 
 end
