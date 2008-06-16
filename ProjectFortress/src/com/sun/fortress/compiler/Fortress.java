@@ -28,7 +28,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.compiler.environmentor.TopLevelEnvGenerator;
+import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ASTIO;
@@ -281,7 +281,7 @@ public class Fortress {
 		if (!componentSR.isSuccessful()) { return componentSR.errors(); }
 
 		// Additional optimization phases can be inserted here
-        TopLevelEnvGenerator.generate(componentSR.components(), env);
+        TopLevelEnvGen.generate(componentSR.components(), env);
 		
 		if(passDisambiguatedResultsToInterpreter){
 			for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {

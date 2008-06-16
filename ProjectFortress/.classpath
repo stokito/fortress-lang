@@ -8,6 +8,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="third_party/ant/ant.jar"/>
 	<classpathentry kind="lib" path="third_party/ant/ant-junit.jar"/>
-	<classpathentry kind="lib" path="third_party/asm/asm-3.1.jar"/>
+	<classpathentry kind="lib" path="third_party/asm/asm-all-3.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.6.0_06/lib/tools.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
