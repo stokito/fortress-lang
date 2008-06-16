@@ -36,8 +36,6 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         "SyntaxHi.fss",
         "ChurchBooleansUse.fss",
         "XXXSyntaxGrammarImportsUse.fss",
-        "SXXGrammarExtendsNonExistingGrammarUse.fss",
-        "SXXGrammarExtendsNonExistingGrammar.fss",
         "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss");
     
     public static TestSuite suite() {

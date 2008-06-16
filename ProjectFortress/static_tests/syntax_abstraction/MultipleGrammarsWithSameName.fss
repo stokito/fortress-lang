@@ -14,11 +14,6 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-
-api XXXSyntaxNoFortressAstImport
-
-  grammar A
-      production Foo : Literal end
-  end
-
+component MultipleGrammarsWithSameName
+export MultipleGrammarsWithSameName
 end
