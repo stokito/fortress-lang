@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.objectweb.asm.ClassVisitor;
@@ -11,6 +12,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.util.FortressCheckClassAdapter;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -40,6 +42,9 @@ public class TopLevelEnvGen {
 	
 	private static final String FVALUE_DESCRIPTOR = "Lcom/sun/fortress/interpreter/evaluator/values/FValue;";
 	private static final String FTYPE_DESCRIPTOR = "Lcom/sun/fortress/interpreter/evaluator/types/FType;";
+
+	private static final String STRING_DESCRIPTOR = Type.getType(String.class).getDescriptor();
+	private static final String STRING_INTERNALNAME = Type.getType(String.class).getInternalName();
 	
 	private static final String CLASSNAME_SUFFIX = "Env";
 
@@ -126,6 +131,8 @@ public class TopLevelEnvGen {
         writeMethodInit(cv, className);
         
         writeMethodGetValueRaw(cv, className, fValueHashCode);        
+        
+        writeMethodPutValueUnconditionally(cv, className, fValueHashCode);
 
         cv.visitEnd();        
         return(cw.toByteArray());
@@ -162,6 +169,11 @@ public class TopLevelEnvGen {
         }
 	}
 	
+	/**
+	 * Generate the default constructor for this class.
+	 * @param cv
+	 * @param className
+	 */
 	private static void writeMethodInit(ClassVisitor cv, String className) {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
 		mv.visitCode();
@@ -210,7 +222,7 @@ public class TopLevelEnvGen {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
         		"getValueRaw", 
         		"(Ljava/lang/String;)" + 
-        		"Lcom/sun/fortress/interpreter/evaluator/values/FValue;", 
+        		FVALUE_DESCRIPTOR, 
         		null, null); 
         mv.visitCode();
 
@@ -238,7 +250,7 @@ public class TopLevelEnvGen {
             String idString = valueHashCode.getFirsts(testHashCode).iterator().next() + FVALUE_NAMESPACE;
             mv.visitFieldInsn(Opcodes.GETFIELD, className, 
                     mangleIdentifier(idString),
-            		"Lcom/sun/fortress/interpreter/evaluator/values/FValue;");
+            		FVALUE_DESCRIPTOR);
             // Previous instruction is wrong
             
             mv.visitInsn(Opcodes.ARETURN);
@@ -260,6 +272,83 @@ public class TopLevelEnvGen {
         mv.visitMaxs(2, 3);
         mv.visitEnd();
 	}
+
+
+	/**
+	 * Implementing "static reflection" for the method putValueUnconditionally so the
+	 * interpreter has O(log n) lookups based on the hash values of String names
+	 * in this namespace.
+	 * 
+	 * @param cv
+	 * @param className
+	 * @param valueHashCode
+	 */
+	private static void writeMethodPutValueUnconditionally(ClassVisitor cv, String className,
+			Relation<String, Integer> valueHashCode) {
+		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
+        		"putValueUnconditionally", 
+        		"(" + STRING_DESCRIPTOR + FVALUE_DESCRIPTOR + ")V", 
+        		null, null); 
+        mv.visitCode();
+
+        
+        Label defQueryHashCode = new Label();
+        mv.visitLabel(defQueryHashCode);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, STRING_INTERNALNAME, "hashCode", "()I");
+        mv.visitVarInsn(Opcodes.ISTORE, 3);
+        Label beginLoop = new Label();
+        mv.visitLabel(beginLoop);
+
+        boolean first = true;
+        Label endComparisons = new Label();
+        Iterator<Integer> iterator = valueHashCode.secondSet().iterator();        
+        while (iterator.hasNext()) {
+        	Integer testHashCode = iterator.next();
+            mv.visitVarInsn(Opcodes.ILOAD, 3);
+            mv.visitLdcInsn(testHashCode);
+            Label beforeReturn = new Label();            
+            Label afterReturn = new Label();
+            if (iterator.hasNext()) {
+            	mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterReturn);
+            } else {
+            	mv.visitJumpInsn(Opcodes.IF_ICMPNE, endComparisons);            	
+            }
+            mv.visitLabel(beforeReturn);
+
+            // This is wrong.  Should be using string equals() to test hash collisions
+            String idString = 
+            	valueHashCode.getFirsts(testHashCode).iterator().next() + FVALUE_NAMESPACE;
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitVarInsn(Opcodes.ALOAD, 2);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
+            		mangleIdentifier(idString), FVALUE_DESCRIPTOR);
+            // Previous instructions are wrong
+            if (iterator.hasNext()) {
+                mv.visitJumpInsn(Opcodes.GOTO, endComparisons);
+            	mv.visitLabel(afterReturn);
+            } else {
+            	mv.visitLabel(endComparisons);
+            }
+            if (first) {
+                mv.visitFrame(Opcodes.F_APPEND, 1, new Object[] {Opcodes.INTEGER}, 0, null);
+                first = false;
+            } else {
+                mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+            }
+        }
+        mv.visitInsn(Opcodes.RETURN);        
+        Label endFunction = new Label();
+        mv.visitLabel(endFunction);
+        mv.visitLocalVariable("this", "L" + className + ";", null, 
+        		defQueryHashCode, endFunction, 0);
+        mv.visitLocalVariable("queryString", STRING_DESCRIPTOR, null, 
+        		defQueryHashCode, endFunction, 1);
+        mv.visitLocalVariable("value", FVALUE_DESCRIPTOR, null, defQueryHashCode, endFunction, 2);
+        mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 3);
+        mv.visitMaxs(2, 4);
+        mv.visitEnd();
+	}	
 
 	/**
 	 * Given a Java bytecode class stored in a byte array, save that
