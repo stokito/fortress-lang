@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -75,39 +76,63 @@ public class TopLevelEnvGenerator {
         		Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
         		className, null, "java/lang/Object", null);
 
-    	Relation<String, Integer> fieldNameHashCodePair = new HashRelation<String,Integer>();        
-        
-        // Create all variables as fields in the environment
+		// Implementing "static reflection"
+		// Please remove these data structures and all associated
+		// lookups once the Fortress compiler is implemented.
+    	Relation<String, Integer> fValueHashCode = new HashRelation<String,Integer>();        
+    	Relation<String, Integer> fTypeHashCode = new HashRelation<String,Integer>();        
+    	
+        writeFields(componentIndex, cw, fValueHashCode, fTypeHashCode);
+
+        writeMethodGetValueRaw(cw);        
+
+        cw.visitEnd();        
+        return(cw.toByteArray());
+	}
+
+	private static void writeFields(ComponentIndex componentIndex,
+			ClassWriter cw, Relation<String, Integer> fValueHashCode,
+			Relation<String, Integer> fTypeHashCode) {
+		
+		// Create all variables as fields in the environment
         for(Id id : componentIndex.variables().keySet()) {
-        	String idString = NodeUtil.nameString(id) + FVALUE_NAMESPACE;
+        	String idString = NodeUtil.nameString(id);
+            fValueHashCode.add(idString, idString.hashCode());        	
+        	idString = idString + FVALUE_NAMESPACE;
             cw.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();
-            fieldNameHashCodePair.add(idString, idString.hashCode());
         }
         
         // Create all functions as fields in the environment
         for(IdOrOpOrAnonymousName id : componentIndex.functions().firstSet()) {
-        	String idString = NodeUtil.nameString(id) + FVALUE_NAMESPACE;
+        	String idString = NodeUtil.nameString(id);
+            fValueHashCode.add(idString, idString.hashCode());        	
+        	idString = idString + FVALUE_NAMESPACE;
             cw.visitField(Opcodes.ACC_PUBLIC, idString, FVALUE_DESCRIPTOR, null, null).visitEnd();	
-            fieldNameHashCodePair.add(idString, idString.hashCode());            
         }
 
         // Create all types as fields in the environment
         for(Id id : componentIndex.typeConses().keySet()) {
-        	String idString = NodeUtil.nameString(id) + FTYPE_NAMESPACE;
+        	String idString = NodeUtil.nameString(id);
+            fTypeHashCode.add(idString, idString.hashCode());        	
+        	idString = idString + FTYPE_NAMESPACE;        	
             cw.visitField(Opcodes.ACC_PUBLIC, idString, FTYPE_DESCRIPTOR, null, null).visitEnd();	
-            fieldNameHashCodePair.add(idString, idString.hashCode());            
         }
+	}
 
-        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
+	/**
+	 * Implementing "static reflection" for the method getValueRaw
+	 * so the interpreter has O(log n) lookups based on the hash values
+	 * of String names in this namespace.        
+	 * @param cw
+	 */
+	private static void writeMethodGetValueRaw(ClassWriter cw) {
+		MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
         		"getValueRaw", 
         		"(Ljava/lang/String;)" + 
         		"Lcom/sun/fortress/interpreter/evaluator/values/FValue;", 
-        		null, null);        
-        mv.visitCode();           
+        		null, null); 
+        mv.visitCode();
         mv.visitEnd();
-        cw.visitEnd();
-        
-        return(cw.toByteArray());
 	}
 
 	/**
@@ -119,7 +144,7 @@ public class TopLevelEnvGenerator {
 	private static void outputClassFile(byte[] bytecode, String fileName) {
 		FileOutputStream outStream;
 		try {
-			outStream = new FileOutputStream(new File(fileName));
+			outStream = new FileOutputStream(new File("classes" + File.separator + fileName));
 			outStream.write(bytecode);
 			outStream.close();
 		} catch (FileNotFoundException e) {
