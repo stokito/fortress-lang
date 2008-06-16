@@ -145,7 +145,7 @@ public class NodeFactory {
   Indices indices = ind.unwrap(new Indices(span, Collections.<ExtentRange>emptyList()));
   return new ArrayType(span, element, indices);
  }
-
+ 
  public static ExponentType makeExponentType(ExponentType t, Type s) {
   return new ExponentType(t.getSpan(), t.isParenthesized(), s,
     t.getPower());

@@ -15,18 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalVarRef
-export Executable
+component DXXArrayElement2
+  export Executable
 
-(* Tests that LocalVarDecl correctly binds each variable over successive
- * definitions and its enclosing Block. *)
-  
-run(args:String...):() = do
-  x:ZZ64 = 23
-  y:ZZ64 = x
-  ignore(y)
-  ignore(x)
-  ()
+  foo() : () = do
+    var a_1 : Array1[\String,0,1\] 
+    
+    a_1 := [[\String\]"Here is a simple string"] 
+
 end
 
+  run(args:String...):()= ()
 end

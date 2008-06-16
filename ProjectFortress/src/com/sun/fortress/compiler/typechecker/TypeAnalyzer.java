@@ -89,7 +89,12 @@ public class TypeAnalyzer {
     /** Verify that the given name is defined and is a TraitIndex. */
     private void assertTraitIndex(Id name) {
         // this will fail if the name is undefined:
-        TypeConsIndex index = _table.typeCons(name);
+    	Option<TypeConsIndex> ind = _table.typeCons(name);
+    	if(ind.isNone()){
+    		 throw new IllegalArgumentException("Trait " + name +
+             "in the given TraitTable.");
+    	}
+        TypeConsIndex index = ind.unwrap();
         if (!(index instanceof TraitIndex)) {
             throw new IllegalArgumentException("Trait " + name + " is not a trait " +
                                                "in the given TraitTable.");
@@ -216,7 +221,11 @@ public class TypeAnalyzer {
         Type result = (Type) t.accept(new NodeUpdateVisitor() {
             
             @Override public BaseType forTraitTypeOnly(TraitType t, Id name, List<StaticArg> normalArgs) {
-                TypeConsIndex index = _table.typeCons(name);
+                Option<TypeConsIndex> ind = _table.typeCons(name);
+            	if(ind.isNone()){
+            		throw new IllegalArgumentException("Unrecognized name: " + name);
+            	}
+            	TypeConsIndex index = ind.unwrap();
                 if (index instanceof TypeAliasIndex) {
                     TypeAliasIndex aliasIndex = (TypeAliasIndex) index;
                     // TODO: can we optimize substitution so that the result is already normalized?
@@ -579,7 +588,11 @@ public class TypeAnalyzer {
             result = result.or(f, h);
         }
         if (!result.isTrue()) {
-            TraitIndex index = (TraitIndex) _table.typeCons(s.getName());
+        	Option<TypeConsIndex> ind = _table.typeCons(s.getName());
+        	if(ind.isNone()){
+        		throw new IllegalArgumentException(s.getName() +"is undefined");
+        	}
+            TraitIndex index = (TraitIndex) ind.unwrap();
             List<Id> hidden = index.hiddenParameters();
             Lambda<Type, Type> subst = makeSubstitution(index.staticParameters(),
                                                         s.getArgs(),

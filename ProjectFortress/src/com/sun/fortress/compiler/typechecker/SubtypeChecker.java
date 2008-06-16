@@ -336,7 +336,11 @@ public abstract class SubtypeChecker {
     private boolean isValidVarType(Type t) {
         if (isVarType(t)) {
             try {
-                TypeConsIndex index = _table.typeCons(((VarType)t).getName());
+            	Option<TypeConsIndex> ind= _table.typeCons(((VarType)t).getName());
+            	if(ind.isNone()){
+            		return false;
+            	}
+                TypeConsIndex index = ind.unwrap();
                 return (index instanceof TraitIndex ||
                         index instanceof TypeAliasIndex);
             }
@@ -350,7 +354,11 @@ public abstract class SubtypeChecker {
     private boolean isValidTraitType(Type t) {
         if (t instanceof NamedType) {
             try {
-                TypeConsIndex index = _table.typeCons(((NamedType)t).getName());
+            	Option<TypeConsIndex> ind= _table.typeCons(((NamedType)t).getName());
+            	if(ind.isNone()){
+            		return false;
+            	}
+                TypeConsIndex index = ind.unwrap();
                 return (index instanceof TraitIndex ||
                         index instanceof TypeAliasIndex);
             }
@@ -736,7 +744,11 @@ public abstract class SubtypeChecker {
                     if (nameString(ss.getName()).equals(nameString(tt.getName())))
                         return equivalentStaticArgs(ss.getArgs(),tt.getArgs(),h);
                 }
-                TypeConsIndex index = _table.typeCons(((NamedType)s).getName());
+                Option<TypeConsIndex> in = _table.typeCons(((NamedType)s).getName());
+                if(in.isNone()){
+                	throw new IllegalStateException("Bad API or Trait");
+                }
+                TypeConsIndex index = in.unwrap();
                 if (index instanceof TraitIndex) {
                     TraitIndex traitIndex = (TraitIndex)index;
                     if (isVarType(s)) {
