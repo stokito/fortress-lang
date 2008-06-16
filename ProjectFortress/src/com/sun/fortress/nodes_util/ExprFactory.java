@@ -316,11 +316,11 @@ public class ExprFactory {
         return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("juxtaposition")));
     }
 
-    private static OpRef makeOpRef(OpName op) {
+    public static OpRef makeOpRef(OpName op) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op));
     }
 
-    private static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
+    public static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op), staticArgs);
     }
 
@@ -363,11 +363,11 @@ public class ExprFactory {
     public static FnRef makeFnRef(Id name, Id orig){
     	return new FnRef(name.getSpan(),false, orig, Collections.singletonList(name),Collections.<StaticArg>emptyList());
     }
-    
+
     public static FnRef makeFnRef(Id orig, List<Id> names){
     	return new FnRef(orig.getSpan(),false, orig, names,Collections.<StaticArg>emptyList());
     }
-    
+
     public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
         Id qName = NodeFactory.makeId(apiIds, name);
         List<Id> qNames = Collections.singletonList(qName);
@@ -415,7 +415,7 @@ public class ExprFactory {
     public static TightJuxt makeTightJuxt(TightJuxt that, List<Expr> exprs) {
     	return new TightJuxt(that.getSpan(), that.isParenthesized(), that.getInfixJuxt(), that.getMultiJuxt(), exprs);
     }
-    
+
     public static VarRef makeVarRef(Span span, String s) {
         return new VarRef(span, false, NodeFactory.makeId(span, s));
     }
@@ -554,15 +554,15 @@ public class ExprFactory {
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
-        List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
-        Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
+        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
+        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-        List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
-        Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
+        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
+        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);
     }
@@ -821,19 +821,19 @@ public class ExprFactory {
     public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapExpr(s, id, params);
     }
-    
+
     public static TemplateGapDelimitedExpr makeTemplateGapDelimitedExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapDelimitedExpr(s, id, params);
     }
-    
+
     public static TemplateGapSimpleExpr makeTemplateGapSimpleExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapSimpleExpr(s, id, params);
     }
-    
+
     public static TemplateGapPrimary makeTemplateGapPrimary(Span s, Id id, List<Id> params) {
         return new TemplateGapPrimary(s, id, params);
     }
-    
+
     public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
         Expr body = new VarRef(id);
         return new TemplateGapFnExpr(s, false, id, new LinkedList<Param>(), body, id, params);
@@ -846,7 +846,7 @@ public class ExprFactory {
     public static TemplateGapName makeTemplateGapName(Span s, Id id, List<Id> params) {
         return new TemplateGapName(s, id, params);
     }
-    
+
     public static TemplateGapId makeTemplateGapId(Span s, Id id, List<Id> params) {
         return new TemplateGapId(s, "IdGap:"+id.getText(), id, params);
     }

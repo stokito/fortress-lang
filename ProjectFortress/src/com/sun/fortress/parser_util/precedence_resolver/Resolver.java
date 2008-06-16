@@ -25,7 +25,9 @@ import java.util.List;
 
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.Chain;
 import com.sun.fortress.parser_util.precedence_opexpr.Equal;
@@ -584,7 +586,7 @@ public class Resolver {
   //  first (build_links op rest last)
   //     | [] -> Errors.internal_error last.node_span "Empty chain expression."
   private static Expr buildChainExpr(PureList<ExprOpPair> links,
-                     Expr last) throws ReadError
+                                     Expr last) throws ReadError
   {
     if (!links.isEmpty()) {
       ExprOpPair link = ((Cons<ExprOpPair>)links).getFirst();
@@ -605,16 +607,17 @@ public class Resolver {
   //   match links with
   //     | [] -> [(first,last)]
   //     | (e,op) :: rest -> (first,e) :: build_links op rest last
-  private static PureList<Pair<Op, Expr>>
+  private static PureList<Pair<OpRef, Expr>>
       buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
   {
+      OpRef _first = ExprFactory.makeOpRef(first);
     if (links.isEmpty()) {
-        return PureList.<Pair<Op,Expr>>make(new Pair<Op,Expr>(first,last));
+        return PureList.<Pair<OpRef,Expr>>make(new Pair<OpRef,Expr>(_first,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      Pair<Op,Expr> l = new Pair<Op,Expr>(first, link.getA());
+      Pair<OpRef,Expr> l = new Pair<OpRef,Expr>(_first, link.getA());
 
       return (buildLinks(link.getB(), _links.getRest(), last)).cons(l);
     }

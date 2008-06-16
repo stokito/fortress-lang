@@ -595,13 +595,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     public FValue forChainExpr(ChainExpr x) {
         Expr first = x.getFirst();
-        List<Pair<Op, Expr>> links = x.getLinks();
+        List<Pair<OpRef, Expr>> links = x.getLinks();
         FValue idVal = first.accept(this);
-        Iterator<Pair<Op, Expr>> i = links.iterator();
+        Iterator<Pair<OpRef, Expr>> i = links.iterator();
         List<FValue> vargs = new ArrayList<FValue>(2);
         if (links.size() == 1) {
-            Pair<Op, Expr> link = i.next();
-            Fcn fcn = (Fcn) link.getA().accept(this);
+            Pair<OpRef, Expr> link = i.next();
+            Fcn fcn = (Fcn) link.getA().getOriginalName().accept(this);
             FValue exprVal = link.getB().accept(this);
             vargs.add(idVal);
             vargs.add(exprVal);
@@ -611,8 +611,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             vargs.add(idVal);
             vargs.add(idVal);
             while (boolres.getBool() && i.hasNext()) {
-                Pair<Op, Expr> link = i.next();
-                Fcn fcn = (Fcn) link.getA().accept(this);
+                Pair<OpRef, Expr> link = i.next();
+                Fcn fcn = (Fcn) link.getA().getOriginalName().accept(this);
                 FValue exprVal = link.getB().accept(this);
                 vargs.set(0, idVal);
                 vargs.set(1, exprVal);
@@ -1043,12 +1043,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private boolean isExponentiation(OpExpr expr) {
         OpRef ref = expr.getOp();
-        
+
             OpName name = ref.getOriginalName();
             if (!(name instanceof Op)) return false;
             else return (((Op)name).getText().equals("^") ||
                          OprUtil.isPostfix(name));
-        
+
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1.  At the
@@ -1056,7 +1056,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * is ever created. */
     public FValue forOpExpr(OpExpr x) {
         OpRef ref = x.getOp();
-        
+
         OpName op = ref.getOriginalName();
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
