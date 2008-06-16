@@ -166,7 +166,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String lsStatic = FreshName.getFreshName("ls");
         this.code.addAll(mkList(staticArgs_result, lsStatic, "StaticArg"));
 
-        this.code.add(String.format("MethodInvocation %s = new MethodInvocation(%s, %b, %s, %s, %s)", rVarName, sVarName, that.isParenthesized(), obj_result, method_result, lsStatic, arg_result ));
+        this.code.add(String.format("MethodInvocation %s = new MethodInvocation(%s, %b, %s, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), obj_result, method_result, lsStatic, arg_result ));
 
         return rVarName;
     }
