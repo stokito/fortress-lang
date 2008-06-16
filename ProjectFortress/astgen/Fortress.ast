@@ -1227,7 +1227,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * delivering boolean results, may be chained.
                      * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                      */
-                    ChainExpr(Expr first, List<Pair<Op, Expr>> links);
+                    ChainExpr(Expr first, List<Pair<OpRef, Expr>> links);
                     /**
                      * coercion invocation
                      * internal node created by static analysis

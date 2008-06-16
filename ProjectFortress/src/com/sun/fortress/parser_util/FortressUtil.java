@@ -842,9 +842,11 @@ public final class FortressUtil {
     private static boolean isEquality(Expr expr) {
         if (expr instanceof ChainExpr) {
             ChainExpr e = (ChainExpr)expr;
-            List<Pair<Op, Expr>> links = e.getLinks();
-            return (links.size() == 1 &&
-                    links.get(0).getA().getText().equals("="));
+            List<Pair<OpRef, Expr>> links = e.getLinks();
+            if (links.size() == 1) {
+                OpName op = links.get(0).getA().getOriginalName();
+                return (op instanceof Op && ((Op)op).getText().equals("="));
+            } else return false;
         } else return false;
     }
 

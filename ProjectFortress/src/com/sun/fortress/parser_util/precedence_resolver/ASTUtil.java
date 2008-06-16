@@ -119,7 +119,7 @@ public class ASTUtil {
     //        (node span
     //           { chain_expr_first = first;
     //             chain_expr_links = links; }))
-    static Expr chain(Span span, Expr first, List<Pair<Op, Expr>> links) {
+    static Expr chain(Span span, Expr first, List<Pair<OpRef, Expr>> links) {
         return new ChainExpr(span, false, first, links);
     }
 

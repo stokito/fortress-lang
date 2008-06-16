@@ -1136,8 +1136,8 @@ public class NodeFactory {
   }
 
   public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {
-   List<Pair<Op, Expr>> links = new ArrayList<Pair<Op, Expr>>(1);
-   links.add(Pair.make(op, rhs));
+   List<Pair<OpRef, Expr>> links = new ArrayList<Pair<OpRef, Expr>>(1);
+   links.add(Pair.make(ExprFactory.makeOpRef(op), rhs));
    return new ChainExpr(new Span(lhs.getSpan(), rhs.getSpan()), lhs, links);
   }
 
