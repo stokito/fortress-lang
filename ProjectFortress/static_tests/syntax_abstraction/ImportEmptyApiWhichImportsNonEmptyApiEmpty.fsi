@@ -15,16 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api SyntaxGrammarImportsA
- 
-  import FortressAst.{...}
-
-  grammar A
-      Hello :StringLiteralExpr:=
-         hello <[ "Hello" ]>
-
-      World :Expr:=
-         the answer <[ 42 ]>
-  end
-
+api ImportEmptyApiWhichImportsNonEmptyApiEmpty
+  import ImportEmptyApiWhichImportsNonEmptyApiNonEmpty.{...}
 end

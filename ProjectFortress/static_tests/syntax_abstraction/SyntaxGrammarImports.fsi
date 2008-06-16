@@ -23,15 +23,15 @@ api SyntaxGrammarImports
 
   grammar Helloworld extends { A, B, Literal }
       LiteralExpr |Expr:=
-         Hello a:Beautiful world do StringLiteralExpr(Hello.val " " a.val " world") end
+         Hello a:Beautiful world <[ Hello.val " " a.val " world" ]>
   end
  
   grammar B extends Literal
       Foo :Expr:=
-         when do StringLiteralExpr("in 84") end
+         when <[ "in 84" ]>
 
       Beautiful :StringLiteralExpr:=
-         beautiful do StringLiteralExpr(beautiful) end
+         beautiful <[ beautiful ]>
   end
 
 end

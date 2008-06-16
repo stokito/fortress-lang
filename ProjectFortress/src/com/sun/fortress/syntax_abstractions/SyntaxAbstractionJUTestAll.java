@@ -18,6 +18,7 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -31,14 +32,12 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
     private final static List<String> FAILING_SYNTAXABSTRACTIONS = Arrays.asList(
         "SyntaxASTUse.fss",
         "SyntaxAST.fss",
-        "SyntaxGrammarImportsUse.fss",
-        "SyntaxGrammarImports.fss",
-        "SyntaxGrammarImportsA.fss",
         "SyntaxHiUse.fss",
         "SyntaxHi.fss",
         "ChurchBooleansUse.fss",
         "XXXSyntaxGrammarImportsUse.fss",
-        "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi");
+        "XXXSyntaxMultipleNonterminalDefsWithSameName.fss",
+        "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss");
     
     public static TestSuite suite() {
         return new StaticTestSuite("SyntaxAbstractionJUTest",

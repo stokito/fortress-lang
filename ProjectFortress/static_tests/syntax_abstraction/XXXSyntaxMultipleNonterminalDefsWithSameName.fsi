@@ -23,11 +23,10 @@ api XXXSyntaxMultipleNonterminalDefsWithSameName
   grammar Wrong extends Literal
     Foo :LiteralExpr:= 
       wrong do StringLiteral("") end
-    end
 
     Foo :LiteralExpr:= 
       very wrong do StringLiteral("") end
-    end
+
   end
 
 end

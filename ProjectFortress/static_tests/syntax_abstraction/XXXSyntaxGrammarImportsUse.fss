@@ -17,7 +17,7 @@
 
 component XXXSyntaxGrammarImportsUse
 
-import Helloworld from SyntaxGrammarImports
+import SyntaxGrammarImports.{...}
 
 export Executable
 
