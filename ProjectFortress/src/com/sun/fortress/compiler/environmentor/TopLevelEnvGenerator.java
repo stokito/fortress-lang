@@ -84,7 +84,7 @@ public class TopLevelEnvGenerator {
     	
         writeFields(componentIndex, cw, fValueHashCode, fTypeHashCode);
 
-        writeMethodGetValueRaw(cw);        
+        writeMethodGetValueRaw(cw, className, fValueHashCode);        
 
         cw.visitEnd();        
         return(cw.toByteArray());
@@ -119,19 +119,81 @@ public class TopLevelEnvGenerator {
         }
 	}
 
+	/*
+	 * 	public FValue getValueRaw(String queryString) {
+	 *	   int queryHashCode = queryString.hashCode();
+	 *	   if (queryHashCode == 1) {
+	 *		   return className.field1$FValue;
+	 *	   } else if (queryHashCode == 2) {
+	 * 		   return className.field2$FValue;
+	 * 	   } else if (queryHashCode == 3) {
+	 *		   return className.field3$FValue;
+	 *	   } else if (queryHashCode == 4) {
+	 *		   return className.field4$FValue;
+	 *	   }
+	 *	   return null;
+	 *  }
+	 */	
+	
 	/**
 	 * Implementing "static reflection" for the method getValueRaw
 	 * so the interpreter has O(log n) lookups based on the hash values
 	 * of String names in this namespace.        
 	 * @param cw
+	 * @param className 
+	 * @param valueHashCode 
 	 */
-	private static void writeMethodGetValueRaw(ClassWriter cw) {
+	private static void writeMethodGetValueRaw(ClassWriter cw, String className,
+			Relation<String, Integer> valueHashCode) {
 		MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
         		"getValueRaw", 
         		"(Ljava/lang/String;)" + 
         		"Lcom/sun/fortress/interpreter/evaluator/values/FValue;", 
         		null, null); 
         mv.visitCode();
+
+        
+        Label defQueryHashCode = new Label();
+        mv.visitLabel(defQueryHashCode);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "hashCode", "()I");
+        mv.visitVarInsn(Opcodes.ISTORE, 2);
+        Label beginLoop = new Label();
+        mv.visitLabel(beginLoop);
+
+        boolean first = true;
+        for(Integer testHashCode : valueHashCode.secondSet()) {
+            mv.visitVarInsn(Opcodes.ILOAD, 2);
+            mv.visitLdcInsn(testHashCode);
+            Label beforeReturn = new Label();            
+            Label afterReturn = new Label();
+            mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterReturn);
+            mv.visitLabel(beforeReturn);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+
+            // This is wrong.  Should be using string equals() to test hash collisions
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, 
+            		valueHashCode.getFirsts(testHashCode).iterator().next() + FVALUE_NAMESPACE,
+            		"Lcom/sun/fortress/interpreter/evaluator/values/FValue;");
+            // Previous instruction is wrong
+            
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitLabel(afterReturn);
+            if (first) {
+                mv.visitFrame(Opcodes.F_APPEND, 1, new Object[] {Opcodes.INTEGER}, 0, null);
+                first = false;
+            } else {
+                mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);            	
+            }
+        }
+        mv.visitInsn(Opcodes.ACONST_NULL);
+        mv.visitInsn(Opcodes.ARETURN);
+        Label endFunction = new Label();
+        mv.visitLabel(endFunction);
+        mv.visitLocalVariable("this", "L" + className + ";", null, defQueryHashCode, endFunction, 0);
+        mv.visitLocalVariable("queryString", "Ljava/lang/String;", null, defQueryHashCode, endFunction, 1);
+        mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 2);
+        mv.visitMaxs(2, 3);
         mv.visitEnd();
 	}
 
