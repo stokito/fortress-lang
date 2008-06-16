@@ -76,10 +76,6 @@ public class Resolver {
       return op.getText().equals("/");
   }
 
-  private static boolean isNonAssociative(Op op) {
-      return PrecedenceMap.ONLY.isNonAssociative(op.getText());
-  }
-
   // (* A predicate for whether an operator may participate in chaining *)
   // let chains (op : op) : bool =
   //   List.exists (fun set -> OpSet.mem op.node_data set)
@@ -188,7 +184,7 @@ public class Resolver {
   //         Errors.read_error op.node_span "Misuse of tight division."
   //  | opexpr :: rest -> opexpr :: resolve_tight_div rest
   private static PureList<PrefixOpExpr>
-    resolveNonAssociative(PureList<PrefixOpExpr> opExprs) throws ReadError
+    resolveTightDiv(PureList<PrefixOpExpr> opExprs) throws ReadError
   {
     if (opExprs.isEmpty()) { return PureList.<PrefixOpExpr>make(); }
 
@@ -203,14 +199,14 @@ public class Resolver {
         PureList<PrefixOpExpr> __rest  = ((Cons<PrefixOpExpr>)_rest).getRest();
 
         if (prefix[0] instanceof RealExpr &&
-            prefix[1] instanceof JuxtInfix &&
+            prefix[1] instanceof TightInfix &&
             prefix[2] instanceof RealExpr &&
-            prefix[3] instanceof JuxtInfix)
+            prefix[3] instanceof TightInfix)
         {
-          Op op1 = ((JuxtInfix)prefix[1]).getOp();
-          Op op3 = ((JuxtInfix)prefix[3]).getOp();
+          Op op1 = ((TightInfix)prefix[1]).getOp();
+          Op op3 = ((TightInfix)prefix[3]).getOp();
 
-          if (isNonAssociative(op1) && isNonAssociative(op3) && op1.getText().equals(op3.getText())) {
+          if (isDiv(op1) && isDiv(op3) && op1.getText().equals(op3.getText())) {
               throw new ReadError(FortressUtil.spanTwo(op1,op3), op1.getText() +
                                   " does not associate.");
           }
@@ -233,7 +229,7 @@ public class Resolver {
             Span span = FortressUtil.spanTwo(expr0, expr2);
             RealExpr e = new RealExpr(ASTUtil.infix(span, expr0, op1, expr2));
 
-            return resolveNonAssociative(__rest.cons(e));
+            return resolveTightDiv(__rest.cons(e));
           }
         }
       }
@@ -244,7 +240,7 @@ public class Resolver {
                             + ".");
       }
       else {
-        return (resolveNonAssociative(rest)).cons(first);
+        return (resolveTightDiv(rest)).cons(first);
       }
     }
   }
@@ -1134,7 +1130,7 @@ public class Resolver {
     return resolveInfix
               (resolvePrefix
                  (resolveJuxt
-                    (resolveNonAssociative
+                    (resolveTightDiv
                        (resolvePostfix (opExprs.reverse())))));
   }
 
