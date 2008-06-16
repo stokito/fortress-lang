@@ -1459,8 +1459,116 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
+	@Override
+	public TypeCheckerResult forArrayElementOnly(ArrayElement that,
+			List<TypeCheckerResult> staticArgs_result,
+			TypeCheckerResult element_result) {
+		
+		if( element_result.type().isNone() ) {
+			return TypeCheckerResult.compose(that, subtypeChecker, element_result,
+					TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+		}
+		
+		List<StaticArg> staticArgs = that.getStaticArgs();
+		Id array = Types.getArrayKName(1);
+		Option<TypeConsIndex> ind=table.typeCons(array);
+		if(ind.isNone()){
+			array = Types.ARRAY_NAME;
+			ind = table.typeCons(array);
+			if(ind.isNone()){
+				bug(array+"not in table");
+			}
+		}
+		TraitIndex index = (TraitIndex)ind.unwrap();
+		if(staticArgs.isEmpty()){
+			TypeArg elem = NodeFactory.makeTypeArg(element_result.type().unwrap());
+			IntArg lower = NodeFactory.makeIntArgVal(""+0);
+			IntArg size = NodeFactory.makeIntArgVal(""+1);
+			return TypeCheckerResult.compose(that,Types.makeArrayKType(1, Useful.list(elem, lower, size)),this.subtypeChecker, element_result);
+		}
+		else{
+			if(StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), index.staticParameters())){	
+				TypeCheckerResult res=this.checkSubtype(element_result.type().unwrap(),
+						((TypeArg)that.getStaticArgs().get(0)).getType(), that, 
+						element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getType());
+				return TypeCheckerResult.compose(that,Types.makeArrayKType(1, that.getStaticArgs()),this.subtypeChecker, element_result, res, 
+						TypeCheckerResult.compose(that,this.subtypeChecker,staticArgs_result));
+			}
+			else{
+				String err = "Explicit static arguments do not match required arguments for Array1 (" + index.staticParameters() + ".)";
+				TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that));
+				return TypeCheckerResult.compose(that, subtypeChecker, err_result, element_result,
+						TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+			}
+		}
+		
+	}
 
-
+	
+	// This code is not trust-worthy! Justin is working on the rank-checking code
+	@Override
+	public TypeCheckerResult forArrayElementsOnly(ArrayElements that,
+			List<TypeCheckerResult> staticArgs_result,
+			List<TypeCheckerResult> elements_result) {
+		
+		List<Type> elem_types = new ArrayList<Type>(elements_result.size()); 
+		
+		// make sure subexprs typechecked, if so store type
+		for(TypeCheckerResult r : elements_result) {
+			if( r.type().isNone() )  {
+				return TypeCheckerResult.compose(that, subtypeChecker, 
+						Useful.concat(staticArgs_result, elements_result));
+			}
+			else {
+				elem_types.add(r.type().unwrap());
+			}
+		}
+		// If no explicit type args, the join is the type
+		Type array_type = this.subtypeChecker.join(elem_types);
+		
+		// Now try to get array type for the dimension we have
+		int dim = that.getDimension();
+		Id k_array = Types.getArrayKName(dim);
+		
+		Option<TypeConsIndex> ind = table.typeCons(k_array);
+		if( ind.isNone() ) {
+			bug("Array"+dim +" has not yet been implemented.");
+		}
+		
+		TraitIndex trait_index = (TraitIndex)ind.unwrap();
+		List<StaticArg> sargs = that.getStaticArgs();
+		
+		if( !sargs.isEmpty() ) {
+			if( StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters()) ) {
+				// First arg MUST BE a TypeArg, and it must be a supertype of the elements
+				Type declared_type = ((TypeArg)that.getStaticArgs().get(0)).getType();
+				TypeCheckerResult subtype_result = 
+					this.checkSubtype(array_type, declared_type, that, "Array elements must be a subtype of explicity declared type" + declared_type + ".");
+				// then instantiate and return
+				Type return_type = Types.makeArrayKType(dim, sargs);
+				return TypeCheckerResult.compose(that, return_type, subtypeChecker, subtype_result,
+						TypeCheckerResult.compose(that, subtypeChecker, elements_result),
+						TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+			}
+			else {
+				// wrong args passed
+				String err = "Explicit static arguments don't matched required arguments for " + trait_index + ".";
+				TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, that));
+				return TypeCheckerResult.compose(that, subtypeChecker, e_result,
+						TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
+						TypeCheckerResult.compose(that, subtypeChecker, elements_result));
+			}
+		}
+		else {
+			// then we just use what we determine to be true
+			List<StaticArg> inferred_args = new ArrayList<StaticArg>(1+dim*2);
+			inferred_args.add(NodeFactory.makeTypeArg(array_type));
+			for(int i=0;i<dim;i++) {
+				// add a lower bound and a size for each dim
+			}
+			return NI.nyi();
+		}
+	}
 
 	private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,
                                                        TypeCheckerResult expr_result,
@@ -2345,7 +2453,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// result has body type
 		return TypeCheckerResult.compose(that, body_result.type(), subtypeChecker, match_result, is_exn_result, body_result);
 	}
-
+	
 	@Override
 	public TypeCheckerResult forTryAtomicExpr(TryAtomicExpr that) {
 		return forAtomic(that,
@@ -2715,50 +2823,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result, void_result);
 	}
 
-	@Override
-	public TypeCheckerResult forArrayElementOnly(ArrayElement that,
-			List<TypeCheckerResult> staticArgs_result,
-			TypeCheckerResult element_result) {
-		
-		if( element_result.type().isNone() ) {
-			return TypeCheckerResult.compose(that, subtypeChecker, element_result,
-					TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-		}
-		
-		List<StaticArg> staticArgs = that.getStaticArgs();
-		Id array = Types.getArrayKName(1);
-		Option<TypeConsIndex> ind=table.typeCons(array);
-		if(ind.isNone()){
-			array = Types.ARRAY_NAME;
-			ind = table.typeCons(array);
-			if(ind.isNone()){
-				bug(array+"not in table");
-			}
-		}
-		TraitIndex index = (TraitIndex)ind.unwrap();
-		if(staticArgs.isEmpty()){
-			TypeArg elem = NodeFactory.makeTypeArg(element_result.type().unwrap());
-			IntArg lower = NodeFactory.makeIntArgVal(""+0);
-			IntArg size = NodeFactory.makeIntArgVal(""+1);
-			return TypeCheckerResult.compose(that,Types.makeArrayKType(1, Useful.list(elem, lower, size)),this.subtypeChecker, element_result);
-		}
-		else{
-			if(StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), index.staticParameters())){	
-				TypeCheckerResult res=this.checkSubtype(element_result.type().unwrap(),
-						((TypeArg)that.getStaticArgs().get(0)).getType(), that, 
-						element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getType());
-				return TypeCheckerResult.compose(that,Types.makeArrayKType(1, that.getStaticArgs()),this.subtypeChecker, element_result, res, 
-						TypeCheckerResult.compose(that,this.subtypeChecker,staticArgs_result));
-			}
-			else{
-				String err = "Explicit static arguments do not match required arguments for Array1 (" + index.staticParameters() + ".)";
-				TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that));
-				return TypeCheckerResult.compose(that, subtypeChecker, err_result, element_result,
-						TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-			}
-		}
-		
-	}
 
 	
 
