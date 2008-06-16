@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import edu.rice.cs.plt.collect.Relation;
@@ -55,7 +56,7 @@ public class ObjectTraitIndex extends TraitIndex {
     }
     
     public Map<Id, Variable> fields() {
-        return NI.nyi();
+        return Collections.unmodifiableMap(this._fields);
     }
     
     public Set<VarDecl> fieldInitializers() {

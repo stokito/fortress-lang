@@ -18,15 +18,30 @@
 package com.sun.fortress.compiler.typechecker;
 
 
-import com.sun.fortress.compiler.*;
-import com.sun.fortress.compiler.index.ApiIndex;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.StaticError.errorMsg;
+import static edu.rice.cs.plt.tuple.Option.none;
+import static edu.rice.cs.plt.tuple.Option.some;
+import static edu.rice.cs.plt.tuple.Option.wrap;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
-import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
@@ -49,14 +64,6 @@ import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
-import java.util.*;
-
-import java.io.PrintWriter;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.TypeError.errorMsg;
-import static edu.rice.cs.plt.tuple.Option.*;
-
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TraitTable table;
@@ -66,19 +73,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     //private final SubtypeChecker subtypeChecker;
     private final TypeAnalyzer subtypeChecker;
     private final Map<Id, Option<Set<Type>>> labelExitTypes; // Note: this is mutable state.
-
+    
     public TypeChecker(TraitTable _table,
-                       StaticParamEnv _staticParams,
-                       TypeEnv _typeEnv,
-                       CompilationUnitIndex _compilationUnit)
-    {
-        table = _table;
-        staticParamEnv = _staticParams;
-        typeEnv = _typeEnv;
-        compilationUnit = _compilationUnit;
-        subtypeChecker = TypeAnalyzer.make(table);
-        labelExitTypes = new HashMap<Id, Option<Set<Type>>>();
-    }
+            StaticParamEnv _staticParams,
+            TypeEnv _typeEnv,
+            CompilationUnitIndex _compilationUnit)
+	{
+    	table = _table;
+		staticParamEnv = _staticParams;
+		typeEnv = _typeEnv;
+		compilationUnit = _compilationUnit;
+		subtypeChecker = TypeAnalyzer.make(table);
+		labelExitTypes = new HashMap<Id, Option<Set<Type>>>();
+	}
 
     private TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
@@ -653,8 +660,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         // Check method declarations.
-
-        TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
+        Option<TypeConsIndex> ind = table.typeCons(that.getName());
+        if(ind.isNone()){
+        	bug(that.getName()+"is not in table");
+        }
+        TraitIndex thatIndex = (TraitIndex)ind.unwrap();
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
 
@@ -675,7 +685,49 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          throwsClauseResult, contractResult, fieldsResult, methodsResult);
     }
 
-    public TypeCheckerResult forTraitDecl(TraitDecl that) {
+    
+    
+    @Override
+	public TypeCheckerResult forObjectExpr(ObjectExpr that) {
+        /**
+         * object expression
+         * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
+         * e.g.)  object extends {List}
+         *          cons(x) = Cons(x, self)
+         *          append (xs) = xs
+         *        end
+         */
+        TypeCheckerResult extendsClause_result = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+        
+        // Check field declarations.
+        TypeCheckerResult fields_result = new TypeCheckerResult(that);
+        TypeChecker new_checker = this;
+        for( Decl decl : that.getDecls() ) {
+        	if( decl instanceof VarDecl ) {
+                VarDecl _decl = (VarDecl)decl;
+                fields_result = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(new_checker), fields_result);
+                new_checker = new_checker.extend(_decl.getLhs());       		
+        	}
+        }
+        
+        Type obj_type = TypesUtil.getObjectExprType(that);
+        
+        // Extend checker with self
+        new_checker = new_checker.extend(Collections.singletonList(NodeFactory.makeLValue("self", 
+        		obj_type)));
+        
+        TypeCheckerResult methods_result = new TypeCheckerResult(that);
+        for (Decl decl: that.getDecls()) {
+            if (decl instanceof FnDecl) {
+                methods_result = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(new_checker), methods_result);
+            }
+        }
+    	
+    	return TypeCheckerResult.compose(that, obj_type, subtypeChecker, extendsClause_result, methods_result, fields_result);
+    	
+	}
+
+	public TypeCheckerResult forTraitDecl(TraitDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
         TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfStaticParam(that.getStaticParams()));
         TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
@@ -705,7 +757,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // Check method declarations.
 
-        TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
+        Option<TypeConsIndex> ind = table.typeCons(that.getName());
+        if(ind.isNone()){
+        	bug(that.getName()+"is not in table");
+        }
+        TraitIndex thatIndex = (TraitIndex)ind.unwrap();
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
         //add self param
@@ -1051,28 +1107,35 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if (exprs_result.isEmpty()) {
             return TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, exprs_result);
         } else {
-        	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(2*exprs_result.size()-1);
-        	all_results.addAll(exprs_result);
-        	// every other expression except for the last must be void
-        	String void_err = "All expressions except the last in a block must have VOID type.";
-        	for( int i=0; i<exprs_result.size()-1; i++ ) {
-        		TypeCheckerResult r_i = exprs_result.get(i);
-        		if( r_i.type().isSome() ) {
-        			all_results.add(this.checkSubtype(r_i.type().unwrap(),
-        					Types.VOID, that.getExprs().get(i), void_err));
-        		}
-        	}
+        	List<TypeCheckerResult> all_results = allVoidButLast(exprs_result,that.getExprs());
             return TypeCheckerResult.compose(that, exprs_result.get(exprs_result.size()-1).type(), subtypeChecker, all_results);
         }
     }
 
+    /**
+     * Checks whether all the expressions in the block have type void
+     * Puts results in all_results
+     */
+    private List<TypeCheckerResult> allVoidButLast(List<TypeCheckerResult> results, List<Expr> block){
+    	// every other expression except for the last must be void
+    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(results);
+    	String void_err = "All expressions except the last in a block must have VOID type.";
+    	for( int i=0; i<results.size()-1; i++ ) {
+    		TypeCheckerResult r_i = results.get(i);
+    		if( r_i.type().isSome() ) {
+    			all_results.add(this.checkSubtype(r_i.type().unwrap(),
+    					Types.VOID, block.get(i), void_err));
+    		}
+    	}
+    	return all_results;
+    }
+    
     public TypeCheckerResult forLetFn(LetFn that) {
         TypeCheckerResult result = new TypeCheckerResult(that);
         Relation<IdOrOpOrAnonymousName, FnDef> fnDefs = new HashRelation<IdOrOpOrAnonymousName, FnDef>(true, false);
         for (FnDef fnDef : that.getFns()) {
             fnDefs.add(fnDef.getName(), fnDef);
         }
-
         TypeChecker newChecker = this.extendWithFnDefs(fnDefs);
         for (FnDef fnDef : that.getFns()) {
             result = TypeCheckerResult.compose(that, subtypeChecker, result, fnDef.accept(newChecker));
@@ -1080,7 +1143,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         result = TypeCheckerResult.compose(that,
                                            subtypeChecker,
                                            result, TypeCheckerResult.compose(that,
-                                                                     subtypeChecker, newChecker.recurOnListOfExpr(that.getBody())));
+                                                                     subtypeChecker, allVoidButLast(newChecker.recurOnListOfExpr(that.getBody()),that.getBody())));
         return result;
     }
 
@@ -1229,7 +1292,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	private Option<TraitIndex> getIndexOfType(Type rcvr_type){
     	if( rcvr_type instanceof NamedType ) {
     		NamedType named_rcvr_type = (NamedType)rcvr_type;
-    		TypeConsIndex index = table.typeCons(named_rcvr_type.getName());
+    		Option<TypeConsIndex> ind = table.typeCons(named_rcvr_type.getName());
+            if(ind.isNone()){
+            	return Option.none();
+            }
+            TypeConsIndex index = ind.unwrap();
     		if( index instanceof TraitIndex ) {
     			return Option.some((TraitIndex)index);
     		}
@@ -1306,6 +1373,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return Pair.make(candidates,all_results);
 	}
 
+	
+	
     @Override
 	public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that,
 			TypeCheckerResult obj_result, TypeCheckerResult method_result,
@@ -1366,12 +1435,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Option<Type> body_type = that.getBody().size() == 0 ?
         		Option.<Type>some(Types.VOID) :
         	    body_results.get(body_results.size()-1).type();
-
+        List<TypeCheckerResult> all_results=allVoidButLast(body_results,that.getBody());
         return TypeCheckerResult.compose(that,
         		                         body_type,
                                          subtypeChecker,
                                          result, TypeCheckerResult.compose(that,
-                                                                   subtypeChecker, body_results));
+                                                                   subtypeChecker, all_results));
     }
 
     public TypeCheckerResult forArgExprOnly(ArgExpr that,
@@ -2039,6 +2108,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		bug("Number of types don't match number of sub-expressions");
     	}
     	// new list of results and exprs, so we can modify this one in place and recurse on it
+    	{
     	List<TypeCheckerResult> new_exprs_result = new LinkedList<TypeCheckerResult>(exprs_result);
     	List<Expr> new_exprs = new LinkedList<Expr>(that.getExprs());
     	// list iters, so we can remove and add
@@ -2068,6 +2138,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			return forTightJuxtOnly(ExprFactory.makeTightJuxt(that,new_exprs), multijuxt_result, injuxt_result, new_exprs_result);
     		}
     	}
+    	}
     	// 2.) If you have reached this point, The overall juxtaposition
     	//     now either is a single element or consists entirely of non-function elements.
     	if( that.getExprs().size() == 1 ) {
@@ -2075,7 +2146,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     				TypeCheckerResult.compose(that, subtypeChecker, exprs_result));
     	}
     	// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
-    	// TODO
+    	// Moved this to seperate pass
     	// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
     	OpExpr multi_op_expr = new OpExpr(that.getSpan(),that.getMultiJuxt(),that.getExprs());
     	TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
@@ -2094,7 +2165,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
     	// typecheck this result instead
     	TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
-    	return TypeCheckerResult.compose(cur_op_expr, op_expr_result.type(), subtypeChecker, op_expr_result);
+    	return op_expr_result;
     }
 
     @Override
@@ -2561,8 +2632,22 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // No checks needed since all imports are handled by the trait table.
         return new TypeCheckerResult(that);
     }
+    
 
-    public TypeCheckerResult forTraitTypeWhereOnly(TraitTypeWhere that,
+    @Override
+	public TypeCheckerResult forNumberConstraintOnly(NumberConstraint that,
+			TypeCheckerResult val_result) {
+		return new TypeCheckerResult(that);
+	}
+
+    
+	@Override
+	public TypeCheckerResult forIntArgOnly(IntArg that,
+			TypeCheckerResult val_result) {
+		return new TypeCheckerResult(that);
+	}
+
+	public TypeCheckerResult forTraitTypeWhereOnly(TraitTypeWhere that,
                                                    TypeCheckerResult type_result,
                                                    TypeCheckerResult where_result) {
         return TypeCheckerResult.compose(that, subtypeChecker, type_result, where_result);
@@ -2590,22 +2675,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
-
-
-@Override
-	public TypeCheckerResult forGeneratedExpr(GeneratedExpr that) {
-		Pair<List<TypeCheckerResult>,List<LValueBind>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
-		TypeChecker extend=this.extend(pair.second());
-		TypeCheckerResult body_result = that.getExpr().accept(extend);
-		//make sure body has type void?
-		List<TypeCheckerResult> res = pair.first();
-		res.add(body_result);
-		if( !body_result.type().unwrap().equals(Types.VOID) ) {
-			res.add(new TypeCheckerResult(that,TypeError.make("Body of generated expression must have type (), but had type " +
-									body_result.type().unwrap(), that.getExpr())));
-		}
-		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, res);
-	}
+    @Override
+    public TypeCheckerResult forGeneratedExpr(GeneratedExpr that) {
+    	Pair<List<TypeCheckerResult>,List<LValueBind>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
+    	TypeChecker extend=this.extend(pair.second());
+    	TypeCheckerResult body_result = that.getExpr().accept(extend);
+    	//make sure body has type void?
+    	List<TypeCheckerResult> res = pair.first();
+    	res.add(body_result);
+    	if( !body_result.type().unwrap().equals(Types.VOID) ) {
+    		res.add(new TypeCheckerResult(that,TypeError.make("Body of generated expression must have type (), but had type " +
+    				body_result.type().unwrap(), that.getExpr())));
+    	}
+    	return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, res);
+    }
 
 	@Override
     public TypeCheckerResult forWhile(While that) {
@@ -2632,7 +2715,52 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result, void_result);
 	}
 
+	@Override
+	public TypeCheckerResult forArrayElementOnly(ArrayElement that,
+			List<TypeCheckerResult> staticArgs_result,
+			TypeCheckerResult element_result) {
+		
+		if( element_result.type().isNone() ) {
+			return TypeCheckerResult.compose(that, subtypeChecker, element_result,
+					TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+		}
+		
+		List<StaticArg> staticArgs = that.getStaticArgs();
+		Id array = Types.getArrayKName(1);
+		Option<TypeConsIndex> ind=table.typeCons(array);
+		if(ind.isNone()){
+			array = Types.ARRAY_NAME;
+			ind = table.typeCons(array);
+			if(ind.isNone()){
+				bug(array+"not in table");
+			}
+		}
+		TraitIndex index = (TraitIndex)ind.unwrap();
+		if(staticArgs.isEmpty()){
+			TypeArg elem = NodeFactory.makeTypeArg(element_result.type().unwrap());
+			IntArg lower = NodeFactory.makeIntArgVal(""+0);
+			IntArg size = NodeFactory.makeIntArgVal(""+1);
+			return TypeCheckerResult.compose(that,Types.makeArrayKType(1, Useful.list(elem, lower, size)),this.subtypeChecker, element_result);
+		}
+		else{
+			if(StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), index.staticParameters())){	
+				TypeCheckerResult res=this.checkSubtype(element_result.type().unwrap(),
+						((TypeArg)that.getStaticArgs().get(0)).getType(), that, 
+						element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getType());
+				return TypeCheckerResult.compose(that,Types.makeArrayKType(1, that.getStaticArgs()),this.subtypeChecker, element_result, res, 
+						TypeCheckerResult.compose(that,this.subtypeChecker,staticArgs_result));
+			}
+			else{
+				String err = "Explicit static arguments do not match required arguments for Array1 (" + index.staticParameters() + ".)";
+				TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that));
+				return TypeCheckerResult.compose(that, subtypeChecker, err_result, element_result,
+						TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+			}
+		}
+		
+	}
 
+	
 
 
 }

@@ -18,7 +18,9 @@ package com.sun.fortress.compiler.disambiguator;
 
 import java.util.List;
 
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.Expr;
@@ -28,10 +30,14 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -92,7 +98,17 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
 		return super.forTraitDecl(that_new);
 	}
 	
-    /**
+	
+	
+    @Override
+	public Node forObjectExpr(ObjectExpr that) {
+    	// Add a type to self parameters of methods
+    	Type self_type = TypesUtil.getObjectExprType(that);
+    	ObjectExpr that_new = (ObjectExpr)this.replaceSelfParamsWithType(that, self_type);
+    	return super.forObjectExpr(that_new);
+	}
+
+	/**
      * Replaces Parameters whose name is 'self' with a parameter with
      * the explicit type given. 
      * 
@@ -123,6 +139,7 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
 			// end recurrance here
 			@Override public Node forObjectDecl(ObjectDecl that) { return that; }
 			@Override public Node forTraitDecl(TraitDecl that) { return that; }
+			@Override public Node forObjectExpr(ObjectExpr that) { return that; }
     	};
     	return that.accept(replacer);
     }

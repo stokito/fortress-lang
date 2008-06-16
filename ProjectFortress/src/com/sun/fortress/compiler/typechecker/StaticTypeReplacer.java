@@ -216,7 +216,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 					public Boolean forNatParam(NatParam that) {
 						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
 							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forIntArg(IntArg that) {return NI.nyi();}
+							@Override public Boolean forIntArg(IntArg that) {return true;}
 						};
 						return arg.accept(inner);
 					}

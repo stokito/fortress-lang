@@ -29,11 +29,13 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.AnyType;
@@ -406,5 +408,21 @@ public class TypesUtil {
     		});
     	}
     }
-    
+
+    /**
+     * Given an ObjectExpr, returns the Type of the expression.
+     * @return
+     */
+    public static Type getObjectExprType(ObjectExpr obj) {
+    	List<Type> extends_types = IterUtil.asList(IterUtil.map(obj.getExtendsClause(), 
+    			new Lambda<TraitTypeWhere,Type>(){
+    		public Type value(TraitTypeWhere arg0) {
+    			return arg0.getType();
+    		}}));
+    	Type self_type = 
+    		extends_types.isEmpty() ?
+    			Types.ANY :           // TODO: This line must be changed to OBJECT once Jan puts it in
+    			Types.makeIntersection(extends_types);
+    	return self_type;
+    }
 }
