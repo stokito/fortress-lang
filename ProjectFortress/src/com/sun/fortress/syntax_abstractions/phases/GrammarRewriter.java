@@ -77,13 +77,13 @@ public class GrammarRewriter {
     }
 
     public static ApiResult rewriteApis(Map<APIName, ApiIndex> map, GlobalEnvironment env) {
+        List<StaticError> errors = new LinkedList<StaticError>();
         Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
         apis.addAll(map.values());
         apis.addAll(env.apis().values());
-        initializeGrammarIndexExtensions(apis);
+        errors.addAll(initializeGrammarIndexExtensions(apis));
 
         List<Api> results = new ArrayList<Api>();
-        List<StaticError> errors = new LinkedList<StaticError>();
         ItemDisambiguator id = new ItemDisambiguator(env);
         errors.addAll(id.errors());
         
@@ -134,7 +134,8 @@ public class GrammarRewriter {
         return new ApiResult(rs, errors);
     }
     
-    private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+        List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
         for (ApiIndex a2: apis) {
             for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
@@ -153,6 +154,7 @@ public class GrammarRewriter {
                 }
             }
         }
+        return errors;
     }
     
     private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {

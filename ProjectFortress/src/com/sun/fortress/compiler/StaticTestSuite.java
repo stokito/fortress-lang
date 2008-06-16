@@ -136,6 +136,8 @@ public final class StaticTestSuite extends TestSuite {
         protected void runTest() throws Throwable {
             if (file.getName().startsWith("XXX")) {
                 assertDisambiguatorFails(file);
+            } else if (file.getName().startsWith("SXX")) {
+                assertSyntaxAbstractionFails(file);
             } else if (file.getName().startsWith("DXX") && typecheck) {
                 assertTypeCheckerFails(file);
             } else {
@@ -152,6 +154,17 @@ public final class StaticTestSuite extends TestSuite {
                 System.out.println(f + "  OK -- errors:");
                 System.out.println(IterUtil.multilineToString(errors));
             }
+        }
+
+        private void assertSyntaxAbstractionFails(File f) throws IOException {
+            com.sun.fortress.compiler.StaticChecker.typecheck = false;
+            Iterable<? extends StaticError> errors = compile(f);
+            assertFalse("Source " + f + " was compiled without syntax abstraction errors",
+                        IterUtil.isEmpty(errors));
+            if (VERBOSE) {
+                System.out.println(f + "  OK -- errors:");
+                System.out.println(IterUtil.multilineToString(errors));
+            }            
         }
         
         private void assertTypeCheckerFails(File f) throws IOException {
