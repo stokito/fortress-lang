@@ -79,7 +79,13 @@ api Xml2
 
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
       s:Strings <[ <| (CData(s) asif Content) |> ]>
+    | c:CData+ <[ c ]>
     | {x:XExpr SPACE}+ <[ x ]>
+
+
+    CData:Element :Expr:=
+        <# !# `[# CDATA# `[# n:Strings `]# `]# > <[ CData(n) asif Content ]>
+
     (*
       e:Expr <[ <! CData("" e) asif Content !> ]>
       *)
