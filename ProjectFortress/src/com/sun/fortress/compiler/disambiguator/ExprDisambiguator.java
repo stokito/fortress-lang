@@ -63,7 +63,7 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * treated as static errors.  (TODO: check names in non-type static args)</p>
  */
 public class ExprDisambiguator extends NodeUpdateVisitor {
-	
+
     private NameEnv _env;
     private Set<IdOrOpOrAnonymousName> _onDemandImports;
     private List<StaticError> _errors;
@@ -182,7 +182,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Handle variables bound in where clauses.
      * TODO: Insert inherited method names into the environment.
      */
-    @Override public Node forAbsTraitDecl(final AbsTraitDecl that) {    	
+    @Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
         ExprDisambiguator v = this.extend(extractStaticExprVars
                                               (that.getStaticParams())).
                                   extendWithSelf(that.getSpan());
@@ -197,7 +197,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    v.recurOnOptionOfListOfBaseType(that.getComprises()),
                                    v.recurOnListOfAbsDecl(that.getDecls()));
     }
-    
+
     /**
      * When recurring on a TraitDecl, we first need to extend the
      * environment with all the newly bound static parameters that
@@ -205,7 +205,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Handle variables bound in where clauses.
      * TODO: Insert inherited method names into the environment.
      */
-    @Override public Node forTraitDecl(final TraitDecl that) {        
+    @Override public Node forTraitDecl(final TraitDecl that) {
 		ExprDisambiguator v = this.extend(extractStaticExprVars
                                           (that.getStaticParams())).
                                   extendWithSelf(that.getSpan());
@@ -229,7 +229,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Handle variables bound in where clauses.
      * TODO: Insert inherited method names into the environment.
      */
-    @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {		
+    @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
 		Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).
@@ -282,7 +282,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * parameters and 'self'.
      * TODO: Handle variables bound in where clauses.
      */
-    @Override public Node forAbsFnDecl(final AbsFnDecl that) { 
+    @Override public Node forAbsFnDecl(final AbsFnDecl that) {
         Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).extend(params);
@@ -385,7 +385,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 }
                 else if (_env.hasQualifiedFunction(newId)) {
                     result = ExprFactory.makeFnRef(newId, name);
-                   
+
                     // TODO: insert correct number of to-infer arguments?
                 }
                 else {
@@ -477,7 +477,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		if( ops.isEmpty() ) {
 			return that;
 		}
-		
+
 		// This is where the hacking comes in
 		if( ops.size() > 1 ) {
 			return NI.nyi("This means that we need to change the AST.");
@@ -486,12 +486,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				                      that.isParenthesized(),
 				                      staticArgs_result,
 				                      IterUtil.first(ops),
-				                      gens_result, 
+				                      gens_result,
 				                      body_result);
 		return result;
 	}
 
-	// Note how this method does not delegate to 
+	// Note how this method does not delegate to
     // forOp().
     @Override public Node forOpRef(OpRef that) {
         OpName entity = IterUtil.first(that.getOps());
@@ -500,11 +500,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             ops = _env.onDemandFunctionNames(entity);
             _onDemandImports.add(entity);
         }
-        
+
         if (ops.isEmpty()) {
+            //System.err.println("OpRef:" + entity);
         	return new OpRef(that.getSpan(),that.isParenthesized(),entity,that.getOps(),that.getStaticArgs());
         }
-        
+
+        //System.err.println("OpRef:" + entity);
         return new OpRef(that.getSpan(),that.isParenthesized(),entity,IterUtil.asList(ops),that.getStaticArgs());
     }
 
@@ -531,5 +533,5 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         } else {
             return newExit;
         }
-    }    
+    }
 }
