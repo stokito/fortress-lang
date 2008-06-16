@@ -52,6 +52,7 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.MathPrimary;
+import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.MultiFixity;
 import com.sun.fortress.nodes.NoFixity;
 import com.sun.fortress.nodes.Node;
@@ -155,6 +156,18 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String lsName2 = FreshName.getFreshName("ls");
         this.code.addAll(mkList(gens_result, lsName2, "GeneratorClause"));
         this.code.add(String.format("Accumulator %s = new Accumulator(%s, %b, %s, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), lsName1, opr_result, lsName2, body_result));
+        return rVarName;
+    }
+
+    @Override
+    public String forMethodInvocationOnly(MethodInvocation that, String obj_result, String method_result, List<String> staticArgs_result, String arg_result) {
+        String rVarName = FreshName.getFreshName("methodInvocation");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        String lsStatic = FreshName.getFreshName("ls");
+        this.code.addAll(mkList(staticArgs_result, lsStatic, "StaticArg"));
+
+        this.code.add(String.format("MethodInvocation %s = new MethodInvocation(%s, %b, %s, %s, %s)", rVarName, sVarName, that.isParenthesized(), obj_result, method_result, lsStatic, arg_result ));
+
         return rVarName;
     }
 
