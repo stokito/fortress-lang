@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api XXXSyntaxMultipleGrammarsWithSameName
+api MultipleGrammarsWithSameName
 
   import FortressAst.{...}
   import FortressSyntax.Literal
