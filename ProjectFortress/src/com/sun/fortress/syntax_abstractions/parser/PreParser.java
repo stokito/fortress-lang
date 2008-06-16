@@ -112,8 +112,12 @@ public class PreParser {
 
         Collection<GrammarIndex> result = new LinkedList<GrammarIndex>();
 		for (Component c: pr.components()) {
-			result.addAll(new ImportedApiCollector(env).collectApis(c));
-			if (ProjectProperties.debug) {
+		    ImportedApiCollector collector = new ImportedApiCollector(env);
+		    collector.collectApis(c);
+		    if (collector.importsTopLevelGrammars()) {
+		        result.addAll(collector.getGrammars());
+		    }
+		    if (ProjectProperties.debug) {
 			    if (!result.isEmpty()) {
 			        System.err.println("Component: "+c.getName()+" imports grammars...");	
 			    }

@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
@@ -57,6 +58,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
     private Collection<GrammarIndex> grammars;
     private LinkedList<CompilationUnit> worklist;
     private Set<APIName> seen;
+    private boolean importsTopLevelGrammars;
         
     public ImportedApiCollector(GlobalEnvironment env) {
         this.env = env;
@@ -64,43 +66,43 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
         this.worklist = new LinkedList<CompilationUnit>();
         this.seen = new HashSet<APIName>();
         this.grammars = new LinkedList<GrammarIndex>();
+        this.importsTopLevelGrammars = false; 
     }
 
-    public Collection<GrammarIndex> collectApis(CompilationUnit c) { 
+    public void collectApis(CompilationUnit c) { 
         this.worklist.add(c);
         while (!this.worklist.isEmpty()) {
             this.worklist.removeFirst().accept(this);
             this.isTopLevel = false;
         }
-        return this.grammars;
     }
 
     @Override
     public void forImportApiOnly(ImportApi that) {
-        for (AliasedAPIName apiAlias : that.getApis()) {
-            if (env.definesApi(apiAlias.getApi())) {
-                ApiIndex api = env.api(apiAlias.getApi());
-                for (GrammarIndex g: api.grammars().values()) {
-                    System.err.println("A"+g.getName() + ", "+ g.isToplevel());
-                    g.isToplevel(this.isTopLevel);
-                    grammars.add(g);
-                }
-                addImportsToWorklist(apiAlias.getApi());
-            }
-            else {
-                StaticError.make("Undefined api: "+apiAlias.getApi(), that);
-            }
-        }
+        throw new RuntimeException("NYI");
+//        for (AliasedAPIName apiAlias : that.getApis()) {
+//            if (env.definesApi(apiAlias.getApi())) {
+//                ApiIndex api = env.api(apiAlias.getApi());
+//                for (GrammarIndex g: api.grammars().values()) {
+//                    if (this.isTopLevel) importsTopLevelGrammars = true;
+//                    g.isToplevel(this.isTopLevel);
+//                    grammars.add(g);
+//                }
+//                addImportsToWorklist(apiAlias.getApi());
+//            }
+//            else {
+//                StaticError.make("Undefined api: "+apiAlias.getApi(), that);
+//            }
+//        }
     }
 
     @Override
     public void forImportStarOnly(ImportStar that) {
-        Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
         if (env.definesApi(that.getApi())) {
             APIName api = that.getApi();
             for (GrammarIndex g: env.api(api).grammars().values()) {
-                assert(g.ast().isSome());
-                if (!that.getExcept().contains(g.ast().unwrap().getName())) {
+                if (!that.getExcept().contains(g.getName())) {
+                    if (this.isTopLevel) importsTopLevelGrammars = true;
                     g.isToplevel(this.isTopLevel);
                     grammars.add(g);
                 }
@@ -116,24 +118,23 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
     @Override
     public void forImportNamesOnly(ImportNames that) {
         if (env.definesApi(that.getApi())) {
-            APIName api = that.getApi();
-            for (GrammarIndex g: env.api(api ).grammars().values()) {
-                Id grammarName = g.getName();
-                boolean found = false;
-                for (AliasedSimpleName name: that.getAliasedNames()) {
-                    Id importedGrammarName = NodeFactory.makeId(name.getSpan(), that.getApi(), name.getName().toString());			
-                    if (importedGrammarName.equals(grammarName)) {
-                        found  = true;
-                        break;
+            ApiIndex api = env.api(that.getApi());
+            boolean foundSome = false;
+            for (AliasedSimpleName aliasedName: that.getAliasedNames()) {
+                if (aliasedName.getName() instanceof Id) {
+                    Id importedName = (Id) aliasedName.getName();
+                    if (api.grammars().containsKey(importedName.getText())) {
+                        foundSome = true;
+                        GrammarIndex g = api.grammars().get(importedName.getText());
+                        g.isToplevel(this.isTopLevel);
+                        if (this.isTopLevel) importsTopLevelGrammars = true;
                     }
                 }
-                if (found)
-                    g.isToplevel(this.isTopLevel);
-                else
-                    g.isToplevel(false);
-                grammars.add(g);
             }
-            addImportsToWorklist(that.getApi());
+            grammars.addAll(api.grammars().values());
+            if (foundSome) {
+                addImportsToWorklist(that.getApi());
+            }
         }
         else {
             StaticError.make("Undefined api: "+that.getApi(), that);
@@ -152,5 +153,9 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
     public Collection<GrammarIndex> getGrammars() {
         return this.grammars;
+    }
+
+    public boolean importsTopLevelGrammars() {
+        return this.importsTopLevelGrammars;
     }
 }
