@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api XXXSyntaxGrammarExtendsNonExistingGrammar
+api SXXSyntaxGrammarExtendsNonExistingGrammar
 
   import FortressAst.{...}
 
