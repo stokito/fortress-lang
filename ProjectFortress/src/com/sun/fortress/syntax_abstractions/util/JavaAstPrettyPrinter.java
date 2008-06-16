@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BigFixity;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.ChainExpr;
+import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Enclosing;
@@ -516,7 +517,15 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forStringLiteralExpr(StringLiteralExpr that) {
         String varName = FreshName.getFreshName("s");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add(String.format("StringLiteralExpr %s = new StringLiteralExpr(%s, \"%s\");", varName, sVarName, that.getText().replaceAll("\"","\\\\\"")));
+        this.code.add(String.format("StringLiteralExpr %s = new StringLiteralExpr(%s, %b, \"%s\");", varName, sVarName, that.isParenthesized(), that.getText().replaceAll("\"","\\\\\"")));
+        return varName;
+    }
+
+    @Override
+    public String forCharLiteralExpr(CharLiteralExpr that){
+        String varName = FreshName.getFreshName("charLiteral");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add(String.format("CharLiteralExpr %s = new CharLiteralExpr(%s, %b, \"%s\", %d);", varName, sVarName, that.isParenthesized(), that.getText().replaceAll("\"","\\\\\""), that.getVal() ));
         return varName;
     }
 

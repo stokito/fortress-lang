@@ -52,6 +52,7 @@ run(args:String...) = do
     println "Answer is " (<hello><world>hi mom</world></hello>)
     println "Answer is " (<hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello>)
     println "Answer is " (<hello attr="foobar" more="blah"><world>hi mom</world></hello>)
+    println "Answer is " (<hi><![CDATA[i like food]]></hi>)
 
     xml:Content = <note>hi</note>
     println "Xml: " xml
