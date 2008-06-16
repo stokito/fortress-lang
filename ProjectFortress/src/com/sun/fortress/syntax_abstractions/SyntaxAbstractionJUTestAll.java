@@ -32,8 +32,6 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
     private final static List<String> FAILING_SYNTAXABSTRACTIONS = Arrays.asList(
         "SyntaxASTUse.fss",
         "SyntaxAST.fss",
-        "SyntaxHiUse.fss",
-        "SyntaxHi.fss",
         "ChurchBooleansUse.fss",
         "XXXSyntaxGrammarImportsUse.fss",
         "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss");

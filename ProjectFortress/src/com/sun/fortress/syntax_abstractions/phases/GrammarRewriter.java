@@ -60,6 +60,7 @@ import edu.rice.cs.plt.tuple.Option;
  * 6) TODO: Extract subsequences of syntax symbols into a new
  *    nonterminal with a fresh name
  * 7) Parse pretemplates and replace with real templates
+ * 8) Well-formedness check on template gaps
  */
 public class GrammarRewriter {
 
@@ -128,7 +129,12 @@ public class GrammarRewriter {
             TemplateParser.Result tpr = TemplateParser.parseTemplates((Api)api.ast());
             for (StaticError se: tpr.errors()) { errors.add(se); };
             if (!tpr.isSuccessful()) { return new ApiResult(rs, errors); }
-            rs.add(tpr.api);
+            
+            // 8) Well-formedness check on template gaps
+            TemplateChecker.Result tcr = TemplateChecker.checkTemplates(tpr.api());
+            for (StaticError se: tcr.errors()) { errors.add(se); };
+            if (!tcr.isSuccessful()) { return new ApiResult(rs, errors); }
+            rs.add(tcr.api());
         }
 
         return new ApiResult(rs, errors);

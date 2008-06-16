@@ -81,11 +81,8 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class TemplateParser extends NodeUpdateVisitor {
 
-	/**
-	 * Result of the module translation
-	 */
 	public static class Result extends StaticPhaseResult {
-		Api api;
+		private Api api;
 
 		public Result(Api api, 
 				Collection<StaticError> errors) {
@@ -99,9 +96,8 @@ public class TemplateParser extends NodeUpdateVisitor {
 			this.api = api;
 		}
 
-		public Api modules() { return api; }
+		public Api api() { return api; }
 	}
-
 	
 	private Collection<ParserError> errors;
 	private Map<Id, BaseType> vars;
