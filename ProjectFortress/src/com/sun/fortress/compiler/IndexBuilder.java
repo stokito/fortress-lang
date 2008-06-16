@@ -548,7 +548,7 @@ public class IndexBuilder {
         String name = ast.getName().getText();
         GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {
-            error("Grammar declared twice in same API: "+name, ast);
+            error("Multiple grammars declared with the same name: "+name, ast);
         }
         grammars.put(name, grammar);
     }
