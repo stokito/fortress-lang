@@ -23,6 +23,7 @@ api Regex
     import List.{...}
 
     trait Element
+        getter toString():String
     end
 
     object Regexp( elements : List[\Element\] )
@@ -33,11 +34,23 @@ api Regex
 
     object RepeatElement(e:Element) extends Element
     end
+    
+    object RepeatOneElement(e:Element) extends Element
+    end
 
-    object GroupElement(e:Element) extends Element
+    object GroupElement(e:List[\Element\]) extends Element
     end
 
     object RangeElement(s1:String,s2:String) extends Element
+    end
+
+    object ClassElement(e:List[\Element\]) extends Element
+    end
+
+    object StartElement() extends Element
+    end
+    
+    object EndElement() extends Element
     end
 
     grammar regex extends {Expression, Symbols}
@@ -45,16 +58,23 @@ api Regex
             x:Regex <[ x ]>
 
         Regex:Regexp :Expr:=
-            s1:Slash# e:Element* s2:Slash# <[ Regexp(e) ]>
+            s1:Slash# e:Element#* s2:Slash# <[ Regexp(e) ]>
 
         Element:Element :Expr:=
-            i:Item `* <[ RepeatElement(i) ]>
+            i:Item# `* <[ RepeatElement(i) asif Element ]>
+        |   i:Item# `+ <[ RepeatOneElement(i) asif Element ]>
         |   i:Item <[ i ]>
-        |   ( e:Element ) <[ GroupElement(e) ]>
 
         Item:Element :Expr:=
             s:AnyChar <[ (CharElement(s) asif Element) ]>
-        |   s1:AnyChar# -# s2:AnyChar <[ RangeElement(s1,s2) ]>
+        |   ^ <[ StartElement() asif Element ]>
+        |   $ <[ EndElement() asif Element ]>
+        |   `[# r:RangeItem#* `] <[ ClassElement(r) asif Element ]>
+        |   (# e:Element#* ) <[ GroupElement(e) asif Element ]>
+
+        RangeItem:Element :Expr:=
+            s1:AnyChar# - s2:AnyChar <[ RangeElement(s1,s2) asif Element ]>
+        |   s:AnyChar <[ CharElement(s) asif Element ]>
     end
 
     grammar Symbols
@@ -62,6 +82,6 @@ api Regex
             / <[ "/" ]>
 
         AnyChar:String :Expr:=
-            x:[A:Za:z] <[ "a" ]>
-    end
+            x:[A:Za:z0:9] <[ x ]>
+    end 
 end
