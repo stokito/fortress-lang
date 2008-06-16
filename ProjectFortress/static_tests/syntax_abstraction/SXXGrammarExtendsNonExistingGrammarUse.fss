@@ -16,7 +16,7 @@
  ******************************************************************************)
 component SXXGrammarExtendsNonExistingGrammarUse
   
-  import SXXGrammarExtendsNonExistingGrammar.{...}
+  import GrammarExtendsNonExistingGrammar.{...}
   export Executable
 
   run(args:String...):() = println 42
