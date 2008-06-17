@@ -56,6 +56,14 @@ run(s:String...) = do
     println "/:/ = " (/:/)
     println "/#/ = " (/#/)
     println "/&/ = " (/&/)
+
+    println "/a/ == 'a'? " ((/a/) = "a")
+    println "/\\d+?/ == '542'? " ((/\d+?/) = "542")
+    println "/\\d+?/ == 'apple542'? " ((/\d+?/) = "apple542")
+    println "/\\w+\\d+?/ == 'apple542'? " ((/\w+\d+?/) = "apple542")
+    n = /123/
+    println "n = n? " (n = n)
+    println "/123/ = /123/? " ((/123/) = (/123/))
 end
 
 end

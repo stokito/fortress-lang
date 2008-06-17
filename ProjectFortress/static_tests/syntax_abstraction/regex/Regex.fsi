@@ -27,6 +27,8 @@ api Regex
     end
 
     object Regexp( elements : List[\Element\] )
+        opr =(self,s:String):Boolean
+        opr =(self,r:Regexp):Boolean
     end
 
     object CharElement(s:String) extends Element
@@ -85,6 +87,7 @@ api Regex
 
     object AlternateElement() extends Element
     end
+
 
     grammar regex extends {Expression, Symbols, Literal}
         Expr:Regexp |Expr:= (* type: Content *)
