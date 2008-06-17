@@ -15,16 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalFnRef
+component DXXArrayElements
   export Executable
 
-  (* Tests that LetFn correctly binds the two local function definitions over its
-   * enclosing Block. *)
-  
-  run(args:String...):() = do
-    f(x:RR64):IntLiteral = 23
-    g(x:Any, y:Any):IntLiteral = 42
-    ignore(g(f, g)) 
-    ()
+  object NewString extends { String } end
+
+  foo() : () = do
+
+    var a:Array2[\IntLiteral,0,3,0,3\]
+    a := [1 2 3; 4 5 6; "Nels ruined this array!" 8 9]
   end
+
+  run(args:String...):() = ()
 end

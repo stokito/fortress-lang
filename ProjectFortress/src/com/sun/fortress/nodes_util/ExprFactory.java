@@ -381,7 +381,11 @@ public class ExprFactory {
         return new FnRef(qName.getSpan(), false, qName, qNames,
                 Collections.<StaticArg>emptyList());
     }
-
+    
+    public static FnRef makeFnRef(Span span, boolean paren, Id original_fn, List<Id> fns, List<StaticArg> sargs) {
+    	return new FnRef(span, paren, original_fn, fns, sargs);
+    }
+    
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
             List<Expr> subs) {
