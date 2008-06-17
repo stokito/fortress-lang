@@ -275,10 +275,15 @@ public class Fortress {
 		StaticChecker.ComponentResult componentSR =
 			StaticChecker.checkComponents(componentIR.components(), env);
 		if (!componentSR.isSuccessful()) { return componentSR.errors(); }
-
-		// Additional optimization phases can be inserted here
-        TopLevelEnvGen.generate(componentSR.components(), env);
 		
+		// Generate top-level byte code environments
+		TopLevelEnvGen.ComponentResult componentGR = TopLevelEnvGen.generate(componentSR.components(), env);
+		if(!componentGR.isSuccessful()) { return componentGR.errors(); }		
+
+		TopLevelEnvGen.outputClassFiles(componentGR);
+		
+		// Additional optimization phases can be inserted here        
+        
 //		if(passDisambiguatedResultsToInterpreter){
 			for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());
