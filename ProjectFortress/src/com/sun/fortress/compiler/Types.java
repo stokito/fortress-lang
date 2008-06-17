@@ -41,6 +41,7 @@ public final class Types {
     private Types() {}
 
     public static final Id ANY_NAME = makeId("AnyType", "Any");
+    public static final Id ARRAY_NAME = makeId("FortressLibrary","Array");
     public static final AnyType ANY = new AnyType();
     public static final BottomType BOTTOM = new BottomType();
     public static final TraitType OBJECT = makeTraitType("FortressLibrary", "Object");
@@ -68,6 +69,19 @@ public final class Types {
     public static TraitType makeThreadType(Type typeArg) {
         return makeTraitType(makeId("FortressBuiltin", "Thread"),
                              makeTypeArg(typeArg));
+    }
+    
+    public static Id getArrayKName(int k){
+    	String name = "Array"+k;
+    	return makeId("FortressLibrary",name);
+    }
+    
+    public static TraitType makeArrayType(Type elem, Type indexed){
+    	return makeTraitType(ARRAY_NAME, makeTypeArg(elem),makeTypeArg(indexed));
+    }
+    
+    public static TraitType makeArrayKType(int k, List<StaticArg> args){
+    	return  makeTraitType(getArrayKName(k),args);
     }
     
     /**

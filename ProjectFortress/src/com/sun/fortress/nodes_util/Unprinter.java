@@ -33,7 +33,7 @@ import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * A collection of methods for converting from a readable AST to an AST data

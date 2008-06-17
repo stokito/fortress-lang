@@ -19,11 +19,13 @@ package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleImport;
 import xtc.parser.ModuleName;
 
@@ -179,12 +181,12 @@ public class ModuleEnvironment {
         }
         else {
             m = new UserModule(nt.getName().toString(), ls);
-            // Add extra dependencies
-            if (!m.getTokens().isEmpty() || !m.getKeywords().isEmpty()) {
-                ModuleName identifier = new ModuleName("Identifier");
-                m.getDependencies().add(new ModuleImport(identifier ));
-                m.getParameters().add(identifier);
-            }
+//            // Add extra dependencies
+//            if (!m.getTokens().isEmpty() || !m.getKeywords().isEmpty()) {
+//                ModuleName identifier = new ModuleName("Identifier");
+//                m.getDependencies().add(new ModuleImport(identifier ));
+//                m.getParameters().add(identifier);
+//            }
             // Spacing is actually only needed if whitespace is used.
             ModuleName spacing = new ModuleName("Spacing");
             m.getDependencies().add(new ModuleImport(spacing));
@@ -192,9 +194,6 @@ public class ModuleEnvironment {
             ModuleName identifier = new ModuleName("Identifier");
             m.getDependencies().add(new ModuleImport(identifier));
             m.getParameters().add(identifier);
-            ModuleName gaps = new ModuleName("Gaps");
-            m.getDependencies().add(new ModuleImport(gaps));
-            m.getParameters().add(gaps);
         }
         m.getParameters().addAll(makeParameters(nt.getDependencies()));
         m.getDependencies().addAll(makeDependencies(nt.getDependencies()));

@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDef;
@@ -58,6 +58,11 @@ import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+/* ItemDisambiguator
+ * - infers names for syntax symbols without a prefix
+ *    eg, A -> A:A
+ * - ??? resolves names based on API, maybe grammar imports ???
+ */
 public class ItemDisambiguator extends NodeUpdateVisitor {
 
 	private Collection<StaticError> _errors;

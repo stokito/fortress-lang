@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.interpreter.env;
 
 import java.io.IOException;
@@ -15,7 +32,27 @@ import com.sun.fortress.useful.Visitor2;
 
 public class WorseEnv extends BaseEnv {
 
-	@Override
+	public void putBoolRaw(String str, Boolean f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putIntRaw(String str, Number f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putNatRaw(String str, Number f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void putValueRaw(String str, FValue f2) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
 	public Appendable dump(Appendable a) throws IOException {
 		// TODO Auto-generated method stub
 		return null;

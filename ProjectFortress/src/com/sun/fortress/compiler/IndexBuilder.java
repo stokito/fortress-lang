@@ -51,6 +51,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.index.Unit;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
@@ -547,7 +548,7 @@ public class IndexBuilder {
         String name = ast.getName().getText();
         GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {
-            error("Grammar declared twice in same API: "+name, ast);
+            error("Multiple grammars declared with the same name: "+name, ast);
         }
         grammars.put(name, grammar);
     }

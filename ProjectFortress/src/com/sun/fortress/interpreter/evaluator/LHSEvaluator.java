@@ -24,6 +24,7 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
@@ -69,9 +70,9 @@ import com.sun.fortress.useful.Voidoid;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     /* (non-Javadoc)

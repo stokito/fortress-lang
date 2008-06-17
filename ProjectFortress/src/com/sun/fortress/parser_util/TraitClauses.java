@@ -29,7 +29,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.MagicNumbers;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class TraitClauses {
 

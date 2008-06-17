@@ -20,9 +20,11 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 import java.io.IOException;
 
 import jsr166y.forkjoin.*;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.GracefulException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
+
+import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.exceptions.transactions.GracefulException;
+import com.sun.fortress.exceptions.transactions.PanicException;
+
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.tasks.ThreadState;
 

@@ -17,10 +17,10 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.UnificationError.unificationError;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.UnificationError.unificationError;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpSkip;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;

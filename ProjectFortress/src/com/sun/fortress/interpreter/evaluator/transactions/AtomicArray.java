@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,9 +17,9 @@
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
+import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
 
 import java.lang.reflect.Array;
@@ -28,14 +28,14 @@ import java.lang.reflect.Array;
  * @author mph
  */
 public class AtomicArray<T> {
-  
+
   private final T[] array;
   private final T[] shadow;
   private Transaction[] writers;
   private ReadSet[] readers;
   // long version[];
   private final String FORMAT = "Unexpected transaction state: %s";
-  
+
   /** Creates a new instance of AtomicArray */
   public AtomicArray(Class _class, int capacity) {
     array  = (T[]) Array.newInstance(_class, capacity);
@@ -50,7 +50,7 @@ public class AtomicArray<T> {
     }
 
   }
-  
+
   public T get(int i) {
     Transaction me  = FortressTaskRunner.getTransaction();
     Transaction other = null;
@@ -65,7 +65,7 @@ public class AtomicArray<T> {
       manager.resolveConflict(me, other);
     }
   }
-  
+
   public void set(int i, T value) {
     Transaction me  = FortressTaskRunner.getTransaction();
     Transaction other = null;
@@ -141,7 +141,7 @@ public class AtomicArray<T> {
     readers[i].add(me);
     return null;
   }
-  
+
   /**
    * Tries to open object for reading. Returns reference to conflicting transaction, if one exists
    **/
@@ -184,12 +184,12 @@ public class AtomicArray<T> {
     writers[i] = me;
     return null;
   }
-  
+
   private void restore(int i) {
       array[i] = shadow[i];
   }
   private void backup(int i) {
       shadow[i] = array[i];
   }
-  
+
 }

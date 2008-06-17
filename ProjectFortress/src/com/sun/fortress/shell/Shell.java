@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import java.util.Arrays;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;

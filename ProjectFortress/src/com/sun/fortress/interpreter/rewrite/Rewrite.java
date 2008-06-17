@@ -32,7 +32,7 @@ import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Pair;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
  * Used to com.sun.fortress.interpreter.rewrite the internals of an object definition.

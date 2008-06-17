@@ -16,13 +16,13 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;

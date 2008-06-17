@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
+import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -43,6 +44,7 @@ import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -134,6 +136,11 @@ public class SyntaxSymbolPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
+    public String forGroupSymbolOnly(GroupSymbol that, List<String> symbols_result) {
+        return "GroupSymbol(" + symbols_result + ")";
+    }
+
+    @Override
     public String forOptionalSymbolOnly(OptionalSymbol that,
             String symbol_result) {
         return "OptionalSymbol("+symbol_result+")";
@@ -177,6 +184,11 @@ public class SyntaxSymbolPrinter extends NodeDepthFirstVisitor<String> {
     @Override
     public String forWhitespaceSymbol(WhitespaceSymbol that) {
         return "WhitespaceSymbol()";
+    }
+
+    @Override
+    public String forVarType(VarType that) {
+        return that.getName().toString();
     }
 
 }

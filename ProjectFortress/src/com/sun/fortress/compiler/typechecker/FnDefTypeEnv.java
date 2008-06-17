@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import static edu.rice.cs.plt.tuple.Option.some;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * A type environment whose outermost scope binds local function definitions.

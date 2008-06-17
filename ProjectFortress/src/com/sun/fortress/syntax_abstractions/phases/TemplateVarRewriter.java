@@ -42,8 +42,8 @@ import com.sun.fortress.useful.Pair;
  */
 public class TemplateVarRewriter {
 
-    public static final String GAPSYNTAXPREFIX = "<!@#$%^&*<";
-    public static final String GAPSYNTAXSUFFIX = ">*&^%$#@!>";
+    public static final String GAPSYNTAXPREFIX = " <!@#$%^&*<";
+    public static final String GAPSYNTAXSUFFIX = ">*&^%$#@!> ";
 
     public String rewriteVars(Map<Id, BaseType> vs, String t) {
         Map<String, String> varToGapName = new HashMap<String, String>();

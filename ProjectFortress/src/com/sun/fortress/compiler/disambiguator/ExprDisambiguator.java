@@ -28,13 +28,15 @@ import edu.rice.cs.plt.collect.CollectUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.NI;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.typechecker.TypeEnv;
+import com.sun.fortress.exceptions.StaticError;
 
 import static edu.rice.cs.plt.tuple.Option.*;
 
@@ -204,7 +206,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forTraitDecl(final TraitDecl that) {
-        ExprDisambiguator v = this.extend(extractStaticExprVars
+		ExprDisambiguator v = this.extend(extractStaticExprVars
                                           (that.getStaticParams())).
                                   extendWithSelf(that.getSpan());
 
@@ -228,7 +230,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
-        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+		Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).
                                   extendWithSelf(that.getSpan()).
@@ -254,7 +256,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forObjectDecl(final ObjectDecl that) {
-        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+		Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).
                                   extendWithSelf(that.getSpan()).
@@ -382,7 +384,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     else { result = new VarRef(newId.getSpan(), newId); }
                 }
                 else if (_env.hasQualifiedFunction(newId)) {
-                    result = ExprFactory.makeFnRef(newId);
+                    result = ExprFactory.makeFnRef(newId, name);
+
                     // TODO: insert correct number of to-infer arguments?
                 }
                 else {
@@ -424,7 +427,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 else { result = new VarRef(newName.getSpan(), newName); }
             }
             else if (vars.isEmpty() && !fns.isEmpty()) {
-                result = new FnRef(name.getSpan(), IterUtil.asList(fns));
+                result = ExprFactory.makeFnRef(name,IterUtil.asList(fns));
                 // TODO: insert correct number of to-infer arguments?
             }
             else if (!vars.isEmpty() || !fns.isEmpty()) {
@@ -458,23 +461,53 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return result;
     }
 
+	@Override
+	public Node forAccumulatorOnly(Accumulator that,
+			List<StaticArg> staticArgs_result, OpName opr_result,
+			List<GeneratorClause> gens_result, Expr body_result) {
+		// This method is currently a complete special case that we
+		// are only using because the Accumulator node of the AST
+		// doesn't hold an OpRef, which I believe it should. NEB
+		OpName acc_op = that.getOpr();
+		Set<OpName> ops = _env.explicitFunctionNames(acc_op);
+		if( ops.isEmpty() ) {
+			ops = _env.onDemandFunctionNames(acc_op);
+			_onDemandImports.add(acc_op);
+		}
+		if( ops.isEmpty() ) {
+			return that;
+		}
+
+		// This is where the hacking comes in
+		if( ops.size() > 1 ) {
+			return NI.nyi("This means that we need to change the AST.");
+		}
+		Expr result = new Accumulator(that.getSpan(),
+				                      that.isParenthesized(),
+				                      staticArgs_result,
+				                      IterUtil.first(ops),
+				                      gens_result,
+				                      body_result);
+		return result;
+	}
+
+	// Note how this method does not delegate to
+    // forOp().
     @Override public Node forOpRef(OpRef that) {
         OpName entity = IterUtil.first(that.getOps());
-
         Set<OpName> ops = _env.explicitFunctionNames(entity);
         if (ops.isEmpty()) {
             ops = _env.onDemandFunctionNames(entity);
             _onDemandImports.add(entity);
         }
+
         if (ops.isEmpty()) {
-            return that;
+            //System.err.println("OpRef:" + entity);
+        	return new OpRef(that.getSpan(),that.isParenthesized(),entity,that.getOps(),that.getStaticArgs());
         }
 
-        Expr result = new OpRef(entity.getSpan(), IterUtil.asList(ops));
-        if (that.isParenthesized()) {
-            result = ExprFactory.makeInParentheses(result);
-        }
-        return result;
+        //System.err.println("OpRef:" + entity);
+        return new OpRef(that.getSpan(),that.isParenthesized(),entity,IterUtil.asList(ops),that.getStaticArgs());
     }
 
     @Override public Node forLabel(Label that) {
@@ -501,5 +534,4 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return newExit;
         }
     }
-
 }

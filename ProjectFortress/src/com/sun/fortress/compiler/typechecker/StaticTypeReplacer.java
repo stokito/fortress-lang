@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimParam;
@@ -216,7 +216,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 					public Boolean forNatParam(NatParam that) {
 						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
 							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forIntArg(IntArg that) {return NI.nyi();}
+							@Override public Boolean forIntArg(IntArg that) {return true;}
 						};
 						return arg.accept(inner);
 					}

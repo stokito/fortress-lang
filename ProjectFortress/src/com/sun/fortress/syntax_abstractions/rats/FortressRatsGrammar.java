@@ -90,9 +90,5 @@ public class FortressRatsGrammar {
 		}
 	}
 
-	public void injectAlternative(GapAlternative a) {
-		Module fortress = this.map.get(FORTRESS);
-		a.apply(this.map.values(), fortress);
-	}
 
 }

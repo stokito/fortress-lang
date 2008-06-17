@@ -16,12 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.util.List;
 
+import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.UnificationError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;

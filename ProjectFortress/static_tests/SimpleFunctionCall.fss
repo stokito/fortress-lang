@@ -16,14 +16,14 @@
  ******************************************************************************)
 
 component SimpleFunctionCall
-export Executable
+  export Executable
   
-f(s:String):String = s
-g[\T extends Any\](x:T):T = x
+  f(s:String):String = s
+  g[\T extends Any\](x:T):T = x
 
 run(args:String...):() = do
   var s:String
-
+  
   s := f("asdad")
   s := g[\String\]("asdad")
   ()

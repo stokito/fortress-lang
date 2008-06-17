@@ -17,7 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -84,13 +84,18 @@ import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptingMI;
 import com.sun.fortress.nodes.TemplateGapCharLiteralExpr;
+import com.sun.fortress.nodes.TemplateGapDelimitedExpr;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.TemplateGapFloatLiteralExpr;
+import com.sun.fortress.nodes.TemplateGapFnExpr;
+import com.sun.fortress.nodes.TemplateGapName;
 import com.sun.fortress.nodes.TemplateGapId;
 import com.sun.fortress.nodes.TemplateGapIntLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapLooseJuxt;
 import com.sun.fortress.nodes.TemplateGapNumberLiteralExpr;
+import com.sun.fortress.nodes.TemplateGapPrimary;
+import com.sun.fortress.nodes.TemplateGapSimpleExpr;
 import com.sun.fortress.nodes.TemplateGapStringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapVoidLiteralExpr;
 import com.sun.fortress.nodes.Throw;
@@ -311,12 +316,12 @@ public class ExprFactory {
         return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("juxtaposition")));
     }
 
-    private static OpRef makeOpRef(OpName op) {
-        return new OpRef(op.getSpan(), Collections.singletonList(op));
+    public static OpRef makeOpRef(OpName op) {
+        return new OpRef(op.getSpan(), op, Collections.singletonList(op));
     }
 
-    private static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
-        return new OpRef(op.getSpan(), Collections.singletonList(op), staticArgs);
+    public static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
+        return new OpRef(op.getSpan(), op, Collections.singletonList(op), staticArgs);
     }
 
     public static OpExpr makeOpExpr(Span span, OpName op) {
@@ -346,26 +351,34 @@ public class ExprFactory {
 
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
         List<Id> names = Collections.singletonList(name);
-        return new FnRef(span, false, names, sargs);
+        return new FnRef(span, false, name, names, sargs);
     }
 
     public static FnRef makeFnRef(Id name) {
         List<Id> names =
             Collections.singletonList(name);
-        return new FnRef(name.getSpan(), false, names, Collections.<StaticArg>emptyList());
+        return new FnRef(name.getSpan(), false, name, names, Collections.<StaticArg>emptyList());
+    }
+
+    public static FnRef makeFnRef(Id name, Id orig){
+    	return new FnRef(name.getSpan(),false, orig, Collections.singletonList(name),Collections.<StaticArg>emptyList());
+    }
+
+    public static FnRef makeFnRef(Id orig, List<Id> names){
+    	return new FnRef(orig.getSpan(),false, orig, names,Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
         Id qName = NodeFactory.makeId(apiIds, name);
         List<Id> qNames = Collections.singletonList(qName);
-        return new FnRef(qName.getSpan(), false, qNames,
+        return new FnRef(qName.getSpan(), false, qName, qNames,
                 Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(APIName api, Id name) {
         Id qName = NodeFactory.makeId(api, name);
         List<Id> qNames = Collections.singletonList(qName);
-        return new FnRef(qName.getSpan(), false, qNames,
+        return new FnRef(qName.getSpan(), false, qName, qNames,
                 Collections.<StaticArg>emptyList());
     }
 
@@ -393,6 +406,14 @@ public class ExprFactory {
 
     public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
         return new TightJuxt(span, false, Useful.list(first, second));
+    }
+
+    /**
+     * Make a TightJuxt that is a copy of the given one in every way except
+     * with new exprs.
+     */
+    public static TightJuxt makeTightJuxt(TightJuxt that, List<Expr> exprs) {
+    	return new TightJuxt(that.getSpan(), that.isParenthesized(), that.getInfixJuxt(), that.getMultiJuxt(), exprs);
     }
 
     public static VarRef makeVarRef(Span span, String s) {
@@ -533,15 +554,15 @@ public class ExprFactory {
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
-        List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
-        Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
+        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
+        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-        List<Pair<Op,Expr>> links = new ArrayList<Pair<Op,Expr>>();
-        Pair<Op,Expr> link = new Pair<Op, Expr>(_op, _expr);
+        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
+        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);
     }
@@ -734,11 +755,11 @@ public class ExprFactory {
                 return new TightJuxt(e.getSpan(), true, e.getExprs());
             }
             public Expr forFnRef(FnRef e) {
-                return new FnRef(e.getSpan(), true, e.getFns(),
+                return new FnRef(e.getSpan(), true, e.getOriginalName(), e.getFns(),
                         e.getStaticArgs());
             }
             public Expr forOpRef(OpRef e) {
-                return new OpRef(e.getSpan(), true, e.getOps(),
+                return new OpRef(e.getSpan(), true, e.getOriginalName(), e.getOps(),
                         e.getStaticArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
@@ -747,7 +768,7 @@ public class ExprFactory {
                         e.getStaticArgs());
             }
             public Expr forTemplateGapExpr(TemplateGapExpr e) {
-                return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getParams());
+                return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getTemplateParams());
             }
             public Expr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
@@ -801,8 +822,29 @@ public class ExprFactory {
         return new TemplateGapExpr(s, id, params);
     }
 
+    public static TemplateGapDelimitedExpr makeTemplateGapDelimitedExpr(Span s, Id id, List<Id> params) {
+        return new TemplateGapDelimitedExpr(s, id, params);
+    }
+
+    public static TemplateGapSimpleExpr makeTemplateGapSimpleExpr(Span s, Id id, List<Id> params) {
+        return new TemplateGapSimpleExpr(s, id, params);
+    }
+
+    public static TemplateGapPrimary makeTemplateGapPrimary(Span s, Id id, List<Id> params) {
+        return new TemplateGapPrimary(s, id, params);
+    }
+
+    public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
+        Expr body = new VarRef(id);
+        return new TemplateGapFnExpr(s, false, id, new LinkedList<Param>(), body, id, params);
+    }
+
     public static TemplateGapLooseJuxt makeTemplateGapLooseJuxt(Span s, Id id, List<Id> params) {
         return new TemplateGapLooseJuxt(s, id, params);
+    }
+
+    public static TemplateGapName makeTemplateGapName(Span s, Id id, List<Id> params) {
+        return new TemplateGapName(s, id, params);
     }
 
     public static TemplateGapId makeTemplateGapId(Span s, Id id, List<Id> params) {

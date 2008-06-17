@@ -35,34 +35,13 @@ import xtc.parser.Module;
 import xtc.tree.Attribute;
 
 import com.sun.fortress.compiler.Fortress;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.Fortress.WrappedException;
+import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 public class RatsParserGenerator {
-
-    public static class ParserGeneratorError extends StaticError {
-
-        private String description;
-
-        public ParserGeneratorError(String description) {
-            super();
-            this.description = description;
-        }
-
-        @Override
-        public String at() {
-            return "loading temporary parser";
-        }
-
-        @Override
-        public String description() {
-            return description;
-        }
-
-    }
 
     public class Result extends StaticPhaseResult {
         Class<?> parserClass;
@@ -106,7 +85,7 @@ public class RatsParserGenerator {
         try {
             parser = parserLoader.findClass("com.sun.fortress.parser."+freshFortressName);
         } catch (ClassNotFoundException e) {
-            errors.add(new Fortress.WrappedException(e, ProjectProperties.debug));
+            errors.add(new WrappedException(e, ProjectProperties.debug));
         }
         return new RatsParserGenerator().new Result(parser, errors);
     }

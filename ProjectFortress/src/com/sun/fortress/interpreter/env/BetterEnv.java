@@ -17,21 +17,21 @@
 
 package com.sun.fortress.interpreter.env;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
+import com.sun.fortress.exceptions.CircularDependenceError;
+import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Primitives;
-import com.sun.fortress.interpreter.evaluator.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -297,7 +297,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         return true;
     }
 
-    private <Result> BATreeNode<String, Result> put(BATreeNode<String, Result> table, String index, Result value, String what) {
+    private <Result> BATreeNode<String, Result> put(BATreeNode<String, Result> table, String index, Result value) {
         if (table == null) {
             return new BATreeNode<String, Result> (index, value);
         } else {
@@ -306,130 +306,8 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         }
     }
 
-    private <Result> BATreeNode<String, Result> putNoShadow(BATreeNode<String, Result> table, String index, Result value, String what) {
-        if (table == null) {
-            return new BATreeNode<String, Result> (index, value);
-        } else {
-            BATreeNode<String, Result> new_table = table.add(index, value, comparator);
-            if (new_table.getWeight() == table.getWeight()) {
-                BATreeNode<String, Result> original = table.getObject(index, comparator);
-                if (original == null) {
-                    bug("Duplicate entry in table, but not in table.");
-                }
-                Result fvo = original.getValue();
-                if (fvo instanceof IndirectionCell) {
-                    // TODO Need to push the generic type Result into IndirectionCell, etc.
-                    // This yucky code is "correct" because IndirectionCell extends FValue,
-                    // and "it happens to be true" that this code will never be instantiated
-                    // above or below FValue in the type hierarchy.
-                    // Strictly speaking, this might be wrong if it permits
-                    // = redefinition of a mutable cell (doesn't seem to).
-                    IndirectionCell ic = (IndirectionCell) fvo;
-                    if (ic instanceof ReferenceCell) {
-                        throw new RedefinitionError("Mutable variable", index, fvo, value);
-                    } else {
-                        ic.storeValue((FValue) value);
-                        return table;
-                    }
-                }
-                throw new RedefinitionError(what, index, fvo, value);
-            }
-            return new_table;
-        }
-    }
-
-    private BATreeNode<String, FValue> putFunction(BATreeNode<String, FValue> table, String index, Fcn value, String what, boolean shadowIfDifferent, boolean overloadIsOK) {
-        if (table == null) {
-            noteName(index);
-            return new BATreeNode<String, FValue> (index, value);
-        } else {
-            BATreeNode<String, FValue> new_table = table.add(index, value, comparator);
-            if (new_table.getWeight() == table.getWeight()) {
-                BATreeNode<String, FValue> original = table.getObject(index, comparator);
-                if (original == null) {
-                    bug("Duplicate entry in table, but not in table.");
-                }
-                FValue fvo = original.getValue();
-
-                if (fvo instanceof IndirectionCell) {
-                    // TODO Need to push the generic type Result into IndirectionCell, etc.
-                    // This yucky code is "correct" because IndirectionCell extends FValue,
-                    // and "it happens to be true" that this code will never be instantiated
-                    // above or below FValue in the type hierarchy.
-                    // Strictly speaking, this might be wrong if it permits
-                    // = redefinition of a mutable cell (doesn't seem to).
-                    IndirectionCell ic = (IndirectionCell) fvo;
-                    if (ic instanceof ReferenceCell) {
-                        throw new RedefinitionError("Mutable variable", index, fvo, value);
-                    } else if (! ic.isInitialized()) {
-                        ic.storeValue((FValue) value);
-                        return table;
-                    } else {
-                        // ic is an initialized value cell, not a true function.
-                        // do not overload.
-                        throw new RedefinitionError(what, index, fvo, value);
-                    }
-                }
-
-                /* ic is a function, do an overloading on it.
-                 * Because of wholesale symbol import via linking,
-                 * it is possible to combine a pair of overloadings.
-                 *
-                 * This is all going to get simpler in the future,
-                 * when overloading gets more complicated (allowing mixed
-                 * generic and non-generic overloading).
-                 */
-
-                if (!(fvo instanceof Fcn))
-                    System.err.println("Eek!");
-                Fcn fcn_fvo = (Fcn) fvo;
-                if (! shadowIfDifferent && // true for functional methods
-                    fcn_fvo.getWithin() != value.getWithin() &&
-                    ! (fcn_fvo.getWithin().isTopLevel() &&  value.getWithin().isTopLevel()) // for imports from another api
-                    ) {
-                    /*
-                     * If defined in a different environment, shadow
-                     * instead of overloading.
-                     */
-                    noteName(index);
-                    return new_table;
-                }
-
-                /*
-                 * Lots of overloading combinations
-                 */
-                OverloadedFunction ovl = null;
-                if (fvo instanceof SingleFcn) {
-                    SingleFcn gm = (SingleFcn)fvo;
-                    ovl = new OverloadedFunction(gm.getFnName(), this);
-                    ovl.addOverload(gm);
-                    table = table.add(index, ovl, comparator);
-                } else if (fvo instanceof OverloadedFunction) {
-                    ovl = (OverloadedFunction)fvo;
-                } else {
-                    throw new RedefinitionError(what, index,
-                                                original.getValue(), value);
-                }
-                if (value instanceof SingleFcn) {
-                    ovl.addOverload((SingleFcn) value, overloadIsOK);
-                } else if (value instanceof OverloadedFunction) {
-                    ovl.addOverloads((OverloadedFunction) value);
-                } else {
-                    error(errorMsg("Overload of ", ovl,
-                                   " with inconsistent ", value));
-                }
-                /*
-                 * The overloading occurs in the original table, unless a new overload
-                 * was created (see returns of "table.add" above).
-                 */
-                return table;
-            } else {
-                noteName(index);
-            }
-            return new_table;
-        }
-    }
-
+     
+ 
     private <Result> BATreeNode<String, Result> putUnconditionally(BATreeNode<String, Result> table, String index, Result value, String what) {
         if (table == null) {
             return new BATreeNode<String, Result> (index, value);
@@ -547,50 +425,51 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     }
 
     public void putApi(String s, SApi api) {
-        api_env = put(api_env, s, api, "API");
+        api_env = put(api_env, s, api);
     }
 
-    public void putBool(String str, Boolean f2) {
-        bool_env = put(bool_env, str, f2, "Boolean type parameter");
-        var_env = put(var_env, str, FBool.make(f2), "Nat param as var/value");
-   }
-
+ 
     public void putComponent(String name, SComponent comp) {
-        cmp_env = put(cmp_env, name, comp, "Component");
+        cmp_env = put(cmp_env, name, comp);
 
     }
 
     public void putDecl(String str, Declaration f2) {
-        dcl_env = put(dcl_env, str, f2, "Declaration");
-
+        dcl_env = put(dcl_env, str, f2);
     }
 
-    public void putNat(String str, Number f2) {
-        nat_env = put(nat_env, str, f2, "Nat type parameter");
-        var_env = put(var_env, str, FInt.make(f2.intValue()), "Nat param as var/value");
+     public void putType(String str, FType f2) {
+        type_env = put(type_env, str, f2);
     }
 
-    public void putInt(String str, Number f2) {
-        int_env = put(int_env, str, f2, "Int type parameter");
-        var_env = put(var_env, str, FInt.make(f2.intValue()), "Int param as var/value");
+    public void putBoolRaw(String str, Boolean f2) {
+        bool_env = put(bool_env, str, f2);
     }
-
-    public void putType(String str, FType f2) {
-        type_env = put(type_env, str, f2, "Type");
+    public void putNatRaw(String str, Number f2) {
+        nat_env = put(nat_env, str, f2);
     }
-
+    public void putIntRaw(String str, Number f2) {
+        int_env = put(int_env, str, f2);
+    }
+    public void putValueRaw(String str, FValue f2) {
+        var_env = put(var_env, str, f2);
+    }
+    
     public void putValue(String str, FValue f2) {
         if (f2 instanceof Fcn)
-            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false, false);
+            putFunction(str, (Fcn) f2, "Var/value", false, false);
         else
-            var_env = putNoShadow(var_env, str, f2, "Var/value");
+            // var_env = putNoShadow(var_env, str, f2, "Var/value");
+            putNoShadow(str, f2, "Var/value");
+        
      }
 
     public void putValueNoShadowFn(String str, FValue f2) {
         if (f2 instanceof Fcn)
-            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", true, false);
+            putFunction(str, (Fcn) f2, "Var/value", true, false);
         else
-            var_env = putNoShadow(var_env, str, f2, "Var/value");
+            // var_env = putNoShadow(var_env, str, f2, "Var/value");
+            putNoShadow(str, f2, "Var/value");
      }
     
     /**
@@ -600,7 +479,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
      */
     public void putFunctionalMethodInstance(String str, FValue f2) {
         if (f2 instanceof Fcn)
-            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", true, true);
+            putFunction(str, (Fcn) f2, "Var/value", true, true);
         else
             error(str + " must be a functional method instance ");
      }
@@ -649,7 +528,5 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         // TODO Auto-generated method stub
         return this;
     }
-
-
 
 }

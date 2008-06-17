@@ -26,14 +26,17 @@ import java.util.Stack;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.exceptions.FortressError;
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.LabelException;
+import com.sun.fortress.exceptions.NamedLabelException;
+import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
@@ -168,9 +171,9 @@ import com.sun.fortress.useful.Useful;
 
 import java.util.concurrent.Callable;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class Evaluator extends EvaluatorBase<FValue> {
      boolean debug = false;
@@ -592,13 +595,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     public FValue forChainExpr(ChainExpr x) {
         Expr first = x.getFirst();
-        List<Pair<Op, Expr>> links = x.getLinks();
+        List<Pair<OpRef, Expr>> links = x.getLinks();
         FValue idVal = first.accept(this);
-        Iterator<Pair<Op, Expr>> i = links.iterator();
+        Iterator<Pair<OpRef, Expr>> i = links.iterator();
         List<FValue> vargs = new ArrayList<FValue>(2);
         if (links.size() == 1) {
-            Pair<Op, Expr> link = i.next();
-            Fcn fcn = (Fcn) link.getA().accept(this);
+            Pair<OpRef, Expr> link = i.next();
+            Fcn fcn = (Fcn) link.getA().getOriginalName().accept(this);
             FValue exprVal = link.getB().accept(this);
             vargs.add(idVal);
             vargs.add(exprVal);
@@ -608,8 +611,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             vargs.add(idVal);
             vargs.add(idVal);
             while (boolres.getBool() && i.hasNext()) {
-                Pair<Op, Expr> link = i.next();
-                Fcn fcn = (Fcn) link.getA().accept(this);
+                Pair<OpRef, Expr> link = i.next();
+                Fcn fcn = (Fcn) link.getA().getOriginalName().accept(this);
                 FValue exprVal = link.getB().accept(this);
                 vargs.set(0, idVal);
                 vargs.set(1, exprVal);
@@ -1040,13 +1043,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private boolean isExponentiation(OpExpr expr) {
         OpRef ref = expr.getOp();
-        if (ref.getOps().size() != 1) return false;
-        else {
-            OpName name = ref.getOps().get(0);
+
+            OpName name = ref.getOriginalName();
             if (!(name instanceof Op)) return false;
             else return (((Op)name).getText().equals("^") ||
                          OprUtil.isPostfix(name));
-        }
+
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1.  At the
@@ -1054,10 +1056,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * is ever created. */
     public FValue forOpExpr(OpExpr x) {
         OpRef ref = x.getOp();
-        if (ref.getOps().size() != 1) {
-            return bug(x, errorMsg("OpExpr with multiple operators ",x));
-        }
-        OpName op = ref.getOps().get(0);
+
+        OpName op = ref.getOriginalName();
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
         fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);

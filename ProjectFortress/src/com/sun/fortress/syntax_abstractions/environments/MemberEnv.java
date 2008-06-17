@@ -18,6 +18,7 @@
 package com.sun.fortress.syntax_abstractions.environments;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
@@ -90,6 +92,13 @@ public class MemberEnv {
 	public void add(SyntaxDef sd, SyntaxDeclEnv sdEnv) {
 		this.syntaxDefToEnv.put(sd, sdEnv);		
 	}
+	
+    public void rebuildSyntaxDeclEnvs(List<SyntaxDef> syntaxDefs) {
+        this.syntaxDefToEnv.clear();
+        for (SyntaxDef sd: syntaxDefs) {
+            this.add(sd, new SyntaxDeclEnv(sd, this));
+        }
+    }
 
 	private void addArgsNonterminal(Id var, Id t) {
 		this.argsToNonterminalMap.put(var, t);		
@@ -144,6 +153,10 @@ public class MemberEnv {
         return this.argsToNonterminalMap.containsKey(id);
     }
 
+    public List<Id> getParameters() {
+        return Arrays.asList(this.params);
+    }
+    
     /**
      * Add all the bindings of the other environment to this environment
      * Assume the parameters among the two environments are the same
@@ -164,4 +177,5 @@ public class MemberEnv {
     public Id getName() {
         return this.name;
     }
+
 }

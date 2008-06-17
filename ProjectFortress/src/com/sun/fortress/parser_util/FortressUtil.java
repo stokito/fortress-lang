@@ -37,10 +37,10 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.exceptions.ProgramError;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 public final class FortressUtil {
     public static <T> T syntaxError(Span span, String msg) {
@@ -97,7 +97,7 @@ public final class FortressUtil {
         return new WhereClause(Collections.<WhereBinding>emptyList(),
                                Collections.<WhereConstraint>emptyList());
     }
-    
+
     public static Effect emptyEffect() {
         return new Effect();
     }
@@ -207,7 +207,7 @@ public final class FortressUtil {
 
     private static void multiple(Modifier m) {
         resetMods();
-        error(m, "A modifier must not occur multiple times");
+        syntaxError(m.getSpan(), "A modifier must not occur multiple times");
     }
     static boolean m_atomic   = false;
     static boolean m_getter   = false;
@@ -385,7 +385,7 @@ public final class FortressUtil {
                 List<Modifier> mods = new ArrayList<Modifier>();
                 mods.add(new ModifierVar(span));
                 result.add(NodeFactory.makeLValue((LValueBind)l, mods));
-            } else error(l, "Unpasting cannot be mutable.");
+            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -395,7 +395,7 @@ public final class FortressUtil {
         for (LValue l : vars) {
             if (l instanceof LValueBind)
                 result.add(NodeFactory.makeLValue((LValueBind)l, ty));
-            else error(l, "Unpasting cannot be set types.");
+            else syntaxError(l.getSpan(), "Unpasting cannot be set types.");
         }
         return result;
     }
@@ -407,7 +407,7 @@ public final class FortressUtil {
             if (l instanceof LValueBind) {
                 result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind)));
                 ind += 1;
-            } else error(l, "Unpasting cannot be set types.");
+            } else syntaxError(l.getSpan(), "Unpasting cannot be set types.");
         }
         return result;
     }
@@ -417,7 +417,7 @@ public final class FortressUtil {
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
                 result.add(NodeFactory.makeLValue((LValueBind)l, ty, true));
-            } else error(l, "Unpasting cannot be mutable.");
+            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -430,7 +430,7 @@ public final class FortressUtil {
                List<Modifier> mods = new ArrayList<Modifier>();
                mods.add(new ModifierVar(span));
                result.add(NodeFactory.makeLValue((LValueBind)l, ty, mods));
-           } else error(l, "Unpasting cannot be mutable.");
+           } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -444,7 +444,7 @@ public final class FortressUtil {
                 result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind),
                                                   true));
                 ind += 1;
-            } else error(l, "Unpasting cannot be mutable.");
+            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -460,7 +460,7 @@ public final class FortressUtil {
                result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind),
                                                  mods));
                ind += 1;
-            } else error(l, "Unpasting cannot be mutable.");
+            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -657,7 +657,8 @@ public final class FortressUtil {
                 elems.add(elem);
                 return new ArrayElements(span, false, dim, elems);
             } else if (elements.size() == 0) {
-                return error(multi, "Empty array/matrix literal.");
+                return syntaxError(multi.getSpan(),
+                                   "Empty array/matrix literal.");
             } else { // if (dim < _dim)
                 int index = elements.size()-1;
                 ArrayExpr last = elements.get(index);
@@ -665,7 +666,8 @@ public final class FortressUtil {
                 return new ArrayElements(span, false, _dim, elements);
             }
         } else {
-            return error(multi, "ArrayElement or ArrayElements is expected.");
+            return syntaxError(multi.getSpan(),
+                               "ArrayElement or ArrayElements is expected.");
         }
     }
     public static ArrayExpr multiDimCons(Expr init,
@@ -745,7 +747,7 @@ public final class FortressUtil {
                     return new UnpastingSplit(span, elems, dim);
                 }
             } else { // elems.size() == 0
-                return error(two, "Empty unpasting.");
+                return syntaxError(two.getSpan(), "Empty unpasting.");
             }
         } else { //    !(two instanceof UnpastingBind)
                  // && !(two instanceof UnpastingSplit)
@@ -788,8 +790,7 @@ public final class FortressUtil {
                             IterUtil.last(nodes).getSpan().getEnd());
         }
     }
-    
-    
+
     public static Span spanAll(SourceLoc defaultLoc, Iterable<? extends Node> nodes) {
         if (IterUtil.isEmpty(nodes)) { return new Span(defaultLoc, defaultLoc); }
         else {
@@ -826,13 +827,27 @@ public final class FortressUtil {
                     _e = ExprFactory.makeLetExpr(_e, es);
                     es = mkList((Expr)_e);
                 } else {
-                    error(e, "Misparsed variable introduction!");
+                    syntaxError(e.getSpan(), "Misparsed variable introduction!");
                 }
             } else {
-                es.add(0, e);
+                if (isEquality(e) && !e.isParenthesized())
+                    syntaxError(e.getSpan(),
+                                "Equality testing expressions should be parenthesized.");
+                else es.add(0, e);
             }
         }
         return new Block(span, false, es);
+    }
+
+    private static boolean isEquality(Expr expr) {
+        if (expr instanceof ChainExpr) {
+            ChainExpr e = (ChainExpr)expr;
+            List<Pair<OpRef, Expr>> links = e.getLinks();
+            if (links.size() == 1) {
+                OpName op = links.get(0).getA().getOriginalName();
+                return (op instanceof Op && ((Op)op).getText().equals("="));
+            } else return false;
+        } else return false;
     }
 
 // (* Turn an expr list into a single TightJuxt *)

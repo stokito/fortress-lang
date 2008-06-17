@@ -29,6 +29,9 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.TypeError;
+import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
@@ -133,6 +136,8 @@ public final class StaticTestSuite extends TestSuite {
         protected void runTest() throws Throwable {
             if (file.getName().startsWith("XXX")) {
                 assertDisambiguatorFails(file);
+            } else if (file.getName().startsWith("SXX")) {
+                assertSyntaxAbstractionFails(file);
             } else if (file.getName().startsWith("DXX") && typecheck) {
                 assertTypeCheckerFails(file);
             } else {
@@ -150,6 +155,17 @@ public final class StaticTestSuite extends TestSuite {
                 System.out.println(IterUtil.multilineToString(errors));
             }
         }
+
+        private void assertSyntaxAbstractionFails(File f) throws IOException {
+            com.sun.fortress.compiler.StaticChecker.typecheck = false;
+            Iterable<? extends StaticError> errors = compile(f);
+            assertFalse("Source " + f + " was compiled without syntax abstraction errors",
+                        IterUtil.isEmpty(errors));
+            if (VERBOSE) {
+                System.out.println(f + "  OK -- errors:");
+                System.out.println(IterUtil.multilineToString(errors));
+            }            
+        }
         
         private void assertTypeCheckerFails(File f) throws IOException {
             Iterable<? extends StaticError> allErrors = compile(f);
@@ -161,7 +177,7 @@ public final class StaticTestSuite extends TestSuite {
             for (StaticError error : allErrors) {
                 try { throw error; }
                 catch (TypeError e) { typeErrors.add(e); }
-                catch (Fortress.WrappedException e) {
+                catch (WrappedException e) {
                     e.getCause().printStackTrace();
                     message += "\nStaticError (wrapped): " + e.getCause().toString();
                 }
@@ -180,7 +196,7 @@ public final class StaticTestSuite extends TestSuite {
             String message = "Source " + f + " produces static errors:";
             for (StaticError error : errors) {
                 try { throw error; }
-                catch (Fortress.WrappedException e) {
+                catch (WrappedException e) {
                     e.getCause().printStackTrace();
                     message += "\nStaticError (wrapped): " + e.getCause().toString();
                 }

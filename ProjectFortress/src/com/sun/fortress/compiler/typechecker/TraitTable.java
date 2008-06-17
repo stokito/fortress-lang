@@ -37,7 +37,7 @@ public class TraitTable {
         globalEnv = _globalEnv;
     }
 
-    public TypeConsIndex typeCons(Id name) {
+    public Option<TypeConsIndex> typeCons(Id name) {
         TypeConsIndex result;
         Id simpleName = new Id(name.getText());
         // TODO: Shouldn't qualified names only point to APIs? -- Dan
@@ -48,14 +48,14 @@ public class TraitTable {
         else {
             ApiIndex api = globalEnv.api(name.getApi().unwrap());
             if (api == null) {
-                throw new IllegalArgumentException("API " + api + " is undefined");
+            	return Option.none();
             }
             result = api.typeConses().get(simpleName);
         }
         if (result == null) {
-            throw new IllegalArgumentException("Trait or alias " + name + " is undefined");
+        	return Option.none();
         }
-        return result;
+        return Option.some(result);
     }
 
     public CompilationUnitIndex compilationUnit(APIName name) {

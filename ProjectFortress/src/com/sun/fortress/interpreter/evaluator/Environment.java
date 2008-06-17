@@ -240,4 +240,11 @@ public interface Environment  {
 
     public abstract void setTopLevel();
     
+    public void putBoolRaw(String str, Boolean f2) ;
+    public void putNatRaw(String str, Number f2) ;
+    public void putIntRaw(String str, Number f2);
+    public void putValueRaw(String str, FValue f2) ;
+    
+
+    
 }
