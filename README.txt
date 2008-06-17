@@ -175,7 +175,9 @@ classpath).
 USING ECLIPSE
 -------------
 There exists a file called ${FORTRESS_HOME}/DOTCLASSPATH in 
-the repository. Copy this file to ${FORTRESS_HOME}/.classpath.
+the repository. Copy this file to either ${FORTRESS_HOME}/.classpath 
+or ${FORTRESS_HOME}/ProjectFortress/.classpath depending on 
+where you have chosen as the root directory for your Eclipse project.
 If you are using the Java 5.0 jdk under Windows, you will need
 to add an entry to ${JAVA_HOME}/lib/tools.jar to the classpath.
 
