@@ -81,10 +81,33 @@ public class Path {
     public Path prepend(File f) {
         return new Path(Useful.prepend(f, dirs));
     }
- 
+    
+    public File munch(File prefix, String slashedSuffix, String dottedSuffix) {
+        File f = new File(prefix, dottedSuffix);
+        if (f.isFile()) {
+            return f;
+        }
+        int seploc = slashedSuffix.lastIndexOf('/');
+        
+        while (seploc > 0) {
+            String dirsuffix = dottedSuffix.substring(0,seploc);
+            File dir = new File(prefix, dirsuffix);
+            if (dir.isDirectory()) {
+                File trial = munch(dir, slashedSuffix.substring(seploc+1), dottedSuffix.substring(seploc+1));
+                if (trial != null)
+                    return trial;
+            }
+            seploc = dirsuffix.lastIndexOf('.');
+        }
+        
+        return null;
+    }
+    
     public File findFile(String s) throws FileNotFoundException {
         File inappropriateFile = null;
-        if (s.startsWith("/") || s.startsWith(File.separator)) {
+        s = s.replace(File.separator, "/"); // canonicalize
+        String s_dotted = s.replace("/", "."); // canonicalize
+        if (s.startsWith("/")) {
             File f = new File(s);
             if (f.isFile()) {
                 return f;
@@ -93,12 +116,9 @@ public class Path {
             }
         } else {
         for (File d : dirs) {
-            File f = new File(d, s);
-            if (f.isFile()) {
+            File f = munch(d, s, s_dotted);
+            if (f != null)
                 return f;
-            } else if (f.exists()) {
-                inappropriateFile = f;
-            }
         }
         }
         if (inappropriateFile != null) {
