@@ -15,16 +15,38 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalFnRef
+component ArrayElements
   export Executable
 
-  (* Tests that LetFn correctly binds the two local function definitions over its
-   * enclosing Block. *)
+  object NewString extends { String } end
+
+  foo() : () = do
+
+    var a:Array2[\IntLiteral,0,3,0,3\]
+    a := [1 2 3; 4 5 6; 7 8 9]
   
-  run(args:String...):() = do
-    f(x:RR64):IntLiteral = 23
-    g(x:Any, y:Any):IntLiteral = 42
-    ignore(g(f, g)) 
-    ()
+    var b:Array2[\IntLiteral,0,2,0,2\]
+    b := [ 3 4
+           5 6 ]
+    b := [ 3 4;
+           5 6 ]
+    b := [ 3 4
+         ; 5 6 ]
+    b := [3 4; 5 6]
+
+    var c:Array3[\IntLiteral,0,3,0,3,0,3\]
+    c := [ 1 0 0 
+           0 1 0 
+           0 0 1;;  0 1 0 
+                    1 0 1 
+                    0 1 0;; 1 0 1 
+                            0 1 0 
+                            1 0 1]
+
+    var d:Array1[\String,0,2\]
+    d := [[\String,0,2\] NewString NewString ]
+
   end
+
+  run(args:String...):() = ()
 end

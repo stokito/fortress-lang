@@ -56,6 +56,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
+import edu.rice.cs.plt.collect.ConsList;
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -70,7 +71,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private StaticParamEnv staticParamEnv;
     private TypeEnv typeEnv;
     private final CompilationUnitIndex compilationUnit;
-    //private final SubtypeChecker subtypeChecker;
     private final TypeAnalyzer subtypeChecker;
     private final Map<Id, Option<Set<Type>>> labelExitTypes; // Note: this is mutable state.
     
@@ -1119,7 +1119,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private List<TypeCheckerResult> allVoidButLast(List<TypeCheckerResult> results, List<Expr> block){
     	// every other expression except for the last must be void
     	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(results);
-    	String void_err = "All expressions except the last in a block must have VOID type.";
+    	String void_err = "All expressions except the last in a block must have () type.";
     	for( int i=0; i<results.size()-1; i++ ) {
     		TypeCheckerResult r_i = results.get(i);
     		if( r_i.type().isSome() ) {
@@ -1459,6 +1459,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
+    // This case is only called for single element arrays ( e.g., [5] )
+    // and not for pieces of ArrayElements
 	@Override
 	public TypeCheckerResult forArrayElementOnly(ArrayElement that,
 			List<TypeCheckerResult> staticArgs_result,
@@ -1505,26 +1507,84 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	
-	// This code is not trust-worthy! Justin is working on the rank-checking code
+	// This method is pretty long because we have to create a new visitor that visitis ArrayElements and ArrayElement
+	// knowing that we are inside of another ArrayElement.
 	@Override
-	public TypeCheckerResult forArrayElementsOnly(ArrayElements that,
-			List<TypeCheckerResult> staticArgs_result,
-			List<TypeCheckerResult> elements_result) {
+	public TypeCheckerResult forArrayElements(ArrayElements that) {
+		// Create a new visitor whose responsibility is the gathering of types and element sizes from lower dimensions
+		NodeDepthFirstVisitor<Pair<TypeCheckerResult,ConsList<Integer>>> elements_visitor =
+			new NodeDepthFirstVisitor<Pair<TypeCheckerResult,ConsList<Integer>>>() {
+				final NodeDepthFirstVisitor<Pair<TypeCheckerResult,ConsList<Integer>>> stored_this = this;
+				@Override
+				public Pair<TypeCheckerResult, ConsList<Integer>> forArrayElement(
+						ArrayElement that) {
+					Integer size = 1;
+					TypeCheckerResult elem_result = that.getElement().accept(TypeChecker.this);
+					// that.getStaticArgs() TODO, check me
+					return Pair.<TypeCheckerResult,ConsList<Integer>>make(elem_result, ConsList.singleton(size));
+				}
+
+				@Override
+				public Pair<TypeCheckerResult, ConsList<Integer>> forArrayElements(
+						ArrayElements that) {
+					// recur on sub-elements
+					Iterable<Pair<TypeCheckerResult,ConsList<Integer>>> elems_results =
+						IterUtil.map(that.getElements(), new Lambda<ArrayExpr,Pair<TypeCheckerResult,ConsList<Integer>>>(){
+							public Pair<TypeCheckerResult, ConsList<Integer>> value(
+									ArrayExpr arg0) {
+								return arg0.accept(stored_this);
+							}});
+					
+					List<TypeCheckerResult> all_results = IterUtil.asList(IterUtil.pairFirsts(elems_results));
+					List<ConsList<Integer>> all_sizes = IterUtil.asList(IterUtil.pairSeconds(elems_results));
+					
+					Integer size = that.getElements().size();
+					ConsList<Integer> last_size_list = IterUtil.first(all_sizes);
+					ConsList<Integer> new_size_list = ConsList.cons(size, last_size_list);
+										
+					// Check that all sub-elements are typed 
+					for( TypeCheckerResult r : all_results ) {
+						if( r.type().isNone() ) {
+							return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, all_results), new_size_list);
+						}
+					}
+					// Make sizes in each list are the same as the equivalent position in last_size_list
+					for( ConsList<Integer> size_list : all_sizes ) {
+						Boolean sizes_match = 
+							IterUtil.fold(IterUtil.zip(size_list, last_size_list), true, new Lambda2<Boolean,Pair<Integer,Integer>,Boolean>(){
+								public Boolean value(Boolean arg0, Pair<Integer, Integer> arg1) {
+									return arg0 & (arg1.first().equals(arg1.second()));
+								}});
+						if( !sizes_match ) {
+							String err = "Sizes of elements in array dimension are not equal.";
+							TypeCheckerResult result = new TypeCheckerResult(that, TypeError.make(err, that));
+							result = TypeCheckerResult.compose(that, subtypeChecker, result,
+									TypeCheckerResult.compose(that, subtypeChecker, all_results));		
+							return Pair.make(result, new_size_list);
+						}
+					}
+
+					// Now create result type from elements
+					Type result_type = subtypeChecker.join(IterUtil.map(all_results, new Lambda<TypeCheckerResult,Type>(){
+						public Type value(TypeCheckerResult arg0) {
+							return arg0.type().unwrap();
+						}}));
+					TypeCheckerResult result = TypeCheckerResult.compose(that, result_type,subtypeChecker, all_results);
+					return Pair.make(result, new_size_list); 
+				}
+		};
 		
-		List<Type> elem_types = new ArrayList<Type>(elements_result.size()); 
+		List<TypeCheckerResult> staticArgs_result = this.recurOnListOfStaticArg(that.getStaticArgs());
+		// Get type and dimension sizes from elements
+		Pair<TypeCheckerResult, ConsList<Integer>> elements_result_ = that.accept(elements_visitor);
+		TypeCheckerResult elements_result = elements_result_.first();
+		ConsList<? extends Integer> dim_sizes = elements_result_.second();
 		
-		// make sure subexprs typechecked, if so store type
-		for(TypeCheckerResult r : elements_result) {
-			if( r.type().isNone() )  {
-				return TypeCheckerResult.compose(that, subtypeChecker, 
-						Useful.concat(staticArgs_result, elements_result));
-			}
-			else {
-				elem_types.add(r.type().unwrap());
-			}
-		}
-		// If no explicit type args, the join is the type
-		Type array_type = this.subtypeChecker.join(elem_types);
+		// Make sure it actually has a type
+		if( elements_result.type().isNone() )
+			return elements_result;
+		
+		Type array_type = elements_result.type().unwrap();
 		
 		// Now try to get array type for the dimension we have
 		int dim = that.getDimension();
@@ -1564,9 +1624,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			List<StaticArg> inferred_args = new ArrayList<StaticArg>(1+dim*2);
 			inferred_args.add(NodeFactory.makeTypeArg(array_type));
 			for(int i=0;i<dim;i++) {
-				// add a lower bound and a size for each dim
+				Integer s = ConsList.first(dim_sizes);
+				dim_sizes =	ConsList.rest(dim_sizes);
+				
+				IntArg lower_bound = NodeFactory.makeIntArgVal("0");
+				IntArg size = NodeFactory.makeIntArgVal(s.toString());
+				
+				inferred_args.add(lower_bound);
+				inferred_args.add(size);
 			}
-			return NI.nyi();
+			// then instantiate and return
+			Type return_type = Types.makeArrayKType(dim, inferred_args);
+			return TypeCheckerResult.compose(that, return_type, subtypeChecker,
+					TypeCheckerResult.compose(that, subtypeChecker, elements_result),
+					TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 		}
 	}
 
@@ -2182,7 +2253,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		result_type = Option.some(app_result.unwrap().first());
     	}
     	else {
-    		String err = "Function application failed."; // error message needs work
+    		String err = "Applicable overloading could not be found for argument."; // error message needs work
     		result = new TypeCheckerResult(that, TypeError.make(err, that));
     		result_type = Option.none();
     	}
@@ -2216,41 +2287,43 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		bug("Number of types don't match number of sub-expressions");
     	}
     	// new list of results and exprs, so we can modify this one in place and recurse on it
+    	// Starting a new scope so that new_exprs_result and new_exprs aren't used after this loop
     	{
-    	List<TypeCheckerResult> new_exprs_result = new LinkedList<TypeCheckerResult>(exprs_result);
-    	List<Expr> new_exprs = new LinkedList<Expr>(that.getExprs());
-    	// list iters, so we can remove and add
-    	ListIterator<TypeCheckerResult> exprs_result_iter = new_exprs_result.listIterator();
-    	ListIterator<Expr> exprs_iter = new_exprs.listIterator();
+    		List<TypeCheckerResult> new_exprs_result = new LinkedList<TypeCheckerResult>(exprs_result);
+    		List<Expr> new_exprs = new LinkedList<Expr>(that.getExprs());
+    		// list iters, so we can remove and add
+    		ListIterator<TypeCheckerResult> exprs_result_iter = new_exprs_result.listIterator();
+    		ListIterator<Expr> exprs_iter = new_exprs.listIterator();
 
-    	// 1.) Find the first function type
-    	while( exprs_result_iter.hasNext() ) {
-    		TypeCheckerResult cur_result =  exprs_result_iter.next();
-    		Expr cur_expr = exprs_iter.next();
+    		// 1.) Find the first function type
+    		while( exprs_result_iter.hasNext() ) {
+    			TypeCheckerResult cur_result =  exprs_result_iter.next();
+    			Expr cur_expr = exprs_iter.next();
 
-    		if( TypesUtil.isArrows(cur_result.type().unwrap()) ) {
-    			// or if only the last element is a function, go on to the next step.
-    			if( !exprs_result_iter.hasNext() ) break;
-    			// otherwise, remove this and the next (arg) results from this list,
-    			exprs_result_iter.remove(); exprs_iter.remove();
-    			TypeCheckerResult arg_result = exprs_result_iter.next();
-    			Expr arg = exprs_iter.next();
-    			exprs_result_iter.remove(); exprs_iter.remove();
+    			if( TypesUtil.isArrows(cur_result.type().unwrap()) ) {
+    				// or if only the last element is a function, go on to the next step.
+    				if( !exprs_result_iter.hasNext() ) break;
+    				// otherwise, remove this and the next (arg) results from this list,
+    				exprs_result_iter.remove(); exprs_iter.remove();
+    				TypeCheckerResult arg_result = exprs_result_iter.next();
+    				Expr arg = exprs_iter.next();
+    				exprs_result_iter.remove(); exprs_iter.remove();
 
-    			// create a new _RewriteFnApp, type-check it, recurse
-    			_RewriteFnApp fn_app =
-    				new _RewriteFnApp(new Span(cur_expr.getSpan(),arg.getSpan()),cur_expr,arg);
-    			exprs_result_iter.add(this.for_RewriteFnAppOnly(fn_app, cur_result, arg_result));
-    			exprs_iter.add(fn_app);
-    			// recur
-    			return forTightJuxtOnly(ExprFactory.makeTightJuxt(that,new_exprs), multijuxt_result, injuxt_result, new_exprs_result);
+    				// create a new _RewriteFnApp, type-check it, recurse
+    				_RewriteFnApp fn_app =
+    					new _RewriteFnApp(new Span(cur_expr.getSpan(),arg.getSpan()),cur_expr,arg);
+    				exprs_result_iter.add(this.for_RewriteFnAppOnly(fn_app, cur_result, arg_result));
+    				exprs_iter.add(fn_app);
+    				// recur
+    				return forTightJuxtOnly(ExprFactory.makeTightJuxt(that,new_exprs), multijuxt_result, injuxt_result, new_exprs_result);
+    			}
     		}
-    	}
     	}
     	// 2.) If you have reached this point, The overall juxtaposition
     	//     now either is a single element or consists entirely of non-function elements.
     	if( that.getExprs().size() == 1 ) {
-    		return TypeCheckerResult.compose(that, subtypeChecker, injuxt_result,
+    		Option<Type> single_element_type = exprs_result.get(0).type();
+    		return TypeCheckerResult.compose(that, single_element_type, subtypeChecker, injuxt_result,
     				TypeCheckerResult.compose(that, subtypeChecker, exprs_result));
     	}
     	// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.

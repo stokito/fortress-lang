@@ -36,12 +36,12 @@ component OverloadedFunctions
     (* no vararg, no keyword *)
     f(x: ZZ32, y: String): IntLiteral = 3
     
-    f(i, "hello")
-    f(i, "hello", true)
-    f(i, "hello", true, 4)
-    f(i, "hello", true, 1, 2)
+    ignore(f(i, "hello"))
+    ignore(f(i, "hello", true))
+    ignore(f(i, "hello", true, 4))
+    ignore(f(i, "hello", true, 1, 2))
     (*f(0, "hello", true, t=3, u=false)*)
-    f(i, "hello", true, false)    
+    ignore(f(i, "hello", true, false))    
   end
 
   run(args: String...):() = ()
