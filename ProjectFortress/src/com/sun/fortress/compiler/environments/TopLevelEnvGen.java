@@ -305,26 +305,34 @@ public class TopLevelEnvGen {
         	Integer testHashCode = iterator.next();
             mv.visitVarInsn(Opcodes.ILOAD, 3);
             mv.visitLdcInsn(testHashCode);
-            Label beforeReturn = new Label();            
-            Label afterReturn = new Label();
+            Label beforeInnerLoop = new Label();            
+            Label afterInnerLoop = new Label();
             if (iterator.hasNext()) {
-            	mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterReturn);
+            	mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
             } else {
             	mv.visitJumpInsn(Opcodes.IF_ICMPNE, endComparisons);            	
             }
-            mv.visitLabel(beforeReturn);
+            mv.visitLabel(beforeInnerLoop);
 
-            // This is wrong.  Should be using string equals() to test hash collisions
-            String idString = 
-            	valueHashCode.getFirsts(testHashCode).iterator().next() + FVALUE_NAMESPACE;
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitVarInsn(Opcodes.ALOAD, 2);
-            mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
-            		mangleIdentifier(idString), FVALUE_DESCRIPTOR);
-            // Previous instructions are wrong
+            for(String testString : valueHashCode.getFirsts(testHashCode)) {
+            	mv.visitVarInsn(Opcodes.ALOAD, 1);
+            	mv.visitLdcInsn(testString);
+            	mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+                Label beforeSetValue = new Label();            
+                Label afterSetValue = new Label();            	
+                mv.visitJumpInsn(Opcodes.IFEQ, afterSetValue);
+                mv.visitLabel(beforeSetValue);
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitVarInsn(Opcodes.ALOAD, 2);
+                String idString = testString + FVALUE_NAMESPACE;                
+                mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
+                		mangleIdentifier(idString), FVALUE_DESCRIPTOR);                                
+                mv.visitJumpInsn(Opcodes.GOTO, endComparisons);
+                mv.visitLabel(afterSetValue);
+            }                                    
             if (iterator.hasNext()) {
                 mv.visitJumpInsn(Opcodes.GOTO, endComparisons);
-            	mv.visitLabel(afterReturn);
+            	mv.visitLabel(afterInnerLoop);
             } else {
             	mv.visitLabel(endComparisons);
             }
