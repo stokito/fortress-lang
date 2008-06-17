@@ -26,8 +26,10 @@ run(s:String...) = do
 
     println "/abc/ = " (/abc/)
     println "/a*bc/ = " (/a*bc/)
+    println "/a*?bc/ = " (/a*?bc/)
     println "/a(bc)/ = " (/a(bc)/)
     println "/a+bc/ = " (/a+bc/)
+    println "/a+?bc/ = " (/a+?bc/)
     println "/(ab)*c/ = " (/(ab)*c/)
     println "/^foo/ = " (/^foo/)
     println "/bar$/ = " (/bar$/)
@@ -46,6 +48,14 @@ run(s:String...) = do
     println "/\\\\/ = " (/\\/)
     println "/\\// = " (/\//)
     println "/\\a\\b\\c\\d/ = " (/\a\b\c\d/)
+
+    println "/a|b/ = " (/a|b/)
+    println "/(abc)|(def)/ = " (/(abc)|(def)/)
+    println "/(abc|def)/ = " (/(abc|def)/)
+
+    println "/:/ = " (/:/)
+    println "/#/ = " (/#/)
+    println "/&/ = " (/&/)
 end
 
 end
