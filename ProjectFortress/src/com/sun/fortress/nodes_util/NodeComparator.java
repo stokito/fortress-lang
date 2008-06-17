@@ -24,7 +24,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.AnyListComparer;
 import com.sun.fortress.useful.ListComparer;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.exceptions.InterpreterBug;
 
 public class NodeComparator {
     /* option comparers **************************************************/

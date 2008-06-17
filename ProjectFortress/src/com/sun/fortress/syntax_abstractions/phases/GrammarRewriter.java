@@ -27,19 +27,27 @@ import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NodeVisitor_void;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.TerminalDecl;
+import com.sun.fortress.nodes._TerminalDef;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.GrammarIndexInitializer;
 import com.sun.fortress.syntax_abstractions.MacroCompiler.Result;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
@@ -60,6 +68,7 @@ import edu.rice.cs.plt.tuple.Option;
  * 6) TODO: Extract subsequences of syntax symbols into a new
  *    nonterminal with a fresh name
  * 7) Parse pretemplates and replace with real templates
+ * 8) Well-formedness check on template gaps
  */
 public class GrammarRewriter {
 
@@ -77,13 +86,13 @@ public class GrammarRewriter {
     }
 
     public static ApiResult rewriteApis(Map<APIName, ApiIndex> map, GlobalEnvironment env) {
+        List<StaticError> errors = new LinkedList<StaticError>();
         Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
         apis.addAll(map.values());
         apis.addAll(env.apis().values());
-        initializeGrammarIndexExtensions(apis);
+        errors.addAll(initializeGrammarIndexExtensions(apis));
 
         List<Api> results = new ArrayList<Api>();
-        List<StaticError> errors = new LinkedList<StaticError>();
         ItemDisambiguator id = new ItemDisambiguator(env);
         errors.addAll(id.errors());
         
@@ -128,13 +137,21 @@ public class GrammarRewriter {
             TemplateParser.Result tpr = TemplateParser.parseTemplates((Api)api.ast());
             for (StaticError se: tpr.errors()) { errors.add(se); };
             if (!tpr.isSuccessful()) { return new ApiResult(rs, errors); }
-            rs.add(tpr.api);
+            
+            rebuildGrammarEnv(tpr.api());
+            
+            // 8) Well-formedness check on template gaps
+            TemplateChecker.Result tcr = TemplateChecker.checkTemplates(tpr.api());
+            for (StaticError se: tcr.errors()) { errors.add(se); };
+            if (!tcr.isSuccessful()) { return new ApiResult(rs, errors); }
+            rs.add(tcr.api());
         }
 
         return new ApiResult(rs, errors);
     }
     
-    private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+        List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
         for (ApiIndex a2: apis) {
             for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
@@ -153,12 +170,37 @@ public class GrammarRewriter {
                 }
             }
         }
+        return errors;
     }
     
     private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
         for (GrammarIndex g: grammarIndexs) {
             GrammarEnv.add(g);
         }        
+    }
+
+    private static void rebuildGrammarEnv(Api api) {
+        api.accept(new NodeDepthFirstVisitor_void() {
+            
+            @Override
+            public void forNonterminalDef(NonterminalDef that) {
+                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                mEnv.rebuildSyntaxDeclEnvs(that.getSyntaxDefs());
+            }
+
+            @Override
+            public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
+                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                mEnv.rebuildSyntaxDeclEnvs(that.getSyntaxDefs());
+            }
+
+            @Override
+            public void for_TerminalDef(_TerminalDef that) {
+                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                mEnv.rebuildSyntaxDeclEnvs(FortressUtil.mkList(that.getSyntaxDef()));
+            }
+            
+        });
     }
 
 }

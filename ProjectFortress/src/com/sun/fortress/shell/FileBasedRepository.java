@@ -19,6 +19,7 @@ package com.sun.fortress.shell;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;

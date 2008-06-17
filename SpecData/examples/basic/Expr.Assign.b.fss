@@ -39,7 +39,7 @@ myBag = 3
 newItems = 7
 (** EXAMPLE **)
 x := f(0)
-n[i j] = n[i j] + l[i k] m[k j]
+(n[i j] = n[i j] + l[i k] m[k j])
 (a,b,c) := (b,c,a)      (* Permuta a, b, and c *)
 x += 1
 (x,y) += (delta_x,delta_y)

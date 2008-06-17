@@ -17,9 +17,9 @@
 
 package com.sun.fortress.interpreter.drivers;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,10 +36,10 @@ import java.util.Stack;
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.interpreter.evaluator.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;

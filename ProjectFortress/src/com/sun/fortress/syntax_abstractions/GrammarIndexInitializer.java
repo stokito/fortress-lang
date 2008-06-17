@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
@@ -33,6 +32,7 @@ import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarTerminalIndex;
 import com.sun.fortress.compiler.index.NonterminalExtendIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;

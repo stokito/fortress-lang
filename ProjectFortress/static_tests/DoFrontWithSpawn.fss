@@ -25,7 +25,7 @@ export Executable
     atomic do
       s:= "Can't spawn here."
     also do
-      spawn "But I can here!"
+      ignore(spawn "But I can here!")
     end
     ()
 

@@ -38,11 +38,11 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
@@ -352,9 +352,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      * Prevent recursion on function static args -- delayed until the function references
      * can be resolved.
      */
-    @Override public Node forFnRef(FnRef that) {
-        return that;
-    }
+//    @Override public Node forFnRef(FnRef that) {
+//        return that;
+//    }
 
 
     private StaticArg updateStaticArg(final StaticArg a, final StaticParam p) {

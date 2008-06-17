@@ -22,4 +22,7 @@
     <target name="testOnly">
         <ant target="testOnly" />
     </target>
+    <target name="testsyntax">
+        <ant target="testsyntax" />
+    </target>
 </project>

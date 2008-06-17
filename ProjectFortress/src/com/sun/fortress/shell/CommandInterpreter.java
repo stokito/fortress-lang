@@ -24,15 +24,21 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.exceptions.shell.RepositoryError;
+import com.sun.fortress.exceptions.shell.ShellException;
+import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.interpreter.drivers.*;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.shell.ConvenientStrings.*;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.io.*;
 
@@ -112,6 +118,15 @@ public class CommandInterpreter {
         else bug("Failed to make a compilation unit for " + fileName);
     }
 
+    private boolean isInteger( String s ){
+        try{
+            int i = Integer.valueOf(s);
+            return i == i;
+        } catch ( NumberFormatException n ){
+            return false;
+        }
+    }
+
     void run(List<String> args) throws UserError, IOException, Throwable {
         if (args.size() == 0) {
             throw new UserError("Need a file to run");
@@ -120,7 +135,15 @@ public class CommandInterpreter {
         List<String> rest = args.subList(1, args.size());
 
         if (s.startsWith("-")) {
-            if (s.equals("-debug")) ProjectProperties.debug = true;
+            if (s.equals("-debug")){
+                Debug.setDebug( 99 );
+                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
+                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
+                    rest = rest.subList( 1, rest.size() );
+                } else {
+                    ProjectProperties.debug = true;
+                }
+            }
             if (s.equals("-test")) test= true;
             if (s.equals("-nolib")) nolib= true;
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
@@ -151,6 +174,9 @@ public class CommandInterpreter {
 
             Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, nolib, args);
 
+            /* FIXME: this is a hack to get around some null pointer exceptions
+             * if a WrappedException is printed as-is.
+             */
             for (StaticError error: errors) {
                 System.err.println(error);
             }

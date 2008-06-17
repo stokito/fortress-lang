@@ -18,6 +18,7 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,15 +31,20 @@ import xtc.parser.ModuleList;
 import xtc.parser.ModuleName;
 import xtc.parser.Production;
 
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
+/**
+ * Creates or modifies each rats module and adds productions defined by
+ * grammars in api's.
+ */
 public class GrammarTranslator {
 	private Collection<Module> ratsModules;
 	private Iterable<? extends StaticError> errors;
@@ -65,6 +71,7 @@ public class GrammarTranslator {
 			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {	
 
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
+                    // System.out.println( String.format( "Translating module %s '%s'", module.getClass().getName(), module.getName() ) );
 			if (module instanceof FortressModule) {
 				ratsModules.add(makeFortressModule((FortressModule) module));
 			}
@@ -86,21 +93,33 @@ public class GrammarTranslator {
 	private Module makeFortressModule(FortressModule module) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+module.getName().toString()+".rats");
 
-		List<ModuleName> ls = new LinkedList<ModuleName>();
-		ls.addAll(m.parameters.names);
-		ls.addAll(module.getParameters());
-		m.parameters = new ModuleList(ls);
+		List<ModuleName> params = new LinkedList<ModuleName>();
+		params.addAll(m.parameters.names);
+		for (ModuleName name: module.getParameters()) {
+		    if (!params.contains(name)) {
+		        params.add(name);
+		    }
+		}
+		m.parameters = new ModuleList(params);
 
-		List<ModuleDependency> mds = new LinkedList<ModuleDependency>();
+        List<ModuleDependency> mds = new LinkedList<ModuleDependency>();
 		mds.addAll(m.dependencies);
-		mds.addAll(module.getDependencies());
+		for (ModuleDependency md: module.getDependencies()) {
+		    if (!mds.contains(md)) {
+		        mds.add(md);
+		    }
+		}
+
 		m.dependencies = mds;
 
 		for (Production p: m.productions) {
 			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
 				if (member.getName().getText().equals(p.name.name)) {
 					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);
-					p.choice.alternatives.addAll(ptr.alternatives());
+					/* Add new productions to the front of the
+					 * choices so that user generated productions receive higher precedence than fortress productions.
+					 */
+					p.choice.alternatives.addAll(0, ptr.alternatives());
 				}
 			}
 		}

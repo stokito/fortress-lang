@@ -45,8 +45,9 @@ import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Fortress;
-import com.sun.fortress.compiler.StaticError;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.exceptions.ParserError;
+import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 
@@ -402,7 +403,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 					return (CompilationUnit) cu;
 				}
 			}
-			throw new RuntimeException("Unexpected parse result: " + new Parser.Error((ParseError) parseResult, parser));
+			throw new RuntimeException("Unexpected parse result: " + new ParserError((ParseError) parseResult, parser));
 		} finally {
 			in.close();
 		}

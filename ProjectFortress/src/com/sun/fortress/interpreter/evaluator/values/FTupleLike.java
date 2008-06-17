@@ -16,8 +16,8 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.util.Collections;
 import java.util.Iterator;

@@ -44,7 +44,7 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 // From Fortress/interpreter/ast/ast_utils.ml
 public class ASTUtil {
@@ -85,7 +85,7 @@ public class ASTUtil {
             opr = NodeFactory.makeOpInfix(op);
         else
             opr = error(op, "Operator fixity is invalid in its application.");
-        OpRef ref = new OpRef(op.getSpan(),
+        OpRef ref = new OpRef(op.getSpan(), opr,
                               Collections.<OpName>singletonList(opr));
         return new OpExpr(span, false, ref, args);
     }
@@ -103,6 +103,7 @@ public class ASTUtil {
             Span s = FortressUtil.spanTwo(left, right);
             Enclosing en = new Enclosing(s, left, right);
             OpRef ref = new OpRef(s,
+                    en,
                                   Collections.<OpName>singletonList(en),
                                   sargs);
             return new OpExpr(span, false, ref, args);
@@ -118,7 +119,7 @@ public class ASTUtil {
     //        (node span
     //           { chain_expr_first = first;
     //             chain_expr_links = links; }))
-    static Expr chain(Span span, Expr first, List<Pair<Op, Expr>> links) {
+    static Expr chain(Span span, Expr first, List<Pair<OpRef, Expr>> links) {
         return new ChainExpr(span, false, first, links);
     }
 

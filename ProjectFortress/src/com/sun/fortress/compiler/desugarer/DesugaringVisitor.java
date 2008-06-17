@@ -18,13 +18,13 @@
 package com.sun.fortress.compiler.desugarer;
 
 
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.typechecker.*;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TraitIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
@@ -36,7 +36,7 @@ import edu.rice.cs.plt.tuple.Option;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sun.fortress.compiler.StaticError.errorMsg;
+import static com.sun.fortress.exceptions.StaticError.errorMsg;
 
 public class DesugaringVisitor extends NodeUpdateVisitor {
     private boolean inTrait = false;

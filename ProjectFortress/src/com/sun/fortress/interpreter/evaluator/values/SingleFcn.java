@@ -20,15 +20,15 @@
  */
 package com.sun.fortress.interpreter.evaluator.values;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicBool;

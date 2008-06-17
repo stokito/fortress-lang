@@ -35,8 +35,9 @@ import xtc.parser.ParseError;
 import xtc.parser.SemanticValue;
 
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.exceptions.ParserError;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
@@ -69,8 +70,6 @@ import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv.PrefixSymbolSymbolGetter;
 import com.sun.fortress.syntax_abstractions.util.InterpreterWrapper;
-import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
-import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
@@ -82,11 +81,8 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class TemplateParser extends NodeUpdateVisitor {
 
-	/**
-	 * Result of the module translation
-	 */
 	public static class Result extends StaticPhaseResult {
-		Api api;
+		private Api api;
 
 		public Result(Api api, 
 				Collection<StaticError> errors) {
@@ -100,17 +96,16 @@ public class TemplateParser extends NodeUpdateVisitor {
 			this.api = api;
 		}
 
-		public Api modules() { return api; }
+		public Api api() { return api; }
 	}
-
 	
-	private Collection<Parser.Error> errors;
+	private Collection<ParserError> errors;
 	private Map<Id, BaseType> vars;
 	private Map<Id, BaseType> varsToNonterminalType;
 
 	
 	public TemplateParser() {
-		this.errors = new LinkedList<Parser.Error>();
+		this.errors = new LinkedList<ParserError>();
 	}
 
 	private Collection<? extends StaticError> getErrors() {
@@ -209,7 +204,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 	 * Wraps the invoked method to return a xtc.parser.Result and also throws
 	 * IOException.
 	 */
-	private xtc.parser.Result invokeParseMethod(Fortress parser, Method method, int num) throws IOException {
+	private xtc.parser.Result invokeParseMethod(com.sun.fortress.parser.templateparser.TemplateParser parser, Method method, int num) throws IOException {
 		try{
 			return (xtc.parser.Result) method.invoke(parser, num);
 		} catch (IllegalAccessException e){
@@ -221,8 +216,8 @@ public class TemplateParser extends NodeUpdateVisitor {
 
 	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
 		BufferedReader in = Useful.bufferedStringReader(transformation.trim());
-		com.sun.fortress.parser.Fortress parser =
-			new com.sun.fortress.parser.Fortress(in, span.getBegin().getFileName());
+		com.sun.fortress.parser.templateparser.TemplateParser parser =
+			new com.sun.fortress.parser.templateparser.TemplateParser(in, span.getBegin().getFileName());
 		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
 		if ( ! parse.isSome() ){
 			throw new RuntimeException("Did not find method " + productionName);
@@ -240,7 +235,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 				throw new RuntimeException("Unexpected parse result: " + cu);
 			} 
 //			System.err.println("Error: "+((ParseError) parseResult).msg);
-			this.errors.add(new Parser.Error((ParseError) parseResult, parser));
+			this.errors.add(new ParserError((ParseError) parseResult, parser));
 			return Option.none();
 		} catch (IOException e) {
 			e.printStackTrace();

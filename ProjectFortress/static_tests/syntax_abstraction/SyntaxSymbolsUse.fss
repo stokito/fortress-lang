@@ -23,7 +23,7 @@ component SyntaxSymbolsUse
 
   run(args:String...) = do
     println "Escapetest: " FORMFEED T G P world 
-    println "FunnyThingstest  : " hello ( world }
+    println "FunnyThingstest  : " hello ( world )
     println "Operatortest     : " hello gnu abeabe worldhello 
     println "Hashtest         : " foo hellohellohellohelloworldbar
     println "Nottest          : " oof

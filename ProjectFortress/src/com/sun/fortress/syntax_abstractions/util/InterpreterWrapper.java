@@ -29,13 +29,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.FortressRepository;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.fs;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -68,6 +68,8 @@ import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.shell.CommandInterpreter;
+
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -135,10 +137,7 @@ public class InterpreterWrapper {
         //   e1.printStackTrace();
         //  }
         try {
-            if (ProjectProperties.debug) {
-                System.err.println("Running interpreter...");
-            }
-
+            Debug.debug( 1, "Running interpreter...");
 
             return new Result(runFunction(c), errors);
         } catch (FortressException e) {
@@ -168,6 +167,7 @@ public class InterpreterWrapper {
                 VarDecl vd = (VarDecl) d;
                 if (vd.getLhs().size() == 1) {
                     LValueBind vb = vd.getLhs().get(0);
+                    Debug.debug( 2, "[interpreter wrapper] Get variable for " + vb.getName() + " to type " + vb.getType() );
                     Object o = boundVariables.get(vb.getName().getText());
                     Expr n = new JavaASTToFortressAST(span).dispatch(o, vb.getType());
                     newDecls.add(new VarDecl(vd.getLhs(), n));
@@ -203,7 +203,7 @@ public class InterpreterWrapper {
         if (evTask.causedException()) {
             throw evTask.taskException();
         }
-        System.err.println("EvTask: "+evTask.result());
+        Debug.debug( 2, "EvTask: "+evTask.result() );
         return evTask.result();
     }
 
@@ -221,5 +221,4 @@ public class InterpreterWrapper {
         bw.close();
         return sw.getBuffer().toString();
     }
-
 }

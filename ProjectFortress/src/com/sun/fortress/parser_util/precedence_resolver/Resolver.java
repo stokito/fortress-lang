@@ -25,7 +25,9 @@ import java.util.List;
 
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.Chain;
 import com.sun.fortress.parser_util.precedence_opexpr.Equal;
@@ -57,7 +59,7 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.nodes_util.OprUtil.noColonText;
 
 /*
@@ -72,10 +74,6 @@ public class Resolver {
   // let is_div op = op.node_data = "/"
   private static boolean isDiv(Op op) {
       return op.getText().equals("/");
-  }
-
-  private static boolean isNonAssociative(Op op) {
-      return PrecedenceMap.ONLY.isNonAssociative(op.getText());
   }
 
   // (* A predicate for whether an operator may participate in chaining *)
@@ -186,7 +184,7 @@ public class Resolver {
   //         Errors.read_error op.node_span "Misuse of tight division."
   //  | opexpr :: rest -> opexpr :: resolve_tight_div rest
   private static PureList<PrefixOpExpr>
-    resolveNonAssociative(PureList<PrefixOpExpr> opExprs) throws ReadError
+    resolveTightDiv(PureList<PrefixOpExpr> opExprs) throws ReadError
   {
     if (opExprs.isEmpty()) { return PureList.<PrefixOpExpr>make(); }
 
@@ -201,14 +199,14 @@ public class Resolver {
         PureList<PrefixOpExpr> __rest  = ((Cons<PrefixOpExpr>)_rest).getRest();
 
         if (prefix[0] instanceof RealExpr &&
-            prefix[1] instanceof JuxtInfix &&
+            prefix[1] instanceof TightInfix &&
             prefix[2] instanceof RealExpr &&
-            prefix[3] instanceof JuxtInfix)
+            prefix[3] instanceof TightInfix)
         {
-          Op op1 = ((JuxtInfix)prefix[1]).getOp();
-          Op op3 = ((JuxtInfix)prefix[3]).getOp();
+          Op op1 = ((TightInfix)prefix[1]).getOp();
+          Op op3 = ((TightInfix)prefix[3]).getOp();
 
-          if (isNonAssociative(op1) && isNonAssociative(op3) && op1.getText().equals(op3.getText())) {
+          if (isDiv(op1) && isDiv(op3) && op1.getText().equals(op3.getText())) {
               throw new ReadError(FortressUtil.spanTwo(op1,op3), op1.getText() +
                                   " does not associate.");
           }
@@ -231,7 +229,7 @@ public class Resolver {
             Span span = FortressUtil.spanTwo(expr0, expr2);
             RealExpr e = new RealExpr(ASTUtil.infix(span, expr0, op1, expr2));
 
-            return resolveNonAssociative(__rest.cons(e));
+            return resolveTightDiv(__rest.cons(e));
           }
         }
       }
@@ -242,7 +240,7 @@ public class Resolver {
                             + ".");
       }
       else {
-        return (resolveNonAssociative(rest)).cons(first);
+        return (resolveTightDiv(rest)).cons(first);
       }
     }
   }
@@ -584,7 +582,7 @@ public class Resolver {
   //  first (build_links op rest last)
   //     | [] -> Errors.internal_error last.node_span "Empty chain expression."
   private static Expr buildChainExpr(PureList<ExprOpPair> links,
-                     Expr last) throws ReadError
+                                     Expr last) throws ReadError
   {
     if (!links.isEmpty()) {
       ExprOpPair link = ((Cons<ExprOpPair>)links).getFirst();
@@ -605,16 +603,17 @@ public class Resolver {
   //   match links with
   //     | [] -> [(first,last)]
   //     | (e,op) :: rest -> (first,e) :: build_links op rest last
-  private static PureList<Pair<Op, Expr>>
+  private static PureList<Pair<OpRef, Expr>>
       buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
   {
+      OpRef _first = ExprFactory.makeOpRef(first);
     if (links.isEmpty()) {
-        return PureList.<Pair<Op,Expr>>make(new Pair<Op,Expr>(first,last));
+        return PureList.<Pair<OpRef,Expr>>make(new Pair<OpRef,Expr>(_first,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      Pair<Op,Expr> l = new Pair<Op,Expr>(first, link.getA());
+      Pair<OpRef,Expr> l = new Pair<OpRef,Expr>(_first, link.getA());
 
       return (buildLinks(link.getB(), _links.getRest(), last)).cons(l);
     }
@@ -1131,7 +1130,7 @@ public class Resolver {
     return resolveInfix
               (resolvePrefix
                  (resolveJuxt
-                    (resolveNonAssociative
+                    (resolveTightDiv
                        (resolvePostfix (opExprs.reverse())))));
   }
 

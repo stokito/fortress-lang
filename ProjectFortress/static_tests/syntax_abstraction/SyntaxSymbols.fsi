@@ -49,19 +49,19 @@ api SyntaxSymbols
 
 
     FunnyThingstest :Expr:=
-      hello ( world }   <[ "funny thing test   ok" ]>
+      hello ( world )   <[ "funny thing test   ok" ]>
 
     Operatortest :Expr:=
       a:hello?  gnu abe* c:world# d:hello+ <[ "operator test    ok" ]>
 
     Hashtest :Expr:=
-      a:foo# SPACE# b:hello?# c:hello# d:hello*# world+# NOT foo# NOT hello# NOT hello+# AND bar# f:bar <[ "hash test   ok" ]>
+      a:foo# SPACE# b:hello#? c:hello# d:hello#* world#+ NOT foo# NOT hello# NOT hello#+ AND bar# f:bar <[ "hash test   ok" ]>
 
     Nottest :Expr:=
       NOT hello NOT hello+ NOT hello# NOT hello+ NOT bar oof  <[ "not test ok" ]>
 
     Andtest :Expr:=
-      AND bar AND bar* AND bar# AND bar+ bar   <[ "and test ok" ]>
+      AND b1:bar AND b2:bar* AND b3:bar# AND b4:bar+ bar   <[ "and test ok" ]>
 
     Spacetest :Expr:=
       h:fnug    g:fnug fnug <[ "space test    ok" ]>

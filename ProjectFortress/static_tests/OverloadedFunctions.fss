@@ -16,10 +16,10 @@
  ******************************************************************************)
 
 component OverloadedFunctions
-export Executable
-
-  run(args: String...):() = do
-    
+  export Executable
+  
+  (* NEB: I had to rewrite this one a bit because of int literals *)
+  foo(i:ZZ32) : () = do
     (* has vararg, has keyword *)
     (* not supported yet
     f(x: ZZ32, y: String, z: Boolean..., t: ZZ32 = 5, u: Boolean = true): IntLiteral = 0
@@ -36,13 +36,14 @@ export Executable
     (* no vararg, no keyword *)
     f(x: ZZ32, y: String): IntLiteral = 3
     
-    f(0, "hello")
-    f(0, "hello", true)
-    f(0, "hello", true, 4)
-    f(0, "hello", true, 1, 2)
+    f(i, "hello")
+    f(i, "hello", true)
+    f(i, "hello", true, 4)
+    f(i, "hello", true, 1, 2)
     (*f(0, "hello", true, t=3, u=false)*)
-    f(0, "hello", true, false)
-    
+    f(i, "hello", true, false)    
   end
+
+  run(args: String...):() = ()
 
 end

@@ -17,18 +17,18 @@
 
 package com.sun.fortress.interpreter.env;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 import java.util.Set;
 
+import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
 import com.sun.fortress.interpreter.evaluator.transactions.Recoverable;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 

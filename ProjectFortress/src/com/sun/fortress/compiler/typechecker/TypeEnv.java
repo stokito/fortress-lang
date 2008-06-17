@@ -136,7 +136,7 @@ public abstract class TypeEnv {
         return new Domain(paramTypes, varargsType, keywordTypes);
     }
 
-    protected static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
+    public static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
         List<StaticArg> result = new ArrayList<StaticArg>();
 
         for (StaticParam param: params) {

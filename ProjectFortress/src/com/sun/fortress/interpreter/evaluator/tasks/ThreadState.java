@@ -17,8 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
+import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 
 import java.util.concurrent.Callable;

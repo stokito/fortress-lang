@@ -21,6 +21,7 @@ import java.util.*;
 import com.sun.fortress.compiler.desugarer.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 

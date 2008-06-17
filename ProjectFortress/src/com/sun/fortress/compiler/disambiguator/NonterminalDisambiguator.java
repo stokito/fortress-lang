@@ -21,10 +21,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.AbsExternalSyntax;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
@@ -49,7 +49,7 @@ import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class NonterminalDisambiguator extends NodeUpdateVisitor {
 

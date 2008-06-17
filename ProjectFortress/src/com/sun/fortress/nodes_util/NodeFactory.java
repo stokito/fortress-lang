@@ -28,7 +28,8 @@ import edu.rice.cs.plt.lambda.Lambda2;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.Types;
@@ -36,7 +37,6 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static edu.rice.cs.plt.tuple.Option.wrap;
 
 public class NodeFactory {
@@ -58,6 +58,14 @@ public class NodeFactory {
   return new AbsFnDecl(s, mods, name, staticParams, params, returnType,
     throwss, where, contract, selfName);
  }
+
+    public static Id makeTemporaryId() {
+        return makeId("$$bogus_name$$");
+    }
+
+    public static OpName makeTemporaryOpName() {
+        return makeOp("$$bogus_name$$");
+    }
 
     public static APIName makeAPINameSkipLast(Id first, Id rest) {
         List<Id> ids = new ArrayList<Id>();
@@ -137,7 +145,7 @@ public class NodeFactory {
   Indices indices = ind.unwrap(new Indices(span, Collections.<ExtentRange>emptyList()));
   return new ArrayType(span, element, indices);
  }
-
+ 
  public static ExponentType makeExponentType(ExponentType t, Type s) {
   return new ExponentType(t.getSpan(), t.isParenthesized(), s,
     t.getPower());
@@ -1085,7 +1093,7 @@ public class NodeFactory {
   public static FnRef makeFnRef(Span span, Id name) {
    List<Id> ids = new LinkedList<Id>();
    ids.add(name);
-   return new FnRef(span, ids);
+   return new FnRef(span, name, ids);
   }
 
   public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs) {
@@ -1100,7 +1108,7 @@ public class NodeFactory {
     List<StaticArg> staticArgs) {
    List<Id> ids = new LinkedList<Id>();
    ids.add(name);
-   return new FnRef(span, ids, staticArgs);
+   return new FnRef(span, name, ids, staticArgs);
   }
 
   public static OpName makeListOpName(Span span) {
@@ -1128,8 +1136,8 @@ public class NodeFactory {
   }
 
   public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {
-   List<Pair<Op, Expr>> links = new ArrayList<Pair<Op, Expr>>(1);
-   links.add(Pair.make(op, rhs));
+   List<Pair<OpRef, Expr>> links = new ArrayList<Pair<OpRef, Expr>>(1);
+   links.add(Pair.make(ExprFactory.makeOpRef(op), rhs));
    return new ChainExpr(new Span(lhs.getSpan(), rhs.getSpan()), lhs, links);
   }
 

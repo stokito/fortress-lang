@@ -27,12 +27,12 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class NodeUtil {
 

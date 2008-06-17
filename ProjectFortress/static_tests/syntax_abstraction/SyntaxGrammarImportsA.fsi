@@ -20,12 +20,11 @@ api SyntaxGrammarImportsA
   import FortressAst.{...}
 
   grammar A
-      Hello:StringLiteralExpr:=
-         hello do StringLiteralExpr("Hello") end
+      Hello :StringLiteralExpr:=
+         hello <[ "Hello" ]>
 
-      World:Expr:=
-         the answer do IntLiteralExpr(42) end
-
+      World :Expr:=
+         the answer <[ 42 ]>
   end
 
 end

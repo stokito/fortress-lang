@@ -17,25 +17,23 @@
 
 package com.sun.fortress.compiler;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.fortress.interpreter.evaluator.FortressException;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -43,8 +41,6 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
-import com.sun.fortress.shell.RepositoryError;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.useful.Path;
 
@@ -53,7 +49,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 public class Fortress {
 
-	public static boolean passDisambiguatedResultsToInterpreter = ProjectProperties.getBoolean("fortress.test-dis-int", false);
+	//public static boolean passDisambiguatedResultsToInterpreter = ProjectProperties.getBoolean("fortress.test-dis-int", true);
 	 
 	private final FortressRepository _repository;
 
@@ -283,21 +279,21 @@ public class Fortress {
 		// Additional optimization phases can be inserted here
         TopLevelEnvGen.generate(componentSR.components(), env);
 		
-		if(passDisambiguatedResultsToInterpreter){
+//		if(passDisambiguatedResultsToInterpreter){
 			for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());
 			}
-		}
-		else{
-			for (Map.Entry<APIName, ApiIndex> newApi : 
-				IndexBuilder.buildApis(apis, System.currentTimeMillis()).apis().entrySet()) {
-				_repository.addApi(newApi.getKey(), newApi.getValue());
-			}
-			for (Map.Entry<APIName, ComponentIndex> newComponent :
-				rawComponentIR.components().entrySet()) {
-				_repository.addComponent(newComponent.getKey(), newComponent.getValue());
-			}
-		}
+//		}
+//		else{
+//			for (Map.Entry<APIName, ApiIndex> newApi : 
+//				IndexBuilder.buildApis(apis, System.currentTimeMillis()).apis().entrySet()) {
+//				_repository.addApi(newApi.getKey(), newApi.getValue());
+//			}
+//			for (Map.Entry<APIName, ComponentIndex> newComponent :
+//				rawComponentIR.components().entrySet()) {
+//				_repository.addComponent(newComponent.getKey(), newComponent.getValue());
+//			}
+//		}
 
 		return IterUtil.empty();
 	}
@@ -348,60 +344,6 @@ public class Fortress {
 		} catch (IOException e) {
 			throw new WrappedException(e, debug);
 		}
-	}
-
-	public static class WrappedException extends StaticError {
-
-		private final Throwable throwable;
-		private boolean debug;
-
-		@Override
-		public String getMessage() {
-			return throwable.getMessage();
-		}
-
-		@Override
-		public String stringName() {
-			return throwable.getMessage();
-		}
-		
-		@Override
-		public String toString() {
-			if (this.debug) {
-				StringWriter sw = new StringWriter();
-			    PrintWriter pw = new PrintWriter(sw);
-				throwable.printStackTrace(pw);
-				return sw.toString();
-			}
-			return throwable.getMessage();
-		}
-
-		@Override
-		public String at() {
-			// TODO Auto-generated method stub
-			return "no line information";
-		}
-
-		@Override
-		public String description() {
-			// TODO Auto-generated method stub
-			return "";
-		}
-
-		@Override
-		public Throwable getCause() {
-			return throwable;
-		}
-
-		public WrappedException(Throwable th) {
-			this(th, false);
-		}
-		
-		public WrappedException(Throwable th, boolean db) {
-			throwable = th;
-			debug = db;
-		}
-
 	}
 
 }

@@ -67,9 +67,9 @@ import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Voidoid;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 /**
  * Rewrite the AST to "disambiguate" (given known interpreter
@@ -1190,14 +1190,12 @@ public class Desugarer extends Rewrite {
 
     private Expr cleanupOpExpr(OpExpr opExp) {
         OpRef ref = opExp.getOp();
-        if (ref.getOps().size() != 1) {
-            return bug(opExp,
-                errorMsg("OpExpr with multiple operators ",opExp));
-        }
 
         List<Expr> args = opExp.getArgs();
+
         if (args.size() <= 1) return opExp;
-        OpName qop = ref.getOps().get(0);
+        OpName qop = ref.getOriginalName();
+
         if (OprUtil.isEnclosing(qop)) return opExp;
         if (OprUtil.isUnknownFixity(qop))
             return bug(opExp, "The operator fixity is unknown: " +

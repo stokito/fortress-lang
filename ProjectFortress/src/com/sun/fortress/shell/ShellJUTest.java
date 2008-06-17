@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.File;
 import junit.framework.TestCase;
 
+import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.nodes.*;
 
 /**
@@ -33,5 +34,5 @@ public class ShellJUTest extends TestCase {
    public void testCompile() throws UserError, InterruptedException, IOException {
        // TODO: Rewrite this test for the new Shell structure.
    }
-   
+
 }

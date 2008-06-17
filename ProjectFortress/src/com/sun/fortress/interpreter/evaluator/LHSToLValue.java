@@ -44,7 +44,7 @@ import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.useful.NI;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
  * LHSToLValue evaluates the provided LHS to the point that we can,

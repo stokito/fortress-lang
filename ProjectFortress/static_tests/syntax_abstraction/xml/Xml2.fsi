@@ -34,6 +34,8 @@ api Xml2
     getter hasElements():Boolean
     getter children():List[\Element\]
     getter content():CData
+    getter attributes():List[\Attribute\]
+    getter toXml():String
   end 
   Element(info:Header)
   Element(info:Header, endTag:String)
@@ -44,7 +46,7 @@ api Xml2
     getter toString():String
   end
   
-  object Header(startTag:String, attributes:List[\Attribute\])
+  object Header(startTag:String, _attributes:List[\Attribute\])
     getter getTag():String
     getter attributes():String
   end
@@ -53,8 +55,8 @@ api Xml2
     getter toString():String
   end
 
-  grammar xml extends {Literal, Symbols}
-    LiteralExpr:Element |Expr:= (* type: Content *)
+  grammar xml extends {Expression, Symbols}
+    Expr:Element |Expr:= (* type: Content *)
       x:XExpr <[ x ]>
 
     XExpr:Element :Expr:= (* type: Content *)
@@ -67,21 +69,34 @@ api Xml2
     XmlComplete:Header :Expr:=
       OpenBracket# s:String Slash# CloseBracket
       <[ Header(s,emptyList[\Attribute\]()) ]>
-    | OpenBracket# s:String a:Attributes+ Slash# CloseBracket
-      <[ Header(s,a) ]>
+    | OpenBracket# s:String {a:Attribute SPACE}+ Slash# CloseBracket
+      <[ Header(s, a) ]>
 
     XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
       <[ Header(s,emptyList[\Attribute\]()) ]>
-    | o1:OpenBracket# s:String a:Attributes+ o2:CloseBracket
+    | o1:OpenBracket# s:String {a:Attribute SPACE}+ o2:CloseBracket
       <[ Header(s, a) ]>
 
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
       s:Strings <[ <| (CData(s) asif Content) |> ]>
-    | x:XExprs+ <[ x ]>
+    | c:CData+ <[ <| CData(BIG ||| <| a.toString() | a <- c |>) asif Content |> ]>
+    | {x:XExpr SPACE}+ <[ x ]>
 
+    CData:Element :Expr:=
+        <# !# `[# CDATA# `[# n:Strings `]# `]# > <[ CData(n) asif Content ]>
+
+    (*
+      e:Expr <[ <! CData("" e) asif Content !> ]>
+      *)
+      (*
+    | x:XExprs+ <[ x ]>
+    *)
+
+(*
     XExprs:Element :Expr:=
       x:XExpr SPACE <[ x ]>
+      *)
 
     XmlEnd:String :Expr:= (* type: String *)
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
@@ -92,8 +107,10 @@ api Xml2
       a:Attribute r:Attributes <[ a " " r ]>
     | a:Attribute <[ a ]>
     *)
+    (*
     Attributes:Attribute :Expr:=
       a:Attribute SPACE <[ a ]>
+      *)
 
     Attribute:Attribute :Expr:=
       key:String = " val:AttributeStrings " <[ Attribute(key,val) ]>
@@ -103,12 +120,13 @@ api Xml2
     | s1:AttributeString <[ s1 ]>
 
     AttributeString:String :Expr:= (* type: String *)
-      x:AttributeChar# y:String <[ x y ]>
+      x:AttributeChar# y:AttributeString <[ x y ]>
     | x:AttributeChar <[ x "" ]>
 
     AttributeChar:String :StringLiteralExpr:=
       x:AnyChar <[ x ]>
     | x:['] <[ x ]>
+    | x:Slash <[ x ]>
 
     Strings:String :Expr:= (* type: String *)
       s1:String s2:Strings <[ s1 " " s2 ]>
@@ -123,7 +141,7 @@ api Xml2
   grammar Symbols 
 
     AnyChar:String :StringLiteralExpr:=
-      x:[A:Za:z] <[ x ]>
+      x:[A:Za:z0:9] <[ x ]>
 
     OpenBracket:String :Expr:=
       < <[ "<" ]>

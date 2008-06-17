@@ -172,6 +172,14 @@ has peculiarities (for example cygwin requires ; separators in the
 classpath).
 
 
+USING ECLIPSE
+-------------
+There exists a file called ${FORTRESS_HOME}/DOTCLASSPATH in 
+the repository. Copy this file to ${FORTRESS_HOME}/.classpath.
+If you are using the Java 5.0 jdk under Windows, you will need
+to add an entry to ${JAVA_HOME}/lib/tools.jar to the classpath.
+
+
 DEMO PROGRAMS
 -------------
 

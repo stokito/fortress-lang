@@ -45,7 +45,7 @@ body {
     });
 
     add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
-        "#",    ":",    "`",    "\\+",    "\\?",    "\\*",    "\\[",    "\\]",    "\\|",    "\\_"
+        "#",    ":",    "`",    "\\+",    "\\?",    "\\*",    "\\[",    "\\]",    "\\|",    "\\_", "\\{", "\\}"
     });
   }
 }
@@ -164,6 +164,14 @@ List<SyntaxSymbol> SyntaxSymbols =
         }
         yyValue = ls; };
 
+List<SyntaxSymbol> SyntaxSymbolsX =
+      a1:SyntaxSymbol a1s:Symbs*
+      { List<SyntaxSymbol> ls = FortressUtil.mkList(a1);
+        for(List<SyntaxSymbol> sl: a1s.list()) {
+          ls.addAll(sl);
+        }
+        yyValue = ls; };
+
 List<SyntaxSymbol> Symbs = a1:SpaceOrBreakline+ a2:SyntaxSymbol
      { yyValue = FortressUtil.mkList(a1.list(),a2);};
 
@@ -173,7 +181,7 @@ SyntaxSymbol SpaceOrBreakline =
     /  yyValue:Breakline;
 
 SyntaxSymbol SyntaxSymbol =
-      Not w s1:Symbol
+      Not w s1:SymbolMod
       {  if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
           yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new NotPredicateSymbol(s1.getSpan(), tmp));
@@ -181,7 +189,7 @@ SyntaxSymbol SyntaxSymbol =
         else {
            yyValue = new NotPredicateSymbol(createSpan(yyStart,yyCount), s1);
         }}
-    / And w s1:Symbol
+    / And w s1:SymbolMod
       {  if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
           yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new AndPredicateSymbol(s1.getSpan(), tmp));
@@ -189,12 +197,50 @@ SyntaxSymbol SyntaxSymbol =
         else {
            yyValue = new AndPredicateSymbol(createSpan(yyStart,yyCount), s1);
         }}
-    / a1:Id colon s1:Symbol type:(void:colon Type)?
+    / yyValue:SymbolMod;
+
+SyntaxSymbol SymbolMod =
+    s:Single questionmark
+      { if ( s instanceof NoWhitespaceSymbol ){
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new OptionalSymbol(s.getSpan(), ((NoWhitespaceSymbol)s).getSymbol()));
+        } else {
+	  yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), s);
+	}
+      }
+    / s:Single star
+      { if ( s instanceof NoWhitespaceSymbol ){
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new RepeatSymbol(s.getSpan(), ((NoWhitespaceSymbol)s).getSymbol()));
+        } else {
+	  yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), s);
+	}
+      }
+    / s:Single plus
+      { if ( s instanceof NoWhitespaceSymbol ){
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new RepeatOneOrMoreSymbol(s.getSpan(), ((NoWhitespaceSymbol)s).getSymbol()));
+        } else {
+	  yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), s);
+	}
+      }
+    / yyValue:Single;
+      
+SyntaxSymbol Single =
+    yyValue:GroupSymbol
+    / s:BaseSymbol
+    { if ( s instanceof NoWhitespaceSymbol ){
+        yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(((NoWhitespaceSymbol) s).getSymbol())) );
+      } else {
+        yyValue = new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(s)); }
+      }
+    ;
+
+SyntaxSymbol BaseSymbol =
+    a1:Id colon s1:Symbol type:(void:colon Type)?
       { Option<Id> prefix = Option.some(a1);
         Option<Type> type1 = Option.none();
         if (null != type) type1 = Option.some(type);
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
+      
           yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(), prefix, type1, tmp));
         }
         else {
@@ -203,6 +249,7 @@ SyntaxSymbol SyntaxSymbol =
     / s1:Symbol type:(void:colon Type)?
       { Option<Id> prefix = Option.none();
         Option<Type> type1 = Option.none();
+	// System.out.println( "Matched symbol " + s1 );
         if (null != type) type1 = Option.some(type);
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
@@ -219,26 +266,35 @@ SyntaxSymbol SyntaxSymbol =
           }
         }};
 
+SyntaxSymbol GroupSymbol =
+      "{" w syms:SyntaxSymbolsX w "}"
+      {
+        com.sun.fortress.useful.Debug.debug( 1, "Matched a group: " + syms );
+        yyValue = new GroupSymbol(createSpan(yyStart, yyCount), syms);
+      };
+
 SyntaxSymbol Breakline = a1:breakline
       { yyValue = new BreaklineSymbol(createSpan(yyStart,yyCount), a1); };
 
 SyntaxSymbol Symbol =
-      a1:Suffix hash
-      { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
-     / yyValue:Suffix;
-
-SyntaxSymbol Suffix =
-     a1:Item questionmark
-     { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
-     / a1:Item star
-     { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), a1); }
-     / a1:Item plus
-     { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), a1); }
+      a1:Item hash
+      { com.sun.fortress.useful.Debug.debug( 1, "[parser] Create whitespace symbol for " + a1 ); yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
      / yyValue:Item;
+
+/*
+SyntaxSymbol Suffix =
+      a1:Item questionmark
+      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
+    / a1:Item star
+     { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), a1); }
+    / a1:Item plus
+     { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), a1); }
+    / yyValue:Item;
+    */
 
 SyntaxSymbol Item =
       !(w (leftDelimiter / do)) s:ItemText
-       { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
+      { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
       { yyValue = new CharacterClassSymbol(createSpan(yyStart,yyCount), a1.list()); }
     /  anyChar
@@ -288,7 +344,7 @@ String utf16 =
 String SpecialChars =
       space / breakline / colon / questionmark / hash
    / plus / star / openSquareBraket / closeSquareBraket
-   / pling / bar / anyChar;
+   / pling / bar / anyChar / "{" / "}";
 
 String EscapedSpecialChars =
    pling SpecialChars;
@@ -310,6 +366,8 @@ transient String questionmark = "?";
 transient String star = "*";
 transient String openSquareBraket = "[";
 transient String closeSquareBraket = "]";
+transient String leftParen = "(";
+transient String rightParen = ")";
 
 transient String leftDelimiter = "<[";
 transient String rightDelimiter = "]>";

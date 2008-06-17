@@ -33,14 +33,14 @@ import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.interpreter.evaluator.FortressException;
 
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /*
  * JUnit based test

@@ -28,7 +28,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 
-import static com.sun.fortress.compiler.StaticError.errorMsg;
+import static com.sun.fortress.exceptions.StaticError.errorMsg;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
 public class TypeAnalyzerUtil {
