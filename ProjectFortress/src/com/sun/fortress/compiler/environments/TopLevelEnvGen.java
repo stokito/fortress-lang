@@ -136,7 +136,7 @@ public class TopLevelEnvGen {
 			                                   GlobalEnvironment env) {
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		
-		cw.visit(Opcodes.V1_6, 
+		cw.visit(Opcodes.V1_5, 
         		Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
         		className, null, "com/sun/fortress/interpreter/env/WorseEnv", null);
 
