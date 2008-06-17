@@ -206,29 +206,15 @@ public abstract class RatsUtil {
                     List<ModuleName> deps = new LinkedList<ModuleName>();
                     ModuleInstantiation mi = (ModuleInstantiation) md;
                     deps.addAll(mi.arguments.names);
-                    deps.addAll(parameters);
+                    for (ModuleName name: parameters) {
+                        if (!deps.contains(name)) {
+                            deps.add(name);
+                        }
+                    }
                     mi.arguments = new ModuleList(deps);
                 }
             }
         }
     }
-
-    public static void addParameterToInstantiation(Module fortress,
-            String moduleName, ModuleName name) {
-        for (ModuleDependency md: fortress.dependencies) {
-            if (md instanceof ModuleInstantiation) {
-                if (md.module.name.equals(moduleName)) {
-                    Set<ModuleName> deps = new LinkedHashSet<ModuleName>();
-                    ModuleInstantiation mi = (ModuleInstantiation) md;
-                    deps.addAll(mi.arguments.names);
-                    deps.add(name);
-                    List<ModuleName> depsls = new LinkedList<ModuleName>();
-                    depsls.addAll(deps);
-                    mi.arguments = new ModuleList(depsls);
-                }
-            }
-        }
-    }
-
 
 }
