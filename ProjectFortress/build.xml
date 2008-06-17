@@ -91,6 +91,11 @@
     <pathelement location="${ant.home}/lib/ant.jar"/>
 </path>
 
+ <path id="instrumentedparser.classpath">
+    <pathelement location="${xtc}/xtc.jar"/>
+    <pathelement location="${plt}/plt.jar"/>
+ </path>
+
  <property name="blahblahblah" value="com/sun/fortress"/>
 
     <target name="help">
@@ -191,6 +196,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${parser}/Fortress.java"/>
+        <delete file="${parser}/FortressInstrumented.java"/>
         <delete file="${preparser}/PreFortress.java"/>
         <delete file="${templateparser}/TemplateParser.java"/>
         <delete file="${precedenceResolver}/Operators.java"/>
@@ -358,6 +364,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 -->
              <include name="${blahblahblah}/useful/*.java"/>
              <include name="${blahblahblah}/unicode/*.java"/>
+             <include name="${packagePrefix}/parser_util/instrumentation/*.java"/>
+             <exclude name="${packagePrefix}/parser_util/instrumentation/Coverage.java"/>
          </javac>
      </target>
 
@@ -381,6 +389,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <compilerarg value="-Xlint:unchecked"/>
             <include name="${usefulPackage}/*.java"/>
             <include name="${unicodePackage}/*.java"/>
+             <include name="${packagePrefix}/parser_util/instrumentation/*.java"/>
+             <exclude name="${packagePrefix}/parser_util/instrumentation/Coverage.java"/>
          </javac>
      </target>
 
@@ -615,6 +625,11 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 <uptodate targetfile="${templateparser}/TemplateParser.java">
                     <srcfiles dir="${templateparser}" includes="**/*.rats"/>
                 </uptodate>
+                <uptodate targetfile="${parser}/FortressInstrumented.java">
+                    <srcfiles dir="${parser}" includes="**/*.rats"/>
+                    <srcfiles dir="${src}/${packagePrefix}/parser_util/instrumentation"
+                              includes="*.java"/>
+                </uptodate>
             </and>
         </condition>
         <echo>Parser up to date? ${parser.uptodate}</echo>
@@ -641,6 +656,16 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <echo>Templateparser up to date? ${templateparser.uptodate}</echo>
     </target>
 
+    <target name="checkInstrumentedParserUptodate" depends="init">
+        <uptodate property="instrumentedparser.uptodate" 
+                  targetfile="${parser}/FortressInstrumented.java">
+            <srcfiles dir="${parser}" includes="**/*.rats"/>
+            <srcfiles dir="${src}/${packagePrefix}/parser_util/instrumentation"
+                      includes="*.java"/>
+        </uptodate>
+        <echo>Fortress parser up to date? ${parser.uptodate}</echo>
+    </target>
+
     <macrodef name="buildparser">
 	      <attribute name="name" />
 	      <attribute name="file" />
@@ -659,7 +684,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	      </sequential>
     </macrodef>
 
-    <target name="fortressparser" unless="fortreeparser.uptodate"
+    <target name="fortressparser" unless="fortressparser.uptodate"
             depends="checkFortressParserUptodate"
             description="Fortress Parser">
 	    <buildparser name="Fortress" dir="${parser}" file="Fortress.rats" />
@@ -728,6 +753,19 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     </target>
     -->
 
+    <target name="instrumentedparser" unless="instrumentedparser.uptodate"
+            depends="checkFortressParserUptodate"
+            description="Instrumented Parser">
+            <java fork="yes"
+                  failonerror="yes"
+                  dir="${parser}"
+                  classname="${package.prefix}.parser_util.instrumentation.InstrumentedParserGenerator"
+                  classpath="${instrumentedparser.classpath}">
+                <arg value="${parser}"/> <!-- input dir -->
+                <arg value="${parser}"/> <!-- output dir for FortressInstrumented.java -->
+            </java>
+    </target>
+
     <target name="parser" unless="parser.uptodate"
             depends="checkParserUptodate, operatorsGen"
             description="Fortress Parser">
@@ -735,6 +773,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	    <ant target="fortressparser" />
 	    <ant target="preparser" />
 	    <ant target="templateparser" />
+            <ant target="instrumentedparser" />
 
 	    <!--
        <echo message="Rebuilding parser..."/>
