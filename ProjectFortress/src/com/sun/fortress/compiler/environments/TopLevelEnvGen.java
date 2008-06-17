@@ -113,7 +113,7 @@ public class TopLevelEnvGen {
 	private static byte[] generateForComponent(String className,
 			                                   ComponentIndex componentIndex,
 			                                   GlobalEnvironment env) {
-		ClassWriter cw = new ClassWriter(0);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		ClassVisitor cv = new FortressCheckClassAdapter(cw);
 		
 		cv.visit(Opcodes.V1_6, 
@@ -156,7 +156,7 @@ public class TopLevelEnvGen {
             fValueHashCode.add(idString, idString.hashCode());        	
         	idString = idString + FVALUE_NAMESPACE;
         	System.err.println("idString [mangled]: " 
-        			+ idString + "  [" + mangleIdentifier(idString) + ']');
+        			+ idString + "  [" + mangleIdentifier(idString) + "]");
             cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), FVALUE_DESCRIPTOR, null, null).visitEnd();	
         }
 
@@ -235,32 +235,31 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        boolean first = true;
         for(Integer testHashCode : valueHashCode.secondSet()) {
             mv.visitVarInsn(Opcodes.ILOAD, 2);
             mv.visitLdcInsn(testHashCode);
-            Label beforeReturn = new Label();            
-            Label afterReturn = new Label();
-            mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterReturn);
-            mv.visitLabel(beforeReturn);
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            Label beforeInnerLoop = new Label();            
+            Label afterInnerLoop = new Label();
+            mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
+            mv.visitLabel(beforeInnerLoop);
 
-            // This is wrong.  Should be using string equals() to test hash collisions
-
-            String idString = valueHashCode.getFirsts(testHashCode).iterator().next() + FVALUE_NAMESPACE;
-            mv.visitFieldInsn(Opcodes.GETFIELD, className, 
-                    mangleIdentifier(idString),
-            		FVALUE_DESCRIPTOR);
-            // Previous instruction is wrong
-            
-            mv.visitInsn(Opcodes.ARETURN);
-            mv.visitLabel(afterReturn);
-            if (first) {
-                mv.visitFrame(Opcodes.F_APPEND, 1, new Object[] {Opcodes.INTEGER}, 0, null);
-                first = false;
-            } else {
-                mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);            	
+            for(String testString : valueHashCode.getFirsts(testHashCode)) {
+            	mv.visitVarInsn(Opcodes.ALOAD, 1);
+            	mv.visitLdcInsn(testString);
+            	mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+                Label beforeReturn = new Label();            
+                Label afterReturn = new Label();            	
+                mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
+                mv.visitLabel(beforeReturn);
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                String idString = testString + FVALUE_NAMESPACE;
+                mv.visitFieldInsn(Opcodes.GETFIELD, className, 
+                        mangleIdentifier(idString),
+                		FVALUE_DESCRIPTOR);
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitLabel(afterReturn);
             }
+            mv.visitLabel(afterInnerLoop);
         }
         mv.visitInsn(Opcodes.ACONST_NULL);
         mv.visitInsn(Opcodes.ARETURN);
@@ -272,8 +271,8 @@ public class TopLevelEnvGen {
         mv.visitMaxs(2, 3);
         mv.visitEnd();
 	}
-
-
+	
+	
 	/**
 	 * Implementing "static reflection" for the method putValueUnconditionally so the
 	 * interpreter has O(log n) lookups based on the hash values of String names
@@ -300,7 +299,6 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        boolean first = true;
         Label endComparisons = new Label();
         Iterator<Integer> iterator = valueHashCode.secondSet().iterator();        
         while (iterator.hasNext()) {
@@ -329,12 +327,6 @@ public class TopLevelEnvGen {
             	mv.visitLabel(afterReturn);
             } else {
             	mv.visitLabel(endComparisons);
-            }
-            if (first) {
-                mv.visitFrame(Opcodes.F_APPEND, 1, new Object[] {Opcodes.INTEGER}, 0, null);
-                first = false;
-            } else {
-                mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
             }
         }
         mv.visitInsn(Opcodes.RETURN);        
