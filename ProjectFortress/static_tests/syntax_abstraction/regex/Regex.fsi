@@ -74,11 +74,11 @@ api Regex
     object AnyElement() extends Element
     end
 
+    object EscapedElement(e:String) extends Element
+    end
+
     grammar regex extends {Expression, Symbols, Literal}
         Expr:Regexp |Expr:= (* type: Content *)
-        (*
-            pants `{ LiteralExpr `} <[ 1 ]>
-            *)
            x:Regex <[ x ]>
 
         Regex:Regexp :Expr:=
@@ -106,12 +106,13 @@ api Regex
         |   i:Item <[ i ]>
 
         Item:Element :Expr:=
-            s:AnyChar <[ (CharElement(s) asif Element) ]>
-        |   ^ <[ StartElement() asif Element ]>
+            ^ <[ StartElement() asif Element ]>
         |   $ <[ EndElement() asif Element ]>
         |   . <[ AnyElement() asif Element ]>
+        |   \# any:_ <[ EscapedElement(any "") asif Element ]>
         |   c:CharacterClass <[ c ]>
         |   (# e:Element#* ) <[ GroupElement(e) asif Element ]>
+        |   s:AnyChar <[ (CharElement(s) asif Element) ]>
         
         CharacterClass:Element :Expr:=
             `[# ^# r:RangeItem#* `] <[ InverseClassElement(r) asif Element ]>

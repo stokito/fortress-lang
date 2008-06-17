@@ -86,4 +86,8 @@ export Regex
     object CharElement(s:String) extends Element
         toString():String = s
     end
+    
+    object EscapedElement(s:String) extends Element
+        toString():String = "\\" s
+    end
 end

@@ -41,6 +41,11 @@ run(s:String...) = do
     println "/a{1,}/ = " (/a{1,}/) 
     println "/a{1,2}/ = " (/a{1,2}/)
     println "/a{,2}/ = " (/a{,2}/)
+
+    println "/\\a/ = " (/\a/)
+    println "/\\\\/ = " (/\\/)
+    println "/\\// = " (/\//)
+    println "/\\a\\b\\c\\d/ = " (/\a\b\c\d/)
 end
 
 end

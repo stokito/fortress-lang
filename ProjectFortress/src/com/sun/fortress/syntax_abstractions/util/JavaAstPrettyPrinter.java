@@ -530,7 +530,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forStringLiteralExpr(StringLiteralExpr that) {
         String varName = FreshName.getFreshName("s");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add(String.format("StringLiteralExpr %s = new StringLiteralExpr(%s, %b, \"%s\");", varName, sVarName, that.isParenthesized(), that.getText().replaceAll("\"","\\\\\"")));
+        this.code.add(String.format("StringLiteralExpr %s = new StringLiteralExpr(%s, %b, \"%s\");", varName, sVarName, that.isParenthesized(), that.getText().replaceAll("\"","\\\\\"").replaceAll("\\\\","\\\\\\\\")));
         return varName;
     }
 
