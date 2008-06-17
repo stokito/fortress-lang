@@ -28,18 +28,23 @@ component Xml2
   end
 
   object Element(info:Header, content_:List[\Content\], endTag:String) extends Content
-    toString():String =
+    toXml():String =
       do
         if info.startTag =/= endTag then
           println "Tags dont match start '" info.startTag "' end '" endTag "'"
         end
         var s:String = "<" info.startTag (BIG || info.attributes) ">"
         for x <- seq(content_) do
-          s := s x.toString()
+          s := s (typecase x of
+                   Element => // x.toXml()
+                   else => x.toString()
+                  end)
         end
         s := s "</" endTag ">"
         s
       end
+
+    toString():String = toXml()
 
     children():List[\Element\] =
         content_.map[\Element\](fn x => cast[\Element\](x))

@@ -23,6 +23,7 @@ export Executable
 
 run(s:String...) = do
     (* println "// = " (//) *)
+
     println "/abc/ = " (/abc/)
     println "/a*bc/ = " (/a*bc/)
     println "/a(bc)/ = " (/a(bc)/)
@@ -31,6 +32,15 @@ run(s:String...) = do
     println "/^foo/ = " (/^foo/)
     println "/bar$/ = " (/bar$/)
     println "/^foo$/ = " (/^foo$/)
+    println "/foo.x/ = " (/foo.x/)
+    println "/x?/ = " (/x?/)
+    println "/[foo]/ = " (/[foo]/)
+    println "/[^foo]/ = " (/[^foo]/)
+
+    println "/a{1}/ = " (/a{1}/)
+    println "/a{1,}/ = " (/a{1,}/) 
+    println "/a{1,2}/ = " (/a{1,2}/)
+    println "/a{,2}/ = " (/a{,2}/)
 end
 
 end

@@ -38,6 +38,7 @@ run(args:String...) = do
 
     println "Answer is " (<aaa />)
     println "Answer is " (<aaa foo="bar">a</aaa>)
+    println "Answer is " (<aaa foo="bar/boo">a</aaa>)
     println "Answer is " (<aaa foo="bar" />)
     println "Answer is " (<aaa foo="bar" a="b" />)
     println "Answer is " (<a />)

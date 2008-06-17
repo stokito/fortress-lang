@@ -35,6 +35,7 @@ api Xml2
     getter children():List[\Element\]
     getter content():CData
     getter attributes():List[\Attribute\]
+    getter toXml():String
   end 
   Element(info:Header)
   Element(info:Header, endTag:String)
@@ -82,7 +83,6 @@ api Xml2
     | c:CData+ <[ <| CData(BIG ||| <| a.toString() | a <- c |>) asif Content |> ]>
     | {x:XExpr SPACE}+ <[ x ]>
 
-
     CData:Element :Expr:=
         <# !# `[# CDATA# `[# n:Strings `]# `]# > <[ CData(n) asif Content ]>
 
@@ -120,12 +120,13 @@ api Xml2
     | s1:AttributeString <[ s1 ]>
 
     AttributeString:String :Expr:= (* type: String *)
-      x:AttributeChar# y:String <[ x y ]>
+      x:AttributeChar# y:AttributeString <[ x y ]>
     | x:AttributeChar <[ x "" ]>
 
     AttributeChar:String :StringLiteralExpr:=
       x:AnyChar <[ x ]>
     | x:['] <[ x ]>
+    | x:Slash <[ x ]>
 
     Strings:String :Expr:= (* type: String *)
       s1:String s2:Strings <[ s1 " " s2 ]>
