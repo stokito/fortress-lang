@@ -85,7 +85,7 @@
  <path id="compile.classpath">
     <pathelement location="${java.home}/../lib/tools.jar"/>
     <pathelement location="${build}"/>
-    <pathelement location="${asm}/asm-all-3.1.jar"/>
+    <pathelement location="${asm}/asm-3.1.jar"/>
     <pathelement location="${xtc}/xtc.jar"/>
     <pathelement location="${jsr166y}/jsr166y.jar"/>
     <pathelement location="${plt}/plt.jar"/>
