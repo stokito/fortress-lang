@@ -39,54 +39,47 @@ import com.sun.fortress.useful.Debug;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
-	public Result compile(Collection<GrammarIndex> grammarIndexs, GlobalEnvironment env) {
+    public Result compile(Collection<GrammarIndex> grammarIndexs, GlobalEnvironment env) {
 
-//	    for(GrammarIndex g: grammarIndexs) {
-//	        System.err.println(g.getName() + ", "+ g.isToplevel());
-//	    }
-    
-		/*
-		 * Initialize GrammarIndex
-		 */
-		GrammarIndexInitializer.Result giir = GrammarIndexInitializer.init(grammarIndexs); 
-		if (!giir.isSuccessful()) { return new Result(giir.errors()); }
-	
-		/* 
-		 * Resolve grammar extensions and extensions of nonterminal definitions.
-		 */
-		ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
-		if (!mrr.isSuccessful()) { return new Result(mrr.errors()); }
+        //	    for(GrammarIndex g: grammarIndexs) {
+        //	        System.err.println(g.getName() + ", "+ g.isToplevel());
+        //	    }
 
-                Debug.debug( 3, GrammarEnv.getDump() );
+        /*
+         * Initialize GrammarIndex
+         */
+        GrammarIndexInitializer.Result giir = GrammarIndexInitializer.init(grammarIndexs); 
+        if (!giir.isSuccessful()) { return new Result(giir.errors()); }
 
-                for (Module m: mrr.modules()) {
-                    Debug.debug( 3, m.toString() );
-                }
-                /*
-		if (ProjectProperties.debug) {
-			for (Module m: mrr.modules()) {
-				System.err.println(m);
-			}
-		}
-                */
-        
-		/*
-		 * Translate each grammar to a corresponding Rats! module
-		 */
-		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
-		if (!gtr.isSuccessful()) { return new Result(gtr.errors()); }
+        /* 
+         * Resolve grammar extensions and extensions of nonterminal definitions.
+         */
+        ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
+        if (!mrr.isSuccessful()) { return new Result(mrr.errors()); }
 
-		/*
-		 * For each changed module write it to a file and run Rats! to 
-		 * generate a temporary parser.
-		 */
-		RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules());
-		if (!rpgr.isSuccessful()) { return new Result(rpgr.errors()); }
+        Debug.debug( 3, GrammarEnv.getDump() );
 
-		/*
-		 * Return the temporary parser
-		 */
-		return new Result(rpgr.parserClass());
-	}
+        for (Module m: mrr.modules()) {
+            Debug.debug( 3, m.toString() );
+        }
+
+        /*
+         * Translate each grammar to a corresponding Rats! module
+         */
+        GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
+        if (!gtr.isSuccessful()) { return new Result(gtr.errors()); }
+
+        /*
+         * For each changed module write it to a file and run Rats! to 
+         * generate a temporary parser.
+         */
+        RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules());
+        if (!rpgr.isSuccessful()) { return new Result(rpgr.errors()); }
+
+        /*
+         * Return the temporary parser
+         */
+        return new Result(rpgr.parserClass());
+    }
 
 }

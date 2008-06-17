@@ -33,13 +33,21 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NodeVisitor_void;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.TerminalDecl;
+import com.sun.fortress.nodes._TerminalDef;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.GrammarIndexInitializer;
 import com.sun.fortress.syntax_abstractions.MacroCompiler.Result;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
@@ -130,6 +138,8 @@ public class GrammarRewriter {
             for (StaticError se: tpr.errors()) { errors.add(se); };
             if (!tpr.isSuccessful()) { return new ApiResult(rs, errors); }
             
+            rebuildGrammarEnv(tpr.api());
+            
             // 8) Well-formedness check on template gaps
             TemplateChecker.Result tcr = TemplateChecker.checkTemplates(tpr.api());
             for (StaticError se: tcr.errors()) { errors.add(se); };
@@ -167,6 +177,30 @@ public class GrammarRewriter {
         for (GrammarIndex g: grammarIndexs) {
             GrammarEnv.add(g);
         }        
+    }
+
+    private static void rebuildGrammarEnv(Api api) {
+        api.accept(new NodeDepthFirstVisitor_void() {
+            
+            @Override
+            public void forNonterminalDef(NonterminalDef that) {
+                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                mEnv.rebuildSyntaxDeclEnvs(that.getSyntaxDefs());
+            }
+
+            @Override
+            public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
+                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                mEnv.rebuildSyntaxDeclEnvs(that.getSyntaxDefs());
+            }
+
+            @Override
+            public void for_TerminalDef(_TerminalDef that) {
+                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                mEnv.rebuildSyntaxDeclEnvs(FortressUtil.mkList(that.getSyntaxDef()));
+            }
+            
+        });
     }
 
 }

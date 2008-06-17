@@ -18,6 +18,7 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +35,7 @@ import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
@@ -91,14 +93,23 @@ public class GrammarTranslator {
 	private Module makeFortressModule(FortressModule module) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+module.getName().toString()+".rats");
 
-		List<ModuleName> ls = new LinkedList<ModuleName>();
-		ls.addAll(m.parameters.names);
-		ls.addAll(module.getParameters());
-		m.parameters = new ModuleList(ls);
+		List<ModuleName> params = new LinkedList<ModuleName>();
+		params.addAll(m.parameters.names);
+		for (ModuleName name: module.getParameters()) {
+		    if (!params.contains(name)) {
+		        params.add(name);
+		    }
+		}
+		m.parameters = new ModuleList(params);
 
-		List<ModuleDependency> mds = new LinkedList<ModuleDependency>();
+        List<ModuleDependency> mds = new LinkedList<ModuleDependency>();
 		mds.addAll(m.dependencies);
-		mds.addAll(module.getDependencies());
+		for (ModuleDependency md: module.getDependencies()) {
+		    if (!mds.contains(md)) {
+		        mds.add(md);
+		    }
+		}
+
 		m.dependencies = mds;
 
 		for (Production p: m.productions) {
