@@ -18,7 +18,7 @@
 api Regex
 
     (* import FortressAst.{...} *)
-    import FortressSyntax.{Expression}
+    import FortressSyntax.{Expression,Literal}
     import Set.{...}
     import List.{...}
 
@@ -35,7 +35,22 @@ api Regex
     object RepeatElement(e:Element) extends Element
     end
     
+    object MaybeElement(e:Element) extends Element
+    end
+    
     object RepeatOneElement(e:Element) extends Element
+    end
+
+    object RepeatExactlyElement(e:Element, n:ZZ32) extends Element
+    end
+
+    object RepeatMinElement(e:Element, n:ZZ32) extends Element
+    end
+
+    object RepeatMaxElement(e:Element, n:ZZ32) extends Element
+    end
+
+    object RepeatBetweenElement(e:Element, n1:ZZ32, n2:ZZ32) extends Element
     end
 
     object GroupElement(e:List[\Element\]) extends Element
@@ -46,6 +61,9 @@ api Regex
 
     object ClassElement(e:List[\Element\]) extends Element
     end
+    
+    object InverseClassElement(e:List[\Element\]) extends Element
+    end
 
     object StartElement() extends Element
     end
@@ -53,9 +71,15 @@ api Regex
     object EndElement() extends Element
     end
 
-    grammar regex extends {Expression, Symbols}
+    object AnyElement() extends Element
+    end
+
+    grammar regex extends {Expression, Symbols, Literal}
         Expr:Regexp |Expr:= (* type: Content *)
-            x:Regex <[ x ]>
+        (*
+            pants `{ LiteralExpr `} <[ 1 ]>
+            *)
+           x:Regex <[ x ]>
 
         Regex:Regexp :Expr:=
             s1:Slash# e:Element#* s2:Slash# <[ Regexp(e) ]>
@@ -63,14 +87,35 @@ api Regex
         Element:Element :Expr:=
             i:Item# `* <[ RepeatElement(i) asif Element ]>
         |   i:Item# `+ <[ RepeatOneElement(i) asif Element ]>
+        |   i:Item# `? <[ MaybeElement(i) asif Element ]>
+        (*
+        |   i:Item# `{ n:IntLiteralExpr `} <[ RepeatExactlyElement(i,n) asif Element ]>
+        |   i:Item# `{ n:IntLiteralExpr , `} <[ RepeateMinElement(i,n) asif Element ]>
+        |   i:Item# `{ n1:IntLiteralExpr , n2:IntLiteralExpr `}
+            <[ RepeatBetweenElement(i,n1,n2) asif Element ]>
+        |   i:Item# `{ , n:IntLiteralExpr `}
+            <[ RepeatMaxElement(i,n) asif Element ]>
+        *)
+        |   i:Item# `{ n:LiteralExpr `} <[ RepeatExactlyElement(i,n) asif Element ]>
+        |   i:Item# `{ n:LiteralExpr , `} <[ RepeatMinElement(i,n) asif Element ]>
+        |   i:Item# `{ n1:LiteralExpr , n2:LiteralExpr `}
+            <[ RepeatBetweenElement(i,n1,n2) asif Element ]>
+        |   i:Item# `{ , n:LiteralExpr `}
+            <[ RepeatMaxElement(i,n) asif Element ]>
+
         |   i:Item <[ i ]>
 
         Item:Element :Expr:=
             s:AnyChar <[ (CharElement(s) asif Element) ]>
         |   ^ <[ StartElement() asif Element ]>
         |   $ <[ EndElement() asif Element ]>
-        |   `[# r:RangeItem#* `] <[ ClassElement(r) asif Element ]>
+        |   . <[ AnyElement() asif Element ]>
+        |   c:CharacterClass <[ c ]>
         |   (# e:Element#* ) <[ GroupElement(e) asif Element ]>
+        
+        CharacterClass:Element :Expr:=
+            `[# ^# r:RangeItem#* `] <[ InverseClassElement(r) asif Element ]>
+        |   `[# r:RangeItem#* `] <[ ClassElement(r) asif Element ]>
 
         RangeItem:Element :Expr:=
             s1:AnyChar# - s2:AnyChar <[ RangeElement(s1,s2) asif Element ]>
