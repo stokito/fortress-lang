@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -13,10 +15,12 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.util.FortressCheckClassAdapter;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -48,6 +52,20 @@ public class TopLevelEnvGen {
 	
 	private static final String CLASSNAME_SUFFIX = "Env";
 
+	
+    public static class ComponentResult extends StaticPhaseResult {
+        private final Map<APIName, byte[]> _components;
+        public ComponentResult(Map<APIName, byte[]> components,
+                               Iterable<? extends StaticError> errors) {
+            super(errors);
+            _components = components;
+        }
+        public Map<APIName, byte[]> components() { return _components; }
+    }
+	
+	
+	
+	
 	/**
 	 * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
 	 * Dangerous characters are the union of all characters forbidden
@@ -86,37 +104,39 @@ public class TopLevelEnvGen {
 	
 	/**
 	 * Given a list of components, generate a Java bytecode compiled environment
-	 * for each component, and dump that compiled class to the filesystem.
-	 * @param components
-	 * @param env
+	 * for each component.
 	 */
-	public static void generate(Map<APIName, ComponentIndex> components,
+	public static ComponentResult generate(Map<APIName, ComponentIndex> components,
 			                    GlobalEnvironment env) {
+
+		Map<APIName, byte[]> compiledComponents = new HashMap<APIName, byte[]>();
+        Iterable<? extends StaticError> errors = new HashSet<StaticError>();		
+		
 		for(APIName componentName : components.keySet()) {
 			String className = NodeUtil.nameString(componentName);
 			className = className + CLASSNAME_SUFFIX;
 			
 			byte[] envClass = generateForComponent(className,
 					              components.get(componentName), env);
-		    outputClassFile(envClass, className + ".class");	
+			
+			compiledComponents.put(componentName, envClass);
+			
 		}
+	
+        return new ComponentResult(compiledComponents, errors);		
+        
 	}
 
 	/**
 	 * Given one component, generate a Java bytecode compiled environment
 	 * for that component.
-	 * @param className
-	 * @param componentIndex
-	 * @param env
-	 * @return
 	 */
 	private static byte[] generateForComponent(String className,
 			                                   ComponentIndex componentIndex,
 			                                   GlobalEnvironment env) {
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		ClassVisitor cv = new FortressCheckClassAdapter(cw);
 		
-		cv.visit(Opcodes.V1_6, 
+		cw.visit(Opcodes.V1_6, 
         		Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
         		className, null, "com/sun/fortress/interpreter/env/WorseEnv", null);
 
@@ -126,15 +146,15 @@ public class TopLevelEnvGen {
     	Relation<String, Integer> fValueHashCode = new HashRelation<String,Integer>();        
     	Relation<String, Integer> fTypeHashCode = new HashRelation<String,Integer>();        
     	
-        writeFields(componentIndex, cv, fValueHashCode, fTypeHashCode);
+        writeFields(componentIndex, cw, fValueHashCode, fTypeHashCode);
 
-        writeMethodInit(cv, className);
+        writeMethodInit(cw, className);
         
-        writeMethodGetValueRaw(cv, className, fValueHashCode);        
+        writeMethodGetValueRaw(cw, className, fValueHashCode);        
         
-        writeMethodPutValueUnconditionally(cv, className, fValueHashCode);
+        writeMethodPutValueUnconditionally(cw, className, fValueHashCode);
 
-        cv.visitEnd();        
+        cw.visitEnd();        
         return(cw.toByteArray());
 	}
 
@@ -155,8 +175,6 @@ public class TopLevelEnvGen {
         	String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());        	
         	idString = idString + FVALUE_NAMESPACE;
-        	System.err.println("idString [mangled]: " 
-        			+ idString + "  [" + mangleIdentifier(idString) + "]");
             cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), FVALUE_DESCRIPTOR, null, null).visitEnd();	
         }
 
@@ -171,8 +189,6 @@ public class TopLevelEnvGen {
 	
 	/**
 	 * Generate the default constructor for this class.
-	 * @param cv
-	 * @param className
 	 */
 	private static void writeMethodInit(ClassVisitor cv, String className) {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
@@ -212,10 +228,6 @@ public class TopLevelEnvGen {
 	 * Implementing "static reflection" for the method getValueRaw so the
 	 * interpreter has O(log n) lookups based on the hash values of String names
 	 * in this namespace.
-	 * 
-	 * @param cv
-	 * @param className
-	 * @param valueHashCode
 	 */
 	private static void writeMethodGetValueRaw(ClassVisitor cv, String className,
 			Relation<String, Integer> valueHashCode) {
@@ -277,10 +289,6 @@ public class TopLevelEnvGen {
 	 * Implementing "static reflection" for the method putValueUnconditionally so the
 	 * interpreter has O(log n) lookups based on the hash values of String names
 	 * in this namespace.
-	 * 
-	 * @param cv
-	 * @param className
-	 * @param valueHashCode
 	 */
 	private static void writeMethodPutValueUnconditionally(ClassVisitor cv, String className,
 			Relation<String, Integer> valueHashCode) {
@@ -350,16 +358,23 @@ public class TopLevelEnvGen {
         mv.visitEnd();
 	}	
 
+	public static void outputClassFiles(ComponentResult componentResult) {
+		for(APIName componentName : componentResult.components().keySet()) {
+			String className = NodeUtil.nameString(componentName);
+			className = className + CLASSNAME_SUFFIX + ".class";
+			String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + className;
+			outputClassFile(componentResult.components().get(componentName), fileName);
+		}
+	}
+	
 	/**
 	 * Given a Java bytecode class stored in a byte array, save that
 	 * class into a file on disk.
-	 * @param bytecode
-	 * @param fileName
 	 */
 	private static void outputClassFile(byte[] bytecode, String fileName) {
 		FileOutputStream outStream;
 		try {
-			outStream = new FileOutputStream(new File("classes" + File.separator + fileName));
+			outStream = new FileOutputStream(new File(fileName));
 			outStream.write(bytecode);
 			outStream.close();
 		} catch (FileNotFoundException e) {
