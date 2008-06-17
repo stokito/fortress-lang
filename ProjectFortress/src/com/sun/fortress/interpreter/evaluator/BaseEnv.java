@@ -444,6 +444,35 @@ abstract public class BaseEnv implements Environment {
         putValueRaw(str, FInt.make(f2.intValue()));
     }
 
+    public void putValue(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            putFunction(str, (Fcn) f2, "Var/value", false, false);
+        else
+            // var_env = putNoShadow(var_env, str, f2, "Var/value");
+            putNoShadow(str, f2, "Var/value");
+        
+     }
+
+    public void putValueNoShadowFn(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            putFunction(str, (Fcn) f2, "Var/value", true, false);
+        else
+            // var_env = putNoShadow(var_env, str, f2, "Var/value");
+            putNoShadow(str, f2, "Var/value");
+     }
+    
+    /**
+     *
+     * @param str
+     * @param f2
+     */
+    public void putFunctionalMethodInstance(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            putFunction(str, (Fcn) f2, "Var/value", true, true);
+        else
+            error(str + " must be a functional method instance ");
+     }
+
 
     
 }

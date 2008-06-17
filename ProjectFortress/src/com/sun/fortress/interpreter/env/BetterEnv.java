@@ -455,35 +455,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         var_env = put(var_env, str, f2);
     }
     
-    public void putValue(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", false, false);
-        else
-            // var_env = putNoShadow(var_env, str, f2, "Var/value");
-            putNoShadow(str, f2, "Var/value");
-        
-     }
-
-    public void putValueNoShadowFn(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", true, false);
-        else
-            // var_env = putNoShadow(var_env, str, f2, "Var/value");
-            putNoShadow(str, f2, "Var/value");
-     }
-    
-    /**
-     *
-     * @param str
-     * @param f2
-     */
-    public void putFunctionalMethodInstance(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", true, true);
-        else
-            error(str + " must be a functional method instance ");
-     }
-
     public void putValueUnconditionally(String str, FValue f2) {
         var_env = putUnconditionally(var_env, str, f2, "Var/value");
      }

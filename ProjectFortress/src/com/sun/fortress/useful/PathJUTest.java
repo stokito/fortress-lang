@@ -60,7 +60,7 @@ public class PathJUTest extends TestCase {
             System.err.println(e);
         }
         try {
-            File f = p.findFile("ProjectFortress/a/b/c/d/e.f");
+            File f = p.findFile("tests/ProjectFortress/a/b/c/d/e.f");
             System.err.println("Found " + f.getCanonicalPath());
         } catch (FileNotFoundException e) {
             System.err.println(e);
