@@ -41,6 +41,8 @@ run(args:String...) = do
     testnotit( (/.*a$/), "fooafoo" )
     testit( (/[abc][^abc]/), "ad" )
     testnotit( (/[abc][^abc]/), "ab" )
+    testit( (/\d{2}(Hello)*/), "05HelloHello" )
+    testnotit( (/\d{2}(Hello)*/), "5HelloHello" )
 end
 
 end
