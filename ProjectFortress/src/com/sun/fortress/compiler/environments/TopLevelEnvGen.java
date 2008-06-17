@@ -134,15 +134,23 @@ public class TopLevelEnvGen {
 	private static byte[] generateForComponent(String className,
 			                                   ComponentIndex componentIndex,
 			                                   GlobalEnvironment env) {
+		
+		/*
+		 *  With new ClassWriter(ClassWriter.COMPUTE_FRAMES) everything is 
+		 *  computed automatically. You don’t have to call visitFrame, but you 
+		 *  must still call visitMaxs (arguments will be ignored and recomputed). 
+		 *  Using these options is convenient but this has a cost: the COMPUTE_FRAMES option 
+		 *  makes it two times slower.
+		 *  
+		 *  Currently not a performance bottleneck.
+		 */
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		
 		cw.visit(Opcodes.V1_5, 
         		Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
         		className, null, "com/sun/fortress/interpreter/env/WorseEnv", null);
 
-		// Implementing "static reflection"
-		// Please remove these data structures and all associated
-		// lookups once the Fortress compiler is implemented.
+		// Implementing "static reflection" for the interpreter
     	Relation<String, Integer> fValueHashCode = new HashRelation<String,Integer>();        
     	Relation<String, Integer> fTypeHashCode = new HashRelation<String,Integer>();        
     	
