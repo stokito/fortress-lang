@@ -1777,6 +1777,8 @@ fromRawBits(a:ZZ64):RR64
 
 random(a:Number):RR64
 
+match(regex:String,some:String):Boolean
+
 (** %char% converts an integer unicode code point into the
     corresponding 16-bit %Char%.  Note that we don't presently deal
     gracefully with %Char%s outside the 16-bit plane. **)
