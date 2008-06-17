@@ -17,6 +17,12 @@
 
 package com.sun.fortress.exceptions.shell;
 
+/**
+ * RepositoryErrors are either illegal Fortress programs or 
+ * exceptional behavior in the interpreter that relate to
+ * Components and APIs (see chapter 20 of the Fortress Language
+ *  Specification). 
+ */
 public class RepositoryError extends RuntimeException {
     public RepositoryError(String _message) {
         super(_message);

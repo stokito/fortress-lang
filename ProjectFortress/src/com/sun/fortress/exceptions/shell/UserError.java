@@ -17,6 +17,10 @@
 
 package com.sun.fortress.exceptions.shell;
 
+/**
+ * These are exceptions when the user has asked
+ * us to perform an illegal operation in the shell. 
+ */
 public class UserError extends Exception {
     public UserError(String msg) { super(msg); }
 }
