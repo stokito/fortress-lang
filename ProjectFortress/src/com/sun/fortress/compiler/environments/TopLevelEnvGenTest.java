@@ -30,8 +30,15 @@ public class TopLevelEnvGenTest {
 			Object environment = generatedClass.newInstance();
 			BaseEnv baseEnv = (BaseEnv) environment;
 
-			baseEnv.putValueUnconditionally("run", FInt.make(0));
-			System.out.println(baseEnv.getValueRaw("run"));			
+			baseEnv.putValueUnconditionally("run", FInt.make(3));
+
+			// Now test hash collisions
+			baseEnv.putValueUnconditionally("Aa", FInt.make(7));			
+			baseEnv.putValueUnconditionally("BB", FInt.make(13));						
+
+			System.out.println(baseEnv.getValueRaw("run"));
+			System.out.println(baseEnv.getValueRaw("Aa"));
+			System.out.println(baseEnv.getValueRaw("BB"));			
 			System.out.println(baseEnv.getValueRaw("michael"));			
 		} catch (InstantiationException e) {
 			e.printStackTrace();
