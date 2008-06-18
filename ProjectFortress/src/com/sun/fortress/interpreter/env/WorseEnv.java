@@ -1,7 +1,6 @@
 package com.sun.fortress.interpreter.env;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
@@ -14,11 +13,6 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
 
 public class WorseEnv extends BaseEnv {
-
-	public void bless() {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public Appendable dump(Appendable a) throws IOException {
@@ -50,11 +44,6 @@ public class WorseEnv extends BaseEnv {
 	public HasAt getAt() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	public boolean getBlessed() {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	@Override
@@ -95,27 +84,6 @@ public class WorseEnv extends BaseEnv {
 	public FValue getValueRaw(String s) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	public boolean hasValue(String str) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public boolean isTopLevel() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public Iterator<String> iterator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void noteName(String s) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void putApi(String s, SApi api) {
@@ -170,11 +138,6 @@ public class WorseEnv extends BaseEnv {
 	}
 
 	public void removeVar(String name) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void setTopLevel() {
 		// TODO Auto-generated method stub
 
 	}
