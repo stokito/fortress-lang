@@ -23,7 +23,6 @@ package com.sun.fortress.parser_util.instrumentation;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +31,7 @@ import java.util.Map;
 public class State implements xtc.util.State {
 
     private List<Info.SequenceInfo> current = null;
-    private Deque<List<Info.SequenceInfo>> saved = new LinkedList<List<Info.SequenceInfo>>();
+    private LinkedList<List<Info.SequenceInfo>> saved = new LinkedList<List<Info.SequenceInfo>>();
     private int depth = 0;
 
     public State() {}
@@ -67,8 +66,11 @@ public class State implements xtc.util.State {
             if (parseDone) { i.committedCount++; }
         }
 
-        List<Info.SequenceInfo> top = saved.pollFirst();
-        if (top != null) { top.addAll(current); }
+        List<Info.SequenceInfo> top = null;
+        if (!saved.isEmpty()) {
+            top = saved.removeFirst();
+            top.addAll(current);
+        }
         current = top;
     }
 
