@@ -12,12 +12,15 @@ import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
+import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.TestCaseWrapper;
 
 public class TopLevelEnvGenJUTest extends TestCaseWrapper {
+
+	   BaseEnv environment;
 	
 	   public TopLevelEnvGenJUTest() {
 	        super("TopLevelEnvGenJUTest");
@@ -30,14 +33,23 @@ public class TopLevelEnvGenJUTest extends TestCaseWrapper {
 	    public static void main(String args[]) {
 	        junit.textui.TestRunner.run(suite());
 	    }	   
-	   
+
+	    /* (non-Javadoc)
+	     * @see junit.framework.TestCase#setUp()
+	     */
+	    @Override
+	    protected void setUp() throws Exception {
+            compileTestProgram();  
+			loadEnvironment();            
+	    }	    
+
+	    public void testNullGetters() {
+			assertNull(environment.getBoolNull("run"));
+			assertNull(environment.getNatNull("run"));			
+	    }
 	    
 	    public void testCompiledEnvironment() throws IOException, 
 	    							InstantiationException, IllegalAccessException {
-
-            compileTestProgram();            
-	        
-			BaseEnv environment = loadEnvironment();
 
 			FInt three = FInt.make(3);
 			FInt seven = FInt.make(7);
@@ -66,7 +78,7 @@ public class TopLevelEnvGenJUTest extends TestCaseWrapper {
 			
 	    }
 
-		private BaseEnv loadEnvironment() throws FileNotFoundException,
+		private void loadEnvironment() throws FileNotFoundException,
 				IOException, InstantiationException, IllegalAccessException {
 			SimpleClassLoader classLoader = new SimpleClassLoader();
 			File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR + 
@@ -80,8 +92,7 @@ public class TopLevelEnvGenJUTest extends TestCaseWrapper {
 			
 			Class generatedClass = classLoader.defineClass("TestCompiledEnvironmentsEnv", bytecode);
 			Object envObject = generatedClass.newInstance();
-			BaseEnv environment = (BaseEnv) envObject;
-			return environment;
+			environment = (BaseEnv) envObject;
 		}
 
 		private void compileTestProgram() {
