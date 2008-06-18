@@ -5,8 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import junit.framework.TestCase;
 
 import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.StaticError;
@@ -15,23 +14,10 @@ import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
-import com.sun.fortress.useful.TestCaseWrapper;
 
-public class TopLevelEnvGenJUTest extends TestCaseWrapper {
+public class TopLevelEnvGenJUTest extends TestCase {
 
 	   BaseEnv environment;
-	
-	   public TopLevelEnvGenJUTest() {
-	        super("TopLevelEnvGenJUTest");
-	    }
-
-	    public static Test suite() {
-	        return new TestSuite(TopLevelEnvGenJUTest.class);
-	    }
-
-	    public static void main(String args[]) {
-	        junit.textui.TestRunner.run(suite());
-	    }	   
 
 	    /* (non-Javadoc)
 	     * @see junit.framework.TestCase#setUp()
