@@ -109,7 +109,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     public LHS forFieldRef(FieldRef x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
-        return new FieldRef(x.getSpan(), false, from, x.getField());
+        return ExprFactory.makeFieldRef(x.getSpan(), from, x.getField());
     }
 
 
