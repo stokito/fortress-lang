@@ -23,6 +23,10 @@ BB:ZZ32 = 7
 
 run(args:String...) = println "Hello, World!"
 
+trait Empty end
+
+opr $(a:Empty,b:Empty):ZZ32 = 42
+
 A:ZZ32 = 65
 B:ZZ32 = 66
 C:ZZ32 = 67

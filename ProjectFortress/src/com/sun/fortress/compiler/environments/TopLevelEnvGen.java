@@ -4,10 +4,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -238,7 +244,7 @@ public class TopLevelEnvGen {
 	 * in this namespace.
 	 */
 	private static void writeMethodGetValueRaw(ClassVisitor cv, String className,
-			Relation<String, Integer> valueHashCode) {
+			Relation<String, Integer> valuesHashCodeRelation) {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
         		"getValueRaw", 
         		"(Ljava/lang/String;)" + 
@@ -255,7 +261,43 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        for(Integer testHashCode : valueHashCode.secondSet()) {
+        ArrayList<Integer> sortedCodes = new ArrayList<Integer>(valuesHashCodeRelation.secondSet());
+        Collections.sort(sortedCodes);
+        getValueRawHelper(className, valuesHashCodeRelation, mv, sortedCodes);
+        
+        Label endFunction = new Label();
+        mv.visitLabel(endFunction);
+        mv.visitLocalVariable("this", "L" + className + ";", null, defQueryHashCode, endFunction, 0);
+        mv.visitLocalVariable("queryString", "Ljava/lang/String;", null, defQueryHashCode, endFunction, 1);
+        mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 2);
+        mv.visitMaxs(2, 3);
+        mv.visitEnd();
+        
+	}
+
+	private static void getValueRawHelper(String className,
+			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+			List<Integer> sortedCodes) {
+		if (sortedCodes.size() < 5) {
+			getValueRawBaseCase(className, valuesHashCodeRelation, mv, sortedCodes);
+		} else {
+			Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
+            mv.visitVarInsn(Opcodes.ILOAD, 2);
+            mv.visitLdcInsn(middleCode);
+            Label startRightHalf = new Label();
+            mv.visitJumpInsn(Opcodes.IF_ICMPGE, startRightHalf);
+            List<Integer> leftCodes = sortedCodes.subList(0, sortedCodes.size() / 2);
+            List<Integer> rightCodes = sortedCodes.subList(sortedCodes.size() / 2, sortedCodes.size());
+            getValueRawHelper(className, valuesHashCodeRelation, mv, leftCodes);
+            mv.visitLabel(startRightHalf);
+            getValueRawHelper(className, valuesHashCodeRelation, mv, rightCodes);
+		}
+	}
+
+	private static void getValueRawBaseCase(String className,
+			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+			List<Integer> sortedCodes) {
+		for(Integer testHashCode : sortedCodes) {
             mv.visitVarInsn(Opcodes.ILOAD, 2);
             mv.visitLdcInsn(testHashCode);
             Label beforeInnerLoop = new Label();            
@@ -263,7 +305,7 @@ public class TopLevelEnvGen {
             mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
             mv.visitLabel(beforeInnerLoop);
 
-            for(String testString : valueHashCode.getFirsts(testHashCode)) {
+            for(String testString : valuesHashCodeRelation.getFirsts(testHashCode)) {
             	mv.visitVarInsn(Opcodes.ALOAD, 1);
             	mv.visitLdcInsn(testString);
             	mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
@@ -282,14 +324,7 @@ public class TopLevelEnvGen {
             mv.visitLabel(afterInnerLoop);
         }
         mv.visitInsn(Opcodes.ACONST_NULL);
-        mv.visitInsn(Opcodes.ARETURN);
-        Label endFunction = new Label();
-        mv.visitLabel(endFunction);
-        mv.visitLocalVariable("this", "L" + className + ";", null, defQueryHashCode, endFunction, 0);
-        mv.visitLocalVariable("queryString", "Ljava/lang/String;", null, defQueryHashCode, endFunction, 1);
-        mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 2);
-        mv.visitMaxs(2, 3);
-        mv.visitEnd();
+        mv.visitInsn(Opcodes.ARETURN);		
 	}
 	
 	
