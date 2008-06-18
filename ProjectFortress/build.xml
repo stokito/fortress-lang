@@ -758,6 +758,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             depends="compileCommon, checkFortressParserUptodate"
             description="Instrumented Parser">
             <java fork="yes"
+                  maxmemory="256m"
                   failonerror="yes"
                   classname="${package.prefix}.parser_util.instrumentation.InstrumentedParserGenerator">
                 <classpath refid="instrumentedparser.classpath"/>
