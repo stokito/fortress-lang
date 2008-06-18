@@ -276,9 +276,7 @@ public class Fortress {
 		
 		// Generate top-level byte code environments
 		TopLevelEnvGen.ComponentResult componentGR = TopLevelEnvGen.generate(componentSR.components(), env);
-		if(!componentGR.isSuccessful()) { return componentGR.errors(); }		
-
-		TopLevelEnvGen.outputClassFiles(componentGR);
+		if(!componentGR.isSuccessful()) { return componentGR.errors(); }
 		
 		// Additional optimization phases can be inserted here        
         
