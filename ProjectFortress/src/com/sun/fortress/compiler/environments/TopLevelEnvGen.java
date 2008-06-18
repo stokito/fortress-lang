@@ -164,10 +164,14 @@ public class TopLevelEnvGen {
         writeMethodGetValueRaw(cw, className, fValueHashCode);        
         
         writeMethodPutValueUnconditionally(cw, className, fValueHashCode);
+        
+        writeEmptyMethods(cw, className);
 
         cw.visitEnd();        
         return(cw.toByteArray());
 	}
+
+
 
 	private static void writeFields(ComponentIndex componentIndex,
 			ClassVisitor cv, Relation<String, Integer> fValueHashCode,
@@ -275,7 +279,7 @@ public class TopLevelEnvGen {
 	private static void getValueRawHelper(String className,
 			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
 			List<Integer> sortedCodes) {
-		if (sortedCodes.size() < 5) {
+		if (sortedCodes.size() < 9) {
 			getValueRawBaseCase(className, valuesHashCodeRelation, mv, sortedCodes);
 		} else {
 			Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
@@ -366,7 +370,7 @@ public class TopLevelEnvGen {
 	private static void putValueUnconditionallyHelper(String className,
 			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
 			List<Integer> sortedCodes) {
-		if (sortedCodes.size() < 5) {
+		if (sortedCodes.size() < 9) {
 			putValueUnconditionallyBaseCase(className, valuesHashCodeRelation, mv, sortedCodes);
 		} else {
 			Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
@@ -414,6 +418,29 @@ public class TopLevelEnvGen {
 		mv.visitInsn(Opcodes.RETURN);		
 	}
 
+	private static void writeNullGetter(ClassWriter cw, String className, String methodName, String signature) {
+		MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, signature, null, null);
+		mv.visitCode();
+		Label l0 = new Label();
+		mv.visitLabel(l0);
+		mv.visitInsn(Opcodes.ACONST_NULL);
+		mv.visitInsn(Opcodes.ARETURN);
+		Label l1 = new Label();
+		mv.visitLabel(l1);
+		mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
+		mv.visitLocalVariable("str", "Ljava/lang/String;", null, l0, l1, 1);
+		mv.visitMaxs(1, 2);
+		mv.visitEnd();		
+	}
+	
+	private static void writeEmptyMethods(ClassWriter cw, String className) {
+		
+		writeNullGetter(cw, className, "getBoolNull", "(Ljava/lang/String;)Ljava/lang/Boolean;");
+		writeNullGetter(cw, className, "getNatNull", "(Ljava/lang/String;)Ljava/lang/Number;");		
+		
+	}
+	
+	
 	public static void outputClassFiles(ComponentResult componentResult) {
 		for(APIName componentName : componentResult.components().keySet()) {
 			String className = NodeUtil.nameString(componentName);
