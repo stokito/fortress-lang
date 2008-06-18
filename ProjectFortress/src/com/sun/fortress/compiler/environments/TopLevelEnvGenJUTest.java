@@ -78,13 +78,15 @@ public class TopLevelEnvGenJUTest extends TestCaseWrapper {
 			Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
 
             Path path = ProjectProperties.SOURCE_PATH;
-            String s = ProjectProperties.BASEDIR + 
-            	File.separator + "tests" + 
+            String s = ProjectProperties.BASEDIR + "tests" + 
             	File.separator + "TestCompiledEnvironments.fss";
+            
+            File file = new File(s);
+            s = file.getPath();
 
-            if (s.contains("/")) {
-                String head = s.substring(0, s.lastIndexOf("/"));
-                s = s.substring(s.lastIndexOf("/")+1, s.length());
+            if (s.contains(File.separator)) {
+                String head = s.substring(0, s.lastIndexOf(File.separator));
+                s = s.substring(s.lastIndexOf(File.separator)+1, s.length());
                 path = path.prepend(head);
             }                      
             
