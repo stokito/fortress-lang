@@ -69,6 +69,8 @@ public class State implements xtc.util.State {
         List<Info.SequenceInfo> top = null;
         if (!saved.isEmpty()) {
             top = saved.removeFirst();
+        }
+        if (top != null) {
             top.addAll(current);
         }
         current = top;
