@@ -91,6 +91,13 @@
     <pathelement location="${ant.home}/lib/ant.jar"/>
 </path>
 
+ <property name="instrumentation.package" 
+           value="${package.prefix}.parser_util.instrumentation"/>
+ <property name="instrumentationPackage" 
+           value="${packagePrefix}/parser_util/instrumentation"/>
+ <property name="instrumentation.outfile"
+           location="${parserUtil}/instrumentation/coverage-report.txt"/>
+
  <path id="instrumentedparser.classpath">
     <pathelement location="${build}"/>
     <pathelement location="${xtc}/xtc.jar"/>
@@ -102,7 +109,7 @@
     <target name="help">
         <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
 checkParserUptodate, clean, cleanCache, compile, compileCommon, compileCommonLint,
-compileLint, doc, help, init, interpreter-jar, makeAST, operatorsGen,
+compileLint, doc, grammarCoverage, help, init, interpreter-jar, makeAST, operatorsGen,
 fortressparser, preparser, parser, reportNotPassing, systemProperties,
 test, testAll, testDemos, testSystem,
 testNotPassing, testOnly, testCruiseControl interpreter"/>
@@ -202,6 +209,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <delete file="${templateparser}/TemplateParser.java"/>
         <delete file="${precedenceResolver}/Operators.java"/>
         <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/> <!-- No longer needed, but eases the upgrade-->
+        <delete file="${instrumentation.outfile}"/>
         <delete file="FortressLibrary.ast"/>
         <delete file="FortressLibrary.tfs"/>
         <delete file="testFile.txt"/>
@@ -365,8 +373,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 -->
              <include name="${blahblahblah}/useful/*.java"/>
              <include name="${blahblahblah}/unicode/*.java"/>
-             <include name="${packagePrefix}/parser_util/instrumentation/*.java"/>
-             <exclude name="${packagePrefix}/parser_util/instrumentation/Coverage.java"/>
+             <include name="${instrumentationPackage}/*.java"/>
+             <exclude name="${instrumentationPackage}/Coverage.java"/>
          </javac>
      </target>
 
@@ -390,8 +398,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <compilerarg value="-Xlint:unchecked"/>
             <include name="${usefulPackage}/*.java"/>
             <include name="${unicodePackage}/*.java"/>
-             <include name="${packagePrefix}/parser_util/instrumentation/*.java"/>
-             <exclude name="${packagePrefix}/parser_util/instrumentation/Coverage.java"/>
+             <include name="${instrumentationPackage}/*.java"/>
+             <exclude name="${instrumentationPackage}/Coverage.java"/>
          </javac>
      </target>
 
@@ -628,7 +636,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 </uptodate>
                 <uptodate targetfile="${parser}/FortressInstrumented.java">
                     <srcfiles dir="${parser}" includes="**/*.rats"/>
-                    <srcfiles dir="${src}/${packagePrefix}/parser_util/instrumentation"
+                    <srcfiles dir="${src}/${instrumentationPackage}"
                               includes="*.java"/>
                 </uptodate>
             </and>
@@ -661,7 +669,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <uptodate property="instrumentedparser.uptodate" 
                   targetfile="${parser}/FortressInstrumented.java">
             <srcfiles dir="${parser}" includes="**/*.rats"/>
-            <srcfiles dir="${src}/${packagePrefix}/parser_util/instrumentation"
+            <srcfiles dir="${src}/${instrumentationPackage}"
                       includes="*.java"/>
         </uptodate>
         <echo>Fortress parser up to date? ${parser.uptodate}</echo>
@@ -760,7 +768,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <java fork="yes"
                   maxmemory="256m"
                   failonerror="yes"
-                  classname="${package.prefix}.parser_util.instrumentation.InstrumentedParserGenerator">
+                  classname="${instrumentation.package}.InstrumentedParserGenerator">
                 <classpath refid="instrumentedparser.classpath"/>
                 <arg value="${parser}"/> <!-- input dir -->
                 <arg value="${parser}"/> <!-- output dir for FortressInstrumented.java -->
@@ -808,6 +816,16 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <arg value="TemplateParser.rats"/>
         </java>
 	-->
+    </target>
+
+    <target name="grammarCoverage" depends="compile">
+        <java fork="yes"
+              failonerror="yes"
+              classname="${instrumentation.package}.Coverage"
+              output="${instrumentation.outfile}">
+          <classpath refid="compile.classpath"/>
+        </java>
+        <echo message="Wrote grammar coverage report to ${instrumentation.outfile}"/>
     </target>
 
     <target name="doc" depends="compile">
