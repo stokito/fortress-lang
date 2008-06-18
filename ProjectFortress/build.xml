@@ -92,6 +92,7 @@
 </path>
 
  <path id="instrumentedparser.classpath">
+    <pathelement location="${build}"/>
     <pathelement location="${xtc}/xtc.jar"/>
     <pathelement location="${plt}/plt.jar"/>
  </path>
@@ -754,13 +755,12 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     -->
 
     <target name="instrumentedparser" unless="instrumentedparser.uptodate"
-            depends="checkFortressParserUptodate"
+            depends="compileCommon, checkFortressParserUptodate"
             description="Instrumented Parser">
             <java fork="yes"
                   failonerror="yes"
-                  dir="${parser}"
-                  classname="${package.prefix}.parser_util.instrumentation.InstrumentedParserGenerator"
-                  classpath="${instrumentedparser.classpath}">
+                  classname="${package.prefix}.parser_util.instrumentation.InstrumentedParserGenerator">
+                <classpath refid="instrumentedparser.classpath"/>
                 <arg value="${parser}"/> <!-- input dir -->
                 <arg value="${parser}"/> <!-- output dir for FortressInstrumented.java -->
             </java>
