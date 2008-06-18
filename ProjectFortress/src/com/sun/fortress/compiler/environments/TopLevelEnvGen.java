@@ -331,7 +331,7 @@ public class TopLevelEnvGen {
 	 * in this namespace.
 	 */
 	private static void writeMethodPutValueUnconditionally(ClassVisitor cv, String className,
-			Relation<String, Integer> valueHashCode) {
+			Relation<String, Integer> valuesHashCodeRelation) {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
         		"putValueUnconditionally", 
         		"(" + STRING_DESCRIPTOR + FVALUE_DESCRIPTOR + ")V", 
@@ -347,35 +347,10 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        Iterator<Integer> iterator = valueHashCode.secondSet().iterator();        
-        while (iterator.hasNext()) {
-        	Integer testHashCode = iterator.next();
-            mv.visitVarInsn(Opcodes.ILOAD, 3);
-            mv.visitLdcInsn(testHashCode);
-            Label beforeInnerLoop = new Label();            
-            Label afterInnerLoop = new Label();
-           	mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
-            mv.visitLabel(beforeInnerLoop);
-
-            for(String testString : valueHashCode.getFirsts(testHashCode)) {
-            	mv.visitVarInsn(Opcodes.ALOAD, 1);
-            	mv.visitLdcInsn(testString);
-            	mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
-                Label beforeSetValue = new Label();            
-                Label afterSetValue = new Label();            	
-                mv.visitJumpInsn(Opcodes.IFEQ, afterSetValue);
-                mv.visitLabel(beforeSetValue);
-                mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitVarInsn(Opcodes.ALOAD, 2);
-                String idString = testString + FVALUE_NAMESPACE;                
-                mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
-                		mangleIdentifier(idString), FVALUE_DESCRIPTOR); 
-                mv.visitInsn(Opcodes.RETURN);
-                mv.visitLabel(afterSetValue);
-            }                                    
-            	mv.visitLabel(afterInnerLoop);
-        }
-        mv.visitInsn(Opcodes.RETURN);        
+        ArrayList<Integer> sortedCodes = new ArrayList<Integer>(valuesHashCodeRelation.secondSet());
+        Collections.sort(sortedCodes);
+        putValueUnconditionallyHelper(className, valuesHashCodeRelation, mv, sortedCodes);
+                
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
         mv.visitLocalVariable("this", "L" + className + ";", null, 
@@ -387,6 +362,57 @@ public class TopLevelEnvGen {
         mv.visitMaxs(2, 4);
         mv.visitEnd();
 	}	
+
+	private static void putValueUnconditionallyHelper(String className,
+			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+			List<Integer> sortedCodes) {
+		if (sortedCodes.size() < 5) {
+			putValueUnconditionallyBaseCase(className, valuesHashCodeRelation, mv, sortedCodes);
+		} else {
+			Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
+            mv.visitVarInsn(Opcodes.ILOAD, 3);
+            mv.visitLdcInsn(middleCode);
+            Label startRightHalf = new Label();
+            mv.visitJumpInsn(Opcodes.IF_ICMPGE, startRightHalf);
+            List<Integer> leftCodes = sortedCodes.subList(0, sortedCodes.size() / 2);
+            List<Integer> rightCodes = sortedCodes.subList(sortedCodes.size() / 2, sortedCodes.size());
+            putValueUnconditionallyHelper(className, valuesHashCodeRelation, mv, leftCodes);
+            mv.visitLabel(startRightHalf);
+            putValueUnconditionallyHelper(className, valuesHashCodeRelation, mv, rightCodes);
+		}		
+	}
+
+	private static void putValueUnconditionallyBaseCase(String className,
+			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+			List<Integer> sortedCodes) {
+		for(Integer testHashCode : sortedCodes) {
+			mv.visitVarInsn(Opcodes.ILOAD, 3);
+			mv.visitLdcInsn(testHashCode);
+			Label beforeInnerLoop = new Label();            
+			Label afterInnerLoop = new Label();
+			mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
+			mv.visitLabel(beforeInnerLoop);
+
+			for(String testString : valuesHashCodeRelation.getFirsts(testHashCode)) {
+				mv.visitVarInsn(Opcodes.ALOAD, 1);
+				mv.visitLdcInsn(testString);
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+				Label beforeSetValue = new Label();            
+				Label afterSetValue = new Label();            	
+				mv.visitJumpInsn(Opcodes.IFEQ, afterSetValue);
+				mv.visitLabel(beforeSetValue);
+				mv.visitVarInsn(Opcodes.ALOAD, 0);
+				mv.visitVarInsn(Opcodes.ALOAD, 2);
+				String idString = testString + FVALUE_NAMESPACE;                
+				mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
+						mangleIdentifier(idString), FVALUE_DESCRIPTOR); 
+				mv.visitInsn(Opcodes.RETURN);
+				mv.visitLabel(afterSetValue);
+			}                                    
+			mv.visitLabel(afterInnerLoop);
+		}
+		mv.visitInsn(Opcodes.RETURN);		
+	}
 
 	public static void outputClassFiles(ComponentResult componentResult) {
 		for(APIName componentName : componentResult.components().keySet()) {
