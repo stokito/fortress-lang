@@ -17,7 +17,7 @@
 
 component testbasic
 
-import Xml2.{...}
+import Xml.{...}
 import List.{...}
 
 export Executable
