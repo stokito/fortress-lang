@@ -1562,12 +1562,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 								public Boolean value(Boolean arg0, Pair<Integer, Integer> arg1) {
 									return arg0 & (arg1.first().equals(arg1.second()));
 								}});
-						if( !sizes_match ) {
+						if(ConsList.isEmpty(size_list)){
+							ConsList<Integer> empty = ConsList.<Integer>empty();
+							return Pair.make(TypeCheckerResult.compose(that,subtypeChecker,all_results),empty);
+						}
+						if( !sizes_match) {
 							String err = "Sizes of elements in array dimension are not equal.";
 							TypeCheckerResult result = new TypeCheckerResult(that, TypeError.make(err, that));
 							result = TypeCheckerResult.compose(that, subtypeChecker, result,
 									TypeCheckerResult.compose(that, subtypeChecker, all_results));		
-							return Pair.make(result, new_size_list);
+							ConsList<Integer> empty = ConsList.<Integer>empty();
+							return Pair.make(result, empty);
 						}
 					}
 
@@ -2114,23 +2119,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forChainExpr(ChainExpr that) {
-        TypeCheckerResult result = new TypeCheckerResult(that);
-        TypeCheckerResult first_result = that.getFirst().accept(this);
-        final TypeChecker checker = this;
-
-
-//        IterUtil.fold(that.getLinks(), first_result, new Lambda2<TypeCheckerResult, Pair<Op, Expr>, TypeCheckerResult>() {
-//            public TypeCheckerResult value(TypeCheckerResult r, Pair<Op, Expr> p) {
-//                TypeCheckerResult expr_result = p.getB().accept(checker);
-//                Option<Type> opType = checker.params.type(p.getA());
-//
-//                if (r.type().isSome()) {
-//                }
-//                return null;
-//            }
-//        });
-
-        return null;
+        List<TypeCheckerResult> all_results = new ArrayList();
+        Expr prev = that.getFirst();
+        for(Link link : that.getLinks()){
+        	OpRef op = link.getOp();
+        	Expr next = link.getExpr();
+        	OpExpr tempOpExpr = new OpExpr(new Span(prev.getSpan(),next.getSpan()), false , op, Useful.list(prev, next));
+        	TypeCheckerResult result = tempOpExpr.accept(this);
+        	all_results.add(result);
+        	if(result.type().isSome()){
+        		all_results.add(this.checkSubtype(result.type().unwrap(), Types.BOOLEAN, tempOpExpr));
+        	}
+        	prev=next;
+        }
+        return TypeCheckerResult.compose(that, Types.BOOLEAN,this.subtypeChecker, all_results);
     }
 
     public TypeCheckerResult forOp(Op that) {

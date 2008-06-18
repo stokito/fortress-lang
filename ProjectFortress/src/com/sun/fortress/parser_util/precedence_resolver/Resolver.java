@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -589,7 +590,7 @@ public class Resolver {
       ExprOpPair link = ((Cons<ExprOpPair>)links).getFirst();
       PureList<ExprOpPair> rest = ((Cons<ExprOpPair>)links).getRest();
       Expr first = link.getA();
-      Op op = link.getB();
+      Op op = NodeFactory.makeOpInfix(link.getB());
       Span span = FortressUtil.spanTwo(first, last);
 
       return ASTUtil.chain(span, first, buildLinks(op, rest, last).toJavaList());
@@ -615,8 +616,8 @@ public class Resolver {
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
       Link l = new Link(new Span(_first.getSpan(),link.getA().getSpan()),_first, link.getA());
-
-      return (buildLinks(link.getB(), _links.getRest(), last)).cons(l);
+      Op op = NodeFactory.makeOpInfix(link.getB());
+      return (buildLinks(op, _links.getRest(), last)).cons(l);
     }
   }
 

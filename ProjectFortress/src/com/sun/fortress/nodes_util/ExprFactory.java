@@ -564,14 +564,14 @@ public class ExprFactory {
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
         List<Link> links = new ArrayList<Link>();
-        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(_op), _expr);
+        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return new ChainExpr(e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
     	List<Link> links = new ArrayList<Link>();
-        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(_op), _expr);
+        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);
     }
