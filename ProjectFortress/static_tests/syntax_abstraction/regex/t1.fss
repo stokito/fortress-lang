@@ -57,6 +57,10 @@ run(s:String...) = do
     println "/#/ = " (/#/)
     println "/&/ = " (/&/)
 
+    println "/4/ = " (/#{2+2}/)
+    (* How do you match #{ ?? *)
+    println "/#{1+1}/ = " (/\#{1+1}/)
+
     println "/a/ == 'a'? " ((/a/) = "a")
     println "/\\d+?/ == '542'? " ((/\d+?/) = "542")
     println "/\\d+?/ == 'apple542'? " ((/\d+?/) = "apple542")
