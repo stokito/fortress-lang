@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Comparator;
 
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
-import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
@@ -45,7 +44,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     private BATreeNode<String, Boolean> bool_env;
     private BATreeNode<String, SApi> api_env;
     private BATreeNode<String, SComponent> cmp_env;
-    private BATreeNode<String, Declaration> dcl_env;
 
 
     static public boolean verboseDump = false;
@@ -131,7 +129,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         bool_env = existing.bool_env;
         api_env = existing.api_env;
         cmp_env = existing.cmp_env;
-        dcl_env = existing.dcl_env;
         parent = existing;
     }
 
@@ -173,7 +170,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         bool_env = augment(existing.bool_env, additions.bool_env);
         api_env = augment(existing.api_env, additions.api_env);
         cmp_env = augment(existing.cmp_env, additions.cmp_env);
-        dcl_env = augment(existing.dcl_env, additions.dcl_env);
     }
     
     private static void augment(final Environment existing, final Environment additions) {
@@ -299,7 +295,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
             dumpOne(a, bool_env, "\nBools:\n  ");
             dumpOne(a, api_env, "\nApis:\n  ");
             dumpOne(a, cmp_env, "\nComponents:\n  ");
-            dumpOne(a, dcl_env, "\nDeclarations:\n  ");
             a.append("\n");
         } else if (parent != null) {
             parent.dump(a);
@@ -336,11 +331,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         return v;
     }
 
-    public Declaration getDeclNull(String str) {
-        Declaration v = get(dcl_env, str);
-       return v;
-    }
-
     public Number getNatNull(String str) {
         Number v = get(nat_env, str);
         return v;
@@ -375,10 +365,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     public void putComponent(String name, SComponent comp) {
         cmp_env = put(cmp_env, name, comp);
 
-    }
-
-    public void putDecl(String str, Declaration f2) {
-        dcl_env = put(dcl_env, str, f2);
     }
 
      public void putType(String str, FType f2) {

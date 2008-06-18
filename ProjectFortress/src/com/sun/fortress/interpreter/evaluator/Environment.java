@@ -106,10 +106,6 @@ public interface Environment  {
 
     //public boolean hasType(String str);
 
-    public abstract Declaration getDecl(String str);
-
-    public abstract void putDecl(String str, Declaration f2);
-
     public abstract Number getNat(String str);
 
     public abstract void putNat(String str, Number f2);
