@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
@@ -119,7 +120,7 @@ public class ASTUtil {
     //        (node span
     //           { chain_expr_first = first;
     //             chain_expr_links = links; }))
-    static Expr chain(Span span, Expr first, List<Pair<OpRef, Expr>> links) {
+    static Expr chain(Span span, Expr first, List<Link> links) {
         return new ChainExpr(span, false, first, links);
     }
 

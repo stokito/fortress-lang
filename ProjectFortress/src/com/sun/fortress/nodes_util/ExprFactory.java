@@ -64,6 +64,7 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetExpr;
 import com.sun.fortress.nodes.LetFn;
+import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.MathItem;
@@ -562,15 +563,15 @@ public class ExprFactory {
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
-        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
-        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
+        List<Link> links = new ArrayList<Link>();
+        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
-        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
+    	List<Link> links = new ArrayList<Link>();
+        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);
     }

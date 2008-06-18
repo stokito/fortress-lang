@@ -1227,7 +1227,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * delivering boolean results, may be chained.
                      * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                      */
-                    ChainExpr(Expr first, List<Pair<OpRef, Expr>> links);
+                    ChainExpr(Expr first, List<Link> links);
                     /**
                      * coercion invocation
                      * internal node created by static analysis
@@ -2206,4 +2206,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) SUM
          */
         BigFixity();
+    /*
+     * A Link in a ChainExpr is a pair of OpRef and the next Expr in the chain.
+     * e.g.) < 5
+     */
+    Link(OpRef op, Expr expr);
 end;

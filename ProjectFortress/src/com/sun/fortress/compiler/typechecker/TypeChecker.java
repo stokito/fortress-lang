@@ -2113,12 +2113,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return TypeCheckerResult.compose(that, caseType, subtypeChecker, result);
     }
 
-//    public TypeCheckerResult forChainExpr(ChainExpr that) {
-//        TypeCheckerResult result = new TypeCheckerResult(that);
-//        TypeCheckerResult first_result = that.getFirst().accept(this);
-//        final TypeChecker checker = this;
-//
-//
+    public TypeCheckerResult forChainExpr(ChainExpr that) {
+        TypeCheckerResult result = new TypeCheckerResult(that);
+        TypeCheckerResult first_result = that.getFirst().accept(this);
+        final TypeChecker checker = this;
+
+
 //        IterUtil.fold(that.getLinks(), first_result, new Lambda2<TypeCheckerResult, Pair<Op, Expr>, TypeCheckerResult>() {
 //            public TypeCheckerResult value(TypeCheckerResult r, Pair<Op, Expr> p) {
 //                TypeCheckerResult expr_result = p.getB().accept(checker);
@@ -2129,9 +2129,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //                return null;
 //            }
 //        });
-//
-//        return null;
-//    }
+
+        return null;
+    }
 
     public TypeCheckerResult forOp(Op that) {
     	Option<APIName> api = that.getApi();

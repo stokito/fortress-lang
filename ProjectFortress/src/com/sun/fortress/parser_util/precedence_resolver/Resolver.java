@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes_util.Span;
@@ -603,17 +604,17 @@ public class Resolver {
   //   match links with
   //     | [] -> [(first,last)]
   //     | (e,op) :: rest -> (first,e) :: build_links op rest last
-  private static PureList<Pair<OpRef, Expr>>
+  private static PureList<Link>
       buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
   {
       OpRef _first = ExprFactory.makeOpRef(first);
     if (links.isEmpty()) {
-        return PureList.<Pair<OpRef,Expr>>make(new Pair<OpRef,Expr>(_first,last));
+        return PureList.<Link>make(new Link(new Span(_first.getSpan(), last.getSpan()),_first,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      Pair<OpRef,Expr> l = new Pair<OpRef,Expr>(_first, link.getA());
+      Link l = new Link(new Span(_first.getSpan(),link.getA().getSpan()),_first, link.getA());
 
       return (buildLinks(link.getB(), _links.getRest(), last)).cons(l);
     }
