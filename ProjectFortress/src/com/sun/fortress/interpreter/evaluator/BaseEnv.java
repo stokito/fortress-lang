@@ -286,17 +286,6 @@ abstract public class BaseEnv implements Environment {
     
     abstract public  SComponent getComponentNull(String str) ;
 
-    
-    
-    final public  Declaration getDecl(String str)  {
-        Declaration x = getDeclNull(str);
-        if (x == null)
-            return error(errorMsg("Missing declaration ", str));
-        else
-            return x;
-    }
-
-    abstract public  Declaration getDeclNull(String str) ;
     final public  Number getNat(String str) {
         Number x = getNatNull(str);
         if (x == null)
@@ -306,6 +295,7 @@ abstract public class BaseEnv implements Environment {
     }
 
     abstract public  Number getNatNull(String str);
+
     public Closure getRunClosure() {
         return (Closure) getValue("run");
     }
