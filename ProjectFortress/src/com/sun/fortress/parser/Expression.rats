@@ -47,7 +47,7 @@ Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
 
 Expr ExprFront =
-     AssignExpr
+     <AssignExpr> AssignExpr
    / OpExpr
    / DelimitedExpr
    / <Flow> FlowExpr
