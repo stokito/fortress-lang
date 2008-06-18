@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Iterator;
 
 import com.sun.fortress.exceptions.CircularDependenceError;
@@ -40,9 +41,8 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.StringArrayIterator;
 
-import static com.sun.fortress.interpreter.evaluator.BaseEnv.debug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
@@ -53,6 +53,13 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 abstract public class BaseEnv implements Environment {
 
+    /** Names noted for possible future overloading */
+    private String[] namesPut;
+    private int namesPutCount;
+
+    private boolean blessed; /* until blessed, cannot be copied */
+    private boolean topLevel;    
+    
     static boolean debug = false;
 
     public void debugPrint(String debugString) {
@@ -65,6 +72,22 @@ abstract public class BaseEnv implements Environment {
         return ((FString) f1).getString();
     }
 
+   public void bless() {
+       blessed = true;
+   }
+
+   public boolean getBlessed() {
+       return blessed;
+   }
+
+   public void setTopLevel() {
+       topLevel = true;
+   }
+
+   public boolean isTopLevel() {
+       return topLevel;
+   }   
+   
 //    public void assignValue(HasAt loc, String str, FValue f2) {
 //        // TODO track down references, catch error, and fix.
 //        if (hasValue(str)) putValueUnconditionally(str, f2);
@@ -211,6 +234,10 @@ abstract public class BaseEnv implements Environment {
         error(loc, this, "Type stored to immutable variable " + str);
 
     }
+    
+    public boolean hasValue(String str) {
+        return (getValueRaw(str) != null) || (getBoolNull(str) != null)  || (getNatNull(str) != null);
+    }    
 
     final public  SApi getApi(APIName d)  {
     	return getApi(NodeUtil.nameString(d));
@@ -369,10 +396,6 @@ abstract public class BaseEnv implements Environment {
         return this;
    }
       
-    /**
-     * Used to obtain names of variables defined in this environment.
-     */
-    abstract public Iterator<String> iterator();
 
     public void putApi(APIName d, SApi x) {
         putApi(NodeUtil.nameString(d), x);
@@ -444,6 +467,51 @@ abstract public class BaseEnv implements Environment {
         putValueRaw(str, FInt.make(f2.intValue()));
     }
 
+    public void putValue(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            putFunction(str, (Fcn) f2, "Var/value", false, false);
+        else
+            // var_env = putNoShadow(var_env, str, f2, "Var/value");
+            putNoShadow(str, f2, "Var/value");
+        
+     }
 
+    public void putValueNoShadowFn(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            putFunction(str, (Fcn) f2, "Var/value", true, false);
+        else
+            // var_env = putNoShadow(var_env, str, f2, "Var/value");
+            putNoShadow(str, f2, "Var/value");
+     }
+    
+    /**
+     *
+     * @param str
+     * @param f2
+     */
+    public void putFunctionalMethodInstance(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            putFunction(str, (Fcn) f2, "Var/value", true, true);
+        else
+            error(str + " must be a functional method instance ");
+     }
+
+
+    public void noteName(String s) {
+        if (namesPutCount == 0)
+            namesPut = new String[2];
+        else if (namesPutCount == namesPut.length) {
+            String[] next = new String[namesPutCount*2];
+            System.arraycopy(namesPut, 0, next, 0, namesPut.length);
+            namesPut = next;
+        }
+        namesPut[namesPutCount++] = s;
+    }
+
+    public Iterator<String> iterator() {
+        if (namesPutCount > 0)
+            return new StringArrayIterator(namesPut, namesPutCount);
+       return Collections.<String>emptySet().iterator();
+    }    
     
 }

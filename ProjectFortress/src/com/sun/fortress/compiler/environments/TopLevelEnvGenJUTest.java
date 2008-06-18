@@ -12,7 +12,6 @@ import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
-import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
@@ -45,8 +44,17 @@ public class TopLevelEnvGenJUTest extends TestCaseWrapper {
 
 	    public void testNullGetters() {
 			assertNull(environment.getBoolNull("run"));
+			assertNull(environment.getIntNull("run"));			
 			assertNull(environment.getNatNull("run"));			
 	    }
+
+	    public void testNullSetters() {
+	    	environment.putBoolRaw("run", true);
+	    	environment.putIntRaw("run", 0);
+	    	environment.putNatRaw("run", 0);	    	
+	    }
+
+	    
 	    
 	    public void testCompiledEnvironment() throws IOException, 
 	    							InstantiationException, IllegalAccessException {

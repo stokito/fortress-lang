@@ -512,10 +512,10 @@ __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L
 
 (** Application of two nested BIG operators, possibly with fusion.  This only covers
     a comprehension of the form:
-       BIG outer [ xs <- expr_o ] (BIG inner [x <- xs] expr_i)
+       BIG outer [ xs <- expro ] (BIG inner [x <- xs] expri)
     The desugarer extracts comprehensions of this form from more complex nests of
     comprehensions, using a combination of splitting:
-        BIG OP [ gs_1, gs_2 ] expr = BIG OP [ gs_1 ] (BIG OP [ gs_2 ] expr)
+        BIG OP [ gs1, gs2 ] expr = BIG OP [ gs1 ] (BIG OP [ gs2 ] expr)
     and filter squeezing:
         BIG OP [ xs <- g, p(xs) ] expr = BIG OP [ xs <- g.filter(p) ] expr
     There are some big caveats to this explanation in practice.  Most important is that
@@ -1776,6 +1776,8 @@ printTime(dummy: Any): ()
 fromRawBits(a:ZZ64):RR64
 
 random(a:Number):RR64
+
+match(regex:String,some:String):Boolean
 
 (** %char% converts an integer unicode code point into the
     corresponding 16-bit %Char%.  Note that we don't presently deal

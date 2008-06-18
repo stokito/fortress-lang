@@ -50,9 +50,8 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
 
         List<Id> ids = idn.getApi().unwrap().getIds();
 
-        return new FieldRef(vr.getSpan(),
-                false,
-                translateQualifiedToFieldRef(ids), idn);
+        return ExprFactory.makeFieldRef(vr.getSpan(),
+                                        translateQualifiedToFieldRef(ids), idn);
     }
 
     static Expr translateFnRef(FnRef fr) {
@@ -67,10 +66,9 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
             } else {
                 List<Id> ids = idn.getApi().unwrap().getIds();
 
-                return new FieldRef(fr.getSpan(),
-                                        false,
-                                        translateQualifiedToFieldRef(ids),
-                                        idn);
+                return ExprFactory.makeFieldRef(fr.getSpan(),
+                                                translateQualifiedToFieldRef(ids),
+                                                idn);
             }
         } else {
         if (idn.getApi().isNone()) {
@@ -83,10 +81,9 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
 
             return new _RewriteFnRef(fr.getSpan(),
                         false,
-                        new FieldRef(fr.getSpan(),
-                                    false,
-                                    translateQualifiedToFieldRef(ids),
-                                    idn),
+                        ExprFactory.makeFieldRef(fr.getSpan(),
+                                                 translateQualifiedToFieldRef(ids),
+                                                 idn),
                         sargs);
         }
         }
@@ -101,8 +98,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
 
         }
         // TODO fix span -- it needs to cover the whole list.
-        return new FieldRef(id.getSpan(),
-                false,
+        return ExprFactory.makeFieldRef(id.getSpan(),
                 translateQualifiedToFieldRef(ids.subList(0, ids.size()-1)),
                 id
                 );

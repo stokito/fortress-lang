@@ -27,6 +27,8 @@ api Regex
     end
 
     object Regexp( elements : List[\Element\] )
+        opr =(self,s:String):Boolean
+        opr =(self,r:Regexp):Boolean
     end
 
     object CharElement(s:String) extends Element
@@ -35,10 +37,16 @@ api Regex
     object RepeatElement(e:Element) extends Element
     end
     
+    object RepeatNonGreedyElement(e:Element) extends Element
+    end
+    
     object MaybeElement(e:Element) extends Element
     end
     
     object RepeatOneElement(e:Element) extends Element
+    end
+    
+    object RepeatOneNonGreedyElement(e:Element) extends Element
     end
 
     object RepeatExactlyElement(e:Element, n:ZZ32) extends Element
@@ -74,18 +82,24 @@ api Regex
     object AnyElement() extends Element
     end
 
+    object EscapedElement(e:String) extends Element
+    end
+
+    object AlternateElement() extends Element
+    end
+
+
     grammar regex extends {Expression, Symbols, Literal}
         Expr:Regexp |Expr:= (* type: Content *)
-        (*
-            pants `{ LiteralExpr `} <[ 1 ]>
-            *)
            x:Regex <[ x ]>
 
         Regex:Regexp :Expr:=
             s1:Slash# e:Element#* s2:Slash# <[ Regexp(e) ]>
 
         Element:Element :Expr:=
-            i:Item# `* <[ RepeatElement(i) asif Element ]>
+            i:Item# `*# `? <[ RepeatNonGreedyElement(i) asif Element ]>
+        |   i:Item# `+# `? <[ RepeatOneNonGreedyElement(i) asif Element ]>
+        |   i:Item# `* <[ RepeatElement(i) asif Element ]>
         |   i:Item# `+ <[ RepeatOneElement(i) asif Element ]>
         |   i:Item# `? <[ MaybeElement(i) asif Element ]>
         (*
@@ -102,16 +116,18 @@ api Regex
             <[ RepeatBetweenElement(i,n1,n2) asif Element ]>
         |   i:Item# `{ , n:LiteralExpr `}
             <[ RepeatMaxElement(i,n) asif Element ]>
-
+        |   `## `{# e:Expr `} <[ CharElement(e "") asif Element ]>
         |   i:Item <[ i ]>
 
         Item:Element :Expr:=
-            s:AnyChar <[ (CharElement(s) asif Element) ]>
-        |   ^ <[ StartElement() asif Element ]>
+            ^ <[ StartElement() asif Element ]>
         |   $ <[ EndElement() asif Element ]>
+        |   `| <[ AlternateElement() asif Element ]>
         |   . <[ AnyElement() asif Element ]>
+        |   \# any:_ <[ EscapedElement(any "") asif Element ]>
         |   c:CharacterClass <[ c ]>
         |   (# e:Element#* ) <[ GroupElement(e) asif Element ]>
+        |   s:AnyChar <[ (CharElement(s) asif Element) ]>
         
         CharacterClass:Element :Expr:=
             `[# ^# r:RangeItem#* `] <[ InverseClassElement(r) asif Element ]>
@@ -127,6 +143,12 @@ api Regex
             / <[ "/" ]>
 
         AnyChar:String :Expr:=
-            x:[A:Za:z0:9] <[ x ]>
+            x:[A:Za:z0:9~!@%&] <[ x ]>
+        |   `: <[ ":" ]>
+        |   `# <[ "#" ]>
+        |   < <[ "<" ]>
+        |   > <[ ">" ]>
+        |   `{ <[ "{" ]>
+        |   `} <[ "}" ]>
     end 
 end

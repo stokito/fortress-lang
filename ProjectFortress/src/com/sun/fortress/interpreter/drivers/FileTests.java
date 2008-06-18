@@ -72,7 +72,7 @@ public class FileTests {
         }
 
         public void testFile() throws Throwable {
-            // Usefull when a test is running forever 
+            // Usefull when a test is running forever
 //            System.out.println(this.name);
 //            System.out.flush();
 
@@ -88,7 +88,7 @@ public class FileTests {
             String s = f.replaceFirst(".*/", "");
             String tmpFile = "/tmp/" + s + ".ast";
             String fssFile = f + ".fss";
-            
+
             BufferedReader in = Useful.utf8BufferedFileReader(fssFile);
             try {
                 try {
@@ -263,7 +263,9 @@ public class FileTests {
             if (f < begin || f >= end)
                 continue;
             String s = files[i];
-            if (!s.startsWith(".")) {
+            if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss"))
+                System.out.println("Not compiling file " + s);
+            else if (!s.startsWith(".")) {
                 if (s.endsWith(".fss")) {
                     int l = s.lastIndexOf(".fss");
                     //System.err.println("Adding " + s);

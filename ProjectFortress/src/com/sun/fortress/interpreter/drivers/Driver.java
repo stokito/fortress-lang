@@ -765,7 +765,7 @@ public class Driver {
                     }
                 } catch (CheckedNullPointerException ex) {
                     if (noisy[0])
-                        error("Import of " + s + " from api " + a
+                        error("Import of type " + s + " from api " + a
                           + " not found in implementing component " + c);
                 } catch (RedefinitionError re) {
                     if (re.existingValue == null ||
@@ -807,7 +807,7 @@ public class Driver {
                     }
                 } catch (CheckedNullPointerException ex) {
                     if (noisy[0])
-                    error("Import of " + s + " from api " + a
+                    error("Import of value " + s + " from api " + a
                           + " not found in implementing component " + c);
                 } catch (RedefinitionError re) {
                     if (re.existingValue == null ||
@@ -1020,7 +1020,7 @@ public class Driver {
             if (! isOverloadable)
                 importer.ownNonFunctionNames.add(add_as);
         } catch (CheckedNullPointerException ex) {
-            error(errorMsg("Import of ", name, " from api ", a,
+            error(errorMsg("Import of name ", name, " from api ", a,
                            " not found in implementing component ", c));
         }
 

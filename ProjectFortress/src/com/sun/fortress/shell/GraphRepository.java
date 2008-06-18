@@ -605,26 +605,20 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
 	private File findFile(APIName name, String suffix) throws FileNotFoundException {
-		String dotted = name.toString();
-		String slashed = dotted.replaceAll("[.]", "/");
-		dotted = dotted + "." + suffix;
-		slashed = slashed + "." + suffix;
-		File fdot;
+	    String dotted = name.toString();
+	    String slashed = dotted.replaceAll("[.]", "/");
+	    dotted = dotted + "." + suffix;
+	    slashed = slashed + "." + suffix;
+	    File fdot;
 
-		try {
-			fdot = path.findFile(dotted);
-		} catch (FileNotFoundException ex1) {
-			try {
-				fdot = path.findFile(slashed);
-			} catch (FileNotFoundException ex2) {
-				if (dotted.equals(slashed))
-					throw new FileNotFoundException("Could not find " + dotted + " on path " + path);
-				else 
-					throw new FileNotFoundException("Could not find " + dotted + " or " + slashed + " on path " + path);
+	    try {
+	        fdot = path.findFile(slashed);
+	    } catch (FileNotFoundException ex2) {
 
-			}
-		}
-		return fdot;
+	        throw new FileNotFoundException("Could not find " + dotted + " on path " + path);
+
+	    }
+	    return fdot;
 	}
 
 	/*

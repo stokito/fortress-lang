@@ -165,8 +165,7 @@ public class FortressParser {
 
 	/** Get the filename in which the given API should be defined. */
 	private static File fileForApiName(APIName api, Path p) throws FileNotFoundException {
-
-		return p.findFile(NodeUtil.nameString(api) + ".fsi");
+	       return p.findFile(NodeUtil.dirString(api) + ".fsi");
 	}
 
 	/**

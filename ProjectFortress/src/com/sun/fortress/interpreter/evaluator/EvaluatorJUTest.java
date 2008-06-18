@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.useful.Useful;
@@ -34,7 +33,6 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.useful.HasAt;
 
 public class EvaluatorJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 

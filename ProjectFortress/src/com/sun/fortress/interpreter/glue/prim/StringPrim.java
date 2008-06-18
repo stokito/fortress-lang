@@ -39,6 +39,12 @@ public static final class Println extends Util.S2V {
     protected void f(String x) { System.out.println(x); }
 }
 
+public static final class Match extends Util.SS2B {
+    protected boolean f(String regex, String some){
+        return some.matches(regex);
+    }
+}
+
 public static final class PrintTaskTrace extends NativeFn0 {
     protected FValue act() {
         BaseTask.printTaskTrace();

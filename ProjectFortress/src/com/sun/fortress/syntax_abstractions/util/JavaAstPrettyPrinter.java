@@ -49,6 +49,7 @@ import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.InFixity;
 import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.MathPrimary;
@@ -210,7 +211,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forChainExprOnly(ChainExpr that, String first_result) {
+    public String forChainExprOnly(ChainExpr that, String first_result, List<String> links_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -222,6 +223,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
+	public String forLinkOnly(Link that, String op_result, String expr_result) {
+    	String rVarName = FreshName.getFreshName("link");
+    	String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+    	this.code.add( String.format("Link %s = new Link(%s, %s, %s);", rVarName, sVarName, op_result, expr_result));
+    	return rVarName;
+	}
+
+	@Override
     public String forVoidLiteralExprOnly(VoidLiteralExpr that){
         String rVarName = FreshName.getFreshName("voidExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
@@ -530,8 +539,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     public String forStringLiteralExpr(StringLiteralExpr that) {
         String varName = FreshName.getFreshName("s");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-        this.code.add(String.format("StringLiteralExpr %s = new StringLiteralExpr(%s, %b, \"%s\");", varName, sVarName, that.isParenthesized(), that.getText().replaceAll("\"","\\\\\"")));
+        this.code.add(String.format("StringLiteralExpr %s = new StringLiteralExpr(%s, %b, \"%s\");", varName, sVarName, that.isParenthesized(), escapeString(that.getText())));
         return varName;
+    }
+
+    /* Escape \'s and "'s
+     */
+    private String escapeString(String s){
+        return s.replaceAll("\\\\","\\\\\\\\").replaceAll("\"","\\\\\"");
     }
 
     @Override

@@ -18,38 +18,19 @@
 package com.sun.fortress.interpreter.env;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 
-import com.sun.fortress.exceptions.CircularDependenceError;
-import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.Primitives;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.StringArrayIterator;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
 
@@ -68,12 +49,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
 
 
     static public boolean verboseDump = false;
-
-    /** Names noted for possible future overloading */
-    String[] namesPut;
-    int namesPutCount;
-    boolean blessed; /* until blessed, cannot be copied */
-    private boolean topLevel;
 
     /** Where created */
     HasAt within;
@@ -103,22 +78,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         if (var_env != null) var_env.visit(v);
         if (bool_env != null) bool_env.visit(v);
 
-    }
-
-    public void bless() {
-        blessed = true;
-    }
-
-    public boolean getBlessed() {
-        return blessed;
-    }
-
-    public void setTopLevel() {
-        topLevel = true;
-    }
-
-    public boolean isTopLevel() {
-        return topLevel;
     }
 
     public static BetterEnv empty() {
@@ -163,7 +122,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     }
 
     private BetterEnv(BetterEnv existing) {
-        if (! existing.blessed)
+        if (! existing.getBlessed())
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
         type_env = existing.type_env;
         nat_env = existing.nat_env;
@@ -288,15 +247,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         return r;
     }
 
-    private <Result> boolean has(BATreeNode<String, Result> table, String index) {
-        if (table == null)
-            return false;
-        BATreeNode<String,Result> node = table.getObject(index, comparator);
-        if (node == null)
-            return false;
-        return true;
-    }
-
     private <Result> BATreeNode<String, Result> put(BATreeNode<String, Result> table, String index, Result value) {
         if (table == null) {
             return new BATreeNode<String, Result> (index, value);
@@ -304,9 +254,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
             BATreeNode<String, Result> new_table = table.add(index, value, comparator);
             return new_table;
         }
-    }
-
-     
+    }     
  
     private <Result> BATreeNode<String, Result> putUnconditionally(BATreeNode<String, Result> table, String index, Result value, String what) {
         if (table == null) {
@@ -419,11 +367,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         return v;
     }
 
-
-    public boolean hasValue(String str) {
-        return has(var_env, str) || has(bool_env, str) || has(nat_env, str);
-    }
-
     public void putApi(String s, SApi api) {
         api_env = put(api_env, s, api);
     }
@@ -455,45 +398,10 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         var_env = put(var_env, str, f2);
     }
     
-    public void putValue(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", false, false);
-        else
-            // var_env = putNoShadow(var_env, str, f2, "Var/value");
-            putNoShadow(str, f2, "Var/value");
-        
-     }
-
-    public void putValueNoShadowFn(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", true, false);
-        else
-            // var_env = putNoShadow(var_env, str, f2, "Var/value");
-            putNoShadow(str, f2, "Var/value");
-     }
-    
-    /**
-     *
-     * @param str
-     * @param f2
-     */
-    public void putFunctionalMethodInstance(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", true, true);
-        else
-            error(str + " must be a functional method instance ");
-     }
-
     public void putValueUnconditionally(String str, FValue f2) {
         var_env = putUnconditionally(var_env, str, f2, "Var/value");
      }
 
- 
-    public Iterator<String> iterator() {
-        if (var_env != null)
-            return new StringArrayIterator(namesPut, namesPutCount);
-        return Collections.<String>emptySet().iterator();
-    }
 
     // Slightly wrong -- returns all, not just the most recently bound.
 
@@ -501,16 +409,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         return within;
     }
 
-    public void noteName(String s) {
-        if (namesPutCount == 0)
-            namesPut = new String[2];
-        else if (namesPutCount == namesPut.length) {
-            String[] next = new String[namesPutCount*2];
-            System.arraycopy(namesPut, 0, next, 0, namesPut.length);
-            namesPut = next;
-        }
-        namesPut[namesPutCount++] = s;
-    }
 
     public void removeType(String s) {
         if (type_env == null)

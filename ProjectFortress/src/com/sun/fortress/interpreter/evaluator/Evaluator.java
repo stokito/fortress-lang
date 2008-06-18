@@ -92,6 +92,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FieldRefForSure;
+import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.FnExpr;
@@ -595,14 +596,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     public FValue forChainExpr(ChainExpr x) {
         Expr first = x.getFirst();
-        List<Pair<OpRef, Expr>> links = x.getLinks();
+        List<Link> links = x.getLinks();
         FValue idVal = first.accept(this);
-        Iterator<Pair<OpRef, Expr>> i = links.iterator();
+        Iterator<Link> i = links.iterator();
         List<FValue> vargs = new ArrayList<FValue>(2);
         if (links.size() == 1) {
-            Pair<OpRef, Expr> link = i.next();
-            Fcn fcn = (Fcn) link.getA().getOriginalName().accept(this);
-            FValue exprVal = link.getB().accept(this);
+            Link link = i.next();
+            Fcn fcn = (Fcn) link.getOp().getOriginalName().accept(this);
+            FValue exprVal = link.getExpr().accept(this);
             vargs.add(idVal);
             vargs.add(exprVal);
             return functionInvocation(vargs, fcn, x);
@@ -611,9 +612,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             vargs.add(idVal);
             vargs.add(idVal);
             while (boolres.getBool() && i.hasNext()) {
-                Pair<OpRef, Expr> link = i.next();
-                Fcn fcn = (Fcn) link.getA().getOriginalName().accept(this);
-                FValue exprVal = link.getB().accept(this);
+                Link link = i.next();
+                Fcn fcn = (Fcn) link.getOp().getOriginalName().accept(this);
+                FValue exprVal = link.getExpr().accept(this);
                 vargs.set(0, idVal);
                 vargs.set(1, exprVal);
                 FValue invoke = functionInvocation(vargs, fcn, x);
