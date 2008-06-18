@@ -381,11 +381,11 @@ public class ExprFactory {
         return new FnRef(qName.getSpan(), false, qName, qNames,
                 Collections.<StaticArg>emptyList());
     }
-    
+
     public static FnRef makeFnRef(Span span, boolean paren, Id original_fn, List<Id> fns, List<StaticArg> sargs) {
     	return new FnRef(span, paren, original_fn, fns, sargs);
     }
-    
+
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
             List<Expr> subs) {
@@ -457,15 +457,19 @@ public class ExprFactory {
         return new VarRef(qName.getSpan(), false, qName);
     }
 
+    public static FieldRef makeFieldRef(Span span, Expr receiver, Id field) {
+        return new FieldRef(span, receiver, field);
+    }
+
     public static FieldRef makeFieldRef(Expr receiver, Id field) {
         return new FieldRef(FortressUtil.spanTwo(receiver, field), false,
-                receiver, field);
+                            receiver, field);
     }
 
     public static Expr makeReceiver(Iterable<Id> ids) {
         Expr expr = makeVarRef(IterUtil.first(ids));
         for (Id id : IterUtil.skipFirst(ids)) {
-            expr = new FieldRef(FortressUtil.spanTwo(expr, id), expr, id);
+            expr = makeFieldRef(expr, id);
         }
         return expr;
     }
@@ -741,16 +745,16 @@ public class ExprFactory {
             }
             public Expr forChainExpr(ChainExpr e) {
                 return new ChainExpr(e.getSpan(), true, e.getFirst(),
-                        e.getLinks());
+                                     e.getLinks());
             }
             public Expr forFieldRef(FieldRef e) {
                 return new FieldRef(e.getSpan(), true, e.getObj(),
-                        e.getField());
+                                    e.getField());
             }
             public Expr forMethodInvocation(MethodInvocation e) {
                 return new MethodInvocation(e.getSpan(), true, e.getObj(),
-                        e.getMethod(), e.getStaticArgs(),
-                        e.getArg());
+                                            e.getMethod(), e.getStaticArgs(),
+                                            e.getArg());
             }
             public Expr forLooseJuxt(LooseJuxt e) {
                 return new LooseJuxt(e.getSpan(), true, e.getExprs());

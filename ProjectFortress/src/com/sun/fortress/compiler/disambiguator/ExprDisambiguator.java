@@ -453,7 +453,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         // result is now non-null
         for (Id field : fields) {
-            result = new FieldRef(result, field);
+            result = ExprFactory.makeFieldRef(result, field);
         }
         if (that.isParenthesized()) {
             result = ExprFactory.makeInParentheses(result);
@@ -496,25 +496,25 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		// Many FnRefs will be covered by the VarRef case, since many functions are parsed
     	// as variables. FnRefs can be parsed if, for example, explicit static arguments are
     	// provided. These function references must still be disambiguated.
-    	
+
     	Id fn_name = IterUtil.first(that.getFns());
     	Set<Id> fns = _env.explicitFunctionNames(fn_name);
     	if( fns.isEmpty() ) {
     		fns = _env.onDemandFunctionNames(fn_name);
     		_onDemandImports.add(fn_name);
     	}
-    	
+
     	if( fns.isEmpty() ) {
     		//error("Function " + that + " could not be disambiguated.", that);
     		// TODO: The above line is giving fits to the tests, but it'd be nice to pass.
-    		return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name, 
+    		return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
     				that.getFns(), that.getStaticArgs());
     	}
-    	
-    	return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name, 
+
+    	return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
     			IterUtil.asList(fns), that.getStaticArgs());
 	}
-	
+
 	// Note how this method does not delegate to
     // forOp().
     @Override public Node forOpRef(OpRef that) {

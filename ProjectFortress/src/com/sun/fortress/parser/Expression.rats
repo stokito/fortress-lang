@@ -141,7 +141,7 @@ constant inline Action<Expr> FieldSelectionAssign =
     dot a1:Id
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              return new FieldRef(createSpan(yyStart,yyCount), false, base, a1);
+              return ExprFactory.makeFieldRef(createSpan(yyStart,yyCount), base, a1);
           }};
     };
 
@@ -345,7 +345,7 @@ constant Expr LeftAssociatedPrimary =
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
        Span span = FortressUtil.spanTwo(receiver,last);
-       Expr e1 = new FieldRef(span, receiver, last);
+       Expr e1 = ExprFactory.makeFieldRef(span, receiver, last);
        Expr e2 = (Expr)apply(a2s, e1);
        Expr e3 = (Expr)apply(a3s, e2);
        yyValue = (Expr)apply(a4s, e3);
@@ -363,7 +363,7 @@ constant Expr LeftAssociatedPrimary =
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
        Span span = FortressUtil.spanTwo(receiver,last);
-       Expr e1 = new FieldRef(span, receiver, last);
+       Expr e1 = ExprFactory.makeFieldRef(span, receiver, last);
        yyValue = (Expr)apply(a2s, e1);
      }
    / a1:PrimaryFront a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
@@ -534,8 +534,8 @@ constant inline Action<Expr> FieldSelectionSelector =
      dot w a1:Id a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               Expr fldSel = new FieldRef(createSpan(yyStart,yyCount), false,
-                                          base, a1);
+               Expr fldSel = ExprFactory.makeFieldRef(createSpan(yyStart,yyCount),
+                                                      base, a1);
                return (Expr)apply(a3s, (Expr)apply(a2s, fldSel));
            }};
      };
