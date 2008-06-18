@@ -21,78 +21,135 @@ api Xml
 
   import FortressAst.{...}
   import FortressSyntax.{Literal}
-
+  import List.{...}
 
   trait Content
+    getter hasElements():Boolean
     toString():String
   end
 
-  object Element(startTag:Expr, content:Expr, endTag:Expr) extends Content 
+  object Element(info:Header, content_:List[\Content\], endTag:String) extends Content 
+    getter toString():String
+    getter tag():String
+    getter hasElements():Boolean
+    getter children():List[\Element\]
+    getter content():CData
+    getter attributes():List[\Attribute\]
+    getter toXml():String
   end 
+  Element(info:Header)
+  Element(info:Header, endTag:String)
 
-  grammar xml extends Literal
-    LiteralExpr |Expr:=
-      xml x:XExpr <[ x ]>
+  object Attribute(key:String, val:String) extends Content
+    getter getKey():String
+    getter getValue():String
+    getter toString():String
+  end
+  
+  object Header(startTag:String, _attributes:List[\Attribute\])
+    getter getTag():String
+    getter attributes():String
+  end
 
-    XExpr :Expr:=
+  object CData(v:String) extends Content
+    getter toString():String
+  end
+
+  grammar xml extends {Expression, Symbols}
+    Expr:Element |Expr:= (* type: Content *)
+      x:XExpr <[ x ]>
+
+    XExpr:Element :Expr:= (* type: Content *)
       b:XmlStart c:XmlContent e:XmlEnd
-      <[ Element(b, c, e) ]>
+      <[ Element(b, c, e) asif Content ]>
     | b:XmlStart e:XmlEnd
-    <[ Element(b, "a" "a", e) ]>
-    | x:XmlComplete <[ Element(x, "a" "a", x) ]>
+      <[ Element(b,e) asif Content ]>
+    | x:XmlComplete <[ Element(x) asif Content ]>
 
-    XExprs :Expr:=
-      x:XExpr y:XExprs <[ x y ]>
-    | x:XExpr <[ x ]>
-
-    XmlComplete :Expr:=
+    XmlComplete:Header :Expr:=
       OpenBracket# s:String Slash# CloseBracket
-      <[ s ]>
-    | OpenBracket# s:String a:Attributes Slash# CloseBracket
-      <[ s " " a ]>
-    | OpenBracket# s:String a:Attributes Slash# CloseBracket
-      <[ s " " a ]>
+      <[ Header(s,emptyList[\Attribute\]()) ]>
+    | OpenBracket# s:String {a:Attribute SPACE}+ Slash# CloseBracket
+      <[ Header(s, a) ]>
 
-    Attributes :Expr:=
-      a:Attribute r:Attributes <[ a " " r ]>
-    | a:Attribute <[ a ]>
-
-    Attribute :Expr:=
-      key:String = " val:Strings " <[ key "='" val "'" ]>
-
-    XmlStart :Expr:=
+    XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
-      <[ s ]>
-    | o1:OpenBracket# s:String a:Attributes o2:CloseBracket
-      <[ s " " a ]>
+      <[ Header(s,emptyList[\Attribute\]()) ]>
+    | o1:OpenBracket# s:String {a:Attribute SPACE}+ o2:CloseBracket
+      <[ Header(s, a) ]>
 
-    XmlContent :Expr:=
-      s:Strings <[ s ]>
-    | x:XExprs <[ x ]>
+    XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
+      s:Strings <[ <| (CData(s) asif Content) |> ]>
+    | c:CData+ <[ <| CData(BIG ||| <| a.toString() | a <- c |>) asif Content |> ]>
+    | {x:XExpr SPACE}+ <[ x ]>
 
-    Strings :Expr:=
-      s1:String s2:Strings <[ s1 " " s2 ]>
-    | s1:String <[ s1 ]>
+    CData:Element :Expr:=
+        <# !# `[# CDATA# `[# n:Strings `]# `]# > <[ CData(n) asif Content ]>
 
-    XmlEnd :Expr:=
+    (*
+      e:Expr <[ <! CData("" e) asif Content !> ]>
+      *)
+      (*
+    | x:XExprs+ <[ x ]>
+    *)
+
+(*
+    XExprs:Element :Expr:=
+      x:XExpr SPACE <[ x ]>
+      *)
+
+    XmlEnd:String :Expr:= (* type: String *)
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
       <[ s ]>
 
-    Slash :StringLiteralExpr:=
-      / <[ "/" ]>
+    (*
+    Attributes :Expr:=
+      a:Attribute r:Attributes <[ a " " r ]>
+    | a:Attribute <[ a ]>
+    *)
+    (*
+    Attributes:Attribute :Expr:=
+      a:Attribute SPACE <[ a ]>
+      *)
 
-    String :Expr:=
+    Attribute:Attribute :Expr:=
+      key:String = " val:AttributeStrings " <[ Attribute(key,val) ]>
+
+    AttributeStrings:String :Expr:= (* type: String *)
+      s1:AttributeString s2:AttributeStrings <[ s1 " " s2 ]>
+    | s1:AttributeString <[ s1 ]>
+
+    AttributeString:String :Expr:= (* type: String *)
+      x:AttributeChar# y:AttributeString <[ x y ]>
+    | x:AttributeChar <[ x "" ]>
+
+    AttributeChar:String :StringLiteralExpr:=
+      x:AnyChar <[ x ]>
+    | x:['] <[ x ]>
+    | x:Slash <[ x ]>
+
+    Strings:String :Expr:= (* type: String *)
+      s1:String s2:Strings <[ s1 " " s2 ]>
+    | s1:String <[ s1 ]>
+
+    String:String :Expr:= (* type: String *)
       x:AnyChar# y:String <[ x y ]>
     | x:AnyChar <[ x "" ]>
 
-    AnyChar :StringLiteralExpr:=
-      x:[a:zA:Z] <[ x ]>
+  end
 
-    OpenBracket :Expr:=
+  grammar Symbols 
+
+    AnyChar:String :StringLiteralExpr:=
+      x:[A:Za:z0:9] <[ x ]>
+
+    OpenBracket:String :Expr:=
       < <[ "<" ]>
 
-    CloseBracket :Expr:=
+    CloseBracket:String :Expr:=
       > <[ ">" ]>
 
+    Slash:String :StringLiteralExpr:=
+      / <[ "/" ]>
   end
 end
