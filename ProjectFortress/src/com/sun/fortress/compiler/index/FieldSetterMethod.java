@@ -67,9 +67,8 @@ public class FieldSetterMethod extends Method {
 	}
 
 	@Override
-	public Option<Functional> instantiate(List<StaticArg> args) {
-		assert(args.size()==0);
-		return Option.<Functional>some(this);
+	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
+		return this;
 	}
 
 	@Override
