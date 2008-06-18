@@ -42,14 +42,24 @@ public class TopLevelEnvGenJUTest extends TestCaseWrapper {
 			FInt three = FInt.make(3);
 			FInt seven = FInt.make(7);
 			FInt thirteen = FInt.make(13);
+			FInt a = FInt.make((int) '$');
+			FInt b = FInt.make((int) 'K');
+			FInt c = FInt.make((int) 'l');
 			
 			environment.putValueUnconditionally("run", three);
+			environment.putValueUnconditionally("$", a);
+			environment.putValueUnconditionally("K", b);			
+			environment.putValueUnconditionally("l", c);
 
 			// Now test hash collisions
 			environment.putValueUnconditionally("Aa", seven);
 			environment.putValueUnconditionally("BB", thirteen);
 			
 			assertEquals(environment.getValueRaw("run"), three);
+			assertEquals(environment.getValueRaw("$"), a);
+			assertEquals(environment.getValueRaw("K"), b);
+			assertEquals(environment.getValueRaw("l"), c);
+			
 			assertEquals(environment.getValueRaw("Aa"), seven);			
 			assertEquals(environment.getValueRaw("BB"), thirteen);
 			assertNull(environment.getValueRaw("Chupacabra"));			
