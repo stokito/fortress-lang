@@ -142,7 +142,7 @@ public class TopLevelEnvGen {
 		
 		/*
 		 *  With new ClassWriter(ClassWriter.COMPUTE_FRAMES) everything is 
-		 *  computed automatically. You don’t have to call visitFrame, but you 
+		 *  computed automatically. You don't have to call visitFrame, but you 
 		 *  must still call visitMaxs (arguments will be ignored and recomputed). 
 		 *  Using these options is convenient but this has a cost: the COMPUTE_FRAMES option 
 		 *  makes it two times slower.
