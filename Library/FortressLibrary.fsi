@@ -661,7 +661,7 @@ value object Nothing[\T\] extends Maybe[\T\]
     reduce(_:(T,T)->T, z:T):T
     reduce(r: Reduction[\T\]):T
     loop(f:T->()): ()
-    opr =(self,_:Nothing[\T\])
+    opr =(self,_:Nothing[\T\]): Boolean
 end
 
 (************************************************************
