@@ -584,10 +584,9 @@ SubscriptingMI Subscripting =
          Op close = NodeFactory.makeOpEnclosing(spanClose, a4);
          Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close),
                                       open,close);
-         List<StaticArg> ss;
-         if (a2 == null) ss = Collections.<StaticArg>emptyList();
-         else            ss = a2;
-         yyValue = new SubscriptingMI(span, op, a3, ss);
+         if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+         if (a3 == null) a3 = Collections.<Expr>emptyList();
+         yyValue = new SubscriptingMI(span, op, a3, a2);
        } else return syntaxError(span,
                                  "Mismatched subscripting operator: " + a1 +
                                  " and " + a4);
@@ -599,10 +598,9 @@ SubscriptingMI Subscripting =
    / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
      { Span span = createSpan(yyStart,yyCount);
        Enclosing op = new Enclosing(FortressUtil.spanTwo(a1,a4),a1,a4);
-       List<StaticArg> ss;
-       if (a2 == null) ss = Collections.<StaticArg>emptyList();
-       else            ss = a2;
-       yyValue = new SubscriptingMI(span, op, a3, ss);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null) a3 = Collections.<Expr>emptyList();
+       yyValue = new SubscriptingMI(span, op, a3, a2);
      };
 
 /* Exponentiation ::=
