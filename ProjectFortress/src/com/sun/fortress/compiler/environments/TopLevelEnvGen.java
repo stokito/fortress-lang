@@ -1,14 +1,12 @@
 package com.sun.fortress.compiler.environments;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +21,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
@@ -113,7 +112,7 @@ public class TopLevelEnvGen {
 			                    GlobalEnvironment env) {
 
 		Map<APIName, byte[]> compiledComponents = new HashMap<APIName, byte[]>();
-        Iterable<? extends StaticError> errors = new HashSet<StaticError>();		
+		HashSet<StaticError> errors = new HashSet<StaticError>();		
 		
 		for(APIName componentName : components.keySet()) {
 			String className = NodeUtil.nameString(componentName);
@@ -122,8 +121,11 @@ public class TopLevelEnvGen {
 			byte[] envClass = generateForComponent(className,
 					              components.get(componentName), env);
 			
-			compiledComponents.put(componentName, envClass);
-			
+			compiledComponents.put(componentName, envClass);			
+		}
+		
+		if (errors.isEmpty()) {
+			outputClassFiles(compiledComponents, errors);
 		}
 	
         return new ComponentResult(compiledComponents, errors);		
@@ -272,8 +274,7 @@ public class TopLevelEnvGen {
         mv.visitLocalVariable("queryString", "Ljava/lang/String;", null, defQueryHashCode, endFunction, 1);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 2);
         mv.visitMaxs(2, 3);
-        mv.visitEnd();
-        
+        mv.visitEnd();        
 	}
 
 	private static void getValueRawHelper(String className,
@@ -463,32 +464,44 @@ public class TopLevelEnvGen {
 	}
 	
 	
-	public static void outputClassFiles(ComponentResult componentResult) {
-		for(APIName componentName : componentResult.components().keySet()) {
-			String className = NodeUtil.nameString(componentName);
-			className = className + CLASSNAME_SUFFIX + ".class";
-			String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + className;
-			outputClassFile(componentResult.components().get(componentName), fileName);
+	private static void outputClassFiles(Map<APIName, byte[]> compiledComponents, 
+			HashSet<StaticError> errors) {
+		try {
+			boolean writeCompleted = true;
+			for (APIName componentName : compiledComponents.keySet()) {
+				if (writeCompleted) {
+					String className = NodeUtil.nameString(componentName);
+					className = className + CLASSNAME_SUFFIX + ".class";
+					String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + className;
+					writeCompleted = outputClassFile(compiledComponents.get(componentName),
+						fileName, errors);
+				}
+			}
+		} catch (IOException e) {
+			errors.add(new WrappedException(e));
 		}
 	}
 	
 	/**
 	 * Given a Java bytecode class stored in a byte array, save that
 	 * class into a file on disk.
+	 * @throws IOException 
 	 */
-	private static void outputClassFile(byte[] bytecode, String fileName) {
-		FileOutputStream outStream;
+	private static boolean outputClassFile(byte[] bytecode, String fileName,
+			HashSet<StaticError> errors) throws IOException {
+		FileOutputStream outStream = null;
+		boolean writeCompleted = true;		
 		try {
 			outStream = new FileOutputStream(new File(fileName));
 			outStream.write(bytecode);
 			outStream.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			errors.add(new WrappedException(e));
+			writeCompleted = false;
+		} finally {
+			if (outStream != null) outStream.close();
 		}
+		return writeCompleted;
 	}
 	
 	public static void main(String args[]) {
