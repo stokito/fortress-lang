@@ -5,15 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -350,7 +347,6 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        Label endComparisons = new Label();
         Iterator<Integer> iterator = valueHashCode.secondSet().iterator();        
         while (iterator.hasNext()) {
         	Integer testHashCode = iterator.next();
@@ -358,11 +354,7 @@ public class TopLevelEnvGen {
             mv.visitLdcInsn(testHashCode);
             Label beforeInnerLoop = new Label();            
             Label afterInnerLoop = new Label();
-            if (iterator.hasNext()) {
-            	mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
-            } else {
-            	mv.visitJumpInsn(Opcodes.IF_ICMPNE, endComparisons);            	
-            }
+           	mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
             mv.visitLabel(beforeInnerLoop);
 
             for(String testString : valueHashCode.getFirsts(testHashCode)) {
@@ -377,16 +369,11 @@ public class TopLevelEnvGen {
                 mv.visitVarInsn(Opcodes.ALOAD, 2);
                 String idString = testString + FVALUE_NAMESPACE;                
                 mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
-                		mangleIdentifier(idString), FVALUE_DESCRIPTOR);                                
-                mv.visitJumpInsn(Opcodes.GOTO, endComparisons);
+                		mangleIdentifier(idString), FVALUE_DESCRIPTOR); 
+                mv.visitInsn(Opcodes.RETURN);
                 mv.visitLabel(afterSetValue);
             }                                    
-            if (iterator.hasNext()) {
-                mv.visitJumpInsn(Opcodes.GOTO, endComparisons);
             	mv.visitLabel(afterInnerLoop);
-            } else {
-            	mv.visitLabel(endComparisons);
-            }
         }
         mv.visitInsn(Opcodes.RETURN);        
         Label endFunction = new Label();
