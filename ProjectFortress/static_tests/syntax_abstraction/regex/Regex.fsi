@@ -116,7 +116,7 @@ api Regex
             <[ RepeatBetweenElement(i,n1,n2) asif Element ]>
         |   i:Item# `{ , n:LiteralExpr `}
             <[ RepeatMaxElement(i,n) asif Element ]>
-
+        |   `## `{# e:Expr `} <[ CharElement(e "") asif Element ]>
         |   i:Item <[ i ]>
 
         Item:Element :Expr:=
@@ -148,5 +148,7 @@ api Regex
         |   `# <[ "#" ]>
         |   < <[ "<" ]>
         |   > <[ ">" ]>
+        |   `{ <[ "{" ]>
+        |   `} <[ "}" ]>
     end 
 end
