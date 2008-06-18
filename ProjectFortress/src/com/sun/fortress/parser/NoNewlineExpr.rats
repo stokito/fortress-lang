@@ -50,7 +50,9 @@ import Spacing;
  */
 Expr NoNewlineExpr = Expr ;
 private Expr Expr := ... ;
-Expr ExprFront := ... ;
+Expr ExprFront :=
+    <AssignExpr> NoNewlineAssignExpr
+  / ... ;
 Expr NoNewlineAssignExpr =
     a1:AssignLefts s a2:AssignOp w a3:NoNewlineExpr
     { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3);};
