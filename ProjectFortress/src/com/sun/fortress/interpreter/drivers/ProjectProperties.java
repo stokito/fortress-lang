@@ -213,6 +213,7 @@ public class ProjectProperties {
     public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${BASEDIR}.presyntax_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}.analyzed_cache");
     public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${BASEDIR}.syntax_cache");
+    public static final String BYTECODE_CACHE_DIR = get("fortress.syntax.cache", "${BASEDIR}.bytecode_cache");    
 
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
 
@@ -222,6 +223,7 @@ public class ProjectProperties {
         ensureDirectoryExists(INTERPRETER_CACHE_DIR);
         ensureDirectoryExists(ANALYZED_CACHE_DIR);
         ensureDirectoryExists(SYNTAX_CACHE_DIR);
+        ensureDirectoryExists(BYTECODE_CACHE_DIR);
     }
 
 

@@ -17,5 +17,5 @@ REM #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 REM ################################################################################
 ECHO ON
 
-java -cp "%FORTRESS_HOME%/ProjectFortress/build;%FORTRESS_HOME%/ProjectFortress/third_party/junit/junit.jar;%FORTRESS_HOME%/ProjectFortress/third_party/xtc/xtc.jar;%FORTRESS_HOME%/ProjectFortress/third_party/jsr166y/jsr166y.jar;%FORTRESS_HOME%/ProjectFortress/third_party/plt/plt.jar;%JAVA_HOME%/lib/tools.jar" com.sun.fortress.interpreter.drivers.fs %1 %2 %3 %4 %5 %6 %7 %8 %9
+java -Xms128m -Xmx512m -cp "%FORTRESS_HOME%/ProjectFortress/build;%FORTRESS_HOME%/ProjectFortress/third_party/junit/junit.jar;%FORTRESS_HOME%/ProjectFortress/third_party/xtc/xtc.jar;%FORTRESS_HOME%/ProjectFortress/third_party/jsr166y/jsr166y.jar;%FORTRESS_HOME%/ProjectFortress/third_party/plt/plt.jar;%FORTRESS_HOME%/ProjectFortress/third_party/asm/asm-3.1.jar;%JAVA_HOME%/lib/tools.jar" com.sun.fortress.interpreter.drivers.fs %1 %2 %3 %4 %5 %6 %7 %8 %9
 
