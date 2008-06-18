@@ -3,7 +3,6 @@ package com.sun.fortress.interpreter.env;
 import java.io.IOException;
 
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
-import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
@@ -58,12 +57,6 @@ public class WorseEnv extends BaseEnv {
 		return null;
 	}
 
-	@Override
-	public Declaration getDeclNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Number getIntNull(String s) {
 		// TODO Auto-generated method stub
 		return null;
@@ -97,11 +90,6 @@ public class WorseEnv extends BaseEnv {
 	}
 
 	public void putComponent(String name, SComponent comp) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putDecl(String str, Declaration f2) {
 		// TODO Auto-generated method stub
 
 	}
