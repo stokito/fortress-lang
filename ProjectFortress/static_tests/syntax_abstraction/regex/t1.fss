@@ -26,8 +26,10 @@ run(s:String...) = do
 
     println "/abc/ = " (/abc/)
     println "/a*bc/ = " (/a*bc/)
+    println "/a*?bc/ = " (/a*?bc/)
     println "/a(bc)/ = " (/a(bc)/)
     println "/a+bc/ = " (/a+bc/)
+    println "/a+?bc/ = " (/a+?bc/)
     println "/(ab)*c/ = " (/(ab)*c/)
     println "/^foo/ = " (/^foo/)
     println "/bar$/ = " (/bar$/)
@@ -41,6 +43,31 @@ run(s:String...) = do
     println "/a{1,}/ = " (/a{1,}/) 
     println "/a{1,2}/ = " (/a{1,2}/)
     println "/a{,2}/ = " (/a{,2}/)
+
+    println "/\\a/ = " (/\a/)
+    println "/\\\\/ = " (/\\/)
+    println "/\\// = " (/\//)
+    println "/\\a\\b\\c\\d/ = " (/\a\b\c\d/)
+
+    println "/a|b/ = " (/a|b/)
+    println "/(abc)|(def)/ = " (/(abc)|(def)/)
+    println "/(abc|def)/ = " (/(abc|def)/)
+
+    println "/:/ = " (/:/)
+    println "/#/ = " (/#/)
+    println "/&/ = " (/&/)
+
+    println "/4/ = " (/#{2+2}/)
+    (* How do you match #{ ?? *)
+    println "/#{1+1}/ = " (/\#{1+1}/)
+
+    println "/a/ == 'a'? " ((/a/) = "a")
+    println "/\\d+?/ == '542'? " ((/\d+?/) = "542")
+    println "/\\d+?/ == 'apple542'? " ((/\d+?/) = "apple542")
+    println "/\\w+\\d+?/ == 'apple542'? " ((/\w+\d+?/) = "apple542")
+    n = /123/
+    println "n = n? " (n = n)
+    println "/123/ = /123/? " ((/123/) = (/123/))
 end
 
 end

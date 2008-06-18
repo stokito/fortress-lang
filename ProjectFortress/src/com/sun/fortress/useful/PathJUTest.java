@@ -19,6 +19,7 @@ package com.sun.fortress.useful;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import junit.framework.TestCase;
 
@@ -56,6 +57,14 @@ public class PathJUTest extends TestCase {
         try {
             File f = p.findFile("README.txt");
         } catch (FileNotFoundException e) {
+            System.err.println(e);
+        }
+        try {
+            File f = p.findFile("tests/ProjectFortress/a/b/c/d/e.f");
+            System.err.println("Found " + f.getCanonicalPath());
+        } catch (FileNotFoundException e) {
+            System.err.println(e);
+        } catch (IOException e) {
             System.err.println(e);
         }
     }

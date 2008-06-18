@@ -432,12 +432,34 @@ public class TopLevelEnvGen {
 		mv.visitMaxs(1, 2);
 		mv.visitEnd();		
 	}
+
+	private static void writeNullSetter(ClassWriter cw, String className, String methodName, String signature) {	
+		MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, signature, null, null);
+		mv.visitCode();
+		Label l0 = new Label();
+		mv.visitLabel(l0);
+		mv.visitInsn(Opcodes.RETURN);
+		Label l1 = new Label();
+		mv.visitLabel(l1);
+		mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
+		mv.visitLocalVariable("str", "Ljava/lang/String;", null, l0, l1, 1);
+		mv.visitLocalVariable("f2", "Ljava/lang/Number;", null, l0, l1, 2);
+		mv.visitMaxs(0, 3);
+		mv.visitEnd();
+	}
+	
+	
+	
 	
 	private static void writeEmptyMethods(ClassWriter cw, String className) {
 		
 		writeNullGetter(cw, className, "getBoolNull", "(Ljava/lang/String;)Ljava/lang/Boolean;");
+		writeNullGetter(cw, className, "getIntNull", "(Ljava/lang/String;)Ljava/lang/Number;");		
 		writeNullGetter(cw, className, "getNatNull", "(Ljava/lang/String;)Ljava/lang/Number;");		
-		
+
+		writeNullSetter(cw, className, "putBoolRaw", "(Ljava/lang/String;Ljava/lang/Boolean;)V");		
+		writeNullSetter(cw, className, "putIntRaw", "(Ljava/lang/String;Ljava/lang/Number;)V");
+		writeNullSetter(cw, className, "putNatRaw", "(Ljava/lang/String;Ljava/lang/Number;)V");		
 	}
 	
 	

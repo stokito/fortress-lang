@@ -148,25 +148,20 @@ public class PathBasedRepository extends StubRepository implements FortressRepos
         }
     }
 
-    private File findFile(APIName name, String suffix) throws FileNotFoundException {
+    private File findFile(APIName name, String suffix)
+            throws FileNotFoundException {
         String dotted = name.toString();
         String slashed = dotted.replaceAll("[.]", "/");
         dotted = dotted + "." + suffix;
         slashed = slashed + "." + suffix;
         File fdot;
-        
+
         try {
-            fdot = path.findFile(dotted);
-        } catch (FileNotFoundException ex1) {
-            try {
-                fdot = path.findFile(slashed);
-            } catch (FileNotFoundException ex2) {
-                if (dotted.equals(slashed))
-                    throw new FileNotFoundException("Could not find " + dotted + " on path " + path);
-                else 
-                     throw new FileNotFoundException("Could not find " + dotted + " or " + slashed + " on path " + path);
-                
-            }
+            fdot = path.findFile(slashed);
+        } catch (FileNotFoundException ex2) {
+            throw new FileNotFoundException("Could not find " + dotted
+                    + " on path " + path);
+
         }
         return fdot;
     }

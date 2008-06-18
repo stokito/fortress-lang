@@ -64,6 +64,7 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetExpr;
 import com.sun.fortress.nodes.LetFn;
+import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.MathItem;
@@ -382,6 +383,10 @@ public class ExprFactory {
                 Collections.<StaticArg>emptyList());
     }
 
+    public static FnRef makeFnRef(Span span, boolean paren, Id original_fn, List<Id> fns, List<StaticArg> sargs) {
+    	return new FnRef(span, paren, original_fn, fns, sargs);
+    }
+
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
             List<Expr> subs) {
@@ -453,15 +458,19 @@ public class ExprFactory {
         return new VarRef(qName.getSpan(), false, qName);
     }
 
+    public static FieldRef makeFieldRef(Span span, Expr receiver, Id field) {
+        return new FieldRef(span, receiver, field);
+    }
+
     public static FieldRef makeFieldRef(Expr receiver, Id field) {
         return new FieldRef(FortressUtil.spanTwo(receiver, field), false,
-                receiver, field);
+                            receiver, field);
     }
 
     public static Expr makeReceiver(Iterable<Id> ids) {
         Expr expr = makeVarRef(IterUtil.first(ids));
         for (Id id : IterUtil.skipFirst(ids)) {
-            expr = new FieldRef(FortressUtil.spanTwo(expr, id), expr, id);
+            expr = makeFieldRef(expr, id);
         }
         return expr;
     }
@@ -554,15 +563,15 @@ public class ExprFactory {
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
-        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
-        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
+        List<Link> links = new ArrayList<Link>();
+        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-        List<Pair<OpRef,Expr>> links = new ArrayList<Pair<OpRef,Expr>>();
-        Pair<OpRef,Expr> link = new Pair<OpRef, Expr>(makeOpRef(_op), _expr);
+    	List<Link> links = new ArrayList<Link>();
+        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(_op), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);
     }
@@ -737,16 +746,16 @@ public class ExprFactory {
             }
             public Expr forChainExpr(ChainExpr e) {
                 return new ChainExpr(e.getSpan(), true, e.getFirst(),
-                        e.getLinks());
+                                     e.getLinks());
             }
             public Expr forFieldRef(FieldRef e) {
                 return new FieldRef(e.getSpan(), true, e.getObj(),
-                        e.getField());
+                                    e.getField());
             }
             public Expr forMethodInvocation(MethodInvocation e) {
                 return new MethodInvocation(e.getSpan(), true, e.getObj(),
-                        e.getMethod(), e.getStaticArgs(),
-                        e.getArg());
+                                            e.getMethod(), e.getStaticArgs(),
+                                            e.getArg());
             }
             public Expr forLooseJuxt(LooseJuxt e) {
                 return new LooseJuxt(e.getSpan(), true, e.getExprs());

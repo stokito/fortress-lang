@@ -23,12 +23,18 @@ export Regex
     end
 
     object Regexp( elements : List[\Element\] )
-        toString():String = 
-            "/" (BIG || elements) "/"
+        toString():String = "/" (BIG || elements) "/"
+        raw():String = (BIG || elements)
+        opr =(self,s:String):Boolean = match(self.raw(),s)
+        opr =(self,r:Regexp):Boolean = self SEQV r
     end
 
     object RepeatElement(e:Element) extends Element
         toString():String = e "*"
+    end
+    
+    object RepeatNonGreedyElement(e:Element) extends Element
+        toString():String = e "*?"
     end
 
     object RepeatExactlyElement(e:Element, n:ZZ32) extends Element
@@ -49,6 +55,10 @@ export Regex
     
     object RepeatOneElement(e:Element) extends Element
         toString():String = e "+"
+    end
+    
+    object RepeatOneNonGreedyElement(e:Element) extends Element
+        toString():String = e "+?"
     end
     
     object MaybeElement(e:Element) extends Element
@@ -86,4 +96,13 @@ export Regex
     object CharElement(s:String) extends Element
         toString():String = s
     end
+    
+    object EscapedElement(s:String) extends Element
+        toString():String = "\\" s
+    end
+    
+    object AlternateElement() extends Element
+        toString():String = "|"
+    end
+    
 end

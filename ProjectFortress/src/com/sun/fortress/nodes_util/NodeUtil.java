@@ -146,6 +146,12 @@ public class NodeUtil {
         return IterUtil.toString(ns, "", ".", "");
     }
 
+    public static String dirString(APIName n) {
+        Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
+        // NOT File.separator -- that is unnecessary and confusing.
+        return IterUtil.toString(ns, "", "/", "");
+    }
+
     public static String nameString(Id n) {
         final String last = n.getText();
         Option<APIName> odn = n.getApi();
@@ -367,7 +373,7 @@ public class NodeUtil {
 
     /* for APIName ******************************************************/
     public static List<String> toStrings(APIName n) {
-        return IterUtil.asList(IterUtil.map(n.getIds(), IdToStringFn));
+        return Useful.applyToAll(n.getIds(), IdToStringFn);
     }
 
     /* for TraitTypeWhere **************************************************/

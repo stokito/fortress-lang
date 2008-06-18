@@ -1020,8 +1020,8 @@ public class Desugarer extends Rewrite {
         for (int i = gens.size()-1; i >= 0; i--) {
             GeneratorClause g = gens.get(i);
             Expr loopBody = bindsAndBody(g, body);
-            Expr loopSel = new FieldRef(g.getSpan(), false,
-                                        g.getInit(), LOOP_NAME);
+            Expr loopSel = ExprFactory.makeFieldRef(g.getSpan(),
+                                                    g.getInit(), LOOP_NAME);
             body = new TightJuxt(span, false, Useful.list(loopSel,loopBody));
         }
         // System.out.println("Desugared to "+body.toStringVerbose());

@@ -65,18 +65,47 @@ public class Useful {
         return localNow(new java.util.Date());
     }
 
+    /**
+     * Returns a string containing String.valueOf each element of l,
+     * separated by commas, all surrounded by parentheses.
+     * @param <T>
+     * @param l
+     * @return
+     */
     public static <T> String listInParens(Collection<T> l) {
         return listInDelimiters("(", l, ")");
     }
 
-    public static <T> String listInCurlies(Collection<T> l) {
+    /**
+     * Returns a string containing String.valueOf each element of l,
+     * separated by commas, all surrounded by curly braces.
+     * @param <T>
+     * @param l
+     * @return
+     */
+   public static <T> String listInCurlies(Collection<T> l) {
         return listInDelimiters("{", l, "}");
     }
 
+   /**
+    * Returns a string containing String.valueOf each element of l,
+    * separated by commas, all surrounded by left and right delimiters.
+    * @param <T>
+    * @param l
+    * @return
+    */
     public static <T> String listInDelimiters(String left, Collection<T> l,
             String right) {
         return listInDelimiters(left, l, right, ",");
     }
+ 
+    /**
+     * Returns a string containing String.valueOf each element of l,
+     * separated by sep, all surrounded by left and right delimiters.
+     * @param <T>
+     * @param l
+     * @return
+     */
     public static <T> String listInDelimiters(String left, Collection<T> l,
             String right, String sep) {
         StringBuffer sb = new StringBuffer();
@@ -118,6 +147,15 @@ public class Useful {
         return sb.toString();
     }
 
+    /**
+     * As if listInParens(l1 CONCAT l2), except that the concatenation
+     * is avoided.
+     * @param <T>
+     * @param <U>
+     * @param l1
+     * @param l2
+     * @return
+     */
     public static <T, U> String listsInParens(List<T> l1, List<U> l2) {
         StringBuffer sb = new StringBuffer();
         sb.append("(");
@@ -140,6 +178,18 @@ public class Useful {
         return sb.toString();
     }
 
+    /**
+     * Returns a string containing String.valueOf each element of l,
+     * separated by ".".
+     * 
+     * dottedList(["cat", "dog"]) = "cat.dog"
+     * dottedList(["cat"]) = "cat"
+     * dottedList([]) = ""
+     * 
+     * @param <T>
+     * @param l
+     * @return
+     */
     public static <T> String dottedList(List<T> l) {
         if (l.size() == 1) /* Itty-bitty performance hack */
             return String.valueOf(l.get(0));
@@ -186,6 +236,16 @@ public class Useful {
         return "[\\" + string1 + "\\]";
     }
 
+        /**
+         * Returns the set of lists
+         * 
+         *  { e = l.add(i) | l IN s1, i IN s2 }
+         * 
+         * @param <T>
+         * @param s1
+         * @param s2
+         * @return
+         */
     public static <T> Set<List<T>> setProduct(Set<List<T>> s1, Set<T> s2) {
         HashSet<List<T>> result = new HashSet<List<T>>();
 
@@ -200,6 +260,16 @@ public class Useful {
         return result;
     }
 
+    /**
+     * Returns the set of lists
+     * 
+     *  { e = product.apply(i,j) | i IN s1, j IN s2 }
+     * 
+     * @param <T>
+     * @param s1
+     * @param s2
+     * @return
+     */
     public static <T, U, V> Set<V> setProduct(Set<T> t, Set<U> u,
             Fn2<T, U, V> product) {
         HashSet<V> result = new HashSet<V>();
@@ -209,6 +279,16 @@ public class Useful {
         return result;
     }
 
+        /**
+         * Returns the set {e = verb.apply(i) | i IN s}
+         * 
+         * @param <T>
+         * @param <U>
+         * @param s
+         * @param verb
+         * @return
+         */
+    
     public static <T, U> Set<U> applyToAll(Set<T> s, Fn<T, U> verb) {
         HashSet<U> result = new HashSet<U>();
         for (T i : s)
@@ -216,6 +296,16 @@ public class Useful {
         return result;
 
     }
+
+    /**
+     * Returns the LIST [ e = verb.apply(i) | i IN s ]
+     * 
+     * @param <T>
+     * @param <U>
+     * @param s
+     * @param verb
+     * @return
+     */
 
     public static <T, U> List<U> applyToAll(List<T> s, Fn<T, U> verb) {
         ArrayList<U> result = new ArrayList<U>();
@@ -225,14 +315,32 @@ public class Useful {
 
     }
 
-    public static <T, U> List<U> applyToAllAppending(Collection<T> s, Fn<T, U> verb, List<U> result) {
+    /**
+     * Returns the LIST result APPEND [ e = verb.apply(i) | i IN s ]
+     * 
+     * @param <T>
+     * @param <U>
+     * @param s
+     * @param verb
+     * @return
+     */
+   public static <T, U> List<U> applyToAllAppending(Collection<T> s, Fn<T, U> verb, List<U> result) {
         for (T i : s)
             result.add(verb.apply(i));
         return result;
 
     }
    
-    public static <T, U> Set<U> applyToAllInserting(Collection<T> s, Fn<T, U> verb, Set<U> result) {
+   /**
+    * Returns the SET result UNION { e = verb.apply(i) | i IN s }
+    * 
+    * @param <T>
+    * @param <U>
+    * @param s
+    * @param verb
+    * @return
+    */
+   public static <T, U> Set<U> applyToAllInserting(Collection<T> s, Fn<T, U> verb, Set<U> result) {
         for (T i : s)
             result.add(verb.apply(i));
         return result;
@@ -335,7 +443,17 @@ public class Useful {
         return result;
       }
 
-    public static <T,U> List<U> filteredList(Iterable<? extends T> l, Fn<T,U> f) {
+    /**
+     * Returns the LIST [ e = verb.apply(i) != null | i IN s ]
+     * 
+     * @param <T>
+     * @param <U>
+     * @param s
+     * @param verb
+     * @return
+     */
+
+   public static <T,U> List<U> filteredList(Iterable<? extends T> l, Fn<T,U> f) {
         ArrayList<U> result = new ArrayList<U>();
         for (T t : l) {
             U u = f.apply(t);
@@ -346,7 +464,17 @@ public class Useful {
     }
     
     
-    public static <T,U> SortedSet<U>  filteredSortedSet(Iterable<? extends T> l, Fn<T,U> f, Comparator<U> c) {
+   /**
+    * Returns the ORDERED (by c) SET { e = f.apply(i) != null | i IN l }
+    * 
+    * @param <T>
+    * @param <U>
+    * @param s
+    * @param verb
+    * @return
+    */
+
+   public static <T,U> SortedSet<U>  filteredSortedSet(Iterable<? extends T> l, Fn<T,U> f, Comparator<U> c) {
         SortedSet<U> result = new TreeSet<U>(c);
         for (T t : l) {
             U u = f.apply(t);

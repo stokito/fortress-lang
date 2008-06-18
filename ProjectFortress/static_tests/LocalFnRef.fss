@@ -16,16 +16,15 @@
  ******************************************************************************)
 
 component LocalFnRef
-export Executable
+  export Executable
 
-(* Tests that LetFn correctly binds the two local function definitions over its
- * enclosing Block. *)
+  (* Tests that LetFn correctly binds the two local function definitions over its
+   * enclosing Block. *)
   
-run(args:String...):() = do
-  f(x:RR64):ZZ32 = 23
-  g(x:Any, y:Any):ZZ32 = 42
-  g(f, g)
-  ()
-end
-
+  run(args:String...):() = do
+    f(x:RR64):IntLiteral = 23
+    g(x:Any, y:Any):IntLiteral = 42
+    ignore(g(f, g)) 
+    ()
+  end
 end

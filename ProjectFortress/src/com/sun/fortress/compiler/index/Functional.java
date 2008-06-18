@@ -33,11 +33,11 @@ import edu.rice.cs.plt.tuple.Option;
 public abstract class Functional {
 
     /**
-     * Returns an instantiated version of this if the static args are of the right type and right number.
-     * We needed this because instantiatedType does not deal with varargs and keywordargs. The contract of this method requires
+     * Returns a version of this Functional, with params replaced with args.
+     *  The contract of this method requires
      * that all implementing subtypes must return their own type, rather than a supertype.
      */
-    public abstract Option<Functional> instantiate(List<StaticArg> args);
+    public abstract Functional instantiate(List<StaticParam> params, List<StaticArg> args);
 
     public abstract Type getReturnType();
 
