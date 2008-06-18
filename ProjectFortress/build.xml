@@ -37,11 +37,14 @@
 	 <property name="cache7" location="${basedir}/.analyzed_cache"/>
 	 <property name="cache8" location="${basedir}/../.presyntax_cache"/>
 	 <property name="cache9" location="${basedir}/.presyntax_cache"/>
+	 <property name="cache10" location="${basedir}/../.bytecode_cache"/>
+	 <property name="cache11" location="${basedir}/.bytecode_cache"/>
 <property name="astgen" location="${basedir}/astgen"/>
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
  <property name="src" location="${basedir}/src"/>
  <!-- Third party jar files -->
+ <property name="asm" location="${basedir}/third_party/asm"/>
  <property name="astgen.third" location="${basedir}/third_party/astgen"/>
  <property name="jsr166y" location="${basedir}/third_party/jsr166y"/>
  <property name="junit" location="${basedir}/third_party/junit"/>
@@ -84,6 +87,7 @@
  <path id="compile.classpath">
     <pathelement location="${java.home}/../lib/tools.jar"/>
     <pathelement location="${build}"/>
+    <pathelement location="${asm}/asm-3.1.jar"/>
     <pathelement location="${xtc}/xtc.jar"/>
     <pathelement location="${jsr166y}/jsr166y.jar"/>
     <pathelement location="${plt}/plt.jar"/>
@@ -229,6 +233,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     	<delete dir="${cache7}"/>
     	<delete dir="${cache8}"/>
     	<delete dir="${cache9}"/>
+    	<delete dir="${cache10}"/>
+    	<delete dir="${cache11}"/>
 
     </target>
 

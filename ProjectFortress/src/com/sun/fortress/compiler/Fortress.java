@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.FortressException;
@@ -272,8 +273,13 @@ public class Fortress {
 		StaticChecker.ComponentResult componentSR =
 			StaticChecker.checkComponents(componentIR.components(), env);
 		if (!componentSR.isSuccessful()) { return componentSR.errors(); }
-
-		// Additional optimization phases can be inserted here
+		
+		// Generate top-level byte code environments
+		TopLevelEnvGen.ComponentResult componentGR = TopLevelEnvGen.generate(componentSR.components(), env);
+		if(!componentGR.isSuccessful()) { return componentGR.errors(); }
+		
+		// Additional optimization phases can be inserted here        
+        
 
 		for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());
