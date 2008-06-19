@@ -114,11 +114,6 @@ public class WorseEnv extends BaseEnv {
 
 	}
 
-	@Override
-	public void putValueUnconditionally(String str, FValue v) {
-		// TODO Auto-generated method stub
-
-	}
 
 	public void removeType(String s) {
 		// TODO Auto-generated method stub
@@ -126,8 +121,7 @@ public class WorseEnv extends BaseEnv {
 	}
 
 	public void removeVar(String name) {
-		// TODO Auto-generated method stub
-
+		putValueRaw(name, null);
 	}
 
 	public void visit(Visitor2<String, FType> vt, Visitor2<String, Number> vn,
