@@ -178,10 +178,10 @@ public class TopLevelEnvGen {
 
         writeMethodInit(cw, className);
         
-        writeMethodGetRaw(cw, className, "getValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);        
-        
+        writeMethodGetRaw(cw, className, "getValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);                
         writeMethodPutRaw(cw, className, "putValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);
-        
+        writeMethodGetRaw(cw, className, "getTypeNull", EnvironmentClasses.FTYPE, fTypeHashCode);
+        writeMethodPutRaw(cw, className, "putType", EnvironmentClasses.FTYPE, fTypeHashCode);        
         writeEmptyMethods(cw, className);
 
         cw.visitEnd();        

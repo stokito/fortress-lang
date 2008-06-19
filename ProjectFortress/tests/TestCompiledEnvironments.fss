@@ -23,6 +23,33 @@ BB:ZZ32 = 7
 
 run(args:String...) = println "Hello, World!"
 
+trait Emptyא end
+trait Emptyב end
+trait Emptyג end
+trait Emptyד end
+trait Emptyה end
+trait Emptyו end
+trait Emptyז end
+trait Emptyח end
+trait Emptyט end
+trait Emptyי end
+trait Emptyך end
+trait Emptyכ end
+trait Emptyל end
+trait Emptyם end
+trait Emptyמ end
+trait Emptyן end
+trait Emptyנ end
+trait Emptyס end
+trait Emptyע end
+trait Emptyף end
+trait Emptyפ end
+trait Emptyץ end
+trait Emptyצ end
+trait Emptyק end
+trait Emptyר end
+trait Emptyש end
+trait Emptyת end
 trait Empty end
 
 opr $(a:Empty,b:Empty):ZZ32 = 42
