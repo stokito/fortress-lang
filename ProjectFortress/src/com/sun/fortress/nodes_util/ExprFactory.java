@@ -110,6 +110,7 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
+import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_resolver.ASTUtil;
@@ -350,6 +351,13 @@ public class ExprFactory {
                 Collections.singletonList(arg));
     }
 
+    /**
+     * Creates an OpExpr using the Spans from e_1 and e_2.
+     */
+    public static OpExpr makeOpExpr(OpRef op, Expr e_1, Expr e_2) {
+    	return new OpExpr(new Span(e_1.getSpan(), e_2.getSpan()), false, op, Useful.list(e_1, e_2));
+    }
+    
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
         List<Id> names = Collections.singletonList(name);
         return new FnRef(span, false, name, names, sargs);
@@ -606,6 +614,13 @@ public class ExprFactory {
                 Option.some(Collections.<Param>emptyList()));
     }
 
+    /**
+     * Uses the Spans from e_1 and e_2.
+     */
+    public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
+    	return new _RewriteFnApp(new Span(e_1.getSpan(), e_2.getSpan()), e_1, e_2);
+    }
+    
     public static Expr makeInParentheses(Expr expr) {
         return expr.accept(new NodeAbstractVisitor<Expr>() {
             public Expr forAsExpr(AsExpr e) {

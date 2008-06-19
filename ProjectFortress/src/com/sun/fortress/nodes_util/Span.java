@@ -17,11 +17,8 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.*;
-import java.io.Serializable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
@@ -57,19 +54,31 @@ public class Span implements Serializable {
         end = e;
     }
 
+    private static boolean beginsEarlierThan(Span a, Span b) {
+    	return (a.getBegin().getLine() < b.getBegin().getLine() ||
+    			 (a.getBegin().getLine() == b.getBegin().getLine() && 
+    			  a.getBegin().column() < b.getBegin().column()));
+    }
+    
+    private static boolean endsLaterThan(Span a, Span b) {
+    	return (a.getEnd().getLine() > b.getEnd().getLine() ||
+    			(a.getEnd().getLine() == b.getEnd().getLine() &&
+    			 a.getEnd().column() > b.getEnd().column())); 
+    }
+    
     /** Span which includes both the given spans.  Assumption: they're
      * from the same file.  If this is not true, the results will be
      * unpredictable. */
     public Span(Span a, Span b) {
-        if (a.getBegin().getLine() < b.getBegin().getLine()) {
+        if ( beginsEarlierThan(a,b) ) {
             begin = a.getBegin();
         } else {
             begin = b.getBegin();
         }
-        if (a.getEnd().getLine() < b.getEnd().getLine()) {
-            end = b.getEnd();
-        } else {
+        if ( endsLaterThan(a,b) ) {
             end = a.getEnd();
+        } else {
+            end = b.getEnd();
         }
     }
 
