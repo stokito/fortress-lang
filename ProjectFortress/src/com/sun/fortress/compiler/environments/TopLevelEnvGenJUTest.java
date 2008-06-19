@@ -2,7 +2,6 @@ package com.sun.fortress.compiler.environments;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import junit.framework.TestCase;
@@ -28,6 +27,15 @@ public class TopLevelEnvGenJUTest extends TestCase {
 			loadEnvironment();            
 	    }	    
 
+	    public void testNameMangling() {
+	    	String input = "/.;$<>[]:\\";
+	    	String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-";
+	    	assertEquals(TopLevelEnvGen.mangleIdentifier(input), mangledInput);
+	    	input = "hello" + input;
+	    	mangledInput = "\\=" + "hello" + mangledInput;
+	    	assertEquals(TopLevelEnvGen.mangleIdentifier(input), mangledInput);	    	
+	    }
+	    
 	    public void testNullGetters() {
 			assertNull(environment.getBoolNull("run"));
 			assertNull(environment.getIntNull("run"));			
@@ -42,8 +50,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
 
 	    
 	    
-	    public void testCompiledEnvironment() throws IOException, 
-	    							InstantiationException, IllegalAccessException {
+	    public void testGetPutValueRaw() {
 
 			FInt three = FInt.make(3);
 			FInt seven = FInt.make(7);
@@ -52,14 +59,14 @@ public class TopLevelEnvGenJUTest extends TestCase {
 			FInt b = FInt.make((int) 'K');
 			FInt c = FInt.make((int) 'l');
 			
-			environment.putValueUnconditionally("run", three);
-			environment.putValueUnconditionally("$", a);
-			environment.putValueUnconditionally("K", b);			
-			environment.putValueUnconditionally("l", c);
+			environment.putValueRaw("run", three);
+			environment.putValueRaw("$", a);
+			environment.putValueRaw("K", b);			
+			environment.putValueRaw("l", c);
 
 			// Now test hash collisions
-			environment.putValueUnconditionally("Aa", seven);
-			environment.putValueUnconditionally("BB", thirteen);
+			environment.putValueRaw("Aa", seven);
+			environment.putValueRaw("BB", thirteen);
 			
 			assertEquals(environment.getValueRaw("run"), three);
 			assertEquals(environment.getValueRaw("$"), a);
@@ -72,8 +79,8 @@ public class TopLevelEnvGenJUTest extends TestCase {
 			
 	    }
 
-		private void loadEnvironment() throws FileNotFoundException,
-				IOException, InstantiationException, IllegalAccessException {
+		private void loadEnvironment() throws IOException, 
+		InstantiationException, IllegalAccessException {
 			SimpleClassLoader classLoader = new SimpleClassLoader();
 			File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR + 
 					File.separator + "TestCompiledEnvironmentsEnv.class");
