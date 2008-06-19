@@ -112,6 +112,7 @@ import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_resolver.ASTUtil;
 
@@ -623,7 +624,15 @@ public class ExprFactory {
     
     public static Expr makeInParentheses(Expr expr) {
         return expr.accept(new NodeAbstractVisitor<Expr>() {
-            public Expr forAsExpr(AsExpr e) {
+            @Override
+			public Expr for_RewriteFnApp(_RewriteFnApp that) {
+            	return new _RewriteFnApp(that.getSpan(),true,that.getFunction(),that.getArgument());
+			}
+			@Override
+			public Expr for_RewriteObjectRef(_RewriteObjectRef that) {
+				return new _RewriteObjectRef(that.getSpan(),true,that.getObj(),that.getStaticArgs());
+			}
+			public Expr forAsExpr(AsExpr e) {
                 return new AsExpr(e.getSpan(), true, e.getExpr(), e.getType());
             }
             public Expr forAsIfExpr(AsIfExpr e) {
