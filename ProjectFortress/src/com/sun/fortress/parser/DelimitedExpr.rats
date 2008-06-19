@@ -122,8 +122,8 @@ Expr DelimitedExpr =
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
        w end
      { Option<Block> caseElse = Option.wrap(a3);
-       yyValue = new Typecase(createSpan(yyStart,yyCount), false, a1, a2,
-                              caseElse);
+       yyValue = new Typecase(createSpan(yyStart,yyCount), false, a1.getA(),
+                              a1.getB(), a2, caseElse);
      }
    / <TRY> try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end

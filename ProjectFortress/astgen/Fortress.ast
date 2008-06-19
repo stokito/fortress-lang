@@ -869,7 +869,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *       end
              * Names in bind must be unqualified.
              */
-            Typecase(com.sun.fortress.useful.Pair<List<Id>, Option<Expr>> bind,
+            Typecase(List<Id> bindIds, Option<Expr> bindExpr,
                      List<TypecaseClause> clauses,
                      Option<Block> elseClause = Option.<Block>none());
             /**
