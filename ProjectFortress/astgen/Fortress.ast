@@ -719,7 +719,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * AssignOp ::= := | Op=
          * e.g.) x += 1
          */
-        Assignment(List<LHS> lhs, Option<Op> opr, Expr rhs);
+        Assignment(List<LHS> lhs, Option<OpRef> opr, Expr rhs);
         /**
          * expressions beginning and ending with reserved words
          * Expr ::= DelimitedExpr
