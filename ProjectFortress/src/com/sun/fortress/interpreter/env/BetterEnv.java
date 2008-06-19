@@ -359,7 +359,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
 
     }
 
-     public void putType(String str, FType f2) {
+     public void putTypeRaw(String str, FType f2) {
         type_env = put(type_env, str, f2);
     }
 

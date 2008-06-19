@@ -455,6 +455,11 @@ abstract public class BaseEnv implements Environment {
         putValueRaw(str, FInt.make(f2.intValue()));
     }
 
+    public void putType(String str, FType f2) {
+    	putTypeRaw(str,f2);
+    }
+    
+    
     public void putValue(String str, FValue f2) {
         if (f2 instanceof Fcn)
             putFunction(str, (Fcn) f2, "Var/value", false, false);

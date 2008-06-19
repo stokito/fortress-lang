@@ -176,7 +176,7 @@ public class TopLevelEnvGen {
         writeMethodGetRaw(cw, className, "getValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);                
         writeMethodPutRaw(cw, className, "putValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);
         writeMethodGetRaw(cw, className, "getTypeNull", EnvironmentClasses.FTYPE, fTypeHashCode);
-        writeMethodPutRaw(cw, className, "putType", EnvironmentClasses.FTYPE, fTypeHashCode);        
+        writeMethodPutRaw(cw, className, "putTypeRaw", EnvironmentClasses.FTYPE, fTypeHashCode);        
         writeEmptyMethods(cw, className);
         writeRemoveMethods(cw, className);
     
@@ -479,7 +479,7 @@ public class TopLevelEnvGen {
     
     private static void writeRemoveMethods(ClassWriter cw, String className) {
     	writeRemoveMethod(cw, className, "removeVar", "putValueRaw", EnvironmentClasses.FVALUE);
-    	writeRemoveMethod(cw, className, "removeType", "putType", EnvironmentClasses.FTYPE);
+    	writeRemoveMethod(cw, className, "removeType", "putTypeRaw", EnvironmentClasses.FTYPE);
     }
     
     private static void outputClassFiles(Map<APIName, byte[]> compiledComponents, 

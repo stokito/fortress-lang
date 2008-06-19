@@ -40,7 +40,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
 
     public void testRemoveMethods() {
         IntNat three = IntNat.make(3);
-        environment.putType("Empty", three);        
+        environment.putTypeRaw("Empty", three);        
         assertEquals(environment.getTypeNull("Empty"), three);
         environment.removeType("Empty");
         assertNull(environment.getTypeNull("Empty"));
@@ -66,16 +66,16 @@ public class TopLevelEnvGenJUTest extends TestCase {
         environment.putNatRaw("run", 0);            
     }
 
-    public void testGetPutTypeRaw() {
+    public void testGetputTypeRawRaw() {
         IntNat three = IntNat.make(3);
         IntNat a = IntNat.make((int) '$');
         IntNat b = IntNat.make((int) 'K');
         IntNat c = IntNat.make((int) 'l');
         
-        environment.putType("Empty", three);
-        environment.putType("Empty" + '\u05D0', a);
-        environment.putType("Empty" + '\u05D1', b);            
-        environment.putType("Empty" + '\u05D2', c);
+        environment.putTypeRaw("Empty", three);
+        environment.putTypeRaw("Empty" + '\u05D0', a);
+        environment.putTypeRaw("Empty" + '\u05D1', b);            
+        environment.putTypeRaw("Empty" + '\u05D2', c);
         
         assertEquals(environment.getTypeNull("Empty"), three);
         assertEquals(environment.getTypeNull("Empty" + '\u05D0'), a);

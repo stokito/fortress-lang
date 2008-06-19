@@ -179,6 +179,8 @@ public interface Environment  {
      */
     public abstract void putType(String str, FType f2);
 
+    public abstract void putTypeRaw(String str, FType f2);
+    
     /**
      * Put a value in the top-most scope.
      * Return true if successful, false if already defined.
