@@ -10,6 +10,8 @@ import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
@@ -48,6 +50,27 @@ public class TopLevelEnvGenJUTest extends TestCase {
 	    	environment.putNatRaw("run", 0);	    	
 	    }
 
+	    public void testGetPutTypeRaw() {
+	    	
+			IntNat three = IntNat.make(3);
+			IntNat a = IntNat.make((int) '$');
+			IntNat b = IntNat.make((int) 'K');
+			IntNat c = IntNat.make((int) 'l');
+			
+			environment.putType("Empty", three);
+			environment.putType("Emptyא", a);
+			environment.putType("Emptyב", b);			
+			environment.putType("Emptyג", c);
+			
+			assertEquals(environment.getTypeNull("Empty"), three);
+			assertEquals(environment.getTypeNull("Emptyא"), a);
+			assertEquals(environment.getTypeNull("Emptyב"), b);
+			assertEquals(environment.getTypeNull("Emptyג"), c);
+			
+			assertNull(environment.getTypeNull("Chupacabra"));			
+			
+	    }	    
+	    
 	    
 	    
 	    public void testGetPutValueRaw() {
