@@ -261,7 +261,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
     // the operator case. Might this cause the world to break?
     public FValue forAssignment(Assignment x) {
-        Option<Op> possOp = x.getOpr();
+        Option<OpRef> possOp = x.getOpr();
         LHSToLValue getLValue = new LHSToLValue(this);
         List<? extends LHS> lhses = getLValue.inParallel(x.getLhs());
         int lhsSize = lhses.size();
@@ -270,7 +270,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (possOp.isSome()) {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
-            Op opr = possOp.unwrap();
+            OpRef opr_ = possOp.unwrap();
+            OpName opr = opr_.getOriginalName();
             Fcn fcn = (Fcn) opr.accept(this);
             FValue lhsValue;
             if (lhsSize > 1) {

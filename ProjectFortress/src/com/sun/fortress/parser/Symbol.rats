@@ -167,9 +167,9 @@ String op =
    / multiOp
    / singleOp ;
 
-Op CompoundOp =
+OpRef CompoundOp =
      a1:(encloser / op) equalsOp
-     { yyValue = NodeFactory.makeOpInfix(createSpan(yyStart, yyCount), a1); };
+     { yyValue = ExprFactory.makeOpRef(NodeFactory.makeOpInfix(createSpan(yyStart, yyCount), a1)); };
 
 /* The operator "=>" should not be in the left-hand sides of
    case/typecase expressions. */
@@ -228,7 +228,7 @@ transient void comma = ",";
 transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */
-Option<Op> AssignOp =
+Option<OpRef> AssignOp =
      colonequals   { yyValue = Option.none(); }
    / a1:CompoundOp { yyValue = Option.some(a1); };
 

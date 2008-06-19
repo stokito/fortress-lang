@@ -1836,6 +1836,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			if( application_result.isSome() ) {
     				// successful
     				all_results.add(new TypeCheckerResult(that, application_result.unwrap().second()));
+    				// wrong: Type should still be void.
     				result = TypeCheckerResult.compose(that, application_result.unwrap().first(), subtypeChecker, all_results);
     			}
     			else {
