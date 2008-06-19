@@ -161,7 +161,7 @@ private List<Import> ImportedNames =
      }
    / a1:Id a2:(w as w Id)?    // Error production
      { yyValue = error(new VoidLiteralExpr(createSpan(yyStart,yyCount)),
-                       "Syntax error: try 'import api APIName'");
+                       "Syntax Error: Try 'import api APIName'");
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
