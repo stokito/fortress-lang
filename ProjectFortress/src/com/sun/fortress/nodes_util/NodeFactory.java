@@ -1122,7 +1122,15 @@ public class NodeFactory {
     return new VarType(type.getSpan(),
       type.isParenthesized(),
       makeId(api, type.getName()));
-   } else { // type instanceof TraitType
+   } 
+   else if( type instanceof _RewriteGenericSingletonType ) {
+	   _RewriteGenericSingletonType rgs_type = (_RewriteGenericSingletonType)type;
+	   return new _RewriteGenericSingletonType(rgs_type.getSpan(), 
+			   rgs_type.isParenthesized(),
+			   makeId(api,rgs_type.getName()),
+			   rgs_type.getStaticParams());
+   }
+   else { // type instanceof TraitType
     TraitType _type = (TraitType)type;
     return new TraitType(_type.getSpan(),
       _type.isParenthesized(),

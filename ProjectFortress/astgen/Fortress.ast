@@ -1100,6 +1100,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 VarRef(Id var) implements LHS;
                 /**
+                 * A reference to a singleton object. Created at typechecking or disambiguation-time.
+                 * Necessary because object references are initially parsed as FnRefs.
+                 * e.g.) Foo[\ZZ32\]
+                 * where Foo was defined as
+                 * object Foo[\T\] ... end
+                 */
+                _RewriteObjectRef(Id obj, List<StaticArg> staticArgs);
+                /**
                  * field selection expression
                  * Primary ::= Primary . Id
                  */

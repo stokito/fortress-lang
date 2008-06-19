@@ -491,7 +491,31 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		return result;
 	}
 
+	
+	
     @Override
+	public Node for_RewriteObjectRef(_RewriteObjectRef that) {
+    	Id obj_name = that.getObj();
+    	
+    	Set<Id> objs = _env.explicitTypeConsNames(obj_name);
+    	if( objs.isEmpty() ) {
+    		objs = _env.onDemandTypeConsNames(obj_name);
+    		_onDemandImports.add(obj_name);
+    	}
+    	
+    	if( objs.isEmpty() ) {
+    		return that;
+    	}
+    	else if( objs.size() == 1 ) {
+    		return new _RewriteObjectRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
+    	}
+    	else {
+    		error("Name may refer to: " + NodeUtil.namesString(objs), that);
+    		return that;
+    	}
+	}
+
+	@Override
 	public Node forFnRef(FnRef that) {
 		// Many FnRefs will be covered by the VarRef case, since many functions are parsed
     	// as variables. FnRefs can be parsed if, for example, explicit static arguments are
@@ -505,10 +529,23 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     	}
 
     	if( fns.isEmpty() ) {
-    		//error("Function " + that + " could not be disambiguated.", that);
-    		// TODO: The above line is giving fits to the tests, but it'd be nice to pass.
-    		return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
-    				that.getFns(), that.getStaticArgs());
+    		// Could be a singleton object with static arguments.
+    		Set<Id> types = _env.explicitTypeConsNames(fn_name);
+    		if( types.isEmpty() ) {
+    			types = _env.onDemandTypeConsNames(fn_name);
+    			_onDemandImports.add(fn_name);
+    		}
+    		if( !types.isEmpty() ) {
+    			// create _RewriteObjectRef
+    			_RewriteObjectRef obj = new _RewriteObjectRef(that.getSpan(), fn_name, that.getStaticArgs());
+    			return obj.accept(this);
+    		}
+    		else {
+    			//error("Function " + that + " could not be disambiguated.", that);
+    			// TODO: The above line is giving fits to the tests, but it'd be nice to pass.
+    			return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
+    					that.getFns(), that.getStaticArgs());
+    		}
     	}
 
     	return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,

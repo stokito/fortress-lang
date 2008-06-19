@@ -35,8 +35,7 @@ public class StaticJUTest extends TestCaseWrapper {
         "XXXUndefinedNestedRef.fss",
         "XXXUndefinedRefInLoop.fss",
         "XXXUndefinedVar.fss",
-        "XXXUndefinedTopLevelVar.fss",
-        "GenericSingleton.fss"      // FIXME
+        "XXXUndefinedTopLevelVar.fss"
     );
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
     	"GenericFunctionCall.fss",
@@ -62,3 +61,4 @@ public class StaticJUTest extends TestCaseWrapper {
                                    FAILING_TYPE_CHECKER);     
     }
 }
+//"GenericSingleton.fss"      // FIXME

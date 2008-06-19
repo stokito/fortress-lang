@@ -156,6 +156,7 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
+import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -1710,6 +1711,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     @Override
+	public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
+    	Id name = that.getObj();
+    	FValue g = forVarRef(new VarRef(name.getSpan(), name));
+		return applyToActualStaticArgs(g,that.getStaticArgs(),that);
+	}
+
+	@Override
     public FValue for_RewriteFnRef(_RewriteFnRef x) {
         Expr name = x.getFn();
         FValue g = name.accept(this);

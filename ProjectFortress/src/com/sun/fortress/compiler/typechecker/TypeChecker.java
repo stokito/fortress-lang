@@ -51,6 +51,7 @@ import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
@@ -2243,7 +2244,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     					TypeCheckerResult.compose(that, subtypeChecker, fns_result), TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
     }
 
-    @Override
+	@Override
 	public TypeCheckerResult for_RewriteFnAppOnly(_RewriteFnApp that,
 			TypeCheckerResult function_result, TypeCheckerResult argument_result) {
     	// check sub expressions
@@ -2269,8 +2270,45 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	// The result should be a _RewriteFnApp
     	return TypeCheckerResult.compose(that, result_type,
     			subtypeChecker, function_result, argument_result, result);
+    }
+    
+    @Override
+	public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that,
+			TypeCheckerResult obj_result,
+			List<TypeCheckerResult> staticArgs_result) {
+    	
+    	if( obj_result.type().isNone() ) {
+    		return TypeCheckerResult.compose(that, subtypeChecker, obj_result,
+    				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+    	}
+    	else if( (obj_result.type().unwrap() instanceof TraitType) ) {
+    		return NI.nyi("Implement if _RewriteObjectRef is used for non-generic objects");
+    	}
+    	else if( (obj_result.type().unwrap() instanceof _RewriteGenericSingletonType) ) {
+    		// instantiate with static parameters
+    		_RewriteGenericSingletonType uninstantiated_t = (_RewriteGenericSingletonType)obj_result.type().unwrap();
+
+    		boolean match = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), uninstantiated_t.getStaticParams());
+    		if( match ) {
+    			// make a trait type that is GenericType instantiated
+    			Type t = NodeFactory.makeTraitType(uninstantiated_t.getSpan(), 
+    					uninstantiated_t.isParenthesized(), uninstantiated_t.getName(), that.getStaticArgs());
+        		return TypeCheckerResult.compose(that, t, subtypeChecker, obj_result,
+        				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));    			
+    		}
+    		else {
+    			// error
+    			String err = "Generic object, " + uninstantiated_t + " instantiated with invalid arguments, " + that.getStaticArgs();
+    			TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, that));
+        		return TypeCheckerResult.compose(that, subtypeChecker, obj_result, e_result,
+        				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));    			
+    		}
+    	}
+    	else {
+    		return bug("Unexpected type for ObjectRef.");
+    	}
 	}
-       
+	
     // Checks the chunk given, and returns the result and a new expression.
     // Requires that all TypeCheckerResults passed in actually have a type.
     // Must be called on non-empty list.
