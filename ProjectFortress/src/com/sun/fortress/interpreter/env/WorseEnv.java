@@ -104,7 +104,7 @@ public class WorseEnv extends BaseEnv {
 
 	}
 
-	public void putType(String str, FType f2) {
+	public void putTypeRaw(String str, FType f2) {
 		// TODO Auto-generated method stub
 
 	}
@@ -114,14 +114,14 @@ public class WorseEnv extends BaseEnv {
 
 	}
 
-
 	public void removeType(String s) {
 		// TODO Auto-generated method stub
 
 	}
 
 	public void removeVar(String name) {
-		putValueRaw(name, null);
+		// TODO Auto-generated method stub
+
 	}
 
 	public void visit(Visitor2<String, FType> vt, Visitor2<String, Number> vn,
