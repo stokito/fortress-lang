@@ -424,7 +424,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }
-                else { result = new VarRef(newName.getSpan(), newName); }
+                else { result = new VarRef(that.getSpan(), newName); }
             }
             else if (vars.isEmpty() && !fns.isEmpty()) {
                 result = ExprFactory.makeFnRef(name,IterUtil.asList(fns));

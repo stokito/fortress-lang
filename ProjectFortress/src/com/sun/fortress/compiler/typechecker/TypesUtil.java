@@ -84,6 +84,11 @@ public class TypesUtil {
             for (Type t : args) { _args.add(t); }
         }
         
+        @Override
+        public String toString() {
+        	return _args.toString();
+        }
+        
         /** All add() invocations should occur before calling getters. */
         public void add(Type arg) { _args.add(arg); }
         
