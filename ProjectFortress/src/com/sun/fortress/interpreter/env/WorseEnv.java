@@ -34,12 +34,6 @@ public class WorseEnv extends BaseEnv {
 		return null;
 	}
 
-	@Override
-	public SApi getApiNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public HasAt getAt() {
 		// TODO Auto-generated method stub
 		return null;
@@ -77,11 +71,6 @@ public class WorseEnv extends BaseEnv {
 	public FValue getValueRaw(String s) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	public void putApi(String s, SApi api) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void putBoolRaw(String str, Boolean f2) {

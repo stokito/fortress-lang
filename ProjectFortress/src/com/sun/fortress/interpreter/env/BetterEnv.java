@@ -42,7 +42,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     private BATreeNode<String, Number> int_env;
     private BATreeNode<String, FValue> var_env;
     private BATreeNode<String, Boolean> bool_env;
-    private BATreeNode<String, SApi> api_env;
     private BATreeNode<String, SComponent> cmp_env;
 
 
@@ -127,7 +126,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         int_env = existing.int_env;
         var_env = existing.var_env;
         bool_env = existing.bool_env;
-        api_env = existing.api_env;
         cmp_env = existing.cmp_env;
         parent = existing;
     }
@@ -168,7 +166,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         int_env = augment(existing.int_env, additions.int_env);
         var_env = augment(existing.var_env, additions.var_env);
         bool_env = augment(existing.bool_env, additions.bool_env);
-        api_env = augment(existing.api_env, additions.api_env);
         cmp_env = augment(existing.cmp_env, additions.cmp_env);
     }
     
@@ -285,7 +282,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
             dumpOne(a, int_env, "\nInts:\n  ");
             dumpOne(a, var_env, "\nVars:\n  ");
             dumpOne(a, bool_env, "\nBools:\n  ");
-            dumpOne(a, api_env, "\nApis:\n  ");
             dumpOne(a, cmp_env, "\nComponents:\n  ");
             a.append("\n");
         } else if (parent != null) {
@@ -306,11 +302,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
             }
         }
 
-    }
-
-    public SApi getApiNull(String str) {
-        SApi v = get(api_env, str);
-        return v;
     }
 
     public Boolean getBoolNull(String str) {
@@ -348,11 +339,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
 
         return v;
     }
-
-    public void putApi(String s, SApi api) {
-        api_env = put(api_env, s, api);
-    }
-
  
     public void putComponent(String name, SComponent comp) {
         cmp_env = put(cmp_env, name, comp);

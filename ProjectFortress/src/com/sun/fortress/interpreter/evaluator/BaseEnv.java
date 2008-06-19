@@ -238,25 +238,7 @@ abstract public class BaseEnv implements Environment {
     public boolean hasValue(String str) {
         return (getValueRaw(str) != null) || (getBoolNull(str) != null)  || (getNatNull(str) != null);
     }    
-
-    final public  SApi getApi(APIName d)  {
-    	return getApi(NodeUtil.nameString(d));
-    }
-
-    final public  SApi getApi(String str)  {
-        SApi x = getApiNull(str);
-        if (x == null)
-            return error(errorMsg("Missing api ", str));
-        else
-            return x;
-    }
-
-    final public SApi getApiNull(APIName d) {
-        return getApiNull(NodeUtil.nameString(d));
-    }
-
-    abstract public  SApi getApiNull(String str) ;
-
+    
     final public  Boolean getBool(String str)  {
         Boolean x = getBoolNull(str);
         if (x == null)
@@ -386,11 +368,6 @@ abstract public class BaseEnv implements Environment {
         return this;
    }
       
-
-    public void putApi(APIName d, SApi x) {
-        putApi(NodeUtil.nameString(d), x);
-    }    
-    
     public void putComponent(APIName name, SComponent comp) {
         putComponent(NodeUtil.nameString(name), comp);
     }
