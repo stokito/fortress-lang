@@ -847,9 +847,8 @@ public class Desugarer extends Rewrite {
                     return translateSpawn((Spawn)node);
                 } else if (node instanceof Typecase) {
                     Typecase tc = (Typecase) node;
-                    Pair<List<Id>, Option<Expr>> bind = tc.getBind();
-                    List<Id> lid = bind.getA();
-                    Option<Expr> oe = bind.getB();
+                    List<Id> lid = tc.getBindIds();
+                    Option<Expr> oe = tc.getBindExpr();
                     if (oe.isNone()) {
                         node = ExprFactory.makeTypecase(tc, lid, (Expr) tupleForIdList(lid));
                     }

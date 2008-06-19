@@ -667,8 +667,9 @@ public class ExprFactory {
                 return new TupleExpr(e.getSpan(), true, e.getExprs());
             }
             public Expr forTypecase(Typecase e) {
-                return new Typecase(e.getSpan(), true, e.getBind(),
-                        e.getClauses(), e.getElseClause());
+                return new Typecase(e.getSpan(), true, e.getBindIds(),
+                                    e.getBindExpr(), e.getClauses(),
+                                    e.getElseClause());
             }
             public Expr forWhile(While e) {
                 return new While(e.getSpan(), true, e.getTest(), e.getBody());
@@ -820,11 +821,9 @@ public class ExprFactory {
          * List<TypecaseClause> in_clauses,
          * Option<Block> in_elseClause
          */
-        return new Typecase(tc.getSpan(),
-                tc.isParenthesized(),
-                Pair.make(lid, Option.wrap(expr)),
-                tc.getClauses(),
-                tc.getElseClause());
+        return new Typecase(tc.getSpan(), tc.isParenthesized(), lid,
+                            Option.wrap(expr), tc.getClauses(),
+                            tc.getElseClause());
     }
 
     public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {

@@ -651,9 +651,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public List<FType> evalTypeCaseBinding(Evaluator ev, Typecase x) {
-        Pair<List<Id>, Option<Expr>> bindings = x.getBind();
-        List<Id> bindIds = bindings.getA();
-        Option<Expr> exprOpt = bindings.getB();
+        List<Id> bindIds = x.getBindIds();
+        Option<Expr> exprOpt = x.getBindExpr();
         Expr expr;
         List<FType> res = new ArrayList<FType>();
 
