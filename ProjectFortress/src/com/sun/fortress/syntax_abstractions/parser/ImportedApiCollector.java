@@ -47,6 +47,8 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 /**
  *
@@ -59,17 +61,17 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
     private LinkedList<CompilationUnit> worklist;
     private Set<APIName> seen;
     private boolean importsTopLevelGrammars;
-        
+
     public ImportedApiCollector(GlobalEnvironment env) {
         this.env = env;
         this.isTopLevel = true;
         this.worklist = new LinkedList<CompilationUnit>();
         this.seen = new HashSet<APIName>();
         this.grammars = new LinkedList<GrammarIndex>();
-        this.importsTopLevelGrammars = false; 
+        this.importsTopLevelGrammars = false;
     }
 
-    public void collectApis(CompilationUnit c) { 
+    public void collectApis(CompilationUnit c) {
         this.worklist.add(c);
         while (!this.worklist.isEmpty()) {
             this.worklist.removeFirst().accept(this);
@@ -79,7 +81,8 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
     @Override
     public void forImportApiOnly(ImportApi that) {
-        throw new RuntimeException("NYI");
+        bug(that, errorMsg("NYI 'Import api APIName'; ",
+                           "try 'import APIName.{...}' instead."));
 //        for (AliasedAPIName apiAlias : that.getApis()) {
 //            if (env.definesApi(apiAlias.getApi())) {
 //                ApiIndex api = env.api(apiAlias.getApi());

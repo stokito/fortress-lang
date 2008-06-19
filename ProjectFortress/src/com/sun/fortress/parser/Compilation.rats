@@ -135,15 +135,15 @@ private List<Import> Imports = a1:Import a2s:(br Import)*
      };
 
 /* Import ::=
-     import w ImportedNames
-   | import w api w AliasedAPINames
+     import w api w AliasedAPINames
+   | import w ImportedNames
  */
 private List<Import> Import =
-     import w ImportedNames
-   / import w api w a1:AliasedAPINames
+     import w api w a1:AliasedAPINames
      { Import imp = new ImportApi(createSpan(yyStart, yyCount), a1);
        yyValue = FortressUtil.mkList(imp);
-     };
+     }
+   / import w ImportedNames;
 
 /* ImportedNames ::=
      APIName . w { w ... w } (w except w SimpleNames)?

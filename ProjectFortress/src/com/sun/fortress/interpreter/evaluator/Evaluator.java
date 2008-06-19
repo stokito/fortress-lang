@@ -96,7 +96,6 @@ import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.FnExpr;
-import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarType;
