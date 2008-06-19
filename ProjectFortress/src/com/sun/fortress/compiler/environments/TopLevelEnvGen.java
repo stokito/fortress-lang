@@ -23,6 +23,9 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.interpreter.env.WorseEnv;
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -33,7 +36,7 @@ import edu.rice.cs.plt.collect.Relation;
 
 
 public class TopLevelEnvGen {
-	
+
 	
 	/**
 	 * From the Fortress Language Specification Version 1.0, Section 7.2:
@@ -42,15 +45,27 @@ public class TopLevelEnvGen {
 	 *  and one for labels. (If we consider the Fortress component system, 
 	 *  there is another namespace for APIs.) These namespaces are logically 
 	 *  disjoint: names in one namespace do not conflict with names in another." 
-	 */
-	private static final String FTYPE_NAMESPACE = "$FType";
-	private static final String FVALUE_NAMESPACE = "$FValue";
-	
-	private static final String FVALUE_DESCRIPTOR = "Lcom/sun/fortress/interpreter/evaluator/values/FValue;";
-	private static final String FTYPE_DESCRIPTOR = "Lcom/sun/fortress/interpreter/evaluator/types/FType;";
+	 */	
+	public enum Namespace { 
+		FTYPE("$FType", Type.getType(FType.class).getInternalName()), 
+		FVALUE("$FValue", Type.getType(FValue.class).getInternalName());
+		
+		private final String suffix;
+		private final String internalName;
+		
+		Namespace(String suffix, String internalName) {
+			this.suffix = suffix;
+			this.internalName = internalName;
+		}
 
-	private static final String STRING_DESCRIPTOR = Type.getType(String.class).getDescriptor();
+		public String suffix() { return suffix; }
+		public String internalName() { return internalName; }		
+		public String descriptor() { return 'L' + internalName + ';' ; }
+
+	};
+
 	private static final String STRING_INTERNALNAME = Type.getType(String.class).getInternalName();
+	private static final String STRING_DESCRIPTOR = Type.getType(String.class).getDescriptor();
 	
 	private static final String CLASSNAME_SUFFIX = "Env";
 
@@ -153,7 +168,7 @@ public class TopLevelEnvGen {
 		
 		cw.visit(Opcodes.V1_5, 
         		Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
-        		className, null, "com/sun/fortress/interpreter/env/WorseEnv", null);
+        		className, null, Type.getType(WorseEnv.class).getInternalName(), null);
 
 		// Implementing "static reflection" for the interpreter
     	Relation<String, Integer> fValueHashCode = new HashRelation<String,Integer>();        
@@ -183,24 +198,24 @@ public class TopLevelEnvGen {
         for(Id id : componentIndex.variables().keySet()) {
         	String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());        	
-        	idString = idString + FVALUE_NAMESPACE;
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), FVALUE_DESCRIPTOR, null, null).visitEnd();
+        	idString = idString + Namespace.FVALUE.suffix();
+            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), Namespace.FVALUE.descriptor(), null, null).visitEnd();
         }
         
         // Create all functions as fields in the environment
         for(IdOrOpOrAnonymousName id : componentIndex.functions().firstSet()) {
         	String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());        	
-        	idString = idString + FVALUE_NAMESPACE;
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), FVALUE_DESCRIPTOR, null, null).visitEnd();	
+        	idString = idString + Namespace.FVALUE.suffix();
+            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), Namespace.FVALUE.descriptor(), null, null).visitEnd();	
         }
 
         // Create all types as fields in the environment
         for(Id id : componentIndex.typeConses().keySet()) {
         	String idString = NodeUtil.nameString(id);
             fTypeHashCode.add(idString, idString.hashCode());        	
-        	idString = idString + FTYPE_NAMESPACE;        	
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), FTYPE_DESCRIPTOR, null, null).visitEnd();	
+        	idString = idString + Namespace.FTYPE.suffix();        	
+            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), Namespace.FTYPE.descriptor(), null, null).visitEnd();	
         }
 	}
 	
@@ -214,7 +229,7 @@ public class TopLevelEnvGen {
 		mv.visitLabel(l0);
 		mv.visitVarInsn(Opcodes.ALOAD, 0);
 		mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-				"com/sun/fortress/interpreter/env/WorseEnv", "<init>",
+				Type.getType(WorseEnv.class).getInternalName(), "<init>",
 				"()V");
 		mv.visitInsn(Opcodes.RETURN);
 		Label l1 = new Label();
@@ -251,7 +266,7 @@ public class TopLevelEnvGen {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
         		"getValueRaw", 
         		"(Ljava/lang/String;)" + 
-        		FVALUE_DESCRIPTOR, 
+        		Namespace.FVALUE.descriptor(), 
         		null, null); 
         mv.visitCode();
 
@@ -316,10 +331,10 @@ public class TopLevelEnvGen {
                 mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
                 mv.visitLabel(beforeReturn);
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-                String idString = testString + FVALUE_NAMESPACE;
+                String idString = testString + Namespace.FVALUE.suffix();
                 mv.visitFieldInsn(Opcodes.GETFIELD, className, 
                         mangleIdentifier(idString),
-                		FVALUE_DESCRIPTOR);
+                		Namespace.FVALUE.descriptor());
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitLabel(afterReturn);
             }
@@ -339,7 +354,7 @@ public class TopLevelEnvGen {
 			Relation<String, Integer> valuesHashCodeRelation) {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
         		"putValueUnconditionally", 
-        		"(" + STRING_DESCRIPTOR + FVALUE_DESCRIPTOR + ")V", 
+        		"(" + STRING_DESCRIPTOR + Namespace.FVALUE.descriptor() + ")V", 
         		null, null); 
         mv.visitCode();
 
@@ -362,7 +377,7 @@ public class TopLevelEnvGen {
         		defQueryHashCode, endFunction, 0);
         mv.visitLocalVariable("queryString", STRING_DESCRIPTOR, null, 
         		defQueryHashCode, endFunction, 1);
-        mv.visitLocalVariable("value", FVALUE_DESCRIPTOR, null, defQueryHashCode, endFunction, 2);
+        mv.visitLocalVariable("value", Namespace.FVALUE.descriptor(), null, defQueryHashCode, endFunction, 2);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 3);
         mv.visitMaxs(2, 4);
         mv.visitEnd();
@@ -408,9 +423,9 @@ public class TopLevelEnvGen {
 				mv.visitLabel(beforeSetValue);
 				mv.visitVarInsn(Opcodes.ALOAD, 0);
 				mv.visitVarInsn(Opcodes.ALOAD, 2);
-				String idString = testString + FVALUE_NAMESPACE;                
+				String idString = testString + Namespace.FVALUE.suffix();                
 				mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
-						mangleIdentifier(idString), FVALUE_DESCRIPTOR); 
+						mangleIdentifier(idString), Namespace.FVALUE.descriptor()); 
 				mv.visitInsn(Opcodes.RETURN);
 				mv.visitLabel(afterSetValue);
 			}                                    
