@@ -46,19 +46,19 @@ public class TopLevelEnvGen {
 	 *  there is another namespace for APIs.) These namespaces are logically 
 	 *  disjoint: names in one namespace do not conflict with names in another." 
 	 */	
-	public enum Namespace { 
+	public enum EnvironmentClasses { 
 		FTYPE("$FType", Type.getType(FType.class).getInternalName()), 
 		FVALUE("$FValue", Type.getType(FValue.class).getInternalName());
 		
-		private final String suffix;
+		private final String namespace;
 		private final String internalName;
 		
-		Namespace(String suffix, String internalName) {
-			this.suffix = suffix;
+		EnvironmentClasses(String namespace, String internalName) {
+			this.namespace = namespace;
 			this.internalName = internalName;
 		}
 
-		public String suffix() { return suffix; }
+		public String namespace() { return namespace; }
 		public String internalName() { return internalName; }		
 		public String descriptor() { return 'L' + internalName + ';' ; }
 
@@ -178,9 +178,9 @@ public class TopLevelEnvGen {
 
         writeMethodInit(cw, className);
         
-        writeMethodGetValueRaw(cw, className, fValueHashCode);        
+        writeMethodGetRaw(cw, className, "getValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);        
         
-        writeMethodPutValueUnconditionally(cw, className, fValueHashCode);
+        writeMethodPutRaw(cw, className, "putValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);
         
         writeEmptyMethods(cw, className);
 
@@ -198,24 +198,24 @@ public class TopLevelEnvGen {
         for(Id id : componentIndex.variables().keySet()) {
         	String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());        	
-        	idString = idString + Namespace.FVALUE.suffix();
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), Namespace.FVALUE.descriptor(), null, null).visitEnd();
+        	idString = idString + EnvironmentClasses.FVALUE.namespace();
+            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FVALUE.descriptor(), null, null).visitEnd();
         }
         
         // Create all functions as fields in the environment
         for(IdOrOpOrAnonymousName id : componentIndex.functions().firstSet()) {
         	String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());        	
-        	idString = idString + Namespace.FVALUE.suffix();
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), Namespace.FVALUE.descriptor(), null, null).visitEnd();	
+        	idString = idString + EnvironmentClasses.FVALUE.namespace();
+            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FVALUE.descriptor(), null, null).visitEnd();	
         }
 
         // Create all types as fields in the environment
         for(Id id : componentIndex.typeConses().keySet()) {
         	String idString = NodeUtil.nameString(id);
             fTypeHashCode.add(idString, idString.hashCode());        	
-        	idString = idString + Namespace.FTYPE.suffix();        	
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), Namespace.FTYPE.descriptor(), null, null).visitEnd();	
+        	idString = idString + EnvironmentClasses.FTYPE.namespace();        	
+            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FTYPE.descriptor(), null, null).visitEnd();	
         }
 	}
 	
@@ -239,34 +239,18 @@ public class TopLevelEnvGen {
 		mv.visitEnd();	
 	}
 
-
-	/*
-	 * 	public FValue getValueRaw(String queryString) {
-	 *	   int queryHashCode = queryString.hashCode();
-	 *	   if (queryHashCode == 1) {
-	 *		   return className.field1$FValue;
-	 *	   } else if (queryHashCode == 2) {
-	 * 		   return className.field2$FValue;
-	 * 	   } else if (queryHashCode == 3) {
-	 *		   return className.field3$FValue;
-	 *	   } else if (queryHashCode == 4) {
-	 *		   return className.field4$FValue;
-	 *	   }
-	 *	   return null;
-	 *  }
-	 */	
 	
 	/**
-	 * Implementing "static reflection" for the method getValueRaw so the
+	 * Implementing "static reflection" for the method getFooRaw so the
 	 * interpreter has O(log n) lookups based on the hash values of String names
 	 * in this namespace.
 	 */
-	private static void writeMethodGetValueRaw(ClassVisitor cv, String className,
-			Relation<String, Integer> valuesHashCodeRelation) {
+	private static void writeMethodGetRaw(ClassVisitor cv, String className,
+			String methodName, EnvironmentClasses environmentClass, Relation<String, Integer> hashCodeRelation) {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
-        		"getValueRaw", 
+        		methodName, 
         		"(Ljava/lang/String;)" + 
-        		Namespace.FVALUE.descriptor(), 
+        		environmentClass.descriptor(), 
         		null, null); 
         mv.visitCode();
 
@@ -279,9 +263,9 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        ArrayList<Integer> sortedCodes = new ArrayList<Integer>(valuesHashCodeRelation.secondSet());
+        ArrayList<Integer> sortedCodes = new ArrayList<Integer>(hashCodeRelation.secondSet());
         Collections.sort(sortedCodes);
-        getValueRawHelper(className, valuesHashCodeRelation, mv, sortedCodes);
+        getRawHelper(mv, className, hashCodeRelation, environmentClass, sortedCodes);
         
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
@@ -292,11 +276,11 @@ public class TopLevelEnvGen {
         mv.visitEnd();        
 	}
 
-	private static void getValueRawHelper(String className,
-			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+	private static void getRawHelper(MethodVisitor mv, String className,
+			Relation<String, Integer> hashCodeRelation, EnvironmentClasses environmentClass,
 			List<Integer> sortedCodes) {
 		if (sortedCodes.size() < 9) {
-			getValueRawBaseCase(className, valuesHashCodeRelation, mv, sortedCodes);
+			getRawBaseCase(mv, className, hashCodeRelation, environmentClass, sortedCodes);
 		} else {
 			Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
             mv.visitVarInsn(Opcodes.ILOAD, 2);
@@ -305,14 +289,14 @@ public class TopLevelEnvGen {
             mv.visitJumpInsn(Opcodes.IF_ICMPGE, startRightHalf);
             List<Integer> leftCodes = sortedCodes.subList(0, sortedCodes.size() / 2);
             List<Integer> rightCodes = sortedCodes.subList(sortedCodes.size() / 2, sortedCodes.size());
-            getValueRawHelper(className, valuesHashCodeRelation, mv, leftCodes);
+            getRawHelper(mv, className, hashCodeRelation, environmentClass, leftCodes);
             mv.visitLabel(startRightHalf);
-            getValueRawHelper(className, valuesHashCodeRelation, mv, rightCodes);
+            getRawHelper(mv, className, hashCodeRelation, environmentClass, rightCodes);
 		}
 	}
 
-	private static void getValueRawBaseCase(String className,
-			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+	private static void getRawBaseCase(MethodVisitor mv, String className,
+			Relation<String, Integer> hashCodeRelation, EnvironmentClasses environmentClass,
 			List<Integer> sortedCodes) {
 		for(Integer testHashCode : sortedCodes) {
             mv.visitVarInsn(Opcodes.ILOAD, 2);
@@ -322,7 +306,7 @@ public class TopLevelEnvGen {
             mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
             mv.visitLabel(beforeInnerLoop);
 
-            for(String testString : valuesHashCodeRelation.getFirsts(testHashCode)) {
+            for(String testString : hashCodeRelation.getFirsts(testHashCode)) {
             	mv.visitVarInsn(Opcodes.ALOAD, 1);
             	mv.visitLdcInsn(testString);
             	mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
@@ -331,10 +315,10 @@ public class TopLevelEnvGen {
                 mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
                 mv.visitLabel(beforeReturn);
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-                String idString = testString + Namespace.FVALUE.suffix();
+                String idString = testString + environmentClass.namespace();
                 mv.visitFieldInsn(Opcodes.GETFIELD, className, 
                         mangleIdentifier(idString),
-                		Namespace.FVALUE.descriptor());
+                		environmentClass.descriptor());
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitLabel(afterReturn);
             }
@@ -346,15 +330,15 @@ public class TopLevelEnvGen {
 	
 	
 	/**
-	 * Implementing "static reflection" for the method putValueUnconditionally so the
+	 * Implementing "static reflection" for the method putFooRaw so the
 	 * interpreter has O(log n) lookups based on the hash values of String names
 	 * in this namespace.
 	 */
-	private static void writeMethodPutValueUnconditionally(ClassVisitor cv, String className,
-			Relation<String, Integer> valuesHashCodeRelation) {
+	private static void writeMethodPutRaw(ClassVisitor cv, String className,
+			String methodName, EnvironmentClasses environmentClass, Relation<String, Integer> hashCodeRelation) {
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
-        		"putValueUnconditionally", 
-        		"(" + STRING_DESCRIPTOR + Namespace.FVALUE.descriptor() + ")V", 
+        		methodName, 
+        		"(" + STRING_DESCRIPTOR + environmentClass.descriptor() + ")V", 
         		null, null); 
         mv.visitCode();
 
@@ -367,9 +351,9 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        ArrayList<Integer> sortedCodes = new ArrayList<Integer>(valuesHashCodeRelation.secondSet());
+        ArrayList<Integer> sortedCodes = new ArrayList<Integer>(hashCodeRelation.secondSet());
         Collections.sort(sortedCodes);
-        putValueUnconditionallyHelper(className, valuesHashCodeRelation, mv, sortedCodes);
+        putRawHelper(mv, className, environmentClass, hashCodeRelation, sortedCodes);
                 
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
@@ -377,17 +361,17 @@ public class TopLevelEnvGen {
         		defQueryHashCode, endFunction, 0);
         mv.visitLocalVariable("queryString", STRING_DESCRIPTOR, null, 
         		defQueryHashCode, endFunction, 1);
-        mv.visitLocalVariable("value", Namespace.FVALUE.descriptor(), null, defQueryHashCode, endFunction, 2);
+        mv.visitLocalVariable("value", environmentClass.descriptor(), null, defQueryHashCode, endFunction, 2);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 3);
         mv.visitMaxs(2, 4);
         mv.visitEnd();
 	}	
 
-	private static void putValueUnconditionallyHelper(String className,
-			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+	private static void putRawHelper(MethodVisitor mv, String className,
+			EnvironmentClasses environmentClass, Relation<String, Integer> hashCodeRelation, 
 			List<Integer> sortedCodes) {
 		if (sortedCodes.size() < 9) {
-			putValueUnconditionallyBaseCase(className, valuesHashCodeRelation, mv, sortedCodes);
+			putRawBaseCase(mv, className, environmentClass, hashCodeRelation, sortedCodes);
 		} else {
 			Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
             mv.visitVarInsn(Opcodes.ILOAD, 3);
@@ -396,14 +380,14 @@ public class TopLevelEnvGen {
             mv.visitJumpInsn(Opcodes.IF_ICMPGE, startRightHalf);
             List<Integer> leftCodes = sortedCodes.subList(0, sortedCodes.size() / 2);
             List<Integer> rightCodes = sortedCodes.subList(sortedCodes.size() / 2, sortedCodes.size());
-            putValueUnconditionallyHelper(className, valuesHashCodeRelation, mv, leftCodes);
+            putRawHelper(mv, className, environmentClass, hashCodeRelation, leftCodes);
             mv.visitLabel(startRightHalf);
-            putValueUnconditionallyHelper(className, valuesHashCodeRelation, mv, rightCodes);
+            putRawHelper(mv, className, environmentClass, hashCodeRelation, rightCodes);
 		}		
 	}
 
-	private static void putValueUnconditionallyBaseCase(String className,
-			Relation<String, Integer> valuesHashCodeRelation, MethodVisitor mv,
+	private static void putRawBaseCase(MethodVisitor mv, String className,
+			EnvironmentClasses environmentClass, Relation<String, Integer> hashCodeRelation,
 			List<Integer> sortedCodes) {
 		for(Integer testHashCode : sortedCodes) {
 			mv.visitVarInsn(Opcodes.ILOAD, 3);
@@ -413,7 +397,7 @@ public class TopLevelEnvGen {
 			mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
 			mv.visitLabel(beforeInnerLoop);
 
-			for(String testString : valuesHashCodeRelation.getFirsts(testHashCode)) {
+			for(String testString : hashCodeRelation.getFirsts(testHashCode)) {
 				mv.visitVarInsn(Opcodes.ALOAD, 1);
 				mv.visitLdcInsn(testString);
 				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
@@ -423,9 +407,9 @@ public class TopLevelEnvGen {
 				mv.visitLabel(beforeSetValue);
 				mv.visitVarInsn(Opcodes.ALOAD, 0);
 				mv.visitVarInsn(Opcodes.ALOAD, 2);
-				String idString = testString + Namespace.FVALUE.suffix();                
+				String idString = testString + environmentClass.namespace();                
 				mv.visitFieldInsn(Opcodes.PUTFIELD, className, 
-						mangleIdentifier(idString), Namespace.FVALUE.descriptor()); 
+						mangleIdentifier(idString), environmentClass.descriptor()); 
 				mv.visitInsn(Opcodes.RETURN);
 				mv.visitLabel(afterSetValue);
 			}                                    
@@ -519,10 +503,4 @@ public class TopLevelEnvGen {
 		return writeCompleted;
 	}
 	
-	public static void main(String args[]) {
-		String input = "/.;$<>[]:\\"; 		//  "/.;$<>[]:\\" --> "\|\,\?\%\^\_\{\}\!\-"
-		
-		System.out.println(mangleIdentifier(input));
-		System.out.println(mangleIdentifier("hello" + input));		
-	}
 }
