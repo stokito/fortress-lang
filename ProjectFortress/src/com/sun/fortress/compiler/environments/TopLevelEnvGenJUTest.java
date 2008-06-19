@@ -58,14 +58,14 @@ public class TopLevelEnvGenJUTest extends TestCase {
 			IntNat c = IntNat.make((int) 'l');
 			
 			environment.putType("Empty", three);
-			environment.putType("Emptyא", a);
-			environment.putType("Emptyב", b);			
-			environment.putType("Emptyג", c);
+			environment.putType("Empty" + '\u05D0', a);
+			environment.putType("Empty" + '\u05D1', b);			
+			environment.putType("Empty" + '\u05D2', c);
 			
 			assertEquals(environment.getTypeNull("Empty"), three);
-			assertEquals(environment.getTypeNull("Emptyא"), a);
-			assertEquals(environment.getTypeNull("Emptyב"), b);
-			assertEquals(environment.getTypeNull("Emptyג"), c);
+			assertEquals(environment.getTypeNull("Empty" + '\u05D0'), a);
+			assertEquals(environment.getTypeNull("Empty" + '\u05D1'), b);
+			assertEquals(environment.getTypeNull("Empty" + '\u05D2'), c);
 			
 			assertNull(environment.getTypeNull("Chupacabra"));			
 			
