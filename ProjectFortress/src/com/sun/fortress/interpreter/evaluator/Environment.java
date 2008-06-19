@@ -60,14 +60,6 @@ public interface Environment  {
 
     public abstract Environment genericLeafEnvHack(Environment genericEnv, HasAt within);
 
-    /* An Api name is unambiguous. */
-    public abstract SApi getApi(APIName d);
-
-    /**
-     * @return Returns the api_env.
-     */
-    public abstract SApi getApi(String str);
-
     public abstract HasAt getAt();
 
     public boolean getBlessed() ;
@@ -145,10 +137,6 @@ public interface Environment  {
     // A notable name -- for overloading later, I think.
     public abstract void noteName(String s);
 
-    public abstract void putApi(APIName d, SApi x);
-
-    public abstract void putApi(String s, SApi api);
-    
     public abstract void putBool(String str, Boolean f2);
 
     public void putBoolRaw(String str, Boolean f2) ;
