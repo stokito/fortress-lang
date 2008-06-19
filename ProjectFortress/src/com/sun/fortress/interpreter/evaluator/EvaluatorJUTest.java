@@ -299,7 +299,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         BetterEnv s = new BetterEnv(e, "s");
         s.bless();
         // Copy inherits outer, shadowing is not allowed.
-        s.putValueUnconditionally("x", FInt.make(9));
+        s.putValueRaw("x", FInt.make(9));
         assertTrue(e.getValue("x").getInt() == 7);
         assertEquals(9, s.getValue("x").getInt());
     }

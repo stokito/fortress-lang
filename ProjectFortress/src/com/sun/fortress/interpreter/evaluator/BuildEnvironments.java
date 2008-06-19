@@ -610,7 +610,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     private static void assignFunction(Environment e, IdOrOpOrAnonymousName name, FValue f) {
-        e.putValueUnconditionally(NodeUtil.nameString(name), f);
+        e.putValueRaw(NodeUtil.nameString(name), f);
     }
 
     /*

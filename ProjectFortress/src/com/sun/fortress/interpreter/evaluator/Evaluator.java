@@ -659,7 +659,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             for (Id id : bindIds) {
                 FValue val = ExprFactory.makeVarRef(id).accept(ev);
                 /* Avoid shadow error when we bind the same var name */
-                ev.e.putValueUnconditionally(id.getText(), val);
+                ev.e.putValueRaw(id.getText(), val);
                 res.add(val.type());
             }
         } else { // exprOpt.isSome()
@@ -669,7 +669,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 String name = bindIds.get(0).getText();
                 if (isShadow(expr, name)) {
                     /* Avoid shadow error when we bind the same var name */
-                    ev.e.putValueUnconditionally(name, val);
+                    ev.e.putValueRaw(name, val);
                 } else {
                     /* But warn about shadowing in all other cases */
                     ev.e.putValue(name, val);
@@ -699,7 +699,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     FValue val = pair.getA();
                     if (isShadow(pair.getB(), name)) {
                         /* Avoid shadow error when we bind the same var name */
-                        ev.e.putValueUnconditionally(name, val);
+                        ev.e.putValueRaw(name, val);
                     } else {
                         /* But warn about shadowing in all other cases */
                         ev.e.putValue(name, val);

@@ -90,7 +90,7 @@ public class MethodClosure extends Closure implements Method {
                                                        args, loc));
             // selfName() was rewritten to our special "$self", and
             // we don't care about shadowing here.
-            eval.e.putValueUnconditionally(selfName(), selfValue);
+            eval.e.putValueRaw(selfName(), selfValue);
             return eval.eval(body);
         } else if (def instanceof Method) {
             return ((Method)def).applyMethod(args, selfValue, loc, envForInference);

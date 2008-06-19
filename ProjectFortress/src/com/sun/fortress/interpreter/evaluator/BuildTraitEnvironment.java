@@ -74,14 +74,14 @@ public class BuildTraitEnvironment extends BuildEnvironments {
      * @param ft
      */
     protected void putValue(Environment e, String name, FValue value, FType ft) {
-        e.putValueUnconditionally(name, value, ft);
+        e.putValueRaw(name, value, ft);
     }
 
     /**
      * Put a value, perhaps unconditionally depending on subtype's choice
      */
     protected void putValue(Environment e, String name, FValue value) {
-        e.putValueUnconditionally(name, value);
+        e.putValueRaw(name, value);
     }
 
     public Voidoid forVarDecl(VarDecl x) {

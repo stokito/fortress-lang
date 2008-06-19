@@ -407,8 +407,6 @@ abstract public class BaseEnv implements Environment {
     public void putValue(Id name, FValue x) {
         putValue(NodeUtil.nameString(name), x);
     }
-
-    abstract public void putValueUnconditionally(String str, FValue v);
     
     public Closure getClosure(String s) {
         return (Closure) getValue(s);
@@ -422,8 +420,8 @@ abstract public class BaseEnv implements Environment {
         putValue(str, new ReferenceCell());
      }
 
-    public void putValueUnconditionally(String str, FValue f2, FType ft) {
-        putValueUnconditionally(str, new ReferenceCell(ft, f2));
+    public void putValueRaw(String str, FValue f2, FType ft) {
+        putValueRaw(str, new ReferenceCell(ft, f2));
      }
 
     public void putVariable(String str, FValue f2, FType ft) {

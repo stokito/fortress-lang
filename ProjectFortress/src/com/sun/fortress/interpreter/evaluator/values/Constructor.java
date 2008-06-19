@@ -576,7 +576,7 @@ public class Constructor extends NonPrimitive {
 
         FObject theObject = makeAnObject(lex_env, self_env);
 
-        self_env.putValueUnconditionally(WellKnownNames.secretSelfName, theObject);
+        self_env.putValueRaw(WellKnownNames.secretSelfName, theObject);
 
         // TODO this is WRONG.  The vars need to be inserted into self, but
         // get evaluated against the larger (lexical) environment.  Arrrrrrrggggggh.
@@ -609,11 +609,11 @@ public class Constructor extends NonPrimitive {
 
         FValue surroundSelf = lex_env.getValueNull(WellKnownNames.secretSelfName);
         if (surroundSelf != null)
-            self_env.putValueUnconditionally(WellKnownNames.secretParentName, surroundSelf);
+            self_env.putValueRaw(WellKnownNames.secretParentName, surroundSelf);
 
         FObject theObject = makeAnObject(lex_env, self_env);
 
-        self_env.putValueUnconditionally(WellKnownNames.secretSelfName, theObject);
+        self_env.putValueRaw(WellKnownNames.secretSelfName, theObject);
 
         // TODO this is WRONG.  The vars need to be inserted into self, but
         // get evaluated against the larger (lexical) environment.  Arrrrrrrggggggh.
@@ -658,7 +658,7 @@ public class Constructor extends NonPrimitive {
             } else {
                 // Assertion -- by construction, illegal shadowing won't occur,
                 // because it is processed/detected in the overloading code.
-                self_env.putValueUnconditionally(cl.asMethodName(), cl);
+                self_env.putValueRaw(cl.asMethodName(), cl);
             }
         }
 

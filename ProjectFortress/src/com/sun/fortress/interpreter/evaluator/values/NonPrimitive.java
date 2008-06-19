@@ -248,10 +248,10 @@ public abstract class NonPrimitive extends Simple_fcn {
                 arg = arg.getValue(); // Strip asif
                 try {
                     if (param.getMutable()) {
-                        env.putValueUnconditionally(param.getName(), arg,
+                        env.putValueRaw(param.getName(), arg,
                                                     param.getType());
                     } else {
-                        env.putValueUnconditionally(param.getName(), arg);
+                        env.putValueRaw(param.getName(), arg);
                     }
                 } catch (FortressException ex) {
                     throw ex.setContext(loc,env);

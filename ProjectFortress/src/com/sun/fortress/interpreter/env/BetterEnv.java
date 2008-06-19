@@ -193,9 +193,9 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
               
                     FType ft = additions.getVarTypeNull(s);
                     if (ft != null)
-                       existing.putValueUnconditionally(s, o, ft);
+                       existing.putValueRaw(s, o, ft);
                     else 
-                       existing.putValueUnconditionally(s, o);
+                       existing.putValueRaw(s, o);
             }
         };
         final Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
@@ -252,14 +252,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         }
     }     
  
-    private <Result> BATreeNode<String, Result> putUnconditionally(BATreeNode<String, Result> table, String index, Result value, String what) {
-        if (table == null) {
-            return new BATreeNode<String, Result> (index, value);
-        } else {
-            BATreeNode<String, Result> new_table = table.add(index, value, comparator);
-           return new_table;
-        }
-    }
 
     public Environment extend(BetterEnv additions) {
         return new BetterEnv(this, additions);
@@ -384,10 +376,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         var_env = put(var_env, str, f2);
     }
     
-    public void putValueUnconditionally(String str, FValue f2) {
-        var_env = putUnconditionally(var_env, str, f2, "Var/value");
-     }
-
 
     // Slightly wrong -- returns all, not just the most recently bound.
 
