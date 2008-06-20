@@ -97,12 +97,6 @@ public class StaticChecker {
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         
         for (APIName componentName : components.keySet()) {
-            try{
-                com.sun.fortress.interpreter.drivers.ASTIO.writeJavaAst(components.get(componentName).ast(), "/tmp/x" + componentName );
-            } catch ( Exception e ){
-                e.printStackTrace();
-            }
-
             TypeCheckerResult checked = checkComponent(components.get(componentName), env);
             checkedComponents.add((Component)checked.ast());
             errors = IterUtil.compose(checked.errors(), errors);
