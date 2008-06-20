@@ -42,7 +42,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     private BATreeNode<String, Boolean> bool_env;
 
 
-    static public boolean verboseDump = false;
+
 
     /** (Lexical) ancestor environment */
     BetterEnv parent;
