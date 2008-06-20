@@ -137,6 +137,14 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             }
         }
 
+        private long getFileDate( ComponentGraphNode node ) throws FileNotFoundException {
+            return findFile( node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX ).lastModified();
+        }
+        
+        private long getFileDate( ApiGraphNode node ) throws FileNotFoundException {
+            return findFile( node.getName(), ProjectProperties.API_SOURCE_SUFFIX ).lastModified();
+        }
+
 	private long getCacheDate( ApiGraphNode node ){
 		try{
 			return cache.getModifiedDateForApi(node.getName());
@@ -701,16 +709,34 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
         /* find imports and exports of a component */
-	private List<APIName> componentImports(APIName name) throws FileNotFoundException, StaticError {
+	private List<APIName> componentImports_(APIName name) throws FileNotFoundException, StaticError {
 		File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX);
 		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(name, fdot);
 	}
 
+        private List<APIName> dependencies(ComponentGraphNode node) throws FileNotFoundException, StaticError {
+            if ( node.getComponent().isSome() ){
+		return com.sun.fortress.syntax_abstractions.parser.PreParser.collectComponentImports((Component)node.getComponent().unwrap().ast());
+            } else {
+		File fdot = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
+		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(node.getName(), fdot);
+            }
+        }
+
         /* find imports of an api */
-	private List<APIName> apiImports(APIName name) throws FileNotFoundException, StaticError {
+	private List<APIName> apiImports_(APIName name) throws FileNotFoundException, StaticError {
 		File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX);
 		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(name, fdot);
 	}
+
+        private List<APIName> dependencies(ApiGraphNode node) throws FileNotFoundException, StaticError {
+            if ( node.getApi().isSome() ){
+		return com.sun.fortress.syntax_abstractions.parser.PreParser.collectApiImports((Api)node.getApi().unwrap().ast());
+            } else {
+		File fdot = findFile(node.getName(), ProjectProperties.API_SOURCE_SUFFIX);
+		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(node.getName(), fdot);
+            }
+        }
      
         /* add a compiled api to the repository */
 	public void addApi(APIName name, ApiIndex definition) {
@@ -750,13 +776,17 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                                  * if it fails then it will be reloaded later on
                                  * in refreshGraph
                                  */
-				node.setApi( cache.getApi(name) );
+
+                                if ( getCacheDate(node) > getFileDate(node) ){
+                                    Debug.debug( 2 , "Found cached version of " + node );
+                                    node.setApi( cache.getApi(name) );
+                                }
 			} catch ( FileNotFoundException f ){
 				/* oh well */
 			} catch ( IOException e ){
 			}
                         /* make this api depend on the apis it imports */
-			for ( APIName api : apiImports(name) ){
+			for ( APIName api : dependencies(node) ){
 				Debug.debug( 2, "Add edge " + api );
 				graph.addEdge(node, addApiGraph(api));
 			}
@@ -786,12 +816,15 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                                  * if it fails then it will be reloaded later on
                                  * in refreshGraph
                                  */
+                            if ( getCacheDate(node) > getFileDate(node) ){
+                                Debug.debug( 2 , "Found cached version of " + node );
 				node.setComponent( cache.getComponent(name) );
+                            }
 			} catch ( FileNotFoundException f ){
 				/* oh well */
 			} catch ( IOException e ){
 			}
-			for ( APIName api : componentImports(name) ){
+			for ( APIName api : dependencies(node) ){
                                 /* the component depends on the imported api */
 				graph.addEdge(node, addApiGraph(api));
                                 /* the component depends on the imported api's component */

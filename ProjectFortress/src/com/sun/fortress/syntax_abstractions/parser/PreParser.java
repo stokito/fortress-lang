@@ -94,6 +94,31 @@ public class PreParser {
                return fixed;
            }
 
+           public static List<APIName> collectComponentImports(Component comp){
+               List<APIName> all = new ArrayList<APIName>();
+
+               for ( Import i : comp.getImports() ){
+                   ImportedNames names = (ImportedNames) i;
+                   all.add( names.getApi() );
+               }
+               for ( Export export : comp.getExports() ){
+                   all.addAll( export.getApis() );
+               }
+               all = removeExecutableApi(all);
+
+               return all;
+           }
+
+           public static List<APIName> collectApiImports(Api api){
+               List<APIName> all = new ArrayList<APIName>();
+               for ( Import i : api.getImports() ){
+                   ImportedNames names = (ImportedNames) i;
+                   all.add( names.getApi() );
+               }
+
+               return removeExecutableApi(all);
+           }
+
            /* get a list of imported apis from a component/api */
 	public static List<APIName> getImportedApis(APIName name, File f) throws StaticError {
 		Parser.Result pr = parseFile(name, f);
@@ -103,24 +128,13 @@ public class PreParser {
                     }
 		}
 		List<APIName> all = new ArrayList<APIName>();
-		for ( Component comp : pr.components() ){
-			for ( Import i : comp.getImports() ){
-				ImportedNames names = (ImportedNames) i;
-				all.add( names.getApi() );
-			}
-                        for ( Export export : comp.getExports() ){
-                            all.addAll( export.getApis() );
-                        }
-		}
-                all = removeExecutableApi(all);
-		for ( Api api : pr.apis() ){
-			for ( Import i : api.getImports() ){
-				ImportedNames names = (ImportedNames) i;
-				all.add( names.getApi() );
-			}
-		}
-                /* hack */
-                return removeExecutableApi(all);
+                for ( Component comp : pr.components() ){
+                    all.addAll( collectComponentImports(comp) );
+                }
+                for ( Api api : pr.apis() ){
+                    all.addAll( collectApiImports(api) );
+                }
+                return all;
 	}
 
 	/** Parses a single file. */
