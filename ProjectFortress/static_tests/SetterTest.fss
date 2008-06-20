@@ -1,0 +1,10 @@
+component SetterTest
+ export Executable
+ object Foo
+   var z:String = "blah"
+   setter z(newz:String):()=z:=newz
+ end
+ run(args:String...):() = do
+   Foo.z := "bar"
+ end
+end  
