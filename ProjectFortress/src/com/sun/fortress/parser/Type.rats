@@ -196,7 +196,8 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
 /* TypeRef ::= DottedIdChain StaticArgs? */
 /* TypeRef ::= Id StaticArgs? */
 private Type TypeRef =
-     Id wr StaticArgs // Error production
+     <ErrorProduction>
+     Id wr StaticArgs
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -273,7 +274,8 @@ ExtentRange ExtentRange =
    | ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 constant inline Action<Type> Exponentiation =
-     caret wr IntExpr // Error production
+     <ErrorProduction1>
+     caret wr IntExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately after '^'.");
      }
@@ -295,7 +297,8 @@ constant inline Action<Type> Exponentiation =
                }
            }};
      }
-   / caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen // Error production
+   / <ErrorProduction2>
+     caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately after '^'.");
      }
@@ -406,7 +409,8 @@ constant inline Action<Type> ArrayTypeSizeTrait =
    | ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 constant inline Action<Type> ExponentiationTrait =
-     caret wr IntExpr // Error production
+     <ErrorProduction1>
+     caret wr IntExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately after '^'.");
      }
@@ -423,7 +427,8 @@ constant inline Action<Type> ExponentiationTrait =
                                                   (Type)base, a1);
            }};
      }
-   / caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen // Error production
+   / <ErrorProduction2>
+     caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately after '^'.");
      }

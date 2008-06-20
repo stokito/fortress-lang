@@ -117,7 +117,7 @@ List<WhereBinding> WhereBindingList =
 WhereBinding WhereBinding =
      nat w a1:Id
      { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
-   / nat w a1:OpName // Error production
+   / <ErrorProduction1> nat w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid nat parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -128,7 +128,7 @@ WhereBinding WhereBinding =
      }
    / int w a1:Id
      { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
-   / int w a1:OpName // Error production
+   / <ErrorProduction2> int w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid int parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -139,7 +139,7 @@ WhereBinding WhereBinding =
      }
    / bool w a1:Id
      { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
-   / bool w a1:OpName // Error production
+   / <ErrorProduction3> bool w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid bool parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -150,7 +150,7 @@ WhereBinding WhereBinding =
      }
    / unit w a1:Id
      { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); }
-   / unit w a1:OpName // Error production
+   / <ErrorProduction4> unit w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid unit parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -159,7 +159,7 @@ WhereBinding WhereBinding =
                              "underscore, and contains at least two distinct " +
                              "letters is an operator name.");
      }
-   / a1:OpName a2:(w a2:Extends)? // Error production
+   / <ErrorProduction5> a1:OpName a2:(w a2:Extends)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid type parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -172,7 +172,7 @@ WhereBinding WhereBinding =
      { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
        yyValue = new WhereType(createSpan(yyStart,yyCount), a1, a2);
      }
-   / opendoublesquare   // Error production
+   / <ErrorProduction6> opendoublesquare
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "White square bracket is not a valid where-clause binding.");
      };
@@ -186,19 +186,23 @@ FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsType)? a2:FnClauses
 
 /* FnClauses ::= (w Throws)? (w Where)? Contract */
 FnHeaderClause FnClauses =
-     w Throws w ExtendsWhere (w Where)? Contract    // Error production
+     <ErrorProduction1>
+     w Throws w ExtendsWhere (w Where)? Contract
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-   / w Throws w Where w ExtendsWhere Contract    // Error production
+   / <ErrorProduction2>
+     w Throws w Where w ExtendsWhere Contract
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-   / w Where w ExtendsWhere Contract    // Error production
+   / <ErrorProduction3>
+     w Where w ExtendsWhere Contract
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Extends clauses should come before throws/where/contract clauses.");
      }
-    / w Where w Throws Contract // Error production
+   / <ErrorProduction4>
+     w Where w Throws Contract
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Throws clauses should come before where clauses.");
      }
@@ -392,7 +396,8 @@ private List<StaticParam> StaticParamList =
 private StaticParam StaticParam =
      nat w a1:Id
      { yyValue = new NatParam(createSpan(yyStart,yyCount), a1);}
-   / nat w a1:OpName // Error production
+   / <ErrorProduction1>
+     nat w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid nat parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -403,7 +408,8 @@ private StaticParam StaticParam =
      }
    / int w a1:Id
      { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
-   / int w a1:OpName // Error production
+   / <ErrorProduction2>
+     int w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid int parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -414,7 +420,8 @@ private StaticParam StaticParam =
      }
    / bool w a1:Id
      { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
-   / bool w a1:OpName // Error production
+   / <ErrorProduction3>
+     bool w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid bool parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -425,7 +432,8 @@ private StaticParam StaticParam =
      }
    / dim w a1:Id
      {yyValue = new DimParam(createSpan(yyStart,yyCount), a1);}
-   / dim w a1:OpName // Error production
+   / <ErrorProduction4>
+     dim w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid dim parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -440,7 +448,8 @@ private StaticParam StaticParam =
        yyValue = new UnitParam(createSpan(yyStart,yyCount), a1,
                                derived, absorbs);
      }
-   / unit w a1:OpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)? // Error production
+   / <ErrorProduction5>
+     unit w a1:OpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid unit parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -451,7 +460,8 @@ private StaticParam StaticParam =
      }
    / opr w a1:Op
      { yyValue = new OpParam(createSpan(yyStart,yyCount), a1); }
-   / a1:OpName a2:(w Extends)? a3:(w absorbs w unit)? // Error production
+   / <ErrorProduction6>
+     a1:OpName a2:(w Extends)? a3:(w absorbs w unit)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid type parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -467,7 +477,8 @@ private StaticParam StaticParam =
        else            absorbs = true;
        yyValue = new TypeParam(createSpan(yyStart,yyCount), a1, a2, absorbs);
      }
-   / opendoublesquare   // Error production
+   / <ErrorProduction7>
+     opendoublesquare
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "White square bracket is not a valid static parameter.");
      };

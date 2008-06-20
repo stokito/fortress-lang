@@ -117,7 +117,8 @@ constant transient Action<Expr> AssignLeftTail =
    ;
 
 constant inline Action<Expr> SubscriptAssign =
-     LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
+     <ErrorProduction>
+     LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -326,8 +327,9 @@ constant PureList<Expr> PrimaryItem =
    | PrimaryFront Subscripting* ParenthesisDelimited* Selector+
  */
 constant Expr LeftAssociatedPrimary =
+     <ErrorProduction>
      DottedIdChain wr StaticArgs ParenthesisDelimited
-     ParenthesisDelimitedLeft* Selector* // Error production
+     ParenthesisDelimitedLeft* Selector*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -406,7 +408,8 @@ Expr PrimaryFront =
      ArrayExpr
    / MapExpr
    / Comprehension
-   / LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
+   / <ErrorProduction>
+     LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -427,7 +430,8 @@ Expr PrimaryFront =
 
 /* VarOrFnRef ::= Id StaticArgs? */
 Expr VarOrFnRef =
-     Id wr StaticArgs // Error production
+     <ErrorProduction>
+     Id wr StaticArgs
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -443,8 +447,9 @@ Expr VarOrFnRef =
    | LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
  */
 constant inline Action<Expr> SubscriptingLeft =
+     <ErrorProduction1>
      (opensquare / opencurly) wr StaticArgs (w ExprList)? w
-     (closesquare / closecurly) // Error production
+     (closesquare / closecurly)
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -466,7 +471,8 @@ constant inline Action<Expr> SubscriptingLeft =
                                          a1 + " and " + a4);
            }};
      }
-   / LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
+   / <ErrorProduction2>
+     LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -513,7 +519,8 @@ constant transient Action<Expr> Selector =
    ;
 
 constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
-     dot w Id wr StaticArgs ParenthesisDelimited ParenthesisDelimitedLeft* // Error production
+     <ErrorProduction>
+     dot w Id wr StaticArgs ParenthesisDelimited ParenthesisDelimitedLeft*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -569,8 +576,9 @@ MathItem MathItem =
    | LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
  */
 SubscriptingMI Subscripting =
+     <ErrorProduction1>
      (opensquare / opencurly) wr StaticArgs (w ExprList)? w
-     (closesquare / closecurly) // Error production
+     (closesquare / closecurly)
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -591,7 +599,8 @@ SubscriptingMI Subscripting =
                                  "Mismatched subscripting operator: " + a1 +
                                  " and " + a4);
      }
-   / LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
+   / <ErrorProduction2>
+     LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
@@ -608,7 +617,8 @@ SubscriptingMI Subscripting =
    | ExponentOp
  */
 ExponentiationMI Exponentiation =
-     caret wr Exponent // Error production
+     <ErrorProduction>
+     caret wr Exponent
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately after '^'.");
      }
@@ -647,8 +657,9 @@ Expr FlowExpr =
        Option<Expr> expr = Option.wrap(a2);
        yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
      }
-   / Accumulator wr StaticArgs
-     (w opensquare w GeneratorClauseList w closesquare)? w Expr // Error production
+   / <ErrorProduction>
+     Accumulator wr StaticArgs
+     (w opensquare w GeneratorClauseList w closesquare)? w Expr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }

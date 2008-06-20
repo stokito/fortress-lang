@@ -39,8 +39,9 @@ import Spacing;
    | (unit | SI_unit) w Id (wr Id)* (w : w NoNewlineType)? (w = w NoNewlineExpr)?
  */
 List<DimUnitDecl> DimUnitDecl =
+     <ErrorProduction1>
      dim w a1:OpName a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
-     a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)? // Error production
+     a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid dimension name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -49,8 +50,9 @@ List<DimUnitDecl> DimUnitDecl =
                              "underscore, and contains at least two distinct " +
                              "letters is an operator name.");
      }
-   / dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
-     a4:OpName a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)? // Error production
+   / <ErrorProduction2>
+     dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
+     a4:OpName a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a4 + " is not a valid unit name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -74,7 +76,8 @@ List<DimUnitDecl> DimUnitDecl =
                                     Option.wrap(a6));
        yyValue = FortressUtil.mkList(dim, unit);
      }
-   / dim w a1:OpName a2:(w void:equals w NoNewlineType)? a3:(w default w Id)? // Error production
+   / <ErrorProduction3>
+     dim w a1:OpName a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid dimension name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -83,7 +86,8 @@ List<DimUnitDecl> DimUnitDecl =
                              "underscore, and contains at least two distinct " +
                              "letters is an operator name.");
      }
-   / dim w a1:Id a2:(w void:equals w NoNewlineType)? w default w a3:OpName // Error production
+   / <ErrorProduction4>
+     dim w a1:Id a2:(w void:equals w NoNewlineType)? w default w a3:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a3 + " is not a valid unit name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -97,8 +101,9 @@ List<DimUnitDecl> DimUnitDecl =
                                  a1, Option.wrap(a2), Option.wrap(a3));
        yyValue = FortressUtil.mkList((DimUnitDecl)dim);
      }
-   / a1:(unit / SI_unit) w a2:OpName a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
-     a5:(w void:equals w NoNewlineExpr)? // Error production
+   / <ErrorProduction5>
+     a1:(unit / SI_unit) w a2:OpName a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
+     a5:(w void:equals w NoNewlineExpr)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a2 + " is not a valid unit name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -126,7 +131,8 @@ TypeAlias TypeAlias =
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new TypeAlias(createSpan(yyStart,yyCount), a1, a2, a3);
      }
-   / type w a1:OpName a2:(w StaticParams)? w equals w a3:NoNewlineType // Error production
+   / <ErrorProduction>
+     type w a1:OpName a2:(w StaticParams)? w equals w a3:NoNewlineType
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a2 + " is not a valid type name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -141,8 +147,9 @@ TestDecl TestDecl =
      test w a1:Id w opensquare w a2:GeneratorClauseList w closesquare w equals w
      a3:NoNewlineExpr
      { yyValue = new TestDecl(createSpan(yyStart,yyCount), a1, a2, a3); }
-   / test w a1:OpName w opensquare w a2:GeneratorClauseList w closesquare w equals w
-     a3:NoNewlineExpr // Error production
+   / <ErrorProduction>
+     test w a1:OpName w opensquare w a2:GeneratorClauseList w closesquare w equals w
+     a3:NoNewlineExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a2 + " is not a valid test name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -162,8 +169,9 @@ PropertyDecl PropertyDecl =
        if (a2 == null) a2 = FortressUtil.emptyParams();
        yyValue = new PropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
      }
-   / property w a1:OpName w equals a2:(w FORALL w ValParam)? w
-     a3:NoNewlineExpr // Error production
+   / <ErrorProduction>
+     property w a1:OpName w equals a2:(w FORALL w ValParam)? w
+     a3:NoNewlineExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a2 + " is not a valid property name.\n" +
                              "A non-reserved word that is made up of a mixture" +
