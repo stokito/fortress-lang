@@ -44,7 +44,6 @@ import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.AbstractFieldRef;
-import com.sun.fortress.nodes.FieldRefForSure;
 import com.sun.fortress.nodes.Name;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
@@ -125,13 +124,6 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     public Voidoid for_RewriteFieldRef(_RewriteFieldRef x) {
         return forFieldRefCommon(x, x.getField());
     }
-
-    @Override
-    public Voidoid forFieldRefForSure(FieldRefForSure x) {
-        return forFieldRefCommon(x, x.getField());
-    }
-
-
 
     LHSEvaluator(Evaluator evaluator, FValue value) {
         this.evaluator = evaluator; this.value = value;

@@ -91,7 +91,6 @@ import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.FieldRefForSure;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.FloatLiteralExpr;
@@ -804,11 +803,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return forFieldRefCommon(x, x.getField());
     }
 
-    @Override
-    public FValue forFieldRefForSure(FieldRefForSure x) {
-        return forFieldRefCommon(x, x.getField());
-    }
-
     private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressException,
             ProgramError {
         String fname = NodeUtil.nameString(fld);
@@ -1359,10 +1353,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     Name fldName(AbstractFieldRef arf) {
         if (arf instanceof FieldRef) {
             return ((FieldRef)arf).getField();
-        }
-        if (arf instanceof FieldRefForSure) {
-            return ((FieldRefForSure)arf).getField();
-
         }
         if (arf instanceof _RewriteFieldRef) {
             return ((_RewriteFieldRef)arf).getField();

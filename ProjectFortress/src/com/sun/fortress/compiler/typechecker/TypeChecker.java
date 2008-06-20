@@ -1724,11 +1724,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return Option.some(that.getField());
 			}
 			@Override
-			public Option<? extends IdOrOpOrAnonymousName> forFieldRefForSure(
-					FieldRefForSure that) {
-				return Option.some(that.getField());
-			}
-			@Override
 			public Option<? extends IdOrOpOrAnonymousName> forLValueBind(
 					LValueBind that) {
 				return Option.some(that.getName());
@@ -2272,12 +2267,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	return TypeCheckerResult.compose(that, result_type,
     			subtypeChecker, function_result, argument_result, result);
     }
-    
+
     @Override
 	public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that,
 			TypeCheckerResult obj_result,
 			List<TypeCheckerResult> staticArgs_result) {
-    	
+
     	if( obj_result.type().isNone() ) {
     		return TypeCheckerResult.compose(that, subtypeChecker, obj_result,
     				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
@@ -2292,31 +2287,31 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		boolean match = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), uninstantiated_t.getStaticParams());
     		if( match ) {
     			// make a trait type that is GenericType instantiated
-    			Type t = NodeFactory.makeTraitType(uninstantiated_t.getSpan(), 
+    			Type t = NodeFactory.makeTraitType(uninstantiated_t.getSpan(),
     					uninstantiated_t.isParenthesized(), uninstantiated_t.getName(), that.getStaticArgs());
         		return TypeCheckerResult.compose(that, t, subtypeChecker, obj_result,
-        				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));    			
+        				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
     		}
     		else {
     			// error
     			String err = "Generic object, " + uninstantiated_t + " instantiated with invalid arguments, " + that.getStaticArgs();
     			TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, that));
         		return TypeCheckerResult.compose(that, subtypeChecker, obj_result, e_result,
-        				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));    			
+        				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
     		}
     	}
     	else {
     		return bug("Unexpected type for ObjectRef.");
     	}
 	}
-	
+
     // Checks the chunk given, and returns the result and a new expression.
     // Requires that all TypeCheckerResults passed in actually have a type.
     // Must be called on non-empty list.
     private Pair<TypeCheckerResult,Expr> checkChunk(List<Pair<TypeCheckerResult,Expr>> chunk, OpRef infix_juxt) {
     	assert(!chunk.isEmpty());
     	// The non-functions in each chunk, if any, are replaced by a single element consisting of the non-functions grouped
-    	// left-associatively into binary juxtapositions. 
+    	// left-associatively into binary juxtapositions.
     	Option<Expr> last_non_fn = Option.none();
     	List<Expr> fns = new LinkedList<Expr>();
     	for( Pair<TypeCheckerResult,Expr> chunk_element : chunk ) {
@@ -2341,11 +2336,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			result_expr = Option.<Expr>some(ExprFactory.make_RewriteFnApp(fn, result_expr.unwrap()));
     	}
     	// We are done. result_expr must be some or this method wasn't implemented correctly.
-    	TypeCheckerResult result = TypeCheckerResult.compose(result_expr.unwrap(), subtypeChecker, 
+    	TypeCheckerResult result = TypeCheckerResult.compose(result_expr.unwrap(), subtypeChecker,
     			IterUtil.asList(IterUtil.pairFirsts(chunk)));
     	return Pair.make(result, result_expr.unwrap());
     }
-    
+
     @Override
 	public TypeCheckerResult forLooseJuxtOnly(LooseJuxt that,
 			                                  TypeCheckerResult multiJuxt_result,
@@ -2354,13 +2349,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	// The implementation of this method is very similar to tight juxt except
     	// the ordering of association is different.
     	// Notice also that tightJuxt has to be recursive, but loose juxt is not, due to specification.
-    	
+
     	// Did any subexpressions fail to typecheck?
     	for( TypeCheckerResult r : exprs_result ) {
     		if( r.type().isNone())
-    			return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);    		
+    			return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
     	}
-    	
+
     	if( that.getExprs().size() != exprs_result.size() ) {
     		bug("Number of types don't match number of sub-expressions");
     	}
@@ -2370,11 +2365,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	    	List<Pair<TypeCheckerResult,Expr>> cur_chunk = new LinkedList<Pair<TypeCheckerResult,Expr>>();
 	    	Iterator<Expr> expr_iter = that.getExprs().iterator();
 	    	boolean seen_non_fn = false;
-	    	// First the loose juxtaposition is broken into nonempty chunks; wherever there is a non-function element followed 
-	    	// by a function element, the latter begins a new chunk. Thus a chunk consists of some number (possibly zero) of 
-	    	// functions followed by some number (possibly zero) of non-functions. 
+	    	// First the loose juxtaposition is broken into nonempty chunks; wherever there is a non-function element followed
+	    	// by a function element, the latter begins a new chunk. Thus a chunk consists of some number (possibly zero) of
+	    	// functions followed by some number (possibly zero) of non-functions.
 	    	for( TypeCheckerResult r : exprs_result ) {
-	    		boolean is_arrow = TypesUtil.isArrows(r.type().unwrap()); 
+	    		boolean is_arrow = TypesUtil.isArrows(r.type().unwrap());
 	    		if( is_arrow && seen_non_fn ) {
 	    			// finished last chunk
 	    			Pair<TypeCheckerResult,Expr> checked_chunk = this.checkChunk(cur_chunk, that.getInfixJuxt());
@@ -2398,7 +2393,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	// After chunking
     	List<Expr> new_juxt_exprs = IterUtil.asList(IterUtil.pairSeconds(checked_chunks));
     	List<TypeCheckerResult> new_juxt_results = IterUtil.asList(IterUtil.pairFirsts(checked_chunks));
-    	
+
     	if( checked_chunks.size() == 1 ) {
     		Expr expr = IterUtil.first(new_juxt_exprs);
         	TypeCheckerResult expr_result = expr.accept(this); // Is it bad to re-typecheck all args?
@@ -2407,7 +2402,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
     	// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
     	// TODO: Separate pass?
-    	// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:	
+    	// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
     	OpExpr multi_op_expr = new OpExpr(that.getSpan(), that.getMultiJuxt(), new_juxt_exprs);
     	TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
     	if( multi_op_result.type().isSome() ) {
