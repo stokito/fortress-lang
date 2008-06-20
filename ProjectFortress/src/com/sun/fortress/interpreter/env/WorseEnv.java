@@ -4,8 +4,6 @@ import java.io.IOException;
 
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.scopes.SApi;
-import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.HasAt;
@@ -30,11 +28,6 @@ public class WorseEnv extends BaseEnv {
 	}
 
 	public Environment extendAt(HasAt x) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public HasAt getAt() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -68,11 +61,6 @@ public class WorseEnv extends BaseEnv {
 	}
 
 	public void putBoolRaw(String str, Boolean f2) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void putComponent(String name, SComponent comp) {
 		// TODO Auto-generated method stub
 
 	}
