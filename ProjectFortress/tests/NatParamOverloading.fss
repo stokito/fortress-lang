@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component NatParamOverloading
-export Runnable
+export Executable
 
 (* Note: this used to fail unless we replaced ZZ32[n] by
    Array1[\ZZ32,0,n\], or we un-overloaded g. *)

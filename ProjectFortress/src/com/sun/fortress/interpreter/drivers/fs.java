@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.shell.BatchCachingRepository;
+import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -145,7 +146,7 @@ public class fs {
 //        boolean keepTemp = keep;
 
         try {
-            BatchCachingRepository fr;
+            FortressRepository fr;
             // Need to replace \ with / in the path.
             if (s.contains("/")) {
                 String head = s.substring(0, s.lastIndexOf("/"));
@@ -155,7 +156,7 @@ public class fs {
                 fr = Driver.defaultRepository();
             }
 
-            fr.addRootApis();
+            // fr.addRootApis();
 
             if (verbose)  { System.err.println("Parsing/reading " + s); }
             long begin = System.currentTimeMillis();

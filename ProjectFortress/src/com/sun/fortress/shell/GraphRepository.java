@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,7 +50,9 @@ import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
+import com.sun.fortress.useful.Debug;
 
 import xtc.parser.SemanticValue;
 import xtc.parser.ParseError;
@@ -61,6 +64,17 @@ import com.sun.fortress.shell.graph.ComponentGraphNode;
 import com.sun.fortress.shell.graph.ApiGraphNode;
 import com.sun.fortress.shell.graph.GraphNode;
 
+/* A graph-based repository. This repository determines the dependency structure
+ * before any components/apis are compiled so that they can be compiled in an
+ * efficient and deterministic order.
+ *
+ * When just compiling a .fss file the .fss depends on its apis and those apis depend
+ * on the apis they import.
+ * When linking a .fss file, the .fss depends on its imports and components that
+ * implement that import are added to the graph.
+ *
+ * Elements in the graph are stored as Node depends on List<Node>
+ */
 public class GraphRepository extends StubRepository implements FortressRepository {
 
 	private static final String[] roots = {"FortressLibrary", "AnyType", "FortressBuiltin", "NatReflect", "NativeArray" };
@@ -70,7 +84,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	private FortressRepository cache;
 	private IndexBuilder builder;
 	private GlobalEnvironment env;
-	private boolean needUpdate = false;
+	private boolean needUpdate = true;
+        /* If link is true then pull in a component for an api */
+        private boolean link = false;
 	public GraphRepository(Path p, FortressRepository cache) {
 		this.path = p;
 		this.cache = cache;
@@ -78,25 +94,32 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		builder = new IndexBuilder();
 		env = new GlobalEnvironment.FromRepository(this);
 
-		for ( String root : roots ){
-			ApiGraphNode api = new ApiGraphNode(NodeFactory.makeAPIName(root));
-			ComponentGraphNode comp = new ComponentGraphNode(NodeFactory.makeAPIName(root));
-			try{
-				api.setApi( cache.getApi( api.getName() ) );
-			} catch ( FileNotFoundException e ){
-			} catch ( IOException e ){
-			}
-
-			try{
-				comp.setComponent( cache.getComponent( comp.getName() ) );
-			} catch ( FileNotFoundException e ){
-			} catch ( IOException e ){
-			}
-			graph.addNode( api );
-			graph.addNode( comp );
-			graph.addEdge( comp, api );
-		}
+                addRoots();
+		
 	}
+
+        private void addRoots(){
+            for ( String root : roots ){
+                ApiGraphNode api = new ApiGraphNode(NodeFactory.makeAPIName(root));
+                // ComponentGraphNode comp = new ComponentGraphNode(NodeFactory.makeAPIName(root));
+                try{
+                    api.setApi( cache.getApi( api.getName() ) );
+                } catch ( FileNotFoundException e ){
+                } catch ( IOException e ){
+                }
+                graph.addNode( api );
+
+                /*
+                try{
+                    comp.setComponent( cache.getComponent( comp.getName() ) );
+                } catch ( FileNotFoundException e ){
+                } catch ( IOException e ){
+                }
+                graph.addNode( comp );
+                graph.addEdge( comp, api );
+                */
+            }
+        }
 
 	private long getCacheDate( ApiGraphNode node ){
 		try{
@@ -120,12 +143,15 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		}
 		File source = findFile(node.getName(), ProjectProperties.API_SOURCE_SUFFIX);
 		if ( source.lastModified() > getCacheDate(node) ){
+                    Debug.debug( 2, node + " is newer " + source.lastModified() + " than the cache " + getCacheDate(node) );
 			seen.put(node,true);
 			return true;
 		}
-		List<GraphNode> depends = graph.successors(node);
+		List<GraphNode> depends = graph.dependancies(node);
+                Debug.debug( 2, node + " depends on " + depends );
 		for ( GraphNode next : depends ){
-			if ( outOfDate( (ApiGraphNode) next, seen ) ){
+			if ( outOfDate( (ApiGraphNode) next, seen ) || getCacheDate((ApiGraphNode) next) > getCacheDate(node) ){
+                            Debug.debug( 2, node + " is out of date because " + next + " is out of date" );
 				seen.put(node,true);
 				return true;
 			}
@@ -141,18 +167,22 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
 		File source = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
 		if ( source.lastModified() > getCacheDate(node) ){
+                    Debug.debug( 2, node + " is newer " + source.lastModified() + " than the cache " + getCacheDate(node) );
 			seen.put(node,true);
 			return true;
 		}
-		List<GraphNode> depends = graph.successors(node);
+		List<GraphNode> depends = graph.dependancies(node);
+                Debug.debug( 2, node + " depends on " + depends );
 		for ( GraphNode next : depends ){
 			if ( next instanceof ApiGraphNode ){
-				if ( outOfDate( (ApiGraphNode) next, seen ) ){
+				if ( outOfDate( (ApiGraphNode) next, seen ) || getCacheDate((ApiGraphNode) next) > getCacheDate(node) ){
+                                    Debug.debug( 2, node + " is out of date because " + next + " is out of date. Cached: " + getCacheDate((ApiGraphNode)next) + " Source: " + getCacheDate(node) );
 					seen.put(node,true);
 					return true;
 				}
 			} else if ( next instanceof ComponentGraphNode ){
-				if ( outOfDate( (ComponentGraphNode) next, seen ) ){
+				if ( outOfDate( (ComponentGraphNode) next, seen ) || getCacheDate( (ComponentGraphNode) next ) > getCacheDate(node) ){
+                                    Debug.debug( 2, node + " is out of date because " + next + " is out of date" );
 					seen.put(node,true);
 					return true;
 				}
@@ -161,6 +191,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		seen.put(node,false);
 		return false;
 	}
+
+        private boolean newer( ApiGraphNode node, long now ) throws FileNotFoundException {
+            File source = findFile(node.getName(), ProjectProperties.API_SOURCE_SUFFIX);
+            return source.lastModified() > now;
+        }
+        
+        private boolean newer( ComponentGraphNode node, long now ) throws FileNotFoundException {
+            File source = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
+            return source.lastModified() > now;
+        }
 
 	private static <TNode> List<TNode> onlyNodes( Graph graph, final Class type ){
 		return Useful.applyToAll(graph.filter( new Fn<GraphNode, Boolean>(){
@@ -210,6 +250,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		/* force components that import things to depend on the component
 		 * that implements that import. This is for syntax abstraction
 		 */
+                /*
 		for ( GraphNode node : componentGraph.nodes() ){
 			ComponentGraphNode comp = (ComponentGraphNode) node;
 			for ( GraphNode dependancy : graph.dependancies(comp) ){
@@ -222,8 +263,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 				}
 			}
 		}
+                */
 
-		componentGraph.dump();
+                if ( Debug.getDebug() >= 1 ){
+                    componentGraph.dump();
+                }
 
 		List<GraphNode> sorted = componentGraph.sorted();
 		List<ComponentGraphNode> rest = new ArrayList<ComponentGraphNode>();
@@ -231,7 +275,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		for ( GraphNode node : sorted ){
 			ComponentGraphNode comp = (ComponentGraphNode) node;
 			if ( nodes.contains( comp ) ){
-				rest.add( comp );
+                            if ( Arrays.asList(roots).contains(comp.getName().toString()) ){
+                                rest.add( 0, comp );
+                            } else {
+                                rest.add( comp );
+                            }
 			}
 		}
 
@@ -239,13 +287,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
 	/* recompile anything that is out of date */
-	private void refreshGraph() throws FileNotFoundException, IOException {
+	private void refreshGraph() throws FileNotFoundException, IOException, StaticError {
 
 		if ( needUpdate ){
 			needUpdate = false;
 			List<ApiGraphNode> recompileApis = findOutOfDateApis();
 			List<ComponentGraphNode> recompileComponents = findOutOfDateComponents();
-			System.out.println( "Out of date components " + recompileComponents );
+                        Debug.debug( 1, "Out of date components " + recompileComponents );
 			/* these can be compiled all at once */
 			compileApis(recompileApis);
 
@@ -302,18 +350,24 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		*/
 	}
 
-	public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException {
+	public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
 		// return cache.getApi(name);
 		ApiGraphNode node = addApiGraph(name);
+		Debug.debug( 1, "Get api for " + name);
 		refreshGraph();
-		System.out.println( "Get api for " + name);
 		return node.getApi().unwrap();
 	}
 
-	public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
+        // private static int cc = 0;
+	public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
 		ComponentGraphNode node = addComponentGraph(name);
+		Debug.debug( 1, "Get component for " + name );
+                /*
+                if ( cc++ > 3 ){
+                    throw new RuntimeException( "cc" );
+                }
+                */
 		refreshGraph();
-		System.out.println( "Get component for " + name );
 		return node.getComponent().unwrap();
 		/*
 		ComponentGraphNode node = new ComponentGraphNode(name);
@@ -348,10 +402,17 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
 	private Component syntaxExpand( ComponentGraphNode node ) throws FileNotFoundException, IOException {
-		System.out.println( "Expand component " + node );
+		Debug.debug( 1, "Expand component " + node );
 		File file = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
-		Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository(this), verbose());
+                GraphRepository g1 = new GraphRepository( this.path, this.cache );
+                /* FIXME: hack to prevent infinite recursion */
+                Driver.setCurrentInterpreterRepository( g1 );
+		Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository( g1 ), verbose());
+		// Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository(this), verbose());
+                /* FIXME: hack to prevent infinite recursion */
+                Driver.setCurrentInterpreterRepository( this );
 		if (result.isSuccessful()) {
+                    Debug.debug( 1, "Expanded component " + node );
 			Iterator<Component> components = result.components().iterator();
 			if (components.hasNext()) return components.next();
 			throw new ProgramError("Successful parse result was nonetheless empty, file " + file.getCanonicalPath());
@@ -359,16 +420,23 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		throw new ProgramError(result.errors());
 	}
 
-	private ComponentIndex compileComponent( Component component ){
+	private ComponentIndex compileComponent( Component component ) throws StaticError {
 		GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(compiledApis());
 		List<Component> components = new ArrayList<Component>();
 		components.add(component);
 		Fortress fort = new Fortress(this);
-		System.out.println( "Compiling " + component );
-		Iterable<? extends StaticError> errors = fort.analyze( knownApis, new ArrayList<Api>(), components, System.currentTimeMillis() );
+                long now = System.currentTimeMillis();
+		Debug.debug( 1, "Compiling " + component + " at " + now );
+		Iterable<? extends StaticError> errors = fort.analyze( knownApis, new ArrayList<Api>(), components, now );
+                for ( StaticError e : errors ){
+                    throw e;
+                }
+                Debug.debug( 1, "No errors for " + component );
+                /*
 		for ( StaticError e : errors ){
 			System.err.println("Error while compiling component: " + e);
 		}
+                */
 		ComponentGraphNode node = (ComponentGraphNode) graph.find( new ComponentGraphNode(component.getName()) );
 		return node.getComponent().unwrap();
 	}
@@ -412,7 +480,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	private Component parseComponent( ComponentGraphNode node ){
 		try{
 			File fdot = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
-			System.out.println("Parsing " + fdot);
+			Debug.debug( 1, "Parsing " + fdot);
 			CompilationUnit comp = doParse(fdot);
 			if (comp instanceof Component) {
 				return (Component) comp;
@@ -478,19 +546,19 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(compiledApis());
 		List<Component> components = new ArrayList<Component>();
 		Fortress fort = new Fortress(this);
-		System.out.println( "Compiling " + uncompiled );
+		Debug.debug( 1, "Compiling " + uncompiled );
 		Iterable<? extends StaticError> errors = fort.analyze( knownApis, uncompiled, components, System.currentTimeMillis() );
 		for ( StaticError e : errors ){
 			System.err.println("Error while compiling apis: " + e);
 		}
 	}
 
-	private List<APIName> componentImports(APIName name) throws FileNotFoundException {
+	private List<APIName> componentImports(APIName name) throws FileNotFoundException, StaticError {
 		File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX);
 		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(fdot);
 	}
 
-	private List<APIName> apiImports(APIName name) throws FileNotFoundException {
+	private List<APIName> apiImports(APIName name) throws FileNotFoundException, StaticError {
 		File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX);
 		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(fdot);
 	}
@@ -522,6 +590,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 			needUpdate = true;
 			graph.addNode( node );
 			try{
+                                /* try to load the api from the cache.
+                                 * if it fails then it will be reloaded later on
+                                 * in refreshGraph
+                                 */
 				node.setApi( cache.getApi(name) );
 			} catch ( FileNotFoundException f ){
 				/* oh well */
@@ -529,7 +601,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 			}
 			// System.out.println( "Find imports" );
 			for ( APIName api : apiImports(name) ){
-				System.out.println( "Add edge " + api );
+				Debug.debug( 1, "Add edge " + api );
 				graph.addEdge(node, addApiGraph(api));
 			}
 			for ( String root : roots ){
@@ -538,30 +610,41 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		} else {
 			node = (ApiGraphNode) graph.find( node );
 		}
-		graph.addEdge(addComponentGraph(name),node);
+
+                if ( link ){
+                    graph.addEdge(addComponentGraph(name),node);
+                }
 
 		return node;
 
 	}
 
-	private ComponentGraphNode addComponentGraph( APIName name ) throws FileNotFoundException, IOException {
+	private ComponentGraphNode addComponentGraph( APIName name ) throws FileNotFoundException, IOException, StaticError {
 		ComponentGraphNode node = new ComponentGraphNode( name );
 		if ( ! graph.contains( node ) ){
 			needUpdate = true;
 			graph.addNode( node );
 			try{
+                                /* try to load the component from the cache.
+                                 * if it fails then it will be reloaded later on
+                                 * in refreshGraph
+                                 */
 				node.setComponent( cache.getComponent(name) );
 			} catch ( FileNotFoundException f ){
 				/* oh well */
 			} catch ( IOException e ){
 			}
 			for ( APIName api : componentImports(name) ){
+                                /* the component depends on the imported api */
 				graph.addEdge(node, addApiGraph(api));
-				graph.addEdge(node, addComponentGraph(api));
+                                /* the component depends on the imported api's component */
+				// graph.addEdge(node, addComponentGraph(api));
 			}
+                        /*
 			for ( String root : roots ){
 				graph.addEdge(node, addComponentGraph(NodeFactory.makeAPIName(root)));
 			}
+                        */
 		} else {
 			node = (ComponentGraphNode) graph.find( node );
 		}
@@ -611,6 +694,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	    slashed = slashed + "." + suffix;
 	    File fdot;
 
+            Debug.debug(2, "Finding file " + name );
 	    try {
 	        fdot = path.findFile(slashed);
 	    } catch (FileNotFoundException ex2) {
@@ -634,6 +718,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		// return cache.getComponent(name);
 		return node.getComponent().unwrap();
 		*/
-		return getComponent(name);
+                link = true;
+                ComponentIndex node = getComponent(name);
+                link = false;
+                return node;
 	}
 }

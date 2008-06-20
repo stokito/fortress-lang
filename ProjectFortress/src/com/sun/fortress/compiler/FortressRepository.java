@@ -23,6 +23,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.exceptions.StaticError;
 
 /**
  * Allows the {@link Fortress} class to interface with a custom repository
@@ -43,7 +44,8 @@ public interface FortressRepository {
 
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException;
 
-    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException;
+    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError;
+    public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException, StaticError;
 
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException ;
 

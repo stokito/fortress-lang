@@ -37,6 +37,7 @@ api Sql
         |   thing <[ SqlObject() ]>
 
         thing:Sql :Expr:=
+            v:name# :# column:name <[
             name <[ SqlObject() ]>
 
         table:Sql :Expr:=

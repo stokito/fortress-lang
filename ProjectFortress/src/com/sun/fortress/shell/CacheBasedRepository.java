@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -106,6 +107,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         CompilationUnit ast = def.ast();
         checkName(name, ast);
         
+        Debug.debug( 2, "Api " + name + " created at " + def.modifiedDate() );
         apis.put(name, def);
         
         try {
@@ -139,6 +141,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     public void addComponent(APIName name, ComponentIndex def) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
+        Debug.debug( 2, "Component " + name + " created at " + def.modifiedDate() );
         // Cache component for quick retrieval.
         components.put(name, def);
         
@@ -173,8 +176,10 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
         ApiIndex i = apis.get(name);
         
-        if (i != null)
+        if (i != null){
+            Debug.debug( 2, "Cached modified date for api " + name + " is " + i.modifiedDate() );
             return i.modifiedDate();
+        }
         
        String s = apiFileName(name);
        String tag = "API ";
@@ -183,8 +188,10 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException {
         ComponentIndex i = components.get(name);
-        if (i != null)
+        if (i != null){
+            Debug.debug( 2, "Cached modified date for component " + name + " is " + i.modifiedDate() );
             return i.modifiedDate();
+        }
         
        String s = compFileName(name);
        String tag = "Component ";

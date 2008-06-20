@@ -35,6 +35,7 @@ import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.Debug;
 
 public final class StaticTestSuite extends TestSuite {
     
@@ -50,6 +51,7 @@ public final class StaticTestSuite extends TestSuite {
     public StaticTestSuite(String _name, String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
         super(_name);
         testDir = _testDir;
+        Debug.setDebug( 0 );
         skipTypeChecker = (_failingTypeChecker == null);
         failingDisambiguator = fileSetFromStringList(_failingDisambiguator);
         failingTypeChecker = fileSetFromStringList(_failingTypeChecker);
@@ -178,8 +180,14 @@ public final class StaticTestSuite extends TestSuite {
                 try { throw error; }
                 catch (TypeError e) { typeErrors.add(e); }
                 catch (WrappedException e) {
-                    e.getCause().printStackTrace();
-                    message += "\nStaticError (wrapped): " + e.getCause().toString();
+                    try{
+                        throw e.getCause();
+                    } catch ( TypeError e1 ){
+                        typeErrors.add(e1);
+                    } catch ( Throwable e1 ){
+                        e1.printStackTrace();
+                        message += "\nStaticError (wrapped): " + e1.toString();
+                    }
                 }
                 catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
             }

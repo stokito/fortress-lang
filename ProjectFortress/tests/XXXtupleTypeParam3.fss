@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component XXXtupleTypeParam3
-export executable
+export Executable
 
 trait A[\T\]
    f(x:T):ZZ32

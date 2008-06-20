@@ -66,10 +66,10 @@ public final class Shell {
     /* Helper method to print usage message.*/
     private void printUsageMessage() {
         System.err.println("Usage:");
-        System.err.println(" compile somefile.fs{s,i}");
+        System.err.println(" compile [-debug [#]]somefile.fs{s,i}");
         //System.err.println("  " + SELF_UPGRADE_PATTERN);
         //System.err.println("  " + SCRIPT_PATTERN);
-        System.err.println(" [run] [-test] [-debug] somefile.fss arg...");
+        System.err.println(" [run] [-test] [-debug [#]] somefile.fss arg...");
         //System.err.println("  " + API_PATTERN);
         //System.err.println("  " + LINK_PATTERN);
         //System.err.println("  " + UPGRADE_PATTERN);
@@ -108,7 +108,7 @@ public final class Shell {
             if (what.equals("run")) {
                 interpreter.run(Arrays.asList(tokens).subList(1, tokens.length));
             } else if (what.equals("compile")) {
-                interpreter.compile(false, tokens[1]);
+                interpreter.compile(false, Arrays.asList(tokens).subList(1, tokens.length));
             } else if (what.contains(".fss") || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
                 interpreter.run(Arrays.asList(tokens));
