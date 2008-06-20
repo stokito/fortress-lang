@@ -71,10 +71,12 @@ else
 fi
 
 if (uname | egrep CYGWIN > /dev/null) ; then 
-  CP="$FORTRESS_HOME/ProjectFortress/build;$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar;$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar;$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar;$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar;$JAVA_HOME/lib/tools.jar"
+  SEP=";"
 else
-  CP="$FORTRESS_HOME/ProjectFortress/build:$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar:$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar:$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar:$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar:$JAVA_HOME/lib/tools.jar"
+  SEP=":"
 fi
+
+CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$CP"
 
 java -cp "$CP" \
 com.sun.fortress.interpreter.drivers.fs "$@"
