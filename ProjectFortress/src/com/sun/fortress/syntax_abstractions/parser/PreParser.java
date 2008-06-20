@@ -35,6 +35,7 @@ import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
@@ -94,8 +95,8 @@ public class PreParser {
            }
 
            /* get a list of imported apis from a component/api */
-	public static List<APIName> getImportedApis(File f) throws StaticError {
-		Parser.Result pr = parseFile(f);
+	public static List<APIName> getImportedApis(APIName name, File f) throws StaticError {
+		Parser.Result pr = parseFile(name, f);
 		if ( ! pr.isSuccessful() ){
                     for ( StaticError e : pr.errors() ){
                         throw e;
@@ -123,9 +124,9 @@ public class PreParser {
 	}
 
 	/** Parses a single file. */
-	public static Result parse(File f, GlobalEnvironment env) {
+	public static Result parse(APIName api_name, File f, GlobalEnvironment env) {
 		
-		Parser.Result pr = parseFile(f);
+		Parser.Result pr = parseFile(api_name, f);
 		if (!pr.isSuccessful()) { return new Result(pr.errors()); }
 		
 		// TODO: Check that result only contains at most one component
@@ -147,12 +148,12 @@ public class PreParser {
 		return new Result(result);
 	}
 	
-	private static Parser.Result parseFile(File f) {
+	private static Parser.Result parseFile(APIName api_name, File f) {
 		try {
 			BufferedReader in = Useful.utf8BufferedFileReader(f);
 			try {
 				com.sun.fortress.parser.preparser.PreFortress p =
-					new com.sun.fortress.parser.preparser.PreFortress(in, f.toString());
+					new com.sun.fortress.parser.preparser.PreFortress(in, ASTIO.bundleParserArgs(api_name, f));
 				xtc.parser.Result parseResult = p.pFile(0);
 				if (parseResult.hasValue()) {
 					Object cu = ((SemanticValue) parseResult).value;

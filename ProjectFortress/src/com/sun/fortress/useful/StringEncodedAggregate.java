@@ -81,7 +81,37 @@ public class StringEncodedAggregate {
         return map;
     }
 
-    public static StringBuffer mapToFormattedString(Map<String, String> map, char d, StringBuffer sb) {
+    /**
+     * For small, simple encoded maps that are only used once, use this to bypass the whole map-creation song-and-dance.
+     * Returns the value matching key, from the map encoded in s, assuming delimiter d.
+     * 
+     * @param s
+     * @param d
+     * @param key
+     * @return
+     */
+    public static String getFromEncodedMap(String s, char d, String key) {
+        int a = 0;
+        int l = s.length();
+        while (a != -1 && a != l) {
+            int b = s.indexOf(d,a);
+            if (b == -1)
+                throw new Error("Improperly formatted string representation of aggregate; no ending delimiter");
+            String k = s.substring(a,b);
+            a = b+1;
+
+            b = s.indexOf(d,a);
+            if (b == -1)
+                throw new Error("Improperly formatted string representation of aggregate; no ending delimiter");
+            String value = s.substring(a,b);
+            a = b+1;
+            if (k.equals(key))
+                return value;
+        }
+        return null;
+    }
+
+   public static StringBuffer mapToFormattedString(Map<String, String> map, char d, StringBuffer sb) {
         boolean first = true;
         sb.append("\n\t\"");
         for (String key : map.keySet()) {
@@ -93,7 +123,7 @@ public class StringEncodedAggregate {
             }
             if (key.indexOf(d) != -1)
                 throw new Error("Key " + key + " in map contains delimiter " + d);
-            if (key.indexOf(d) != -1)
+            if (value.indexOf(d) != -1)
                 throw new Error("Value " + value + " in map contains delimiter " + d);
             sb.append(key);
             sb.append(d);
@@ -105,7 +135,38 @@ public class StringEncodedAggregate {
         return sb;
     }
 
+    public static StringBuffer mapPairToString(String from1, String to1, String from2, String to2, char d) {
+        return mapPairToString(from1, to1, from2, to2, d, new StringBuffer());
+    }
+    
+    public static StringBuffer mapPairToString(String from1, String to1, String from2, String to2, char d, StringBuffer sb) {
+        boolean first = true;
+        
+            
+            if (from1.indexOf(d) != -1)
+                throw new Error("Key " + from1 + " in map contains delimiter " + d);
+            if (to1.indexOf(d) != -1)
+                throw new Error("Value " + to1 + " in map contains delimiter " + d);
+            sb.append(from1);
+            sb.append(d);
+            
+            sb.append(to1);
+            sb.append(d);
+            
+            
+            
+            if (from2.indexOf(d) != -1)
+                throw new Error("Key " + from2 + " in map contains delimiter " + d);
+            if (to2.indexOf(d) != -1)
+                throw new Error("Value " + to2 + " in map contains delimiter " + d);
+            sb.append(from2);
+            sb.append(d);
+            
+            sb.append(to2);
+            sb.append(d);
 
-
+        
+        return sb;
+    }
 
 }

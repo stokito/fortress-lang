@@ -45,6 +45,7 @@
  <property name="src" location="${basedir}/src"/>
  <!-- Third party jar files -->
  <property name="asm" location="${basedir}/third_party/asm"/>
+ <!-- property name="astgen.third" location="${basedir}/../../astgen/jar"/ -->
  <property name="astgen.third" location="${basedir}/third_party/astgen"/>
  <property name="jsr166y" location="${basedir}/third_party/jsr166y"/>
  <property name="junit" location="${basedir}/third_party/junit"/>

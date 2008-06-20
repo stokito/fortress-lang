@@ -48,6 +48,7 @@ import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
@@ -348,11 +349,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
          */
 	private Component syntaxExpand( ComponentGraphNode node ) throws FileNotFoundException, IOException {
 		Debug.debug( 1, "Expand component " + node );
-		File file = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
+
+                APIName api_name = node.getName();
+                File file = findFile(api_name, ProjectProperties.COMP_SOURCE_SUFFIX);
                 GraphRepository g1 = new GraphRepository( this.path, this.cache );
                 /* FIXME: hack to prevent infinite recursion */
                 Driver.setCurrentInterpreterRepository( g1 );
-		Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository( g1 ), verbose());
+		Result result = FortressParser.parse(api_name, file, new GlobalEnvironment.FromRepository( g1 ), verbose());
 		// Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository(this), verbose());
                 /* FIXME: hack to prevent infinite recursion */
                 Driver.setCurrentInterpreterRepository( this );
@@ -412,10 +415,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
         /* parse an api/component */
-	private CompilationUnit doParse( File file ) throws FileNotFoundException, IOException {
+	private CompilationUnit doParse( APIName api_name, File file ) throws FileNotFoundException, IOException {
 		BufferedReader in = Useful.utf8BufferedFileReader(file);
 		try{
-			com.sun.fortress.parser.Fortress parser = new com.sun.fortress.parser.Fortress(in, file.toString());
+			com.sun.fortress.parser.Fortress parser = new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(api_name, file));
 			xtc.parser.Result parseResult = parser.pFile(0);
 			if (parseResult.hasValue()) {
 				Object cu = ((SemanticValue) parseResult).value;
@@ -432,9 +435,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         /* syntaxExpand will parse a component for us, so this method is not needed */ 
 	private Component parseComponent( ComponentGraphNode node ){
 		try{
-			File fdot = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
+		        APIName api_name = node.getName();
+			File fdot = findFile(api_name, ProjectProperties.COMP_SOURCE_SUFFIX);
 			Debug.debug( 1, "Parsing " + fdot);
-			CompilationUnit comp = doParse(fdot);
+			CompilationUnit comp = doParse(api_name, fdot);
 			if (comp instanceof Component) {
 				return (Component) comp;
 			} else {
@@ -450,8 +454,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         /* return a parsed api */
 	private Api parseApi( ApiGraphNode node ){ 
 		try{
-			File fdot = findFile(node.getName(), ProjectProperties.API_SOURCE_SUFFIX);
-			CompilationUnit api = doParse(fdot);
+		        APIName api_name = node.getName();
+			File fdot = findFile(api_name, ProjectProperties.API_SOURCE_SUFFIX);
+			CompilationUnit api = doParse(api_name, fdot);
 			if (api instanceof Api) {
 				return (Api) api;
 			} else {
@@ -510,13 +515,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         /* find imports and exports of a component */
 	private List<APIName> componentImports(APIName name) throws FileNotFoundException, StaticError {
 		File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX);
-		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(fdot);
+		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(name, fdot);
 	}
 
         /* find imports of an api */
 	private List<APIName> apiImports(APIName name) throws FileNotFoundException, StaticError {
 		File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX);
-		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(fdot);
+		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(name, fdot);
 	}
      
         /* add a compiled api to the repository */
@@ -616,8 +621,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		return node;
 	}
 
-	protected CompilationUnit getCompilationUnit(File f) throws IOException {
-		Result result = FortressParser.parse(f, this.env, verbose());
+	protected CompilationUnit getCompilationUnit(APIName api_name, File f) throws IOException {
+		Result result = FortressParser.parse(api_name, f, this.env, verbose());
 		if (result.isSuccessful()) {
 			Iterator<Api> apis = result.apis().iterator();
 			Iterator<Component> components = result.components().iterator();

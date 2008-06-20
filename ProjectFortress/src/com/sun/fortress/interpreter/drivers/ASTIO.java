@@ -26,10 +26,12 @@ import xtc.parser.Result;
 import xtc.parser.SemanticValue;
 
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.parser.Fortress;
+import com.sun.fortress.useful.StringEncodedAggregate;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -72,20 +74,50 @@ public class ASTIO {
     /**
      * Convenience method for calling parseToJavaAst with a default BufferedReader.
      */
-    public static Option<CompilationUnit> parseToJavaAst(String reportedFileName) throws IOException {
+    public static Option<CompilationUnit> parseToJavaAst(APIName api_name, String reportedFileName) throws IOException {
         BufferedReader r = Useful.utf8BufferedFileReader(reportedFileName);
-        try { return ASTIO.parseToJavaAst(reportedFileName, r); }
+        try { return ASTIO.parseToJavaAst(api_name, reportedFileName, r); }
         
         finally { r.close(); }
     }
 
-    public static Option<CompilationUnit> parseToJavaAst (
+    /**
+     * Returns a string encoding an api name and a file name, suitable for passing
+     * through the Rats!-generated parser interface (that expects a string).
+     * If api_name is null, then the empty string is used instead.
+     * Any backslashes in the file name are converted to forward slashes.
+     * 
+     * @param api_name
+     * @param file_name
+     * @return
+     */
+    public static String bundleParserArgs(APIName api_name, String file_name) {
+        String api_string = api_name == null ? "" : api_name.toString();
+        file_name = file_name.replace('\\', '/');
+        String s = StringEncodedAggregate.mapPairToString("file", file_name, "cuname", api_string, '\\').toString();
+        return s;
+    }
+    
+    public static String getParserFile(String s) {
+        return StringEncodedAggregate.getFromEncodedMap(s, '\\', "file");
+    }
+    
+    public static String getParserAPI(String s) {
+        return StringEncodedAggregate.getFromEncodedMap(s, '\\', "cuname");
+    }
+    
+    public static String bundleParserArgs(APIName api_name, File f) throws IOException {
+        return bundleParserArgs(api_name, f.getCanonicalPath());
+    }
+
+    
+    public static Option<CompilationUnit> parseToJavaAst (APIName api_name, 
             String reportedFileName, BufferedReader in)
         throws IOException
     {
         Fortress p =
             new Fortress(in,
-                         reportedFileName,
+                         bundleParserArgs(api_name, reportedFileName),
                          (int) new File(reportedFileName).length());
         Result r = p.pFile(0);
     
@@ -140,4 +172,5 @@ public class ASTIO {
         finally { br.close(); }
     }
 
+ 
 }

@@ -263,7 +263,8 @@ public class CommandInterpreter {
             throw new UserError("Error: File " + fileName + " does not exist.");
         }
         try {
-            return ASTIO.parseToJavaAst(fileName);
+            // How do we know the expected API Name?
+            return ASTIO.parseToJavaAst(null, fileName);
         }
         catch (IOException e) {
             throw new ShellException(e);

@@ -23,6 +23,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.nodes.APIName;
+
 import xtc.parser.ParserBase;
 import xtc.parser.Result;
 
@@ -48,11 +51,12 @@ public class ParserMediator {
 	 * @throws SecurityException
 	 * @throws NoSuchMethodException
 	 */
-	public static ParserBase getParser(Class<?> parserClass, BufferedReader reader, String filename)
+	public static ParserBase getParser(APIName api_name, Class<?> parserClass, BufferedReader reader, String filename)
 		throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
 
 		Constructor<?> constructor = parserClass.getConstructor(Reader.class, String.class);
-		parser = (ParserBase) constructor.newInstance(reader, filename);
+		String s = ASTIO.bundleParserArgs(api_name, filename);
+		parser = (ParserBase) constructor.newInstance(reader, s);
 		return parser;
 	}
 
