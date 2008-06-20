@@ -56,4 +56,8 @@ public class ComponentGraphNode extends GraphNode{
 	public String toString(){
 		return "Component " + name.toString();
 	}
+        
+        public <T,F extends Throwable> T accept( GraphVisitor<T,F>  g ) throws F{
+            return g.visit(this);
+        }
 }

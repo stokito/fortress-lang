@@ -462,7 +462,44 @@ public class Useful {
         }
         return result;
     }
-    
+ 
+    /**
+     * Returns the LIST [ e = verb.apply(i) != false | i IN s ]
+     * 
+     * @param <T>
+     * @param <U>
+     * @param s
+     * @param verb
+     * @return
+     */
+   
+   public static <T> List<T> filter( final Iterable<? extends T> l, final Fn<T,Boolean> f){
+       return filteredList(l, new Fn<T,T>(){
+           public T apply( T t ){
+               if ( f.apply( t ) ){
+                   return t;
+               }
+               return null;
+           }
+       });
+       /* Raw implementation
+       List<T> result = new List<T>();
+       for ( T t : l){
+           if ( f.apply(t) ){
+               result.add(t);
+           }
+       }
+       return result;
+       */
+   }
+
+   public static <T,U> List<T> convertList( Iterable<? extends U> list ){
+       return filteredList( list, new Fn<U,T>(){
+           public T apply( U u ){
+               return (T) u;
+           }
+       });
+   }
     
    /**
     * Returns the ORDERED (by c) SET { e = f.apply(i) != null | i IN l }

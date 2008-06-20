@@ -267,6 +267,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 		      fork="true">
 	            <classpath>
 	                <pathelement location="${build}"/>
+			<pathelement location="${basedir}/third_party/plt/plt.jar"/>
 	            </classpath>
 	        </java>
 	    </target>

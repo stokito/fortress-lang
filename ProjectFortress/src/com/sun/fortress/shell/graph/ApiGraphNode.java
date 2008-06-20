@@ -54,4 +54,8 @@ public class ApiGraphNode extends GraphNode{
 	public String toString(){
 		return "Api " + name.toString();
 	}
+        
+        public <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F{
+            return g.visit(this);
+        }
 }
