@@ -53,8 +53,10 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
                                                       idn),
                 sargs)).accept(this);
 
-        else
+        else {
+            //throw new Error("Unexpected FnRef " + fr);
             return (new VarRef(idn.getSpan(), fr.isParenthesized(), idn)).accept(this);
+        }
     }
 
     @Override

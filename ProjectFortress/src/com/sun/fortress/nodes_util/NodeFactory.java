@@ -33,6 +33,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -424,16 +425,13 @@ public class NodeFactory {
   */
  public static APIName makeAPIName(Span span, String path, String delimiter) {
   List<Id> ids = new ArrayList<Id>();
-  String file = new File(path).getName();
-  if (file.length() <= 4) {
-   return error(new Id(span, "_"), "Invalid file name.");
-  }
-  else {
-   for (String n : file.substring(0, file.length()-4).split(delimiter)) {
+  String file = ASTIO.getParserAPI(path);
+  
+   for (String n : file.split(delimiter)) {
     ids.add(new Id(span, n));
    }
    return new APIName(span, ids);
-  }
+  
  }
 
  public static Id makeId(Span span, String s) {

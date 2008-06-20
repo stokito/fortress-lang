@@ -137,6 +137,7 @@ import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.Empty;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import xtc.util.Action;
@@ -154,13 +155,16 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 body {
 
-   Span createSpan(int start, int end) {
+    Span createSpan(int start, int end) {
         Column s = column(start);
         Column e = column(end-1);
-        SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column-1, start);
-        SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column-1, end);
+        String sfile = ASTIO.getParserFile(s.file);
+        String efile = ASTIO.getParserFile(e.file);
+        SourceLocRats slStart = new SourceLocRats(sfile, s.line, s.column-1, start);
+        SourceLocRats slEnd   = new SourceLocRats(efile, e.line, e.column-1, end);
         return new Span(slStart, slEnd);
    }
+
 
 }
 

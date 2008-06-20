@@ -95,7 +95,7 @@ public class PathBasedRepository extends StubRepository implements FortressRepos
          *  This cannot use the syntax transformer, because it reads APIs to
          *  look for transformations.
         */
-        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath());
+        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(name, fdot.getCanonicalPath());
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {
@@ -124,7 +124,7 @@ public class PathBasedRepository extends StubRepository implements FortressRepos
         File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX);
         // Attempt to parse fdot.
 
-        CompilationUnit cu = getCompilationUnit(fdot);
+        CompilationUnit cu = getCompilationUnit(name, fdot);
         if (cu instanceof Component) {
             Component component = (Component) cu;
             ComponentIndex ci = builder.buildComponentIndex(component, fdot
@@ -138,8 +138,8 @@ public class PathBasedRepository extends StubRepository implements FortressRepos
         }
     }
     
-    protected CompilationUnit getCompilationUnit(File fdot) throws IOException {
-        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath());
+    protected CompilationUnit getCompilationUnit(APIName api_name, File fdot) throws IOException {
+        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(api_name, fdot.getCanonicalPath());
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {

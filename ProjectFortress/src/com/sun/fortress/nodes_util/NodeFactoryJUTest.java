@@ -17,6 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.TestCaseWrapper;
 
@@ -25,7 +26,8 @@ import com.sun.fortress.useful.TestCaseWrapper;
  */
 public class NodeFactoryJUTest extends TestCaseWrapper {
     public void testMakeAPIName() {
-        APIName result = NodeFactory.makeAPIName(new Span(), "foobar.fss", "\\.");
+        APIName input = NodeFactory.makeAPIName("foobar");
+        APIName result = NodeFactory.makeAPIName(new Span(), ASTIO.bundleParserArgs(input, "some file name"), "\\.");
         assertEquals("foobar", result.toString());
     }
 }

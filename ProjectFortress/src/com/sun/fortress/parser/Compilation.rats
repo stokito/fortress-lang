@@ -36,11 +36,10 @@ import Spacing;
 public CompilationUnit File =
      w yyValue:CompilationUnit w EndOfFile
      { Span span = createSpan(yyStart,yyCount);
-       String file = span.begin.getFileName();
-       APIName filename = NodeFactory.makeAPIName(span, file, "\\.");
-       if (!filename.equals(yyValue.getName()))
-           yyValue = syntaxError(createSpan(yyStart,yyCount),
-                                 "Component/API names must match their enclosing file names.");
+           APIName filename = NodeFactory.makeAPIName(span, column(yyStart).file, "\\.");
+           if (!filename.equals(yyValue.getName()))
+               yyValue = syntaxError(createSpan(yyStart,yyCount),
+                                 "Component/API names must match their enclosing file names, from name="+ filename+", from contents="+yyValue.getName());
      }
    / <ErrorProduction1>
      w Exports w semicolon? w Imports w semicolon?
@@ -59,21 +58,21 @@ public CompilationUnit File =
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPIName(span, file, "\\.");
+       APIName name = NodeFactory.makeAPIName(span, column(yyStart).file, "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
    / a1:(w yyValue:Imports w semicolon?)? w a2:AbsDecls w semicolon? w EndOfFile
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPIName(span, file, "\\.");
+       APIName name = NodeFactory.makeAPIName(span, column(yyStart).file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      }
    / w a1:Imports w semicolon? a2:(w yyValue:AbsDecls w semicolon?)? w EndOfFile
      { if (a2 == null) a2 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPIName(span, file, "\\.");
+       APIName name = NodeFactory.makeAPIName(span, column(yyStart).file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      };
 

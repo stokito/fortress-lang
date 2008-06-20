@@ -34,6 +34,7 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
@@ -55,7 +56,7 @@ import edu.rice.cs.plt.io.IOUtil;
 public class FortressParser {
 
 	/** Parses a single file. */
-	public static Result parse(File f, final GlobalEnvironment env, boolean verbose) {
+	public static Result parse(APIName api_name, File f, final GlobalEnvironment env, boolean verbose) {
 		try {
 			BufferedReader in = Useful.utf8BufferedFileReader(f);
 			try {
@@ -64,7 +65,7 @@ public class FortressParser {
 				ParserBase p = null;
 				
 				if (!ProjectProperties.noPreparse) {
-					PreParser.Result ppr = PreParser.parse(f, env);
+					PreParser.Result ppr = PreParser.parse(api_name, f, env);
 					if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
 
 					if (verbose)
@@ -78,7 +79,7 @@ public class FortressParser {
 						Class<?> temporaryParserClass = tr.getParserClass(); 
 
 						try {
-							p = ParserMediator.getParser(temporaryParserClass, in, f.toString());
+							p = ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
 							parseResult = ParserMediator.parse();
 						} catch (Exception e) {
 							String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
@@ -88,12 +89,12 @@ public class FortressParser {
 						} 
 					}
 					else {
-						p = new com.sun.fortress.parser.Fortress(in, f.toString());
+						p = new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(api_name, f));
 						parseResult = ((com.sun.fortress.parser.Fortress) p).pFile(0);
 					}
 				}
 				else {
-					p = new com.sun.fortress.parser.Fortress(in, f.toString());
+					p = new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(api_name, f));
 					parseResult = ((com.sun.fortress.parser.Fortress) p).pFile(0);
 				}
 

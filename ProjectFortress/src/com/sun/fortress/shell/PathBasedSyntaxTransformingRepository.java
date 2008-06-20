@@ -26,6 +26,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -48,8 +49,9 @@ public class PathBasedSyntaxTransformingRepository extends PathBasedRepository {
 		this.env = new GlobalEnvironment.FromRepository(this);
 	}
 
-	protected CompilationUnit getCompilationUnit(File f) throws IOException {
-		Result result = FortressParser.parse(f, env, verbose());
+	@Override
+	protected CompilationUnit getCompilationUnit(APIName api_name, File f) throws IOException {
+		Result result = FortressParser.parse(api_name, f, env, verbose());
 		if (result.isSuccessful()) {
 			Iterator<Api> apis = result.apis().iterator();
 			Iterator<Component> components = result.components().iterator();

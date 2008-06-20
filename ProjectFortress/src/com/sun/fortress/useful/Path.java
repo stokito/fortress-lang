@@ -35,6 +35,13 @@ public class Path {
     public Path(String path) {
        this(stringToFiles(path));
     }
+    
+    public static String toDotted(Object o) {
+        String s = String.valueOf(o);
+//        s = s.replace(File.separator, "/");
+//        s = s.replace('/', '.');
+        return s;
+    }
 
     private static List<File> stringToFiles(String path) {
         List<File> dirs = new ArrayList<File>();

@@ -39,6 +39,7 @@ import xtc.parser.ParseError;
 //import xtc.parser.Result; // Not imported to prevent name clash.
 //import com.sun.fortress.parser.Fortress; // Not imported to prevent name clash.
 
+import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Api;
@@ -51,6 +52,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
 
@@ -162,7 +164,7 @@ public class Parser {
 			long modificationDate, BufferedReader in) throws IOException {
 		try {
 		    com.sun.fortress.parser.Fortress p =
-		        new com.sun.fortress.parser.Fortress(in, filename);
+		        new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(null, filename));
 		    xtc.parser.Result parseResult = p.pFile(0);
 		    if (parseResult.hasValue()) {
 		        Object cu = ((SemanticValue) parseResult).value;
