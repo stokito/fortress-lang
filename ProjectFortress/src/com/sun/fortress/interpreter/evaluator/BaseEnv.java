@@ -57,8 +57,8 @@ abstract public class BaseEnv implements Environment {
     private boolean blessed; /* until blessed, cannot be copied */
     private boolean topLevel;    
     
-    static protected boolean debug = false;
-    static protected boolean verboseDump = false;    
+    public boolean debug = false;
+    public boolean verboseDump = false;    
 
     /** Where created */
     protected HasAt within;

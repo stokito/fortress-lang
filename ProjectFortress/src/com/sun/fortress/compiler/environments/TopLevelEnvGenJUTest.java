@@ -36,14 +36,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	input = "hello" + input;
     	mangledInput = "\\=" + "hello" + mangledInput;
     	assertEquals(TopLevelEnvGen.mangleIdentifier(input), mangledInput);	    	
-    }
-
-    public void testDump() throws IOException {
-    	StringBuffer buffer = new StringBuffer();
-    	environment.dump(buffer);
-    	assertEquals("Not within anything.",buffer.toString().trim());
-    }
-    
+    }    
     
     public void testRemoveMethods() {
         IntNat three = IntNat.make(3);
@@ -73,7 +66,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
         environment.putNatRaw("run", 0);            
     }
 
-    public void testGetputTypeRawRaw() {
+    public void testGetPutTypeRaw() {
         IntNat three = IntNat.make(3);
         IntNat a = IntNat.make((int) '$');
         IntNat b = IntNat.make((int) 'K');
@@ -121,6 +114,22 @@ public class TopLevelEnvGenJUTest extends TestCase {
         
     }
 
+    public void testDump() throws IOException {
+        FInt three = FInt.make(3);
+        FInt a = FInt.make((int) '$');
+        FInt b = FInt.make((int) 'K');
+        FInt c = FInt.make((int) 'l');
+        
+        environment.putValueRaw("run", three);
+        environment.putValueRaw("$", a);
+        environment.putValueRaw("K", b);            
+        environment.putValueRaw("l", c);
+    	
+    	StringBuffer buffer = new StringBuffer();
+    	environment.verboseDump = true;
+    	environment.dump(buffer);
+    }
+    
     private void loadEnvironment() throws IOException, 
     InstantiationException, IllegalAccessException {
         SimpleClassLoader classLoader = new SimpleClassLoader();
