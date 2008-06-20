@@ -19,17 +19,10 @@ package com.sun.fortress.interpreter.evaluator;
 
 import java.io.IOException;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.scopes.SApi;
-import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
 
@@ -71,10 +64,6 @@ public interface Environment  {
     //public boolean hasType(String str);
 
     public abstract Closure getClosure(String toBeRun);
-
-    public abstract SComponent getComponent(APIName name);
-
-    public abstract SComponent getComponent(String name);
 
     public abstract Number getIntNull(String s);
 
@@ -141,10 +130,6 @@ public interface Environment  {
 
     public void putBoolRaw(String str, Boolean f2) ;
     
-    public abstract void putComponent(APIName name, SComponent comp);
-
-    public abstract void putComponent(String name, SComponent comp);
-
     public abstract void putFunctionalMethodInstance(String fndodname, FValue cl); // Fcn?
 
     public abstract void putInt(String add_as, Number cnnf);

@@ -333,7 +333,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<? extends AbsDeclOrDecl> defs = x.getDecls();
 
         SComponent comp = new SComponent(BetterEnv.primitive(x), x);
-        containing.putComponent(name, comp);
+        //containing.putComponent(name, comp);
 
         forComponentDefs(x);
 

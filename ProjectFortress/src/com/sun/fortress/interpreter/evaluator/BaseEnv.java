@@ -25,8 +25,6 @@ import com.sun.fortress.exceptions.CircularDependenceError;
 import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.env.ReferenceCell;
-import com.sun.fortress.interpreter.evaluator.scopes.SApi;
-import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
@@ -37,7 +35,6 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -249,25 +246,6 @@ abstract public class BaseEnv implements Environment {
 
     abstract public  Boolean getBoolNull(String str) ;
 
-    final public  SComponent getComponent(APIName d)  {
-        SComponent x = getComponentNull(d);
-        if (x == null)
-            return error(errorMsg("Missing component ", d));
-        else
-            return x;
-    }
-
-    final public  SComponent getComponent(String str)  {
-        SComponent x = getComponentNull(str);
-        if (x == null)
-            return error(errorMsg("Missing component ", str));
-        else
-            return x;
-    }
-
-    
-    abstract public  SComponent getComponentNull(String str) ;
-
     final public  Number getNat(String str) {
         Number x = getNatNull(str);
         if (x == null)
@@ -367,11 +345,7 @@ abstract public class BaseEnv implements Environment {
         Primitives.installPrimitives(this);
         return this;
    }
-      
-    public void putComponent(APIName name, SComponent comp) {
-        putComponent(NodeUtil.nameString(name), comp);
-    }
-    
+          
     public void putType(Id name, FType x) {
         putType(NodeUtil.nameString(name), x);
     }    
@@ -407,10 +381,6 @@ abstract public class BaseEnv implements Environment {
 
     public void putVariable(String str, FType ft) {
         putValue(str, new ReferenceCell(ft));
-    }
-
-    public SComponent getComponentNull(APIName name) {
-        return getComponentNull(NodeUtil.nameString(name));
     }
 
     public Environment genericLeafEnvHack(Environment genericEnv, HasAt loc) {
