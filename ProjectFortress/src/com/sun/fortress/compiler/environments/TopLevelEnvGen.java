@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -30,6 +31,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.HasAt;
 
 import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
@@ -179,7 +181,7 @@ public class TopLevelEnvGen {
         writeMethodPutRaw(cw, className, "putTypeRaw", EnvironmentClasses.FTYPE, fTypeHashCode);        
         writeEmptyMethods(cw, className);
         writeRemoveMethods(cw, className);
-    
+        writeDumpMethod(cw, className, fValueHashCode.firstSet(), fTypeHashCode.firstSet());
         cw.visitEnd();    
 
         return(cw.toByteArray());
@@ -480,6 +482,50 @@ public class TopLevelEnvGen {
     private static void writeRemoveMethods(ClassWriter cw, String className) {
     	writeRemoveMethod(cw, className, "removeVar", "putValueRaw", EnvironmentClasses.FVALUE);
     	writeRemoveMethod(cw, className, "removeType", "putTypeRaw", EnvironmentClasses.FTYPE);
+    }
+
+    private static void writeDumpMethod(ClassWriter cw, String className, 
+    		Set<String> values, Set<String> types) {
+    	MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
+    			"dump", "(Ljava/lang/Appendable;)Ljava/lang/Appendable;", 
+    			null, new String[] { "java/io/IOException" });
+    	mv.visitCode();
+    	Label l0 = new Label();
+    	mv.visitLabel(l0);
+    	mv.visitVarInsn(Opcodes.ALOAD, 0);
+    	mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
+    	Label l1 = new Label();
+    	mv.visitJumpInsn(Opcodes.IFNULL, l1);
+    	Label l2 = new Label();
+    	mv.visitLabel(l2);
+    	mv.visitVarInsn(Opcodes.ALOAD, 1);
+    	mv.visitVarInsn(Opcodes.ALOAD, 0);
+    	mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
+    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(HasAt.class).getInternalName(), "at", "()Ljava/lang/String;");
+    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    	mv.visitInsn(Opcodes.POP);
+    	Label l3 = new Label();
+    	mv.visitLabel(l3);
+    	mv.visitVarInsn(Opcodes.ALOAD, 1);
+    	mv.visitLdcInsn("\n");
+    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    	mv.visitInsn(Opcodes.POP);
+    	Label l4 = new Label();
+    	mv.visitJumpInsn(Opcodes.GOTO, l4);
+    	mv.visitLabel(l1);
+    	mv.visitVarInsn(Opcodes.ALOAD, 1);
+    	mv.visitLdcInsn("Not within anything.\n");
+    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    	mv.visitInsn(Opcodes.POP);
+    	mv.visitLabel(l4);
+    	mv.visitVarInsn(Opcodes.ALOAD, 1);
+    	mv.visitInsn(Opcodes.ARETURN);
+    	Label l5 = new Label();
+    	mv.visitLabel(l5);
+    	mv.visitLocalVariable("this", "L" + className + ";", null, l0, l5, 0);
+    	mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l5, 1);
+    	mv.visitMaxs(2, 2);
+    	mv.visitEnd();
     }
     
     private static void outputClassFiles(Map<APIName, byte[]> compiledComponents, 

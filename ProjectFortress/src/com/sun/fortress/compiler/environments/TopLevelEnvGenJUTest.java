@@ -25,10 +25,10 @@ public class TopLevelEnvGenJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
-        compileTestProgram();  
-	loadEnvironment();            
+    	compileTestProgram();  
+        loadEnvironment();            
     }	    
-
+    
     public void testNameMangling() {
     	String input = "/.;$<>[]:\\";
     	String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-";
@@ -38,6 +38,13 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	assertEquals(TopLevelEnvGen.mangleIdentifier(input), mangledInput);	    	
     }
 
+    public void testDump() throws IOException {
+    	StringBuffer buffer = new StringBuffer();
+    	environment.dump(buffer);
+    	assertEquals("Not within anything.",buffer.toString().trim());
+    }
+    
+    
     public void testRemoveMethods() {
         IntNat three = IntNat.make(3);
         environment.putTypeRaw("Empty", three);        
