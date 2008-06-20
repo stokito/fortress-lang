@@ -24,8 +24,6 @@ import java.util.Comparator;
 
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.scopes.SApi;
-import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.BATreeNode;
@@ -42,7 +40,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     private BATreeNode<String, Number> int_env;
     private BATreeNode<String, FValue> var_env;
     private BATreeNode<String, Boolean> bool_env;
-    private BATreeNode<String, SComponent> cmp_env;
 
 
     static public boolean verboseDump = false;
@@ -126,7 +123,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         int_env = existing.int_env;
         var_env = existing.var_env;
         bool_env = existing.bool_env;
-        cmp_env = existing.cmp_env;
         parent = existing;
     }
 
@@ -166,7 +162,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         int_env = augment(existing.int_env, additions.int_env);
         var_env = augment(existing.var_env, additions.var_env);
         bool_env = augment(existing.bool_env, additions.bool_env);
-        cmp_env = augment(existing.cmp_env, additions.cmp_env);
     }
     
     private static void augment(final Environment existing, final Environment additions) {
@@ -282,7 +277,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
             dumpOne(a, int_env, "\nInts:\n  ");
             dumpOne(a, var_env, "\nVars:\n  ");
             dumpOne(a, bool_env, "\nBools:\n  ");
-            dumpOne(a, cmp_env, "\nComponents:\n  ");
             a.append("\n");
         } else if (parent != null) {
             parent.dump(a);
@@ -306,11 +300,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
 
     public Boolean getBoolNull(String str) {
         Boolean v = get(bool_env, str);
-        return v;
-    }
-
-    public SComponent getComponentNull(String str) {
-        SComponent v = get(cmp_env, str);
         return v;
     }
 
@@ -340,12 +329,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         return v;
     }
  
-    public void putComponent(String name, SComponent comp) {
-        cmp_env = put(cmp_env, name, comp);
-
-    }
-
-     public void putTypeRaw(String str, FType f2) {
+    public void putTypeRaw(String str, FType f2) {
         type_env = put(type_env, str, f2);
     }
 

@@ -45,12 +45,6 @@ public class WorseEnv extends BaseEnv {
 		return null;
 	}
 
-	@Override
-	public SComponent getComponentNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Number getIntNull(String s) {
 		// TODO Auto-generated method stub
 		return null;
