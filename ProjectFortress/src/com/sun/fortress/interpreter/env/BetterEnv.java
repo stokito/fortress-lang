@@ -146,7 +146,7 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         if (additions instanceof BetterEnv) {
             augment(existing, (BetterEnv) additions);
         } else {
-            augment(this, additions);
+            augment(additions);
         }
         
         
@@ -159,42 +159,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         int_env = augment(existing.int_env, additions.int_env);
         var_env = augment(existing.var_env, additions.var_env);
         bool_env = augment(existing.bool_env, additions.bool_env);
-    }
-    
-    private static void augment(final Environment existing, final Environment additions) {
-        final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
-            public void visit(String s, FType o) {
-                existing.putTypeRaw(s, o);
-            }
-        };
-        final Visitor2<String, Number> vn = new Visitor2<String, Number>() {
-            public void visit(String s, Number o) {
-                existing.putNatRaw(s, o);
-            }
-        };
-        final Visitor2<String, Number> vi = new Visitor2<String, Number>() {
-            public void visit(String s, Number o) {
-                existing.putIntRaw(s, o);
-            }
-        };
-        final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
-            public void visit(String s, FValue o) {
-              
-                    FType ft = additions.getVarTypeNull(s);
-                    if (ft != null)
-                       existing.putValueRaw(s, o, ft);
-                    else 
-                       existing.putValueRaw(s, o);
-            }
-        };
-        final Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
-            public void visit(String s, Boolean o) {
-                existing.putBool(s, o);
-            }
-        };
-        
-        existing.visit(vt,vn,vi,vv,vb);
-        
     }
 
    private static <Result> BATreeNode<String, Result> augment(
