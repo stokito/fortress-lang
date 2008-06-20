@@ -44,9 +44,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
 
     static public boolean verboseDump = false;
 
-    /** Where created */
-    HasAt within;
-
     /** (Lexical) ancestor environment */
     BetterEnv parent;
 
@@ -344,13 +341,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     }
     public void putValueRaw(String str, FValue f2) {
         var_env = put(var_env, str, f2);
-    }
-    
-
-    // Slightly wrong -- returns all, not just the most recently bound.
-
-    public HasAt getAt() {
-        return within;
     }
 
 

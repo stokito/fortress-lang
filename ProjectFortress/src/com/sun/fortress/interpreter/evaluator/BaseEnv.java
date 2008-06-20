@@ -59,6 +59,9 @@ abstract public class BaseEnv implements Environment {
     
     static boolean debug = false;
 
+    /** Where created */
+    protected HasAt within;
+    
     public void debugPrint(String debugString) {
         if (debug)
             System.out.println(debugString);
@@ -452,6 +455,12 @@ abstract public class BaseEnv implements Environment {
         if (namesPutCount > 0)
             return new StringArrayIterator(namesPut, namesPutCount);
        return Collections.<String>emptySet().iterator();
+    }    
+    
+    // Slightly wrong -- returns all, not just the most recently bound.
+
+    public HasAt getAt() {
+        return within;
     }    
     
 }
