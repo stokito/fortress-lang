@@ -103,13 +103,9 @@ public class StaticChecker {
                 e.printStackTrace();
             }
 
-            Debug.debug( 2, "Static checker - 1 checking component " + componentName );
             TypeCheckerResult checked = checkComponent(components.get(componentName), env);
-            Debug.debug( 2, "Static checker - 2 checking component " + componentName );
             checkedComponents.add((Component)checked.ast());
-            Debug.debug( 2, "Static checker - 3 checking component " + componentName );
             errors = IterUtil.compose(checked.errors(), errors);
-            Debug.debug( 2, "Static checker - 4 checking component " + componentName );
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(checkedComponents, 
@@ -121,29 +117,24 @@ public class StaticChecker {
     public static TypeCheckerResult checkComponent(ComponentIndex component, 
                                                    GlobalEnvironment env) 
     {
-        Debug.debug( 2, "Check component 1 " + component );
         if (typecheck) {
             TypeEnv typeEnv = TypeEnv.make(component);
             
-            Debug.debug( 2, "Check component 2 " + component );
             // Add all top-level function names to the component-level environment.
             typeEnv = typeEnv.extendWithFunctions(component.functions());
             
             // Iterate over top-level variables, adding each to the component-level environment.
             typeEnv = typeEnv.extend(component.variables());
-            Debug.debug( 2, "Check component 3 " + component );
             
             // Add all top-level object names declared in the component-level environment.
             typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
             
-            Debug.debug( 2, "Check component 4 " + component );
             TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env), 
                                                       StaticParamEnv.make(),
                                                       typeEnv,
                                                       component);
            
             TypeCheckerResult result =  component.ast().accept(typeChecker);
-            Debug.debug( 2, "Check component 5 " + component );
             
             // We need to make sure type inference succeeded.
             if( !result.getNodeConstraints().isSatisfiable() ) {
