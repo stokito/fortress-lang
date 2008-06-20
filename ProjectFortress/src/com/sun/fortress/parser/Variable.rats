@@ -79,7 +79,8 @@ VarDecl VarDecl =
        }
        yyValue = new VarDecl(span, lvs, a4.getA());
      }
-   / var w BindIdOrBindIdTuple w equals w NoNewlineExpr // Error production
+   / <ErrorProduction>
+     var w BindIdOrBindIdTuple w equals w NoNewlineExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Mutable variables should be declared with their types.");
      };

@@ -29,7 +29,7 @@ import Symbol;
 transient void EndOfFile  = !_ ;
 private String Whitespace =
      Space
-   / "\t"              // Error production
+   / <ErrorProduction> "\t"
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Tab characters are not allowed in Fortress programs except in comments.");
      }
@@ -37,7 +37,7 @@ private String Whitespace =
 private String Space      =
      " "
    / "\f"
-   / "\t"              // Error production
+   / <ErrorProduction> "\t"
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Tab characters are not allowed in Fortress programs except in comments.");
      }

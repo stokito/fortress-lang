@@ -55,15 +55,18 @@ List<Param> AbsValParam =
    |  Param (w , w Param)*
  */
 List<Param> Params =
-     (Param w comma w)+ (Keyword w comma w)+ Varargs // Error production
+     <ErrorProduction1>
+     (Param w comma w)+ (Keyword w comma w)+ Varargs
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Varargs parameters should come before keyword parameters.");
      }
-   / Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)* // Error production
+   / <ErrorProduction2>
+     Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Normal parameters should come before varargs parameters and keyword parameters.");
      }
-   / Varargs (w comma w Param)+ (w comma w Keyword)* // Error production
+   / <ErrorProduction3>
+     Varargs (w comma w Param)+ (w comma w Keyword)*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Normal parameters should come before varargs parameters.");
      }
@@ -85,15 +88,18 @@ List<Param> Params =
    |  AbsParam (w , w AbsParam)*
  */
 List<Param> AbsParams =
-     (AbsParam w comma w)+ (Keyword w comma w)+ Varargs // Error production
+     <ErrorProduction1>
+     (AbsParam w comma w)+ (Keyword w comma w)+ Varargs
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Varargs parameters should come before keyword parameters.");
      }
-   / Varargs w comma w (Keyword w comma w)+ AbsParam (w comma w AbsParam)* // Error production
+   / <ErrorProduction2>
+     Varargs w comma w (Keyword w comma w)+ AbsParam (w comma w AbsParam)*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Normal parameters should come before varargs parameters and keyword parameters.");
      }
-   / Varargs (w comma w AbsParam)+ (w comma w Keyword)* // Error production
+   / <ErrorProduction3>
+     Varargs (w comma w AbsParam)+ (w comma w Keyword)*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Normal parameters should come before varargs parameters.");
      }

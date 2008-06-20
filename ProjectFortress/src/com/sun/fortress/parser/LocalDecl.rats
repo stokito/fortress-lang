@@ -164,7 +164,7 @@ LocalVarDecl LocalVarDecl =
        }
        yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
      }
-   / var w VarWoTypes s equals w NoNewlineExpr // Error production
+   / <ErrorProduction> var w VarWoTypes s equals w NoNewlineExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Mutable variables should be declared with their types.");
      };

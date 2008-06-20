@@ -129,7 +129,7 @@ private String compOp =
    / ">=" ;
 
 private String condOp =
-     ":::"                 // Error production
+     <ErrorProduction> ":::"
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Three or more colons are not valid operators in Fortress.");
      }

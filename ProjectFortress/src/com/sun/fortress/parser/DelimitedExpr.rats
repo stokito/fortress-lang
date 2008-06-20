@@ -65,7 +65,8 @@ Expr DelimitedExpr =
                          "Mismatched identifiers for label expressions.");
        yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
-   / label w a1:OpName w a2:BlockElems w end w a3:OpName // Error production
+   / <ErrorProduction>
+     label w a1:OpName w a2:BlockElems w end w a3:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid label name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -275,16 +276,19 @@ Expr MapExpr =
               RightEncloser
  */
 FlowExpr Comprehension =
+     <ErrorProduction1>
      (BIG w)? opensquare wr StaticArgs w ArrayComprehensionClause
-     (br ArrayComprehensionClause)* w closesquare // Error production
+     (br ArrayComprehensionClause)* w closesquare
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
-   / (BIG w)? opencurly wr StaticArgs w Entry wr bar wr GeneratorClauseList w closecurly // Error production
+   / <ErrorProduction2>
+     (BIG w)? opencurly wr StaticArgs w Entry wr bar wr GeneratorClauseList w closecurly
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
-   / (BIG w)? LeftEncloser wr StaticArgs w Expr wr bar wr GeneratorClauseList w RightEncloser // Error production
+   / <ErrorProduction3>
+     (BIG w)? LeftEncloser wr StaticArgs w Expr wr bar wr GeneratorClauseList w RightEncloser
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }

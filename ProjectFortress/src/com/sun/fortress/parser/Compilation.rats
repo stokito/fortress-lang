@@ -42,12 +42,14 @@ public CompilationUnit File =
            yyValue = syntaxError(createSpan(yyStart,yyCount),
                                  "Component/API names must match their enclosing file names.");
      }
-   / w Exports w semicolon? w Imports w semicolon?
-     (w Decls w semicolon?)? w EndOfFile    // Error production
+   / <ErrorProduction1>
+     w Exports w semicolon? w Imports w semicolon?
+     (w Decls w semicolon?)? w EndOfFile
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Import statements should come before export statements.");
      }
-   / (w Imports w semicolon?)? w Decls w semicolon? w EndOfFile    // Error production
+   / <ErrorProduction2>
+     (w Imports w semicolon?)? w Decls w semicolon? w EndOfFile
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Components should have at least one export statement.");
      }
@@ -88,13 +90,15 @@ private CompilationUnit CompilationUnit =
      (w Decls w ;?)? w end
  */
 private Component Component =
+     <ErrorProduction1>
      (native w)? component w APIName w Exports w semicolon?
-     w Imports w semicolon? (w Decls w semicolon?)? w end    // Error production
+     w Imports w semicolon? (w Decls w semicolon?)? w end
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Import statements should come before export statements.");
      }
-   / (native w)? component w APIName (w Imports w semicolon?)?
-     (w Decls w semicolon?)? w end    // Error production
+   / <ErrorProduction2>
+     (native w)? component w APIName (w Imports w semicolon?)?
+     (w Decls w semicolon?)? w end
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Components should have at least one export statement.");
      }
@@ -111,8 +115,9 @@ private Component Component =
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
 private Api Api =
+     <ErrorProduction>
      native w api w APIName (w Imports w semicolon?)?
-     (w AbsDecls w semicolon?)? w end    // Error production
+     (w AbsDecls w semicolon?)? w end
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "The native modifier is only for components not for APIs.");
      }
@@ -184,7 +189,8 @@ private List<Import> ImportedNames =
                                     FortressUtil.mkList(an));
        yyValue = FortressUtil.mkList(imp);
      }
-   / a1:Id a2:(w as w Id)?    // Error production
+   / <ErrorProduction>
+     a1:Id a2:(w as w Id)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Syntax Error: Try 'import api APIName'");
      };
