@@ -17,24 +17,7 @@
 
 package com.sun.fortress.shell.graph;
 
-public abstract class GraphNode{
-
-    long age;
-    public GraphNode(){
-        this.age = 0;
-    }
-
-    public long getAge(){
-        return age;
-    }
-
-    public void setAge(long age){
-        this.age = age;
-    }
-
-    public boolean older(GraphNode node){
-        return getAge() < node.getAge();
-    }
-
-    public abstract <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F;
+public interface GraphVisitor<T,Failure extends Throwable>{
+    public T visit( ApiGraphNode node ) throws Failure;
+    public T visit( ComponentGraphNode node ) throws Failure;
 }

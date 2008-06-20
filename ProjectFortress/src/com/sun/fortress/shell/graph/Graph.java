@@ -114,6 +114,10 @@ public class Graph<GNode extends GraphNode>{
 		return all;
 	}
 
+        public List<GNode> depends( GNode start ){
+            return edges.get( start );
+        }
+
         /* get all the nodes that start depends on */
 	private List<GNode> dependancies( GNode start, List<GNode> seen ){
 		if ( contains( start ) ){
