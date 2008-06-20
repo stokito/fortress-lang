@@ -51,7 +51,6 @@ import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
@@ -563,62 +562,62 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return new TypeCheckerResult(that);
     }
 
-    private TypeCheckerResult forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName that) {
-        Option<APIName> apiName = that.getApi();
-        if (apiName.isSome()) {
-            APIName api = apiName.unwrap();
-            TypeEnv apiTypeEnv;
-            if (compilationUnit.ast().getName().equals(api)) {
-                apiTypeEnv = typeEnv;
-            } else {
-                apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
-            }
-
-            Option<Type> type = apiTypeEnv.type(that);
-            if (type.isSome()) {
-                Type _type = type.unwrap();
-                if (_type instanceof NamedType) { // Do we need to qualify?
-                    NamedType _namedType = (NamedType)_type;
-
-                    // Type was declared in that API, so it's not qualified;
-                    // prepend it with the API.
-                    if (_namedType.getName().getApi().isNone()) {
-                        _type = NodeFactory.makeNamedType(api, (NamedType) type.unwrap());
-                    }
-                }
-                return new TypeCheckerResult(that, _type);
-            } else {
-                // Operators are never qualified in source code, so if 'that' is qualified and not
-                // found, it must be a Id, not a OpName.
-                StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
-                                                   that);
-                return new TypeCheckerResult(that, error);
-            }
-        }
-        Option<Type> type = typeEnv.type(that);
-        if (type.isSome()) {
-            Type _type = type.unwrap();
-            if (_type instanceof LabelType) { // then name must be an Id
-                return new TypeCheckerResult(that, makeLabelNameError((Id)that));
-            } else {
-                return new TypeCheckerResult(that, _type);
-            }
-        } else {
-            StaticError error;
-            if (that instanceof Id) {
-                error = TypeError.make(errorMsg("Variable '", that, "' not found."),
-                                       that);
-            } else if (that instanceof Op) {
-                error = TypeError.make(errorMsg("Operator '", OprUtil.decorateOperator((Op)that),
-                                                "' not found."),
-                                       that);
-            } else { // must be Enclosing
-                error = TypeError.make(errorMsg("Enclosing operator '", (Enclosing)that, "' not found."),
-                                       that);
-            }
-            return new TypeCheckerResult(that, error);
-        }
-    }
+//    private TypeCheckerResult forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName that) {
+//        Option<APIName> apiName = that.getApi();
+//        if (apiName.isSome()) {
+//            APIName api = apiName.unwrap();
+//            TypeEnv apiTypeEnv;
+//            if (compilationUnit.ast().getName().equals(api)) {
+//                apiTypeEnv = typeEnv;
+//            } else {
+//                apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
+//            }
+//
+//            Option<Type> type = apiTypeEnv.type(that);
+//            if (type.isSome()) {
+//                Type _type = type.unwrap();
+//                if (_type instanceof NamedType) { // Do we need to qualify?
+//                    NamedType _namedType = (NamedType)_type;
+//
+//                    // Type was declared in that API, so it's not qualified;
+//                    // prepend it with the API.
+//                    if (_namedType.getName().getApi().isNone()) {
+//                        _type = NodeFactory.makeNamedType(api, (NamedType) type.unwrap());
+//                    }
+//                }
+//                return new TypeCheckerResult(that, _type);
+//            } else {
+//                // Operators are never qualified in source code, so if 'that' is qualified and not
+//                // found, it must be a Id, not a OpName.
+//                StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
+//                                                   that);
+//                return new TypeCheckerResult(that, error);
+//            }
+//        }
+//        Option<Type> type = typeEnv.type(that);
+//        if (type.isSome()) {
+//            Type _type = type.unwrap();
+//            if (_type instanceof LabelType) { // then name must be an Id
+//                return new TypeCheckerResult(that, makeLabelNameError((Id)that));
+//            } else {
+//                return new TypeCheckerResult(that, _type);
+//            }
+//        } else {
+//            StaticError error;
+//            if (that instanceof Id) {
+//                error = TypeError.make(errorMsg("Variable '", that, "' not found."),
+//                                       that);
+//            } else if (that instanceof Op) {
+//                error = TypeError.make(errorMsg("Operator '", OprUtil.decorateOperator((Op)that),
+//                                                "' not found."),
+//                                       that);
+//            } else { // must be Enclosing
+//                error = TypeError.make(errorMsg("Enclosing operator '", (Enclosing)that, "' not found."),
+//                                       that);
+//            }
+//            return new TypeCheckerResult(that, error);
+//        }
+//    }
 
 
 
@@ -1374,12 +1373,76 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	    		}
 			}
 		}
+		
 		if(candidates.isEmpty() && !new_supers.isEmpty()){
 			return findMethodsInTraitHierarchy(method_name, new_supers, arg_type, in_static_args, that);
 		}
 		return Pair.make(candidates,all_results);
 	}
 
+	private TypeCheckerResult findSetterInTraitHierarchy(IdOrOpOrAnonymousName field_name, List<Type> supers,
+			   Type arg_type, Node ast){
+		List<Type> new_supers = new ArrayList<Type>();
+		Option<Type> result = Option.none();
+
+		for( Type my_super : supers ) {
+			Option<TraitIndex> is_trait=expectTraitType(my_super);
+
+			if(is_trait.isSome()){
+	    		TraitIndex trait_index=is_trait.unwrap();
+
+	    		// Map to list of supertypes
+	    		List<Type> extends_types =
+	    			IterUtil.asList(IterUtil.map(trait_index.extendsTypes(),
+	    					new Lambda<TraitTypeWhere,Type>(){
+								public Type value(TraitTypeWhere arg0) {
+									return arg0.getType();
+								}}));
+	    		new_supers.addAll(extends_types);
+
+	    		// check if trait has a getter
+	    		Map<Id,Method> setters=trait_index.setters();
+	    		if(setters.containsKey(field_name)) {
+	    			Method field=setters.get(field_name);
+	    			ConstraintFormula works =  argsMatchParams(field.parameters(),arg_type);
+	    			if(!works.isSatisfiable()){
+	    				String errmes = "Argument to setter has wrong type";
+	    				StaticError err = TypeError.make(errmes, ast);
+	    				return new TypeCheckerResult(ast,Option.<Type>none(),Collections.singletonList(err),works);
+	    			}
+	    			else{
+	    				return new TypeCheckerResult(ast,works);
+	    			}
+	    		}
+	    		else {
+	    			// we used to check for a field but we don't think that's right.
+	    			//check if trait is an object
+//	    			if(trait_index instanceof ObjectTraitIndex){
+//	    				//Check if object has field
+//	    				ObjectTraitIndex object_index=(ObjectTraitIndex)trait_index;
+//	    				Map<Id,Variable> fields=object_index.fields();
+//	    				if(fields.containsKey(field_name)){
+//	    					Variable field=fields.get(field_name);
+//	    					Option<BindingLookup> type=this.typeEnv.binding(field_name);
+//	    					return this.checkSubtype(arg_type,type.unwrap().getType().unwrap(),ast, "Argument to field has wrong type");
+//	    				}
+//	    			}
+	    			//error no such field
+	    		}
+	    		//error receiver not a trait
+	    	}
+		}
+
+		if( result.isNone() && !new_supers.isEmpty() ) {
+			// recur
+			return this.findSetterInTraitHierarchy(field_name, new_supers, arg_type, ast );
+		}
+		else {
+			String errmes = "Setter for field "+ field_name +" not found.";
+			return new TypeCheckerResult(ast,TypeError.make(errmes, ast));
+		}
+		
+	}
 
 
     @Override
@@ -1741,121 +1804,244 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	return result;
     }
 
-
     @Override
-	public TypeCheckerResult forAssignmentOnly(Assignment that,
-			                                   List<TypeCheckerResult> lhs_results,
-			                                   Option<TypeCheckerResult> opr_result,
-			                                   TypeCheckerResult rhs_result) {
-    	// If LHS.size() > 1 then rhs must be a tuple and their types must match.
-    	// LHS vars must have already been declared
-    	// must be assignable
-    	// if oper != :=, then do we need to look up the types it expects?
-    	// result of the entire thing is not clear in spec, making it type of expr
-
-    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(lhs_results.size()+2);
-    	all_results.addAll(lhs_results);
-    	if( opr_result.isSome() )
-    		all_results.add(opr_result.unwrap());
+    public TypeCheckerResult forAssignment(Assignment that) {
+    	// The procedures for assignment differ greatly depending on the type of the LHS
+    	final Option<TypeCheckerResult> opr_result = recurOnOptionOfOpRef(that.getOpr());
+    	final TypeCheckerResult rhs_result = that.getRhs().accept(this);
+    	
+    	// Check subexprs
+    	if( rhs_result.type().isNone() || (opr_result.isSome() && opr_result.unwrap().type().isNone()) ) {
+    		if( opr_result.isSome() ) 
+    			return TypeCheckerResult.compose(that, subtypeChecker, rhs_result, opr_result.unwrap());
+    		else
+    			return TypeCheckerResult.compose(that, subtypeChecker, rhs_result);
+    	}
+    	
+    	// create a tuple of inference vars the same size as the LHS list
+    	// then we will contstraint it to be a subtype of the rhs and each
+    	// element a super type of each lhs element.
+    	List<Type> inf_types = NodeFactory.makeInferenceVarTypes(that.getLhs().size());
+    	Type inf_tuple = NodeFactory.makeTupleType(inf_types);
+    	TypeCheckerResult tuple_result = this.checkSubtype(rhs_result.type().unwrap(), inf_tuple, that);
+    	
+    	List<TypeCheckerResult> all_results = new LinkedList<TypeCheckerResult>();
+    	all_results.add(tuple_result);
     	all_results.add(rhs_result);
-
-    	// assert that lhs variables are assignable
-    	for( LHS lhs : that.getLhs() ) {
-    		Option<? extends IdOrOpOrAnonymousName> id = getIdOfLHS(lhs);
-    		if( id.isSome() ) {
-    			Option<BindingLookup> binding = typeEnv.binding(id.unwrap());
-    			if( binding.isSome() ) {
-    				if( !binding.unwrap().isMutable() ) {
-    					// THIS is an error. Must be declared mutable
-    					TypeCheckerResult r = new TypeCheckerResult(lhs, TypeError.make("Left-hand side of assignment must be mutable, and " +
-    							lhs + " is not.", lhs));
-    					all_results.add(r);
-    					//return TypeCheckerResult.compose(that, all_results);
-    					return r;
+    	if( opr_result.isSome() ) all_results.add(opr_result.unwrap());
+    	
+    	// Go through each lhs, and typecheck it with our visitor, which handles each subtype
+    	// of LHS differently.
+    	final Iterator<Type> inf_type_iter = inf_types.iterator();
+    	for( final LHS lhs : that.getLhs() ) {
+    		final Type rhs_type = inf_type_iter.next();
+    		
+    		NodeDepthFirstVisitor<TypeCheckerResult> visitor = 
+    			new NodeDepthFirstVisitor<TypeCheckerResult>() {
+    			@Override
+    			public TypeCheckerResult forFieldRef(FieldRef that) {
+    				TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
+    				if(obj_result.type().isSome()){
+    					Type obj_type=obj_result.type().unwrap();
+    					return findSetterInTraitHierarchy(that.getField(),Collections.singletonList(obj_type),rhs_type, that);
+    				}
+    				else{
+    					return obj_result;
     				}
     			}
-    		}
-    	}
-
-    	if( rhs_result.type().isNone() ) {
-    		// Typechecking of subexpr already failed...
-    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-    	}
-    	Type rhs_type = rhs_result.type().unwrap();
-
-    	// Construct type of LHS for comparison purposes
-    	Type lhs_type;
-    	if( lhs_results.size() == 1 ) {
-    		// single expression
-    		TypeCheckerResult lhs_result = lhs_results.get(0);
-    		if( lhs_result.type().isNone() ) {
-        		// Typechecking of subexpr already failed...
-        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-    		}
-    		else {
-    			lhs_type = lhs_result.type().unwrap();
-    		}
-    	}
-    	else {
-    		// tuple
-    		List<Type> element_types = new ArrayList<Type>(lhs_results.size());
-    		for( TypeCheckerResult lhs_result : lhs_results ) {
-    			if( lhs_result.type().isNone() ) {
-            		// Typechecking of subexpr already failed...
-            		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+    			@Override
+    			public TypeCheckerResult forSubscriptExpr(SubscriptExpr that) {
+    				// make sure there is a subscript setter for type
+    				// This method is very similar to forSubscriptExprOnly in Typechecker
+    				// except that we must graft the new RHS type onto the end of subs_types
+    				// to see if there is an appropriate setter method.
+    				TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
+    		        List<TypeCheckerResult> subs_result = TypeChecker.this.recurOnListOfExpr(that.getSubs());
+    		        // ignore op_result...
+    		        // Option<TypeCheckerResult> op_result = TypeChecker.this.recurOnOptionOfEnclosing(that.getOp());
+    		        List<TypeCheckerResult> staticArgs_result = TypeChecker.this.recurOnListOfStaticArg(that.getStaticArgs());
+    		        
+    		        TypeCheckerResult all_result = 
+    		        	TypeCheckerResult.compose(that, subtypeChecker, obj_result,  
+    		        			TypeCheckerResult.compose(that, subtypeChecker, subs_result),
+    		        			TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+    		        
+    		        if( obj_result.type().isNone() ) return all_result;
+    		        for( TypeCheckerResult r : subs_result )
+    		        	if( r.type().isNone() ) return all_result;
+    		        
+    		        // get types
+    		        Type obj_type = obj_result.type().unwrap();
+    		        List<Type> subs_types = IterUtil.asList(IterUtil.map(subs_result, new Lambda<TypeCheckerResult,Type>(){
+						public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }}));
+    		        // put rhs type on the end
+    		        subs_types = Useful.concat(subs_types, Collections.singletonList(rhs_type));
+    		        
+    		        TypeCheckerResult final_result = 
+    		        	TypeChecker.this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
+    		        return TypeCheckerResult.compose(that, subtypeChecker, final_result, all_result);
     			}
-    			else {
-    				element_types.add(lhs_result.type().unwrap());
+
+    			// The two cases for variables are pretty similar
+    			@Override
+    			public TypeCheckerResult forLValueBind(LValueBind that) {
+    				TypeCheckerResult r = that.accept(TypeChecker.this);
+    				if( r.type().isNone() ) return r;
+    				Type lhs_type = r.type().unwrap();
+    				TypeCheckerResult r_sub = checkSubtype(rhs_type,lhs_type,that);
+    				// make sure it's immutable
+    				if( !that.isMutable() ) {
+    					String err = "Variable " + that + " is immutable.";
+    					TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
+    					return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
+    				}
+    				else {
+    					// Happy path
+    					return TypeCheckerResult.compose(that, subtypeChecker, r, r_sub);
+    				}
     			}
-    		}
-    		lhs_type = NodeFactory.makeTupleType(element_types);
-    	}
-
-    	TypeCheckerResult result;
-
-    	// If opr is not :=, then rules are more like function call rules
-    	if( that.getOpr().isSome() ) {
-    		TypeCheckerResult opr_result_ = opr_result.unwrap();
-    		if( opr_result_.type().isNone() ) {
-        		// Typechecking of subexpr already failed...
-        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-    		}
-    		else {
-    			// By this point, all subexpressions have typechecked properly
-    			Type opr_type = opr_result_.type().unwrap();
-    			// Now we get the type of the resulting application
-    			Option<Pair<Type,ConstraintFormula>> application_result =
-    				TypesUtil.applicationType(subtypeChecker, opr_type,
-    						new ArgList(lhs_type, rhs_type));
-
-    			if( application_result.isSome() ) {
-    				// successful
-    				all_results.add(new TypeCheckerResult(that, application_result.unwrap().second()));
-    				// wrong: Type should still be void.
-    				result = TypeCheckerResult.compose(that, application_result.unwrap().first(), subtypeChecker, all_results);
+    			@Override
+    			public TypeCheckerResult forVarRef(VarRef that) {
+    				TypeCheckerResult r = that.accept(TypeChecker.this);
+    				if( r.type().isNone() ) return r;
+    				Type lhs_type = r.type().unwrap();
+    				TypeCheckerResult r_sub = checkSubtype(rhs_type,lhs_type,that);
+    				TypeEnv env = that.getVar().getApi().isSome() ? 
+    						returnTypeEnvForApi(that.getVar().getApi().unwrap()) :
+    							typeEnv;
+    				Option<BindingLookup> bl = env.binding(unqualifiedIdFromId(that.getVar()));
+    				if( bl.isNone() ) return r;
+    				// make sure it's immutable
+    				if( !(bl.unwrap().isMutable()) ) {
+    					String err = "Variable " + that + " is immutable.";
+    					TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
+    					return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
+    				}
+    				else {
+    					// Happy path
+    					return TypeCheckerResult.compose(that, subtypeChecker, r, r_sub);
+    				}
     			}
-    			else {
-					// no operator found for these types
-					result = new TypeCheckerResult(that,
-							TypeError.make("No applicable call to " + that.getOpr().unwrap() +
-									" can be found for arguments of type " + lhs_type + " and " +
-									rhs_type + ".",
-									that));
-    			}
-    		}
+    		};
+    		all_results.add(lhs.accept(visitor));
     	}
-    	else {
-    		// The whole thing is just regular assignment
-    		// Now make sure RHS <: LHS
-    		TypeCheckerResult subtype_result =
-        	this.checkSubtype(rhs_type, lhs_type, that);
+    	return TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
+    }
 
-    		all_results.add(subtype_result);
-    		result = TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
-    	}
-
-		return result;
-	}
+//    @Override
+//	public TypeCheckerResult forAssignmentOnly(Assignment that,
+//			                                   List<TypeCheckerResult> lhs_results,
+//			                                   Option<TypeCheckerResult> opr_result,
+//			                                   TypeCheckerResult rhs_result) {
+//    	//that.getLhs()
+//    	// If LHS.size() > 1 then rhs must be a tuple and their types must match.
+//    	// LHS vars must have already been declared
+//    	// must be assignable
+//    	// if oper != :=, then do we need to look up the types it expects?
+//    	// result of the entire thing is not clear in spec, making it type of expr
+//
+//    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(lhs_results.size()+2);
+//    	all_results.addAll(lhs_results);
+//    	if( opr_result.isSome() )
+//    		all_results.add(opr_result.unwrap());
+//    	all_results.add(rhs_result);
+//
+//    	// assert that lhs variables are assignable
+//    	for( LHS lhs : that.getLhs() ) {
+//    		Option<? extends IdOrOpOrAnonymousName> id = getIdOfLHS(lhs);
+//    		if( id.isSome() ) {
+//    			Option<BindingLookup> binding = typeEnv.binding(id.unwrap());
+//    			if( binding.isSome() ) {
+//    				if( !binding.unwrap().isMutable() ) {
+//    					// THIS is an error. Must be declared mutable
+//    					TypeCheckerResult r = new TypeCheckerResult(lhs, TypeError.make("Left-hand side of assignment must be mutable, and " +
+//    							lhs + " is not.", lhs));
+//    					all_results.add(r);
+//    					//return TypeCheckerResult.compose(that, all_results);
+//    					return r;
+//    				}
+//    			}
+//    		}
+//    	}
+//
+//    	if( rhs_result.type().isNone() ) {
+//    		// Typechecking of subexpr already failed...
+//    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+//    	}
+//    	Type rhs_type = rhs_result.type().unwrap();
+//
+//    	// Construct type of LHS for comparison purposes
+//    	Type lhs_type;
+//    	if( lhs_results.size() == 1 ) {
+//    		// single expression
+//    		TypeCheckerResult lhs_result = lhs_results.get(0);
+//    		if( lhs_result.type().isNone() ) {
+//        		// Typechecking of subexpr already failed...
+//        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+//    		}
+//    		else {
+//    			lhs_type = lhs_result.type().unwrap();
+//    		}
+//    	}
+//    	else {
+//    		// tuple
+//    		List<Type> element_types = new ArrayList<Type>(lhs_results.size());
+//    		for( TypeCheckerResult lhs_result : lhs_results ) {
+//    			if( lhs_result.type().isNone() ) {
+//            		// Typechecking of subexpr already failed...
+//            		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+//    			}
+//    			else {
+//    				element_types.add(lhs_result.type().unwrap());
+//    			}
+//    		}
+//    		lhs_type = NodeFactory.makeTupleType(element_types);
+//    	}
+//
+//    	TypeCheckerResult result;
+//
+//    	// If opr is not :=, then rules are more like function call rules
+//    	if( that.getOpr().isSome() ) {
+//    		TypeCheckerResult opr_result_ = opr_result.unwrap();
+//    		if( opr_result_.type().isNone() ) {
+//        		// Typechecking of subexpr already failed...
+//        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+//    		}
+//    		else {
+//    			// By this point, all subexpressions have typechecked properly
+//    			Type opr_type = opr_result_.type().unwrap();
+//    			// Now we get the type of the resulting application
+//    			Option<Pair<Type,ConstraintFormula>> application_result =
+//    				TypesUtil.applicationType(subtypeChecker, opr_type,
+//    						new ArgList(lhs_type, rhs_type));
+//
+//    			if( application_result.isSome() ) {
+//    				// successful
+//    				all_results.add(new TypeCheckerResult(that, application_result.unwrap().second()));
+//    				result = TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
+//    			}
+//    			else {
+//					// no operator found for these types
+//					result = new TypeCheckerResult(that,
+//							TypeError.make("No applicable call to " + that.getOpr().unwrap() +
+//									" can be found for arguments of type " + lhs_type + " and " +
+//									rhs_type + ".",
+//									that));
+//    			}
+//    		}
+//    	}
+//    	else {
+//    		// The whole thing is just regular assignment
+//    		// Now make sure RHS <: LHS
+//    		TypeCheckerResult subtype_result =
+//        	this.checkSubtype(rhs_type, lhs_type, that);
+//
+//    		all_results.add(subtype_result);
+//    		result = TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
+//    	}
+//
+//		return result;
+//	}
 
 	public TypeCheckerResult forTupleExprOnly(TupleExpr that,
                                               List<TypeCheckerResult> exprs_result) {
@@ -1997,18 +2183,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Option<Pair<Type,ConstraintFormula>> app_result =
                 TypesUtil.applicationType(subtypeChecker, opType,
                                           new ArgList(paramType, guardType));
-
-            // Check if "opType paramType guardType" application has type Boolean
-//            if (applicationType.isSome() && subtypeChecker.subtype(applicationType.unwrap(), Types.BOOLEAN)) {
-//            	for (Expr guardExpr : guards.getSeconds(guardType)) {
-//            		result = TypeCheckerResult.compose(that, result,
-//            				new TypeCheckerResult(guardExpr,
-//            						TypeError.make(errorMsg("Guard expression has type ", guardType, ", which is invalid ",
-//            								"for 'case' parameter type ", paramType, " and operator ",
-//            								op.getText(), "."),
-//            								guardExpr)));
-//            	}
-//            }
 
             // Old check didn't work with type inference. Error messages may suck here.
             // Check if "opType paramType guardType" application has type Boolean
@@ -2645,12 +2819,44 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		return NodeFactory.makeTupleType(types);
     }
 
+    private TypeCheckerResult subscriptHelper(Node that, Option<Enclosing> op, 
+    		Type obj_type, List<Type> subs_types, List<StaticArg> static_args) {
+    	Option<TraitIndex> obj_index_ = expectTraitType(obj_type);
+    	// we need to have a trait otherwise we can't see its methods.
+    	if( obj_index_.isNone() ) {
+    		String err = "Only traits can have subscripting methods and " + obj_type + " is not one.";
+    		TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that));
+    		return TypeCheckerResult.compose(that, subtypeChecker, err_result);
+    	}
+
+    	// Make a tuple type out of given arguments
+    	Type arg_type = makeTupleOrSingleOrVoidType(subs_types);
+
+		Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
+			findMethodsInTraitHierarchy(op.unwrap(), Collections.singletonList(obj_type), arg_type, static_args,that);
+		TypeCheckerResult result = TypeCheckerResult.compose(that, subtypeChecker, candidate_pair.second());
+		List<Method> candidates = candidate_pair.first();
+
+		// Now we join together the results, or return an error if there are no candidates.
+		if(candidates.isEmpty()){
+			String err = "No candidate methods found for '" + op + "'  on type " + obj_type + " with argument types (" + arg_type + ").";
+			TypeCheckerResult err_result = new TypeCheckerResult(that,TypeError.make(err,that));
+			return TypeCheckerResult.compose(that, subtypeChecker, result, err_result);
+		}
+
+		List<Type> ranges = IterUtil.asList(IterUtil.map(candidates, new Lambda<Method,Type>(){
+			public Type value(Method arg0) { return arg0.getReturnType(); }}));
+
+		Type range = this.subtypeChecker.join(ranges);
+		return TypeCheckerResult.compose(that, range, subtypeChecker, result);
+    }
+    
     @Override
 	public TypeCheckerResult forSubscriptExprOnly(SubscriptExpr that,
 			TypeCheckerResult obj_result, List<TypeCheckerResult> subs_result,
 			Option<TypeCheckerResult> op_result,
 			List<TypeCheckerResult> staticArgs_result) {
-
+    	
     	TypeCheckerResult all_result = TypeCheckerResult.compose(that, subtypeChecker, obj_result,
     			TypeCheckerResult.compose(that, subtypeChecker, subs_result),
     			TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
@@ -2664,39 +2870,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
 
     	Type obj_type = obj_result.type().unwrap();
-    	Option<TraitIndex> obj_index_ = expectTraitType(obj_type);
-    	// we need to have a trait otherwise we can't see its methods.
-    	if( obj_index_.isNone() ) {
-    		String err = "Only traits can have subscripting methods and " + obj_type + " is not one.";
-    		TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that.getObj()));
-    		return TypeCheckerResult.compose(that, subtypeChecker, all_result, err_result);
-    	}
-
-    	// Make a tuple type out of given arguments
-    	Type arg_type = makeTupleOrSingleOrVoidType(IterUtil.asList(IterUtil.map(subs_result,
-    			new Lambda<TypeCheckerResult,Type>(){
-			public Type value(TypeCheckerResult arg0) {
-				return arg0.type().unwrap();
-			}})));
-
-		Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
-			findMethodsInTraitHierarchy(that.getOp().unwrap(), Collections.singletonList(obj_type), arg_type, that.getStaticArgs(),that);
-		all_result = TypeCheckerResult.compose(that, subtypeChecker, all_result,
-				TypeCheckerResult.compose(that, subtypeChecker, candidate_pair.second()));
-		List<Method> candidates = candidate_pair.first();
-
-		// Now we join together the results, or return an error if there are no candidates.
-		if(candidates.isEmpty()){
-			String err = "No candidate methods found for '" + that.getOp() + "'  on type " + obj_type + " with argument types (" + arg_type + ").";
-			TypeCheckerResult err_result = new TypeCheckerResult(that,TypeError.make(err,that));
-			return TypeCheckerResult.compose(that, subtypeChecker, all_result, err_result);
-		}
-
-		List<Type> ranges = IterUtil.asList(IterUtil.map(candidates, new Lambda<Method,Type>(){
-			public Type value(Method arg0) { return arg0.getReturnType(); }}));
-
-		Type range = this.subtypeChecker.join(ranges);
-		return TypeCheckerResult.compose(that, range, subtypeChecker, all_result);
+    	List<Type> subs_types = IterUtil.asList(IterUtil.map(subs_result, new Lambda<TypeCheckerResult, Type>(){
+			public Type value(TypeCheckerResult arg0) {	return arg0.type().unwrap(); }}));
+    	TypeCheckerResult r = this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
+    	return TypeCheckerResult.compose(that, r.type(), subtypeChecker, all_result, r);
 	}
 
 	public TypeCheckerResult forAtomicExpr(AtomicExpr that) {

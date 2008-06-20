@@ -1,0 +1,9 @@
+component DXXSetterTest
+ export Executable
+ object Foo
+   var z:String = "blah"
+ end
+ run(args:String...):() = do
+   Foo.z := "bar"
+ end
+end  
