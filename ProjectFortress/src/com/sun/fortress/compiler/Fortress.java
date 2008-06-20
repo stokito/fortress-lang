@@ -277,8 +277,6 @@ public class Fortress {
 			IndexBuilder.buildComponents(components, lastModified);
 		if (!rawComponentIR.isSuccessful()) { return rawComponentIR.errors(); }
 
-                Debug.debug( 2, "RawComponentIR = " + rawComponentIR.components() );
-
 		Disambiguator.ComponentResult componentDR =
 			Disambiguator.disambiguateComponents(components, env,
 					rawComponentIR.components());
@@ -286,32 +284,22 @@ public class Fortress {
 			return componentDR.errors();
 		}
                 
-                Debug.debug( 2, "ComponentDR = " + componentDR.components() );
-
 		IndexBuilder.ComponentResult componentIR =
 			IndexBuilder.buildComponents(componentDR.components(), System.currentTimeMillis());
 		if (!componentIR.isSuccessful()) {
-                        Debug.debug( 2, "Index builder failed?" );
                         return componentIR.errors();
                 }
                 
-                Debug.debug( 2, "ComponentIR = " + componentIR.components() );
-
 		StaticChecker.ComponentResult componentSR =
 			StaticChecker.checkComponents(componentIR.components(), env);
 		if (!componentSR.isSuccessful()) {
-                        Debug.debug( 2, "Static checker failed!" );
                         return componentSR.errors();
                 }
                 
-                Debug.debug( 2, "ComponentSR = " + componentSR.components() );
-		
 		// Generate top-level byte code environments
 		TopLevelEnvGen.ComponentResult componentGR = TopLevelEnvGen.generate(componentSR.components(), env);
 		if(!componentGR.isSuccessful()) { return componentGR.errors(); }
 		
-                Debug.debug( 2, "ComponentGR = " + componentGR.components() );
-
 		// Additional optimization phases can be inserted here        
         
 
@@ -319,7 +307,7 @@ public class Fortress {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());
 		}
 
-                Debug.debug( 2, "Done with analyze" );
+                Debug.debug( 2, "Done with analyzing apis " + apis + ", components " + components );
 
 		return IterUtil.empty();
 	}
