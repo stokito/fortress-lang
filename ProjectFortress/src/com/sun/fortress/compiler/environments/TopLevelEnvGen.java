@@ -518,15 +518,77 @@ public class TopLevelEnvGen {
     	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
     	mv.visitInsn(Opcodes.POP);
     	mv.visitLabel(l4);
+    	mv.visitVarInsn(Opcodes.ALOAD, 0);
+    	mv.visitFieldInsn(Opcodes.GETFIELD, className, "verboseDump", "Z");
+    	Label l5 = new Label();
+    	mv.visitJumpInsn(Opcodes.IFEQ, l5);
+    	int linebreaks = dumpFields(mv, className, values, EnvironmentClasses.FVALUE, 0);
+    	dumpFields(mv, className, types, EnvironmentClasses.FTYPE, linebreaks);
+    	mv.visitVarInsn(Opcodes.ALOAD, 1);
+    	mv.visitLdcInsn("\n");
+    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    	mv.visitInsn(Opcodes.POP);
+    	mv.visitLabel(l5);    	  	    	    	
     	mv.visitVarInsn(Opcodes.ALOAD, 1);
     	mv.visitInsn(Opcodes.ARETURN);
-    	Label l5 = new Label();
-    	mv.visitLabel(l5);
-    	mv.visitLocalVariable("this", "L" + className + ";", null, l0, l5, 0);
-    	mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l5, 1);
+    	Label l9 = new Label();
+    	mv.visitLabel(l9);
+    	mv.visitLocalVariable("this", "L" + className + ";", null, l0, l9, 0);
+    	mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l9, 1);
     	mv.visitMaxs(2, 2);
     	mv.visitEnd();
     }
+
+	private static int dumpFields(MethodVisitor mv, String className, Set<String> names,
+			EnvironmentClasses environmentClass, int linebreaks) {
+    	for (String fieldName : names) {
+    		Label l6 = new Label();
+    		mv.visitLabel(l6);
+    		mv.visitVarInsn(Opcodes.ALOAD, 1);
+    		mv.visitLdcInsn("(" + fieldName + " = ");
+    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    		mv.visitInsn(Opcodes.POP);
+    		Label l7 = new Label();
+    		mv.visitLabel(l7);
+    		mv.visitVarInsn(Opcodes.ALOAD, 0);
+            String idString = fieldName + environmentClass.namespace();
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, 
+                mangleIdentifier(idString),
+                environmentClass.descriptor());    		
+    		Label l8 = new Label();
+    		mv.visitJumpInsn(Opcodes.IFNULL, l8);
+    		Label l9 = new Label();
+    		mv.visitLabel(l9);
+    		mv.visitVarInsn(Opcodes.ALOAD, 1);
+    		mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, 
+                    mangleIdentifier(idString),
+                    environmentClass.descriptor());    		
+    		mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, environmentClass.internalName(), "toString", "()Ljava/lang/String;");
+    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");    		
+      		mv.visitInsn(Opcodes.POP);
+      		Label afterNull = new Label();
+        	mv.visitJumpInsn(Opcodes.GOTO, afterNull);
+    		mv.visitLabel(l8);
+    		mv.visitVarInsn(Opcodes.ALOAD, 1);
+    		mv.visitLdcInsn("null");
+    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    		mv.visitInsn(Opcodes.POP);    		
+    		mv.visitLabel(afterNull);
+    		mv.visitVarInsn(Opcodes.ALOAD, 1);
+    		mv.visitLdcInsn(") ");
+    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    		mv.visitInsn(Opcodes.POP);
+    		linebreaks = (linebreaks + 1) % 5;
+    		if (linebreaks == 0) {
+    	    	mv.visitVarInsn(Opcodes.ALOAD, 1);
+    	    	mv.visitLdcInsn("\n");
+    	    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+    	    	mv.visitInsn(Opcodes.POP);    	    			
+    		}
+    	}
+    	return linebreaks;
+	}
     
     private static void outputClassFiles(Map<APIName, byte[]> compiledComponents, 
             HashSet<StaticError> errors) {
