@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ReplicaTest
-export Executiable
+export Executable
 
 (* Bug 125: replica is returning an inappropriately-typed result. *)
 

@@ -20,7 +20,7 @@ component FortressAst
 
   (* export Fortress.Ast *)
 
-  export Fortress.Ast
+  export FortressAst
 
   (* Fortress representation of Fortress AST nodes *)
 

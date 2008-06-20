@@ -43,6 +43,7 @@ import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -82,8 +83,9 @@ public class Fortress {
 	 */
 	public Iterable<? extends StaticError> compile(Path path, String... files) {
 
-		BatchCachingAnalyzingRepository bcr = Driver.fssRepository(path, _repository);
+		FortressRepository bcr = Driver.fssRepository(path, _repository);
 
+                Debug.debug( 2, "Compiling files " + java.util.Arrays.asList(files) );
 		Parser.Result result = compileInner(bcr, files);
 
 		// Parser.Result pr = Parser.parse(files, env);
@@ -97,11 +99,11 @@ public class Fortress {
 		return IterUtil.empty();
 	}
 
-	private Parser.Result compileInner(BatchCachingAnalyzingRepository bcr, 
+	private Parser.Result compileInner(FortressRepository bcr, 
 			String... files) {
 		Parser.Result result = new Parser.Result();
 
-		bcr.addRootApis();
+		// bcr.addRootApis();
 
 		for (String s : files) {
 			APIName name  = Driver.fileAsApi(s);
@@ -133,6 +135,7 @@ public class Fortress {
 			}
 		}
 
+                /*
 		for (APIName name : bcr.staleApis()) {
 			try {
 				if (bcr.verbose())
@@ -152,6 +155,7 @@ public class Fortress {
 				result = addExceptionToResult(result, ex);
 			}
 		}
+                */
 
 		return result;
 	}
@@ -163,14 +167,14 @@ public class Fortress {
 	}
 
 	private Parser.Result addComponentToResult(
-			BatchCachingRepository bcr, Parser.Result result,
+			FortressRepository bcr, Parser.Result result,
 			APIName name) throws FileNotFoundException, IOException {
 		Component c = (Component) bcr.getComponent(name).ast();
 		result = new Parser.Result(result, new Parser.Result(c, bcr.getModifiedDateForComponent(name)));
 		return result;
 	}
 
-	private Parser.Result addApiToResult(BatchCachingRepository bcr,
+	private Parser.Result addApiToResult(FortressRepository bcr,
 			Parser.Result result, APIName name)
 	throws FileNotFoundException, IOException {
 		Api a = (Api) bcr.getApi(name).ast();
@@ -185,6 +189,15 @@ public class Fortress {
 		long lastModified = pr.lastModified();
 		return analyze(env, apis, components, lastModified);
 	}
+
+        private boolean compiledApi( APIName name, Iterable<Api> apis ){
+            for ( Api api : apis ){
+                if ( api.getName().equals(name) ){
+                    return true;
+                }
+            }
+            return false;
+        }
 
 	public Iterable<? extends StaticError> analyze(GlobalEnvironment env,
 			Iterable<Api> apis, Iterable<Component> components,
@@ -247,7 +260,12 @@ public class Fortress {
 		// In an implementation with fortresses, we would write this code into the resident
 		// fortress.
 		for (Map.Entry<APIName, ApiIndex> newApi : apiDSR.apis().entrySet()) {
-			_repository.addApi(newApi.getKey(), newApi.getValue());
+                    if ( compiledApi( newApi.getKey(), apis ) ){
+                        Debug.debug( 2, "Analyzed api " + newApi.getKey() );
+                        _repository.addApi(newApi.getKey(), newApi.getValue());
+                    }
+
+                    // _repository.addApi(newApi.getKey(), newApi.getValue());
 		}
 
 		// Handle components
@@ -259,25 +277,41 @@ public class Fortress {
 			IndexBuilder.buildComponents(components, lastModified);
 		if (!rawComponentIR.isSuccessful()) { return rawComponentIR.errors(); }
 
+                Debug.debug( 2, "RawComponentIR = " + rawComponentIR.components() );
+
 		Disambiguator.ComponentResult componentDR =
 			Disambiguator.disambiguateComponents(components, env,
 					rawComponentIR.components());
 		if (!componentDR.isSuccessful()) {
 			return componentDR.errors();
 		}
+                
+                Debug.debug( 2, "ComponentDR = " + componentDR.components() );
 
 		IndexBuilder.ComponentResult componentIR =
 			IndexBuilder.buildComponents(componentDR.components(), System.currentTimeMillis());
-		if (!componentIR.isSuccessful()) { return componentIR.errors(); }
+		if (!componentIR.isSuccessful()) {
+                        Debug.debug( 2, "Index builder failed?" );
+                        return componentIR.errors();
+                }
+                
+                Debug.debug( 2, "ComponentIR = " + componentIR.components() );
 
 		StaticChecker.ComponentResult componentSR =
 			StaticChecker.checkComponents(componentIR.components(), env);
-		if (!componentSR.isSuccessful()) { return componentSR.errors(); }
+		if (!componentSR.isSuccessful()) {
+                        Debug.debug( 2, "Static checker failed!" );
+                        return componentSR.errors();
+                }
+                
+                Debug.debug( 2, "ComponentSR = " + componentSR.components() );
 		
 		// Generate top-level byte code environments
 		TopLevelEnvGen.ComponentResult componentGR = TopLevelEnvGen.generate(componentSR.components(), env);
 		if(!componentGR.isSuccessful()) { return componentGR.errors(); }
 		
+                Debug.debug( 2, "ComponentGR = " + componentGR.components() );
+
 		// Additional optimization phases can be inserted here        
         
 
@@ -285,17 +319,21 @@ public class Fortress {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());
 		}
 
+                Debug.debug( 2, "Done with analyze" );
+
 		return IterUtil.empty();
 	}
 
 	public Iterable<? extends StaticError>  run(Path path, String componentName, boolean test, boolean nolib, List<String> args) {
-		BatchCachingRepository _bcr = Driver.specificRepository(path);
+		FortressRepository bcr = Driver.specificRepository(path);
 
+                /*
 		if (! (_bcr instanceof BatchCachingAnalyzingRepository) ) {
 			throw new ProgramError("Please set property fortress.static.analysis=1.");
 		}
+                */
 
-		BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
+		// BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
 		bcr.setVerbose(ProjectProperties.debug);
 		Parser.Result result = compileInner(bcr, componentName);
 		if (!result.isSuccessful()) { return result.errors(); }

@@ -75,9 +75,9 @@ private CompilationUnit CompilationUnit =
      (w Decls w ;?)? w end
  */
 private Component Component =
-     a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w (_)*
+     a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w a4:Exports w (_)*
      { if (a3 == null) a3 = Collections.<Import>emptyList();
-       List<Export> a4 = Collections.<Export>emptyList();
+       // List<Export> a4 = Collections.<Export>emptyList();
        List<Decl> a5 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        if (a1 == null)

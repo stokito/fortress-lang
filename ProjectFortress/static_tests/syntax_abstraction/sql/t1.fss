@@ -22,6 +22,8 @@ export Executable
 
 run(args:String...) = do
     println (select foobar from blah)
+    select x:foo, y:bar from blarg where foo = 33 AND bar = :y
+    for (x,y) <- sqlobject.exec( "select foo, bar from blarg where foo = 33 AND bar = " y )
 end
 
 end

@@ -16,7 +16,7 @@ a
  ******************************************************************************)
 
 component DXXFnExpr
-  export Runnable
+  export Executable
 
   foo():() = do
     var s:String

@@ -16,7 +16,7 @@ a
  ******************************************************************************)
 
 component DXXFnExpr2
-  export Runnable
+  export Executable
 
   trait Foo end
 

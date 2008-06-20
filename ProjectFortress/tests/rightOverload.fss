@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component rightOverload
-export Runnable
+export Executable
 
 (* This ought to succeed in the opposite way from wrongOverload. *)
 

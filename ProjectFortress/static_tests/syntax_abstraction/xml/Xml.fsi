@@ -47,8 +47,6 @@ api Xml
   end
   
   object Header(startTag:String, _attributes:List[\Attribute\])
-    getter getTag():String
-    getter attributes():String
   end
 
   object CData(v:String) extends Content

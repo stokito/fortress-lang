@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component wrongOverload
-export Runnable
+export Executable
 
 (* We choose the most-specific overloading which is in scope at the
    call site.  Because juxtaposition calls through to DOT, this is the

@@ -17,7 +17,7 @@
 
 component TestImportExport
 import TestImports3.{...}
-export executable
+export Executable
 
 run(args:String...):()= do
    println Object4().f()

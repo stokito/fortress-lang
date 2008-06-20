@@ -17,7 +17,7 @@
 
 component atomic2
 
-export executable
+export Executable
 
 run(args:String...):()=do
    var count1 : ZZ32 = 0

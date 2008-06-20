@@ -87,6 +87,32 @@ public class CommandInterpreter {
             System.err.println(error);
         }
     }
+    
+    void compile(boolean doLink, List<String> args) throws UserError, InterruptedException, IOException {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to compile");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                Debug.setDebug( 99 );
+                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
+                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
+                    rest = rest.subList( 1, rest.size() );
+                } else {
+                    ProjectProperties.debug = true;
+                }
+            }
+            if (s.equals("-test")) test = true;
+            if (s.equals("-nolib")) nolib = true;
+            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            compile( doLink, rest);
+        } else {
+            compile( doLink, s );
+        }
+    }
 
     /* Upgrade the internal files of the resident fortress with the contents of the given tar file.*/
     void selfUpgrade(String fileName) throws UserError, InterruptedException {

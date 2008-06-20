@@ -31,7 +31,7 @@ import com.sun.fortress.useful.TopSortItemImpl;
 
 public class Graph<GNode extends GraphNode>{
 
-	private HashMap<GNode,List<GNode>> edges;
+	private Map<GNode,List<GNode>> edges;
 	public Graph(){
 		edges = new HashMap<GNode, List<GNode>>();
 	}
@@ -114,9 +114,21 @@ public class Graph<GNode extends GraphNode>{
 		return all;
 	}
 
+        /* get all the nodes that start depends on */
 	private List<GNode> dependancies( GNode start, List<GNode> seen ){
 		if ( contains( start ) ){
 			List<GNode> depends = new ArrayList<GNode>();
+                    /*
+                        for ( Map.Entry<GNode,List<GNode>> entry : edges.entrySet() ){
+                            GNode node = entry.getKey();
+                            List<GNode> targets = entry.getValue();
+                            if ( targets.contains( start ) ){
+                                seen.add( node );
+                                depends.add( node );
+                                depends.addAll( dependancies( node, seen ) );
+                            }
+                        }
+                        */
 			for ( GNode node : edges.get( start ) ){
 				if ( ! seen.contains( node ) ){
 					seen.add( node );

@@ -39,8 +39,10 @@ import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -80,11 +82,24 @@ public class PreParser {
 	        }
 	    }
 
-	   /* get a list of imported apis from a component/api */
-	public static List<APIName> getImportedApis(File f){
+           private static List<APIName> removeExecutableApi(List<APIName> all){
+               APIName executable = NodeFactory.makeAPIName("Executable");
+               List<APIName> fixed = new ArrayList<APIName>();
+               for ( APIName name : all ){
+                   if ( ! name.equals( executable ) ){
+                       fixed.add( name );
+                   }
+               }
+               return fixed;
+           }
+
+           /* get a list of imported apis from a component/api */
+	public static List<APIName> getImportedApis(File f) throws StaticError {
 		Parser.Result pr = parseFile(f);
 		if ( ! pr.isSuccessful() ){
-			throw new RuntimeException("Failed to parse");
+                    for ( StaticError e : pr.errors() ){
+                        throw e;
+                    }
 		}
 		List<APIName> all = new ArrayList<APIName>();
 		for ( Component comp : pr.components() ){
@@ -92,14 +107,19 @@ public class PreParser {
 				ImportedNames names = (ImportedNames) i;
 				all.add( names.getApi() );
 			}
+                        for ( Export export : comp.getExports() ){
+                            all.addAll( export.getApis() );
+                        }
 		}
+                all = removeExecutableApi(all);
 		for ( Api api : pr.apis() ){
 			for ( Import i : api.getImports() ){
 				ImportedNames names = (ImportedNames) i;
 				all.add( names.getApi() );
 			}
 		}
-		return all;
+                /* hack */
+                return removeExecutableApi(all);
 	}
 
 	/** Parses a single file. */
