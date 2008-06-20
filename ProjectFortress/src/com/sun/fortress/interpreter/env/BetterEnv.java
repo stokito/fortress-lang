@@ -164,17 +164,17 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     private static void augment(final Environment existing, final Environment additions) {
         final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
-                existing.putType(s, o);
+                existing.putTypeRaw(s, o);
             }
         };
         final Visitor2<String, Number> vn = new Visitor2<String, Number>() {
             public void visit(String s, Number o) {
-                existing.putNat(s, o);
+                existing.putNatRaw(s, o);
             }
         };
         final Visitor2<String, Number> vi = new Visitor2<String, Number>() {
             public void visit(String s, Number o) {
-                existing.putInt(s, o);
+                existing.putIntRaw(s, o);
             }
         };
         final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
