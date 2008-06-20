@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringArrayIterator;
+import com.sun.fortress.useful.Visitor2;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
@@ -88,12 +89,42 @@ abstract public class BaseEnv implements Environment {
    public boolean isTopLevel() {
        return topLevel;
    }   
-   
-//    public void assignValue(HasAt loc, String str, FValue f2) {
-//        // TODO track down references, catch error, and fix.
-//        if (hasValue(str)) putValueUnconditionally(str, f2);
-//        else error(loc,this, errorMsg("Cannot assign to unbound ", str));
-//    }
+
+   protected void augment(final Environment additions) {
+       final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
+           public void visit(String s, FType o) {
+               putTypeRaw(s, o);
+           }
+       };
+       final Visitor2<String, Number> vn = new Visitor2<String, Number>() {
+           public void visit(String s, Number o) {
+               putNatRaw(s, o);
+           }
+       };
+       final Visitor2<String, Number> vi = new Visitor2<String, Number>() {
+           public void visit(String s, Number o) {
+               putIntRaw(s, o);
+           }
+       };
+       final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
+           public void visit(String s, FValue o) {
+             
+                   FType ft = additions.getVarTypeNull(s);
+                   if (ft != null)
+                      putValueRaw(s, o, ft);
+                   else 
+                      putValueRaw(s, o);
+           }
+       };
+       final Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
+           public void visit(String s, Boolean o) {
+               putBoolRaw(s, o);
+           }
+       };
+       
+       visit(vt,vn,vi,vv,vb);
+       
+   }   
 
     abstract public  Appendable dump(Appendable a) throws IOException;
 
