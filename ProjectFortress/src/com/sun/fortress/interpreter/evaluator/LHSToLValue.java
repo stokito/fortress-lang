@@ -23,7 +23,6 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.FieldRefForSure;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
@@ -110,14 +109,6 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
         return ExprFactory.makeFieldRef(x.getSpan(), from, x.getField());
-    }
-
-
-    @Override
-    public LHS forFieldRefForSure(FieldRefForSure x) {
-        Expr from = wrapEval(x.getObj(), "Non-object in field selection");
-        // TODO need to generalize to dotted names.
-        return new FieldRefForSure(x.getSpan(), false, from, x.getField());
     }
 
 

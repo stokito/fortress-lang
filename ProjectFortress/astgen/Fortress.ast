@@ -1119,14 +1119,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      */
                     FieldRef(Id field);
                     /**
-                     * A field selection, for sure
-                     * (though its implementation might be a getter/setter)
-                     * Names of "field" must be unqualified.
-                     *
-                     * field reference rewritten by interpreter.evaluator.LHSToLValue
-                     */
-                    FieldRefForSure(Id field);
-                    /**
                      * A rewritten field ref (not a getter/setter)
                      * also used to disambiguate lexical references to self/parent
                      * and within objectexprs to get access to outer scopes

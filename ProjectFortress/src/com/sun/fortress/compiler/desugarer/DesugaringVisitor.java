@@ -727,11 +727,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new FieldRef(that.getSpan(), that.isParenthesized(), obj_result, field_result);
 //    }
 //
-//    public Node forFieldRefForSureOnly(FieldRefForSure that, Expr obj_result, Id field_result) {
-//        if (that.getObj() == obj_result && that.getField() == field_result) return that;
-//        else return new FieldRefForSure(that.getSpan(), that.isParenthesized(), obj_result, field_result);
-//    }
-//
 //    public Node for_RewriteFieldRefOnly(_RewriteFieldRef that, Expr obj_result, Name field_result) {
 //        if (that.getObj() == obj_result && that.getField() == field_result) return that;
 //        else return new _RewriteFieldRef(that.getSpan(), that.isParenthesized(), obj_result, field_result);
@@ -1928,12 +1923,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        Expr obj_result = (Expr) that.getObj().accept(this);
 //        Id field_result = (Id) that.getField().accept(this);
 //        return forFieldRefOnly(that, obj_result, field_result);
-//    }
-//
-//    public Node forFieldRefForSure(FieldRefForSure that) {
-//        Expr obj_result = (Expr) that.getObj().accept(this);
-//        Id field_result = (Id) that.getField().accept(this);
-//        return forFieldRefForSureOnly(that, obj_result, field_result);
 //    }
 //
 //    public Node for_RewriteFieldRef(_RewriteFieldRef that) {
