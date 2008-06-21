@@ -17,8 +17,10 @@
 
 (* COMPILE *)
 component XXXTypeError
-export Error
+export Executable
 
 x : ZZ32 = "hello"
+
+run(args:String...) = ()
 
 end

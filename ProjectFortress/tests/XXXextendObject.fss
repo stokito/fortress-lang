@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component XXXextendObject
-export Error
+export Executable
 
     (* We're not allowed to extend object types. *)
 
@@ -25,5 +25,7 @@ export Error
 
     object Mumble extends { Foo }
     end
+
+run(args:String...) = ()
 
 end

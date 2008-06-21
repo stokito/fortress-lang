@@ -16,9 +16,10 @@
  ******************************************************************************)
 
 component XXXextendIntLiteral
-export Error
+export Executable
 
     object Mumble() extends { IntLiteral }
     end
 
+run(args:String...) = ()
 end
