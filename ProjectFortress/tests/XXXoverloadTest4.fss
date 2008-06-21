@@ -43,8 +43,8 @@ a(x, y, z)=do
   x+y+z
 end
 
-opr AND(x:Boolean, y:Boolean):Boolean = if x then y else 1=0 end
-opr OR(x:Boolean, y:Boolean):Boolean = if x then x=x else y end
+opr AND(x:Boolean, y:Boolean):Boolean = if x then y else (1=0) end
+opr OR(x:Boolean, y:Boolean):Boolean = if x then (x=x) else y end
 
 run(args:String...):()=do
   println(a(1))

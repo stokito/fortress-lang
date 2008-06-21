@@ -20,12 +20,29 @@ import Map.{...}
 import Syntax.{...}
 export DynamicSemantics
 
-(* Runtime function value ******************************************************)
-object FnValue(fun: FnExpr, sigma: Map[\String, Value\]) extends Value
-  toString() = "(" fun.toString() ", " sigma ")"
-  toSource() = "(" fun.toSource() ", " sigma ")"
-  getId() = 0
+(* Runtime value ***************************************************************)
+trait RuntimeValue comprises { Val, FnValue }
+  getValue(): Value
+  toString(): String
+  toSource(): String
 end
+
+object Val(v: Value) extends RuntimeValue
+  getValue() = v
+  toString() = v.toString()
+  toSource() = v.toSource()
+end
+
+object FnValue(fun: FnExpr, sigma: Map[\String, RuntimeValue\])
+  extends RuntimeValue
+  getValue() = fun
+  toString() = "(" fun.toString() ", " sigma ")"
+  toSource() = fun.toSource()
+end
+
+(* Runtime value factories *****************************************************)
+val(expr: Value) = Val(expr)
+val(expr: FnExpr, sigma: Map[\String, RuntimeValue\]) = FnValue(expr, sigma)
 
 (* Function table **************************************************************)
 (* function name |-> function expression *)
@@ -35,20 +52,20 @@ fdecls: Map[\String, FnExpr\] := mapping[\String, FnExpr\]()
 initDynamic() = atomic fdecls := mapping[\String, FnExpr\]()
 
 (* Dynamic environment *********************************************************)
-(* variable name |-> value *)
-emptyEnv: Map[\String, Value\] = mapping[\String, Value\]()
+(* variable name |-> runtime value *)
+emptyEnv: Map[\String, RuntimeValue\] = mapping[\String, RuntimeValue\]()
 
 (* Evaluate a given expression in a given environment *)
 (* True is a value which does not require further evaluation. *)
-opr VDASH(sigma: Map[\String, Value\], expr: True) = expr
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: True) = val(expr)
 
 (* False is a value which does not require further evaluation. *)
-opr VDASH(sigma: Map[\String, Value\], expr: False) = expr
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: False) = val(expr)
 
 (* A pair of FnExpr and its defined environment is a value
    which do not require further evaluation.
  *)
-opr VDASH(sigma: Map[\String, Value\], expr: FnExpr) = FnValue(expr, sigma)
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: FnExpr) = val(expr, sigma)
 
 (* If a given variable is a function name
    then returns the corresponding function expression of the function
@@ -56,10 +73,10 @@ opr VDASH(sigma: Map[\String, Value\], expr: FnExpr) = FnValue(expr, sigma)
         Throws an unbound variable exception
         if the variable is not found in the environment.
  *)
-opr VDASH(sigma: Map[\String, Value\], expr: Var) = do
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: Var) = do
   name = expr.name
   if f <- fdecls.member(name)
-  then FnValue(f, emptyEnv)
+  then val(f, emptyEnv)
   else if v <- sigma.member(name)
        then v
        else throw FailCalled("Unbound variable: " expr.name)
@@ -71,7 +88,7 @@ end
    Bound the parameter of the function value to the argument value.
    Evaluate the body expression of the function value.
  *)
-opr VDASH(sigma: Map[\String, Value\], expr: App) = do
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: App) = do
   typecase f = sigma VDASH expr.function of
     FnValue => function = f.fun
                sigma' = f.sigma.add(function.param, sigma VDASH expr.argument)
@@ -86,8 +103,8 @@ end
    Throws a type error
    if the condition expression does not evaluate to True or False.
  *)
-opr VDASH(sigma: Map[\String, Value\], expr: If) =
-  typecase c = sigma VDASH expr.cond of
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: If) =
+  typecase c = (sigma VDASH expr.cond).getValue() of
     True  => sigma VDASH expr.thenB
     False => sigma VDASH expr.elseB
     else  => throw FailCalled("Type error: " c)
