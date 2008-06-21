@@ -48,7 +48,6 @@ import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
@@ -614,7 +613,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	private CompilationUnit doParse( APIName api_name, File file ) throws FileNotFoundException, IOException {
 		BufferedReader in = Useful.utf8BufferedFileReader(file);
 		try{
-			com.sun.fortress.parser.Fortress parser = new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(api_name, file));
+			com.sun.fortress.parser.Fortress parser = new com.sun.fortress.parser.Fortress(in, file.getCanonicalPath());
+			parser.setExpectedName(api_name);
 			xtc.parser.Result parseResult = parser.pFile(0);
 			if (parseResult.hasValue()) {
 				Object cu = ((SemanticValue) parseResult).value;

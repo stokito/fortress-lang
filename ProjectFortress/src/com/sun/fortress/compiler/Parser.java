@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
+import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -52,7 +53,6 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
 
@@ -164,7 +164,8 @@ public class Parser {
 			long modificationDate, BufferedReader in) throws IOException {
 		try {
 		    com.sun.fortress.parser.Fortress p =
-		        new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(null, filename));
+			new com.sun.fortress.parser.Fortress(in, filename);
+		    p.setExpectedName(Option.<APIName>none());
 		    xtc.parser.Result parseResult = p.pFile(0);
 		    if (parseResult.hasValue()) {
 		        Object cu = ((SemanticValue) parseResult).value;

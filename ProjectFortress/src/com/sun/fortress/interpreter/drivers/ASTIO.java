@@ -91,34 +91,33 @@ public class ASTIO {
      * @param file_name
      * @return
      */
-    public static String bundleParserArgs(APIName api_name, String file_name) {
-        String api_string = api_name == null ? "" : api_name.toString();
-        file_name = file_name.replace('\\', '/');
-        String s = StringEncodedAggregate.mapPairToString("file", file_name, "cuname", api_string, '\\').toString();
-        return s;
-    }
-    
-    public static String getParserFile(String s) {
-        return StringEncodedAggregate.getFromEncodedMap(s, '\\', "file");
-    }
-    
-    public static String getParserAPI(String s) {
-        return StringEncodedAggregate.getFromEncodedMap(s, '\\', "cuname");
-    }
-    
-    public static String bundleParserArgs(APIName api_name, File f) throws IOException {
-        return bundleParserArgs(api_name, f.getCanonicalPath());
-    }
 
+//     public static String bundleParserArgs(APIName api_name, String file_name) {
+//         String api_string = api_name == null ? "" : api_name.toString();
+//         file_name = file_name.replace('\\', '/');
+//         String s = StringEncodedAggregate.mapPairToString("file", file_name, "cuname", api_string, '\\').toString();
+//         return s;
+//     }
     
+//     public static String getParserFile(String s) {
+//         return StringEncodedAggregate.getFromEncodedMap(s, '\\', "file");
+//     }
+    
+//     public static String getParserAPI(String s) {
+//         return StringEncodedAggregate.getFromEncodedMap(s, '\\', "cuname");
+//     }
+    
+//     public static String bundleParserArgs(APIName api_name, File f) throws IOException {
+//         return bundleParserArgs(api_name, f.getCanonicalPath());
+//     }
+
     public static Option<CompilationUnit> parseToJavaAst (APIName api_name, 
             String reportedFileName, BufferedReader in)
         throws IOException
     {
-        Fortress p =
-            new Fortress(in,
-                         bundleParserArgs(api_name, reportedFileName),
-                         (int) new File(reportedFileName).length());
+        File f = new File(reportedFileName);
+        Fortress p = new Fortress(in, reportedFileName, (int)f.length());
+        p.setExpectedName(api_name);
         Result r = p.pFile(0);
     
         if (r.hasValue()) {

@@ -18,6 +18,7 @@ package com.sun.fortress.syntax_abstractions.parser;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.Reader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
@@ -34,7 +35,6 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
@@ -55,130 +55,130 @@ import edu.rice.cs.plt.io.IOUtil;
 
 public class FortressParser {
 
-	/** Parses a single file. */
-	public static Result parse(APIName api_name, File f, final GlobalEnvironment env, boolean verbose) {
-		try {
-			BufferedReader in = Useful.utf8BufferedFileReader(f);
-			try {
+    /** Parses a single file. */
+    public static Result parse(APIName api_name, File f, final GlobalEnvironment env, boolean verbose) {
+        try {
+            BufferedReader in = Useful.utf8BufferedFileReader(f);
+            try {
 
-				xtc.parser.Result parseResult = null; 
-				ParserBase p = null;
+                xtc.parser.Result parseResult = null; 
+                ParserBase p = null;
 				
-				if (!ProjectProperties.noPreparse) {
-					PreParser.Result ppr = PreParser.parse(api_name, f, env);
-					if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
+                if (!ProjectProperties.noPreparse) {
+                    PreParser.Result ppr = PreParser.parse(api_name, f, env);
+                    if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
 
-					if (verbose)
-						System.err.println("Parsing files: "+f.getName());
-					if (!ppr.getGrammars().isEmpty()) {
+                    if (verbose)
+                        System.err.println("Parsing files: "+f.getName());
+                    if (!ppr.getGrammars().isEmpty()) {
 
-						// Compile the syntax abstractions and create a temporary parser
-						MacroCompiler macroCompiler = new FileBasedMacroCompiler();
-						MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
-						if (!tr.isSuccessful()) { return new Result(tr.errors()); }
-						Class<?> temporaryParserClass = tr.getParserClass(); 
+                        // Compile the syntax abstractions and create a temporary parser
+                        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
+                        MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
+                        if (!tr.isSuccessful()) { return new Result(tr.errors()); }
+                        Class<?> temporaryParserClass = tr.getParserClass(); 
 
-						try {
-							p = ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
-							parseResult = ParserMediator.parse();
-						} catch (Exception e) {
-							String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
-							e.printStackTrace();
-							if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-							return new Result(StaticError.make(desc, f.toString()));
-						} 
-					}
-					else {
-						p = new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(api_name, f));
-						parseResult = ((com.sun.fortress.parser.Fortress) p).pFile(0);
-					}
-				}
-				else {
-					p = new com.sun.fortress.parser.Fortress(in, ASTIO.bundleParserArgs(api_name, f));
-					parseResult = ((com.sun.fortress.parser.Fortress) p).pFile(0);
-				}
+                        try {
+                            p = ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
+                            parseResult = ParserMediator.parse();
+                        } catch (Exception e) {
+                            String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
+                            e.printStackTrace();
+                            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
+                            return new Result(StaticError.make(desc, f.toString()));
+                        } 
+                    } else {
+                        p = new com.sun.fortress.parser.Fortress(in, f.getCanonicalPath());
+                        ((com.sun.fortress.parser.Fortress)p).setExpectedName(api_name);
+                        parseResult = ((com.sun.fortress.parser.Fortress)p).pFile(0);
+                    }
+                } else {
+                    p = new com.sun.fortress.parser.Fortress(in, f.getCanonicalPath());
+                    ((com.sun.fortress.parser.Fortress)p).setExpectedName(api_name);
+                    parseResult = ((com.sun.fortress.parser.Fortress)p).pFile(0);
+                }
 
-				if (parseResult.hasValue()) {
-					Object cu = ((SemanticValue) parseResult).value;
-					if (cu instanceof CompilationUnit) {
+                if (parseResult.hasValue()) {
+                    Object cu = ((SemanticValue) parseResult).value;
+                    if (cu instanceof CompilationUnit) {
 
-						if (cu instanceof Api) {
-							return new Result((Api) cu, f.lastModified());
-						}
-						else if (cu instanceof Component) {
-							return new Result((Component) cu, f.lastModified());
-						}
-					}
+                        if (cu instanceof Api) {
+                            return new Result((Api) cu, f.lastModified());
+                        }
+                        else if (cu instanceof Component) {
+                            return new Result((Component) cu, f.lastModified());
+                        }
+                    }
 
-					throw new RuntimeException("Unexpected parse result: " + cu);
+                    throw new RuntimeException("Unexpected parse result: " + cu);
 
-				}
-				return new Result(new ParserError((ParseError) parseResult, p));
-			}
-			finally { in.close(); }
-		}
-		catch (FileNotFoundException e) {
-			return new Result(StaticError.make("Cannot find file " + f.getName(),
-					f.toString()));
-		}
-		catch (IOException e) {
-			String desc = "Unable to read file";
-			if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-			return new Result(StaticError.make(desc, f.toString()));
-		}
-	}
+                }
+                return new Result(new ParserError((ParseError) parseResult, p));
+            }
+            finally { in.close(); }
+        }
+        catch (FileNotFoundException e) {
+            return new Result(StaticError.make("Cannot find file " + f.getName(),
+                                               f.toString()));
+        }
+        catch (IOException e) {
+            String desc = "Unable to read file";
+            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
+            return new Result(StaticError.make(desc, f.toString()));
+        }
+    }
 
-	/**
-	 * Get all files potentially containing APIs imported by cu that aren't
-	 * currently in fortress.
-	 */
-	private static Set<File> extractNewDependencies(CompilationUnit cu,
-			GlobalEnvironment env, Path p) {
-		Set<APIName> importedApis = new LinkedHashSet<APIName>();
-		for (Import i : cu.getImports()) {
-			if (i instanceof ImportApi) {
-				for (AliasedAPIName apiAlias : ((ImportApi) i).getApis()) {
-					importedApis.add(apiAlias.getApi());
-				}
-			}
-			else { // i instanceof ImportedNames
-				importedApis.add(((ImportedNames) i).getApi());
-			}
-		}
+    /**
+     * Get all files potentially containing APIs imported by cu that aren't
+     * currently in fortress.
+     */
+    private static Set<File> extractNewDependencies(CompilationUnit cu,
+                                                    GlobalEnvironment env, Path p) {
+        Set<APIName> importedApis = new LinkedHashSet<APIName>();
+        for (Import i : cu.getImports()) {
+            if (i instanceof ImportApi) {
+                for (AliasedAPIName apiAlias : ((ImportApi) i).getApis()) {
+                    importedApis.add(apiAlias.getApi());
+                }
+            }
+            else { // i instanceof ImportedNames
+                importedApis.add(((ImportedNames) i).getApi());
+            }
+        }
 
-		Set<File> result = new HashSet<File>();
-		for (APIName n : importedApis) {
-			if (!env.definesApi(n)) {
-				try {
-					File f = canonicalRepresentation(fileForApiName(n, p));
-					// Believe this test is redundant with thrown exception,
-					// but leave it for now.
-					if (IOUtil.attemptExists(f)) {
-						result.add(f);
-					}
-				} catch (FileNotFoundException ex) {
-					// do nothing?
-				}
-			}
-		}
-		return result;
-	}
+        Set<File> result = new HashSet<File>();
+        for (APIName n : importedApis) {
+            if (!env.definesApi(n)) {
+                try {
+                    File f = canonicalRepresentation(fileForApiName(n, p));
+                    // Believe this test is redundant with thrown exception,
+                    // but leave it for now.
+                    if (IOUtil.attemptExists(f)) {
+                        result.add(f);
+                    }
+                } catch (FileNotFoundException ex) {
+                    // do nothing?
+                }
+            }
+        }
+        return result;
+    }
 
-	/** Get the filename in which the given API should be defined. */
-	private static File fileForApiName(APIName api, Path p) throws FileNotFoundException {
-	       return p.findFile(NodeUtil.dirString(api) + ".fsi");
-	}
+    /** Get the filename in which the given API should be defined. */
+    private static File fileForApiName(APIName api, Path p) throws FileNotFoundException {
+        return p.findFile(NodeUtil.dirString(api) + ".fsi");
+    }
 
-	/**
-	 * Convert to a filename that is canonical for each (logical) file, preventing
-	 * reparsing the same file.
-	 */
-	private static File canonicalRepresentation(File f) {
-		// treat the same absolute path as the same file; different absolute path but
-		// the same *canonical* path (a symlink, for example) is treated as two
-		// different files; if absolute file can't be determined, assume they are
-		// distinct.
-		return IOUtil.canonicalCase(IOUtil.attemptAbsoluteFile(f));
-	}
+    /**
+     * Convert to a filename that is canonical for each (logical) file, preventing
+     * reparsing the same file.
+     */
+    private static File canonicalRepresentation(File f) {
+        // treat the same absolute path as the same file; different absolute path but
+        // the same *canonical* path (a symlink, for example) is treated as two
+        // different files; if absolute file can't be determined, assume they are
+        // distinct.
+        return IOUtil.canonicalCase(IOUtil.attemptAbsoluteFile(f));
+    }
 
 }
