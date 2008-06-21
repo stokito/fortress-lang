@@ -15,15 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Tree
+component conditionalGenerator
 export Executable
 
-object Leaf[\ E \]
-end
-
-run(args:String...):() = do
-  s : Leaf[\ RR64 \] := Leaf[\RR64\]
-  ()
-end
+run(args:String...):() =
+  do
+    a = array[\Boolean\](10).fill(true)
+    a[i] := false, i <- 0#10
+    failure : ZZ32 := -1
+    failure := i, i <- 0#10, a[i]
+    assert(failure, -1)
+  end
 
 end

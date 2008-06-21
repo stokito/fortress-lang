@@ -15,14 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component extendNumber
-export Runnable
+component extendObject
+export Executable
 
-(* We ought to be able to extend the builtin type Number. *)
-
-object Infinity extends Number
+object Foo extends Any
 end
 
-run(args:String...):() = ()
+run(args:String...) = ()
 
 end

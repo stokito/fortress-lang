@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,9 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Mumble
+component objectZZ
+export Executable
 
-object Foo extends Object
-end
+f(x : ZZ64) : Any = do
+    v : Any = x
+    v
+  end
+
+g(x: Rank[\3\]) : Any = do
+    v : Any = x
+    v
+  end
+
+run(args:String...):() = ()
 
 end

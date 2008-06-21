@@ -15,35 +15,35 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component testMethodInference                                                                                    
-export Executable                                                                                   
-                                                                                                   
-globalunary[\T\](x:T):T = x                                                                           
-                                                                                                   
-trait Boolean comprises {true, false}                                                               
-apply[\T\](x:T, y:T):T                                                                                
-unary[\T\](x:T):T                                                                                     
-end                                                                                                 
-                                                                                                   
-object true extends Boolean                                                                         
-apply[\T\](x:T, y:T):T = x                                                                            
-unary[\T\](x:T):T = x                                                                                 
-toString():String = "true"                                                                          
-end                                                                                                 
-                                                                                                   
-object false extends Boolean                                                                        
-apply[\T\](x:T, y:T):T = y                                                                            
-unary[\T\](x:T):T = x                                                                                 
-toString():String = "false"                                                                         
-end                                                                                                 
-                                                                                                   
-run(args:String...):() = do                                                                         
-tr:true = true                                                                                      
-fl:false = false                                                                                    
-println "true: " tr.unary(4)                                                                   
-println "true: " tr.globalunary(3)                                                                  
-println "false: " fl.apply[\ZZ32\](1,2)                                                                 
-println "true: " tr.apply[\ZZ32\](1,2)                                                                 
-end                                                                                                 
-                                                                                                   
+component testMethodInference
+export Executable
+
+globalunary[\T\](x:T):T = x
+
+trait Boolean comprises {true, false}
+apply[\T\](x:T, y:T):T
+unary[\T\](x:T):T
+end
+
+object true extends Boolean
+apply[\T\](x:T, y:T):T = x
+unary[\T\](x:T):T = x
+toString():String = "true"
+end
+
+object false extends Boolean
+apply[\T\](x:T, y:T):T = y
+unary[\T\](x:T):T = x
+toString():String = "false"
+end
+
+run(args:String...):() = do
+tr:true = true
+fl:false = false
+println "true: " tr.unary(4)
+println "true: " tr.globalunary(3)
+println "false: " fl.apply[\ZZ32\](1,2)
+println "true: " tr.apply[\ZZ32\](1,2)
+end
+
 end

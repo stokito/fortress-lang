@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component matrixOps
+component XXXwrongArrayDim
 export Executable
 
 (* In response to bug report from dmitrey:

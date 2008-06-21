@@ -18,6 +18,7 @@
 component comprehensions
 import Set.{...}
 import List.{...}
+import Map.{...}
 export Executable
 
 run(args:String...):() = ()

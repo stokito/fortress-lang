@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ParametricTree
-export ParametricTree
+export Executable
 
 (* Tests non-parametric singleton extending polymorphic supertype with
    nat parameters. *)
@@ -35,5 +35,7 @@ end
 object Leaf extends { Tree[\ E, k, d \] }
     where [\ E, nat k, nat d \]
 end
+
+run(args:String...) = ()
 
 end
