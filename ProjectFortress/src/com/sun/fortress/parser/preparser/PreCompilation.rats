@@ -35,10 +35,13 @@ import Spacing;
 public CompilationUnit File =
      w yyValue:CompilationUnit
      { Span span = createSpan(yyStart,yyCount);
-       APIName filename = NodeFactory.makeAPIName(span, column(yyStart).file, "\\.");
-       if (!filename.equals(yyValue.getName()))
-           yyValue = syntaxError(createSpan(yyStart,yyCount),
-                                 "Component/API names must match their enclosing file names.");
+       Option<APIName> expectedName = this.getExpectedName();
+       if (expectedName.isSome()) {
+           APIName filename = expectedName.unwrap();
+           if (!filename.equals(yyValue.getName()))
+               yyValue = syntaxError(createSpan(yyStart,yyCount),
+                                     "Component/API names must match their enclosing file names.");
+       }
      }
    / w Exports w semicolon? w Imports w semicolon? w (_)* // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
@@ -48,14 +51,16 @@ public CompilationUnit File =
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        List<Decl> a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
-       APIName name = NodeFactory.makeAPIName(span, column(yyStart).file, "\\.");
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
    / w a1:Imports w semicolon? w (_)*
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        List<AbsDecl> a2 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
-       APIName name = NodeFactory.makeAPIName(span, column(yyStart).file, "\\.");
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      };
 

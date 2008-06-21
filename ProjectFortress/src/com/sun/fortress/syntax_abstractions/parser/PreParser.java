@@ -35,7 +35,6 @@ import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
@@ -167,7 +166,8 @@ public class PreParser {
 			BufferedReader in = Useful.utf8BufferedFileReader(f);
 			try {
 				com.sun.fortress.parser.preparser.PreFortress p =
-					new com.sun.fortress.parser.preparser.PreFortress(in, ASTIO.bundleParserArgs(api_name, f));
+                                    new com.sun.fortress.parser.preparser.PreFortress(in, f.getCanonicalPath());
+                                p.setExpectedName(api_name);
 				xtc.parser.Result parseResult = p.pFile(0);
 				if (parseResult.hasValue()) {
 					Object cu = ((SemanticValue) parseResult).value;

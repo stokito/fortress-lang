@@ -217,7 +217,8 @@ public class TemplateParser extends NodeUpdateVisitor {
 	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
 		BufferedReader in = Useful.bufferedStringReader(transformation.trim());
 		com.sun.fortress.parser.templateparser.TemplateParser parser =
-			new com.sun.fortress.parser.templateparser.TemplateParser(in, ASTIO.bundleParserArgs(null, span.getBegin().getFileName()));
+                    new com.sun.fortress.parser.templateparser.TemplateParser(in, span.getBegin().getFileName());
+                parser.setExpectedName(Option.<APIName>none());
 		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
 		if ( ! parse.isSome() ){
 			throw new RuntimeException("Did not find method " + productionName);

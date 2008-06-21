@@ -17,6 +17,10 @@
 
 package com.sun.fortress.parser_util.instrumentation;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,9 +37,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.sun.fortress.useful.Useful;
-import com.sun.fortress.exceptions.ProgramError;
-
-import com.sun.fortress.parser.FortressInstrumented;
 
 /*
  * Parser coverage command-line tool
@@ -85,49 +86,109 @@ public class Coverage {
     private static final String[] TEST_DIRS = 
         new String[] {"tests", "static_tests"};
 
+    private static final boolean RETHROW_PROGRAM_ERRORS = false;
+    private static final boolean INCLUDE_OK_ALTERNATES = true;
+    private static final boolean SHOW_FREQUENCIES = true;
+
+    /* Use reflection for two reasons:
+     * 1) To allow this collection to be compiled in "compile" target, 
+     *    when FortressInstrumented may not yet exist.
+     * 2) To allow for eventual separation into separate utility.
+     */
+    private static final String PARSER_CLASS = 
+        "com.sun.fortress.parser.FortressInstrumented";
+    private static final String PARSER_METHOD = "pFile";
+    private static final String PARSER_INFO_METHOD = "moduleInfos";
+
+    private static class Parser {
+        Class<?> parserClass;
+        Constructor<?> constructor;
+        Method parserMethod;
+        Method infoMethod;
+
+        Parser(Class<?> parserClass, String parserMethod, String infoMethod) {
+            try {
+                this.parserClass = parserClass;
+                this.constructor = parserClass.getConstructor(Reader.class, String.class);
+                this.parserMethod = parserClass.getDeclaredMethod(parserMethod, Integer.TYPE);
+                this.infoMethod = parserClass.getDeclaredMethod(infoMethod);
+            } catch (NoSuchMethodException nsme) {
+                throw new RuntimeException(nsme);
+            }
+        }
+
+        void parse(Reader in, String filename) {
+            try {
+                Object p = this.constructor.newInstance(in, filename);
+                this.parserMethod.invoke(p, 0);
+            } catch (InstantiationException ie) {
+                throw new RuntimeException(ie);
+            } catch (IllegalAccessException iae) {
+                throw new RuntimeException(iae);
+            } catch (InvocationTargetException ite) {
+                throw new RuntimeException(ite);
+            }
+        }
+        Collection<Info.ModuleInfo> info() {
+            try {
+                return (Collection<Info.ModuleInfo>)this.infoMethod.invoke(null);
+            } catch (IllegalAccessException iae) {
+                throw new RuntimeException(iae);
+            } catch (InvocationTargetException ite) {
+                throw new RuntimeException(ite);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length > 0) {
             System.err.println("Warning: Ignoring command-line arguments!");
         }
-        parseFiles();
-        reportCoverage();
+        Parser parser;
+        try {
+            parser = new Parser(Class.forName(PARSER_CLASS), PARSER_METHOD, PARSER_INFO_METHOD);
+        } catch (ClassNotFoundException cnfe) {
+            throw new RuntimeException(cnfe);
+        }
+        parseFiles(parser);
+        reportCoverage(parser);
     }
 
-    private static void parseFiles() {
+    private static void parseFiles(Parser parser) {
         for (String dir : TEST_DIRS) {
             File f = new File(dir);
             File[] srcfiles = f.listFiles(new FileFilter() {
                     public boolean accept(File sf) {
                         return (sf.getName().endsWith(".fsi") || sf.getName().endsWith(".fss"))
-                            && !sf.getName().startsWith("XXX") ;
+                            && !sf.getName().startsWith("PXX") ;
                     }
                 });
             System.out.println("Loading " + srcfiles.length + " test files from " + dir);
             for (File srcfile : srcfiles) {
-                parseFile(srcfile);
+                parseFile(parser, srcfile);
             }
         }
+        System.out.println();
     }
 
-    private static void parseFile(File file) {
+    private static void parseFile(Parser parser, File file) {
         String filename = file.getAbsolutePath();
         try {
             Reader in = Useful.utf8BufferedFileReader(filename);
-            FortressInstrumented p = new FortressInstrumented(in, filename);
-            p.pFile(0);
-        } catch (ProgramError pe) {
-            // FIXME: Make sure this parser error is expected.
-            System.out.println("Parse error in file: " + filename);
-            throw pe;
+            parser.parse(in, filename);
         } catch (FileNotFoundException fnfe) {
             throw new RuntimeException(fnfe);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
+        } catch (RuntimeException re) {
+            // FIXME: Make sure this parser error is expected.
+            System.out.println("Parse error in file: " + filename);
+            if (RETHROW_PROGRAM_ERRORS) { throw re; }
         }
     }
 
-    private static void reportCoverage() {
-        Collection<Info.ModuleInfo> rawModuleInfos = FortressInstrumented.moduleInfos();
+    private static void reportCoverage(Parser parser) {
+        Collection<Info.ModuleInfo> rawModuleInfos = parser.info();
         List<Info.ModuleInfo> moduleInfos;
         moduleInfos = new LinkedList<Info.ModuleInfo>(rawModuleInfos);
         Collections.sort(moduleInfos,
@@ -208,23 +269,37 @@ public class Coverage {
         for (Info.ProductionInfo p : m.productions) {
             int sequenceCount = p.sequences.size();
             for (Info.SequenceInfo s : p.sequences) {
-                if (s.committedCount == 0) {
+                if (s.committedCount == 0 || INCLUDE_OK_ALTERNATES) {
                     System.out.print(String.format("    %s case %d/%d (%s)",
                                                    p.production,
                                                    s.sequenceIndex,
                                                    sequenceCount,
                                                    s.sequence == null ? "no name" : s.sequence));
                     if (s.startedCount == 0) {
-                        System.out.println(" was never tried");
-                    } else if (s.endedCount > 0) {
-                        System.out.println(" had successful parses reverted");
+                        System.out.print(" was never tried");
+                    } else if (s.endedCount == 0) {
+                        System.out.print(" never succeeded");
+                    } else if (s.committedCount == 0) {
+                        System.out.print(" had successful parses reverted");
                     } else {
-                        System.out.println(" never succeeded");
+                        System.out.print(" succeeded");
                     }
+                    if (SHOW_FREQUENCIES) {
+                        System.out.print(frequency(s));
+                    }
+                    System.out.println();
                 }
             }
         }
     }
+
+    private static String frequency(Info.SequenceInfo s) {
+        return String.format(" [%d-%d-%d]",
+                             s.startedCount,
+                             s.endedCount,
+                             s.committedCount);
+    }
+
     private static String coverage(int indent, String label, int covered, int total) {
         double percentage = (100.0 * covered) / (double)total;
         char[] indentation = new char[indent];

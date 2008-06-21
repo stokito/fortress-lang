@@ -381,8 +381,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 -->
              <include name="${blahblahblah}/useful/*.java"/>
              <include name="${blahblahblah}/unicode/*.java"/>
-             <include name="${instrumentationPackage}/*.java"/>
-             <exclude name="${instrumentationPackage}/Coverage.java"/>
          </javac>
      </target>
 
@@ -406,8 +404,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <compilerarg value="-Xlint:unchecked"/>
             <include name="${usefulPackage}/*.java"/>
             <include name="${unicodePackage}/*.java"/>
-             <include name="${instrumentationPackage}/*.java"/>
-             <exclude name="${instrumentationPackage}/Coverage.java"/>
          </javac>
      </target>
 
@@ -642,11 +638,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 <uptodate targetfile="${templateparser}/TemplateParser.java">
                     <srcfiles dir="${templateparser}" includes="**/*.rats"/>
                 </uptodate>
-                <uptodate targetfile="${parser}/FortressInstrumented.java">
-                    <srcfiles dir="${parser}" includes="**/*.rats"/>
-                    <srcfiles dir="${src}/${instrumentationPackage}"
-                              includes="*.java"/>
-                </uptodate>
             </and>
         </condition>
         <echo>Parser up to date? ${parser.uptodate}</echo>
@@ -771,7 +762,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     -->
 
     <target name="instrumentedparser" unless="instrumentedparser.uptodate"
-            depends="compileCommon, checkFortressParserUptodate"
+            depends="compileCommon, checkInstrumentedParserUptodate"
             description="Instrumented Parser">
             <java fork="yes"
                   maxmemory="256m"
@@ -790,7 +781,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	    <ant target="fortressparser" />
 	    <ant target="preparser" />
 	    <ant target="templateparser" />
-            <ant target="instrumentedparser" />
 
 	    <!--
        <echo message="Rebuilding parser..."/>
@@ -826,7 +816,28 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	-->
     </target>
 
-    <target name="grammarCoverage" depends="compile">
+    <target name="compileGrammarCoverage" depends="compile, instrumentedparser">
+        <depend srcdir="${src}"
+         destdir="${build}"
+         closure="yes"
+         cache="${basedir}/.dependencies"/>
+        <javac
+            srcdir="${src}"
+            destdir="${build}"
+            source="1.5"
+            debug="true"
+            includeantruntime="false"
+            fork="true"
+            memorymaximumsize="256M">
+            <!-- Uncomment the following line to print unchecked warnings
+                 (here and in the 'compileCommon' target. -->
+            <!-- <compilerarg value="-Xlint:unchecked"/> -->
+            <classpath refid="compile.classpath"/>
+            <include name="${packagePrefix}/parser/FortressInstrumented.java"/>
+        </javac>
+    </target>
+
+    <target name="grammarCoverage" depends="compileGrammarCoverage">
         <java fork="yes"
               failonerror="yes"
               classname="${instrumentation.package}.Coverage"
