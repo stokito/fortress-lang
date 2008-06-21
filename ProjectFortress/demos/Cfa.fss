@@ -406,11 +406,7 @@ doit(p: Program) = do
   end
 
   println "Evaluated value:"
-  result: Value := VDASH p
-  typecase _ = result of
-    FnValue => result := result.fun
-    else    => ()
-  end
+  result = (VDASH p).getValue()
   if debug
   then println (indent result.toString())//
   else println (indent result.toSource())//

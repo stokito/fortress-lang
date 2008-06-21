@@ -19,13 +19,25 @@ api DynamicSemantics
 import Map.{...}
 import Syntax.{...}
 
-(* Runtime function value ******************************************************)
-object FnValue(fun: FnExpr, env: Map[\String, Value\]) extends Value end
+(* Runtime value ***************************************************************)
+trait RuntimeValue comprises { Val, FnValue }
+  getValue(): Value
+  toString(): String
+  toSource(): String
+end
+
+object Val(val: Value) extends RuntimeValue end
+
+object FnValue(fun: FnExpr, sigma: Map[\String, RuntimeValue\]) extends RuntimeValue end
+
+(* Runtime value factories *****************************************************)
+val(expr: Value): RuntimeValue
+val(expr: FnExpr, sigma: Map[\String, RuntimeValue\]): RuntimeValue
 
 (* Initialize the helper table *)
 initDynamic(): ()
 
 (* Evaluate a given program. *)
-opr VDASH(p: Program): Value
+opr VDASH(p: Program): RuntimeValue
 
 end
