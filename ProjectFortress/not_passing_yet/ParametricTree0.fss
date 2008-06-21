@@ -15,8 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ParametricTree
-export ParametricTree
+component ParametricTree0
+export Executable
 
 (* Tests non-parametric singleton extending polymorphic supertype,
    only simple type paramters. *)
@@ -28,12 +28,14 @@ end
 object Node0[\ E \]
            (var data : E,
             l : ZZ32, (* Index of node at depth d in complete k-Tree *)
-            children : Tree[\E,k,d+1\][2])
+            children : Tree0[\E,k,d+1\][2])
     extends { Tree0[\ E \] }
 end
 
 object Leaf0 extends { Tree0[\ E \] }
     where [\E\]
 end
+
+run(args:String...) = ()
 
 end

@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Tree
+component tree
 export Executable
 
 (** Tree-based function representation, from ORNL code. *)
@@ -663,7 +663,7 @@ function[\nat k\]
       thresh, initial_level, max_level, compressed, s, d, c)
 end
 
-opr [\T extends Number,nat k\]|| f : Function[\k\] || =
+opr ||[\T extends Number,nat k\] f : Function[\k\] || =
     SQRT (f.normSq())
 
 opr DOT[\T extends Number,nat n,nat m,nat p\](a:Function[\n\],b:Function[\n\]) : Function[\n\] =

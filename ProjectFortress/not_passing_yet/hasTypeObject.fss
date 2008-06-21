@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Mumble
+component hasTypeObject
 export Executable
 
 (* The version of "ignore" we *ought* to be using in the library. *)

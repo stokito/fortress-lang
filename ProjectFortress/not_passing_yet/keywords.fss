@@ -15,12 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component samples.keywords
+component keywords
 
   export Executable
 
   f( x : ZZ32, y : ZZ32 = x, z : ZZ32 = x + y ) : ZZ32 = x + y + z
-  g( x : Bool, y : Bool, z : Bool ) : Bool = x OR y AND z
+  g( x : Boolean, y : Boolean, z : Boolean ) : Boolean = x OR y AND z
 
   run(args:String...):() = do
     println f(1)
