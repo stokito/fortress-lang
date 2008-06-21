@@ -16,9 +16,11 @@
  ******************************************************************************)
 
 component XXXextendZZ32
-export Error
+export Executable
 
     object Mumble() extends { ZZ32 }
     end
+
+run(args:String...) = ()
 
 end

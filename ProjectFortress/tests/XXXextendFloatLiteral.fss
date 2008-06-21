@@ -16,9 +16,10 @@
  ******************************************************************************)
 
 component XXXextendFloatLiteral
-export Error
+export Executable
 
     object Mumble() extends { FloatLiteral }
     end
 
+run(args:String...) = ()
 end

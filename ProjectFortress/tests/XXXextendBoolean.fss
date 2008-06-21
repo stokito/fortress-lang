@@ -16,9 +16,11 @@
  ******************************************************************************)
 
 component XXXextendBoolean
-export Error
+export Executable
 
     object Mumble() extends { Boolean }
     end
+
+run(args:String...) = ()
 
 end

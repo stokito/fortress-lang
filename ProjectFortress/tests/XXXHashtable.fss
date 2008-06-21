@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component XXXHashtable
-export Error
+export Executable
 
 (* from the "Library" *)
 
@@ -99,7 +99,7 @@ object SimpleHashTable[\T extends Hashable, nat startingSize\]() extends HashTab
 
   add(x:T):() = (if member(x)
                  then error()
-                 else basis[calcHash(x)]=(Some(x)))
+                 else (basis[calcHash(x)]=(Some(x))))
 
 end
 
