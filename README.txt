@@ -177,8 +177,8 @@ USING ECLIPSE
 There exists a .project file in the directory ${FORTRESS_HOME}.
 Import this project into Eclipse.
 
-There exists a file called ${FORTRESS_HOME}/DOTCLASSPATH in 
-the repository. Copy this file to either ${FORTRESS_HOME}/.classpath. 
+There exists a file called ${FORTRESS_HOME}/DOTCLASSPATH in
+the repository. Copy this file to either ${FORTRESS_HOME}/.classpath.
 If you are using the Java 5.0 jdk under Windows or Linux, you will need
 to add an entry to ${JAVA_HOME}/lib/tools.jar to the classpath.
 
@@ -225,12 +225,16 @@ fail have names that are prefixed with XXX.  Test programs that are
 supposed to pass the static disambiguation then fail have names that
 are prefixed with DXX.
 
+The directory ProjectFortress/parser_tests/ contains some Fortress
+programs to test the parser.  Test programs that are supposed to
+fail to be parsed have names that are prefixed with XXX.
 
 The directory ProjectFortress/not_passing_yet/ contains some Fortress
 programs that should pass, but do not.  For example, if we had a test
 file containing an error that should be detected, but it isn't, that
 would be contained in ProjectFortress/not_passing_yet with a name
-prefixed with XXX.
+prefixed with XXX.  Test programs in this directory should pass
+the parser.
 
 
 COMPONENTS
