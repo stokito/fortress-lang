@@ -41,7 +41,7 @@ public CompilationUnit File =
            APIName filename = expectedName.unwrap();
            if (!filename.equals(yyValue.getName()))
                yyValue = syntaxError(createSpan(yyStart,yyCount),
-                                 "Component/API names must match their enclosing file names, from name="+ filename+", from contents="+yyValue.getName());
+                                     "Component/API names must match their enclosing file names, from name="+ filename+", from contents="+yyValue.getName());
        }
      }
    / <ErrorProduction1>

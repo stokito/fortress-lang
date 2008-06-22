@@ -37,7 +37,6 @@ import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.exceptions.shell.ShellException;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-import com.sun.fortress.interpreter.drivers.fs;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -49,20 +48,20 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class CacheBasedRepository extends StubRepository implements FortressRepository {
 
-    
-    protected final Map<APIName, ApiIndex> apis = 
-        new HashMap<APIName, ApiIndex>(); 
-    protected final Map<APIName, ComponentIndex> components = 
+
+    protected final Map<APIName, ApiIndex> apis =
+        new HashMap<APIName, ApiIndex>();
+    protected final Map<APIName, ComponentIndex> components =
         new HashMap<APIName, ComponentIndex>();
- 
+
     protected final String pwd;
-    
+
     public CacheBasedRepository(String _pwd) {
         pwd = _pwd;
     }
 
     public Map<APIName, ApiIndex> apis() { return apis; }
-    
+
     public ApiIndex getApi(APIName name) throws FileNotFoundException,
             IOException {
         ApiIndex ci = apis.get(name);
@@ -88,7 +87,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         if (ci != null)
             return ci;
         String s = compFileName(name);
-        
+
         File f = new File(s);
         if (! f.exists()) {
             throw new FileNotFoundException(s);
@@ -100,18 +99,18 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         ci = IndexBuilder.builder.buildComponentIndex((Component) candidate.unwrap(), f.lastModified());
         components.put(name, ci);
         return ci;
-        
+
     }
 
     public void addApi(APIName name, ApiIndex def) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
-        
+
         Debug.debug( 2, "Api " + name + " created at " + def.modifiedDate() );
         apis.put(name, def);
-        
+
         try {
-            
+
             if (ast instanceof Component) {
                 ASTIO.writeJavaAst(ast, compFileName(ast.getName() ));
             }
@@ -131,20 +130,20 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
             throw new RepositoryError(ast.getName() + " cannot be cached under name " + name);
         }
     }
-    
+
     public void addApis(Map<APIName, ApiIndex> newApis) {
         for (Map.Entry<APIName, ApiIndex> entry: newApis.entrySet()) {
             addApi(entry.getKey(), entry.getValue());
         }
     }
-    
+
     public void addComponent(APIName name, ComponentIndex def) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
         Debug.debug( 2, "Component " + name + " created at " + def.modifiedDate() );
         // Cache component for quick retrieval.
         components.put(name, def);
-        
+
         try {
             name = ast.getName();
             ASTIO.writeJavaAst(ast, compFileName(name));
@@ -156,7 +155,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     private String deCase(APIName s) {
         return "-" + Integer.toString(s.hashCode()&0x7fffffff,16);
     }
-    
+
     public String compFileName(APIName name) {
         return pwd + SEP + name + deCase(name) + DOT + ProjectProperties.COMP_TREE_SUFFIX;
     }
@@ -175,12 +174,12 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
         ApiIndex i = apis.get(name);
-        
+
         if (i != null){
             Debug.debug( 2, "Cached modified date for api " + name + " is " + i.modifiedDate() );
             return i.modifiedDate();
         }
-        
+
        String s = apiFileName(name);
        String tag = "API ";
        return dateFromFile(name, s, tag);
@@ -192,7 +191,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
             Debug.debug( 2, "Cached modified date for component " + name + " is " + i.modifiedDate() );
             return i.modifiedDate();
         }
-        
+
        String s = compFileName(name);
        String tag = "Component ";
        return dateFromFile(name, s, tag);

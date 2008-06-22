@@ -17,7 +17,6 @@
 
 package com.sun.fortress.ant_tasks;
 
-import com.sun.fortress.interpreter.drivers.fs;
 import java.io.*;
 import java.util.*;
 import org.apache.tools.ant.*;
