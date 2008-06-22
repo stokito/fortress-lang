@@ -159,7 +159,7 @@ WhereBinding WhereBinding =
                              "underscore, and contains at least two distinct " +
                              "letters is an operator name.");
      }
-   / <ErrorProduction5> a1:OpName a2:(w a2:Extends)?
+   / <ErrorProduction5> a1:OpName w a2:Extends
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid type parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +
@@ -461,7 +461,7 @@ private StaticParam StaticParam =
    / opr w a1:Op
      { yyValue = new OpParam(createSpan(yyStart,yyCount), a1); }
    / <ErrorProduction6>
-     a1:OpName a2:(w Extends)? a3:(w absorbs w unit)?
+     a1:OpName w a2:Extends a3:(w absorbs w unit)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid type parameter name.\n" +
                              "A non-reserved word that is made up of a mixture" +

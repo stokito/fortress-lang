@@ -39,7 +39,7 @@ body {
         "except",       "excludes",     "exit",         "export",
         "extends",      "finally",      "fn",           "for",
         "forbid",       "getter",       "grammar",      "hidden",
-        "if",           "import",       "in",           "int",
+        "if",           "import",       "int",
         "invariant",    "io",           "label",        "most",
         "nat",          "native",       "object",       "of",
         "opr",          "or",           "override",     "private",

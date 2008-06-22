@@ -201,6 +201,10 @@ private Type TypeRef =
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Space is not allowed immediately before left white square bracket.");
      }
+   / "Unity"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new BaseDim(span);
+     }
    / a1:Id a2:StaticArgs?
      { if (a2 == null)
             yyValue = new VarType(createSpan(yyStart,yyCount), a1);

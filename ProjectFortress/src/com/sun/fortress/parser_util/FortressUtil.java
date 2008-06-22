@@ -301,10 +301,7 @@ public final class FortressUtil {
 
     public static boolean validId(String s) {
         return (!FortressUtil.validOp(s) && !s.equals("_") &&
-                !s.equals("SUM") && !s.equals("PROD") &&
-                !s.equals("per") && !s.equals("square") &&
-                !s.equals("cubic") && !s.equals("inverse") &&
-                !s.equals("squared") && !s.equals("cubed"));
+                !s.equals("SUM") && !s.equals("PROD"));
     }
 
     private static boolean compoundOp(String s) {
@@ -316,7 +313,7 @@ public final class FortressUtil {
         return (c == '_' || java.lang.Character.isUpperCase(c));
     }
     public static boolean validOp(String s) {
-        if (s.equals("juxtaposition") || s.equals("per") ||
+        if (s.equals("juxtaposition") || s.equals("in") || s.equals("per") ||
             s.equals("square") || s.equals("cubic") || s.equals("inverse") ||
             s.equals("squared") || s.equals("cubed"))
             return true;
