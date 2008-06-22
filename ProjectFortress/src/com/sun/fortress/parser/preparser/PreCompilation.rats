@@ -40,7 +40,7 @@ public CompilationUnit File =
            APIName filename = expectedName.unwrap();
            if (!filename.equals(yyValue.getName()))
                yyValue = syntaxError(createSpan(yyStart,yyCount),
-                                     "Component/API names must match their enclosing file names.");
+                                     "Component/API names must match their enclosing file names, from name="+ filename+", from contents="+yyValue.getName());
        }
      }
    / w Exports w semicolon? w Imports w semicolon? w (_)* // Error production
