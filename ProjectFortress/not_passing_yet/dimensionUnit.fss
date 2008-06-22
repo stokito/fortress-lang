@@ -24,13 +24,13 @@ run(args:String...) = do
   t: RR64 Time = 5 s
   v: RR64 Velocity = x/t
   w: RR64 Velocity in nm/s = 17 nm/s
-  y: RR64 Velocity in furlongs per fortnight = v in furlongs per fortnight
-  z: RR64 Time squared = 8 square s
+  y: (RR64 Velocity in furlongs) per fortnight = (v in furlongs) per fortnight
+  z: (RR64 Time)squared = 8 square s
   3 grams per cubic centimeter
-  5 meter per second squared
+  (5 meter per second)squared
   7 inverse ohms
-  a: Object[3] = [5 mg, 3 m, 4 s]
-  f(xs: Object[3]) = xs[1]
+  a: Any[3] = [5 mg, 3 m, 4 s]
+  f(xs: Any[3]) = xs[1]
   f(a)
 end
 
