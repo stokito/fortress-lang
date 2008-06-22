@@ -14,30 +14,39 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-package com.sun.fortress.interpreter.drivers;
 
+package com.sun.fortress.interpreter.unit_tests;
 import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
-public class SpecDataJUTest {
+/**
+ * Junit wrapper that runs all the programs found in demos, looking for
+ * exceptions and/or "FAIL".  The name was chosen to NOT trigger the
+ * filters for pattern-matching unit tests within ant; this is run
+ * explicitly, as part of nightly tests.
+ *
+ * @author chase
+ */
+public class DemoTests {
+
+
     public static void main(String[] args) throws IOException {
+
         junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() throws IOException {
-        String testDir1 = ProjectProperties.FORTRESS_AUTOHOME + "/SpecData/examples/basic";
-        String testDir2 = ProjectProperties.FORTRESS_AUTOHOME + 
-            "/SpecData/examples/preliminaries";
-        String testDir3 = ProjectProperties.FORTRESS_AUTOHOME + 
-            "/SpecData/examples/advanced";
-        boolean failsOnly = ! ("1".equals(ProjectProperties.get("FORTRESS_JUNIT_VERBOSE")));
-        TestSuite suite = new TestSuite("Test all .fss files in 'SpecData/examples'.");
+        String testDir = ProjectProperties.BASEDIR + "demos";
+        String s = System.getProperty("demos");
+        if (s != null) {
+            testDir = s;
+        }
+        TestSuite suite = new TestSuite("Test all .fss files in 'demos'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir1, failsOnly, false));
-        suite.addTest(FileTests.suite(testDir2, failsOnly, false));
-        suite.addTest(FileTests.suite(testDir3, failsOnly, false));
+        suite.addTest(FileTests.suite(testDir, false, false));
         //$JUnit-END$
         return suite;
     }

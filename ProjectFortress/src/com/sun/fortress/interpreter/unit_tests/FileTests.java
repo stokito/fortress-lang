@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.drivers;
+package com.sun.fortress.interpreter.unit_tests;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -30,6 +30,8 @@ import junit.framework.TestSuite;
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
