@@ -97,7 +97,6 @@ public class FileTests {
             try {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
-                    Annotations anns = new Annotations(fssFile);
                     APIName apiname = NodeFactory.makeAPIName(s);
                     FortressRepository fr = Driver.extendedRepository( path );
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
@@ -107,30 +106,24 @@ public class FileTests {
                     {
                         CompilationUnit p = ci.ast();
 
-                        if (anns.compile) {
-                            // oldOut.print(" COMPILING"); oldOut.flush();
-                            Driver.evalComponent(p, fr);
+                        // oldOut.print(" RUNNING"); oldOut.flush();
+                        if (!unexpectedOnly) System.out.println();
+                        // A demo file requiring arguments
+                        if (name.equals("tennisRanking")) {
+                            ArrayList<String> args = new ArrayList<String>();
+                            args.add(dir + "/tennis050307");
+                            args.add(dir + "/tennis051707");
+                            args.add(dir + "/tennisGames");
+                            Driver.runProgram(fr, p, false, false, args);
+                        }
+                        // Test files requiring "-test" flag
+                        else if (name.equals("XXXTestTest") ||
+                                 name.equals("natInference0") ||
+                                 name.equals("testTest2")) {
+                            Driver.runProgram(fr, p, true, false, new ArrayList<String>());
                         }
                         else {
-                            // oldOut.print(" RUNNING"); oldOut.flush();
-                            if (!unexpectedOnly) System.out.println();
-                            // A demo file requiring arguments
-                            if (name.equals("tennisRanking")) {
-                                ArrayList<String> args = new ArrayList<String>();
-                                args.add(dir + "/tennis050307");
-                                args.add(dir + "/tennis051707");
-                                args.add(dir + "/tennisGames");
-                                Driver.runProgram(fr, p, false, false, args);
-                            }
-                            // Test files requiring "-test" flag
-                            else if (name.equals("XXXTestTest") ||
-                                     name.equals("natInference0") ||
-                                     name.equals("testTest2")) {
-                                Driver.runProgram(fr, p, true, false, new ArrayList<String>());
-                            }
-                            else {
-                                Driver.runProgram(fr, p, false, false, new ArrayList<String>());
-                            }
+                            Driver.runProgram(fr, p, false, false, new ArrayList<String>());
                         }
                     }
                 }
