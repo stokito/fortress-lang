@@ -19,10 +19,11 @@ component staticArg
 
 export Executable
 
+object P end
 object O[\S, int i, unit U, bool b\]() end
 
 run(args:String...) = do
-  O[\O, 2 + 0, dimensionless, true AND false\]()
+  O[\P, 2 + 0, dimensionless, true AND false\]()
   println "Static arguments test."
 end
 

@@ -30,8 +30,8 @@ run(args:String...) = do
   f(1, s..., z = 5)
   g : (ZZ32, ZZ32..., z = ZZ32) -> () = f
 (* Rightly rejected
+  h : (ZZ32, ZZ32..., z = ZZ32)
  *)
-  h : (ZZ32, ZZ32..., z = ZZ32) (* should be rejected *)
 end
 
 end

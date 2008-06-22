@@ -28,7 +28,7 @@ trait Monoid[\T extends Monoid[\T,OPLUS\], opr OPLUS\]
   opr OPLUS(self, other:T):T
 end
 
-trait EquivalenceRelation[\T extends EquivalenceRelation, opr ~\]
+trait EquivalenceRelation[\T extends EquivalenceRelation[\T, ~\], opr ~\]
   opr ~(self, other:T):Boolean
 end
 
