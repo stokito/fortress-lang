@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.drivers;
+package com.sun.fortress.useful;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,8 +25,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-
-import com.sun.fortress.useful.Useful;
 
 public class UnicodeCollisions {
     // 0028;LEFT PARENTHESIS;Ps;0;ON;;;;;Y;OPENING PARENTHESIS;;;;
