@@ -48,22 +48,6 @@ public class ASTIO {
         (new Printer()).dump(p, fout, 0);
     }
 
-    /**
-     * Runs a command and captures its output and errors streams.
-     *
-     * @param command
-     *            The command to run
-     * @param output
-     *            Output from the command is written here.
-     * @param errors
-     *            Errors from the command are written here.
-     * @param exceptions
-     *            If the execution of the command throws an exception, it is
-     *            stored here.
-     * @return true iff any errors were written.
-     * @throws IOException
-     */
-    
     public static void writeJavaAst(CompilationUnit p, String s)
             throws IOException {
         BufferedWriter fout = Useful.utf8BufferedFileWriter(s);
@@ -74,56 +58,29 @@ public class ASTIO {
     /**
      * Convenience method for calling parseToJavaAst with a default BufferedReader.
      */
-    public static Option<CompilationUnit> parseToJavaAst(APIName api_name, String reportedFileName) throws IOException {
+    public static Option<CompilationUnit> parseToJavaAst(APIName api_name,
+                                                         String reportedFileName)
+        throws IOException {
         BufferedReader r = Useful.utf8BufferedFileReader(reportedFileName);
-        try { return ASTIO.parseToJavaAst(api_name, reportedFileName, r); }
-        
+        try { return parseToJavaAst(api_name, reportedFileName, r); }
+
         finally { r.close(); }
     }
 
-    /**
-     * Returns a string encoding an api name and a file name, suitable for passing
-     * through the Rats!-generated parser interface (that expects a string).
-     * If api_name is null, then the empty string is used instead.
-     * Any backslashes in the file name are converted to forward slashes.
-     * 
-     * @param api_name
-     * @param file_name
-     * @return
-     */
-
-//     public static String bundleParserArgs(APIName api_name, String file_name) {
-//         String api_string = api_name == null ? "" : api_name.toString();
-//         file_name = file_name.replace('\\', '/');
-//         String s = StringEncodedAggregate.mapPairToString("file", file_name, "cuname", api_string, '\\').toString();
-//         return s;
-//     }
-    
-//     public static String getParserFile(String s) {
-//         return StringEncodedAggregate.getFromEncodedMap(s, '\\', "file");
-//     }
-    
-//     public static String getParserAPI(String s) {
-//         return StringEncodedAggregate.getFromEncodedMap(s, '\\', "cuname");
-//     }
-    
-//     public static String bundleParserArgs(APIName api_name, File f) throws IOException {
-//         return bundleParserArgs(api_name, f.getCanonicalPath());
-//     }
-
-    public static Option<CompilationUnit> parseToJavaAst (APIName api_name, 
-            String reportedFileName, BufferedReader in)
+    public static Option<CompilationUnit> parseToJavaAst (APIName api_name,
+                                                          String reportedFileName,
+                                                          BufferedReader in)
         throws IOException
     {
         File f = new File(reportedFileName);
         Fortress p = new Fortress(in, reportedFileName, (int)f.length());
         p.setExpectedName(api_name);
         Result r = p.pFile(0);
-    
+
         if (r.hasValue()) {
             SemanticValue v = (SemanticValue) r;
             CompilationUnit n = (CompilationUnit) v.value;
-            
+
             return Option.some(n);
         }
         else {
@@ -144,8 +101,8 @@ public class ASTIO {
      * @param br
      * @throws IOException
      */
-    public static Option<CompilationUnit>
-        readJavaAst(String reportedFileName, BufferedReader br)
+    public static Option<CompilationUnit> readJavaAst(String reportedFileName,
+                                                      BufferedReader br)
         throws IOException
     {
         Lex lex = new Lex(br);
@@ -159,8 +116,8 @@ public class ASTIO {
         finally {
             if (!lex.atEOF())
                 System.out.println("Parse of " + reportedFileName
-                        + " ended EARLY at line = " + lex.line()
-                        + ",  column = " + lex.column());
+                                   + " ended EARLY at line = " + lex.line()
+                                   + ",  column = " + lex.column());
         }
     }
 
@@ -171,5 +128,5 @@ public class ASTIO {
         finally { br.close(); }
     }
 
- 
+
 }
