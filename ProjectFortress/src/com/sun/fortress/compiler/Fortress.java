@@ -99,7 +99,7 @@ public class Fortress {
 		return IterUtil.empty();
 	}
 
-	private Parser.Result compileInner(FortressRepository bcr, 
+	private Parser.Result compileInner(FortressRepository bcr,
 			String... files) {
 		Parser.Result result = new Parser.Result();
 
@@ -283,25 +283,25 @@ public class Fortress {
 		if (!componentDR.isSuccessful()) {
 			return componentDR.errors();
 		}
-                
+
 		IndexBuilder.ComponentResult componentIR =
 			IndexBuilder.buildComponents(componentDR.components(), System.currentTimeMillis());
 		if (!componentIR.isSuccessful()) {
                         return componentIR.errors();
                 }
-                
+
 		StaticChecker.ComponentResult componentSR =
 			StaticChecker.checkComponents(componentIR.components(), env);
 		if (!componentSR.isSuccessful()) {
                         return componentSR.errors();
                 }
-                
+
 		// Generate top-level byte code environments
 		TopLevelEnvGen.ComponentResult componentGR = TopLevelEnvGen.generate(componentSR.components(), env);
 		if(!componentGR.isSuccessful()) { return componentGR.errors(); }
-		
-		// Additional optimization phases can be inserted here        
-        
+
+		// Additional optimization phases can be inserted here
+
 
 		for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {
 			_repository.addComponent(newComponent.getKey(), newComponent.getValue());

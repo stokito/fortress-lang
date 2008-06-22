@@ -522,15 +522,17 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
 StaticArg StaticArg =
      a1:Op
      { yyValue = new OpArg(createSpan(yyStart,yyCount), a1); }
-   / "Unity"
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = new DimArg(span, new BaseDim(span));
-     }
-   / a1:"dimensionless"
-     { Span span = createSpan(yyStart,yyCount);
-       UnitRef unit = new UnitRef(span, NodeFactory.makeId(span,a1));
-       yyValue = new UnitArg(span, unit);
-     }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow /
+                      w "OR":op / w "AND":op / w "IMPLIES":op / w equals) /
+       "Unity" / "dimensionless" / "true" / "false")
+     a1:IntExpr
+     { yyValue = new IntArg(createSpan(yyStart,yyCount), a1); }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow) /
+       "Unity" / "dimensionless")
+     a1:BoolExpr
+     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
    / a1:"true"
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new BoolArg(span, new BoolConstant(span, true));
@@ -539,37 +541,7 @@ StaticArg StaticArg =
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new BoolArg(span, new BoolConstant(span, false));
      }
-   / one w slash w a1:Type
-     { Span span = createSpan(yyStart,1);
-       DimExpr base = new BaseDim(createSpan(yyStart,1));
-       try {
-         yyValue = new DimArg(span, new QuotientDim(span, base,
-                                                    TypeResolver.typeToDim(a1)));
-       } catch (TypeConvertFailure e) {
-         yyValue = syntaxError(a1.getSpan(),
-                               "A dimension is expected but a type is found.");
-       }
-     }
-   / a1:DimPrefixOp sr a2:Type
-     { Span span = createSpan(yyStart,yyCount);
-       try {
-         yyValue = new DimArg(span,
-                              new OpDim(span,TypeResolver.typeToDim(a2),a1));
-       } catch (TypeConvertFailure e) {
-         yyValue = syntaxError(a2.getSpan(),
-                               "A dimension is expected but a type is found.");
-       }
-     }
-   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
-                      w opendoublesquare / w opensquare / w rightarrow /
-                      w "OR":op / w "AND":op / w "IMPLIES":op / w equals))
-     a1:IntExpr
-     { yyValue = new IntArg(createSpan(yyStart,yyCount), a1); }
-   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
-                      w opendoublesquare / w opensquare / w rightarrow))
-     a1:BoolExpr
-     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
-   / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp))
+   / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp) / "dimensionless")
      a1:Type
      { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
    / a1:UnitExpr

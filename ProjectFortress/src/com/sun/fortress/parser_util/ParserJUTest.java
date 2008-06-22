@@ -31,22 +31,33 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class ParserJUTest extends TestCaseWrapper {
 
-    private final static String PARSER_TESTS_DIR = ProjectProperties.BASEDIR + "parser_tests/";
+    private final static String PARSER_FAIL_TESTS_DIR =
+        ProjectProperties.BASEDIR + "parser_tests/";
+    private final static String PARSER_NYI_TESTS_DIR =
+        ProjectProperties.BASEDIR + "not_passing_yet/";
+    private static boolean isNYI(String parent) {
+        int size = parent.length();
+        return (size > 3 && parent.substring(size-3,size).equals("yet"));
+    }
 
     public static TestSuite suite() {
         return new ParserTestSuite("ParserJUTest",
-                                   PARSER_TESTS_DIR);
+                                   PARSER_FAIL_TESTS_DIR,
+                                   PARSER_NYI_TESTS_DIR);
     }
 
     private final static class ParserTestSuite extends TestSuite {
         private final static boolean VERBOSE = false;
 
         // relative to the top ProjectFortress directory
-        private final String testDir;
+        private final String failTestDir;
+        private final String nyiTestDir;
 
-        public ParserTestSuite(String _name, String _testDir) {
+        public ParserTestSuite(String _name, String _failTestDir,
+                               String _nyiTestDir) {
             super(_name);
-            testDir = _testDir;
+            failTestDir = _failTestDir;
+            nyiTestDir = _nyiTestDir;
             addParserTests();
         }
 
@@ -57,8 +68,12 @@ public class ParserJUTest extends TestCaseWrapper {
                     }
                 };
 
-            for (String filename : new File(testDir).list(fssFilter)) {
-                File f = new File(testDir + filename);
+            for (String filename : new File(failTestDir).list(fssFilter)) {
+                File f = new File(failTestDir + filename);
+                addTest(new ParserTestCase(f));
+            }
+            for (String filename : new File(nyiTestDir).list(fssFilter)) {
+                File f = new File(nyiTestDir + filename);
                 addTest(new ParserTestCase(f));
             }
         }
@@ -76,12 +91,13 @@ public class ParserJUTest extends TestCaseWrapper {
             }
 
             @Override
-                protected void runTest() throws Throwable {
+            protected void runTest() throws Throwable {
                 String name = file.getName();
-                if (name.startsWith("XXX")) {
+                String parent = file.getParent();
+                if (!isNYI(parent)) {
                     assertParserFails(file);
-                } else if (name.startsWith("PXX")) {
-                    assertInterpreterFails(file);
+                } else if (isNYI(parent)) {
+                    assertParserSucceeds(file);
                 } else {
                     error("Unexpected file in the parser_test directory: " +
                           name);
@@ -97,7 +113,7 @@ public class ParserJUTest extends TestCaseWrapper {
                 }
             }
 
-            private void assertInterpreterFails(File f) throws IOException {
+            private void assertParserSucceeds(File f) throws IOException {
                 Parser.Result result = Parser.parse(f);
                 assertFalse("Source " + f + " was compiled with parser errors",
                             !result.isSuccessful());
