@@ -1233,6 +1233,8 @@ Fortress source code)."
 	("\\\\KWD{opr} \\\\left\\\\|(" "\\\\KWD{opr} \\\\left|\\\\right|(")
 	;; Fixup for defining opr :
 	("\\\\KWD{opr} \\\\mathrel{\\\\mathtt{:}}" "\\\\KWD{opr} \\\\mathinner{\\\\mathtt{:}}")
+        ;; Fixup for missing space in BIG OP
+        ("\\\\OPR{BIG}[ ]*\\\\" "\\\\OPR{BIG}\\\\,\\\\")
 	;; Fixup for |self|
 	("\\\\left|\\\\mathord{\\\\KWD{self}}\\\\lfloor)" "\\\\left|\\\\mathord{\\\\KWD{self}}\\\\right|}")
 	;; Fixup for ||

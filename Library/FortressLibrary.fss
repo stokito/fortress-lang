@@ -2206,7 +2206,10 @@ end
 * Reductions
 ************************************************************)
 
-trait Reduction[\R\] end
+trait Reduction[\L\]
+    empty(): L
+    join(a: L, b: L): L
+end
 
 (** Invariants:
     join must be associative with identity empty
@@ -2214,8 +2217,6 @@ trait Reduction[\R\] end
  **)
 trait ActualReduction[\R,L\] extends Reduction[\L\]
     getter toString():String
-    empty(): L
-    join(a: L, b: L): L
     lift(r: Any): L
     unlift(l:L): R
     (** If this reduction left-distributes over r, return a pair of
@@ -2516,7 +2517,7 @@ trait FilterGenerator[\E\] extends Generator[\E\]
         g().generate[\E\](r, fn(e:E):E => if (p())(e).holds() then e else r.empty() end)
     filter(p': E -> Condition[\()\]): SimpleFilterGenerator[\E\] =
         SimpleFilterGenerator[\E\](g(), p() ANDCOND p')
-    seq(self) = SimpleSeqFilterGenerator[\E\](g(),p())
+    seq(self) = SimpleSeqFilterGenerator[\E\](seq(g()),p())
 end
 
 object SimpleFilterGenerator[\E\](g0:Generator[\E\], p0: E->Condition[\()\])
