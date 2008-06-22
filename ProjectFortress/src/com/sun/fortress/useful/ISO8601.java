@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.drivers;
+package com.sun.fortress.useful;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,7 +23,7 @@ import java.util.Date;
 /**
  * Prints out an ISO 8601 formatted date, including milliseconds and timezone.
  * Useful for generating time-stamped log file names in scripts.
- * 
+ *
  */
 
 public class ISO8601 {

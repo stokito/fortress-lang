@@ -15,15 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.drivers;
+package com.sun.fortress.useful;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import com.sun.fortress.useful.Useful;
-
 public class SpliceCode {
-    
+
     static StringBuffer readReader(BufferedReader br) throws IOException {
         try {
             StringBuffer sb = new StringBuffer();
@@ -36,7 +34,7 @@ public class SpliceCode {
         }
         finally { br.close(); }
     }
-    
+
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: java SpliceCode Original.java < inserted > modified");

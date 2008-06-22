@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.drivers;
+package com.sun.fortress.useful;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,11 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.shell.Files;
-import com.sun.fortress.useful.Factory1;
-import com.sun.fortress.useful.Memo1;
-import com.sun.fortress.useful.TopSort;
-import com.sun.fortress.useful.TopSortItemImpl;
-import com.sun.fortress.useful.Useful;
 
 public class MacPortsHelper {
 
