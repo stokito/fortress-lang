@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -84,7 +84,7 @@ public class StringEncodedAggregate {
     /**
      * For small, simple encoded maps that are only used once, use this to bypass the whole map-creation song-and-dance.
      * Returns the value matching key, from the map encoded in s, assuming delimiter d.
-     * 
+     *
      * @param s
      * @param d
      * @param key
@@ -138,34 +138,34 @@ public class StringEncodedAggregate {
     public static StringBuffer mapPairToString(String from1, String to1, String from2, String to2, char d) {
         return mapPairToString(from1, to1, from2, to2, d, new StringBuffer());
     }
-    
+
     public static StringBuffer mapPairToString(String from1, String to1, String from2, String to2, char d, StringBuffer sb) {
         boolean first = true;
-        
-            
+
+
             if (from1.indexOf(d) != -1)
                 throw new Error("Key " + from1 + " in map contains delimiter " + d);
             if (to1.indexOf(d) != -1)
                 throw new Error("Value " + to1 + " in map contains delimiter " + d);
             sb.append(from1);
             sb.append(d);
-            
+
             sb.append(to1);
             sb.append(d);
-            
-            
-            
+
+
+
             if (from2.indexOf(d) != -1)
                 throw new Error("Key " + from2 + " in map contains delimiter " + d);
             if (to2.indexOf(d) != -1)
                 throw new Error("Value " + to2 + " in map contains delimiter " + d);
             sb.append(from2);
             sb.append(d);
-            
+
             sb.append(to2);
             sb.append(d);
 
-        
+
         return sb;
     }
 
