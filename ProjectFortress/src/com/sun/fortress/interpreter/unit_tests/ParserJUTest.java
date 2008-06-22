@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.parser_util;
+package com.sun.fortress.interpreter.unit_tests;
 
 import java.io.File;
 import java.io.FilenameFilter;
