@@ -27,8 +27,12 @@ api Regex
     end
 
     object Regexp( elements : List[\Element\] )
-        opr =(self,s:String):Boolean
+        opr CONTAINS(self,s:String):Boolean
+        opr IN(s:String,self):Boolean
         opr =(self,r:Regexp):Boolean
+        (*
+        opr =(self,r:Regexp):Boolean
+        *)
     end
 
     object CharElement(s:String) extends Element

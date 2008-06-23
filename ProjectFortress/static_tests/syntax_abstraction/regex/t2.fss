@@ -22,13 +22,13 @@ import List.{...}
 export Executable
 
 testit(r:Regexp, s:String) = do
-    if NOT (r = s) then
+    if NOT (r CONTAINS s) then
         println "Failure: " r " != " s
     end
 end
 
 testnotit(r:Regexp, s:String) = do
-    if r = s then
+    if r CONTAINS s then
         println "Failure: " r " = " s
     end
 end
