@@ -1098,7 +1098,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * Primary ::= self
                  * e.g.) length
                  */
-                VarRef(Id var) implements LHS;
+                VarRef(Id var, int lexicalDepth=-1) implements LHS;
                 /**
                  * A reference to a singleton object. Created at typechecking or disambiguation-time.
                  * Necessary because object references are initially parsed as FnRefs.
@@ -1136,7 +1136,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * named functional in functional applications
                  */
                 abstract FunctionalRef(List<StaticArg> staticArgs
-                                         = Collections.<StaticArg>emptyList());
+                                         = Collections.<StaticArg>emptyList(), int lexicalDepth=-1);
                     /**
                      * expression with static instantiations
                      * list of ids allows cross-API overloading
@@ -1343,7 +1343,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * named type
              */
-            abstract NamedType(Id name);
+            abstract NamedType(Id name, int lexicalDepth=-1);
                 /**
                  * a type variable
                  * TraitType ::= QualifiedName
