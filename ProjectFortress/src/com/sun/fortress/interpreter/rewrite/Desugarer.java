@@ -157,7 +157,7 @@ public class Desugarer extends Rewrite {
         }
         /** May assume {@code original} has a non-zero length. */
         Expr replacement(VarRef original) {
-            return original;
+            return NodeFactory.makeVarRef(original, lexicalNestedness);
         }
         public String toString() { return "Thing@"+objectNestedness+"/"+lexicalNestedness; }
     }

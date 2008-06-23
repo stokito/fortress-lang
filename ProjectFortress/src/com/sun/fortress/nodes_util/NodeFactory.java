@@ -1111,8 +1111,12 @@ public class NodeFactory {
   }
 
   public static VarRef makeVarRef(Span span, Id name) {
-   return new VarRef(span, true, name);
-  }
+      return new VarRef(span, true, name);
+     }
+
+  public static VarRef makeVarRef(VarRef old, int depth) {
+      return new VarRef(old.getSpan(), old.isParenthesized(), old.getVar(), depth);
+     }
 
   public static Expr makeFnRef(Span span, Id name,
     List<StaticArg> staticArgs) {
