@@ -266,11 +266,7 @@ abstract public class BaseEnv implements Environment {
         error(loc, this, "Type stored to immutable variable " + str);
 
     }
-    
-    public boolean hasValue(String str) {
-        return (getValueRaw(str) != null) || (getBoolNull(str) != null)  || (getNatNull(str) != null);
-    }    
-    
+       
     final public  Boolean getBool(String str)  {
         Boolean x = getBoolNull(str);
         if (x == null)

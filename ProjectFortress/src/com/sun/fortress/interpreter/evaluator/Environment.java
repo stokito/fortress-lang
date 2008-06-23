@@ -82,7 +82,7 @@ public interface Environment  {
 
     public abstract FType getTypeNull(String name);
 
-    public abstract FValue getValue(FValue f1);
+    //public abstract FValue getValue(FValue f1);
 
     /* Variables/values -- these are more complex.
      * Api.var
@@ -116,8 +116,6 @@ public interface Environment  {
     public abstract FType getVarType(String str);
 
     public abstract FType getVarTypeNull(String str);
-
-    public abstract boolean hasValue(String str);
 
     public abstract Environment installPrimitives();
 
