@@ -149,17 +149,21 @@ public class Desugarer extends Rewrite {
     private final static boolean debug = false;
 
     private class Thing {
-        int nestedness;
-        Thing() { nestedness = objectNestingDepth; }
+        int objectNestedness;
+        int lexicalNestedness;
+        Thing() {
+            objectNestedness = objectNestingDepth;
+            lexicalNestedness = lexicalNestingDepth;
+        }
         /** May assume {@code original} has a non-zero length. */
         Expr replacement(VarRef original) {
             return original;
         }
-        public String toString() { return "Thing@"+nestedness; }
+        public String toString() { return "Thing@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
     private class Local extends Thing {
-        public String toString() { return "Local@"+nestedness; }
+        public String toString() { return "Local@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
     /**
@@ -196,16 +200,16 @@ public class Desugarer extends Rewrite {
                                             // here because it is a
                                             // com.sun.fortress.interpreter.rewrite.
                                             dottedReference(original.getSpan(),
-                                                            objectNestingDepth - nestedness),
+                                                            objectNestingDepth - objectNestedness),
                                             filterQID(original.getVar()));
             }
         }
 
         public String toString() {
             if (isTransient)
-                return "TransientMember@"+nestedness;
+                return "TransientMember@"+objectNestedness+"/"+lexicalNestedness;
             else
-                return "Member@"+nestedness;
+                return "Member@"+objectNestedness+"/"+lexicalNestedness;
         }
     }
 
@@ -214,10 +218,10 @@ public class Desugarer extends Rewrite {
         SelfRewrite(String s) { this.s = s; }
         Expr replacement(VarRef original) {
             Expr expr = dottedReference(original.getSpan(),
-                    objectNestingDepth - nestedness);
+                    objectNestingDepth - objectNestedness);
             return expr;
         }
-        public String toString() { return "Self("+s+")@"+nestedness; }
+        public String toString() { return "Self("+s+")@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
 
@@ -371,6 +375,13 @@ public class Desugarer extends Rewrite {
      *
      */
     int objectNestingDepth;
+    
+    /**
+     * Zero for toplevel, otherwise equal to the number of enclosing scopes,
+     * for some definition of scope.  The definition of scope will be adjusted
+     * as is convenient to the implementation.
+     */
+    int lexicalNestingDepth;
 
     boolean inTrait;
 
@@ -525,6 +536,7 @@ public class Desugarer extends Rewrite {
 
         boolean savedFnDefIsMethod = atTopLevelInsideTraitOrObject;
         int savedObjectNestingDepth = objectNestingDepth;
+        int savedLexicalNestingDepth = lexicalNestingDepth;
         String savedSelfName = currentSelfName;
 
         if (node instanceof Component) {
@@ -689,6 +701,7 @@ public class Desugarer extends Rewrite {
                         rewrites.put(currentSelfName, new SelfRewrite(currentSelfName));
                     }
                     atTopLevelInsideTraitOrObject = false;
+                    lexicalNestingDepth++;
 
                     List<Param> params = fndef.getParams();
                     // fndef.getFnName(); handled at top level.
@@ -734,6 +747,7 @@ public class Desugarer extends Rewrite {
                     // TODO wip
 
                     objectNestingDepth++;
+                    lexicalNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
                     defsToMembers(defs);
                     accumulateMembersFromExtends(xtends, rewrites);
@@ -750,6 +764,7 @@ public class Desugarer extends Rewrite {
 
                 } else if (node instanceof FnExpr) {
                     atTopLevelInsideTraitOrObject = false;
+                    lexicalNestingDepth++;
                     FnExpr fndef = (FnExpr) node;
                     List<Param> params = fndef.getParams();
                     paramsToLocals(params);
@@ -763,6 +778,7 @@ public class Desugarer extends Rewrite {
 
                 } else if (node instanceof LetFn) {
                     atTopLevelInsideTraitOrObject = false;
+                    lexicalNestingDepth++;
                     // defined var is no longer eligible for rewrite.
                     LetFn lf = (LetFn) node;
                     List<FnDef> defs = lf.getFns();
@@ -781,6 +797,7 @@ public class Desugarer extends Rewrite {
                     List<StaticParam> tparams = od.getStaticParams();
                     List<BaseType> xtends = NodeUtil.getTypes(od.getExtendsClause());
                     // TODO wip
+                    lexicalNestingDepth++;
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
                     defsToMembers(defs);
@@ -797,6 +814,7 @@ public class Desugarer extends Rewrite {
                     List<? extends AbsDecl> defs = td.getDecls();
                     List<StaticParam> tparams = td.getStaticParams();
                     // TODO wip
+                    lexicalNestingDepth++;
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
                     defsToMembers(defs);
@@ -813,6 +831,7 @@ public class Desugarer extends Rewrite {
                     List<? extends Decl> defs = td.getDecls();
                     List<StaticParam> tparams = td.getStaticParams();
                     // TODO wip
+                    lexicalNestingDepth++;
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
                     defsToMembers(defs);
@@ -876,6 +895,7 @@ public class Desugarer extends Rewrite {
                 usedGenericParameters = savedUsedGenerics;
                 atTopLevelInsideTraitOrObject = savedFnDefIsMethod;
                 objectNestingDepth = savedObjectNestingDepth;
+                lexicalNestingDepth = savedLexicalNestingDepth;
                 currentSelfName = savedSelfName;
             }
 
