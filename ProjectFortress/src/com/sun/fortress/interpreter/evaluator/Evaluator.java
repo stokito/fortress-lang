@@ -547,9 +547,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<CaseClause> clauses = x.getClauses();
         Option<Expr> param = x.getParam();
         if (param.isNone()) {
-            Option<Op> compare = x.getCompare();
+            Option<OpRef> compare = x.getCompare();
             if (compare.isSome()) {
-                String op = NodeUtil.nameString(compare.unwrap());
+                String op = NodeUtil.nameString(compare.unwrap().getOriginalName());
                 return forBlock(findExtremum(x,(Fcn) e.getValue(op)).getBody());
             } else
                 return error(x,errorMsg("Missing operator for the extremum ",
@@ -559,9 +559,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue paramValue = param.unwrap().accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue("=");
-            Option<Op> compare = x.getCompare();
+            Option<OpRef> compare = x.getCompare();
             if (compare.isSome())
-                fcn = (Fcn) e.getValue(NodeUtil.nameString(compare.unwrap()));
+                fcn = (Fcn) e.getValue(NodeUtil.nameString(compare.unwrap().getOriginalName()));
 
             // Iterate through the cases
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {

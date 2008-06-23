@@ -1840,10 +1840,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			new NodeDepthFirstVisitor<TypeCheckerResult>() {
     			@Override
     			public TypeCheckerResult forFieldRef(FieldRef that) {
+    				// If there is an op, we must typecheck that as a normal read reference
+    				TypeCheckerResult read_result;
+    				if( opr_result.isSome() )
+    					read_result = that.accept(TypeChecker.this);
+    				else
+    					read_result = new TypeCheckerResult(that);
+    				
     				TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
     				if(obj_result.type().isSome()){
     					Type obj_type=obj_result.type().unwrap();
-    					return findSetterInTraitHierarchy(that.getField(),Collections.singletonList(obj_type),rhs_type, that);
+    					TypeCheckerResult r = findSetterInTraitHierarchy(that.getField(),Collections.singletonList(obj_type),rhs_type, that);
+    					return TypeCheckerResult.compose(that, read_result.type(), subtypeChecker, r, read_result);
     				}
     				else{
     					return obj_result;
@@ -1851,6 +1859,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			}
     			@Override
     			public TypeCheckerResult forSubscriptExpr(SubscriptExpr that) {
+    				// If there is an op, we must typechecker that as a normal read reference
+    				TypeCheckerResult read_result;
+    				if( opr_result.isSome() )
+    					read_result = that.accept(TypeChecker.this);
+    				else 
+    					read_result = new TypeCheckerResult(that);
+    				
     				// make sure there is a subscript setter for type
     				// This method is very similar to forSubscriptExprOnly in Typechecker
     				// except that we must graft the new RHS type onto the end of subs_types
@@ -1862,7 +1877,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		        List<TypeCheckerResult> staticArgs_result = TypeChecker.this.recurOnListOfStaticArg(that.getStaticArgs());
     		        
     		        TypeCheckerResult all_result = 
-    		        	TypeCheckerResult.compose(that, subtypeChecker, obj_result,  
+    		        	TypeCheckerResult.compose(that, subtypeChecker, obj_result, read_result,  
     		        			TypeCheckerResult.compose(that, subtypeChecker, subs_result),
     		        			TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
     		        
@@ -1879,7 +1894,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     		        
     		        TypeCheckerResult final_result = 
     		        	TypeChecker.this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
-    		        return TypeCheckerResult.compose(that, subtypeChecker, final_result, all_result);
+    		        return TypeCheckerResult.compose(that, read_result.type(), subtypeChecker, final_result, all_result);
     			}
 
     			// The two cases for variables are pretty similar
@@ -1897,7 +1912,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     				}
     				else {
     					// Happy path
-    					return TypeCheckerResult.compose(that, subtypeChecker, r, r_sub);
+    					return TypeCheckerResult.compose(that, lhs_type, subtypeChecker, r, r_sub);
     				}
     			}
     			@Override
@@ -1919,11 +1934,30 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     				}
     				else {
     					// Happy path
-    					return TypeCheckerResult.compose(that, subtypeChecker, r, r_sub);
+    					return TypeCheckerResult.compose(that, lhs_type, subtypeChecker, r, r_sub);
     				}
     			}
     		};
-    		all_results.add(lhs.accept(visitor));
+    		TypeCheckerResult lhs_result = lhs.accept(visitor);
+    		
+    		// if we need to check the operator, just try to apply it like a normal method.
+    		if( lhs_result.type().isSome() && that.getOpr().isSome() && opr_result.unwrap().type().isSome() ) {
+    			Type lhs_type = lhs_result.type().unwrap();
+    			Type opr_type = opr_result.unwrap().type().unwrap();
+    			Option<Pair<Type,ConstraintFormula>> application_result =
+    				TypesUtil.applicationType(subtypeChecker, opr_type,	new ArgList(lhs_type, rhs_type));
+    			
+    			if( application_result.isSome() ) {
+    				ConstraintFormula constr = application_result.unwrap().second();
+    				all_results.add(new TypeCheckerResult(that, constr));
+    			}
+    			else {
+    				String err = "Compound operator, " + that.getOpr().unwrap().getOriginalName() + " not defined on types (" + lhs_type + "," +rhs_type + ").";
+    				all_results.add(new TypeCheckerResult(that, TypeError.make(err, that)));
+    			}
+    		}
+    		
+    		all_results.add(lhs_result);
     	}
     	return TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
     }
@@ -2084,6 +2118,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          TypeCheckerResult.compose(that, subtypeChecker, invariants_result), result);
     }
 
+    /*
+    
     @Override
     public TypeCheckerResult forCaseExpr(CaseExpr that) {
         TypeCheckerResult result;
@@ -2288,7 +2324,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         return TypeCheckerResult.compose(that, caseType, subtypeChecker, result);
     }
-
+    */
     public TypeCheckerResult forChainExpr(ChainExpr that) {
         List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>();
         Expr prev = that.getFirst();

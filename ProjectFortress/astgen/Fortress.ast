@@ -746,8 +746,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         1 mile => "miles are larger"
              *         1 kilometer => "we were wrong again"
              *       end
+             *  eqOp and inOp are to help with disambiguation
              */
-            CaseExpr(Option<Expr> param, Option<Op> compare = Option.<Op>none(),
+            CaseExpr(Option<Expr> param, Option<OpRef> compare = Option.<OpRef>none(), 
+                     OpRef equalsOp = ExprFactory.makeInfixEq(), OpRef inOp= ExprFactory.makeInfixIn(),
                      List<CaseClause> clauses,
                      Option<Block> elseClause = Option.<Block>none());
             /**

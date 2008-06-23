@@ -319,10 +319,18 @@ public class ExprFactory {
         return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("juxtaposition")));
     }
 
+    public static OpRef makeInfixEq(){
+    	return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("=")));
+    }
+    
+    public static OpRef makeInfixIn(){
+    	return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
+    }
+    
     public static OpRef makeOpRef(OpName op) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op));
     }
-
+    
     public static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op), staticArgs);
     }
