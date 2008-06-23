@@ -44,9 +44,11 @@ import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -101,15 +103,23 @@ public class PreParser {
 
                comp.accept( new NodeDepthFirstVisitor_void(){
                    public void forImportNames(ImportedNames that){
+                       Debug.debug( 2, "Add import api " + that.getApi() );
+                       all.add( that.getApi() );
+                   }
+
+                   public void forImportStar(ImportStar that){
+                       Debug.debug( 2, "Add import api star " + that.getApi() );
                        all.add( that.getApi() );
                    }
     
                    public void forExport(Export that){
+                       Debug.debug( 2, "Add export api " + that.getApis() );
                        all.addAll( that.getApis() );
                    }
     
                    public void forImportApi(ImportApi that){
                        for ( AliasedAPIName api : that.getApis() ){
+                           Debug.debug( 2, "Add aliased api " + api.getApi() );
                            all.add( api.getApi() );
                        }
                    }
