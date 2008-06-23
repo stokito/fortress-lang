@@ -1612,6 +1612,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forVarRef(VarRef x) {
         Iterable<Id> names = NodeUtil.getIds(x.getVar());
 
+        FValue res = e.getValueNull(IterUtil.last(names).getText());
+        if (res == null)
+            error(x, e, errorMsg("undefined variable ", names));
+        return res;
+
+        /*
         if (!ProjectProperties.noStaticAnalysis) {
             FValue res = e.getValueNull(IterUtil.last(names).getText());
             if (res == null)
@@ -1627,11 +1633,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
             for (Id fld : IterUtil.skipFirst(names)) {
                 if (res instanceof Selectable) {
-                    /*
+                    / *
                      * Selectable was introduced to make it not necessary to
                      * know whether a.b was field b of object a, or member b of
                      * api a (or api name prefix, extended).
-                     */
+                     * /
                     // TODO Need to distinguish between public/private
                     // methods/fields
                     try {
@@ -1646,6 +1652,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             return res;
         }
+    */
     }
 
     public FValue forVoidLiteralExpr(VoidLiteralExpr x) {

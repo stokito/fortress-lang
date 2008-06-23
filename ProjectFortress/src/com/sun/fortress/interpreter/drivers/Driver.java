@@ -112,12 +112,16 @@ public class Driver {
     private static boolean _libraryTest = false;
 
     private static FortressRepository DEFAULT_INTERPRETER_REPOSITORY =
+        new GraphRepository( ProjectProperties.SOURCE_PATH,
+                new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR ) );
+        /*
         ProjectProperties.noStaticAnalysis ?
         new GraphRepository( ProjectProperties.SOURCE_PATH,
                 new CacheBasedRepository( ProjectProperties.INTERPRETER_CACHE_DIR ) )
             :
         new GraphRepository( ProjectProperties.SOURCE_PATH,
                 new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR ) );
+                */
         /*
         ProjectProperties.noStaticAnalysis ?
                 new BatchCachingRepository(
