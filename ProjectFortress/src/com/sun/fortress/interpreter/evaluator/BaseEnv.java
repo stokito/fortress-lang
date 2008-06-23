@@ -319,13 +319,13 @@ abstract public class BaseEnv implements Environment {
         return getValue(string(f1));
     }
 
-    final public  FValue getValue(Id q)  {
-        FValue x = getValueNull(q);
-        if (x == null)
-            return error(errorMsg("Missing value ", q));
-        else
-            return x;
-    }
+//    final public  FValue getValue(Id q)  {
+//        FValue x = getValueNull(q);
+//        if (x == null)
+//            return error(errorMsg("Missing value ", q));
+//        else
+//            return x;
+//    }
 
     final public  FValue getValue(String str) {
         FValue x = getValueNull(str);
@@ -335,9 +335,9 @@ abstract public class BaseEnv implements Environment {
             return x;
         }
     }
-    final public FValue getValueNull(Id name) {
-        return getValueNull(NodeUtil.nameString(name));
-    }
+//    final public FValue getValueNull(Id name) {
+//        return getValueNull(NodeUtil.nameString(name));
+//    }
 
     public FValue getValueNull(String s) {
         FValue v = getValueRaw(s);
@@ -490,5 +490,29 @@ abstract public class BaseEnv implements Environment {
     public HasAt getAt() {
         return within;
     }    
+    
+    /**
+     * Level-tagged version of getTypeNull
+     * 
+     * @param name
+     * @param level
+     * @return
+     */
+    public FType getTypeNull(String name, int level) {
+        return getTypeNull(name);
+    }
+
+    /**
+     * Level-tagged version of getValueRaw
+     * 
+     * @param s
+     * @param level
+     * @return
+     */
+    public FValue getValueRaw(String s, int level) {
+        return getValueRaw(s);
+    }
+ 
+
     
 }

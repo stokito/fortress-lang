@@ -91,7 +91,7 @@ public interface Environment  {
      *
      * These may not ever appear in this form.
      */
-    public abstract FValue getValue(Id d);
+    //public abstract FValue getValue(Id d);
 
     /**
      * Get a value from this environment or a parent.
@@ -209,7 +209,22 @@ public interface Environment  {
      */
     
     public Iterable<String> youngestFrame() ;
-    
+  
+    /**
+     * Level-tagged version of getTypeNull
+     * 
+     * @param name
+     * @param level
+     * @return
+     */
+    public FType getTypeNull(String name, int level);
 
-    
+    /**
+     * Level-tagged version of getValueRaw
+     * 
+     * @param s
+     * @param level
+     * @return
+     */
+    public FValue getValueRaw(String s, int level);
 }
