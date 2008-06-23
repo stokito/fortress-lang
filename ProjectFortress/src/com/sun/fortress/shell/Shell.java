@@ -18,65 +18,40 @@
 package com.sun.fortress.shell;
 
 import java.io.*;
-import java.util.regex.Pattern;
-import java.util.Arrays;
+import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.compiler.*;
 import com.sun.fortress.exceptions.shell.UserError;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.shell.ConvenientStrings.*;
 
 public final class Shell {
-    /* Patterns for parsing shell messages.*/
-//    private static final String NAME =                   "[\\S]+";
-//    private static final String COMPILE_PATTERN =        "compile " + NAME + "((.fss)|(.fsi))";
-//    private static final String SELF_UPGRADE_PATTERN =   "selfupgrade " + NAME + ".tar";
-//    private static final String SCRIPT_PATTERN =         "script " + NAME + ".fsx";
-//    private static final String RUN_PATTERN =            "run " + NAME;
-//    private static final String API_PATTERN =            "api " + NAME + ".fss";
-//    private static final String LINK_PATTERN =           "link " + NAME + " from " + NAME + " with " + NAME;
-//    private static final String UPGRADE_PATTERN =        "upgrade " + NAME + " from " + NAME + " with " + NAME;
-//    private static final String EXISTS_PATTERN =         "exists " + NAME;
-
-    private String pwd;
-    /* Relative location of the resident fortress to the jar file this class is packaged into. */
-    private String components;
-
-    private CommandInterpreter interpreter;
-
-    public Shell(String _pwd) {
-        pwd = _pwd;
-        // For now, assume compiled components and APIs are in pwd.
-        components = pwd;
-        interpreter = new CommandInterpreter(this);
-    }
-
-    String getPwd() { return pwd; }
-    String getComponents() { return components; }
-    CommandInterpreter getInterpreter() { return interpreter; }
+    // public static boolean debug;
+    static boolean test;
 
     public static String fortressLocation() {
         return ProjectProperties.ANALYZED_CACHE_DIR;
     }
 
     /* Helper method to print usage message.*/
-    private void printUsageMessage() {
+    private static void printUsageMessage() {
         System.err.println("Usage:");
         System.err.println(" compile [-debug [#]]somefile.fs{s,i}");
-        //System.err.println("  " + SELF_UPGRADE_PATTERN);
-        //System.err.println("  " + SCRIPT_PATTERN);
         System.err.println(" [run] [-test] [-debug [#]] somefile.fss arg...");
-        //System.err.println("  " + API_PATTERN);
-        //System.err.println("  " + LINK_PATTERN);
-        //System.err.println("  " + UPGRADE_PATTERN);
         System.err.println(" help");
     }
 
-    private void printHelpMessage() {
+    private static void printHelpMessage() {
         System.err.println
         ("Invoked as script: fortress args\n"+
          "Invoked by java: java ... com.sun.fortress.shell.Shell args\n"+
@@ -95,8 +70,7 @@ public final class Shell {
     }
 
     /* Main entry point for the fortress shell.*/
-    public void execute(String[] tokens) throws InterruptedException, Throwable {
-
+    public static void main(String[] tokens) throws InterruptedException, Throwable {
         if (tokens.length == 0) {
             printUsageMessage();
             System.exit(-1);
@@ -106,12 +80,12 @@ public final class Shell {
         try {
             String what = tokens[0];
             if (what.equals("run")) {
-                interpreter.run(Arrays.asList(tokens).subList(1, tokens.length));
+                run(Arrays.asList(tokens).subList(1, tokens.length));
             } else if (what.equals("compile")) {
-                interpreter.compile(false, Arrays.asList(tokens).subList(1, tokens.length));
+                compile(false, Arrays.asList(tokens).subList(1, tokens.length));
             } else if (what.contains(".fss") || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
-                interpreter.run(Arrays.asList(tokens));
+                run(Arrays.asList(tokens));
             } else if (what.equals("help")) {
                 printHelpMessage();
 
@@ -125,8 +99,141 @@ public final class Shell {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException, Throwable {
-        new Shell("").execute(args);
+    /**
+     * This compiler uses a different method for determining what to compile,
+     * and how to compile it.
+     *
+     * @param doLink
+     * @param s
+     * @throws UserError
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    static void compile(boolean doLink, String s) throws UserError, InterruptedException, IOException {
+        try {
+            //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
+
+            Path path = ProjectProperties.SOURCE_PATH;
+
+            if (s.contains("/")) {
+                String head = s.substring(0, s.lastIndexOf("/"));
+                s = s.substring(s.lastIndexOf("/")+1, s.length());
+                path = path.prepend(head);
+            }
+
+            Iterable<? extends StaticError> errors = fortress.compile(path, s);
+
+            for (StaticError error: errors) {
+                System.err.println(error);
+            }
+            // If there are no errors, all components will have been written to disk by the FileBasedRepository.
+        }
+        catch (RepositoryError error) {
+            System.err.println(error);
+        }
     }
 
+    static void compile(boolean doLink, List<String> args) throws UserError, InterruptedException, IOException {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to compile");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                Debug.setDebug( 99 );
+                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
+                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
+                    rest = rest.subList( 1, rest.size() );
+                } else {
+                    ProjectProperties.debug = true;
+                }
+            }
+            if (s.equals("-test")) test = true;
+            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            compile( doLink, rest);
+        } else {
+            compile( doLink, s );
+        }
+    }
+
+    private static boolean isInteger( String s ){
+        try{
+            int i = Integer.valueOf(s);
+            return i == i;
+        } catch ( NumberFormatException n ){
+            return false;
+        }
+    }
+
+    static void run(List<String> args) throws UserError, IOException, Throwable {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to run");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                Debug.setDebug( 99 );
+                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
+                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
+                    rest = rest.subList( 1, rest.size() );
+                } else {
+                    ProjectProperties.debug = true;
+                }
+            }
+            if (s.equals("-test")) test= true;
+            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            run(rest);
+        } else {
+            run(s, rest);
+        }
+    }
+    static void run(String fileName, List<String> args) throws UserError, IOException, Throwable {
+        try {
+            //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
+
+            Path path = ProjectProperties.SOURCE_PATH;
+
+            if (fileName.contains("/")) {
+                String head = fileName.substring(0, fileName.lastIndexOf("/"));
+                fileName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
+                path = path.prepend(head);
+            }
+
+            /*
+             * Strip suffix to get a bare component name.
+             */
+            if (fileName.endsWith("." + ProjectProperties.COMP_SOURCE_SUFFIX)) {
+                fileName = fileName.substring(0, fileName.length() - ProjectProperties.COMP_SOURCE_SUFFIX.length());
+            }
+
+            Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, args);
+
+            /* FIXME: this is a hack to get around some null pointer exceptions
+             * if a WrappedException is printed as-is.
+             */
+            for (StaticError error: errors) {
+                System.err.println(error);
+            }
+            // If there are no errors, all components will have been written to disk by the FileBasedRepository.
+        }
+        catch (RepositoryError e) {
+            System.err.println(e.getMessage());
+        }
+        catch (FortressException e) {
+            System.err.println(e.getMessage());
+            e.printInterpreterStackTrace(System.err);
+            if (ProjectProperties.debug) {
+                e.printStackTrace();
+            } else {
+                System.err.println("Turn on -debug for Java-level error dump.");
+            }
+            System.exit(1);
+        }
+    }
 }

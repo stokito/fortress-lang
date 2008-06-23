@@ -312,7 +312,7 @@ public class Fortress {
 		return IterUtil.empty();
 	}
 
-	public Iterable<? extends StaticError>  run(Path path, String componentName, boolean test, boolean nolib, List<String> args) {
+	public Iterable<? extends StaticError>  run(Path path, String componentName, boolean test, List<String> args) {
 		FortressRepository bcr = Driver.specificRepository(path);
 
                 /*
@@ -331,7 +331,7 @@ public class Fortress {
 
 		try {
 			CompilationUnit cu = bcr.getLinkedComponent(NodeFactory.makeAPIName(componentName)).ast();
-			Driver.runProgram(bcr, cu, test, nolib, args);
+			Driver.runProgram(bcr, cu, test, args);
 		} catch (Throwable th) {
 			// TODO FIXME what is the proper treatment of errors/exceptions etc.?
 			if (th instanceof FortressException) {

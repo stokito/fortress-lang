@@ -58,7 +58,6 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.shell.CommandInterpreter;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
@@ -116,7 +115,7 @@ public class ActionCreater {
             AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
             String yyValue = n.accept(jpp);
-            
+
             for (String s: jpp.getCode()) {
                 addCodeLine(s, code, indents);
             }

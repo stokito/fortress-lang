@@ -66,7 +66,6 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.shell.CommandInterpreter;
 
 import com.sun.fortress.useful.Debug;
 
@@ -100,7 +99,6 @@ public class InterpreterWrapper {
     public static final String FUNCTIONNAME = "transformation";
     private static final boolean test = false;
     private static final boolean libraryTest = false;
-    private static final boolean woLibrary = false;
     private List<String> listArgs;
     private static int numThreads = Runtime.getRuntime().availableProcessors();
     static FortressTaskRunnerGroup group;
@@ -192,7 +190,7 @@ public class InterpreterWrapper {
             listArgs = new LinkedList<String>();
         }
 
-        EvaluatorTask evTask = new EvaluatorTask(repository, compilationUnit, test, woLibrary, FUNCTIONNAME, listArgs);
+        EvaluatorTask evTask = new EvaluatorTask(repository, compilationUnit, test, FUNCTIONNAME, listArgs);
         try {
             group.invoke(evTask);
         }
