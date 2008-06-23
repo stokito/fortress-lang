@@ -34,21 +34,18 @@ public class EvaluatorTask extends BaseTask {
 
     final boolean runTests;
 
-    final boolean woLibrary;
-
     final List<String> args;
-    
+
     final String functionToRun;
-    
+
     final FortressRepository fortressRepository;
 
     FValue theResult;
-    
-    public EvaluatorTask(FortressRepository fr, CompilationUnit prog, boolean tests, boolean library,
-            String toRun, List<String> args_) {
+
+    public EvaluatorTask(FortressRepository fr, CompilationUnit prog,
+                         boolean tests, String toRun, List<String> args_) {
         p = prog;
         runTests = tests;
-        woLibrary = library;
         args = args_;
         functionToRun = toRun;
         fortressRepository = fr;
@@ -62,7 +59,8 @@ public class EvaluatorTask extends BaseTask {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.setCurrentTask(this);
         try {
-            theResult =  Driver.runProgramTask(p, runTests, woLibrary, args, functionToRun, fortressRepository);
+            theResult =  Driver.runProgramTask(p, runTests, args, functionToRun,
+                                               fortressRepository);
         }
         catch (IOException e) {
             causedException = true;
@@ -71,7 +69,7 @@ public class EvaluatorTask extends BaseTask {
             throw new RuntimeException(e);
         }
     }
-    
+
     public FValue result() {
         return theResult;
     }

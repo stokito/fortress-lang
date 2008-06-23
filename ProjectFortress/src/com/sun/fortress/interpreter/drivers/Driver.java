@@ -146,11 +146,6 @@ public class Driver {
     static public void runTests() {
     }
 
-    public static Environment evalComponent(CompilationUnit p,
-            FortressRepository fr) throws IOException {
-        return evalComponent(p, false, fr);
-    }
-
     public static FortressRepository defaultRepository() {
         // This is bogus; we need to find a better way to communicate with the
         // syntax transfomer.
@@ -263,8 +258,8 @@ public class Driver {
     }
 
     public static Environment evalComponent(CompilationUnit p,
-                                          boolean woLibrary,
-                                          FortressRepository fr) throws IOException {
+                                            FortressRepository fr)
+        throws IOException {
 
         Init.initializeEverything();
 
@@ -318,10 +313,8 @@ public class Driver {
         ComponentWrapper lib = null;
         ComponentWrapper libcomp = null;
 
-        if (!woLibrary) {
-            libcomp = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
-            lib = libcomp.getExportedCW(libraryName);
-        }
+        libcomp = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
+        lib = libcomp.getExportedCW(libraryName);
 
         ComponentWrapper nativescomp =
             ensureApiImplemented(fr, linker, pile,
@@ -356,8 +349,7 @@ public class Driver {
                 change |= injectTraitMembersForDesugaring(linker, cw);
             }
 
-            if (!woLibrary)
-                change |= injectLibraryTraits(components, lib);
+            change |= injectLibraryTraits(components, lib);
             change |= injectLibraryTraits(components, natives);
         }
 
@@ -1131,14 +1123,14 @@ public class Driver {
 
     // This runs the program from inside a task.
     public static FValue
-        runProgramTask(CompilationUnit p, boolean runTests, boolean woLibrary,
+        runProgramTask(CompilationUnit p, boolean runTests,
                        List<String> args, String toBeRun,
                        FortressRepository fr)
         throws IOException
     {
 
         FortressTests.reset();
-        Environment e = evalComponent(p, woLibrary, fr);
+        Environment e = evalComponent(p, fr);
 
         Closure run_fn = e.getClosure(toBeRun);
         Toplevel toplevel = new Toplevel();
@@ -1171,7 +1163,6 @@ public class Driver {
                                   CompilationUnit p,
                                   boolean runTests,
                                   boolean libraryTest,
-                                  boolean woLibrary,
                                   List<String> args)
         throws Throwable
     {
@@ -1184,7 +1175,7 @@ public class Driver {
 
            group = new FortressTaskRunnerGroup(numThreads);
 
-        EvaluatorTask evTask = new EvaluatorTask(fr, p, runTests, woLibrary, "run", args);
+        EvaluatorTask evTask = new EvaluatorTask(fr, p, runTests, "run", args);
         try {
             group.invoke(evTask);
         }
@@ -1196,14 +1187,16 @@ public class Driver {
         }
     }
 
-    public static void runProgram(FortressRepository fr, CompilationUnit p, boolean runTests, boolean nolib,
-            List<String> args) throws Throwable {
-        runProgram(fr, p, runTests, false, nolib, args);
+    public static void runProgram(FortressRepository fr, CompilationUnit p,
+                                  boolean runTests, List<String> args)
+        throws Throwable {
+        runProgram(fr, p, runTests, false, args);
     }
 
 
-    public static void runProgram(FortressRepository fr, CompilationUnit p, List<String> args) throws Throwable {
-        runProgram(fr, p, false, false, false, args);
+    public static void runProgram(FortressRepository fr, CompilationUnit p,
+                                  List<String> args) throws Throwable {
+        runProgram(fr, p, false, false, args);
     }
 
     private static class Toplevel implements HasAt {
