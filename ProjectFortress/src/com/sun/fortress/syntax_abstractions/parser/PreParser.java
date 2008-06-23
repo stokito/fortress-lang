@@ -102,21 +102,19 @@ public class PreParser {
                final List<APIName> all = new ArrayList<APIName>();
 
                comp.accept( new NodeDepthFirstVisitor_void(){
-                   public void forImportNames(ImportedNames that){
+                   @Override
+                   public void forImportedNamesDoFirst(ImportedNames that) {
                        Debug.debug( 2, "Add import api " + that.getApi() );
                        all.add( that.getApi() );
                    }
 
-                   public void forImportStar(ImportStar that){
-                       Debug.debug( 2, "Add import api star " + that.getApi() );
-                       all.add( that.getApi() );
-                   }
-    
+                   @Override
                    public void forExport(Export that){
                        Debug.debug( 2, "Add export api " + that.getApis() );
                        all.addAll( that.getApis() );
                    }
     
+                   @Override
                    public void forImportApi(ImportApi that){
                        for ( AliasedAPIName api : that.getApis() ){
                            Debug.debug( 2, "Add aliased api " + api.getApi() );
