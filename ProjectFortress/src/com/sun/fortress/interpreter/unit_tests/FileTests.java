@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.shell.BatchCachingRepository;
+import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
@@ -44,13 +45,12 @@ import com.sun.fortress.useful.Debug;
 
 public class FileTests {
 
-
     public static class FSSTest extends TestCase {
         String f;
         String dir;
         String name;
         String path;
-        // FortressRepository fr;
+        FortressRepository cache;
 
         /**
          * If true, only print test output for unexpected results.
@@ -61,7 +61,7 @@ public class FileTests {
         boolean printSuccess;
         boolean printFailure;
 
-        public FSSTest(String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
+        public FSSTest(FortressRepository cache, String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
             super("testFile");
             this.f = d + "/" + s;
             this.dir = d;
@@ -70,7 +70,7 @@ public class FileTests {
             this.unexpectedOnly = unexpected_only;
             this.printSuccess = !unexpected_only || expect_failure;
             this.printFailure = !unexpected_only || !expect_failure;
-            // this.fr = repository;
+            this.cache = cache;
         }
 
         public String getName() {
@@ -100,7 +100,7 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     APIName apiname = NodeFactory.makeAPIName(s);
-                    FortressRepository fr = Driver.extendedRepository( path );
+                    FortressRepository fr = Driver.extendedRepository( path, cache );
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
 
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
@@ -240,6 +240,8 @@ public class FileTests {
         String[] files = dir.list();
         System.err.println(dir);
 
+        FortressRepository cache = new CacheBasedRepository( ProjectProperties.ensureDirectoryExists("./.analyzed_cache") );
+
         /*
         FortressRepository fr =
             Driver.extendedRepository(dir.getCanonicalPath());
@@ -272,7 +274,7 @@ public class FileTests {
                     int l = s.lastIndexOf(".fss");
                     //System.err.println("Adding " + s);
                     String testname = s.substring(0, l);
-                    suite.addTest(new FSSTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                    suite.addTest(new FSSTest(cache, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                 } else if (s.endsWith(".tfs")) {
                     int l = s.lastIndexOf(".tfs");
                     suite.addTest(new JSTTest(dirname, s.substring(0, l)));

@@ -156,11 +156,24 @@ public class Driver {
     public static FortressRepository extendedRepository(String s) {
        return specificRepository(ProjectProperties.SOURCE_PATH.prepend(s));
     }
+    
+    public static FortressRepository extendedRepository(String s, FortressRepository cache ) {
+       return specificRepository(ProjectProperties.SOURCE_PATH.prepend(s), cache);
+    }
+
+    public static FortressRepository specificRepository(Path p, FortressRepository cache ){
+        FortressRepository fr = new GraphRepository( p, cache );
+        CURRENT_INTERPRETER_REPOSITORY = fr;
+        return fr;
+    }
 
     public static FortressRepository specificRepository(Path p) {
         // This is bogus; we need to find a better way to communicate with the
         // syntax transfomer.
 
+        return specificRepository( p, new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR) );
+
+        /*
         FortressRepository fr =
             ProjectProperties.noStaticAnalysis ?
                     // new BatchCachingRepository(
@@ -177,6 +190,7 @@ public class Driver {
 
         CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
+        */
     }
 
     public static void setCurrentInterpreterRepository( FortressRepository g ){

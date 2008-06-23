@@ -322,12 +322,14 @@ public class Fortress {
                 */
 
 		// BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
+                /*
 		bcr.setVerbose(ProjectProperties.debug);
 		Parser.Result result = compileInner(bcr, componentName);
 		if (!result.isSuccessful()) { return result.errors(); }
 
 		if (bcr.verbose())
 			System.err.println("Parsing done.");
+                */
 
 		try {
 			CompilationUnit cu = bcr.getLinkedComponent(NodeFactory.makeAPIName(componentName)).ast();

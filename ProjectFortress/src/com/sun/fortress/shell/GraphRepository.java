@@ -125,6 +125,21 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 */
             }
         }
+
+        private void addRootComponents(){
+            for ( String root : roots ){
+                ApiGraphNode node = (ApiGraphNode) graph.find(new ApiGraphNode(NodeFactory.makeAPIName(root)));
+                ComponentGraphNode comp = new ComponentGraphNode(NodeFactory.makeAPIName(root));
+                try{
+                    comp.setComponent( cache.getComponent( comp.getName() ) );
+                } catch ( FileNotFoundException e ){
+                } catch ( IOException e ){
+                }
+                graph.addNode( comp );
+                graph.addEdge( comp, node );
+                needUpdate = true;
+            }
+        }
         
         private class CacheVisitor implements GraphVisitor<Long, FileNotFoundException>{
             public Long visit(ApiGraphNode node) throws FileNotFoundException {
@@ -701,7 +716,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(compiledApis());
 		List<Component> components = new ArrayList<Component>();
 		Fortress fort = new Fortress(this);
-		Debug.debug( 1, "Compiling apis " + uncompiled );
 		Iterable<? extends StaticError> errors = fort.analyze( knownApis, uncompiled, components, System.currentTimeMillis() );
 		for ( StaticError e : errors ){
 			System.err.println("Error while compiling apis: " + e);
@@ -799,6 +813,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		}
 
                 if ( link ){
+                    Debug.debug( 1, "Add component for api " + name );
                     graph.addEdge(addComponentGraph(name),node);
                 }
 
@@ -903,6 +918,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		return node.getComponent().unwrap();
 		*/
                 link = true;
+                addRootComponents();
                 ComponentIndex node = getComponent(name);
                 link = false;
                 return node;
