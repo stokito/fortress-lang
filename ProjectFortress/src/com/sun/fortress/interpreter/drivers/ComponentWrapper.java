@@ -69,10 +69,13 @@ public class ComponentWrapper {
         if (comp == null)
             throw new NullPointerException("Null compilation unit not allowed");
         p = comp;
+        p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
+        /*
         if (ProjectProperties.noStaticAnalysis)
             p = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(p);
         else
             p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
+            */
 
         Environment e = BetterEnv.empty();
         e.setTopLevel();

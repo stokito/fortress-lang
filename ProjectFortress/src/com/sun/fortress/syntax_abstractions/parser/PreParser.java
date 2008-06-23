@@ -38,11 +38,14 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -94,8 +97,25 @@ public class PreParser {
            }
 
            public static List<APIName> collectComponentImports(Component comp){
-               List<APIName> all = new ArrayList<APIName>();
+               final List<APIName> all = new ArrayList<APIName>();
 
+               comp.accept( new NodeDepthFirstVisitor_void(){
+                   public void forImportNames(ImportedNames that){
+                       all.add( that.getApi() );
+                   }
+    
+                   public void forExport(Export that){
+                       all.addAll( that.getApis() );
+                   }
+    
+                   public void forImportApi(ImportApi that){
+                       for ( AliasedAPIName api : that.getApis() ){
+                           all.add( api.getApi() );
+                       }
+                   }
+               });
+
+               /*
                for ( Import i : comp.getImports() ){
                    ImportedNames names = (ImportedNames) i;
                    all.add( names.getApi() );
@@ -103,9 +123,9 @@ public class PreParser {
                for ( Export export : comp.getExports() ){
                    all.addAll( export.getApis() );
                }
-               all = removeExecutableApi(all);
+               */
 
-               return all;
+               return removeExecutableApi(all);
            }
 
            public static List<APIName> collectApiImports(Api api){
