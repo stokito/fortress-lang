@@ -41,9 +41,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
     private BATreeNode<String, FValue> var_env;
     private BATreeNode<String, Boolean> bool_env;
 
-
-
-
     /** (Lexical) ancestor environment */
     BetterEnv parent;
 
