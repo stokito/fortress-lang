@@ -25,8 +25,12 @@ export Regex
     object Regexp( elements : List[\Element\] )
         toString():String = "/" (BIG || elements) "/"
         raw():String = (BIG || elements)
+        (*
         opr =(self,s:String):Boolean = match(self.raw(),s)
+        *)
         opr =(self,r:Regexp):Boolean = self SEQV r
+        opr CONTAINS(self,s:String):Boolean = match(self.raw(),s)
+        opr IN(s:String,self):Boolean = match(self.raw(),s)
     end
 
     object RepeatElement(e:Element) extends Element

@@ -61,10 +61,12 @@ run(s:String...) = do
     (* How do you match #{ ?? *)
     println "/#{1+1}/ = " (/\#{1+1}/)
 
-    println "/a/ == 'a'? " ((/a/) = "a")
-    println "/\\d+?/ == '542'? " ((/\d+?/) = "542")
-    println "/\\d+?/ == 'apple542'? " ((/\d+?/) = "apple542")
-    println "/\\w+\\d+?/ == 'apple542'? " ((/\w+\d+?/) = "apple542")
+    println "/a/ CONTAINS 'a'? " ((/a/) CONTAINS "a")
+    println "'a' IN /a/? " ("a" IN (/a/))
+    println "/\\d+?/ CONTAINS '542'? " ((/\d+?/) CONTAINS "542")
+    println "/'542' IN \\d+?/? " ("542" IN (/\d+?/))
+    println "/\\d+?/ CONTAINS 'apple542'? " ((/\d+?/) CONTAINS "apple542")
+    println "/\\w+\\d+?/ CONTAINS 'apple542'? " ((/\w+\d+?/) CONTAINS "apple542")
     n = /123/
     println "n = n? " (n = n)
     println "/123/ = /123/? " ((/123/) = (/123/))
