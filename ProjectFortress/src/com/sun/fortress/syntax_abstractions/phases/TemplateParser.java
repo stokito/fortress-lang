@@ -55,6 +55,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TransformationPreTemplateDef;
@@ -127,8 +128,8 @@ public class TemplateParser extends NodeUpdateVisitor {
 	@Override
     public Node forNonterminalHeader(NonterminalHeader that) {
         this.vars = new HashMap<Id, BaseType>();
-        for (Pair<Id, Id> p: that.getParams()) {           
-            this.vars.put(p.getA(), getType(p.getB()));
+        for (NonterminalParameter p: that.getParams()) {           
+            this.vars.put(p.getName(), getType(p.getType()));
         }
         return super.forNonterminalHeader(that);
     }

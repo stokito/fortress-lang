@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.NotPredicateSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
@@ -142,7 +143,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         List<StaticParam> st = new LinkedList<StaticParam>();
         Type t = NodeFactory.makeTraitType(NodeFactory.makeId("FortressLibrary", "String"));
         WhereClause whereClauses = new WhereClause(that.getSpan());
-        NonterminalHeader header = new NonterminalHeader(that.getSpan(), mods, name, new LinkedList<Pair<Id, Id>>(), st, Option.some(t), whereClauses);
+        NonterminalHeader header = new NonterminalHeader(that.getSpan(), mods, name, new LinkedList<NonterminalParameter>(), st, Option.some(t), whereClauses);
         this._terminalDefs.add(new _TerminalDef(that.getSpan(), header, type, syntaxDef));
 
         // Return a new nonterminal reference to the new terminal definition

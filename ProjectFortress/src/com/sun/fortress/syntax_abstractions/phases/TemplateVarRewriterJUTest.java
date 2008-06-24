@@ -28,6 +28,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
@@ -51,7 +52,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         Id name = NodeFactory.makeId("Expr");
-        List<Pair<Id, Id>> params = new LinkedList<Pair<Id,Id>>();
+        List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
         Option<Type> type = Option.<Type>wrap(new VarType(name));
         NonterminalHeader header = new NonterminalHeader(name, params, type);
         Option<BaseType> astType1 = Option.<BaseType>wrap(new VarType(name));
