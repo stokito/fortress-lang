@@ -548,12 +548,18 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     NonterminalHeader(Option<ModifierPrivate> modifier
                         = Option.<ModifierPrivate>none(),
                       Id name,
-                      List<com.sun.fortress.useful.Pair<Id,Id>> params,
+                      List<NonterminalParameter> params,
                       List<StaticParam> staticParams
                         = Collections.<StaticParam>emptyList(),
                       Option<Type> type,
                       WhereClause whereClause
                         = FortressUtil.emptyWhereClause());
+
+    /**
+     * nonterminal parameter
+     */
+    NonterminalParameter(Id name, Id type);
+
     /**
      * syntax declaration
      */
@@ -2213,4 +2219,5 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) < 5
      */
     Link(OpRef op, Expr expr);
+
 end;

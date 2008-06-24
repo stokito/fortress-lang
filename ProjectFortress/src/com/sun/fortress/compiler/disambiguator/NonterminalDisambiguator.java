@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.BaseType;
@@ -97,6 +98,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forNonterminalHeaderOnly(NonterminalHeader that,
             Option<ModifierPrivate> modifier_result, Id name_result,
+            List<NonterminalParameter> params_result,
             List<StaticParam> staticParams_result, Option<Type> type_result,
             WhereClause whereClause_result) {
         NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
@@ -109,7 +111,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
         }
         
         this._errors.addAll(pnd.errors());
-        return new NonterminalHeader(that.getSpan(), modifier_result, name, that.getParams(), staticParams_result, type_result, whereClause_result);
+        return new NonterminalHeader(that.getSpan(), modifier_result, name, params_result, staticParams_result, type_result, whereClause_result);
     }
 
     

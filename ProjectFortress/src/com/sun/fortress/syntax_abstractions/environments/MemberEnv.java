@@ -31,6 +31,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes.Type;
@@ -71,14 +72,14 @@ public class MemberEnv {
 		}
 	}
 	
-	private void initEnv(List<Pair<Id,Id>> ls, List<SyntaxDef> syntaxDefs) {
+	private void initEnv(List<NonterminalParameter> ls, List<SyntaxDef> syntaxDefs) {
 		Id[] params = new Id[ls.size()];
 		int inx = 0;
-		for (Pair<Id, Id> p: ls) {
-			Id var = p.getA();
+		for (NonterminalParameter p: ls) {
+			Id var = p.getName();
 			params[inx] = var;
             
-			this.addArgsNonterminal(var, p.getB());
+			this.addArgsNonterminal(var, p.getType());
 			inx++;
 		}
 		this.setParamArray(params);

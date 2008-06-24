@@ -25,6 +25,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.useful.Debug;
@@ -48,9 +49,9 @@ public class DependencyCollector extends NodeDepthFirstVisitor_void {
     @Override
     public void forNonterminalHeader(NonterminalHeader that) {
         /* Blah(e:Expr), e is the first Id, Expr is the second */
-        for ( com.sun.fortress.useful.Pair<Id,Id> params : that.getParams() ){
-            Debug.debug( 1 , "Add non-terminal param module " + params.getB() );
-            addModule( params.getB() );
+        for ( NonterminalParameter params : that.getParams() ){
+            Debug.debug( 1 , "Add non-terminal param module " + params.getName() );
+            addModule( params.getType() );
         }
     }
 

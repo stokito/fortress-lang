@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Pair;
 
@@ -81,13 +82,13 @@ public class NonterminalParameterDisambiguator extends NodeUpdateVisitor {
     // Disambiguate the parameters
     @Override
     public Node forNonterminalHeader(NonterminalHeader that) {
-        List<Pair<Id, Id>> params = new LinkedList<Pair<Id,Id>>();
-        for (Pair<Id,Id> p: that.getParams()) {
+        List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
+        for (NonterminalParameter p: that.getParams()) {
             NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
-            Option<Id> n = pnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), p.getB());
+            Option<Id> n = pnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), p.getType());
             this._errors.addAll(pnd.errors());
             if (n.isSome()) {
-                params.add(new Pair<Id, Id>(p.getA(), n.unwrap()));
+                params.add(new NonterminalParameter(p.getName(), n.unwrap()));
             }
         }
         return new NonterminalHeader(that.getSpan(), that.getModifier(), that.getName(), params, that.getType(), that.getWhereClause());
