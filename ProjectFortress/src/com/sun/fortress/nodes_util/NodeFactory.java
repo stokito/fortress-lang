@@ -145,7 +145,7 @@ public class NodeFactory {
   Indices indices = ind.unwrap(new Indices(span, Collections.<ExtentRange>emptyList()));
   return new ArrayType(span, element, indices);
  }
- 
+
  public static ExponentType makeExponentType(ExponentType t, Type s) {
   return new ExponentType(t.getSpan(), t.isParenthesized(), s,
     t.getPower());
@@ -1064,10 +1064,6 @@ public class NodeFactory {
    });
   }
 
-  public static OpArg makeInParentheses(OpArg arg) {
-   return new OpArg(arg.getSpan(), true, arg.getName());
-  }
-
   public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformationDecl transformation) {
    return new SyntaxDef(s, syntaxSymbols, transformation);
   }
@@ -1136,10 +1132,10 @@ public class NodeFactory {
     return new VarType(type.getSpan(),
       type.isParenthesized(),
       makeId(api, type.getName()));
-   } 
+   }
    else if( type instanceof _RewriteGenericSingletonType ) {
 	   _RewriteGenericSingletonType rgs_type = (_RewriteGenericSingletonType)type;
-	   return new _RewriteGenericSingletonType(rgs_type.getSpan(), 
+	   return new _RewriteGenericSingletonType(rgs_type.getSpan(),
 			   rgs_type.isParenthesized(),
 			   makeId(api,rgs_type.getName()),
 			   rgs_type.getStaticParams());
