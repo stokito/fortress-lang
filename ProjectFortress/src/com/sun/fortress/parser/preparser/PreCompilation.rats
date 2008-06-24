@@ -77,7 +77,13 @@ private CompilationUnit CompilationUnit =
      (w Decls w ;?)? w end
  */
 private Component Component =
-     a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w a4:Exports w (_)*
+     <ErrorProduction1>
+     (native w)? component w APIName w Exports w semicolon?
+     w Imports w (_)*
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Import statements should come before export statements.");
+     }
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w a4:Exports w (_)*
      { if (a3 == null) a3 = Collections.<Import>emptyList();
        // List<Export> a4 = Collections.<Export>emptyList();
        List<Decl> a5 = Collections.<Decl>emptyList();
@@ -86,6 +92,11 @@ private Component Component =
            yyValue = new Component(span, a2, a3, a4, a5);
        else
            yyValue = new Component(span, true, a2, a3, a4, a5);
+     }
+   / <ErrorProduction2>
+     (native w)? component w APIName (w Imports w semicolon?)? w (_)*
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Components should have at least one export statement.");
      };
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
