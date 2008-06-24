@@ -55,78 +55,68 @@ import edu.rice.cs.plt.io.IOUtil;
 
 public class FortressParser {
 
+
     /** Parses a single file. */
-    public static Result parse(APIName api_name, File f, final GlobalEnvironment env, boolean verbose) {
+    public static Result parse(APIName api_name, 
+                               File f, 
+                               GlobalEnvironment env, 
+                               boolean verbose) {
         try {
-            BufferedReader in = Useful.utf8BufferedFileReader(f);
-            try {
-
-                xtc.parser.Result parseResult = null; 
-                ParserBase p = null;
-				
-                if (!ProjectProperties.noPreparse) {
-                    PreParser.Result ppr = PreParser.parse(api_name, f, env);
-                    if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
-
-                    if (verbose)
-                        System.err.println("Parsing files: "+f.getName());
-                    if (!ppr.getGrammars().isEmpty()) {
-
-                        // Compile the syntax abstractions and create a temporary parser
-                        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
-                        MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
-                        if (!tr.isSuccessful()) { return new Result(tr.errors()); }
-                        Class<?> temporaryParserClass = tr.getParserClass(); 
-
-                        try {
-                            p = ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
-                            parseResult = ParserMediator.parse();
-                        } catch (Exception e) {
-                            String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
-                            e.printStackTrace();
-                            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-                            return new Result(StaticError.make(desc, f.toString()));
-                        } 
-                    } else {
-                        p = new com.sun.fortress.parser.Fortress(in, f.getCanonicalPath());
-                        ((com.sun.fortress.parser.Fortress)p).setExpectedName(api_name);
-                        parseResult = ((com.sun.fortress.parser.Fortress)p).pFile(0);
-                    }
-                } else {
-                    p = new com.sun.fortress.parser.Fortress(in, f.getCanonicalPath());
-                    ((com.sun.fortress.parser.Fortress)p).setExpectedName(api_name);
-                    parseResult = ((com.sun.fortress.parser.Fortress)p).pFile(0);
-                }
-
-                if (parseResult.hasValue()) {
-                    Object cu = ((SemanticValue) parseResult).value;
-                    if (cu instanceof CompilationUnit) {
-
-                        if (cu instanceof Api) {
-                            return new Result((Api) cu, f.lastModified());
-                        }
-                        else if (cu instanceof Component) {
-                            return new Result((Component) cu, f.lastModified());
-                        }
-                    }
-
-                    throw new RuntimeException("Unexpected parse result: " + cu);
-
-                }
-                return new Result(new ParserError((ParseError) parseResult, p));
+            if (!ProjectProperties.noPreparse) {
+                return parseInner(api_name, f, env, verbose);
+            } else {
+                return new Result(Parser.parseFileConvertExn(api_name, f),
+                                  f.lastModified());
             }
-            finally { in.close(); }
-        }
-        catch (FileNotFoundException e) {
-            return new Result(StaticError.make("Cannot find file " + f.getName(),
-                                               f.toString()));
-        }
-        catch (IOException e) {
-            String desc = "Unable to read file";
-            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-            return new Result(StaticError.make(desc, f.toString()));
+        } catch (StaticError se) {
+            return new Result(se);
         }
     }
+
+    private static Result parseInner(APIName api_name,
+                                     File f,
+                                     final GlobalEnvironment env,
+                                     boolean verbose) {
+        // throws StaticError, ParserError
+
+        PreParser.Result ppr = PreParser.parse(api_name, f, env);
+        if (!ppr.isSuccessful()) {
+            return new Result(ppr.errors());
+        }
+        if (verbose) {
+            System.err.println("Parsing files: "+f.getName());
+        }
+        if (ppr.getGrammars().isEmpty()) {
+            return new Result(Parser.parseFileConvertExn(api_name, f), 
+                              f.lastModified());
+        }
+
+        // Compile the syntax abstractions and create a temporary parser
+        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
+        MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
+        if (!tr.isSuccessful()) { return new Result(tr.errors()); }
+        Class<?> temporaryParserClass = tr.getParserClass(); 
+
+        BufferedReader in = null; 
+        try {
+            in = Useful.utf8BufferedFileReader(f);
+            ParserBase p =
+                ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
+            CompilationUnit cu =
+                Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
+            return new Result(cu, f.lastModified());
+        } catch (Exception e) {
+            String desc =
+                "Error occurred while instantiating and executing a temporary parser: "
+                + temporaryParserClass.getCanonicalName();
+            e.printStackTrace();
+            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
+            return new Result(StaticError.make(desc, f.toString()));
+        } finally {
+            if (in != null) try { in.close(); } catch (IOException ioe) {}
+        }
+    }
+
 
     /**
      * Get all files potentially containing APIs imported by cu that aren't

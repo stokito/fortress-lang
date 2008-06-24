@@ -23,11 +23,15 @@ import xtc.parser.ParserBase;
 
 public class ParserError extends StaticError {
 	private final ParseError _parseError;
-	private final ParserBase _parser;
+	private final String _location;
 
 	public ParserError(ParseError parseError, ParserBase parser) {
 		_parseError = parseError;
-		_parser = parser;
+		if (_parseError.index == -1) {
+		    _location = "Unspecified location";
+		} else {
+		    _location = parser.location(_parseError.index).toString();
+		}
 	}
 
 	public String typeDescription() { return "Parse Error"; }
@@ -46,7 +50,6 @@ public class ParserError extends StaticError {
 
 	@Override
 	public String at() {
-		if (_parseError.index == -1) { return "Unspecified location"; }
-		else { return _parser.location(_parseError.index).toString(); }
+		return _location;
 	}
 }

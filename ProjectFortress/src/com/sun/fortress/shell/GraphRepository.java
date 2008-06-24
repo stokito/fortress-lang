@@ -626,22 +626,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
         /* parse an api/component */
 	private CompilationUnit doParse( APIName api_name, File file ) throws FileNotFoundException, IOException {
-		BufferedReader in = Useful.utf8BufferedFileReader(file);
-		try{
-			com.sun.fortress.parser.Fortress parser = new com.sun.fortress.parser.Fortress(in, file.getCanonicalPath());
-			parser.setExpectedName(api_name);
-			xtc.parser.Result parseResult = parser.pFile(0);
-			if (parseResult.hasValue()) {
-				Object cu = ((SemanticValue) parseResult).value;
-				if (cu instanceof CompilationUnit) {
-					return (CompilationUnit) cu;
-				}
-			}
-			throw new RuntimeException("Unexpected parse result: " + new ParserError((ParseError) parseResult, parser));
-		} finally {
-			in.close();
-		}
-	}
+
+                return Parser.parseFile(api_name, file);
+        }
 
         /* syntaxExpand will parse a component for us, so this method is not needed */ 
 	private Component parseComponent( ComponentGraphNode node ){

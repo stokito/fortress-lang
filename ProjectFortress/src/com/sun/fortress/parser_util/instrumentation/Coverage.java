@@ -173,8 +173,9 @@ public class Coverage {
 
     private static void parseFile(Parser parser, File file) {
         String filename = file.getAbsolutePath();
+        Reader in = null; 
         try {
-            Reader in = Useful.utf8BufferedFileReader(filename);
+            in = Useful.utf8BufferedFileReader(filename);
             parser.parse(in, filename);
         } catch (FileNotFoundException fnfe) {
             throw new RuntimeException(fnfe);
@@ -184,6 +185,8 @@ public class Coverage {
             // FIXME: Make sure this parser error is expected.
             System.out.println("Parse error in file: " + filename);
             if (RETHROW_PROGRAM_ERRORS) { throw re; }
+        } finally {
+            if (in != null) try { in.close(); } catch (IOException ioe) {}
         }
     }
 

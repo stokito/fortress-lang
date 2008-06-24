@@ -188,42 +188,13 @@ public class PreParser {
 
 		return new Result(result);
 	}
-	
-	private static Parser.Result parseFile(APIName api_name, File f) {
-		try {
-			BufferedReader in = Useful.utf8BufferedFileReader(f);
-			try {
-				com.sun.fortress.parser.preparser.PreFortress p =
-                                    new com.sun.fortress.parser.preparser.PreFortress(in, f.getCanonicalPath());
-                                p.setExpectedName(api_name);
-				xtc.parser.Result parseResult = p.pFile(0);
-				if (parseResult.hasValue()) {
-					Object cu = ((SemanticValue) parseResult).value;
-					if (cu instanceof Api) {
-						return new Parser.Result((Api) cu, f.lastModified());
-					}
-					else if (cu instanceof Component) {
-						return new Parser.Result((Component) cu, f.lastModified());
-					}
-					else {
-						throw new RuntimeException("Unexpected parse result: " + cu);
-					}
-				}
-				else {
-					return new Parser.Result(new ParserError((ParseError) parseResult, p));
-				}
-			}
-			finally { in.close(); }
-		}
-		catch (FileNotFoundException e) {
-			return new Parser.Result(StaticError.make("Cannot find file " + f.getName(),
-					f.toString()));
-		}
-		catch (IOException e) {
-			String desc = "Unable to read file";
-			if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-			return new Parser.Result(StaticError.make(desc, f.toString()));
-		}
-	}
 
+    private static Parser.Result parseFile(APIName api_name, File f) {
+        try {
+            return new Parser.Result(Parser.preparseFileConvertExn(api_name, f), 
+                                     f.lastModified());
+        } catch (StaticError se) {
+            return new Parser.Result(se);
+        }
+    }
 }

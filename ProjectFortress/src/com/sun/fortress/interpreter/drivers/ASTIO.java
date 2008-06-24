@@ -25,12 +25,13 @@ import xtc.parser.ParseError;
 import xtc.parser.Result;
 import xtc.parser.SemanticValue;
 
+import com.sun.fortress.compiler.Parser;
+import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
-import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.useful.StringEncodedAggregate;
 import com.sun.fortress.useful.Useful;
 
@@ -63,38 +64,33 @@ public class ASTIO {
         throws IOException {
         BufferedReader r = Useful.utf8BufferedFileReader(reportedFileName);
         try { return parseToJavaAst(api_name, reportedFileName, r); }
-
         finally { r.close(); }
     }
 
     public static Option<CompilationUnit> parseToJavaAst (APIName api_name,
                                                           String reportedFileName,
                                                           BufferedReader in)
-        throws IOException
-    {
-        File f = new File(reportedFileName);
-        Fortress p = new Fortress(in, reportedFileName, (int)f.length());
-        p.setExpectedName(api_name);
-        Result r = p.pFile(0);
+        throws IOException {
+        try {
+            CompilationUnit cu = Parser.parseFile(api_name, in, reportedFileName);
+            return Option.<CompilationUnit>some(cu);
+        } catch (ParserError pe) {
+            System.err.println("  " + pe.toString());
+            /* FIXME (ryanc): May have changed formatting, but suspect it's best
+               to make ParserError do the formatting work. Here's the old code:
 
-        if (r.hasValue()) {
-            SemanticValue v = (SemanticValue) r;
-            CompilationUnit n = (CompilationUnit) v.value;
-
-            return Option.some(n);
-        }
-        else {
-            ParseError err = (ParseError) r;
-            if (-1 == err.index) {
-                System.err.println("  Parse error");
-            }
-            else {
-                System.err.println("  " + p.location(err.index) + ": "
-                        + err.msg);
-            }
-            return Option.none();
+               ParseError err = (ParseError) r;
+               if (-1 == err.index) {
+                   System.err.println("  Parse error");
+               }
+               else {
+                   System.err.println("  " + p.location(err.index) + ": " + err.msg);
+               }
+            */
+            return Option.<CompilationUnit>none();
         }
     }
+
 
    /**
      * @param reportedFileName

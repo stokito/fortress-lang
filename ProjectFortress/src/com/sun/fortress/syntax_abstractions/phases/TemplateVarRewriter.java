@@ -27,7 +27,6 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.parser_util.IdentifierUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
@@ -35,6 +34,8 @@ import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
 import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
+
+import static com.sun.fortress.parser_util.SyntaxUtil.notIdOrOpOrKeyword;
 
 /*
  * Rewrite all occurrences of variables in a given template to 
@@ -101,16 +102,6 @@ public class TemplateVarRewriter {
             char c = t.charAt(inx-1);
             return (notIdOrOpOrKeyword(c ) && isTemplateApplication(end, t)) || (notIdOrOpOrKeyword(c) && notIdOrOpOrKeyword(t.charAt(end)));
         }
-    }
-
-    /*
-     * Todo: Add a check for operators
-     */
-    private boolean notIdOrOpOrKeyword(char c) {
-        return !(IdentifierUtil.validId(""+c) || 
-                Fortress.FORTRESS_KEYWORDS.contains(""+c) || 
-                Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS.contains(c)
-        );
     }
 
     private boolean endOfString(int end, String t) {
