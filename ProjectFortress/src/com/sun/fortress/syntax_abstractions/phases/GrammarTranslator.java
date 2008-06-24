@@ -40,6 +40,7 @@ import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
+import static com.sun.fortress.parser_util.SyntaxUtil.isKeyword;
 
 /**
  * Creates or modifies each rats module and adds productions defined by
@@ -190,7 +191,7 @@ public class GrammarTranslator {
 				throw new RuntimeException("Expected to add keyword, but found no insert point "+insertString);
 			}
 			else {
-				if (!com.sun.fortress.parser.Fortress.FORTRESS_KEYWORDS.contains(keyword)) {
+				if (!isKeyword(keyword)) {
 					insertString = insertString.substring(0, insertPoint) + ", \""+keyword+"\""+insertString.substring(insertPoint);
 				}
 			}

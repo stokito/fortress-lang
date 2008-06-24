@@ -34,7 +34,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.parser.Fortress;
+import com.sun.fortress.parser_util.SyntaxUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -133,10 +133,10 @@ public class EscapeRewriter extends NodeUpdateVisitor {
     }
 
     private String removeEscape(String s) {
-        for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_SYMBOLS) {
+        for (String symbol: SyntaxUtil.specialSymbols()) {
             s = s.replaceAll(ESCAPECHAR+symbol, symbol);
         }
-        for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS) {
+        for (String symbol: SyntaxUtil.specialChars()) {
             s = s.replaceAll(ESCAPECHAR+symbol, symbol);
         }
 
