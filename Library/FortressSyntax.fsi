@@ -18,6 +18,7 @@
 api FortressSyntax
 
   import FortressAst.{...}
+  import List.{...}
 
   grammar Declaration 
       Decls : List[\Decl\]
