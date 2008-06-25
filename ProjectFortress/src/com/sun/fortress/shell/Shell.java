@@ -221,8 +221,9 @@ public final class Shell {
                 System.err.println(error);
             }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
-        }
-        catch (RepositoryError e) {
+        } catch ( StaticError e ){
+            System.err.println(e);
+        } catch (RepositoryError e) {
             System.err.println(e.getMessage());
         }
         catch (FortressException e) {
