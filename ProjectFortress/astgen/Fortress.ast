@@ -46,7 +46,7 @@ begin ast;
 /**
  * top-level node interface
  */
-interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
+interface Node(ignoreForEquals Span span) extends HasAt;
     /**
      * declaration in components or APIs
      */
