@@ -46,7 +46,7 @@ begin ast;
 /**
  * top-level node interface
  */
-interface Node(ignoreForEquals Span span) extends HasAt;
+interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * declaration in components or APIs
      */
@@ -87,2137 +87,2126 @@ interface Node(ignoreForEquals Span span) extends HasAt;
      */
     interface TemplateGap(Id id, List<Id> templateParams);
 
-/**
- * functional declaration or function expression
- * nodes_util.NodeUtil declares the following static methods:
- *  - String nameAsMethod(Applicable)
- *  - Option<Expr> getBody(Applicable)
- */
-interface Applicable(IdOrOpOrAnonymousName name, List<StaticParam> staticParams,
-                     List<Param> params, Option<Type> returnType,
-                     WhereClause where) extends HasAt;
+    /**
+     * intersections of interface types
+     */
+    interface GenericWithParams() extends Generic, HasParams;
+    interface GenericAbsDeclOrDecl() extends Generic, AbsDeclOrDecl;
+        interface GenericDecl() extends Decl;
+    interface GenericAbsDeclOrDeclWithParams() extends GenericWithParams,
+                                                       GenericAbsDeclOrDecl;
+        interface GenericDeclWithParams() extends GenericDecl;
 
-/**
- * intersections of interface types
- */
-interface GenericWithParams() extends Generic, HasParams;
-interface GenericAbsDeclOrDecl() extends Generic, AbsDeclOrDecl;
-    interface GenericDecl() extends Decl;
-interface GenericAbsDeclOrDeclWithParams() extends GenericWithParams,
-                                                   GenericAbsDeclOrDecl;
-    interface GenericDeclWithParams() extends GenericDecl;
+    /**
+     * type or the domain of an arrow type
+     */
+    interface TypeOrDomain();
 
-/**
- * type or the domain of an arrow type
- */
-interface TypeOrDomain(ignoreForEquals Span span = new Span()) extends HasAt, Node;
-
-/**
- * top-level node abstract class
- */
-abstract AbstractNode(ignoreForEquals Span span = new Span())
-                     extends UIDObject implements Node;
     /**
-     * compilation unit declaration
-     * CompilationUnit ::= Component | Api
+     * top-level node abstract class
      */
-    abstract CompilationUnit(APIName name, List<Import> imports);
+    abstract AbstractNode() extends UIDObject;
         /**
-         * component declaration
-         * Component ::= native? component APIName Imports? Exports Decls? end
-         * e.g.) component Hello
-         *         export Executable
-         *         run(args:String...) = print "Hello, World!\n"
-         *       end
+         * compilation unit declaration
+         * CompilationUnit ::= Component | Api
          */
-        Component(boolean _native = false, APIName name, List<Import> imports,
-                  List<Export> exports, List<Decl> decls);
-        /**
-         * API declaration
-         * Api ::= api APIName Imports? AbsDecls? end
-         * e.g.) api Executable
-         *         run(args:String...):()
-         *       end
-         */
-        Api(List<AbsDecl> decls);
-    /**
-     * import statement
-     * Import ::= import ImportedNames | import api AliasedAPINames
-     */
-    abstract Import();
-        /**
-         * ImportedNames ::= APIName . {...} (except SimpleNames)?
-         *                 | APIName . { AliasedSimpleNameList (, ...)? }
-         *                 | QualifiedName (as Id)?
-         */
-        abstract ImportedNames(APIName api);
+        abstract CompilationUnit(APIName name, List<Import> imports);
             /**
-             * Names must be unqualified.
-             * e.g.) import Set.{...} except {opr UNION, union}
-             */
-            ImportStar(List<IdOrOpOrAnonymousName> except);
-            /**
-             * e.g.) import Set.{empty, union}
-             */
-            ImportNames(List<AliasedSimpleName> aliasedNames);
-        /**
-         * e.g.) import api {Set, Map, List}
-         */
-        ImportApi(List<AliasedAPIName> apis);
-    /**
-     * aliased simple name used in import statements
-     * AliasedSimpleName ::= Id (as Id)?
-     *                     | opr Op (as Op)?
-     *                     | opr EncloserPair (as EncloserPair)?
-     * EncloserPair ::= (LeftEncloser | Encloser) (RightEncloser | Encloser)
-     * e.g.) longComplexName as shortName
-     * Names and aliases must be unqualified.
-     */
-    AliasedSimpleName(IdOrOpOrAnonymousName name,
-                      Option<IdOrOpOrAnonymousName> alias = Option.<IdOrOpOrAnonymousName>none());
-    /**
-     * aliased API name used in import statements
-     * AliasedAPIName ::= APIName (as Id)?
-     * e.g.) com.sun.fortress.parser.precedence.resolver as precedence_resolver
-     * Alias must be unqualified.
-     */
-    AliasedAPIName(APIName api,
-                   Option<Id> alias = Option.<Id>none());
-    /**
-     * export statement
-     * Export ::= export APINames
-     * e.g.) export Executable
-     */
-    Export(List<APIName> apis);
-    /**
-     * trait or object declaration in components or APIs
-     * Name must be unqualified.
-     */
-    abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
-                                          = Collections.<Modifier>emptyList(),
-                                      Id name,
-                                      List<StaticParam> staticParams
-                                          = Collections.<StaticParam>emptyList(),
-                                      List<TraitTypeWhere> extendsClause
-                                          = Collections.<TraitTypeWhere>emptyList(),
-                                      WhereClause where
-                                          = FortressUtil.emptyWhereClause(),
-                                      List<? extends AbsDeclOrDecl> decls)
-                                     implements HasWhere, GenericAbsDeclOrDecl;
-        /**
-         * trait declaration in components or APIs
-         */
-        abstract TraitAbsDeclOrDecl(List<BaseType> excludes
-                                        = Collections.<BaseType>emptyList(),
-                                    Option<List<BaseType>> comprises
-                                        = Option.<List<BaseType>>none(),
-                                    List<? extends AbsDeclOrDecl> decls);
-            /**
-             * trait declaration in APIs
-             * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
-             *                  AbsGoInATrait? end
-             * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
-             * ExtendsWhere ::= extends TraitTypeWheres
-             * AbsTraitClause ::= Excludes | AbsComprises | Where
-             * Excludes ::= excludes TraitTypes
-             * AbsComprises ::= comprises ComprisingTypes
-             * ComprisingTypes ::= TraitType | { ComprisingTypeList }
-             * ComprisingTypeList ::= ...
-             *                      | TraitType(, TraitType)*(, ...)?
-             * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
-             *                 | AbsCoercions? AbsGoBackInATrait
-             *                 | AbsCoercions
-             * AbsGoesFrontInATrait ::= ApiFldDecl
-             *                        | AbsGetterSetterDecl
-             *                        | PropertyDecl
-             * AbsGoesBackInATrait  ::= AbsMdDecl
-             *                        | PropertyDecl
-             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
-             *         cons(x: alph): List[\alpha\]
+             * component declaration
+             * Component ::= native? component APIName Imports? Exports Decls? end
+             * e.g.) component Hello
+             *         export Executable
+             *         run(args:String...) = print "Hello, World!\n"
              *       end
              */
-            AbsTraitDecl(List<AbsDecl> decls) implements AbsDecl;
+            Component(boolean _native = false, APIName name, List<Import> imports,
+                      List<Export> exports, List<Decl> decls);
             /**
-             * trait declaration in components
-             * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
-             *               end
-             * TraitClause ::= Excludes | Comprises | Where
-             * Comprises ::= comprises TraitTypes
-             * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
-             *              | Coercions? GoBackInATrait
-             *              | Coercions
-             * GoesFrontInATrait ::= AbsFldDecl
-             *                     | GetterSetterDecl
-             *                     | PropertyDecl
-             * GoesBackInATrait  ::= MdDecl
-             *                     | PropertyDecl
-             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
-             *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
+             * API declaration
+             * Api ::= api APIName Imports? AbsDecls? end
+             * e.g.) api Executable
+             *         run(args:String...):()
              *       end
              */
-            TraitDecl(List<Decl> decls) implements GenericDecl;
+            Api(List<AbsDecl> decls);
         /**
-         * object declaration in components or APIs
+         * import statement
+         * Import ::= import ImportedNames | import api AliasedAPINames
          */
-        abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
-                                         = Option.<List<Param>>none(),
-                                     Option<List<BaseType>> throwsClause
-                                         = Option.<List<BaseType>>none(),
-                                     Contract contract = new Contract(),
-                                     List<? extends AbsDeclOrDecl> decls)
-                                    implements GenericAbsDeclOrDeclWithParams;
+        abstract Import();
             /**
-             * object declaration in APIs
-             * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
-             * ObjectHeader ::= object Id StaticParams? ObjectValParam?
-             *                  ExtendsWhere? FnClauses
-             * FnClauses ::= Throws? Where? Contract
-             * Throws ::= throws MayTraitTypes
-             * ObjectValParam ::= ( ObjectParams? )
-             * ObjectParams ::= (ObjectParam ,)* (ObjectVarargs, )? ObjectKeyword(, ObjectKeyword)*
-             *                | (ObjectParam ,)* ObjectVarargs
-             *                | ObjectParam (, ObjectParam)*
-             * ObjectVarargs ::= transient Varargs
-             * ObjectKeyword ::= ObjectParam = Expr
-             * ObjectParam ::= ParamFldMods? Param
-             *               | transient Param
-             * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
-             *                   | AbsCoercions? AbsGoBackInAnObject
-             *                   | AbsCoercions
-             * AbsGoesFrontInAnObject ::= ApiFldDecl
-             *                          | AbsGetterSetterDecl
-             *                          | PropertyDecl
-             * AbsGoesBackInAnObject ::= AbsMdDecl
-             *                         | PropertyDecl
-             * e.g.) object Empty[\alph\]() extends List[\alpha\] end
+             * ImportedNames ::= APIName . {...} (except SimpleNames)?
+             *                 | APIName . { AliasedSimpleNameList (, ...)? }
+             *                 | QualifiedName (as Id)?
              */
-            AbsObjectDecl(List<AbsDecl> decls) implements AbsDecl;
+            abstract ImportedNames(APIName api);
+                /**
+                 * Names must be unqualified.
+                 * e.g.) import Set.{...} except {opr UNION, union}
+                 */
+                ImportStar(List<IdOrOpOrAnonymousName> except);
+                /**
+                 * e.g.) import Set.{empty, union}
+                 */
+                ImportNames(List<AliasedSimpleName> aliasedNames);
             /**
-             * object declaration in components
-             * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
-             * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
-             *                | Coercions? GoBackInAnObject
-             *                | Coercions
-             * GoesFrontInAnObject ::= FldDecl
-             *                       | GetterSetterDecl
-             *                       | PropertyDecl
-             * GoesBackInAnObject ::= MdDef
-             *                      | PropertyDecl
-             * e.g.) object Empty[\alph\]() extends List[\alpha\]
-             *         length() = 0
-             *       end
+             * e.g.) import api {Set, Map, List}
              */
-            ObjectDecl(List<Decl> decls)
-                      implements GenericDeclWithParams;
-    /**
-     * variable declaration in components or APIs
-     */
-    abstract VarAbsDeclOrDecl(List<LValueBind> lhs) implements AbsDeclOrDecl;
+            ImportApi(List<AliasedAPIName> apis);
         /**
-         * variable declaration in APIs
-         * AbsVarDecl ::= AbsVarMods? VarWTypes
-         *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
-         *              | AbsVarMods? BindIdOrBindIdTuple : SimpleTupleType
-         * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
-         * VarWType ::= BindId IsType
-         * BindIdOrBindIdTuple ::= BindId
-         *                       | ( BindId , BindIdList )
-         * BindId ::= Id | _
-         * e.g.) var (x, y): ZZ64...
+         * aliased simple name used in import statements
+         * AliasedSimpleName ::= Id (as Id)?
+         *                     | opr Op (as Op)?
+         *                     | opr EncloserPair (as EncloserPair)?
+         * EncloserPair ::= (LeftEncloser | Encloser) (RightEncloser | Encloser)
+         * e.g.) longComplexName as shortName
+         * Names and aliases must be unqualified.
          */
-        AbsVarDecl() implements AbsDecl, Decl;
+        AliasedSimpleName(IdOrOpOrAnonymousName name,
+                          Option<IdOrOpOrAnonymousName> alias = Option.<IdOrOpOrAnonymousName>none());
         /**
-         * variable declaration in components
-         * VarDecl ::= VarMods? VarWTypes InitVal
-         *           | VarMods? BindIdOrBindIdTuple = Expr
-         *           | VarMods? BindIdOrBindIdTuple : Type ... InitVal
-         *           | VarMods? BindIdOrBindIdTuple : SimpleTupleType InitVal
-         * InitVal ::= (= | :=) Expr
-         * e.g.) var (x, y): ZZ64... = (5, 6)
+         * aliased API name used in import statements
+         * AliasedAPIName ::= APIName (as Id)?
+         * e.g.) com.sun.fortress.parser.precedence.resolver as precedence_resolver
+         * Alias must be unqualified.
          */
-        VarDecl(Expr init) implements Decl;
-    /**
-     * left-hand side of variable declaration
-     */
-    abstract LValue();
+        AliasedAPIName(APIName api,
+                       Option<Id> alias = Option.<Id>none());
         /**
-         * e.g.) var x: ZZ32
+         * export statement
+         * Export ::= export APINames
+         * e.g.) export Executable
+         */
+        Export(List<APIName> apis);
+        /**
+         * trait or object declaration in components or APIs
          * Name must be unqualified.
          */
-        LValueBind(Id name, Option<Type> type = Option.<Type>none(),
-                   List<Modifier> mods = Collections.<Modifier>emptyList(),
-                   boolean mutable) implements LHS;
+        abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
+                                              = Collections.<Modifier>emptyList(),
+                                          Id name,
+                                          List<StaticParam> staticParams
+                                              = Collections.<StaticParam>emptyList(),
+                                          List<TraitTypeWhere> extendsClause
+                                              = Collections.<TraitTypeWhere>emptyList(),
+                                          WhereClause where
+                                              = FortressUtil.emptyWhereClause(),
+                                          List<? extends AbsDeclOrDecl> decls)
+                                         implements HasWhere, GenericAbsDeclOrDecl;
+            /**
+             * trait declaration in components or APIs
+             */
+            abstract TraitAbsDeclOrDecl(List<BaseType> excludes
+                                            = Collections.<BaseType>emptyList(),
+                                        Option<List<BaseType>> comprises
+                                            = Option.<List<BaseType>>none(),
+                                        List<? extends AbsDeclOrDecl> decls);
+                /**
+                 * trait declaration in APIs
+                 * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
+                 *                  AbsGoInATrait? end
+                 * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
+                 * ExtendsWhere ::= extends TraitTypeWheres
+                 * AbsTraitClause ::= Excludes | AbsComprises | Where
+                 * Excludes ::= excludes TraitTypes
+                 * AbsComprises ::= comprises ComprisingTypes
+                 * ComprisingTypes ::= TraitType | { ComprisingTypeList }
+                 * ComprisingTypeList ::= ...
+                 *                      | TraitType(, TraitType)*(, ...)?
+                 * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
+                 *                 | AbsCoercions? AbsGoBackInATrait
+                 *                 | AbsCoercions
+                 * AbsGoesFrontInATrait ::= ApiFldDecl
+                 *                        | AbsGetterSetterDecl
+                 *                        | PropertyDecl
+                 * AbsGoesBackInATrait  ::= AbsMdDecl
+                 *                        | PropertyDecl
+                 * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+                 *         cons(x: alph): List[\alpha\]
+                 *       end
+                 */
+                AbsTraitDecl(List<AbsDecl> decls) implements AbsDecl;
+                /**
+                 * trait declaration in components
+                 * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
+                 *               end
+                 * TraitClause ::= Excludes | Comprises | Where
+                 * Comprises ::= comprises TraitTypes
+                 * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
+                 *              | Coercions? GoBackInATrait
+                 *              | Coercions
+                 * GoesFrontInATrait ::= AbsFldDecl
+                 *                     | GetterSetterDecl
+                 *                     | PropertyDecl
+                 * GoesBackInATrait  ::= MdDecl
+                 *                     | PropertyDecl
+                 * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+                 *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
+                 *       end
+                 */
+                TraitDecl(List<Decl> decls) implements GenericDecl;
+            /**
+             * object declaration in components or APIs
+             */
+            abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
+                                             = Option.<List<Param>>none(),
+                                         Option<List<BaseType>> throwsClause
+                                             = Option.<List<BaseType>>none(),
+                                         Contract contract = new Contract(),
+                                         List<? extends AbsDeclOrDecl> decls)
+                                        implements GenericAbsDeclOrDeclWithParams;
+                /**
+                 * object declaration in APIs
+                 * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
+                 * ObjectHeader ::= object Id StaticParams? ObjectValParam?
+                 *                  ExtendsWhere? FnClauses
+                 * FnClauses ::= Throws? Where? Contract
+                 * Throws ::= throws MayTraitTypes
+                 * ObjectValParam ::= ( ObjectParams? )
+                 * ObjectParams ::= (ObjectParam ,)* (ObjectVarargs, )? ObjectKeyword(, ObjectKeyword)*
+                 *                | (ObjectParam ,)* ObjectVarargs
+                 *                | ObjectParam (, ObjectParam)*
+                 * ObjectVarargs ::= transient Varargs
+                 * ObjectKeyword ::= ObjectParam = Expr
+                 * ObjectParam ::= ParamFldMods? Param
+                 *               | transient Param
+                 * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
+                 *                   | AbsCoercions? AbsGoBackInAnObject
+                 *                   | AbsCoercions
+                 * AbsGoesFrontInAnObject ::= ApiFldDecl
+                 *                          | AbsGetterSetterDecl
+                 *                          | PropertyDecl
+                 * AbsGoesBackInAnObject ::= AbsMdDecl
+                 *                         | PropertyDecl
+                 * e.g.) object Empty[\alph\]() extends List[\alpha\] end
+                 */
+                AbsObjectDecl(List<AbsDecl> decls) implements AbsDecl;
+                /**
+                 * object declaration in components
+                 * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
+                 * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
+                 *                | Coercions? GoBackInAnObject
+                 *                | Coercions
+                 * GoesFrontInAnObject ::= FldDecl
+                 *                       | GetterSetterDecl
+                 *                       | PropertyDecl
+                 * GoesBackInAnObject ::= MdDef
+                 *                      | PropertyDecl
+                 * e.g.) object Empty[\alph\]() extends List[\alpha\]
+                 *         length() = 0
+                 *       end
+                 */
+                ObjectDecl(List<Decl> decls)
+                          implements GenericDeclWithParams;
         /**
-         * left-hand side of matrix unpasting
-         * Unpasting ::= [ UnpastingElems ]
+         * variable declaration in components or APIs
          */
-        abstract Unpasting();
+        abstract VarAbsDeclOrDecl(List<LValueBind> lhs) implements AbsDeclOrDecl;
             /**
-             * simple unpasting
-             * Names must be unqualified.
-             * UnpastingElem ::= BindId ([ UnpastingDim ])?
-             *                 | Unpasting
-             * UnpastingDim ::= ExtentRange (BY ExtentRange)+
-             * e.g.) squareShape[m BY m]
+             * variable declaration in APIs
+             * AbsVarDecl ::= AbsVarMods? VarWTypes
+             *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
+             *              | AbsVarMods? BindIdOrBindIdTuple : SimpleTupleType
+             * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
+             * VarWType ::= BindId IsType
+             * BindIdOrBindIdTuple ::= BindId
+             *                       | ( BindId , BindIdList )
+             * BindId ::= Id | _
+             * e.g.) var (x, y): ZZ64...
              */
-            UnpastingBind(Id name, List<ExtentRange> dim);
+            AbsVarDecl() implements AbsDecl, Decl;
             /**
-             * complex unpasting
-             * UnpastingElems ::= UnpastingElem RectSeparator UnpastingElems
-             *                  | UnpastingElem
-             * e.g.) squareShape[m BY m]  rest
+             * variable declaration in components
+             * VarDecl ::= VarMods? VarWTypes InitVal
+             *           | VarMods? BindIdOrBindIdTuple = Expr
+             *           | VarMods? BindIdOrBindIdTuple : Type ... InitVal
+             *           | VarMods? BindIdOrBindIdTuple : SimpleTupleType InitVal
+             * InitVal ::= (= | :=) Expr
+             * e.g.) var (x, y): ZZ64... = (5, 6)
              */
-            UnpastingSplit(List<Unpasting> elems, int dim);
-    /**
-     * functional declaration in components or APIs
-     * Names must be unqualified.
-     */
-    abstract FnAbsDeclOrDecl(List<Modifier> mods
-                                 = Collections.<Modifier>emptyList(),
-                             IdOrOpOrAnonymousName name,
-                             List<StaticParam> staticParams
-                                 = Collections.<StaticParam>emptyList(),
-                             List<Param> params,
-                             Option<Type> returnType
-                                 = Option.<Type>none(),
-                             Option<List<BaseType>> throwsClause
-                                 = Option.<List<BaseType>>none(),
-                             WhereClause where
-                                 = FortressUtil.emptyWhereClause(),
-                             Contract contract = new Contract(),
-                             String selfName = NodeUtil.defaultSelfName)
-                            implements Applicable, GenericDecl;
+            VarDecl(Expr init) implements Decl;
+        /**
+         * left-hand side of variable declaration
+         */
+        abstract LValue();
+            /**
+             * e.g.) var x: ZZ32
+             * Name must be unqualified.
+             */
+            LValueBind(Id name, Option<Type> type = Option.<Type>none(),
+                       List<Modifier> mods = Collections.<Modifier>emptyList(),
+                       boolean mutable) implements LHS;
+            /**
+             * left-hand side of matrix unpasting
+             * Unpasting ::= [ UnpastingElems ]
+             */
+            abstract Unpasting();
+                /**
+                 * simple unpasting
+                 * Names must be unqualified.
+                 * UnpastingElem ::= BindId ([ UnpastingDim ])?
+                 *                 | Unpasting
+                 * UnpastingDim ::= ExtentRange (BY ExtentRange)+
+                 * e.g.) squareShape[m BY m]
+                 */
+                UnpastingBind(Id name, List<ExtentRange> dim);
+                /**
+                 * complex unpasting
+                 * UnpastingElems ::= UnpastingElem RectSeparator UnpastingElems
+                 *                  | UnpastingElem
+                 * e.g.) squareShape[m BY m]  rest
+                 */
+                UnpastingSplit(List<Unpasting> elems, int dim);
         /**
          * functional declaration in components or APIs
-         * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
-         *             | FnSig
-         * FnSig ::= SimpleName : ArrowType
-         * FnHeaderFront ::= NamedFnHeaderFront
-         *                 | OpHeaderFront
-         * NamedFnHeaderFront ::= Id StaticParams? ValParam
-         * OpHeaderFront ::= opr StaticParams? BIG? (LeftEncloser | Encloser)
-         *                     Params (RightEncloser | Encloser)
-         *                 | opr StaticParams? ValParam (Op | ExponentOp)
-         *                 | opr BIG? (Op | ^ | Encloser) StaticParams? ValParam
-         * FnHeaderClause ::= IsType? FnClauses
-         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
-         *          | FnSig
-         * e.g.) swap (x: Object, y: Object): (Object, Object)
+         * Names must be unqualified.
          */
-        AbsFnDecl() implements AbsDecl;
-        /**
-         * functional declaration in components
-         */
-        abstract FnDecl();
+        abstract FnAbsDeclOrDecl(List<Modifier> mods
+                                     = Collections.<Modifier>emptyList(),
+                                 IdOrOpOrAnonymousName name,
+                                 List<StaticParam> staticParams
+                                     = Collections.<StaticParam>emptyList(),
+                                 List<Param> params,
+                                 Option<Type> returnType
+                                     = Option.<Type>none(),
+                                 Option<List<BaseType>> throwsClause
+                                     = Option.<List<BaseType>>none(),
+                                 WhereClause where
+                                     = FortressUtil.emptyWhereClause(),
+                                 Contract contract = new Contract(),
+                                 String selfName = NodeUtil.defaultSelfName)
+                                implements Applicable, GenericDecl;
             /**
-             * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
-             * e.g.) swap (x, y) = (y, x)
+             * functional declaration in components or APIs
+             * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
+             *             | FnSig
+             * FnSig ::= SimpleName : ArrowType
+             * FnHeaderFront ::= NamedFnHeaderFront
+             *                 | OpHeaderFront
+             * NamedFnHeaderFront ::= Id StaticParams? ValParam
+             * OpHeaderFront ::= opr StaticParams? BIG? (LeftEncloser | Encloser)
+             *                     Params (RightEncloser | Encloser)
+             *                 | opr StaticParams? ValParam (Op | ExponentOp)
+             *                 | opr BIG? (Op | ^ | Encloser) StaticParams? ValParam
+             * FnHeaderClause ::= IsType? FnClauses
+             * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
+             *          | FnSig
+             * e.g.) swap (x: Object, y: Object): (Object, Object)
              */
-            FnDef(Expr body);
-    /**
-     * value parameter of functional declarations and object declarations
-     * Names must be unqualified.
-     */
-    abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
-                   Id name);
-        /**
-         * ValParam := BindId
-         *           | ( Params? )
-         * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
-         *          | (Param, )* Varargs
-         *          | Param(, Param)*
-         * Keyword ::= Param = Expr
-         * Param ::= BindId IsType?
-         *         | Type
-         * e.g.) x: ZZ32 = 3
-         * e.g.) self
-         * e.g.) transient x: String
-         */
-        NormalParam(Option<Type> type = Option.<Type>none(),
-                    Option<Expr> defaultExpr = Option.<Expr>none());
-        /**
-         * varargs parameter
-         * Varargs ::= BindId : Type ...
-         * e.g.) x: String...
-         */
-        VarargsParam(Type type);
-    /**
-     * dimension and unit declaration
-     * DimUnitDecl may represent a single dimension declaration, a single
-     * unit declaration, or both dimension and unit declarations.
-     * DimUnitDecl ::= dim Id (= Type)? (unit | SI_unit) Id+ (= Expr)?
-     *               | dim Id (= Type)? (default Id)?
-     *               | (unit | SI_unit) Id+ (: Type)? (= Expr)?
-     */
-    abstract DimUnitDecl() implements Decl, AbsDecl;
-        /**
-         * dimension declaration
-         * Names for dim and default must be unqualified.
-         * e.g.) dim Length SI_unit meter meters m
-         */
-        DimDecl(Id dim, Option<Type> derived = Option.<Type>none(),
-                Option<Id> default = Option.<Id>none());
-        /**
-         * unit declaration
-         * Names of units must be unqualified.
-         * e.g.) unit inch inches: Length
-         */
-        UnitDecl(boolean si_unit = false,
-                 List<Id> units = Collections.<Id>emptyList(),
-                 Option<Type> dim = Option.<Type>none(),
-                 Option<Expr> def);
-    /**
-     * test declaration
-     * Names must be unqualified.
-     * TestDecl ::= test Id [ GeneratorClauseList ] = Expr
-     * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
-     */
-    TestDecl(Id name, List<GeneratorClause> gens, Expr expr)
-            implements Decl, AbsDecl;
-    /**
-     * property declaration
-     * Names must be unqualified.
-     * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
-     * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
-     */
-    PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
-                 Expr expr) implements Decl, AbsDecl;
-    /**
-     * syntax expanders declaration in components or APIs
-     * Names and expanders must be unqualified.
-     */
-    abstract ExternalSyntaxAbsDeclOrDecl(IdOrOpOrAnonymousName openExpander, Id name,
-                                         IdOrOpOrAnonymousName closeExpander)
-                                        implements AbsDeclOrDecl;
-        /**
-         * syntax expanders declaration in APIs
-         * AbsExternalSyntax ::= syntax OpenExpander Id CloseExpander
-         * OpenExpander ::= Id
-         *                | (LeftEncloser / Encloser)
-         * CloseExpander ::= Id
-         *                 | (RightEncloser / Encloser)
-         *                 | end
-         * e.g.) syntax sql e end
-         */
-        AbsExternalSyntax() implements AbsDecl;
-        /**
-         * syntax expanders declaration in APIs
-         * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
-         * e.g.) syntax sql e end = parseSQL(e)
-         */
-        ExternalSyntax(Expr expr) implements Decl;
-    /**
-     * grammar declaration
-     * Names (but not extends elements) must be unqualified.
-     */
-    abstract GrammarDecl(Id name, List<Id> extends) implements AbsDecl;
-        /**
-         * grammar definition in grammar declarations
-         */
-        GrammarDef(List<GrammarMemberDecl> members);
-    /**
-     * grammar member (nonterminal or terminal) declaration
-     * Names and params must be unqualified.
-     */
-    abstract GrammarMemberDecl(NonterminalHeader header,
-                               Option<BaseType> astType) implements AbsDecl;
-        /**
-         * nonterminal declaration
-         */
-        abstract NonterminalDecl(List<SyntaxDef> syntaxDefs);
+            AbsFnDecl() implements AbsDecl;
             /**
-             * nonterminal definition in nonterminal declarations
+             * functional declaration in components
              */
-            NonterminalDef();
-            /**
-             * nonterminal extending definition in nonterminal declarations
-             */
-            NonterminalExtensionDef();
+            abstract FnDecl();
+                /**
+                 * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
+                 * e.g.) swap (x, y) = (y, x)
+                 */
+                FnDef(Expr body);
         /**
-         * terminal declaration
+         * value parameter of functional declarations and object declarations
+         * Names must be unqualified.
          */
-        abstract TerminalDecl(SyntaxDef syntaxDef);
+        abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
+                       Id name);
             /**
-             * terminal definition result of rewrite of keyword and token symbols in disambigutation of
-             * syntax abstractions
+             * ValParam := BindId
+             *           | ( Params? )
+             * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
+             *          | (Param, )* Varargs
+             *          | Param(, Param)*
+             * Keyword ::= Param = Expr
+             * Param ::= BindId IsType?
+             *         | Type
+             * e.g.) x: ZZ32 = 3
+             * e.g.) self
+             * e.g.) transient x: String
              */
-            _TerminalDef();
-    /**
-     * nonterminal header
-     */
-    NonterminalHeader(Option<ModifierPrivate> modifier
-                        = Option.<ModifierPrivate>none(),
-                      Id name,
-                      List<NonterminalParameter> params,
-                      List<StaticParam> staticParams
-                        = Collections.<StaticParam>emptyList(),
-                      Option<Type> type,
-                      WhereClause whereClause
-                        = FortressUtil.emptyWhereClause());
+            NormalParam(Option<Type> type = Option.<Type>none(),
+                        Option<Expr> defaultExpr = Option.<Expr>none());
+            /**
+             * varargs parameter
+             * Varargs ::= BindId : Type ...
+             * e.g.) x: String...
+             */
+            VarargsParam(Type type);
+        /**
+         * dimension and unit declaration
+         * DimUnitDecl may represent a single dimension declaration, a single
+         * unit declaration, or both dimension and unit declarations.
+         * DimUnitDecl ::= dim Id (= Type)? (unit | SI_unit) Id+ (= Expr)?
+         *               | dim Id (= Type)? (default Id)?
+         *               | (unit | SI_unit) Id+ (: Type)? (= Expr)?
+         */
+        abstract DimUnitDecl() implements Decl, AbsDecl;
+            /**
+             * dimension declaration
+             * Names for dim and default must be unqualified.
+             * e.g.) dim Length SI_unit meter meters m
+             */
+            DimDecl(Id dim, Option<Type> derived = Option.<Type>none(),
+                    Option<Id> default = Option.<Id>none());
+            /**
+             * unit declaration
+             * Names of units must be unqualified.
+             * e.g.) unit inch inches: Length
+             */
+            UnitDecl(boolean si_unit = false,
+                     List<Id> units = Collections.<Id>emptyList(),
+                     Option<Type> dim = Option.<Type>none(),
+                     Option<Expr> def);
+        /**
+         * test declaration
+         * Names must be unqualified.
+         * TestDecl ::= test Id [ GeneratorClauseList ] = Expr
+         * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
+         */
+        TestDecl(Id name, List<GeneratorClause> gens, Expr expr)
+                implements Decl, AbsDecl;
+        /**
+         * property declaration
+         * Names must be unqualified.
+         * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
+         * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
+         */
+        PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
+                     Expr expr) implements Decl, AbsDecl;
+        /**
+         * syntax expanders declaration in components or APIs
+         * Names and expanders must be unqualified.
+         */
+        abstract ExternalSyntaxAbsDeclOrDecl(IdOrOpOrAnonymousName openExpander, Id name,
+                                             IdOrOpOrAnonymousName closeExpander)
+                                            implements AbsDeclOrDecl;
+            /**
+             * syntax expanders declaration in APIs
+             * AbsExternalSyntax ::= syntax OpenExpander Id CloseExpander
+             * OpenExpander ::= Id
+             *                | (LeftEncloser / Encloser)
+             * CloseExpander ::= Id
+             *                 | (RightEncloser / Encloser)
+             *                 | end
+             * e.g.) syntax sql e end
+             */
+            AbsExternalSyntax() implements AbsDecl;
+            /**
+             * syntax expanders declaration in APIs
+             * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
+             * e.g.) syntax sql e end = parseSQL(e)
+             */
+            ExternalSyntax(Expr expr) implements Decl;
+        /**
+         * grammar declaration
+         * Names (but not extends elements) must be unqualified.
+         */
+        abstract GrammarDecl(Id name, List<Id> extends) implements AbsDecl;
+            /**
+             * grammar definition in grammar declarations
+             */
+            GrammarDef(List<GrammarMemberDecl> members);
+        /**
+         * grammar member (nonterminal or terminal) declaration
+         * Names and params must be unqualified.
+         */
+        abstract GrammarMemberDecl(NonterminalHeader header,
+                                   Option<BaseType> astType) implements AbsDecl;
+            /**
+             * nonterminal declaration
+             */
+            abstract NonterminalDecl(List<SyntaxDef> syntaxDefs);
+                /**
+                 * nonterminal definition in nonterminal declarations
+                 */
+                NonterminalDef();
+                /**
+                 * nonterminal extending definition in nonterminal declarations
+                 */
+                NonterminalExtensionDef();
+            /**
+             * terminal declaration
+             */
+            abstract TerminalDecl(SyntaxDef syntaxDef);
+                /**
+                 * terminal definition result of rewrite of keyword and token symbols in disambigutation of
+                 * syntax abstractions
+                 */
+                _TerminalDef();
+        /**
+         * nonterminal header
+         */
+        NonterminalHeader(Option<ModifierPrivate> modifier
+                            = Option.<ModifierPrivate>none(),
+                          Id name,
+                          List<NonterminalParameter> params,
+                          List<StaticParam> staticParams
+                            = Collections.<StaticParam>emptyList(),
+                          Option<Type> type,
+                          WhereClause whereClause
+                            = FortressUtil.emptyWhereClause());
 
-    /**
-     * nonterminal parameter
-     */
-    NonterminalParameter(Id name, Id type);
+        /**
+         * nonterminal parameter
+         */
+        NonterminalParameter(Id name, Id type);
 
-    /**
-     * syntax declaration
-     */
-    abstract SyntaxDecl() implements AbsDecl;
         /**
-         * syntax definition in syntax declarations
+         * syntax declaration
          */
-        SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
-                  TransformationDecl transformation);
-    /**
-      * Transformation declaration
-      */
-    abstract TransformationDecl() implements AbsDecl;
-        /**
-         * pre template definition in template declarations
-         */
-        TransformationPreTemplateDef(String productionName, String transformation);
-        /**
-         * template definition in template declarations
-         */
-        TransformationTemplateDef(AbstractNode transformation);
-        /**
-         * template definition in template declarations
-         */
-        TransformationExpressionDef(Expr transformation);
-    /**
-      * syntax symbol
-      */
-    abstract SyntaxSymbol();
-        /**
-         * prefixed syntax symbol
-         */
-        PrefixedSymbol(Option<Id> id, Option<Type> type = Option.<Type>none(), SyntaxSymbol symbol);
-        /**
-         * optional syntax symbol
-         */
-        OptionalSymbol(SyntaxSymbol symbol);
-        /**
-         * repeat zero-or-more syntax symbol
-         */
-        RepeatSymbol(SyntaxSymbol symbol);
-        /**
-         * repeat one-or-more syntax symbol
-         */
-        RepeatOneOrMoreSymbol(SyntaxSymbol symbol);
-        /**
-         * ignore following whitespace syntax symbol
-         */
-        NoWhitespaceSymbol(SyntaxSymbol symbol);
-        /**
-         * groups of symbols
-         */
-        GroupSymbol(List<SyntaxSymbol> symbols);
-        /**
-         * special symbols syntax symbol
-         */
-        abstract SpecialSymbol();
+        abstract SyntaxDecl() implements AbsDecl;
             /**
-             * any character syntax symbol
+             * syntax definition in syntax declarations
              */
-            AnyCharacterSymbol();
+            SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
+                      TransformationDecl transformation);
+        /**
+          * Transformation declaration
+          */
+        abstract TransformationDecl() implements AbsDecl;
             /**
-             * whitespace syntax symbol
+             * pre template definition in template declarations
              */
-            WhitespaceSymbol(String s);
+            TransformationPreTemplateDef(String productionName, String transformation);
             /**
-             * tab syntax symbol
+             * template definition in template declarations
              */
-            TabSymbol();
+            TransformationTemplateDef(AbstractNode transformation);
             /**
-             * formfeed syntax symbol
+             * template definition in template declarations
              */
-            FormfeedSymbol();
+            TransformationExpressionDef(Expr transformation);
+        /**
+          * syntax symbol
+          */
+        abstract SyntaxSymbol();
             /**
-             * carriage return syntax symbol
+             * prefixed syntax symbol
              */
-            CarriageReturnSymbol();
+            PrefixedSymbol(Option<Id> id, Option<Type> type = Option.<Type>none(), SyntaxSymbol symbol);
             /**
-             * backspace syntax symbol
+             * optional syntax symbol
              */
-            BackspaceSymbol();
+            OptionalSymbol(SyntaxSymbol symbol);
             /**
-             * newline syntax symbol
+             * repeat zero-or-more syntax symbol
              */
-            NewlineSymbol();
+            RepeatSymbol(SyntaxSymbol symbol);
             /**
-             * breakline syntax symbol
+             * repeat one-or-more syntax symbol
              */
-            BreaklineSymbol(String s);
-        /**
-         * item syntax symbol
-         */
-        ItemSymbol(String item);
-        /**
-         * non-terminal syntax symbol
-         */
-        NonterminalSymbol(Id nonterminal);
-        /**
-         * keyword syntax symbol
-         */
-        KeywordSymbol(String token);
-        /**
-         * token syntax symbol
-         */
-        TokenSymbol(String token);
-        /**
-         * not predicate syntax symbol
-         */
-        NotPredicateSymbol(SyntaxSymbol symbol);
-        /**
-         * and predicate syntax symbol
-         */
-        AndPredicateSymbol(SyntaxSymbol symbol);
-        /**
-         * character class syntax symbol
-         */
-        CharacterClassSymbol(List<CharacterSymbol> characters);
-        /**
-         * character symbols
-         */
-        abstract CharacterSymbol();
+            RepeatOneOrMoreSymbol(SyntaxSymbol symbol);
             /**
-             * character
+             * ignore following whitespace syntax symbol
              */
-            CharSymbol(String string);
+            NoWhitespaceSymbol(SyntaxSymbol symbol);
             /**
-             * character interval
+             * groups of symbols
              */
-            CharacterInterval(String begin, String end);
-    /**
-     * expression
-     */
-    abstract Expr(boolean parenthesized = false);
-        /**
-         * Template gap for expressions
-         */
-        TemplateGapExpr(Id id, List<Id> templateParams) implements TemplateGap;
-        /**
-         * expression annotated with a type
-         */
-        abstract TypeAnnotatedExpr(Expr expr, Type type);
+            GroupSymbol(List<SyntaxSymbol> symbols);
             /**
-             * type ascription expression
-             * Expr ::= Expr as Type
-             * e.g.) 3 as Number
+             * special symbols syntax symbol
              */
-            AsExpr();
+            abstract SpecialSymbol();
+                /**
+                 * any character syntax symbol
+                 */
+                AnyCharacterSymbol();
+                /**
+                 * whitespace syntax symbol
+                 */
+                WhitespaceSymbol(String s);
+                /**
+                 * tab syntax symbol
+                 */
+                TabSymbol();
+                /**
+                 * formfeed syntax symbol
+                 */
+                FormfeedSymbol();
+                /**
+                 * carriage return syntax symbol
+                 */
+                CarriageReturnSymbol();
+                /**
+                 * backspace syntax symbol
+                 */
+                BackspaceSymbol();
+                /**
+                 * newline syntax symbol
+                 */
+                NewlineSymbol();
+                /**
+                 * breakline syntax symbol
+                 */
+                BreaklineSymbol(String s);
             /**
-             * type assumption expression
-             * Expr ::= Expr asif Type
-             * e.g.) Empty asif List[\String\]
+             * item syntax symbol
              */
-            AsIfExpr();
+            ItemSymbol(String item);
+            /**
+             * non-terminal syntax symbol
+             */
+            NonterminalSymbol(Id nonterminal);
+            /**
+             * keyword syntax symbol
+             */
+            KeywordSymbol(String token);
+            /**
+             * token syntax symbol
+             */
+            TokenSymbol(String token);
+            /**
+             * not predicate syntax symbol
+             */
+            NotPredicateSymbol(SyntaxSymbol symbol);
+            /**
+             * and predicate syntax symbol
+             */
+            AndPredicateSymbol(SyntaxSymbol symbol);
+            /**
+             * character class syntax symbol
+             */
+            CharacterClassSymbol(List<CharacterSymbol> characters);
+            /**
+             * character symbols
+             */
+            abstract CharacterSymbol();
+                /**
+                 * character
+                 */
+                CharSymbol(String string);
+                /**
+                 * character interval
+                 */
+                CharacterInterval(String begin, String end);
         /**
-         * assignment expression
-         * AssignExpr ::= AssignLefts AssignOp Expr
-         * AssignLefts ::= ( AssignLeft(, AssignLeft)* )
-         *               | AssignLeft
-         * AssignLeft ::= SubscriptExpr
-         *              | FieldSelection
-         *              | QualifiedName
-         * FieldSelection ::= Primary . Id
-         * AssignOp ::= := | Op=
-         * e.g.) x += 1
+         * expression
          */
-        Assignment(List<LHS> lhs, Option<OpRef> opr, Expr rhs);
-        /**
-         * expressions beginning and ending with reserved words
-         * Expr ::= DelimitedExpr
-         */
-        abstract DelimitedExpr();
+        abstract Expr(boolean parenthesized = false);
             /**
              * Template gap for expressions
              */
-            TemplateGapDelimitedExpr(Id id, List<Id> templateParams) implements TemplateGap;
+            TemplateGapExpr(Id id, List<Id> templateParams) implements TemplateGap;
             /**
-             * sequence of block elements implicitly enclosed by do/end
-             * BlockElems ::= BlockElem+
-             * e.g.) y = x
-             *       z = 2x
-             *       y + z
+             * expression annotated with a type
              */
-            Block(List<Expr> exprs);
+            abstract TypeAnnotatedExpr(Expr expr, Type type);
+                /**
+                 * type ascription expression
+                 * Expr ::= Expr as Type
+                 * e.g.) 3 as Number
+                 */
+                AsExpr();
+                /**
+                 * type assumption expression
+                 * Expr ::= Expr asif Type
+                 * e.g.) Empty asif List[\String\]
+                 */
+                AsIfExpr();
             /**
-             * case expression or extremum expression
-             * DelimitedExpr ::= case Expr Op? of CaseClauses CaseElse? end
-             *                 | case most Op of CaseClauses end
-             * CaseElse ::= else => BlockElems
-             * e.g.) case most > of
-             *         1 mile => "miles are larger"
-             *         1 kilometer => "we were wrong again"
-             *       end
-             *  eqOp and inOp are to help with disambiguation
+             * assignment expression
+             * AssignExpr ::= AssignLefts AssignOp Expr
+             * AssignLefts ::= ( AssignLeft(, AssignLeft)* )
+             *               | AssignLeft
+             * AssignLeft ::= SubscriptExpr
+             *              | FieldSelection
+             *              | QualifiedName
+             * FieldSelection ::= Primary . Id
+             * AssignOp ::= := | Op=
+             * e.g.) x += 1
              */
-            CaseExpr(Option<Expr> param, Option<OpRef> compare = Option.<OpRef>none(),
-                     OpRef equalsOp = ExprFactory.makeInfixEq(), OpRef inOp= ExprFactory.makeInfixIn(),
-                     List<CaseClause> clauses,
-                     Option<Block> elseClause = Option.<Block>none());
+            Assignment(List<LHS> lhs, Option<OpRef> opr, Expr rhs);
             /**
-             * do expression
-             * Do ::= (DoFront also)* DoFront end
-             * e.g.) do
-             *         accum += treeSum(t.left)
-             *       also do
-             *         accum += treeSum(t.right)
-             *       also do
-             *         accum += t.datum
-             *       end
+             * expressions beginning and ending with reserved words
+             * Expr ::= DelimitedExpr
              */
-            Do(List<DoFront> fronts);
-            /**
-             * for expression
-             * DelimitedExpr ::= for GeneratorClauseList DoFront end
-             * e.g.) for i <- sequential(1:5) do
-             *         print (i " ")
-             *       end
-             */
-            For(List<GeneratorClause> gens, DoFront body);
-            /**
-             * if expression
-             * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
-             *                 | ( if CondExpr then BlockElems Elifs? Else end? )
-             * Elif ::= elif CondExpr then BlockElems
-             * Else ::= else BlockElems
-             * CondExpr ::= BindId <- Expr
-             *            | Expr
-             * e.g.) if x IN {0, 1, 2} then 0
-             *       elif x IN {3, 4, 5} then 3
-             *       else 6 end
-             */
-            If(List<IfClause> clauses,
-               Option<Block> elseClause = Option.<Block>none());
-            /**
-             * label expression
-             * Names must be unqualified.
-             * DelimitedExpr ::= label Id BlockElems end Id
-             * e.g.) label I_95
-             *         if goingTo(Sun)
-             *         then exit I_95 with x32B
-             *         else x32A
-             *         end
-             *       end I_95
-             */
-            Label(Id name, Block body);
-            /**
-             * object expression
-             */
-            abstract AbstractObjectExpr(List<TraitTypeWhere> extendsClause
-                                            = Collections.<TraitTypeWhere>emptyList(),
-                                        List<Decl> decls);
+            abstract DelimitedExpr();
+                /**
+                 * Template gap for expressions
+                 */
+                TemplateGapDelimitedExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                /**
+                 * sequence of block elements implicitly enclosed by do/end
+                 * BlockElems ::= BlockElem+
+                 * e.g.) y = x
+                 *       z = 2x
+                 *       y + z
+                 */
+                Block(List<Expr> exprs);
+                /**
+                 * case expression or extremum expression
+                 * DelimitedExpr ::= case Expr Op? of CaseClauses CaseElse? end
+                 *                 | case most Op of CaseClauses end
+                 * CaseElse ::= else => BlockElems
+                 * e.g.) case most > of
+                 *         1 mile => "miles are larger"
+                 *         1 kilometer => "we were wrong again"
+                 *       end
+                 *  eqOp and inOp are to help with disambiguation
+                 */
+                CaseExpr(Option<Expr> param, Option<OpRef> compare = Option.<OpRef>none(),
+                         OpRef equalsOp = ExprFactory.makeInfixEq(), OpRef inOp= ExprFactory.makeInfixIn(),
+                         List<CaseClause> clauses,
+                         Option<Block> elseClause = Option.<Block>none());
+                /**
+                 * do expression
+                 * Do ::= (DoFront also)* DoFront end
+                 * e.g.) do
+                 *         accum += treeSum(t.left)
+                 *       also do
+                 *         accum += treeSum(t.right)
+                 *       also do
+                 *         accum += t.datum
+                 *       end
+                 */
+                Do(List<DoFront> fronts);
+                /**
+                 * for expression
+                 * DelimitedExpr ::= for GeneratorClauseList DoFront end
+                 * e.g.) for i <- sequential(1:5) do
+                 *         print (i " ")
+                 *       end
+                 */
+                For(List<GeneratorClause> gens, DoFront body);
+                /**
+                 * if expression
+                 * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
+                 *                 | ( if CondExpr then BlockElems Elifs? Else end? )
+                 * Elif ::= elif CondExpr then BlockElems
+                 * Else ::= else BlockElems
+                 * CondExpr ::= BindId <- Expr
+                 *            | Expr
+                 * e.g.) if x IN {0, 1, 2} then 0
+                 *       elif x IN {3, 4, 5} then 3
+                 *       else 6 end
+                 */
+                If(List<IfClause> clauses,
+                   Option<Block> elseClause = Option.<Block>none());
+                /**
+                 * label expression
+                 * Names must be unqualified.
+                 * DelimitedExpr ::= label Id BlockElems end Id
+                 * e.g.) label I_95
+                 *         if goingTo(Sun)
+                 *         then exit I_95 with x32B
+                 *         else x32A
+                 *         end
+                 *       end I_95
+                 */
+                Label(Id name, Block body);
                 /**
                  * object expression
-                 * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
-                 * e.g.)  object extends {List}
-                 *          cons(x) = Cons(x, self)
-                 *          append (xs) = xs
-                 *        end
                  */
-                ObjectExpr();
+                abstract AbstractObjectExpr(List<TraitTypeWhere> extendsClause
+                                                = Collections.<TraitTypeWhere>emptyList(),
+                                            List<Decl> decls);
+                    /**
+                     * object expression
+                     * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
+                     * e.g.)  object extends {List}
+                     *          cons(x) = Cons(x, self)
+                     *          append (xs) = xs
+                     *        end
+                     */
+                    ObjectExpr();
+                    /**
+                     * object expression rewritten by interpreter.rewrite.Disambiguate
+                     */
+                    _RewriteObjectExpr(BATree<String, StaticParam> implicitTypeParameters,
+                                       String genSymName,
+                                       List<StaticParam> staticParams,
+                                       List<StaticArg> staticArgs,
+                                       Option<List<Param>> params)
+                                      implements GenericWithParams;
                 /**
-                 * object expression rewritten by interpreter.rewrite.Disambiguate
+                 * try expression
+                 * DelimitedExpr ::= try BlockElems Catch? (forbid TraitTypes)?
+                 *                     (finally BlockElems)? end
+                 * e.g.) try
+                 *         inp = read (file)
+                 *         write (inp, newFile)
+                 *       forbid IOException
+                 *       end
                  */
-                _RewriteObjectExpr(BATree<String, StaticParam> implicitTypeParameters,
-                                   String genSymName,
-                                   List<StaticParam> staticParams,
-                                   List<StaticArg> staticArgs,
-                                   Option<List<Param>> params)
-                                  implements GenericWithParams;
-            /**
-             * try expression
-             * DelimitedExpr ::= try BlockElems Catch? (forbid TraitTypes)?
-             *                     (finally BlockElems)? end
-             * e.g.) try
-             *         inp = read (file)
-             *         write (inp, newFile)
-             *       forbid IOException
-             *       end
-             */
-            Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
-                List<BaseType> forbid = Collections.<BaseType>emptyList(),
-                Option<Block> finallyClause = Option.<Block>none());
-            /**
-             * labeled expression: tuple expression or argument expression
-             */
-            abstract AbstractTupleExpr(List<Expr> exprs);
+                Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
+                    List<BaseType> forbid = Collections.<BaseType>emptyList(),
+                    Option<Block> finallyClause = Option.<Block>none());
                 /**
-                 * tuple expression
-                 * TupleExpr ::= ( (Expr,)+ Expr )
-                 * e.g.) (1, 2, 5)
+                 * labeled expression: tuple expression or argument expression
                  */
-                TupleExpr();
+                abstract AbstractTupleExpr(List<Expr> exprs);
+                    /**
+                     * tuple expression
+                     * TupleExpr ::= ( (Expr,)+ Expr )
+                     * e.g.) (1, 2, 5)
+                     */
+                    TupleExpr();
+                    /**
+                     * argument expression
+                     * ArgExpr ::= ( (Expr,)* (Expr...,)? KeywordExpr(, KeywordExpr)* )
+                     *           | ( (Expr,)* Expr... )
+                     *           | TupleExpr
+                     * e.g.) (1, 2, [3 4]..., x = 5)
+                     */
+                    ArgExpr(Option<VarargsExpr> varargs
+                                = Option.<VarargsExpr>none(),
+                            List<KeywordExpr> keywords
+                                = Collections.<KeywordExpr>emptyList(),
+                            boolean inApp = false);
                 /**
-                 * argument expression
-                 * ArgExpr ::= ( (Expr,)* (Expr...,)? KeywordExpr(, KeywordExpr)* )
-                 *           | ( (Expr,)* Expr... )
-                 *           | TupleExpr
-                 * e.g.) (1, 2, [3 4]..., x = 5)
+                 * typecase expression
+                 * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
+                 *                     CaseElse? end
+                 * TypecaseBindings ::= TypecaseVars (= Expr)?
+                 * TypecaseVars ::= BindId
+                 *              |   ( BindId(, BindId)+ )
+                 * e.g.) typecase x = myLoser .myField of
+                 *         String => x.append("foo")
+                 *         Number => x + 3
+                 *         Object => yogiBerraAutograph
+                 *       end
+                 * Names in bind must be unqualified.
                  */
-                ArgExpr(Option<VarargsExpr> varargs
-                            = Option.<VarargsExpr>none(),
-                        List<KeywordExpr> keywords
-                            = Collections.<KeywordExpr>emptyList(),
-                        boolean inApp = false);
+                Typecase(List<Id> bindIds, Option<Expr> bindExpr,
+                         List<TypecaseClause> clauses,
+                         Option<Block> elseClause = Option.<Block>none());
+                /**
+                 * while expression
+                 * DelimitedExpr ::= while GeneratorClause Do
+                 * e.g.) while x < 10 do print x; x += 1 end
+                 */
+                While(GeneratorClause test, Do body);
             /**
-             * typecase expression
-             * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
-             *                     CaseElse? end
-             * TypecaseBindings ::= TypecaseVars (= Expr)?
-             * TypecaseVars ::= BindId
-             *              |   ( BindId(, BindId)+ )
-             * e.g.) typecase x = myLoser .myField of
-             *         String => x.append("foo")
-             *         Number => x + 3
-             *         Object => yogiBerraAutograph
-             *       end
-             * Names in bind must be unqualified.
+             * control flow expression
+             * Expr ::= FlowExpr
              */
-            Typecase(List<Id> bindIds, Option<Expr> bindExpr,
-                     List<TypecaseClause> clauses,
-                     Option<Block> elseClause = Option.<Block>none());
+            abstract FlowExpr();
+                /**
+                 * comprehension or accumulator
+                 */
+                abstract BigOpApp(List<StaticArg> staticArgs
+                                      = Collections.<StaticArg>emptyList());
+                    /**
+                     * summation and other reduction expression
+                     * FlowExpr ::= Accumulator StaticArgs?
+                     *                ([ GeneratorClauseList ])? Expr
+                     * Accumulator ::= SUM | PRODUCT | Big Op
+                     * e.g.) PRODUCT[i <- 1:n] i
+                     */
+                    Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
+                    /**
+                     * array comprehension
+                     * Comprehension ::= BIG? [ StaticArgs? ArrayComprehensionClause+
+                     *                        ]
+                     * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
+                     */
+                    ArrayComprehension(List<ArrayComprehensionClause> clauses);
+                /**
+                 * atomic expression
+                 * FlowExpr ::= atomic AtomicBack
+                 * AtomicBack ::= AssignExpr
+                 *              | OpExpr
+                 *              | DelimitedExpr
+                 * e.g.) atomic sum += a[i]
+                 */
+                AtomicExpr(Expr expr);
+                /**
+                 * exiting labeled expressions
+                 * FlowExpr ::= exit Id? (with Expr)?
+                 * e.g.) exit I_95 with x32B
+                 * Targets must be unqualified.
+                 */
+                Exit(Option<Id> target = Option.<Id>none(),
+                     Option<Expr> returnExpr = Option.<Expr>none());
+                /**
+                 * spawn expression
+                 * FlowExpr ::= spawn Expr
+                 * e.g.) spawn mm(lefttop, right, resulttop)
+                 */
+                Spawn(Expr body);
+                /**
+                 * throw expression
+                 * FlowExpr ::= throw Expr
+                 * e.g.) throw Error
+                 */
+                Throw(Expr expr);
+                /**
+                 * tryatomic expression
+                 * FlowExpr ::= tryatomic AtomicBack
+                 * e.g.) tryatomic sum += a[i]
+                 */
+                TryAtomicExpr(Expr expr);
             /**
-             * while expression
-             * DelimitedExpr ::= while GeneratorClause Do
-             * e.g.) while x < 10 do print x; x += 1 end
+             * function expression
+             * Names must be unqualified.
+             * Expr ::= fn ValParam IsType? Throws? => Expr
+             * e.g.) fn x => x + 2
              */
-            While(GeneratorClause test, Do body);
-        /**
-         * control flow expression
-         * Expr ::= FlowExpr
-         */
-        abstract FlowExpr();
+            FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
+                   boolean parenthesized = false,
+                   IdOrOpOrAnonymousName name = new AnonymousFnName(in_span),
+                   List<StaticParam> staticParams
+                       = Collections.<StaticParam>emptyList(),
+                   List<Param> params,
+                   Option<Type> returnType = Option.<Type>none(),
+                   WhereClause where = FortressUtil.emptyWhereClause(),
+                   Option<List<BaseType>> throwsClause
+                       = Option.<List<BaseType>>none(),
+                   Expr body)
+                  implements Applicable;
+                /**
+                 * Template gap for FnExpr
+                 */
+                TemplateGapFnExpr(Id id, List<Id> templateParams) implements TemplateGap;
             /**
-             * comprehension or accumulator
+             * expression used in block expressions
+             * BlockElem ::= LocalVarFnDecl
+             *             | Expr(, GeneratorClauseList)?
+             * LocalVarFnDecl ::= LocalFnDecl+
+             *                  | LocalVarDecl
              */
-            abstract BigOpApp(List<StaticArg> staticArgs
+            abstract LetExpr(List<Expr> body);
+                /**
+                 * local function declaration
+                 * LocalFnDecl ::= LocalFnMods? NamedFnHeaderFront FnHeaderClause
+                 *                   = Expr
+                 * e.g.) localFn(x: ZZ32) = x + 2
+                 */
+                LetFn(List<FnDef> fns);
+                /**
+                 * local variable declaration
+                 * LocalVarDecl ::= var? LocalVarWTypes InitVal
+                 *                | var? LocalVarWTypes
+                 *                | var? LocalVarWoTypes = Expr
+                 *                | var? LocalVarWoTypes : Type ... InitVal?
+                 *                | var? LocalVarWoTypes : SimpleTupleType InitVal?
+                 * LocalVarWTypes ::= LocalVarWType
+                 *                  | ( LocalVarWType(, LocalVarWType)+ )
+                 * LocalVarWType ::= BindId IsType
+                 * LocalVarWoTypes ::= LocalVarWoType
+                 *                   | ( LocalVarWoType(, LocalVarWoType)+ )
+                 * LocalVarWoType ::= BindId
+                 *                  | Unpasting
+                 * e.g.) localVar x = 3
+                 */
+                LocalVarDecl(List<LValue> lhs,
+                             Option<Expr> rhs = Option.<Expr>none());
+            /**
+             * generated expression
+             * BlockElem ::= Expr(, GeneratorClauseList)?
+             * e.g.) print (i " "), i <- sequential(1:5)
+             */
+            GeneratedExpr(Expr expr, List<GeneratorClause> gens);
+            /**
+             * expression that is simple or using operators
+             * Expr ::= OpExpr
+             */
+            abstract SimpleExpr();
+                /**
+                 * Template gap for simple expressions
+                 */
+                TemplateGapSimpleExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                /**
+                 * subscripting expression
+                 * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
+                 * e.g.) a[i]
+                 */
+                SubscriptExpr(Expr obj, List<Expr> subs,
+                              Option<Enclosing> op = Option.<Enclosing>none(),
+                              List<StaticArg> staticArgs
+                                  = Collections.<StaticArg>emptyList())
+                              implements LHS;
+                /**
+                 * primary expression
+                 */
+                abstract Primary();
+                    /**
+                     * Template gap for primary expressions
+                     */
+                    TemplateGapPrimary(Id id, List<Id> templateParams) implements TemplateGap;
+                    /**
+                     * literal
+                     * Primary ::= LiteralExpr
+                     */
+                    abstract LiteralExpr(String text);
+                        /**
+                         * Template gap for literal expressiont
+                         */
+                        TemplateGapLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                        /**
+                         * number literal
+                         */
+                        abstract NumberLiteralExpr();
+                            /**
+                             * Template gap for number literals
+                             */
+                            TemplateGapNumberLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                            /**
+                             * float literal
+                             * e.g.) 3.5
+                             */
+                            FloatLiteralExpr(ignoreForEquals String text,
+                                             BigInteger intPart,
+                                             BigInteger numerator, int denomBase,
+                                             int denomPower);
+                                /**
+                                 * Template gap for float literals
+                                 */
+                                TemplateGapFloatLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                            /**
+                             * int literal
+                             * e.g.) 7
+                             */
+                            IntLiteralExpr(String text = in_val.toString(),
+                                           BigInteger val);
+                                /**
+                                 * Template gap for int literals
+                                 */
+                                TemplateGapIntLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                        /**
+                         * char literal
+                         * e.g.) 'c'
+                         */
+                        CharLiteralExpr(int val = in_text.charAt(0));
+                            /**
+                             * Template gap for char literals
+                             */
+                            TemplateGapCharLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                        /**
+                         * string literal
+                         * e.g.) "string"
+                         */
+                        StringLiteralExpr();
+                            /**
+                             * Template gap for string literals
+                             */
+                            TemplateGapStringLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                        /**
+                         * void literal
+                         * e.g.) ()
+                         */
+                        VoidLiteralExpr(String text = "");
+                            /**
+                             * Template gap for void literals
+                             */
+                            TemplateGapVoidLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                    /**
+                     * variable reference
+                     * VarOrFnRef ::= Id
+                     * Primary ::= self
+                     * e.g.) length
+                     */
+                    VarRef(Id var, int lexicalDepth=-1) implements LHS;
+                    /**
+                     * A reference to a singleton object. Created at typechecking or disambiguation-time.
+                     * Necessary because object references are initially parsed as FnRefs.
+                     * e.g.) Foo[\ZZ32\]
+                     * where Foo was defined as
+                     * object Foo[\T\] ... end
+                     */
+                    _RewriteObjectRef(Id obj, List<StaticArg> staticArgs);
+                    /**
+                     * field selection expression
+                     * Primary ::= Primary . Id
+                     */
+                    abstract AbstractFieldRef(Expr obj) implements LHS;
+                        /**
+                         * A field selection, unless it is a method reference
+                         * Names of "field" must be unqualified.
+                         * e.g.) Empty.length
+                         */
+                        FieldRef(Id field);
+                        /**
+                         * A rewritten field ref (not a getter/setter)
+                         * also used to disambiguate lexical references to self/parent
+                         * and within objectexprs to get access to outer scopes
+                         * where the vars in the outer scopes may in turn have been
+                         * API-qualified.
+                         *
+                         * If the reference to outer scope can be "fixed" (there is
+                         * only one out scope) then it might be good to narrow this
+                         * back down to an Id.
+                         *
+                         * Names of "field" must be unqualified.
+                         */
+                        _RewriteFieldRef(Name field);
+                    /**
+                     * named functional in functional applications
+                     */
+                    abstract FunctionalRef(List<StaticArg> staticArgs
+                                             = Collections.<StaticArg>emptyList(), int lexicalDepth=-1);
+                        /**
+                         * expression with static instantiations
+                         * list of ids allows cross-API overloading
+                         * Primary ::= Id[\StaticArgList\]
+                         * e.g.) identity[\String\]
+                         */
+                        FnRef(Id originalName,
+                              List<Id> fns = Collections.<Id>singletonList(in_originalName),
+                              List<StaticArg> staticArgs
                                   = Collections.<StaticArg>emptyList());
-                /**
-                 * summation and other reduction expression
-                 * FlowExpr ::= Accumulator StaticArgs?
-                 *                ([ GeneratorClauseList ])? Expr
-                 * Accumulator ::= SUM | PRODUCT | Big Op
-                 * e.g.) PRODUCT[i <- 1:n] i
-                 */
-                Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
-                /**
-                 * array comprehension
-                 * Comprehension ::= BIG? [ StaticArgs? ArrayComprehensionClause+
-                 *                        ]
-                 * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
-                 */
-                ArrayComprehension(List<ArrayComprehensionClause> clauses);
-            /**
-             * atomic expression
-             * FlowExpr ::= atomic AtomicBack
-             * AtomicBack ::= AssignExpr
-             *              | OpExpr
-             *              | DelimitedExpr
-             * e.g.) atomic sum += a[i]
-             */
-            AtomicExpr(Expr expr);
-            /**
-             * exiting labeled expressions
-             * FlowExpr ::= exit Id? (with Expr)?
-             * e.g.) exit I_95 with x32B
-             * Targets must be unqualified.
-             */
-            Exit(Option<Id> target = Option.<Id>none(),
-                 Option<Expr> returnExpr = Option.<Expr>none());
-            /**
-             * spawn expression
-             * FlowExpr ::= spawn Expr
-             * e.g.) spawn mm(lefttop, right, resulttop)
-             */
-            Spawn(Expr body);
-            /**
-             * throw expression
-             * FlowExpr ::= throw Expr
-             * e.g.) throw Error
-             */
-            Throw(Expr expr);
-            /**
-             * tryatomic expression
-             * FlowExpr ::= tryatomic AtomicBack
-             * e.g.) tryatomic sum += a[i]
-             */
-            TryAtomicExpr(Expr expr);
-        /**
-         * function expression
-         * Names must be unqualified.
-         * Expr ::= fn ValParam IsType? Throws? => Expr
-         * e.g.) fn x => x + 2
-         */
-        FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
-               boolean parenthesized = false,
-               IdOrOpOrAnonymousName name = new AnonymousFnName(in_span),
-               List<StaticParam> staticParams
-                   = Collections.<StaticParam>emptyList(),
-               List<Param> params,
-               Option<Type> returnType = Option.<Type>none(),
-               WhereClause where = FortressUtil.emptyWhereClause(),
-               Option<List<BaseType>> throwsClause
-                   = Option.<List<BaseType>>none(),
-               Expr body)
-              implements Applicable;
-            /**
-             * Template gap for FnExpr
-             */
-            TemplateGapFnExpr(Id id, List<Id> templateParams) implements TemplateGap;
-        /**
-         * expression used in block expressions
-         * BlockElem ::= LocalVarFnDecl
-         *             | Expr(, GeneratorClauseList)?
-         * LocalVarFnDecl ::= LocalFnDecl+
-         *                  | LocalVarDecl
-         */
-        abstract LetExpr(List<Expr> body);
-            /**
-             * local function declaration
-             * LocalFnDecl ::= LocalFnMods? NamedFnHeaderFront FnHeaderClause
-             *                   = Expr
-             * e.g.) localFn(x: ZZ32) = x + 2
-             */
-            LetFn(List<FnDef> fns);
-            /**
-             * local variable declaration
-             * LocalVarDecl ::= var? LocalVarWTypes InitVal
-             *                | var? LocalVarWTypes
-             *                | var? LocalVarWoTypes = Expr
-             *                | var? LocalVarWoTypes : Type ... InitVal?
-             *                | var? LocalVarWoTypes : SimpleTupleType InitVal?
-             * LocalVarWTypes ::= LocalVarWType
-             *                  | ( LocalVarWType(, LocalVarWType)+ )
-             * LocalVarWType ::= BindId IsType
-             * LocalVarWoTypes ::= LocalVarWoType
-             *                   | ( LocalVarWoType(, LocalVarWoType)+ )
-             * LocalVarWoType ::= BindId
-             *                  | Unpasting
-             * e.g.) localVar x = 3
-             */
-            LocalVarDecl(List<LValue> lhs,
-                         Option<Expr> rhs = Option.<Expr>none());
-        /**
-         * generated expression
-         * BlockElem ::= Expr(, GeneratorClauseList)?
-         * e.g.) print (i " "), i <- sequential(1:5)
-         */
-        GeneratedExpr(Expr expr, List<GeneratorClause> gens);
-        /**
-         * expression that is simple or using operators
-         * Expr ::= OpExpr
-         */
-        abstract SimpleExpr();
-            /**
-             * Template gap for simple expressions
-             */
-            TemplateGapSimpleExpr(Id id, List<Id> templateParams) implements TemplateGap;
-            /**
-             * subscripting expression
-             * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
-             * e.g.) a[i]
-             */
-            SubscriptExpr(Expr obj, List<Expr> subs,
-                          Option<Enclosing> op = Option.<Enclosing>none(),
-                          List<StaticArg> staticArgs
-                              = Collections.<StaticArg>emptyList())
-                          implements LHS;
-            /**
-             * primary expression
-             */
-            abstract Primary();
-                /**
-                 * Template gap for primary expressions
-                 */
-                TemplateGapPrimary(Id id, List<Id> templateParams) implements TemplateGap;
-                /**
-                 * literal
-                 * Primary ::= LiteralExpr
-                 */
-                abstract LiteralExpr(String text);
-                    /**
-                     * Template gap for literal expressiont
-                     */
-                    TemplateGapLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                    /**
-                     * number literal
-                     */
-                    abstract NumberLiteralExpr();
                         /**
-                         * Template gap for number literals
+                         * The rewriting to explicitly name self and parent
+                         * pre-interpretation may generalize the dotted
+                         * list from a FnRef into something else.
                          */
-                        TemplateGapNumberLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+                        _RewriteFnRef(Expr fn,
+                                      List<StaticArg> staticArgs
+                                  = Collections.<StaticArg>emptyList());
                         /**
-                         * float literal
-                         * e.g.) 3.5
+                         * operator name with (inferred) static instantiations
+                         * list of operators allows cross-API overloading
+                         * Primary ::= Op[\StaticArgList\]
+                         * e.g.) +[\String\]
                          */
-                        FloatLiteralExpr(ignoreForEquals String text,
-                                         BigInteger intPart,
-                                         BigInteger numerator, int denomBase,
-                                         int denomPower);
+                        OpRef(OpName originalName,
+                              List<OpName> ops = Collections.<OpName>singletonList(in_originalName),
+                              List<StaticArg> staticArgs
+                                  = Collections.<StaticArg>emptyList());
+                    /**
+                     * functional applicaiton
+                     */
+                    abstract AppExpr();
+                        /**
+                         * juxtaposition of expressions
+                         * If this node turns out to actually be a juxtaposition,
+                         * based on the types, the op field is a reference to
+                         * the operator that should be used.
+                         *
+                         * Primary ::= Primary . Id StaticArgs? ParenthesisDelimited
+                         *           | Primary TupleExpr
+                         *           | Primary Primary
+                         * e.g.) myString.replace("foo", "few")
+                         * e.g.) log log n
+                         */
+                        abstract Juxt(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
+                                      OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
+                                      List<Expr> exprs = new LinkedList<Expr>());
                             /**
-                             * Template gap for float literals
+                             * juxtaposition with intervening whitespace
+                             * e.g.) 3 5
                              */
-                            TemplateGapFloatLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                        /**
-                         * int literal
-                         * e.g.) 7
-                         */
-                        IntLiteralExpr(String text = in_val.toString(),
-                                       BigInteger val);
-                            /**
-                             * Template gap for int literals
+                            LooseJuxt();
+                                /**
+                                 * Template gap for expressions
+                                 */
+                                TemplateGapLooseJuxt(Id id, List<Id> templateParams) implements TemplateGap;
+                           /**
+                             * juxtaposition without intervening whitespace
+                             * e.g.) f(3+5)
                              */
-                            TemplateGapIntLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                    /**
-                     * char literal
-                     * e.g.) 'c'
-                     */
-                    CharLiteralExpr(int val = in_text.charAt(0));
+                            TightJuxt();
                         /**
-                         * Template gap for char literals
+                         * functional application
+                         * Primary ::= Primary ArgExpr
+                         *           | Primary Primary
+                         * e.g.) x y
                          */
-                        TemplateGapCharLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                    /**
-                     * string literal
-                     * e.g.) "string"
-                     */
-                    StringLiteralExpr();
+                        _RewriteFnApp(Expr function, Expr argument);
                         /**
-                         * Template gap for string literals
+                         * expression using operators
+                         * (list of ops allows cross-API overloading)
+                         * OpExpr ::= EncloserOp OpExpr? EncloserOp?
+                         *          | OpExpr EncloserOp OpExpr?
+                         *          | Primary
+                         * EncloserOp ::= Encloser
+                         *              | Op
+                         * Primary ::= LeftEncloser ExprList? RightEncloser
+                         *           | Primary ^ Exponent
+                         *           | Primary ExponentOp
+                         * e.g.) 3 + 5
                          */
-                        TemplateGapStringLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                    /**
-                     * void literal
-                     * e.g.) ()
-                     */
-                    VoidLiteralExpr(String text = "");
+                        OpExpr(OpRef op,
+                               List<Expr> args = Collections.<Expr>emptyList());
                         /**
-                         * Template gap for void literals
+                         * chain expression
+                         * Certain infix mathematical operators that are
+                         * traditionally regarded as relational operators,
+                         * delivering boolean results, may be chained.
+                         * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                          */
-                        TemplateGapVoidLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                /**
-                 * variable reference
-                 * VarOrFnRef ::= Id
-                 * Primary ::= self
-                 * e.g.) length
-                 */
-                VarRef(Id var, int lexicalDepth=-1) implements LHS;
-                /**
-                 * A reference to a singleton object. Created at typechecking or disambiguation-time.
-                 * Necessary because object references are initially parsed as FnRefs.
-                 * e.g.) Foo[\ZZ32\]
-                 * where Foo was defined as
-                 * object Foo[\T\] ... end
-                 */
-                _RewriteObjectRef(Id obj, List<StaticArg> staticArgs);
-                /**
-                 * field selection expression
-                 * Primary ::= Primary . Id
-                 */
-                abstract AbstractFieldRef(Expr obj) implements LHS;
-                    /**
-                     * A field selection, unless it is a method reference
-                     * Names of "field" must be unqualified.
-                     * e.g.) Empty.length
-                     */
-                    FieldRef(Id field);
-                    /**
-                     * A rewritten field ref (not a getter/setter)
-                     * also used to disambiguate lexical references to self/parent
-                     * and within objectexprs to get access to outer scopes
-                     * where the vars in the outer scopes may in turn have been
-                     * API-qualified.
-                     *
-                     * If the reference to outer scope can be "fixed" (there is
-                     * only one out scope) then it might be good to narrow this
-                     * back down to an Id.
-                     *
-                     * Names of "field" must be unqualified.
-                     */
-                    _RewriteFieldRef(Name field);
-                /**
-                 * named functional in functional applications
-                 */
-                abstract FunctionalRef(List<StaticArg> staticArgs
-                                         = Collections.<StaticArg>emptyList(), int lexicalDepth=-1);
-                    /**
-                     * expression with static instantiations
-                     * list of ids allows cross-API overloading
-                     * Primary ::= Id[\StaticArgList\]
-                     * e.g.) identity[\String\]
-                     */
-                    FnRef(Id originalName,
-                          List<Id> fns = Collections.<Id>singletonList(in_originalName),
-                          List<StaticArg> staticArgs
-                              = Collections.<StaticArg>emptyList());
-                    /**
-                     * The rewriting to explicitly name self and parent
-                     * pre-interpretation may generalize the dotted
-                     * list from a FnRef into something else.
-                     */
-                    _RewriteFnRef(Expr fn,
-                                  List<StaticArg> staticArgs
-                              = Collections.<StaticArg>emptyList());
-                    /**
-                     * operator name with (inferred) static instantiations
-                     * list of operators allows cross-API overloading
-                     * Primary ::= Op[\StaticArgList\]
-                     * e.g.) +[\String\]
-                     */
-                    OpRef(OpName originalName,
-                          List<OpName> ops = Collections.<OpName>singletonList(in_originalName),
-                          List<StaticArg> staticArgs
-                              = Collections.<StaticArg>emptyList());
-                /**
-                 * functional applicaiton
-                 */
-                abstract AppExpr();
-                    /**
-                     * juxtaposition of expressions
-                     * If this node turns out to actually be a juxtaposition,
-                     * based on the types, the op field is a reference to
-                     * the operator that should be used.
-                     *
-                     * Primary ::= Primary . Id StaticArgs? ParenthesisDelimited
-                     *           | Primary TupleExpr
-                     *           | Primary Primary
-                     * e.g.) myString.replace("foo", "few")
-                     * e.g.) log log n
-                     */
-                    abstract Juxt(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
-                                  OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
-                                  List<Expr> exprs = new LinkedList<Expr>());
+                        ChainExpr(Expr first, List<Link> links);
                         /**
-                         * juxtaposition with intervening whitespace
-                         * e.g.) 3 5
+                         * coercion invocation
+                         * internal node created by static analysis
+                         * after inferring the implicit coercion invocations
                          */
-                        LooseJuxt();
-                            /**
-                             * Template gap for expressions
-                             */
-                            TemplateGapLooseJuxt(Id id, List<Id> templateParams) implements TemplateGap;
-                       /**
-                         * juxtaposition without intervening whitespace
-                         * e.g.) f(3+5)
+                        CoercionInvocation(BaseType type,
+                                           List<StaticArg> staticArgs
+                                               = Collections.<StaticArg>emptyList(),
+                                           Expr arg);
+                        /**
+                         * a method invocation
+                         * some are created by parsing, while others require later
+                         * static analysis to disambiguate from function applications
+                         *
+                         * Names of "method" must be unqualified.
+                         * e.g.) myString.toUppercase()
                          */
-                        TightJuxt();
+                        MethodInvocation(Expr obj, Id method,
+                                         List<StaticArg> staticArgs
+                                             = Collections.<StaticArg>emptyList(),
+                                         Expr arg);
                     /**
-                     * functional application
-                     * Primary ::= Primary ArgExpr
-                     *           | Primary Primary
-                     * e.g.) x y
+                     * primary expression without any dots
+                     * MathPrimary ::= PrimaryFront MathItem*
+                     * e.g.) a[3, 4]
                      */
-                    _RewriteFnApp(Expr function, Expr argument);
+                    MathPrimary(Expr front, List<MathItem> rest);
                     /**
-                     * expression using operators
-                     * (list of ops allows cross-API overloading)
-                     * OpExpr ::= EncloserOp OpExpr? EncloserOp?
-                     *          | OpExpr EncloserOp OpExpr?
-                     *          | Primary
-                     * EncloserOp ::= Encloser
-                     *              | Op
-                     * Primary ::= LeftEncloser ExprList? RightEncloser
-                     *           | Primary ^ Exponent
-                     *           | Primary ExponentOp
-                     * e.g.) 3 + 5
+                     * array expression
+                     * ArrayExpr ::= [ StaticArgs? RectElements ]
+                     * RectElements ::= Expr MultiDimCons*
+                     * MultiDimCons ::= RectSeparator Expr
+                     * RectSeparator ::= ;+
+                     *                 | Whitespace
+                     * e.g.) [1 2 3; 4 5 6; 7 8 9]
                      */
-                    OpExpr(OpRef op,
-                           List<Expr> args = Collections.<Expr>emptyList());
-                    /**
-                     * chain expression
-                     * Certain infix mathematical operators that are
-                     * traditionally regarded as relational operators,
-                     * delivering boolean results, may be chained.
-                     * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
-                     */
-                    ChainExpr(Expr first, List<Link> links);
-                    /**
-                     * coercion invocation
-                     * internal node created by static analysis
-                     * after inferring the implicit coercion invocations
-                     */
-                    CoercionInvocation(BaseType type,
-                                       List<StaticArg> staticArgs
-                                           = Collections.<StaticArg>emptyList(),
-                                       Expr arg);
-                    /**
-                     * a method invocation
-                     * some are created by parsing, while others require later
-                     * static analysis to disambiguate from function applications
-                     *
-                     * Names of "method" must be unqualified.
-                     * e.g.) myString.toUppercase()
-                     */
-                    MethodInvocation(Expr obj, Id method,
-                                     List<StaticArg> staticArgs
-                                         = Collections.<StaticArg>emptyList(),
-                                     Expr arg);
-                /**
-                 * primary expression without any dots
-                 * MathPrimary ::= PrimaryFront MathItem*
-                 * e.g.) a[3, 4]
-                 */
-                MathPrimary(Expr front, List<MathItem> rest);
-                /**
-                 * array expression
-                 * ArrayExpr ::= [ StaticArgs? RectElements ]
-                 * RectElements ::= Expr MultiDimCons*
-                 * MultiDimCons ::= RectSeparator Expr
-                 * RectSeparator ::= ;+
-                 *                 | Whitespace
-                 * e.g.) [1 2 3; 4 5 6; 7 8 9]
-                 */
-                abstract ArrayExpr(List<StaticArg> staticArgs
-                                       = Collections.<StaticArg>emptyList());
-                    /**
-                     * array with a single element
-                     * e.g.) [3]
-                     */
-                    ArrayElement(Expr element);
-                    /**
-                     * array with multiple elements
-                     * e.g.) [3 4 5; 6 7 8]
-                     */
-                    ArrayElements(int dimension, List<ArrayExpr> elements);
-    /**
-     * type
-     */
-    abstract Type(ignoreForEquals boolean parenthesized = false)
-                 implements TypeOrDomain;
+                    abstract ArrayExpr(List<StaticArg> staticArgs
+                                           = Collections.<StaticArg>emptyList());
+                        /**
+                         * array with a single element
+                         * e.g.) [3]
+                         */
+                        ArrayElement(Expr element);
+                        /**
+                         * array with multiple elements
+                         * e.g.) [3 4 5; 6 7 8]
+                         */
+                        ArrayElements(int dimension, List<ArrayExpr> elements);
         /**
-         * dimension expression (not really a type, but here for
-         * now because of the way the parser is defined)
+         * type
          */
-        abstract DimExpr();
-            /* vector type or exponent dimemsion
-             * resolved during parsing
-             * e.g.) ZZ32^3
-             * e.g.) Time^2
-             */
-            ExponentType(Type base, IntExpr power);
-            /* base dimension
-             * DimExpr ::= Unity
-             * e.g.) Unity
-             */
-            BaseDim();
-            /* dimension identifier
-             * DimExpr ::= QualifiedName
-             * e.g.) com.sun.fortress.dim.Length
-             */
-            DimRef(Id name);
-            /* dimension multiplication
-             * DimExpr ::= DimExpr DOT DimExpr
-             *           | DimExpr DimExpr
-             * e.g.) Length Mass
-             */
-            ProductDim(DimExpr multiplier, DimExpr multiplicand);
-            /* dimension division
-             * DimExpr ::= DimExpr / DimExpr
-             *           | DimExpr per DimExpr
-             *           | 1 / DimExpr
-             * e.g.) Length / Time
-             */
-            QuotientDim(DimExpr numerator, DimExpr denominator);
-            /* dimension exponentiation
-             * DimExpr ::= DimExpr ^ IntExpr
-             * e.g.) Time^2
-             */
-            ExponentDim(DimExpr base, IntExpr power);
-            /* dimension with operator
-             * DimExpr ::= DimPrefixOp DimExpr
-             *           | DimExpr DimPostfixOp
-             * e.g.) Time squared
-             */
-            OpDim(DimExpr val, Op op);
-        /**
-         * base types: things that can be extended, excluded, thrown, etc.
-         */
-        abstract BaseType();
+        abstract Type(ignoreForEquals boolean parenthesized = false)
+                     implements TypeOrDomain;
             /**
-             * any type
-             * e.g.) Any
+             * dimension expression (not really a type, but here for
+             * now because of the way the parser is defined)
              */
-            AnyType();
-            /**
-             * bottom type
-             * internal node
-             */
-            BottomType();
-            /**
-             * named type
-             */
-            abstract NamedType(Id name, int lexicalDepth=-1);
-                /**
-                 * a type variable
-                 * TraitType ::= QualifiedName
-                 * e.g.) T
-                 */
-                VarType();
-                /**
-                 * a trait (object, alias, or proper trait) type; traits
-                 * without params are referenced with an empty arg list
-                 * TraitType ::= QualifiedName [\StaticArgList\]
-                 * e.g.) List[\ZZ32\]
-                 */
-                TraitType(List<StaticArg> args
-                           = Collections.<StaticArg>emptyList());
-                /**
-                 * type of a generic singleton, used during static checking
-                 */
-                _RewriteGenericSingletonType(List<StaticParam> staticParams);
-            /**
-             * abbreviated type
-             */
-            abstract AbbreviatedType(Type type);
-                /**
-                 * array type
-                 * TraitType ::= Type [ ArraySize? ]
-                 * e.g.) ZZ64[3, 2]
-                 */
-                ArrayType(Indices indices);
-                /**
-                 * matrix type
-                 * TraitType ::= Type ^ IntExpr
-                 *             | Type ^ ( ExtentRange (BY ExtentRange)* )
+            abstract DimExpr();
+                /* vector type or exponent dimemsion
+                 * resolved during parsing
                  * e.g.) ZZ32^3
+                 * e.g.) Time^2
                  */
-                MatrixType(List<ExtentRange> dimensions);
-                /**
-                 * type with dimension
-                 * DimType ::= Type DimExpr (in Expr)?
-                 * e.g.) RR64 Length
+                ExponentType(Type base, IntExpr power);
+                /* base dimension
+                 * DimExpr ::= Unity
+                 * e.g.) Unity
                  */
-                TaggedDimType(DimExpr dim,
-                              Option<Expr> unit = Option.<Expr>none());
-                /**
-                 * type with unit
-                 * DimType ::= Type Expr
-                 * e.g.) RR64 meter
+                BaseDim();
+                /* dimension identifier
+                 * DimExpr ::= QualifiedName
+                 * e.g.) com.sun.fortress.dim.Length
                  */
-                TaggedUnitType(Expr unit);
-        /**
-         * tuple-like types
-         */
-        abstract AbstractTupleType(List<Type> elements);
+                DimRef(Id name);
+                /* dimension multiplication
+                 * DimExpr ::= DimExpr DOT DimExpr
+                 *           | DimExpr DimExpr
+                 * e.g.) Length Mass
+                 */
+                ProductDim(DimExpr multiplier, DimExpr multiplicand);
+                /* dimension division
+                 * DimExpr ::= DimExpr / DimExpr
+                 *           | DimExpr per DimExpr
+                 *           | 1 / DimExpr
+                 * e.g.) Length / Time
+                 */
+                QuotientDim(DimExpr numerator, DimExpr denominator);
+                /* dimension exponentiation
+                 * DimExpr ::= DimExpr ^ IntExpr
+                 * e.g.) Time^2
+                 */
+                ExponentDim(DimExpr base, IntExpr power);
+                /* dimension with operator
+                 * DimExpr ::= DimPrefixOp DimExpr
+                 *           | DimExpr DimPostfixOp
+                 * e.g.) Time squared
+                 */
+                OpDim(DimExpr val, Op op);
             /**
-             * tuple type
-             * TupleType ::= ( Type, TypeList )
-             * e.g.) (ZZ32, String)
+             * base types: things that can be extended, excluded, thrown, etc.
              */
-            TupleType();
+            abstract BaseType();
+                /**
+                 * any type
+                 * e.g.) Any
+                 */
+                AnyType();
+                /**
+                 * bottom type
+                 * internal node
+                 */
+                BottomType();
+                /**
+                 * named type
+                 */
+                abstract NamedType(Id name, int lexicalDepth=-1);
+                    /**
+                     * a type variable
+                     * TraitType ::= QualifiedName
+                     * e.g.) T
+                     */
+                    VarType();
+                    /**
+                     * a trait (object, alias, or proper trait) type; traits
+                     * without params are referenced with an empty arg list
+                     * TraitType ::= QualifiedName [\StaticArgList\]
+                     * e.g.) List[\ZZ32\]
+                     */
+                    TraitType(List<StaticArg> args
+                               = Collections.<StaticArg>emptyList());
+                    /**
+                     * type of a generic singleton, used during static checking
+                     */
+                    _RewriteGenericSingletonType(List<StaticParam> staticParams);
+                /**
+                 * abbreviated type
+                 */
+                abstract AbbreviatedType(Type type);
+                    /**
+                     * array type
+                     * TraitType ::= Type [ ArraySize? ]
+                     * e.g.) ZZ64[3, 2]
+                     */
+                    ArrayType(Indices indices);
+                    /**
+                     * matrix type
+                     * TraitType ::= Type ^ IntExpr
+                     *             | Type ^ ( ExtentRange (BY ExtentRange)* )
+                     * e.g.) ZZ32^3
+                     */
+                    MatrixType(List<ExtentRange> dimensions);
+                    /**
+                     * type with dimension
+                     * DimType ::= Type DimExpr (in Expr)?
+                     * e.g.) RR64 Length
+                     */
+                    TaggedDimType(DimExpr dim,
+                                  Option<Expr> unit = Option.<Expr>none());
+                    /**
+                     * type with unit
+                     * DimType ::= Type Expr
+                     * e.g.) RR64 meter
+                     */
+                    TaggedUnitType(Expr unit);
             /**
-             * Used internally to represent an infinite union of
-             * TupleTypes.
+             * tuple-like types
              */
-            VarargTupleType(Type varargs);
-        /**
-         * void type
-         * NonArrowType ::= ()
-         * e.g.) ()
-         */
-        VoidType();
-        /**
-         * arrow type
-         */
-        abstract AbstractArrowType(Domain domain, Type range,
-                                   Effect effect = FortressUtil.emptyEffect());
+            abstract AbstractTupleType(List<Type> elements);
+                /**
+                 * tuple type
+                 * TupleType ::= ( Type, TypeList )
+                 * e.g.) (ZZ32, String)
+                 */
+                TupleType();
+                /**
+                 * Used internally to represent an infinite union of
+                 * TupleTypes.
+                 */
+                VarargTupleType(Type varargs);
+            /**
+             * void type
+             * NonArrowType ::= ()
+             * e.g.) ()
+             */
+            VoidType();
             /**
              * arrow type
-             * Type ::= Type -> Type Throws?
-             * e.g.) (String, NN..., p = Printer) -> NN throws IOException
              */
-            ArrowType();
+            abstract AbstractArrowType(Domain domain, Type range,
+                                       Effect effect = FortressUtil.emptyEffect());
+                /**
+                 * arrow type
+                 * Type ::= Type -> Type Throws?
+                 * e.g.) (String, NN..., p = Printer) -> NN throws IOException
+                 */
+                ArrowType();
+                /**
+                 * type of a generic function, used during static checking
+                 */
+                _RewriteGenericArrowType(List<StaticParam> staticParams
+                                          = Collections.<StaticParam>emptyList(),
+                                         Domain domain,
+                                         Type range,
+                                         Effect effect = FortressUtil.emptyEffect(),
+                                         WhereClause where = FortressUtil.emptyWhereClause());
             /**
-             * type of a generic function, used during static checking
+             * inferred type
+             * Used internally for type analysis
              */
-            _RewriteGenericArrowType(List<StaticParam> staticParams
-                                      = Collections.<StaticParam>emptyList(),
-                                     Domain domain,
-                                     Type range,
-                                     Effect effect = FortressUtil.emptyEffect(),
-                                     WhereClause where = FortressUtil.emptyWhereClause());
-        /**
-         * inferred type
-         * Used internally for type analysis
-         */
-        InferenceVarType(Object id);
-        /**
-         * An intersection or union.
-         */
-        abstract BoundType(List<Type> elements);
+            InferenceVarType(Object id);
             /**
-             * An intersection.  Used internally for type analysis.
+             * An intersection or union.
              */
-            IntersectionType();
+            abstract BoundType(List<Type> elements);
+                /**
+                 * An intersection.  Used internally for type analysis.
+                 */
+                IntersectionType();
+                /**
+                 * A union.  Used internally for type analysis.
+                 */
+                UnionType();
             /**
-             * A union.  Used internally for type analysis.
+             * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
+             * Names must be unqualified.
              */
-            UnionType();
-        /**
-         * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
-         * Names must be unqualified.
-         */
-        FixedPointType(Id name, Type body);
-        /**
-         * The type of the name given to a label expression.  Used internally.
-         */
-        LabelType();
-    /**
-     * domain of an arrow type
-     * ArgType ::=
-     *     ( (Type, )* (Type ... , )? KeywordType(, KeywordType)* )
-     *   | ( (Type, )* Type ... )
-     *   | TupleType
-     * e.g.) ZZ32
-     * e.g.) (String, ZZ32, String..., foo=ZZ32)
-     */
-    Domain(List<Type> args,
-           Option<Type> varargs = Option.<Type>none(),
-           List<KeywordType> keywords = Collections.<KeywordType>emptyList())
-          implements TypeOrDomain;
-    /**
-     * effect on arrow types
-     * e.g.) throws FailCalled
-     */
-    Effect(Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
-           boolean io = false);
-    /**
-     * static argument
-     */
-    abstract StaticArg();
-        /**
-         * type used as static argument
-         * StaticArg ::= Type
-         * e.g.) List[\ZZ64\]
-         */
-        TypeArg(Type type);
-        /**
-         * integer used as static argument
-         * StaticArg ::= IntExpr
-         * e.g.) m + n
-         */
-        IntArg(IntExpr val);
-        /**
-         * boolean used as static argument
-         * StaticArg ::= BoolExpr
-         * e.g.) ninf OR pinf
-         */
-        BoolArg(BoolExpr bool);
-        /**
-         * operator used as static argument
-         * StaticArg ::= Op
-         * e.g.) +
-         */
-        OpArg(Op name);
-        /**
-         * dimension used as static argument
-         * StaticArg ::= Type
-         * e.g.) Unity
-         */
-        DimArg(DimExpr dim);
-        /**
-         * unit used as static argument
-         * StaticArg ::= UnitExpr
-         * e.g.) dimensionless
-         */
-        UnitArg(UnitExpr unit);
-    /**
-     * static expression
-     */
-    abstract StaticExpr(ignoreForEquals boolean parenthesized = false);
-        /**
-         * integer expression
-         * StaticExpr ::= IntExpr
-         */
-        abstract IntExpr();
+            FixedPointType(Id name, Type body);
             /**
-             * integer value
-             * IntExpr ::= IntVal
+             * The type of the name given to a label expression.  Used internally.
              */
-            abstract IntVal();
-                /**
-                 * integer number
-                 * IntVal ::= IntLiteralExpr
-                 * e.g.) 8
-                 */
-                NumberConstraint(IntLiteralExpr val);
-                /**
-                 * integer identifier
-                 * IntVal ::= QualifiedName
-                 * e.g.) m
-                 */
-                IntRef(Id name);
-            /**
-             * integer expression with an operator
-             */
-            abstract IntOpExpr(IntExpr left, IntExpr right);
-                /**
-                 * integer addition
-                 * IntExpr ::= IntExpr + IntExpr
-                 * e.g.) m + 2
-                 */
-                SumConstraint();
-                /**
-                 * integer subtraction
-                 * IntExpr ::= IntExpr - IntExpr
-                 * e.g.) m - 2
-                 */
-                MinusConstraint();
-                /**
-                 * integer multiplication
-                 * IntExpr ::= IntExpr IntExpr
-                 *           | IntExpr DOT IntExpr
-                 * e.g.) m DOT n
-                 */
-                ProductConstraint();
-                /**
-                 * integer exponentiation
-                 * IntExpr ::= IntExpr caret IntVal
-                 * e.g.) 2^b
-                 */
-                ExponentConstraint();
+            LabelType();
         /**
-         * boolean expression
-         * StaticExpr ::= BoolExpr
+         * domain of an arrow type
+         * ArgType ::=
+         *     ( (Type, )* (Type ... , )? KeywordType(, KeywordType)* )
+         *   | ( (Type, )* Type ... )
+         *   | TupleType
+         * e.g.) ZZ32
+         * e.g.) (String, ZZ32, String..., foo=ZZ32)
          */
-        abstract BoolExpr();
+        Domain(List<Type> args,
+               Option<Type> varargs = Option.<Type>none(),
+               List<KeywordType> keywords = Collections.<KeywordType>emptyList())
+              implements TypeOrDomain;
+        /**
+         * effect on arrow types
+         * e.g.) throws FailCalled
+         */
+        Effect(Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
+               boolean io = false);
+        /**
+         * static argument
+         */
+        abstract StaticArg();
             /**
-             * boolean value
-             * BoolExpr ::= BoolVal
+             * type used as static argument
+             * StaticArg ::= Type
+             * e.g.) List[\ZZ64\]
              */
-            abstract BoolVal();
-                /**
-                 * boolean constant
-                 * BoolVal ::= true | false
-                 * e.g.) true
-                 */
-                BoolConstant(boolean bool);
-                /**
-                 * boolean identiier
-                 * BoolVal ::= QualifiedName
-                 * e.g.) ninf
-                 */
-                BoolRef(Id name);
+            TypeArg(Type type);
             /**
-             * boolean constraint
-             * BoolExpr ::= BoolConstraint
+             * integer used as static argument
+             * StaticArg ::= IntExpr
+             * e.g.) m + n
              */
-            abstract BoolConstraint();
+            IntArg(IntExpr val);
+            /**
+             * boolean used as static argument
+             * StaticArg ::= BoolExpr
+             * e.g.) ninf OR pinf
+             */
+            BoolArg(BoolExpr bool);
+            /**
+             * operator used as static argument
+             * StaticArg ::= Op
+             * e.g.) +
+             */
+            OpArg(Op name);
+            /**
+             * dimension used as static argument
+             * StaticArg ::= Type
+             * e.g.) Unity
+             */
+            DimArg(DimExpr dim);
+            /**
+             * unit used as static argument
+             * StaticArg ::= UnitExpr
+             * e.g.) dimensionless
+             */
+            UnitArg(UnitExpr unit);
+        /**
+         * static expression
+         */
+        abstract StaticExpr(ignoreForEquals boolean parenthesized = false);
+            /**
+             * integer expression
+             * StaticExpr ::= IntExpr
+             */
+            abstract IntExpr();
                 /**
-                 * boolean NOT constraint
-                 * BoolConstraint ::= NOT BoolExpr
-                 * e.g.) NOT ninf
+                 * integer value
+                 * IntExpr ::= IntVal
                  */
-                NotConstraint(BoolExpr bool);
-                /**
-                 * binary boolean constraint
-                 * e.g.) ninf OR pinf
-                 */
-                abstract BinaryBoolConstraint(BoolExpr left, BoolExpr right);
+                abstract IntVal();
                     /**
-                     * boolean OR constraint
-                     * BoolConstraint ::= BoolExpr OR BoolExpr
+                     * integer number
+                     * IntVal ::= IntLiteralExpr
+                     * e.g.) 8
+                     */
+                    NumberConstraint(IntLiteralExpr val);
+                    /**
+                     * integer identifier
+                     * IntVal ::= QualifiedName
+                     * e.g.) m
+                     */
+                    IntRef(Id name);
+                /**
+                 * integer expression with an operator
+                 */
+                abstract IntOpExpr(IntExpr left, IntExpr right);
+                    /**
+                     * integer addition
+                     * IntExpr ::= IntExpr + IntExpr
+                     * e.g.) m + 2
+                     */
+                    SumConstraint();
+                    /**
+                     * integer subtraction
+                     * IntExpr ::= IntExpr - IntExpr
+                     * e.g.) m - 2
+                     */
+                    MinusConstraint();
+                    /**
+                     * integer multiplication
+                     * IntExpr ::= IntExpr IntExpr
+                     *           | IntExpr DOT IntExpr
+                     * e.g.) m DOT n
+                     */
+                    ProductConstraint();
+                    /**
+                     * integer exponentiation
+                     * IntExpr ::= IntExpr caret IntVal
+                     * e.g.) 2^b
+                     */
+                    ExponentConstraint();
+            /**
+             * boolean expression
+             * StaticExpr ::= BoolExpr
+             */
+            abstract BoolExpr();
+                /**
+                 * boolean value
+                 * BoolExpr ::= BoolVal
+                 */
+                abstract BoolVal();
+                    /**
+                     * boolean constant
+                     * BoolVal ::= true | false
+                     * e.g.) true
+                     */
+                    BoolConstant(boolean bool);
+                    /**
+                     * boolean identiier
+                     * BoolVal ::= QualifiedName
+                     * e.g.) ninf
+                     */
+                    BoolRef(Id name);
+                /**
+                 * boolean constraint
+                 * BoolExpr ::= BoolConstraint
+                 */
+                abstract BoolConstraint();
+                    /**
+                     * boolean NOT constraint
+                     * BoolConstraint ::= NOT BoolExpr
+                     * e.g.) NOT ninf
+                     */
+                    NotConstraint(BoolExpr bool);
+                    /**
+                     * binary boolean constraint
                      * e.g.) ninf OR pinf
                      */
-                    OrConstraint();
-                    /**
-                     * boolean AND constraint
-                     * BoolConstraint ::= BoolExpr AND BoolExpr
-                     * e.g.) ninf AND pinf
-                     */
-                    AndConstraint();
-                    /**
-                     * boolean IMPLIES constraint
-                     * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
-                     * e.g.) ninf IMPLIES pinf
-                     */
-                    ImpliesConstraint();
-                    /**
-                     * boolean equality constraint
-                     * BoolConstraint ::= BoolExpr = BoolExpr
-                     * e.g.) ninf AND pinf = true
-                     */
-                    BEConstraint();
-        /**
-         * unit expression
-         * StaticExpr ::= UnitExpr
-         */
-        abstract UnitExpr();
+                    abstract BinaryBoolConstraint(BoolExpr left, BoolExpr right);
+                        /**
+                         * boolean OR constraint
+                         * BoolConstraint ::= BoolExpr OR BoolExpr
+                         * e.g.) ninf OR pinf
+                         */
+                        OrConstraint();
+                        /**
+                         * boolean AND constraint
+                         * BoolConstraint ::= BoolExpr AND BoolExpr
+                         * e.g.) ninf AND pinf
+                         */
+                        AndConstraint();
+                        /**
+                         * boolean IMPLIES constraint
+                         * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
+                         * e.g.) ninf IMPLIES pinf
+                         */
+                        ImpliesConstraint();
+                        /**
+                         * boolean equality constraint
+                         * BoolConstraint ::= BoolExpr = BoolExpr
+                         * e.g.) ninf AND pinf = true
+                         */
+                        BEConstraint();
             /**
-             * unit identifier
-             * UnitExpr ::= dimensionless
-             *            | QualifiedName
-             * e.g.) m
+             * unit expression
+             * StaticExpr ::= UnitExpr
              */
-            UnitRef(Id name);
-            /**
-             * unit expression with an operator
-             */
-            abstract UnitOpExpr(UnitExpr left, UnitExpr right);
+            abstract UnitExpr();
                 /**
-                 * unit multiplication
-                 * UnitExpr ::= UnitExpr UnitExpr
-                 *            | UnitExpr DOT UnitExpr
-                 * e.g.) m DOT n
+                 * unit identifier
+                 * UnitExpr ::= dimensionless
+                 *            | QualifiedName
+                 * e.g.) m
                  */
-                ProductUnit();
-                /* unit division
-                 * UnitExpr ::= UnitExpr / UnitExpr
-                 *            | UnitExpr per UnitExpr
-                 * e.g.) meter / second
-                 */
-                QuotientUnit();
+                UnitRef(Id name);
                 /**
-                 * unit exponentiation
-                 * UnitExpr ::= UnitExpr caret UnitExpr
-                 * e.g.) meter^2
+                 * unit expression with an operator
                  */
-                ExponentUnit();
-    /**
-     * where clause used in trait, object, and functional declarations
-     * Where ::= where [\ WhereBindingList \] ({ WhereConstraintList })?
-     *         | where { WhereConstraintList }
-     * e.g.) where { ninf AND NOT nan }
-     */
-    WhereClause(List<WhereBinding> bindings
-                    = Collections.<WhereBinding>emptyList(),
-                List<WhereConstraint> constraints
-                    = Collections.<WhereConstraint>emptyList());
-    /**
-     * hidden type variable binding declared in where clauses
-     * Names must be unqualified.
-     */
-    abstract WhereBinding(Id name);
+                abstract UnitOpExpr(UnitExpr left, UnitExpr right);
+                    /**
+                     * unit multiplication
+                     * UnitExpr ::= UnitExpr UnitExpr
+                     *            | UnitExpr DOT UnitExpr
+                     * e.g.) m DOT n
+                     */
+                    ProductUnit();
+                    /* unit division
+                     * UnitExpr ::= UnitExpr / UnitExpr
+                     *            | UnitExpr per UnitExpr
+                     * e.g.) meter / second
+                     */
+                    QuotientUnit();
+                    /**
+                     * unit exponentiation
+                     * UnitExpr ::= UnitExpr caret UnitExpr
+                     * e.g.) meter^2
+                     */
+                    ExponentUnit();
         /**
-         * hidden type variable declared in where clauses
-         * WhereBinding ::= Id Extends?
-         * Extends ::= extends TraitTypes
-         * e.g.) T extends Object
+         * where clause used in trait, object, and functional declarations
+         * Where ::= where [\ WhereBindingList \] ({ WhereConstraintList })?
+         *         | where { WhereConstraintList }
+         * e.g.) where { ninf AND NOT nan }
          */
-        WhereType(List<BaseType> supers);
+        WhereClause(List<WhereBinding> bindings
+                        = Collections.<WhereBinding>emptyList(),
+                    List<WhereConstraint> constraints
+                        = Collections.<WhereConstraint>emptyList());
         /**
-         * nat parameter declared in where clauses
-         * WhereBinding ::= nat Id
-         * e.g.) nat length
-         */
-        WhereNat();
-        /**
-         * int parameter declared in where clauses
-         * WhereBinding ::= int Id
-         * e.g.) int length
-         */
-        WhereInt();
-        /**
-         * bool parameter declared in where clauses
-         * WhereBinding ::= bool Id
-         * e.g.) bool ninf
-         */
-        WhereBool();
-        /**
-         * unit parameter declared in where clauses
-         * WhereBinding ::= unit Id
-         * e.g.) unit U
-         */
-        WhereUnit();
-    /**
-     * hidden type variable constraint declared in where clauses
-     */
-    abstract WhereConstraint();
-        /**
-         * type variable constraint declared in where clauses
-         * WhereConstraint ::= Id Extends
-         * e.g.) T extends Object
-         */
-        WhereExtends(Id name, List<BaseType> supers);
-        /**
-         * type alias declaration
-         * TypeAlias ::= type Id StaticParams? = Type
-         * e.g.) type IntList = List[\ZZ64\]
-         */
-        TypeAlias(Id name,
-                  List<StaticParam> staticParams
-                      = Collections.<StaticParam>emptyList(),
-                  Type type)
-                 implements Decl, AbsDecl;
-        /**
-         * coercion constraint declared in where clauses
-         * WhereConstraint ::= Type coerces Type
-         * e.g.) T coerces Identity[\ODOT\]
-         */
-        WhereCoerces(Type left, Type right);
-        /**
-         * widening constraint declared in where clauses
-         * WhereConstraint ::= Type widens Type
-         * e.g.) T widens S
-         */
-        WhereWidens(Type left, Type right);
-        /**
-         * widening coercion constraint declared in where clauses
-         * CoercionWhereConstraint ::= Type widens or coerces Type
-         * e.g.) T widens or coerces S
-         */
-        WhereWidensCoerces(Type left, Type right);
-        /**
-         * DottedId equality constraint declared in where clauses
-         * WhereConstraint ::= QualifiedName = QualifiedName
-         * e.g.) m = n
-         */
-        WhereEquals(Id left, Id right);
-        /**
-         * unit constraint used in where clauses
-         * WhereConstraint ::= dimensionless = Id
-         *               | Id = dimensionless
-         * e.g.) U = dimensionless
-         */
-        UnitConstraint(Id name);
-        /**
-         * integer constraint used in where clauses
-         * WhereConstraint ::= IntConstraint
-         */
-        abstract IntConstraint(IntExpr left, IntExpr right);
-            /**
-             * less than equal constraint declared in where clauses
-             * IntConstraint ::= IntExpr <= IntExpr
-             * e.g.) b <= c
-             */
-            LEConstraint();
-            /**
-             * less than constraint declared in where clauses
-             * IntConstraint ::= IntExpr < IntExpr
-             * e.g.) 0 < a
-             */
-            LTConstraint();
-            /**
-             * greater than equal constraint declared in where clauses
-             * IntConstraint ::= IntExpr >= IntExpr
-             * e.g.) b >= c
-             */
-            GEConstraint();
-            /**
-             * greater than constraint declared in where clauses
-             * IntConstraint ::= IntExpr > IntExpr
-             * e.g.) a > 0
-             */
-            GTConstraint();
-            /**
-             * integer equality constraint declared in where clauses
-             * IntConstraint ::= IntExpr = IntExpr
-             * e.g.) 8 = 2^3
-             */
-            IEConstraint();
-        /**
-         * boolean constraint declared in where clauses
-         * WhereConstraint ::= BoolConstraint
-         * e.g.) pinf AND ninf
-         */
-        BoolConstraintExpr(BoolConstraint constraint);
-    /**
-     * contracts used in functional declarations and object declarations
-     * Contract ::= Requires? Ensures? Invariant?
-     * Requires ::= requires { ExprList? }
-     * Ensures ::= ensures { EnsuresClauseList? }
-     * Invariant ::= invariant { ExprList? }
-     * CoercionContract ::= Ensures? Invariant?
-     * e.g.) requires { n GE 0 } ensures { result GE 0 }
-     */
-    Contract(Option<List<Expr>> requires = Option.<List<Expr>>none(),
-             Option<List<EnsuresClause>> ensures =
-                 Option.<List<EnsuresClause>>none(),
-             Option<List<Expr>> invariants = Option.<List<Expr>>none());
-    /**
-     * ensures clause used in contracts
-     * EnsuresClause ::= Expr (provided Expr)?
-     * e.g.) sorted(result) provided sorted(input)
-     */
-    EnsuresClause(Expr post, Option<Expr> pre = Option.<Expr>none());
-    /**
-     * modifier
-     * TraitMod      ::= AbsTraitMod | private
-     * AbsTraitMod   ::= value | test
-     * ObjectMods    ::= TraitMods
-     * AbsObjectMods ::= AbsTraitMods
-     * MdMod         ::= FnMod | override
-     * AbsMdMod      ::= AbsFnMod | override
-     * FnMod         ::= AbsFnMod | private
-     * AbsFnMod      ::= LocalFnMod | test
-     * LocalFnMod    ::= atomic | io
-     * ParamFldMod   ::= var | hidden | settable | wrapped
-     * VarMod        ::= AbsVarMod | private
-     * AbsVarMod     ::= var | test
-     * FldMod        ::= var | AbsFldMod
-     * AbsFldMod     ::= ApiFldMod | wrapped | private
-     * ApiFldMod     ::= hidden | settable | test
-     */
-    abstract Modifier();
-        /**
-         * e.g.) abstract m(x: ZZ32): ()
-         */
-        ModifierAbstract();
-        /**
-         * e.g.) atomic f(x: ZZ32): ()
-         */
-        ModifierAtomic();
-        /**
-         * e.g.) getter velocity(): (RR Velocity)^3
-         */
-        ModifierGetter();
-        /**
-         * e.g.) hidden x: ZZ32
-         */
-        ModifierHidden();
-        /**
-         * e.g.) io print(s: String): ()
-         */
-        ModifierIO();
-        /**
-         * e.g.) override m(x: ZZ32): ()
-         */
-        ModifierOverride();
-        /**
-         * e.g.) private f(): ()
-         */
-        ModifierPrivate();
-        /**
-         * e.g.) settable message: Maybe[\String\]
-         */
-        ModifierSettable();
-        /**
-         * e.g.) setter velocity(v: (RR Velocity)^3): ()
-         */
-        ModifierSetter();
-        /**
-         * e.g.) test object TestSuite(testFunctions = {}) end
-         */
-        ModifierTest();
-        /**
-         * e.g.) object O(transient x: ZZ32) end
-         */
-        ModifierTransient();
-        /**
-         * e.g.) value object IntEmpty extends List[\ZZ32\] end
-         */
-        ModifierValue();
-        /**
-         * e.g.) var x: ZZ32
-         */
-        ModifierVar();
-        /**
-         * e.g.) coerce (x: RR32) widens = ...
-         */
-        ModifierWidens();
-        /**
-         * e.g.) wrapped val: Dictionary[\T\]
-         */
-        ModifierWrapped();
-    /**
-     * static parameter
-     */
-    abstract StaticParam();
-        /**
-         * operator parameter
-         * StaticParam ::= opr Op
-         * e.g.) opr ODOT
-         */
-        OpParam(Op name);
-        /**
-         * static parameter with a name field of type Id
+         * hidden type variable binding declared in where clauses
          * Names must be unqualified.
          */
-        abstract IdStaticParam(Id name);
-           /**
-            * bool parameter
-            * StaticParam ::= bool Id
-            * e.g.) bool nan
-            */
-            BoolParam();
-           /**
-            * dimension parameter
-            * StaticParam ::= dim Id
-            * e.g.) dim D
-            */
-            DimParam();
-           /**
-            * int parameter
-            * StaticParam ::= int Id
-            * e.g.) int i
-            */
-            IntParam();
-           /**
-            * nat parameter
-            * StaticParam ::= nat Id
-            * e.g.) nat len
-            */
-            NatParam();
-           /**
-            * type parameter
-            * StaticParam ::= Id Extends? (absorbs unit)?
-            * e.g.) EltType extends Number absorbs unit
-            */
-            TypeParam(List<BaseType> extendsClause =
-                          Collections.<BaseType>emptyList(),
-                      boolean absorbs = false);
-           /**
-            * unit parameter
-            * StaticParam ::= unit Id (: Type)? (absorbs unit)?
-            * e.g.) unit U absrbs unit
-            */
-            UnitParam(Option<Type> dim = Option.<Type>none(),
-                      boolean absorbs = false);
-    /**
-     * name used in declarations and references
-     */
-    abstract Name();
-        /**
-         * Template gap for names
-         */
-        TemplateGapName(Id id, List<Id> templateParams) implements TemplateGap;
-        /**
-         * unstructured sequence of ids naming an API or component
-         * Names in the list must be unqualified.
-         * APIName ::= Id(.Id)*
-         * e.g.) com.sun.fortress.nodes_util
-         */
-        APIName(List<Id> ids);
-        /**
-         * non-API name
-         * SimpleName ::= Id
-         *              | opr Op
-         *              | opr EncloserPair
-         */
-        abstract IdOrOpOrAnonymousName(Option<APIName> api
-                                           = Option.<APIName>none());
+        abstract WhereBinding(Id name);
             /**
-             * identifier or operator name
+             * hidden type variable declared in where clauses
+             * WhereBinding ::= Id Extends?
+             * Extends ::= extends TraitTypes
+             * e.g.) T extends Object
              */
-            abstract IdOrOpName();
+            WhereType(List<BaseType> supers);
+            /**
+             * nat parameter declared in where clauses
+             * WhereBinding ::= nat Id
+             * e.g.) nat length
+             */
+            WhereNat();
+            /**
+             * int parameter declared in where clauses
+             * WhereBinding ::= int Id
+             * e.g.) int length
+             */
+            WhereInt();
+            /**
+             * bool parameter declared in where clauses
+             * WhereBinding ::= bool Id
+             * e.g.) bool ninf
+             */
+            WhereBool();
+            /**
+             * unit parameter declared in where clauses
+             * WhereBinding ::= unit Id
+             * e.g.) unit U
+             */
+            WhereUnit();
+        /**
+         * hidden type variable constraint declared in where clauses
+         */
+        abstract WhereConstraint();
+            /**
+             * type variable constraint declared in where clauses
+             * WhereConstraint ::= Id Extends
+             * e.g.) T extends Object
+             */
+            WhereExtends(Id name, List<BaseType> supers);
+            /**
+             * type alias declaration
+             * TypeAlias ::= type Id StaticParams? = Type
+             * e.g.) type IntList = List[\ZZ64\]
+             */
+            TypeAlias(Id name,
+                      List<StaticParam> staticParams
+                          = Collections.<StaticParam>emptyList(),
+                      Type type)
+                     implements Decl, AbsDecl;
+            /**
+             * coercion constraint declared in where clauses
+             * WhereConstraint ::= Type coerces Type
+             * e.g.) T coerces Identity[\ODOT\]
+             */
+            WhereCoerces(Type left, Type right);
+            /**
+             * widening constraint declared in where clauses
+             * WhereConstraint ::= Type widens Type
+             * e.g.) T widens S
+             */
+            WhereWidens(Type left, Type right);
+            /**
+             * widening coercion constraint declared in where clauses
+             * CoercionWhereConstraint ::= Type widens or coerces Type
+             * e.g.) T widens or coerces S
+             */
+            WhereWidensCoerces(Type left, Type right);
+            /**
+             * DottedId equality constraint declared in where clauses
+             * WhereConstraint ::= QualifiedName = QualifiedName
+             * e.g.) m = n
+             */
+            WhereEquals(Id left, Id right);
+            /**
+             * unit constraint used in where clauses
+             * WhereConstraint ::= dimensionless = Id
+             *               | Id = dimensionless
+             * e.g.) U = dimensionless
+             */
+            UnitConstraint(Id name);
+            /**
+             * integer constraint used in where clauses
+             * WhereConstraint ::= IntConstraint
+             */
+            abstract IntConstraint(IntExpr left, IntExpr right);
                 /**
-                 * identifier name
-                 * e.g.) hashCode
+                 * less than equal constraint declared in where clauses
+                 * IntConstraint ::= IntExpr <= IntExpr
+                 * e.g.) b <= c
                  */
-                Id(String text);
+                LEConstraint();
+                /**
+                 * less than constraint declared in where clauses
+                 * IntConstraint ::= IntExpr < IntExpr
+                 * e.g.) 0 < a
+                 */
+                LTConstraint();
+                /**
+                 * greater than equal constraint declared in where clauses
+                 * IntConstraint ::= IntExpr >= IntExpr
+                 * e.g.) b >= c
+                 */
+                GEConstraint();
+                /**
+                 * greater than constraint declared in where clauses
+                 * IntConstraint ::= IntExpr > IntExpr
+                 * e.g.) a > 0
+                 */
+                GTConstraint();
+                /**
+                 * integer equality constraint declared in where clauses
+                 * IntConstraint ::= IntExpr = IntExpr
+                 * e.g.) 8 = 2^3
+                 */
+                IEConstraint();
+            /**
+             * boolean constraint declared in where clauses
+             * WhereConstraint ::= BoolConstraint
+             * e.g.) pinf AND ninf
+             */
+            BoolConstraintExpr(BoolConstraint constraint);
+        /**
+         * contracts used in functional declarations and object declarations
+         * Contract ::= Requires? Ensures? Invariant?
+         * Requires ::= requires { ExprList? }
+         * Ensures ::= ensures { EnsuresClauseList? }
+         * Invariant ::= invariant { ExprList? }
+         * CoercionContract ::= Ensures? Invariant?
+         * e.g.) requires { n GE 0 } ensures { result GE 0 }
+         */
+        Contract(Option<List<Expr>> requires = Option.<List<Expr>>none(),
+                 Option<List<EnsuresClause>> ensures =
+                     Option.<List<EnsuresClause>>none(),
+                 Option<List<Expr>> invariants = Option.<List<Expr>>none());
+        /**
+         * ensures clause used in contracts
+         * EnsuresClause ::= Expr (provided Expr)?
+         * e.g.) sorted(result) provided sorted(input)
+         */
+        EnsuresClause(Expr post, Option<Expr> pre = Option.<Expr>none());
+        /**
+         * modifier
+         * TraitMod      ::= AbsTraitMod | private
+         * AbsTraitMod   ::= value | test
+         * ObjectMods    ::= TraitMods
+         * AbsObjectMods ::= AbsTraitMods
+         * MdMod         ::= FnMod | override
+         * AbsMdMod      ::= AbsFnMod | override
+         * FnMod         ::= AbsFnMod | private
+         * AbsFnMod      ::= LocalFnMod | test
+         * LocalFnMod    ::= atomic | io
+         * ParamFldMod   ::= var | hidden | settable | wrapped
+         * VarMod        ::= AbsVarMod | private
+         * AbsVarMod     ::= var | test
+         * FldMod        ::= var | AbsFldMod
+         * AbsFldMod     ::= ApiFldMod | wrapped | private
+         * ApiFldMod     ::= hidden | settable | test
+         */
+        abstract Modifier();
+            /**
+             * e.g.) abstract m(x: ZZ32): ()
+             */
+            ModifierAbstract();
+            /**
+             * e.g.) atomic f(x: ZZ32): ()
+             */
+            ModifierAtomic();
+            /**
+             * e.g.) getter velocity(): (RR Velocity)^3
+             */
+            ModifierGetter();
+            /**
+             * e.g.) hidden x: ZZ32
+             */
+            ModifierHidden();
+            /**
+             * e.g.) io print(s: String): ()
+             */
+            ModifierIO();
+            /**
+             * e.g.) override m(x: ZZ32): ()
+             */
+            ModifierOverride();
+            /**
+             * e.g.) private f(): ()
+             */
+            ModifierPrivate();
+            /**
+             * e.g.) settable message: Maybe[\String\]
+             */
+            ModifierSettable();
+            /**
+             * e.g.) setter velocity(v: (RR Velocity)^3): ()
+             */
+            ModifierSetter();
+            /**
+             * e.g.) test object TestSuite(testFunctions = {}) end
+             */
+            ModifierTest();
+            /**
+             * e.g.) object O(transient x: ZZ32) end
+             */
+            ModifierTransient();
+            /**
+             * e.g.) value object IntEmpty extends List[\ZZ32\] end
+             */
+            ModifierValue();
+            /**
+             * e.g.) var x: ZZ32
+             */
+            ModifierVar();
+            /**
+             * e.g.) coerce (x: RR32) widens = ...
+             */
+            ModifierWidens();
+            /**
+             * e.g.) wrapped val: Dictionary[\T\]
+             */
+            ModifierWrapped();
+        /**
+         * static parameter
+         */
+        abstract StaticParam();
+            /**
+             * operator parameter
+             * StaticParam ::= opr Op
+             * e.g.) opr ODOT
+             */
+            OpParam(Op name);
+            /**
+             * static parameter with a name field of type Id
+             * Names must be unqualified.
+             */
+            abstract IdStaticParam(Id name);
+               /**
+                * bool parameter
+                * StaticParam ::= bool Id
+                * e.g.) bool nan
+                */
+                BoolParam();
+               /**
+                * dimension parameter
+                * StaticParam ::= dim Id
+                * e.g.) dim D
+                */
+                DimParam();
+               /**
+                * int parameter
+                * StaticParam ::= int Id
+                * e.g.) int i
+                */
+                IntParam();
+               /**
+                * nat parameter
+                * StaticParam ::= nat Id
+                * e.g.) nat len
+                */
+                NatParam();
+               /**
+                * type parameter
+                * StaticParam ::= Id Extends? (absorbs unit)?
+                * e.g.) EltType extends Number absorbs unit
+                */
+                TypeParam(List<BaseType> extendsClause =
+                              Collections.<BaseType>emptyList(),
+                          boolean absorbs = false);
+               /**
+                * unit parameter
+                * StaticParam ::= unit Id (: Type)? (absorbs unit)?
+                * e.g.) unit U absrbs unit
+                */
+                UnitParam(Option<Type> dim = Option.<Type>none(),
+                          boolean absorbs = false);
+        /**
+         * name used in declarations and references
+         */
+        abstract Name();
+            /**
+             * Template gap for names
+             */
+            TemplateGapName(Id id, List<Id> templateParams) implements TemplateGap;
+            /**
+             * unstructured sequence of ids naming an API or component
+             * Names in the list must be unqualified.
+             * APIName ::= Id(.Id)*
+             * e.g.) com.sun.fortress.nodes_util
+             */
+            APIName(List<Id> ids);
+            /**
+             * non-API name
+             * SimpleName ::= Id
+             *              | opr Op
+             *              | opr EncloserPair
+             */
+            abstract IdOrOpOrAnonymousName(Option<APIName> api
+                                               = Option.<APIName>none());
+                /**
+                 * identifier or operator name
+                 */
+                abstract IdOrOpName();
                     /**
-                     * Template gap for expressions
+                     * identifier name
+                     * e.g.) hashCode
                      */
-                    TemplateGapId(Id id, List<Id> templateParams) implements TemplateGap;
-                /**
-                 * operator name
-                 */
-                abstract OpName();
+                    Id(String text);
+                        /**
+                         * Template gap for expressions
+                         */
+                        TemplateGapId(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
-                     * non-enclosing operator
-                     * e.g.) COMPOSE
-                     * e.g.) ===
+                     * operator name
                      */
-                    Op(String text,
-                       Option<Fixity> fixity = Option.<Fixity>none());
+                    abstract OpName();
+                        /**
+                         * non-enclosing operator
+                         * e.g.) COMPOSE
+                         * e.g.) ===
+                         */
+                        Op(String text,
+                           Option<Fixity> fixity = Option.<Fixity>none());
+                        /**
+                         * pair of enclosing operators
+                         * Opening and closing Ops must be unqualified.
+                         * EncloserPair ::= (LeftEncloser | Encloser)
+                         *                    (RightEncloser | Encloser)
+                         * e.g.) </ />
+                         */
+                        Enclosing(Op open, Op close);
+                /**
+                 * anonymous name; used internally
+                 */
+                abstract AnonymousName();
                     /**
-                     * pair of enclosing operators
-                     * Opening and closing Ops must be unqualified.
-                     * EncloserPair ::= (LeftEncloser | Encloser)
-                     *                    (RightEncloser | Encloser)
-                     * e.g.) </ />
+                     * internal name for anonymous function expressions
+                     * not created during parsing but during evaluation
+                     * e.g.) name for "fn x => x + 1"
                      */
-                    Enclosing(Op open, Op close);
+                    AnonymousFnName();
+                    /**
+                     * internal name for anonymous constructor expressions
+                     * not created during parsing but during evaluation
+                     * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
+                     */
+                    ConstructorFnName(GenericWithParams def);
+        /**
+         * array comprehension clause
+         * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorClauseList
+         * ArrayComprehensionLeft ::= IdOrInt |-> Expr
+         *                          | ( IdOrInt, IdOrIntList ) |-> Expr
+         * IdOrInt ::= Id
+         *           | IntLiteralExpr
+         * e.g.) (x, y) = 0 | x <- {0, 1, 2}, y <- {0, 1, 2}
+         */
+        ArrayComprehensionClause(List<Expr> bind, Expr init,
+                                 List<GeneratorClause> gens);
+        /**
+         * keyword expression used in argument expressions
+         * Names must be unqualified.
+         * KeywordExpr ::= BindId = Expr
+         * e.g.) x = myLoser.myField
+         */
+        KeywordExpr(Id name, Expr init);
+        /**
+         * case clause used in case expressions and extremum expressions
+         * CaseClause ::= Expr => BlockElems
+         * e.g.) { Jupiter, Saturn, Uranus, Neptune } => "outer"
+         */
+        CaseClause(Expr match, Block body);
+        /**
+         * catch clause used in try expressions
+         * Names must be unqualified.
+         * Catch ::= catch BindId CatchClauses
+         * e.g.) catch e IOException => throw ForbiddenException(e)
+         */
+        Catch(Id name, List<CatchClause> clauses);
+        /**
+         * each clause in a catch clause used in try expressions
+         * CatchClause ::= TraitType => BlockElems
+         * e.g.) IOException => throw ForbiddenException(e)
+         */
+        CatchClause(BaseType match, Block body);
+        /**
+         * block expression used in do expressions
+         * DoFront ::= (at Expr)? atomic? do BlockElems?
+         * e.g.) at a.region(j) do w := a_j
+         */
+        DoFront(Option<Expr> loc = Option.<Expr>none(), boolean atomic = false,
+                Block expr);
+        /**
+         * if clause used in if expressions
+         * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end
+         * Elif ::= elif Expr then BlockElems
+         * e.g.) if x IN { 0, 1, 2 } then 0
+         */
+        IfClause(GeneratorClause test, Block body);
+        /**
+         * typecase clause used in typecase expressions
+         * TypecaseClause ::= TypecaseTypes => BlockElems
+         * TypecaseTypes ::= ( TypeList )
+         *                 | Type
+         * e.g.) String => x.append("foo")
+         */
+        TypecaseClause(List<Type> match, Block body);
+        /**
+         * array and matrix size
+         * ExtentRange ::= StaticArg? # StaticArg?
+         *               | StaticArg? : StaticArg?
+         *               | StaticArg
+         * e.g.) 3#5
+         */
+        ExtentRange(Option<StaticArg> base, Option<StaticArg> size);
+        /**
+         * generator
+         * Names must be unqualified.
+         * GeneratorClauseList ::= GeneratorBinding (, GeneratorClause)*
+         * GeneratorBinding ::= BindIdOrBindIdTuple <- Expr
+         * GeneratorClause ::= GeneratorBinding
+         *                   | Expr
+         * e.g.) (i, j) <- my2DArray.indices
+         */
+        GeneratorClause(List<Id> bind, Expr init);
+        /**
+         * varargs expression used in tuple expressions
+         * Expr...
+         * e.g.) [3 4 5]...
+         */
+        VarargsExpr(Expr varargs);
+        /**
+         * keyword type used in tuple types
+         * Names must be unqualified.
+         * KeywordType ::= BindId = Type
+         * e.g.) x = String
+         */
+        KeywordType(Id name, Type type);
+        /**
+         * trait type with a where clause used in extends clauses
+         * TraitTypeWhere ::= TraitType Where?
+         * e.g.) T[\ninf, nan\] where { ninf AND NOT nan }
+         */
+        TraitTypeWhere(BaseType type, WhereClause where);
+        /**
+         * array dimensionality
+         * ArraySize ::= ExtentRange(, ExtentRange)*
+         * e.g.) 3, 2#1, 3:5
+         */
+        Indices(List<ExtentRange> extents);
+        /**
+         * mathematical item
+         */
+        abstract MathItem();
             /**
-             * anonymous name; used internally
+             * mathematical item that is an expression element
              */
-            abstract AnonymousName();
+            abstract ExprMI(Expr expr);
                 /**
-                 * internal name for anonymous function expressions
-                 * not created during parsing but during evaluation
-                 * e.g.) name for "fn x => x + 1"
+                 * mathematical item that is a parenthesis delimited expression
+                 * MathItem ::= ParenthesisDelimited
+                 * e.g.) ( 3 + 4 )
                  */
-                AnonymousFnName();
+                ParenthesisDelimitedMI();
                 /**
-                 * internal name for anonymous constructor expressions
-                 * not created during parsing but during evaluation
-                 * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
+                 * mathematical item that is not a parenthesis delimited expression
+                 * MathItem ::= VarOrFnRef
+                 *            | LiteralExpr
+                 *            | self
+                 * e.g.) self
                  */
-                ConstructorFnName(GenericWithParams def);
-    /**
-     * array comprehension clause
-     * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorClauseList
-     * ArrayComprehensionLeft ::= IdOrInt |-> Expr
-     *                          | ( IdOrInt, IdOrIntList ) |-> Expr
-     * IdOrInt ::= Id
-     *           | IntLiteralExpr
-     * e.g.) (x, y) = 0 | x <- {0, 1, 2}, y <- {0, 1, 2}
-     */
-    ArrayComprehensionClause(List<Expr> bind, Expr init,
-                             List<GeneratorClause> gens);
-    /**
-     * keyword expression used in argument expressions
-     * Names must be unqualified.
-     * KeywordExpr ::= BindId = Expr
-     * e.g.) x = myLoser.myField
-     */
-    KeywordExpr(Id name, Expr init);
-    /**
-     * case clause used in case expressions and extremum expressions
-     * CaseClause ::= Expr => BlockElems
-     * e.g.) { Jupiter, Saturn, Uranus, Neptune } => "outer"
-     */
-    CaseClause(Expr match, Block body);
-    /**
-     * catch clause used in try expressions
-     * Names must be unqualified.
-     * Catch ::= catch BindId CatchClauses
-     * e.g.) catch e IOException => throw ForbiddenException(e)
-     */
-    Catch(Id name, List<CatchClause> clauses);
-    /**
-     * each clause in a catch clause used in try expressions
-     * CatchClause ::= TraitType => BlockElems
-     * e.g.) IOException => throw ForbiddenException(e)
-     */
-    CatchClause(BaseType match, Block body);
-    /**
-     * block expression used in do expressions
-     * DoFront ::= (at Expr)? atomic? do BlockElems?
-     * e.g.) at a.region(j) do w := a_j
-     */
-    DoFront(Option<Expr> loc = Option.<Expr>none(), boolean atomic = false,
-            Block expr);
-    /**
-     * if clause used in if expressions
-     * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end
-     * Elif ::= elif Expr then BlockElems
-     * e.g.) if x IN { 0, 1, 2 } then 0
-     */
-    IfClause(GeneratorClause test, Block body);
-    /**
-     * typecase clause used in typecase expressions
-     * TypecaseClause ::= TypecaseTypes => BlockElems
-     * TypecaseTypes ::= ( TypeList )
-     *                 | Type
-     * e.g.) String => x.append("foo")
-     */
-    TypecaseClause(List<Type> match, Block body);
-    /**
-     * array and matrix size
-     * ExtentRange ::= StaticArg? # StaticArg?
-     *               | StaticArg? : StaticArg?
-     *               | StaticArg
-     * e.g.) 3#5
-     */
-    ExtentRange(Option<StaticArg> base, Option<StaticArg> size);
-    /**
-     * generator
-     * Names must be unqualified.
-     * GeneratorClauseList ::= GeneratorBinding (, GeneratorClause)*
-     * GeneratorBinding ::= BindIdOrBindIdTuple <- Expr
-     * GeneratorClause ::= GeneratorBinding
-     *                   | Expr
-     * e.g.) (i, j) <- my2DArray.indices
-     */
-    GeneratorClause(List<Id> bind, Expr init);
-    /**
-     * varargs expression used in tuple expressions
-     * Expr...
-     * e.g.) [3 4 5]...
-     */
-    VarargsExpr(Expr varargs);
-    /**
-     * keyword type used in tuple types
-     * Names must be unqualified.
-     * KeywordType ::= BindId = Type
-     * e.g.) x = String
-     */
-    KeywordType(Id name, Type type);
-    /**
-     * trait type with a where clause used in extends clauses
-     * TraitTypeWhere ::= TraitType Where?
-     * e.g.) T[\ninf, nan\] where { ninf AND NOT nan }
-     */
-    TraitTypeWhere(BaseType type, WhereClause where);
-    /**
-     * array dimensionality
-     * ArraySize ::= ExtentRange(, ExtentRange)*
-     * e.g.) 3, 2#1, 3:5
-     */
-    Indices(List<ExtentRange> extents);
-    /**
-     * mathematical item
-     */
-    abstract MathItem();
-        /**
-         * mathematical item that is an expression element
-         */
-        abstract ExprMI(Expr expr);
+                NonParenthesisDelimitedMI();
             /**
-             * mathematical item that is a parenthesis delimited expression
-             * MathItem ::= ParenthesisDelimited
-             * e.g.) ( 3 + 4 )
+             * mathematical item that is a non-expression element
              */
-            ParenthesisDelimitedMI();
+            abstract NonExprMI();
+                /**
+                 * mathematical item that is an exponentiation
+                 * MathItem ::= Exponentiation
+                 * e.g.) ^3
+                 */
+                ExponentiationMI(Op op, Option<Expr> expr);
+                /**
+                 * mathematical item that is a subscripting
+                 * MathItem ::= Subscripting
+                 * e.g.) [3, 4]
+                 */
+                SubscriptingMI(Enclosing op, List<Expr> exprs,
+                               List<StaticArg> staticArgs);
+        /**
+         * operator fixity
+         */
+        abstract Fixity();
             /**
-             * mathematical item that is not a parenthesis delimited expression
-             * MathItem ::= VarOrFnRef
-             *            | LiteralExpr
-             *            | self
-             * e.g.) self
+             * e.g.) 3 + 5
              */
-            NonParenthesisDelimitedMI();
-        /**
-         * mathematical item that is a non-expression element
-         */
-        abstract NonExprMI();
+            InFixity();
             /**
-             * mathematical item that is an exponentiation
-             * MathItem ::= Exponentiation
-             * e.g.) ^3
+             * e.g.) -5
              */
-            ExponentiationMI(Op op, Option<Expr> expr);
+            PreFixity();
             /**
-             * mathematical item that is a subscripting
-             * MathItem ::= Subscripting
-             * e.g.) [3, 4]
+             * e.g.) 3!
              */
-            SubscriptingMI(Enclosing op, List<Expr> exprs,
-                           List<StaticArg> staticArgs);
-    /**
-     * operator fixity
-     */
-    abstract Fixity();
-        /**
-         * e.g.) 3 + 5
+            PostFixity();
+            /**
+             * e.g.) :
+             */
+            NoFixity();
+            /**
+             * e.g.) S1 BY S2 BY S3
+             */
+            MultiFixity();
+            /**
+             * left encloser or right encloser
+             * e.g.) <|
+             */
+            EnclosingFixity();
+            /**
+             * BIG operator
+             * e.g.) SUM
+             */
+            BigFixity();
+        /*
+         * A Link in a ChainExpr is a pair of OpRef and the next Expr in the chain.
+         * e.g.) < 5
          */
-        InFixity();
-        /**
-         * e.g.) -5
-         */
-        PreFixity();
-        /**
-         * e.g.) 3!
-         */
-        PostFixity();
-        /**
-         * e.g.) :
-         */
-        NoFixity();
-        /**
-         * e.g.) S1 BY S2 BY S3
-         */
-        MultiFixity();
-        /**
-         * left encloser or right encloser
-         * e.g.) <|
-         */
-        EnclosingFixity();
-        /**
-         * BIG operator
-         * e.g.) SUM
-         */
-        BigFixity();
-    /*
-     * A Link in a ChainExpr is a pair of OpRef and the next Expr in the chain.
-     * e.g.) < 5
-     */
-    Link(OpRef op, Expr expr);
+        Link(OpRef op, Expr expr);
 
-end;
+    end;

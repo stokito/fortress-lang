@@ -26,7 +26,6 @@ import java.util.Map;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.Id;
@@ -40,6 +39,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
