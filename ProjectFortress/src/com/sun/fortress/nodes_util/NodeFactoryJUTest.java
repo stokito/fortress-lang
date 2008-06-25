@@ -17,7 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.TestCaseWrapper;
 

@@ -25,7 +25,7 @@ import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.exceptions.ProgramError;
-import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;

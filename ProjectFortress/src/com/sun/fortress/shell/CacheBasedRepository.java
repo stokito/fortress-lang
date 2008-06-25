@@ -35,7 +35,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.exceptions.shell.ShellException;
-import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
