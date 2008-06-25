@@ -223,6 +223,9 @@ public final class Shell {
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         } catch ( StaticError e ){
             System.err.println(e);
+            if ( ProjectProperties.debug ){
+                e.printStackTrace();
+            }
         } catch (RepositoryError e) {
             System.err.println(e.getMessage());
         }
