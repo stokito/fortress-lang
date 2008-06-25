@@ -32,7 +32,7 @@ public class FortressAstGenerator extends CodeGenerator {
     }
 
     public Iterable<Class<? extends CodeGenerator>> dependencies(){
-        return new ArrayList();
+        return new ArrayList<Class<? extends CodeGenerator>>();
     }
 
     @Override
