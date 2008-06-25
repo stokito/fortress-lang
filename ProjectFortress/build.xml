@@ -88,6 +88,11 @@
  <property name="junit.dir" value="junit-results"/>
  <property environment="env"/>
 
+ <path id="astgen.path">
+     <pathelement location="${astgen.third}/astgen.jar" />
+     <pathelement location="${build}" />
+ </path>
+
  <path id="compile.classpath">
     <pathelement location="${java.home}/../lib/tools.jar"/>
     <pathelement location="${build}"/>
@@ -95,6 +100,7 @@
     <pathelement location="${xtc}/xtc.jar"/>
     <pathelement location="${jsr166y}/jsr166y.jar"/>
     <pathelement location="${plt}/plt.jar"/>
+    <pathelement location="${astgen.third}/astgen.jar" />
     <pathelement location="${junit}/junit.jar"/>
     <pathelement location="${ant.home}/lib/ant.jar"/>
 </path>
@@ -323,6 +329,11 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <available file="${nodes}/AbstractNode.java"/>
             <uptodate srcfile="${astgen}/Fortress.ast"
                       targetfile="${nodes}/AbstractNode.java"/>
+	    <available file="${astgen}/FortressAst.fsi" />
+	    <uptodate srcfile="${astgen}/Fortress.ast"
+		    targetfile="${astgen}/FortressAst.fsi" />
+            <uptodate srcfile="${basedir}/src/com/sun/fortress/astgen/FortressAstGenerator.java"
+                    targetfile="${astgen}/FortressAst.fsi" />
           </and>
         </condition>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
@@ -343,7 +354,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         </move>
     </target>
 
-    <target name="compile" depends="makeAST, parser, compileCommon, operatorsGen"
+    <target name="compile" depends="compileCommon, makeAST, parser, operatorsGen"
      description="Compile all Fortress code.">
         <depend srcdir="${src}"
          destdir="${build}"
@@ -367,7 +378,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         </javac>
     </target>
 
-    <target name="compileLint" depends="makeAST, parser, compileCommonLint, operatorsGen"
+    <target name="compileLint" depends="compileCommonLint, makeAST, parser, operatorsGen"
      description="Compile all interpreter code.">
         <depend srcdir="${src}"
          destdir="${build}"
@@ -414,6 +425,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
              <include name="${unicodePackage}/*.java"/>
 -->
              <include name="${blahblahblah}/useful/*.java"/>
+             <include name="${blahblahblah}/astgen/*.java"/>
              <include name="${blahblahblah}/unicode/*.java"/>
          </javac>
      </target>
