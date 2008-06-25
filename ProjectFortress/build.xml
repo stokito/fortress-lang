@@ -28,7 +28,9 @@
  <property name="interpreterPrefix" value="com/sun/fortress/interpreter"/>
  <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
  <!-- Directories in the ${basedir} directory -->
- <property name="cache1" location="${basedir}/../.fortress_cache"/>
+ <property name="cache0" location="${basedir}/../default_repository/caches"/>
+ <property name="cache12" location="${basedir}/../local_repository/caches"/>
+	 <property name="cache1" location="${basedir}/../.fortress_cache"/>
 	 <property name="cache2" location="${basedir}/../.interpreter_cache"/>
 	 <property name="cache3" location="${basedir}/.interpreter_cache"/>
 	 <property name="cache4" location="${basedir}/../.syntax_cache"/>
@@ -225,7 +227,9 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 
     <target name="cleanCache"
             description="Delete any cached Fortress ASTs in the development tree">
-        <delete dir="${cache1}"/>
+        <delete dir="${cache0}"/>
+        <delete dir="${cache12}"/>
+    	<delete dir="${cache1}"/>
     	<delete dir="${cache2}"/>
     	<delete dir="${cache3}"/>
     	<delete dir="${cache4}"/>

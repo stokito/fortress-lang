@@ -26,8 +26,17 @@ import java.util.Properties;
 public interface StringMap {
    String get(String s);
    boolean isEmpty();
+   String getCompletely(String s, int limit);
    
-   static public class FromEnv implements StringMap {
+   static abstract class FromBase implements StringMap {
+       public String getCompletely(String s, int limit) {
+           return Useful.substituteVarsCompletely(s, this, limit);
+       }
+       abstract public String get(String s);
+       abstract public boolean isEmpty();
+   }
+   
+   static public class FromEnv extends FromBase implements StringMap {
        public String get(String s) {
            s = asEnvOrReflect(s);
            String t = System.getenv(s);
@@ -42,7 +51,7 @@ public interface StringMap {
         return s;
     }
    }
-   static public class FromProps implements StringMap {
+   static public class FromProps extends FromBase implements StringMap {
        Properties p;
        FromProps(Properties p) {
            this.p = p;
@@ -54,7 +63,7 @@ public interface StringMap {
       
    }
    
-   static public class FromSysProps implements StringMap {
+   static public class FromSysProps extends FromBase implements StringMap {
        public String get(String s) {
     	   return System.getProperty(s);
        }
@@ -79,15 +88,33 @@ public interface StringMap {
        }
         
    }
-   static public class FromReflection implements StringMap {
+   static public class FromReflection extends FromBase implements StringMap {
 
        private final Class mapClass;
+       private final String optionalPrefix;
        
-    public FromReflection(Class cl) {
-        mapClass = cl;
-    }
+       public FromReflection(Class cl) {
+           mapClass = cl;
+           optionalPrefix = null;
+       }
        
-    public String get(String s) {
+       public FromReflection(Class cl, String optional_prefix) {
+           mapClass = cl;
+           optionalPrefix = optional_prefix;
+       }
+    
+       public String get(String s) {
+           String result = getOne(s);
+           if (result == null &&
+                   optionalPrefix != null &&
+                   s.startsWith(optionalPrefix)) {
+               result = getOne(s.substring(optionalPrefix.length()));
+           }
+           return result;
+           
+       }
+       
+    private String getOne(String s) {
         try {
             s = FromEnv.asEnvOrReflect(s);
             Field f = mapClass.getDeclaredField(s);
@@ -113,7 +140,7 @@ public interface StringMap {
        
    }
    
-   static public class ComposedMaps implements StringMap {
+   static public class ComposedMaps extends FromBase implements StringMap {
        private final StringMap[] ma;
        public String get(String s) {
            String a = null;

@@ -19,6 +19,7 @@ package com.sun.fortress.useful;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -112,12 +113,16 @@ public class Path {
     
     public File findFile(String s) throws FileNotFoundException {
         File inappropriateFile = null;
+        File unreadableFile = null;
         s = s.replace(File.separator, "/"); // canonicalize
         String s_dotted = s.replace("/", "."); // canonicalize
         if (s.startsWith("/")) {
             File f = new File(s);
             if (f.isFile()) {
-                return f;
+                if (f.canRead())
+                    return f;
+                else
+                    unreadableFile = f;
             } else if (f.exists()) {
                 inappropriateFile = f;
             }
@@ -128,6 +133,11 @@ public class Path {
                 return f;
         }
         }
+        if (unreadableFile != null) {
+            throw new FileNotFoundException("Readable file " + s
+                    + " not found in directories " + dirs
+                    + "; the last unreadable match was " + unreadableFile);
+        }
         if (inappropriateFile != null) {
             throw new FileNotFoundException("Normal file " + s
                     + " not found in directories " + dirs
@@ -137,6 +147,14 @@ public class Path {
                 + " not found in directories " + dirs);
     }
 
+    public String findDirName(String s, String defaultDir) {
+        try {
+            return findDir(s).getCanonicalPath();
+        } catch (IOException ex) {
+            return defaultDir;
+        }
+    }
+    
     public File findDir(String s) throws FileNotFoundException {
         File inappropriateFile = null;
         if (s.startsWith("/") || s.startsWith(File.separator)) {
