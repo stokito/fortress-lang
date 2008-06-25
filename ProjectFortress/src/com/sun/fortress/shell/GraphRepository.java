@@ -547,6 +547,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		ApiGraphNode node = addApiGraph(name);
 		Debug.debug( 2, "Get api for " + name);
 		Iterable<? extends StaticError> errors = refreshGraph();
+                for ( StaticError e : errors ){
+                    throw e;
+                }
 		return node.getApi().unwrap();
 	}
 
@@ -554,6 +557,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		ComponentGraphNode node = addComponentGraph(name);
 		Debug.debug( 2, "Get component for " + name );
 		Iterable<? extends StaticError> errors = refreshGraph();
+                for ( StaticError e : errors ){
+                    throw e;
+                }
 		return node.getComponent().unwrap();
 	}
 
