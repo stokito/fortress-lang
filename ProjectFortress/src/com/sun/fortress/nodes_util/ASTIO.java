@@ -14,7 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-package com.sun.fortress.interpreter.drivers;
+package com.sun.fortress.nodes_util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -30,8 +30,6 @@ import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes_util.Printer;
-import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.useful.StringEncodedAggregate;
 import com.sun.fortress.useful.Useful;
 
@@ -76,17 +74,6 @@ public class ASTIO {
             return Option.<CompilationUnit>some(cu);
         } catch (ParserError pe) {
             System.err.println("  " + pe.toString());
-            /* FIXME (ryanc): May have changed formatting, but suspect it's best
-               to make ParserError do the formatting work. Here's the old code:
-
-               ParseError err = (ParseError) r;
-               if (-1 == err.index) {
-                   System.err.println("  Parse error");
-               }
-               else {
-                   System.err.println("  " + p.location(err.index) + ": " + err.msg);
-               }
-            */
             return Option.<CompilationUnit>none();
         }
     }
