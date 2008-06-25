@@ -42,8 +42,11 @@ public class FortressTypeToJavaType {
 
             @Override
             public String forTraitType(TraitType that) {
+                if (that.getArgs().size() == 0) {
+                    return that.getName().getText();                    
+                }
                 if (that.getArgs().size() != 1) {
-                    throw new RuntimeException("One type argument was expected");
+                    throw new RuntimeException("One type argument was expected for type: "+that.getName());
                 }
                 String arg = that.getArgs().get(0).accept(this);
                 if (that.getName().getText().equals("List")) {
@@ -58,7 +61,7 @@ public class FortressTypeToJavaType {
                 if (that.getName().getText().equals("Nothing")) {
                     return "Option<"+arg+">";
                 }
-                return "";
+                throw new RuntimeException("Unexpected traittype: "+that.getName()+that.getArgs());
             }
 
             @Override

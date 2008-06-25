@@ -27,13 +27,13 @@ api ChurchBooleans
   object false extends Boolean end
 
 
-  grammar IfThenElse extends { Expression, Literal } 
+  grammar IfThenElse extends Expression 
     Expr[\T\]:T |Expr:=
       a1:if e1:Expr:Boolean then e2:Expr:T else e3:Expr:T end
       <[ e1.apply(e2, e3) ]>
       (* expands to  <[ (e1 as Boolean).apply(e2, e3) ]> *)
 
-    LiteralExpr[\T\] |Expr:=
+    Expr[\T\] |Expr:=
       true <[ true ]>
     | false <[ false ]>
 

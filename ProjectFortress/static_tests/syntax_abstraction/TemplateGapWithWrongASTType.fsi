@@ -18,13 +18,13 @@
 api TemplateGapWithWrongASTType
 
   import FortressAst.{...}
-  import FortressSyntax.{Literal}
+  import FortressSyntax.{...}
 
-  grammar helloworld extends { Literal, Expression, Declaration }
-    LiteralExpr |Expr:=
+  grammar helloworld extends { Expression, Declaration }
+    Expr |Expr:=
       x:Decl a1:World <[ x " " a1(x) ]>
 
-    World(e:Expr) :LooseJuxt:=
+    World(e:Expr) :Expr:=
       world <[ e " world" ]>
 
   end

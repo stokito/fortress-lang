@@ -45,6 +45,7 @@
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
  <property name="src" location="${basedir}/src"/>
+ <property name="astgen.generators.src" location="${src}/${packagePrefix}/nodes_astgen_generators"/>
  <!-- Third party jar files -->
  <property name="asm" location="${basedir}/third_party/asm"/>
  <!-- property name="astgen.third" location="${basedir}/../../astgen/jar"/ -->
@@ -96,6 +97,11 @@
     <pathelement location="${plt}/plt.jar"/>
     <pathelement location="${junit}/junit.jar"/>
     <pathelement location="${ant.home}/lib/ant.jar"/>
+</path>
+
+ <path id="astgen.classpath">
+    <pathelement location="${build}"/>
+    <pathelement location="${astgen.third}/astgen.jar"/>
 </path>
 
  <property name="instrumentation.package" 
@@ -287,7 +293,31 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	        </java>
 	    </target>
 
-    <target name="checkNodesUptodate">
+    <target name="astGenerators" depends="init" 
+     description="Compile all AstGen custom generators.">
+        <depend srcdir="${astgen.generators.src}"
+         destdir="${build}"
+         closure="yes"
+         cache="${basedir}/.dependencies"/>
+        <javac
+            srcdir="${astgen.generators.src}"
+            destdir="${build}"
+            source="1.5"
+            debug="true"
+            includeantruntime="false"
+            fork="true"
+            memorymaximumsize="256M">
+            <!-- Uncomment the following line to print unchecked warnings
+                 (here and in the 'compileCommon' target. -->
+            <!-- <compilerarg value="-Xlint:unchecked"/> -->
+            <classpath refid="astgen.classpath"/>
+            <include name="**/*.java"/>
+            <exclude name="${usefulPackage}/*.java"/>
+            <exclude name="${unicodePackage}/*.java"/>
+        </javac>
+    </target>
+
+    <target name="checkNodesUptodate" depends="astGenerators">
         <condition property="nodes.uptodate">
           <and>
             <available file="${nodes}/AbstractNode.java"/>
@@ -298,7 +328,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
     </target>
 
-    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar"
+    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar;${build}"
 	     classname="edu.rice.cs.astgen.AntTask" />
 
     <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
@@ -314,7 +344,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     </target>
 
     <target name="compile" depends="makeAST, parser, compileCommon, operatorsGen"
-     description="Compile all interpreter code.">
+     description="Compile all Fortress code.">
         <depend srcdir="${src}"
          destdir="${build}"
          closure="yes"

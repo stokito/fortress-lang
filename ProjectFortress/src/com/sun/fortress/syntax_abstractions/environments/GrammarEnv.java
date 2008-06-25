@@ -28,8 +28,10 @@ import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
+import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
 /**
@@ -81,11 +83,12 @@ public class GrammarEnv {
             Debug.debug( 4, "Didn't find it.." );
             return "StringLiteralExpr";
         }
-        String s = cutPackage(GrammarEnv.getMemberEnv(name).getAstType().toString());
+        String stype = new FortressTypeToJavaType().analyze(GrammarEnv.getMemberEnv(name).getAstType());
+        String s = cutPackage(stype);
         Debug.debug( 4, "Found " + s );
         return s;
     }
-
+    
     /**
      * Dump the content of this environment as a string
      * @return

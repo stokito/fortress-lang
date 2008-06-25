@@ -30,7 +30,6 @@ import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.AnonymousFnName;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BigFixity;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.ChainExpr;
@@ -39,15 +38,14 @@ import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.EnclosingFixity;
-import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
-import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.InFixity;
+import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LocalVarDecl;
@@ -62,31 +60,26 @@ import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
 import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.PreFixity;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGap;
-import com.sun.fortress.nodes.TemplateGapExpr;
-import com.sun.fortress.nodes.TemplateGapId;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -794,10 +787,10 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
             return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
         }
         if (this.syntaxDeclEnv.isNonterminal(id)) {
-            // return id.getText();
-            Id nonterminal = syntaxDeclEnv.getNonterminalName(id);
-            Debug.debug( 4, String.format("%s is a non-terminal of type %s", id.getText(), lookupAstNode(nonterminal) ) );
-            return String.format("(%s) %s.get(\"%s\")", lookupAstNode(nonterminal), ActionCreater.BOUND_VARIABLES, id.getText() );
+            Type type = syntaxDeclEnv.getType(id);
+            String stype = new FortressTypeToJavaType().analyze(type);
+            Debug.debug( 4, String.format("%s is a non-terminal of type %s", id.getText(), stype ) );
+            return String.format("(%s) %s.get(\"%s\")", stype, ActionCreater.BOUND_VARIABLES, id.getText() );
         }
         NI.nyi();
         /* will never get here */
@@ -826,7 +819,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String params = FreshName.getFreshName("params");
         this.code.add("List<Id> "+params+" = new LinkedList<Id>();");
         String sVarName = JavaAstPrettyPrinter.getSpan((AbstractNode) t, this.code);
-        String typeName = getMemberEnvironment(id).getAstType().accept(new BaseTypeCollector());
+        String typeName = SyntaxAbstractionUtil.getMemberEnvironment(this.syntaxDeclEnv, id).getAstType().accept(new BaseTypeCollector());
         return SyntaxAbstractionUtil.makeTemplateGap(code, new LinkedList<Integer>(), typeName, idVarName, params, sVarName);
 
     }
@@ -834,7 +827,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     private String parameterizedGap(TemplateGap t){
         Id id = t.getId();
 
-        MemberEnv mEnv = getMemberEnvironment(id);
+        MemberEnv mEnv = SyntaxAbstractionUtil.getMemberEnvironment(this.syntaxDeclEnv, id);
 
         String paramEnv = FreshName.getFreshName("paramEnv");
         List<String> ls = new LinkedList<String>();
@@ -856,7 +849,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     private String addParamHandlers(Id id, MemberEnv env, List<Id> params, String paramEnv,
             List<String> code) {
         Type type = this.syntaxDeclEnv.getType(id);
-        String typeName = type.toString();
+        String typeName = new FortressTypeToJavaType().analyze(type);
 
         String rVarName = FreshName.getFreshName("visitor");
         this.code.add(typeName+" "+rVarName+" = ("+typeName+") "+id+".accept(new NodeUpdateVisitor() {");
@@ -893,16 +886,4 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         code.add("  }");
     }
 
-    private MemberEnv getMemberEnvironment(Id id) {
-        Id memberName = this.syntaxDeclEnv.getNonterminalName(id);
-
-        if (this.syntaxDeclEnv.getMemberEnv().isParameter(id)) {
-            memberName = this.syntaxDeclEnv.getMemberEnv().getParameter(id);
-        }
-
-        if (!GrammarEnv.contains(memberName)) {
-            throw new RuntimeException("Grammar environment does not contain identifier: "+memberName);
-        }
-        return GrammarEnv.getMemberEnv(memberName);
-    }
 }

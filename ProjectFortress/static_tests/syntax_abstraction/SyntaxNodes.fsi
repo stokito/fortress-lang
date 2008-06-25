@@ -18,10 +18,10 @@
 api SyntaxNodes
 
     import FortressAst.{...}
-    import FortressSyntax.Literal
+    import FortressSyntax.Expression
 
-    grammar G extends Literal
-        LiteralExpr |Expr:=
+    grammar G extends Expression
+        Expr |Expr:=
           b-a-d x:Thing <[ x ]>
 
         Thing :Expr:=

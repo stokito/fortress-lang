@@ -18,10 +18,10 @@
 api SyntaxHelloWorld
 
   import FortressAst.{...}
-  import FortressSyntax.Literal
+  import FortressSyntax.Expression
 
-  grammar helloworld extends Literal
-    LiteralExpr |Expr:=
+  grammar helloworld extends Expression
+    Expr |Expr:=
        hello world
          do
            StringLiteralExpr(hello.val " " world.val)

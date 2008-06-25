@@ -477,13 +477,14 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forGrammarDef(GrammarDef that) {
+    public Node forGrammarDefOnly(GrammarDef that, Id name_result,
+            List<Id> extends_result, List<GrammarMemberDecl> members_result) {
 
         Pair<List<Id>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
 
-        Id name = handleGrammarName(that.getName());
+        Id name = handleGrammarName(name_result);
 
-        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),that.getMembers());
+        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),members_result);
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
         Option<GrammarIndex> grammar = this._env.grammarIndex(name);
@@ -500,8 +501,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         return disambiguatedGrammar;
     }
-
-
 
     private Id handleGrammarName(Id name) {
         if (name.getApi().isSome()) {
@@ -553,5 +552,21 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             }
         }
     }
+    
+    @Override
+    public Node forNonterminalHeader(NonterminalHeader that) {
+        TypeDisambiguator v = this.extend(that.getStaticParams());
 
+//        System.err.println("T: "+that.getType());
+        
+        Option<Type> t = v.recurOnOptionOfType(that.getType());
+//        System.err.println("t: "+t);
+        return forNonterminalHeaderOnly(that, 
+            that.getModifier(),
+            (Id) that.getName().accept(v),
+            v.recurOnListOfNonterminalParameter(that.getParams()),
+            v.recurOnListOfStaticParam(that.getStaticParams()),
+            t ,
+            (WhereClause) that.getWhereClause().accept(v));
+    }
 }

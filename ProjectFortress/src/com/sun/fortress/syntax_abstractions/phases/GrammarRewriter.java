@@ -141,7 +141,7 @@ public class GrammarRewriter {
             rebuildGrammarEnv(tpr.api());
             
             // 8) Well-formedness check on template gaps
-            TemplateChecker.Result tcr = TemplateChecker.checkTemplates(tpr.api());
+            TemplateChecker.Result tcr = TemplateChecker.checkTemplates(env, api, tpr.api());
             for (StaticError se: tcr.errors()) { errors.add(se); };
             if (!tcr.isSuccessful()) { return new ApiResult(rs, errors); }
             rs.add(tcr.api());

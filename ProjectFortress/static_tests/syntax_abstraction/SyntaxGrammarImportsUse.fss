@@ -21,6 +21,6 @@ import SyntaxGrammarImports.Helloworld
 
 export Executable
 
-run(args:String...) = print (hello beautiful world)
+run(args:String...) = println (hello beautiful world)
 
 end

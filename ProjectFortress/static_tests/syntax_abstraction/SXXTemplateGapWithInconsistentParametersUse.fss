@@ -21,6 +21,6 @@ component SXXTemplateGapWithInconsistentParametersUse
 
   export Executable
 
-  run(args:String...) = print 42
+  run(args:String...) = println (hello world)
 
 end

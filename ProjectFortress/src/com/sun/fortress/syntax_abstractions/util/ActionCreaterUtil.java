@@ -143,30 +143,6 @@ public class ActionCreaterUtil {
             // code.add(BOUND_VARIABLES+".put(\""+sym.getId().unwrap().getText()+"\""+", "+var+");");
             code.add(String.format("%s.put(\"%s\",%s);", BOUND_VARIABLES, sym.getId().unwrap().getText(), var));
         }
-        /*
-        for(Id id: syntaxDeclEnv.getVariables()) {
-            String var = id.getText();
-            if (isTemplate) {
-                if (syntaxDeclEnv.contains(id)) {
-                    if (syntaxDeclEnv.isRepeat(id)) {
-                        var = getFortressList(id, listCode, indents);  
-                    }
-                    if (syntaxDeclEnv.isOption(id)) {
-                        var = getFortressMaybe(id, code, indents, syntaxDeclEnv);  
-                    }
-                    if (syntaxDeclEnv.isCharacterClass(id)) {
-                        var = getFortressCharacterClass(id, code, indents);  
-                    }
-                    
-                    if (syntaxDeclEnv.isAnyChar(id)) {
-                        var = getFortressAnyChar(id, code, indents);  
-                    }
-                }
-            }
-            indents.add(3);
-            code.add(BOUND_VARIABLES+".put(\""+id.getText()+"\""+", "+var+");");
-        }
-        */
         listCode.addAll(code);
         indents.addAll(0,listIndents);
         return listCode;

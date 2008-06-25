@@ -18,13 +18,13 @@
 api TemplateGapWithInconsistentParameters
 
   import FortressAst.{...}
-  import FortressSyntax.{Literal}
+  import FortressSyntax.{Expression}
 
-  grammar helloworld extends { Literal, Expression }
-    LiteralExpr |Expr:=
-      hello a1:World <[ hello " " a1(hello, hello) ]>
+  grammar helloworld extends { Expression }
+    Expr |Expr:=
+      hello a1:World <[ hello " " a1(hello) ]>
 
-    World(e:Expr) :LooseJuxt:=
+    World(e:Expr) :Expr:=
       world <[ e " world" ]>
 
   end

@@ -18,23 +18,23 @@
 api SyntaxHelloWorldTemplate
 
   import FortressAst.{...}
-  import FortressSyntax.{Literal}
+  import FortressSyntax.{Expression}
 
-  grammar helloworld extends Literal
-    LiteralExpr |Expr:=
+  grammar helloworld extends Expression
+    Expr |Expr:=
        h:hello Beautiful World
          do
            StringLiteralExpr(h.val " " Beautiful.val " " World.val)
          end
      | hello a1:Beautiful a2:Beautiful World <[ hello " " a1 " " a2 " " World ]>
 
-    World :StringLiteralExpr:=
+    World :Expr:=
       world
         do
           StringLiteralExpr("world")
         end
 
-    Beautiful :StringLiteralExpr:=
+    Beautiful :Expr:=
       beautiful <[ "beautiful" ]>
   end
 

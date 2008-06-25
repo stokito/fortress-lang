@@ -21,16 +21,16 @@ api SyntaxGrammarImports
   import FortressSyntax.{...}
   import SyntaxGrammarImportsA.{...}
 
-  grammar Helloworld extends { A, B, Literal }
-      LiteralExpr |Expr:=
-         Hello a:Beautiful world <[ Hello.val " " a.val " world" ]>
+  grammar Helloworld extends { A, B, Expression }
+      Expr |Expr:=
+         Hello a:Beautiful world <[ Hello " " a " world" ]>
   end
- 
-  grammar B extends Literal
+
+  grammar B 
       Foo :Expr:=
          when <[ "in 84" ]>
 
-      Beautiful :StringLiteralExpr:=
+      Beautiful :Expr:=
          beautiful <[ beautiful ]>
   end
 

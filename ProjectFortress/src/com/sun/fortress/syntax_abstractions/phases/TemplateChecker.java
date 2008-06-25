@@ -18,25 +18,35 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.CompilationUnitIndex;
+import com.sun.fortress.compiler.typechecker.ConstraintFormula;
+import com.sun.fortress.compiler.typechecker.TraitTable;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TemplateGap;
+import com.sun.fortress.nodes.TemplateUpdateVisitor;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -46,7 +56,7 @@ import edu.rice.cs.plt.tuple.Option;
  * 2) The asttype of the actual parameters is the same as the asttype of the formal parameters
  * 3) Rewrite pattern variables to fresh names (which are legal Java identifers)   
  */
-public class TemplateChecker extends NodeUpdateVisitor {
+public class TemplateChecker extends TemplateUpdateVisitor {
 
     public static class Result extends StaticPhaseResult {
         private Api api;
@@ -63,9 +73,13 @@ public class TemplateChecker extends NodeUpdateVisitor {
     private Collection<StaticError> errors;
     private SyntaxDeclEnv currentSyntaxDeclEnv;
     private MemberEnv currentMemberEnv;
+    private GlobalEnvironment GLOBAL_ENV;
+    private CompilationUnitIndex currentApiIndex;
     
-    public TemplateChecker() {
+    public TemplateChecker(GlobalEnvironment globalEnv, CompilationUnitIndex currentApiIndex) {
         this.errors = new LinkedList<StaticError>();
+        this.GLOBAL_ENV = globalEnv;
+        this.currentApiIndex = currentApiIndex;
     }
 
     private Collection<StaticError> getErrors() {
@@ -75,9 +89,9 @@ public class TemplateChecker extends NodeUpdateVisitor {
     private boolean isSuccessfull() {
         return this.errors.isEmpty();
     }
-    
-    public static Result checkTemplates(Api api) {
-        TemplateChecker templateChecker = new TemplateChecker();
+
+    public static Result checkTemplates(GlobalEnvironment globalEnv, ApiIndex apiIndex, Api api) {
+        TemplateChecker templateChecker = new TemplateChecker(globalEnv, apiIndex);
         Api a = (Api) api.accept(templateChecker);
         if (!templateChecker.isSuccessfull()) {
             return new Result(a, templateChecker.getErrors());
@@ -96,7 +110,7 @@ public class TemplateChecker extends NodeUpdateVisitor {
         this.currentMemberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
         return super.forNonterminalExtensionDef(that);
     }
-    
+
     @Override
     public Node for_TerminalDef(_TerminalDef that) {
         this.currentMemberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
@@ -117,53 +131,97 @@ public class TemplateChecker extends NodeUpdateVisitor {
         return super.forSyntaxDef(that);
     }
 
-//    Waiting for the new Astgen interface
-//    @Override
-//    public Node forTemplateGap(TemplateGap that) {
-//        handleTemplateGap(that);
-//        return super.forTemplateGap(that);
-//    }
+    //    Waiting for the new Astgen interface
+    //    @Override
+    //    public Node forTemplateGap(TemplateGap that) {
+    //        handleTemplateGap(that);
+    //        return super.forTemplateGap(that);
+    //    }
 
     /*
      * 1) The number of formal and actual parameters are the same
      * 2) The asttype of the actual parameters is the same as the asttype of the formal parameters
      * 3) TODO: Rewrite pattern variables to fresh names (which are legal Java identifers)
      */
-    private void handleTemplateGap(TemplateGap gap) {
-        Id nonterminalName = this.currentSyntaxDeclEnv.getNonterminalName(gap.getId());
-        MemberEnv memberEnv = GrammarEnv.getMemberEnv(nonterminalName);
-        List<Id> formalParams = memberEnv.getParameters();
-        List<Id> actualParams = gap.getTemplateParams();
+    @Override
+    public void handleTemplateGap(TemplateGap gap) {
+//        System.err.println("handling: "+gap.getId());
         
-        // 1) The number of formal and actual parameters are the same
-        if (formalParams.size() != actualParams.size()) {
-            this.errors.add(StaticError.make("Mismatch between number of arguments: "+gap.getId(), gap));
+        if (this.currentSyntaxDeclEnv.isAnyChar(gap.getId()) ||
+            this.currentSyntaxDeclEnv.isCharacterClass(gap.getId())) {
             return;
         }
-        
+        String errorMsg = "The nonterminal %1s is not applicable for the arguments (%2s), expected (%3s)";
+        MemberEnv memberEnv = SyntaxAbstractionUtil.getMemberEnvironment(this.currentSyntaxDeclEnv, gap.getId()); 
+        List<Id> formalParams = memberEnv.getParameters();
+        List<Id> actualParams = gap.getTemplateParams();
+
+        // 1) The number of formal and actual parameters are the same
+        if (formalParams.size() != actualParams.size()) {
+            String formals = getFormalParametersList(memberEnv, formalParams);
+            String actuals = getActualParametersList(actualParams);
+            String error = String.format(errorMsg, gap.getId(), actuals, formals);
+            this.errors.add(StaticError.make(error, gap));
+        }
+
         // 2) The asttype of the actual parameters is the same as the asttype of the formal parameters
-        boolean error = false;
-        String formalArgs = "";
-        String actualArgs = "";
+        boolean isError = false;
+        String formals = "";
+        String actuals = "";
         for (int inx=0; inx < formalParams.size(); inx++) {
             Id formalParamVar = formalParams.get(inx);
-            Id formalParamNonterminal = memberEnv.getParameter(formalParamVar);
+            BaseType formalParamType = GrammarEnv.getMemberEnv(memberEnv.getParameter(formalParamVar)).getAstType();
             Id actualParamVar = actualParams.get(inx);
-            Id actualParamNonterminal = this.currentSyntaxDeclEnv.getNonterminalName(actualParamVar);
-            if (!formalParamNonterminal.equals(actualParamNonterminal)) {
-                error = true;
+            BaseType actualParamType = this.currentSyntaxDeclEnv.getType(actualParamVar);
+            
+//            System.err.println(formalParamType);
+//            System.err.println(actualParamType);
+            
+            TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(currentApiIndex, GLOBAL_ENV));
+            ConstraintFormula subtype = ta.subtype(formalParamType,actualParamType);
+//            System.err.println(subtype.toString());
+            if (!ConstraintFormula.TRUE.equals(subtype)) {
+                isError = true;
             }
-            formalArgs += formalParamNonterminal.toString();
-            actualArgs += actualParamNonterminal.toString();
-            if (inx <= formalParams.size()-1) {
-                formalArgs += ", ";
-                actualArgs += ", ";
+            formals += formalParamType.toString();
+            actuals += actualParamType.toString();
+            if (inx < formalParams.size()-1) {
+                formals += ", ";
+                actuals += ", ";
             }
         }
-        if (error) {
-            String msg = "Nonterminal %s(%s) cannot be applied to (%s)";
-            msg = String.format(msg, gap.getId(), formalArgs, actualArgs);
-            this.errors.add(StaticError.make(msg, gap));
+        if (isError) {
+            String error = " "+String.format(errorMsg, gap.getId().toString(), actuals, formals);
+            // this.errors.add(StaticError.make(error, gap));
         }
     }
+
+    private String getActualParametersList(List<Id> actualParams) {
+        Iterator<Id> it;
+        String actuals = "";
+        it = actualParams.iterator();
+        while (it.hasNext()) {
+            Id param = it.next();
+            actuals += GrammarEnv.getType(this.currentSyntaxDeclEnv.getNonterminalName(param));
+            if (it.hasNext()) {
+                actuals += ", ";
+            }
+        }
+        return actuals;
+    }
+
+    private String getFormalParametersList(MemberEnv memberEnv,
+            List<Id> formalParams) {
+        String formals = "";
+        Iterator<Id> it = formalParams.iterator();
+        while (it.hasNext()) {
+            Id param = it.next();
+            formals += GrammarEnv.getType(memberEnv.getParameter(param));
+            if (it.hasNext()) {
+                formals += ", ";
+            }
+        }
+        return formals;
+    }
+
 }

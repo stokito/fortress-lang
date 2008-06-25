@@ -57,6 +57,9 @@ import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
+import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -243,4 +246,22 @@ public class SyntaxAbstractionUtil {
         return null;
     }
 
+    /**
+     * Given the pattern variable id, return the name of the grammar member
+     * it is bound to. 
+     * @param id
+     * @return
+     */
+    public static MemberEnv getMemberEnvironment(SyntaxDeclEnv syntaxDeclEnv, Id id) {
+        Id memberName = syntaxDeclEnv.getNonterminalName(id);
+
+        if (syntaxDeclEnv.getMemberEnv().isParameter(id)) {
+            memberName = syntaxDeclEnv.getMemberEnv().getParameter(id);
+        }
+
+        if (!GrammarEnv.contains(memberName)) {
+            throw new RuntimeException("Grammar environment does not contain identifier: "+memberName);
+        }
+        return GrammarEnv.getMemberEnv(memberName);
+    }
 }
