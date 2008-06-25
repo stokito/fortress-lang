@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.nodes_astgen_generators;
+package com.sun.fortress.astgen;
 
 import java.util.LinkedList;
 import java.util.List;

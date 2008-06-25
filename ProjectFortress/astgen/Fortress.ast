@@ -30,7 +30,7 @@ generateEquals yes;
 generateSerializers yes;
 customClassPath ../build;
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
-customGenerator com.sun.fortress.nodes_astgen_generators.TemplateVisitorGenerator;
+customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
 
 package com.sun.fortress.nodes;
 import java.math.BigInteger;
