@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;

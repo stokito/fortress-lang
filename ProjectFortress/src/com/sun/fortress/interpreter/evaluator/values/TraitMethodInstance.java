@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.useful.HasAt;
 
 

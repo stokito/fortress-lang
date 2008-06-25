@@ -30,13 +30,13 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.TraitMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Voidoid;
 

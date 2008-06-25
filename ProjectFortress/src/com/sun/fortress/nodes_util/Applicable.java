@@ -15,30 +15,23 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.evaluator.values;
+package com.sun.fortress.nodes_util;
 
 import java.util.List;
-
-import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes_util.Applicable;
+import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.HasAt;
 
 /**
- * When a generic function is instantiated, the result is a closure instance,
- * which is very much like a closure.
- * @author chase
+ * functional declaration or function expression
+ * nodes_util.NodeUtil declares the following static methods:
+ *  - String nameAsMethod(Applicable)
+ *  - Option<Expr> getBody(Applicable)
  */
-public class ClosureInstance extends Closure {
-
-    public ClosureInstance(Environment e, Applicable fndef, List<FType> args, FGenericFunction generator) {
-        super(e, fndef, args);
-        this.generator = generator;
-    }
-
-    FGenericFunction generator;
-
-    public FGenericFunction getGenerator() {
-        return generator;
-    }
-
+public interface Applicable extends HasAt {
+    public IdOrOpOrAnonymousName getName();
+    public List<StaticParam> getStaticParams();
+    public List<Param> getParams();
+    public Option<Type> getReturnType();
+    public WhereClause getWhere();
 }
