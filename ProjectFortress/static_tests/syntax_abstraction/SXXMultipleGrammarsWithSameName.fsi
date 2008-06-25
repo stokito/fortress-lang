@@ -14,6 +14,20 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component MultipleGrammarsWithSameName
-export MultipleGrammarsWithSameName
+
+api SXXMultipleGrammarsWithSameName
+
+  import FortressAst.{...}
+  import FortressSyntax.{Expression}
+
+  grammar Wrong extends Expression
+    Bar :Expr:= 
+      bar do StringLiteral("") end
+  end
+
+  grammar Wrong extends Expression
+    Foo :Expr:= 
+      foo do StringLiteral("") end
+  end
+
 end

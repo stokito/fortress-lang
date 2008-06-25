@@ -160,6 +160,8 @@ public final class StaticTestSuite extends TestSuite {
 
         private void assertSyntaxAbstractionFails(File f) throws IOException {
             com.sun.fortress.compiler.StaticChecker.typecheck = false;
+            ProjectProperties.debug = true;
+            Debug.setDebug( 2 );
             Iterable<? extends StaticError> errors = compile(f);
             assertFalse("Source " + f + " was compiled without syntax abstraction errors",
                         IterUtil.isEmpty(errors));

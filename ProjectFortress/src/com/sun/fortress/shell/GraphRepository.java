@@ -38,6 +38,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.FortressRepository;
@@ -56,6 +57,7 @@ import com.sun.fortress.useful.Debug;
 import xtc.parser.SemanticValue;
 import xtc.parser.ParseError;
 
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.shell.graph.Graph;
@@ -500,8 +502,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
 	/* recompile anything that is out of date */
-	private void refreshGraph() throws FileNotFoundException, IOException, StaticError {
-
+	private Iterable<? extends StaticError> refreshGraph() throws FileNotFoundException, IOException, StaticError {
+	    Iterable<? extends StaticError> errors = IterUtil.empty();
 		if ( needUpdate ){
 			needUpdate = false;
                         OutOfDateVisitor date = new OutOfDateVisitor();
@@ -517,7 +519,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                         Debug.debug( 1, "Out of date apis " + recompileApis );
                         Debug.debug( 1, "Out of date components " + recompileComponents );
 			/* these can be compiled all at once */
-			compileApis(recompileApis);
+			errors = IterUtil.compose(errors, compileApis(recompileApis));
 
 			/* but these have to be done in a specific order due to
 			 * syntax expansion requiring some components, like
@@ -535,6 +537,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 				node.setComponent(compileComponent(syntaxExpand(node)));
 			}
 		}
+		return errors;
 	}
 
         /* getApi and getComponent add an api/component to the graph, find all the
@@ -543,14 +546,14 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
 		ApiGraphNode node = addApiGraph(name);
 		Debug.debug( 2, "Get api for " + name);
-		refreshGraph();
+		Iterable<? extends StaticError> errors = refreshGraph();
 		return node.getApi().unwrap();
 	}
 
 	public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
 		ComponentGraphNode node = addComponentGraph(name);
 		Debug.debug( 2, "Get component for " + name );
-		refreshGraph();
+		Iterable<? extends StaticError> errors = refreshGraph();
 		return node.getComponent().unwrap();
 	}
 
@@ -671,7 +674,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		return cache.apis();
 	}
 
-	private void compileApis( List<ApiGraphNode> apis ){
+	private Iterable<? extends StaticError> compileApis( List<ApiGraphNode> apis ){
 		for ( ApiGraphNode node : apis ){
 			/* yes, set the api to nothing so that it gets
 			 * recompiled no matter what
@@ -679,11 +682,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 			node.setApi(null);
 		}
 		if ( apis.size() > 0 ){
-			compileApis();
+			return compileApis();
 		}
+		return IterUtil.empty();
 	}
 
-	private void compileApis(){
+	private Iterable<? extends StaticError> compileApis(){
 		List<Api> uncompiled = Useful.applyToAll(graph.filter(new Fn<GraphNode,Boolean>(){
 			@Override
 			public Boolean apply(GraphNode g){
@@ -704,9 +708,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		List<Component> components = new ArrayList<Component>();
 		Fortress fort = new Fortress(this);
 		Iterable<? extends StaticError> errors = fort.analyze( knownApis, uncompiled, components, System.currentTimeMillis() );
-		for ( StaticError e : errors ){
-			System.err.println("Error while compiling apis: " + e);
-		}
+		return errors;
+//		for ( StaticError e : errors ){
+//			System.err.println("Error while compiling apis: " + e);
+//		}
 	}
 
         /* find imports and exports of a component */

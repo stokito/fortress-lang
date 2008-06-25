@@ -16,7 +16,7 @@
  ******************************************************************************)
 component SXXMultipleGrammarsWithSameNameUse
   
-  import MultipleGrammarsWithSameName.{...}
+  import SXXMultipleGrammarsWithSameName.{...}
   export Executable
 
   run(args:String...):() = println 42
