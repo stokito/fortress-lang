@@ -520,6 +520,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                         Debug.debug( 1, "Out of date components " + recompileComponents );
 			/* these can be compiled all at once */
 			errors = IterUtil.compose(errors, compileApis(recompileApis));
+                        for ( StaticError e : errors ){
+                            throw e;
+                        }
 
 			/* but these have to be done in a specific order due to
 			 * syntax expansion requiring some components, like
