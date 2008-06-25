@@ -36,6 +36,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringArrayIterator;
@@ -315,9 +316,9 @@ abstract public class BaseEnv implements Environment {
 
     abstract public  FType getTypeNull(String str) ;    
     
-    final public  FValue getValue(FValue f1) {
-        return getValue(string(f1));
-    }
+//    final public  FValue getValue(FValue f1) {
+//        return getValue(string(f1));
+//    }
 
 //    final public  FValue getValue(Id q)  {
 //        FValue x = getValueNull(q);
@@ -329,30 +330,54 @@ abstract public class BaseEnv implements Environment {
 
     final public  FValue getValue(String str) {
         FValue x = getValueNull(str);
+        return getValueTail(str, x);
+    }
+    
+    final public  FValue getValue(VarRef vr) {
+        FValue x = getValueNull(vr);
+        return getValueTail(vr, x);
+    }
+//    final public FValue getValueNull(Id name) {
+//        return getValueNull(NodeUtil.nameString(name));
+//    }
+
+    private FValue getValueTail(Object str, FValue x) {
         if (x == null) {
             return error(errorMsg("Missing value: ", str," in environment:\n",this));
         } else {
             return x;
         }
     }
-//    final public FValue getValueNull(Id name) {
-//        return getValueNull(NodeUtil.nameString(name));
-//    }
 
     public FValue getValueNull(String s) {
         FValue v = getValueRaw(s);
-        if (v == null)
-            return v;
-        if (v instanceof IndirectionCell) {
-            try {
-                v = ((IndirectionCell) v).getValueNull();
-            } catch (CircularDependenceError ce) {
-                ce.addParticipant(s);
-                throw ce;
-            }
-        }
-        return v;
+        return getValueNullTail(s, v);
     }
+
+    final public  FValue getValueNull(VarRef vr) {
+        Id name = vr.getVar();
+        String s = NodeUtil.nameString(name);
+        int l = vr.getLexicalDepth();
+        if (l == -1)
+            return error(errorMsg("Untagged VarRef ", vr));
+        FValue v = getValueRaw(s, l);
+        return getValueNullTail(s, v);
+    }
+        
+    private FValue getValueNullTail(String s, FValue v)
+        throws CircularDependenceError {
+    if (v == null)
+        return v;
+    if (v instanceof IndirectionCell) {
+        try {
+            v = ((IndirectionCell) v).getValueNull();
+        } catch (CircularDependenceError ce) {
+            ce.addParticipant(s);
+            throw ce;
+        }
+    }
+    return v;
+}
 
    final public  FType getVarType(String str) {
         FType x = getVarTypeNull(str);

@@ -883,11 +883,16 @@ public class Useful {
     }
  
     public static String substituteVarsCompletely(String e, StringMap map, int limit) {
+        String initial_e = e;
         String old_e = e;
         e = substituteVars(e, map);
         while (old_e != e && limit-- > 0) {
             old_e = e;
             e = substituteVars(e, map);
+        }
+        if (limit <= 0) {
+            throw new Error("String substitution failed to terminate, input=" +  initial_e +
+                    ", " + " non-final result=" + e);
         }
         return e;
      }

@@ -26,23 +26,7 @@ import com.sun.fortress.useful.StringMap;
 import com.sun.fortress.useful.Useful;
 
 public class ProjectProperties {
-
-    private static String fortressHome() {
-        String s = null;
-        try {
-            s = System.getProperty("fortress.home");
-        } catch (Throwable th) {
-
-        }
-        if (s == null) {
-            s = System.getenv("FORTRESS_HOME");
-        }
-        if (s == null) {
-            s = FORTRESS_AUTOHOME;
-        }
-        return s;
-    }
-    
+ 
     private static String fortressAutoHome() {
         String s = null;
         try {
@@ -128,28 +112,60 @@ public class ProjectProperties {
     }
 
     public static final String FORTRESS_AUTOHOME = fortressAutoHome(); // MUST PRECEDE FORTRESS_HOME
-    public static final String FORTRESS_HOME = fortressHome(); // MUST FOLLOW FORTRESS_AUTOHOME
     
     static final String home = System.getenv("HOME");
 
-    static final StringMap searchTail = new StringMap.ComposedMaps(
-            new StringMap.FromFileProps(".fortress.properties"),
-            new StringMap.FromFileProps(home+"/.fortress.properties"),
-            new StringMap.FromFileProps(FORTRESS_AUTOHOME+"/fortress.properties.local"),
-            new StringMap.FromFileProps(FORTRESS_AUTOHOME+"/fortress.properties")
-    );
+    /**
+     * The search path for the repository, which will provide configuration information, etc.
+     */
+    
+    static final StringMap searchHead = new StringMap.ComposedMaps(
+            new StringMap.FromReflection(ProjectProperties.class, "FORTRESS_"),
+            new StringMap.FromSysProps(),
+            new StringMap.FromEnv());
+    
+    public static final String REPOSITORY_PATH_STRING = 
+        searchHead.getCompletely(";.fortress;${HOME}/.fortress;${FORTRESS_AUTOHOME}/local_repository;${FORTRESS_AUTOHOME}/default_repository",
+                1000);
+    public static final Path REPOSITORY_PATH = new Path(REPOSITORY_PATH_STRING);
+    public static final String REPOSITORY = REPOSITORY_PATH.findDirName(".", "fortress.repository.not.found").toString();
+
+    static {
+        File config = new File(REPOSITORY + "/configuration");
+        File otherConfig = null;
+        try {
+            otherConfig = REPOSITORY_PATH.findFile("configuration");                
+        } catch (IOException ex) {
+            throw new Error(ex.getMessage());
+        }
+        if (otherConfig != null) {
+            if (! config.exists()) {
+                throw new Error("Repository " + REPOSITORY + " does not contain configuration" + " but " + otherConfig + " is ok ");
+            } else if (! config.isFile()) {
+                throw new Error("Repository " + REPOSITORY + "/configuration is not a regular file" + " but " + otherConfig + " is ok ");
+            } else if (! config.canRead()) {
+                throw new Error("Repository " + REPOSITORY + "/configuration is not readable" + " but " + otherConfig + " is ok ");
+            }
+        } else {
+            if (! config.exists()) {
+                throw new Error("Repository " + REPOSITORY + " does not contain configuration");
+            } else if (! config.isFile()) {
+                throw new Error("Repository " + REPOSITORY + "/configuration is not a regular file");
+            } else if (! config.canRead()) {
+                throw new Error("Repository " + REPOSITORY + "/configuration is not readable");
+            }
+        }
+    }
+    static final StringMap searchTail = 
+            new StringMap.FromFileProps(REPOSITORY+"/configuration");
 
     static final StringMap allProps = new StringMap.ComposedMaps(
-            new StringMap.FromReflection(ProjectProperties.class),
-            new StringMap.FromSysProps(),
-            new StringMap.FromEnv(),
+            searchHead,
             searchTail
     );
 
     static final public String get(String s) {
-        String result =  allProps.get(s);
-        if (result != null)
-            result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        String result = Useful.substituteVarsCompletely(s, allProps, 1000);
         return result;
     }
 
@@ -159,6 +175,9 @@ public class ProjectProperties {
             result = ifMissing;
         if (result != null)
             result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        if (result == null) {
+            throw new Error("Must supply a definition (as property, environment variable, or repository configuration property) for " + s);
+        }
         return result;
     }
 
@@ -182,10 +201,10 @@ public class ProjectProperties {
      *
      * System.getProperty("fortress.cache")
      * System.getenv("FORTRESS_CACHE")
-     * ./.fortress.properties .getProperty("fortress.cache")
-     * ~/.fortress.properties .getProperty("fortress.cache")
-     * ${FORTRESS_HOME}/fortress.properties.local .getProperty("fortress.cache") .
-     * ${FORTRESS_HOME}/fortress.properties .getProperty("fortress.cache") .
+     * ./.fortress/configuration .getProperty("fortress.cache")
+     * ~/.fortress/configuration .getProperty("fortress.cache")
+     * ${FORTRESS_HOME}/local_repository/configuration .getProperty("fortress.cache") .
+     * ${FORTRESS_HOME}/default_repository/configuration .getProperty("fortress.cache") .
      */
 
     private static String searchDef(String asProp, String asEnv, String defaultValue) {
@@ -200,6 +219,7 @@ public class ProjectProperties {
         return result;
     }
 
+ 
     /** This static field holds the absolute path of the (sub)project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
@@ -207,13 +227,14 @@ public class ProjectProperties {
      * The path name includes a trailing slash!
      */
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_AUTOHOME}/ProjectFortress/");
-    // public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
 
-    public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}.interpreter_cache");
-    public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${BASEDIR}.presyntax_cache");
-    public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}.analyzed_cache");
-    public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${BASEDIR}.syntax_cache");
-    public static final String BYTECODE_CACHE_DIR = get("fortress.syntax.cache", "${BASEDIR}.bytecode_cache");    
+    public static final String CACHES = get("fortress.caches", "${REPOSITORY}/caches");
+    
+    public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${CACHES}/interpreter_cache");
+    public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${CACHES}/presyntax_cache");
+    public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${CACHES}/analyzed_cache");
+    public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${CACHES}/syntax_cache");
+    public static final String BYTECODE_CACHE_DIR = get("fortress.syntax.cache", "${CACHES}/bytecode_cache");    
 
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
 
