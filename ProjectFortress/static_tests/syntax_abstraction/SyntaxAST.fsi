@@ -25,8 +25,8 @@ api SyntaxAST
     toString():String
   end
 
-  grammar Helloworld extends { Literal }
-      LiteralExpr |Expr:=
+  grammar Helloworld extends { Expression }
+      Expr |Expr:=
         world
         do
           exprs:List[\Expr\] = emptyList[\Expr\](2);

@@ -27,7 +27,7 @@ component ComprehensionUse
     g:List[\ZZ32\] = <| 1, 2, 3, 4|>
     println <| 2 x | x <- g |> 
     println __generate(g, SumReduction, fn x => 2 x)
-    println foo a 2 x d x <- g b bar
+(*    println foo a 2 x d x <- g b bar *)
   end
 
 end

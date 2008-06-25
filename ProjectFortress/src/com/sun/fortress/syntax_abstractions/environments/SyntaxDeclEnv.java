@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sun.fortress.nodes.AnyCharacterSymbol;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
@@ -35,6 +36,7 @@ import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
 import com.sun.fortress.syntax_abstractions.util.TypeCollector;
 
@@ -47,7 +49,7 @@ public class SyntaxDeclEnv {
     private final Set<Id> options;
     private final Set<Id> repeats;
     private final Map<Id, Id> varToNonterminalName;
-    private final Map<Id, Type> varToType;
+    private final Map<Id, BaseType> varToType;
     private boolean init;
     private MemberEnv memberEnv;
 
@@ -57,7 +59,7 @@ public class SyntaxDeclEnv {
         this.options = new HashSet<Id>();
         this.repeats = new HashSet<Id>();
         this.varToNonterminalName = new HashMap<Id, Id>();
-        this.varToType = new HashMap<Id, Type>();
+        this.varToType = new HashMap<Id, BaseType>();
         this.init = false;
         this.sd = sd;
         this.memberEnv = memberEnv;
@@ -109,16 +111,41 @@ public class SyntaxDeclEnv {
         return this.varToNonterminalName.containsKey(var);
     }
 
+    /**
+     * Returns the name of the nonterminal the given variable is bound to
+     * @param var
+     * @return
+     */
     public Id getNonterminalName(Id var) {
         if (!init)
             init();
+        if (this.getMemberEnv().isParameter(var)) {
+            Id s = this.getMemberEnv().getParameter(var);
+            return s;
+        }
         return this.varToNonterminalName.get(var);
     }
 
-    public Type getType(Id var) {
+    /**
+     * Returns the type of the given variable
+     * @param var
+     * @return
+     */
+    public BaseType getType(Id var) {
         if (!init)
             init();
-        return this.varToType.get(var);
+        if (this.isAnyChar(var)) {
+            return NodeFactory.makeTraitType("FortressAst", "StringLiteralExpr");            
+        } else if (this.isCharacterClass(var)) {
+            return NodeFactory.makeTraitType("FortressAst", "StringLiteralExpr");
+        } else if (this.isNonterminal(var)) {
+            return this.varToType.get(var);    
+        } else if (this.isOption(var)) {
+            throw new RuntimeException("NYI - Syntax declaration environment getType option: "+var);
+        } else if (this.isRepeat(var)) {
+            throw new RuntimeException("NYI - Syntax declaration environment getType repeat: "+var);
+        }        
+        throw new RuntimeException("NYI - Syntax declaration environment getType: "+var);
     }
 
     public boolean isAnyChar(Id id) {

@@ -18,11 +18,11 @@
 api SyntaxTest
 
   import FortressAst.{...}
-  import FortressSyntax.{Literal}
+  import FortressSyntax.{Expression}
   import List.{...}
 
-  grammar Helloworld extends { Literal }
-      LiteralExpr |Expr:=
+  grammar Helloworld extends { Expression }
+      Expr |Expr:=
         Fortress is very? a:cool# b:, indeed Verys* c:cool
         do 
           ids: List[\Id\] = emptyList[\Id\](1)
@@ -39,7 +39,7 @@ api SyntaxTest
           LooseJuxt(es)
         end
 
-      Verys :StringLiteralExpr:= 
+      Verys :Expr:= 
         SPACE a:very <[ a ]>
   end
  

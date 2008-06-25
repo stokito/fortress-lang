@@ -29,11 +29,11 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 
 
 public class TraitTable {
-    private ComponentIndex currentComponent;
+    private CompilationUnitIndex currentCompilationUnit;
     private GlobalEnvironment globalEnv;
 
-    public TraitTable(ComponentIndex _currentComponent, GlobalEnvironment _globalEnv) {
-        currentComponent = _currentComponent;
+    public TraitTable(CompilationUnitIndex _currentComponent, GlobalEnvironment _globalEnv) {
+        currentCompilationUnit = _currentComponent;
         globalEnv = _globalEnv;
     }
 
@@ -42,8 +42,8 @@ public class TraitTable {
         Id simpleName = new Id(name.getText());
         // TODO: Shouldn't qualified names only point to APIs? -- Dan
         if (name.getApi().isNone() ||
-            currentComponent.ast().getName().equals(name.getApi().unwrap())) {
-            result = currentComponent.typeConses().get(simpleName);
+            currentCompilationUnit.ast().getName().equals(name.getApi().unwrap())) {
+            result = currentCompilationUnit.typeConses().get(simpleName);
         }
         else {
             ApiIndex api = globalEnv.api(name.getApi().unwrap());
@@ -59,8 +59,8 @@ public class TraitTable {
     }
 
     public CompilationUnitIndex compilationUnit(APIName name) {
-        if (currentComponent.ast().getName().equals(name)) {
-            return currentComponent;
+        if (currentCompilationUnit.ast().getName().equals(name)) {
+            return currentCompilationUnit;
         } else {
             return globalEnv.api(name);
         }

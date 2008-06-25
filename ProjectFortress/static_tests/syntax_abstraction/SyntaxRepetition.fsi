@@ -29,8 +29,8 @@ api SyntaxRepetition
     makeObjectInstance(ls:List[\Expr\]):TightJuxt
   end
 *)
-  grammar Select1 extends { A, B, Literal }
-      LiteralExpr |Expr:=
+  grammar Select1 extends { A, B, Expression }
+      Expr |Expr:=
         SELECT ATuples* world
         do 
 (*          GrammarHelper().makeObjectInstance(ATuples) *)
@@ -66,8 +66,8 @@ api SyntaxRepetition
         end
   end
 
-  grammar Select2 extends { A, B, Literal }
-      LiteralExpr |Expr:=
+  grammar Select2 extends { A, B, Expression }
+      Expr |Expr:=
         SELECT ATuples* from
         <[ SelectQuery( ATuples ) ]>
       | SELECT BTuples* from

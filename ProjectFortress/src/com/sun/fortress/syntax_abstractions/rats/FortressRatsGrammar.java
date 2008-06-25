@@ -75,6 +75,7 @@ public class FortressRatsGrammar {
 				attrs.add(attribute);
 			}
 		}
+//		attrs.add(new Attribute("verbose"));
 		m.attributes = attrs;
 	}
 

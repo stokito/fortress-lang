@@ -37,6 +37,8 @@ public class BaseTypeCollector extends NodeDepthFirstVisitor<String> {
     @Override
     public String forTraitTypeOnly(TraitType that, String name_result,
             List<String> args_result) {
+        if (args_result.size() == 0)
+            return that.getName().getText();
         if (args_result.size() != 1)
             return super.forTraitTypeOnly(that, name_result, args_result);       
         return args_result.get(0);

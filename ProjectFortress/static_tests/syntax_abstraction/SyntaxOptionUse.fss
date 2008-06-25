@@ -15,16 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component SyntaxOptionUse
-import SyntaxOption.Helloworld
-import FortressAst.{...}
+  import SyntaxOption.Helloworld
+  import FortressAst.{...}
 
-export Executable
+  export Executable
 
-  f():() = print world
+  f():() = println (world)
 
   run(args:String...) = do 
     f()
-    print (hello world)
+    println (hello world)
     println (foo bar)
+    Gnu:Maybe[\String\] = Just[\String\]("GG")
+    println (if g <- Gnu then "A" else "B" end)
   end
 end

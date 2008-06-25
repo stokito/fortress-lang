@@ -19,10 +19,11 @@ api Comprehension
 
   import FortressAst.{...}
   import FortressSyntax.{...}
+  import List.{...}
 
-  grammar Comprehension extends { Literal, Expression, Identifier }
+  grammar Comprehension extends { Expression, Identifier }
 
-    LiteralExpr |Expr:=
+    Expr |Expr:=
       foo DComprehension bar
       <[ DComprehension ]>
 

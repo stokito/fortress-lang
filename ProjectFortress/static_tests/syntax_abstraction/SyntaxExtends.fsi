@@ -19,7 +19,7 @@ api SyntaxExtends
 
   import FortressAst.{...}
   import FortressSyntax.{...}
-
+  import List.{...}
 
   grammar A extends { Declaration, D }
     Decl |List[\Decl\]:=
@@ -41,12 +41,12 @@ api SyntaxExtends
   end
 
   grammar B extends { C1, C2 }
-    Thing |StringLiteralExpr:=
+    Thing |Expr:=
       thingB1 <[ thingB1 ]>
   end
 
   grammar C
-    Thing :StringLiteralExpr:=
+    Thing :Expr:=
       thingC0 <[ thingC0 ]>
   end
 
@@ -73,12 +73,12 @@ api SyntaxExtends
   end
 
   grammar E
-    Thing :StringLiteralExpr:=
+    Thing :Expr:=
       Foo <[ Foo ]>
   end
 
   grammar F extends C
-    Thing |StringLiteralExpr:=
+    Thing |Expr:=
       thingF <[ thingF ]>
   end
 

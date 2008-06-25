@@ -28,6 +28,7 @@ allowNulls no;
 generateToString no;
 generateEquals yes;
 generateSerializers yes;
+customGenerator com.sun.fortress.nodes_astgen_generators.TemplateVisitorGenerator;
 
 package com.sun.fortress.nodes;
 import java.math.BigInteger;

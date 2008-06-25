@@ -20,7 +20,7 @@ api SyntaxGrammarImportsA
   import FortressAst.{...}
 
   grammar A
-      Hello :StringLiteralExpr:=
+      Hello :Expr:=
          hello <[ "Hello" ]>
 
       World :Expr:=

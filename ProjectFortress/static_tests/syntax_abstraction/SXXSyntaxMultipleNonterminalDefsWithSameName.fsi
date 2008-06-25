@@ -18,13 +18,13 @@
 api XXXSyntaxMultipleNonterminalDefsWithSameName
 
   import FortressAst.{...}
-  import FortressSyntax.Literal
+  import FortressSyntax.{Expression}
 
-  grammar Wrong extends Literal
-    Foo :LiteralExpr:= 
+  grammar Wrong extends Expression
+    Foo :Expr:= 
       wrong do StringLiteral("") end
 
-    Foo :LiteralExpr:= 
+    Foo :Expr:= 
       very wrong do StringLiteral("") end
 
   end

@@ -18,15 +18,15 @@
 api MultipleGrammarsWithSameName
 
   import FortressAst.{...}
-  import FortressSyntax.Literal
+  import FortressSyntax.{Expression}
 
-  grammar Wrong extends Literal
-    Bar :LiteralExpr:= 
+  grammar Wrong extends Expression
+    Bar :Expr:= 
       bar do StringLiteral("") end
   end
 
-  grammar Wrong extends Literal
-    Foo :LiteralExpr:= 
+  grammar Wrong extends Expression
+    Foo :Expr:= 
       foo do StringLiteral("") end
   end
 

@@ -22,11 +22,13 @@ import java.util.List;
 
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BreaklineSymbol;
 import com.sun.fortress.nodes.CarriageReturnSymbol;
 import com.sun.fortress.nodes.CharSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
+import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NoWhitespaceSymbol;
@@ -50,36 +52,48 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 
-public class TypeCollector extends NodeDepthFirstVisitor<Type> {
+public class TypeCollector extends NodeDepthFirstVisitor<BaseType> {
 
     private TypeCollector() {}
 
-    public static Type getType(PrefixedSymbol ps) {
+    public static BaseType getType(PrefixedSymbol ps) {
         return ps.getSymbol().accept(new TypeCollector());
     }
 
     @Override
-    public Type defaultCase(Node that) {
+    public BaseType defaultCase(Node that) {
         throw new RuntimeException("Unexpected case: "+that.getClass());
     }
 
     @Override
-    public Type forOptionalSymbol(OptionalSymbol that) {
+    public BaseType forOptionalSymbol(OptionalSymbol that) {
         return handle(that.getSymbol(), SyntaxAbstractionUtil.FORTRESSLIBRARY, SyntaxAbstractionUtil.MAYBE);
     }
 
     @Override
-    public Type forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
+    public BaseType forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
         return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
     }
 
     @Override
-    public Type forRepeatSymbol(RepeatSymbol that) {
+    public BaseType forRepeatSymbol(RepeatSymbol that) {
         return handle(that.getSymbol(), SyntaxAbstractionUtil.LIST, SyntaxAbstractionUtil.LIST);
     }
 
     @Override
-    public Type forNonterminalSymbol(NonterminalSymbol that) {
+    public BaseType forGroupSymbol(GroupSymbol that) {
+        // TODO Auto-generated method stub
+        return super.forGroupSymbol(that);
+    }
+
+    @Override
+    public BaseType forGroupSymbolOnly(GroupSymbol that, List<BaseType> symbols_result) {
+        // TODO Auto-generated method stub
+        return super.forGroupSymbolOnly(that, symbols_result);
+    }
+
+    @Override
+    public BaseType forNonterminalSymbol(NonterminalSymbol that) {
         if (!GrammarEnv.contains(that.getNonterminal())) {
             throw new RuntimeException("Grammar environment does not contain identifier: "+that.getNonterminal());
         }
@@ -88,79 +102,79 @@ public class TypeCollector extends NodeDepthFirstVisitor<Type> {
     }
 
     @Override
-    public Type forKeywordSymbol(KeywordSymbol that) {
+    public BaseType forKeywordSymbol(KeywordSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forTokenSymbol(TokenSymbol that) {
+    public BaseType forTokenSymbol(TokenSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forCharacterClassSymbol(CharacterClassSymbol that) {
+    public BaseType forCharacterClassSymbol(CharacterClassSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forAnyCharacterSymbol(AnyCharacterSymbol that) {
+    public BaseType forAnyCharacterSymbol(AnyCharacterSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forBackspaceSymbol(BackspaceSymbol that) {
+    public BaseType forBackspaceSymbol(BackspaceSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forBreaklineSymbol(BreaklineSymbol that) {
+    public BaseType forBreaklineSymbol(BreaklineSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forCarriageReturnSymbol(CarriageReturnSymbol that) {
+    public BaseType forCarriageReturnSymbol(CarriageReturnSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forCharSymbol(CharSymbol that) {
+    public BaseType forCharSymbol(CharSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forFormfeedSymbol(FormfeedSymbol that) {
+    public BaseType forFormfeedSymbol(FormfeedSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forNewlineSymbol(NewlineSymbol that) {
+    public BaseType forNewlineSymbol(NewlineSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forNoWhitespaceSymbol(NoWhitespaceSymbol that) {
+    public BaseType forNoWhitespaceSymbol(NoWhitespaceSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
     @Override
-    public Type forTabSymbol(TabSymbol that) {
+    public BaseType forTabSymbol(TabSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
         return new VarType(string);
     }
 
-    private Type handle(SyntaxSymbol symbol, String api, String id) {
-        Type type = symbol.accept(this);
+    private BaseType handle(SyntaxSymbol symbol, String api, String id) {
+        BaseType type = symbol.accept(this);
         Id list = NodeFactory.makeId(api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
         args.add(new TypeArg(type));
