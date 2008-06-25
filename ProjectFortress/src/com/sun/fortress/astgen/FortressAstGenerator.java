@@ -52,7 +52,7 @@ public class FortressAstGenerator extends CodeGenerator {
             return "";
         }
         if ( box.interfaces().size() == 1 ){
-            return "extends " + box.interfaces().get(0);
+            return "extends " + fieldType(box.interfaces().get(0));
         }
         StringBuffer buffer = new StringBuffer();
         buffer.append( "extends { " );
@@ -78,7 +78,6 @@ public class FortressAstGenerator extends CodeGenerator {
         for ( TypeName name : box.interfaces() ){
             names.add(fieldType(name));
         }
-        // names.addAll(Arrays.asList(box.getInterfaceNames()));
         StringBuffer buffer = new StringBuffer();
         buffer.append("extends ");
         if ( names.size() == 1 ){
@@ -102,7 +101,7 @@ public class FortressAstGenerator extends CodeGenerator {
         return type.accept(new TypeNameVisitor<String>(){
             /** A type declared in the AST.  Has 0 type arguments. */
             public String forTreeNode(ClassName t){
-                return t.className();
+                return t.name();
             }
 
             /** A primitive type. */
@@ -187,12 +186,12 @@ public class FortressAstGenerator extends CodeGenerator {
     }
 
     private String fields( NodeInterface box ){
-        return traitFields(mkList(box.allFields(ast)));
+        return traitFields(box.fields());
     }
 
     private String fields( NodeClass box ){
         if ( box.isAbstract() ){
-            return traitFields(mkList(box.allFields(ast)));
+            return traitFields(box.fields());
         } else {
             if ( mkList(box.allFields(ast)).isEmpty() ){
                 return "";
@@ -325,4 +324,5 @@ public class FortressAstGenerator extends CodeGenerator {
         writer.println(sub("   @class FROM Fortress.ast *)", "@class", this.getClass().getName()));
         return string.toString();
     }
+        // names.addAll(Arrays.asList(box.getInterfaceNames()));
 }
