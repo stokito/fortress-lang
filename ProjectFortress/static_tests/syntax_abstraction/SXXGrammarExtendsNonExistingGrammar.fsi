@@ -15,19 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api MultipleGrammarsWithSameName
+api SXXGrammarExtendsNonExistingGrammar
 
   import FortressAst.{...}
-  import FortressSyntax.{Expression}
 
-  grammar Wrong extends Expression
-    Bar :Expr:= 
-      bar do StringLiteral("") end
-  end
-
-  grammar Wrong extends Expression
-    Foo :Expr:= 
-      foo do StringLiteral("") end
-  end
+  grammar A extends Foo end
 
 end
