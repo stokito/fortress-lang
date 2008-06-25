@@ -28,6 +28,8 @@ allowNulls no;
 generateToString no;
 generateEquals yes;
 generateSerializers yes;
+customClassPath ProjectFortress/build;
+customGenerator com.sun.fortress.astgen.FortressAstGenerator;
 customGenerator com.sun.fortress.nodes_astgen_generators.TemplateVisitorGenerator;
 
 package com.sun.fortress.nodes;
