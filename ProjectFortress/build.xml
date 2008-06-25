@@ -45,7 +45,7 @@
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
  <property name="src" location="${basedir}/src"/>
- <property name="astgen.generators.src" location="${src}/${packagePrefix}/nodes_astgen_generators"/>
+ <property name="astgen.generators.src" location="${src}/${packagePrefix}/astgen"/>
  <!-- Third party jar files -->
  <property name="asm" location="${basedir}/third_party/asm"/>
  <!-- property name="astgen.third" location="${basedir}/../../astgen/jar"/ -->
