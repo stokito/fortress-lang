@@ -240,7 +240,7 @@ public class FileTests {
         String[] files = dir.list();
         System.err.println(dir);
 
-        FortressRepository cache = new CacheBasedRepository( ProjectProperties.ensureDirectoryExists("./.analyzed_cache") );
+        FortressRepository cache = new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR );
 
         /*
         FortressRepository fr =
