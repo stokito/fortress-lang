@@ -19,6 +19,8 @@ package com.sun.fortress.compiler;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.NI;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
@@ -284,5 +286,16 @@ public final class Types {
             }
         });
     }
+
+    /**
+     * Given A and Op, returns the type
+     * TotalOperatorOrder[\A,<,<=,>=,>,Op]
+     */
+	public static Type makeTotalOperatorOrder(Type A, OpName op) {
+//		NodeFactory.makeTraitType(makeId("TotalOperater"), sargs)
+//		NodeFactory.makeOpArg("whoa");
+		
+		return NI.nyi();
+	}
     
 }

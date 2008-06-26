@@ -122,10 +122,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	return
     		id.accept(new NodeDepthFirstVisitor<IdOrOpName>(){
 				@Override
-				public IdOrOpName defaultCase(Node that) {
-					return bug("Unknown sub-expression of IdOrOpName.");
-				}
-				@Override
 				public IdOrOpName forEnclosing(Enclosing that) {
 					return new Enclosing(that.getSpan(),Option.<APIName>none(),that.getOpen(),that.getClose());
 				}
@@ -424,6 +420,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
         TypeCheckerResult result = new TypeCheckerResult(that);
+        
+        if( !contractResult.isSuccessful() || !bodyResult.isSuccessful() ) {
+        	return TypeCheckerResult.compose(that, subtypeChecker, result, bodyResult, contractResult);
+        }
+        
+        
 
         Option<Type> returnType = that.getReturnType();
         if (bodyResult.type().isSome()) {
@@ -1086,6 +1088,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                           List<TypeCheckerResult> ops_result,
                                           List<TypeCheckerResult> staticArgs_result) {
 
+    	// FIXME Why aren't we applying these static args? If not here, than where? NEB
+    	
         // Get intersection of overloaded operator types.
         LinkedList<Type> overloadedTypes = new LinkedList<Type>();
         for (TypeCheckerResult op_result : ops_result) {
@@ -1759,51 +1763,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                  " from non-subtype ", exprType));
     }
 
-
-    /**
-     * Returns the Id of the lhs variable or none for LHS that do not have Ids.
-     */
-    private static Option<? extends IdOrOpOrAnonymousName> getIdOfLHS(LHS lhs) {
-
-    	Option<? extends IdOrOpOrAnonymousName> result =
-    	lhs.accept(new NodeDepthFirstVisitor<Option<? extends IdOrOpOrAnonymousName>>(){
-			@Override
-			public Option<? extends IdOrOpOrAnonymousName> defaultCase(Node that) {
-				assert(false);
-				return Option.none();
-			}
-			@Override
-			public Option<? extends IdOrOpOrAnonymousName> for_RewriteFieldRef(
-					_RewriteFieldRef that) {
-				// NEB: Pretty sure this case is wrong. Don't we need to look up
-				// the api if it's different from this one?
-	    		Name n = that.getField();
-	    		assert(n instanceof IdOrOpOrAnonymousName);
-	    		return Option.some(((IdOrOpOrAnonymousName)n));
-			}
-			@Override
-			public Option<? extends IdOrOpOrAnonymousName> forFieldRef(
-					FieldRef that) {
-				return Option.some(that.getField());
-			}
-			@Override
-			public Option<? extends IdOrOpOrAnonymousName> forLValueBind(
-					LValueBind that) {
-				return Option.some(that.getName());
-			}
-			@Override
-			public Option<? extends IdOrOpOrAnonymousName> forSubscriptExpr(
-					SubscriptExpr that) {
-				return Option.none();
-			}
-			@Override
-			public Option<? extends IdOrOpOrAnonymousName> forVarRef(VarRef that) {
-				return Option.some(that.getVar());
-			}
-    	});
-    	return result;
-    }
-
     @Override
     public TypeCheckerResult forAssignment(Assignment that) {
     	// The procedures for assignment differ greatly depending on the type of the LHS
@@ -1961,122 +1920,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
     	return TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
     }
-
-//    @Override
-//	public TypeCheckerResult forAssignmentOnly(Assignment that,
-//			                                   List<TypeCheckerResult> lhs_results,
-//			                                   Option<TypeCheckerResult> opr_result,
-//			                                   TypeCheckerResult rhs_result) {
-//    	//that.getLhs()
-//    	// If LHS.size() > 1 then rhs must be a tuple and their types must match.
-//    	// LHS vars must have already been declared
-//    	// must be assignable
-//    	// if oper != :=, then do we need to look up the types it expects?
-//    	// result of the entire thing is not clear in spec, making it type of expr
-//
-//    	List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(lhs_results.size()+2);
-//    	all_results.addAll(lhs_results);
-//    	if( opr_result.isSome() )
-//    		all_results.add(opr_result.unwrap());
-//    	all_results.add(rhs_result);
-//
-//    	// assert that lhs variables are assignable
-//    	for( LHS lhs : that.getLhs() ) {
-//    		Option<? extends IdOrOpOrAnonymousName> id = getIdOfLHS(lhs);
-//    		if( id.isSome() ) {
-//    			Option<BindingLookup> binding = typeEnv.binding(id.unwrap());
-//    			if( binding.isSome() ) {
-//    				if( !binding.unwrap().isMutable() ) {
-//    					// THIS is an error. Must be declared mutable
-//    					TypeCheckerResult r = new TypeCheckerResult(lhs, TypeError.make("Left-hand side of assignment must be mutable, and " +
-//    							lhs + " is not.", lhs));
-//    					all_results.add(r);
-//    					//return TypeCheckerResult.compose(that, all_results);
-//    					return r;
-//    				}
-//    			}
-//    		}
-//    	}
-//
-//    	if( rhs_result.type().isNone() ) {
-//    		// Typechecking of subexpr already failed...
-//    		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-//    	}
-//    	Type rhs_type = rhs_result.type().unwrap();
-//
-//    	// Construct type of LHS for comparison purposes
-//    	Type lhs_type;
-//    	if( lhs_results.size() == 1 ) {
-//    		// single expression
-//    		TypeCheckerResult lhs_result = lhs_results.get(0);
-//    		if( lhs_result.type().isNone() ) {
-//        		// Typechecking of subexpr already failed...
-//        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-//    		}
-//    		else {
-//    			lhs_type = lhs_result.type().unwrap();
-//    		}
-//    	}
-//    	else {
-//    		// tuple
-//    		List<Type> element_types = new ArrayList<Type>(lhs_results.size());
-//    		for( TypeCheckerResult lhs_result : lhs_results ) {
-//    			if( lhs_result.type().isNone() ) {
-//            		// Typechecking of subexpr already failed...
-//            		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-//    			}
-//    			else {
-//    				element_types.add(lhs_result.type().unwrap());
-//    			}
-//    		}
-//    		lhs_type = NodeFactory.makeTupleType(element_types);
-//    	}
-//
-//    	TypeCheckerResult result;
-//
-//    	// If opr is not :=, then rules are more like function call rules
-//    	if( that.getOpr().isSome() ) {
-//    		TypeCheckerResult opr_result_ = opr_result.unwrap();
-//    		if( opr_result_.type().isNone() ) {
-//        		// Typechecking of subexpr already failed...
-//        		return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-//    		}
-//    		else {
-//    			// By this point, all subexpressions have typechecked properly
-//    			Type opr_type = opr_result_.type().unwrap();
-//    			// Now we get the type of the resulting application
-//    			Option<Pair<Type,ConstraintFormula>> application_result =
-//    				TypesUtil.applicationType(subtypeChecker, opr_type,
-//    						new ArgList(lhs_type, rhs_type));
-//
-//    			if( application_result.isSome() ) {
-//    				// successful
-//    				all_results.add(new TypeCheckerResult(that, application_result.unwrap().second()));
-//    				result = TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
-//    			}
-//    			else {
-//					// no operator found for these types
-//					result = new TypeCheckerResult(that,
-//							TypeError.make("No applicable call to " + that.getOpr().unwrap() +
-//									" can be found for arguments of type " + lhs_type + " and " +
-//									rhs_type + ".",
-//									that));
-//    			}
-//    		}
-//    	}
-//    	else {
-//    		// The whole thing is just regular assignment
-//    		// Now make sure RHS <: LHS
-//    		TypeCheckerResult subtype_result =
-//        	this.checkSubtype(rhs_type, lhs_type, that);
-//
-//    		all_results.add(subtype_result);
-//    		result = TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
-//    	}
-//
-//		return result;
-//	}
-
+    
 	public TypeCheckerResult forTupleExprOnly(TupleExpr that,
                                               List<TypeCheckerResult> exprs_result) {
         List<Type> types = new ArrayList<Type>(exprs_result.size());
@@ -2118,8 +1962,187 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          TypeCheckerResult.compose(that, subtypeChecker, invariants_result), result);
     }
 
-    /*
     
+    
+    
+    
+    @Override
+	public TypeCheckerResult forCaseExpr(CaseExpr that) {
+    	Option<TypeCheckerResult> param_result = this.recurOnOptionOfExpr(that.getParam());
+		Option<TypeCheckerResult> compare_result = this.recurOnOptionOfOpRef(that.getCompare());
+		TypeCheckerResult equalsOp_result = that.getEqualsOp().accept(this);
+		TypeCheckerResult inOp_result = that.getInOp().accept(this);
+		NodeDepthFirstVisitor<Pair<TypeCheckerResult,TypeCheckerResult>> temp = new NodeDepthFirstVisitor<Pair<TypeCheckerResult,TypeCheckerResult>>()	{
+			@Override
+			public Pair<TypeCheckerResult, TypeCheckerResult> forCaseClause(
+					CaseClause that) {
+				return Pair.make(that.getMatch().accept(TypeChecker.this), that.getBody().accept(TypeChecker.this));
+			}
+		};
+		List<Pair<TypeCheckerResult,TypeCheckerResult>> clauses_result = temp.recurOnListOfCaseClause(that.getClauses());
+		Option<TypeCheckerResult> elseClause_result = this.recurOnOptionOfBlock(that.getElseClause());
+        
+		List<TypeCheckerResult> all_results=new ArrayList<TypeCheckerResult>();
+		boolean failed=false;
+		
+		// Checker that clauses all typechecked properly
+    	for(Pair<TypeCheckerResult,TypeCheckerResult> clause_result: clauses_result){
+    		if(clause_result.first().type().isNone() || clause_result.second().type().isNone()){
+    			failed=true;
+    		}
+    		all_results.add(TypeCheckerResult.compose(that, subtypeChecker, 
+					TypeCheckerResult.compose(that, subtypeChecker, IterUtil.asList(IterUtil.pairFirsts(clauses_result))), 
+					TypeCheckerResult.compose(that, subtypeChecker, IterUtil.asList(IterUtil.pairSeconds(clauses_result)))));
+    	}
+  
+    	
+    	// Check that compare typechecked, if it exists
+    	if( compare_result.isSome()) {
+    		if(compare_result.unwrap().type().isNone()){
+    			failed=true;
+    		}
+    		all_results.add(compare_result.unwrap());
+    	}
+    	// Check elseClause
+    	if(elseClause_result.isSome()){
+    		if(elseClause_result.unwrap().type().isNone()){
+    			failed=true;
+    		}
+    		all_results.add(elseClause_result.unwrap());
+    	}
+    	// Check if we are dealing with a normal case (i.e. not an extremum)
+		if (that.getParam().isSome()) {
+			all_results.add(param_result.unwrap());
+		  	if(param_result.unwrap().type().isNone()){
+    			failed=true;
+	    	}
+			
+	    	if(equalsOp_result.type().isNone() || inOp_result.type().isNone()){
+	    		return bug("Equals or In does not have a type");
+	    	}
+		  	
+	    	if(failed){
+	    		return TypeCheckerResult.compose(that,this.subtypeChecker,all_results);
+	    	}
+	    	
+            return forCaseExprNormalOnly(that, all_results, param_result.unwrap(), compare_result, equalsOp_result, inOp_result,clauses_result,elseClause_result);
+        } else {
+        	if(failed){
+	    		return TypeCheckerResult.compose(that,this.subtypeChecker,all_results);
+	    	}
+            return forExtremumOnly(that, all_results, compare_result.unwrap() ,clauses_result);
+        }
+	}
+    
+    
+    // Handle regular case expressions
+    private TypeCheckerResult forCaseExprNormalOnly(CaseExpr that,
+    		List<TypeCheckerResult> all_results, // known to be mutable
+			TypeCheckerResult param_result,
+			Option<TypeCheckerResult> compare_result,
+			TypeCheckerResult equalsOp_result, TypeCheckerResult inOp_result,
+			List<Pair<TypeCheckerResult,TypeCheckerResult>> clauses_result,
+			Option<TypeCheckerResult> elseClause_result) {
+    	Type param_type = param_result.type().unwrap();
+    	
+    	List<Type> clause_types = new ArrayList<Type>(that.getClauses().size()+1);
+    	for(Pair<TypeCheckerResult,TypeCheckerResult> clause_result: clauses_result){
+    		Type clause_type = clause_result.first().type().unwrap();
+    		
+    		clause_types.add(clause_result.second().type().unwrap());
+    		
+    		
+    		Option<Pair<Type,ConstraintFormula>> application;
+    		ArgList args = new ArgList(param_type, clause_type);
+    		String err;
+    		
+    		if( that.getCompare().isSome() ) {
+    			application = TypesUtil.applicationType(subtypeChecker,
+    					                                compare_result.unwrap().type().unwrap(), args);
+        		
+        		err = "Could not find overloading of " + that.getCompare().unwrap().getOriginalName() + 
+        			" applicable for arguments of type " + param_type + " and " + clause_type + ".";
+    		}
+    		else {
+        		// Check both = and IN operators
+    			// we first want to do <: generator test. 
+    			// If both are sat, we use =, if only gen_subtype_c is sat, we use IN
+    			ConstraintFormula gen_subtype_c =
+    				subtypeChecker.subtype(clause_type, Types.makeGeneratorType(NodeFactory.makeInferenceVarType()));
+    			ConstraintFormula gen_subtype_p =
+    				subtypeChecker.subtype(param_type, Types.makeGeneratorType(NodeFactory.makeInferenceVarType()));
+    			
+    			if( gen_subtype_c.isSatisfiable() && !gen_subtype_p.isSatisfiable() ) {
+    				// Implicit IN
+    				application = TypesUtil.applicationType(subtypeChecker,	inOp_result.type().unwrap(), args);
+    				err = "Could not find overloading of " + that.getInOp().getOriginalName() + 
+    					" applicable for arguments of type " + param_type + " and " + clause_type + ".";
+    			}
+    			else {
+    				// Implicit =
+    				application = TypesUtil.applicationType(subtypeChecker,	equalsOp_result.type().unwrap(), args);
+    				err = "Could not find overloading of " + that.getEqualsOp().getOriginalName() + 
+    					" applicable for arguments of type " + param_type + " and " + clause_type + ".";
+    			}
+    		}
+    		
+    		Node lhs_node = clause_result.first().ast();
+    		if( application.isNone() || application.unwrap().second().isFalse() ) {
+    			// NOTHIN
+    			TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, lhs_node));
+    			all_results.add(e_result);
+    		}
+    		else {
+				// Result of application must be a boolean
+    			Type app_type = application.unwrap().first();
+				TypeCheckerResult bool_result = this.checkSubtype(app_type, Types.BOOLEAN, lhs_node, 
+				"Result of applying = op to param and clause must have Boolean type.");
+				
+	    		TypeCheckerResult result = new TypeCheckerResult(that, application.unwrap().second());
+	    		
+	    		all_results.add(bool_result);	
+	    		all_results.add(result);
+    		}    		
+    	}
+    	
+    	if( that.getElseClause().isSome() ) {
+    		clause_types.add(elseClause_result.unwrap().type().unwrap());
+    	}
+    	// The join of all clause rhs types is the type of the CaseExpr
+    	Type result_type = this.subtypeChecker.join(clause_types);
+    	return TypeCheckerResult.compose(that, result_type, subtypeChecker, all_results);
+    }
+
+    // Works for extremum expressions
+    // case most < of ... end
+    private TypeCheckerResult forExtremumOnly(CaseExpr that,
+    		List<TypeCheckerResult> all_results, // known to be mutable
+			TypeCheckerResult compare_result,
+			List<Pair<TypeCheckerResult,TypeCheckerResult>> clauses_result){
+    	
+    	Iterable<Type> candidate_types = 
+    		IterUtil.map(IterUtil.pairFirsts(clauses_result), new Lambda<TypeCheckerResult,Type>(){
+				public Type value(TypeCheckerResult arg0) {	return arg0.type().unwrap(); }});
+    	
+    	Iterable<Type> rhs_types =
+    		IterUtil.map(IterUtil.pairSeconds(clauses_result), new Lambda<TypeCheckerResult,Type>(){
+				public Type value(TypeCheckerResult arg0) {	return arg0.type().unwrap(); }});
+    	
+    	Type union_of_candidate_types = this.subtypeChecker.join(candidate_types);
+    	Type total_op_order = Types.makeTotalOperatorOrder(union_of_candidate_types, that.getCompare().unwrap().getOriginalName());
+    	
+    	TypeCheckerResult total_result = this.checkSubtype(union_of_candidate_types, total_op_order, that, 
+    			"In an extremum expression, the union of all candidate types must be a subtype of " +
+    			"TotalOperatorOrder[union,<,<=,>=,>,"+that.getCompare().unwrap().getOriginalName()+"] but it is not. " +
+    			"The union is " + union_of_candidate_types);
+    	
+    	all_results.add(total_result);
+    	
+    	Type result_type = this.subtypeChecker.join(rhs_types);
+    	return TypeCheckerResult.compose(that, result_type,subtypeChecker, total_result);
+    }
+    
+	/*
     @Override
     public TypeCheckerResult forCaseExpr(CaseExpr that) {
         TypeCheckerResult result;
@@ -2364,10 +2387,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forEnclosing(Enclosing that) {
-        Option<BindingLookup> binding = typeEnv.binding(that);
-        if (binding.isSome()) {
-            return new TypeCheckerResult(that, binding.unwrap().getType());
-        } else {
+        Option<APIName> api = that.getApi();
+        TypeEnv env = api.isSome() ? returnTypeEnvForApi(api.unwrap()) : this.typeEnv;
+        
+        Option<BindingLookup> binding = env.binding(unqualifiedIdFromId(that));
+		if( binding.isSome() ) {
+			return new TypeCheckerResult(that, binding.unwrap().getType());
+		} else {
             return new TypeCheckerResult(that,
                                          TypeError.make(errorMsg("Enclosing operator not found: ",
                                                                  that),
@@ -2634,93 +2660,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     			TypeCheckerResult.compose(cur_op_expr, subtypeChecker, new_juxt_results));
 	}
 
-	@Override
-	public TypeCheckerResult forTightJuxtOnly(TightJuxt that,
-    		                                  TypeCheckerResult multijuxt_result,
-    		                                  TypeCheckerResult injuxt_result,
-    		                                  List<TypeCheckerResult> exprs_result) {
-
-    	// TODO: Okay this was a problem I didn't think of. multijuxt_result so far has NO
-    	// valid overloadings and so it will be an error. We are just not passing it up for
-    	// now, but this is ugly...
-
-    	// New code works like this... Note that this method contains many comments from the spec
-    	// Did any subexpressions fail to type_check?
-    	for( TypeCheckerResult expr_result : exprs_result ) {
-    		if( expr_result.type().isNone())
-    			return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
-    	}
-
-    	if( that.getExprs().size() == 0 ) {
-    		bug("I really messed up something...");
-    	}
-
-    	if( that.getExprs().size() != exprs_result.size() ) {
-    		bug("Number of types don't match number of sub-expressions");
-    	}
-    	// new list of results and exprs, so we can modify this one in place and recurse on it
-    	// Starting a new scope so that new_exprs_result and new_exprs aren't used after this loop
-    	{
-    		List<TypeCheckerResult> new_exprs_result = new LinkedList<TypeCheckerResult>(exprs_result);
-    		List<Expr> new_exprs = new LinkedList<Expr>(that.getExprs());
-    		// list iters, so we can remove and add
-    		ListIterator<TypeCheckerResult> exprs_result_iter = new_exprs_result.listIterator();
-    		ListIterator<Expr> exprs_iter = new_exprs.listIterator();
-
-    		// 1.) Find the first function type
-    		while( exprs_result_iter.hasNext() ) {
-    			TypeCheckerResult cur_result =  exprs_result_iter.next();
-    			Expr cur_expr = exprs_iter.next();
-
-    			if( TypesUtil.isArrows(cur_result.type().unwrap()) ) {
-    				// or if only the last element is a function, go on to the next step.
-    				if( !exprs_result_iter.hasNext() ) break;
-    				// otherwise, remove this and the next (arg) results from this list,
-    				exprs_result_iter.remove(); exprs_iter.remove();
-    				TypeCheckerResult arg_result = exprs_result_iter.next();
-    				Expr arg = exprs_iter.next();
-    				exprs_result_iter.remove(); exprs_iter.remove();
-
-    				// create a new _RewriteFnApp, type-check it, recurse
-    				_RewriteFnApp fn_app =
-    					new _RewriteFnApp(new Span(cur_expr.getSpan(),arg.getSpan()),cur_expr,arg);
-    				exprs_result_iter.add(this.for_RewriteFnAppOnly(fn_app, cur_result, arg_result));
-    				exprs_iter.add(fn_app);
-    				// recur
-    				return forTightJuxtOnly(ExprFactory.makeTightJuxt(that,new_exprs), multijuxt_result, injuxt_result, new_exprs_result);
-    			}
-    		}
-    	}
-    	// 2.) If you have reached this point, The overall juxtaposition
-    	//     now either is a single element or consists entirely of non-function elements.
-    	if( that.getExprs().size() == 1 ) {
-    		Option<Type> single_element_type = exprs_result.get(0).type();
-    		return TypeCheckerResult.compose(that, single_element_type, subtypeChecker, injuxt_result,
-    				TypeCheckerResult.compose(that, subtypeChecker, exprs_result));
-    	}
-    	// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
-    	// Moved this to seperate pass
-    	// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
-    	OpExpr multi_op_expr = new OpExpr(that.getSpan(),that.getMultiJuxt(),that.getExprs());
-    	TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
-    	if( multi_op_result.type().isSome() ) {
-    		return TypeCheckerResult.compose(multi_op_expr, multi_op_result.type(), subtypeChecker, multi_op_result);
-    	}
-
-    	// if an applicable method cannot be found for the entire expression, then it is left-associated.
-    	Iterator<Expr> expr_iter = that.getExprs().iterator();
-    	Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
-    	Expr expr_2 = expr_iter.next();
-    	OpExpr cur_op_expr = new OpExpr(new Span(expr_1.getSpan(),expr_2.getSpan()), that.getInfixJuxt(), Useful.list(expr_1,expr_2));
-    	while( expr_iter.hasNext() ) {
-    		Expr next_expr = expr_iter.next();
-    		cur_op_expr = new OpExpr(new Span(cur_op_expr.getSpan(),next_expr.getSpan()), that.getInfixJuxt(), Useful.list(cur_op_expr, next_expr));
-    	}
-    	// typecheck this result instead
-    	TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
-    	return op_expr_result;
-    }
-
     @Override
 	public TypeCheckerResult forThrowOnly(Throw that,
 			TypeCheckerResult expr_result) {
@@ -2842,19 +2781,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
-    /**
-     * @return {@code TupleType} if {@code types.size() > 1}, {@code types.get(0)} if
-     *    {@code types.size() == 1} and {@ () } if {@code types.size() == 1}.
-     */
-    static Type makeTupleOrSingleOrVoidType(List<Type> types) {
-    	if( types.size() == 1 )
-    		return types.get(0);
-    	else if( types.size() == 0 )
-    		return Types.VOID;
-    	else
-    		return NodeFactory.makeTupleType(types);
-    }
-
     private TypeCheckerResult subscriptHelper(Node that, Option<Enclosing> op, 
     		Type obj_type, List<Type> subs_types, List<StaticArg> static_args) {
     	Option<TraitIndex> obj_index_ = expectTraitType(obj_type);
@@ -2866,7 +2792,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	}
 
     	// Make a tuple type out of given arguments
-    	Type arg_type = makeTupleOrSingleOrVoidType(subs_types);
+    	Type arg_type = Types.MAKE_TUPLE.value(subs_types);
 
 		Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
 			findMethodsInTraitHierarchy(op.unwrap(), Collections.singletonList(obj_type), arg_type, static_args,that);
@@ -3210,7 +3136,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	match_result.add(result);
     	return TypeCheckerResult.compose(clause,result.type(),subtypeChecker, match_result);
     }
-
+	
+    
 	public TypeCheckerResult forTypeArg(TypeArg that) {
         // No checks needed to be performed on a TypeArg.
         return new TypeCheckerResult(that);
@@ -3338,8 +3265,362 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return TypeCheckerResult.compose(that,Types.VOID, subtypeChecker, test_result, body_result, void_result);
 	}
 
+	@Override
+	public TypeCheckerResult forTightJuxt(TightJuxt that) {
+		// Just create a MathPrimary
+		Expr front = IterUtil.first(that.getExprs());
+		Iterable<Expr> rest = IterUtil.skipFirst(that.getExprs());
+		
+		List<MathItem> items = IterUtil.asList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
+			public MathItem value(Expr arg0) {
+				if( arg0.isParenthesized() || arg0 instanceof TupleExpr )
+					return new ParenthesisDelimitedMI(arg0.getSpan(),arg0);
+				else
+					return new NonParenthesisDelimitedMI(arg0.getSpan(),arg0);
+			}}));
+		MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),front,items);		
+		return new_primary.accept(this);
+    }
+	
+	private static boolean isParenedExprItem(MathItem item) {
+		return item.accept(new NodeDepthFirstVisitor<Boolean>(){
+			@Override public Boolean defaultCase(Node that) { return false; }
+			@Override public Boolean forParenthesisDelimitedMI(ParenthesisDelimitedMI that) { return true; }
+		});
+	}
+	
+	/** Returns an error result if item is NOT a ParenthesisDelimitedMI */
+	private static Option<TypeCheckerResult> expectParenedExprItem(MathItem item) {
+		boolean is_parened = isParenedExprItem(item);
+		if( !is_parened ) {
+			String err = "Argument to function must be parenthesized.";
+			TypeCheckerResult err_result = new TypeCheckerResult(item, TypeError.make(err, item));
+			return Option.some(err_result);
+		}
+		else {
+			return Option.none();
+		}
+	}
+	
+	private static boolean isExprMI(MathItem item) {
+		return item.accept(new NodeDepthFirstVisitor<Boolean>(){
+			@Override public Boolean defaultCase(Node that) { return false; }
+			@Override public Boolean forNonParenthesisDelimitedMI(NonParenthesisDelimitedMI that) { return true; }
+			@Override public Boolean forParenthesisDelimitedMI(ParenthesisDelimitedMI that) { return true; }
+		});
+	}
+	
+	/** Returns an error result if item is NOT an ExprMI */
+	private static Option<TypeCheckerResult> expectExprMI(MathItem item) {
+		boolean is_expr_item = isExprMI(item);
+		if( !is_expr_item ) {
+			String err = "Item at this location must be an expression, not an operator.";
+			TypeCheckerResult err_result = new TypeCheckerResult(item,TypeError.make(err, item));
+			return Option.some(err_result);
+		}
+		else {
+			return Option.none();
+		}
+	}
 
+	/** Check for ^ followed by ^ or ^ followed by [], both static errors. */
+	private Option<TypeCheckerResult> exponentiationStaticCheck(Node ast, List<MathItem> items) {
+	
+		//Visitor checks for two exponentiations or an exponentiation and a subscript in a row
+		NodeDepthFirstVisitor<TypeCheckerResult> static_error = new NodeDepthFirstVisitor<TypeCheckerResult>() {
+			Option<Node> exponent = Option.none();
+			@Override
+			public TypeCheckerResult defaultCase(Node that) {
+				exponent=Option.none();
+				return new TypeCheckerResult(that);
+			}
 
+			@Override
+			public TypeCheckerResult forExponentiationMI(ExponentiationMI that) {
+				if(exponent.isNone()){
+					exponent=Option.<Node>some(that);
+					return new TypeCheckerResult(that);
+				}
+				else{
+					String err_message = "Two consecutive ^s";
+					StaticError err=TypeError.make(err_message, new Span(exponent.unwrap().getSpan(),that.getSpan()).toString());
+					return new TypeCheckerResult(that,err);
+				}
+			}
+
+			@Override
+			public TypeCheckerResult forSubscriptingMI(SubscriptingMI that) {
+				if(exponent.isNone()){
+					return new TypeCheckerResult(that);
+				}
+				else{
+					String err_message = "Exponentiation followed by subscripting is illegal";
+					StaticError err=TypeError.make(err_message, new Span(exponent.unwrap().getSpan(),that.getSpan()).toString());
+					exponent = Option.none();
+					return new TypeCheckerResult(that,err);
+				}
+			}
+		};
+		List<TypeCheckerResult> static_errors = static_error.recurOnListOfMathItem(items);
+		TypeCheckerResult static_error_result = TypeCheckerResult.compose(ast, subtypeChecker, static_errors);
+		if(!static_error_result.isSuccessful()){
+			return Option.some(static_error_result);
+		}
+		else {
+			return Option.none();
+		}
+	}
+	
+	private TypeCheckerResult juxtaposeMathPrimary(MathPrimary that) {
+    	// 2.) If you have reached this point, The overall juxtaposition entirely of expressions
+		ConsList<Expr> exprs_ = IterUtil.asConsList(IterUtil.map(that.getRest(), new Lambda<MathItem,Expr>(){
+			public Expr value(MathItem arg0) {
+				if( !isExprMI(arg0) )
+					return bug("Must be an expr.");
+				else
+					return ((ExprMI)arg0).getExpr();
+			}
+		}));
+		List<Expr> exprs = IterUtil.asList(ConsList.cons(that.getFront(), exprs_));
+		
+    	
+    	// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
+    	// Moved this to seperate pass
+    	// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
+    	OpExpr multi_op_expr = new OpExpr(that.getSpan(),that.getMultiJuxt(),exprs);
+    	TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
+    	if( multi_op_result.type().isSome() ) {
+    		return TypeCheckerResult.compose(multi_op_expr, multi_op_result.type(), subtypeChecker, multi_op_result);
+    	}
+
+    	// if an applicable method cannot be found for the entire expression, then it is left-associated.
+    	Iterator<Expr> expr_iter = exprs.iterator();
+    	Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
+    	Expr expr_2 = expr_iter.next();
+    	OpExpr cur_op_expr = new OpExpr(new Span(expr_1.getSpan(),expr_2.getSpan()), that.getInfixJuxt(), Useful.list(expr_1,expr_2));
+    	while( expr_iter.hasNext() ) {
+    		Expr next_expr = expr_iter.next();
+    		cur_op_expr = new OpExpr(new Span(cur_op_expr.getSpan(),next_expr.getSpan()), that.getInfixJuxt(), Useful.list(cur_op_expr, next_expr));
+    	}
+    	// typecheck this result instead
+    	TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
+    	return op_expr_result;
+	}
+	
+	// Math primary, which is the more general case, is going to be called for both TightJuxt and MathPrimary
+	@Override
+	public TypeCheckerResult forMathPrimary(MathPrimary that) {
+		
+		// Base case of recursion: If there is no 'rest', return the Expr
+		Expr front = that.getFront();
+		if( that.getRest().isEmpty() ) {
+			return front.accept(this);
+		}
+		// See if simple static errors exist
+		Option<TypeCheckerResult> static_result = exponentiationStaticCheck(that, that.getRest());
+		if( static_result.isSome() ) {
+			return static_result.unwrap();
+		}
+		
+		// HANDLE THE FRONT ITEM
+		{
+			// Create a new list of MathItems that is a copy of the old one
+			List<MathItem> new_items = new ArrayList<MathItem>(that.getRest());
+			ListIterator<MathItem> item_iter = new_items.listIterator();
+
+			TypeCheckerResult front_result = front.accept(this);
+			MathItem first_of_rest = item_iter.next();
+			if( front_result.type().isNone() )
+				return front_result;
+			// If front is a fn followed by an expr, we reassociate
+			if( TypesUtil.isArrows(front_result.type().unwrap()) && isExprMI(first_of_rest) ) {
+				MathItem arg = first_of_rest;
+				// It is a static error if either the argument is not parenthesized,
+				Option<TypeCheckerResult> is_error = expectParenedExprItem(arg);
+				if( is_error.isSome() ) {
+					return is_error.unwrap();
+				}
+				item_iter.remove(); // remove arg from item list
+				// static error if the argument is immediately followed by a non-expression element.
+				if( item_iter.hasNext() ) {
+					Option<TypeCheckerResult> is_expr_error = expectExprMI(item_iter.next());
+					if( is_expr_error.isSome() ) {
+						return is_expr_error.unwrap();
+					}
+				}
+				// Otherwise, make a new MathPrimary that is one element shorter, and recur
+				_RewriteFnApp fn = new _RewriteFnApp(new Span(front.getSpan(),arg.getSpan()), front, ((ExprMI)arg).getExpr());
+				MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),fn,new_items);
+				return new_primary.accept(this);
+			}
+		}
+		// THE FRONT ITEM WAS NOT A FN FOLLOWED BY AN EXPR, REASSOCIATE REST
+		{
+			
+			Expr last_expr_ = front;
+			boolean last_expr_is_front = true;
+			// Create a new list of MathItems that is a copy of the old one
+			List<MathItem> new_items = new ArrayList<MathItem>(that.getRest());
+			ListIterator<MathItem> item_iter = new_items.listIterator();
+			
+			while( item_iter.hasNext() ) {
+				MathItem cur_item = item_iter.next();
+				final Expr last_expr = last_expr_;
+				// For each expression element determine whether it is a function immediately followed by an expr
+				if( isExprMI(cur_item) ) {
+					TypeCheckerResult expr_result = ((ExprMI)cur_item).getExpr().accept(this);
+					if( expr_result.type().isNone() )
+						return expr_result;
+					
+					Option<MathItem> next_item = item_iter.hasNext() ? Option.<MathItem>some(item_iter.next()) : Option.<MathItem>none(); 
+					if( TypesUtil.isArrows(expr_result.type().unwrap()) && next_item.isSome() && isExprMI(next_item.unwrap()) ) {
+						// Yes. We have a function followed by an expr
+						MathItem arg = next_item.unwrap();
+						// It is a static error if either the argument is not parenthesized,
+						Option<TypeCheckerResult> is_error = expectParenedExprItem(arg);
+						if( is_error.isSome() ) {
+							return is_error.unwrap();
+						}
+						item_iter.remove(); // remove arg from item list
+						item_iter.previous();
+						item_iter.remove(); // remove fn from item list
+						// replace both with fn appication
+						_RewriteFnApp fn = new _RewriteFnApp(new Span(front.getSpan(),arg.getSpan()), front, ((ExprMI)arg).getExpr());
+						item_iter.add(new NonParenthesisDelimitedMI(fn.getSpan(),fn));
+						// static error if the argument is immediately followed by a non-expression element.
+						if( item_iter.hasNext() ) {
+							Option<TypeCheckerResult> is_expr_error = expectExprMI(item_iter.next());
+							if( is_expr_error.isSome() ) {
+								return is_expr_error.unwrap();
+							}
+						}
+						// Otherwise, make a new MathPrimary that is one element shorter, and recur
+						MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),that.getFront(),new_items);
+						return new_primary.accept(this);
+					} else { 
+						// Continues to next expression... 
+						last_expr_ = ((ExprMI)cur_item).getExpr();
+						last_expr_is_front = false;
+					}
+				}
+				else {
+					// If there is any non-expression element then replace the Þrst such element and the 
+					// element immediately preceding it (which must be an expression) with a single element that does the appropriate 
+					// operator application.
+					NodeDepthFirstVisitor<Expr> op_visitor = new NodeDepthFirstVisitor<Expr>() {
+						@Override
+						public Expr forExponentiationMI(ExponentiationMI that) {
+							// how could an expression not exist in an exponentiation?
+							return ExprFactory.makeOpExpr(that.getOp(), last_expr, that.getExpr().unwrap());
+						}
+						@Override
+						public Expr forSubscriptingMI(SubscriptingMI that) {
+							Span span = new Span(last_expr.getSpan(),that.getSpan());
+							return ExprFactory.makeSubscriptExpr(span, last_expr, that.getExprs(), Option.some(that.getOp()), that.getStaticArgs());
+						}
+					};
+					Expr new_expr = cur_item.accept(op_visitor);
+					item_iter.remove(); // remove NonExprMI
+					if( last_expr_is_front ) {
+						// in our new MathPrimary, place this expression at the front
+						MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),new_expr,new_items);
+						return new_primary.accept(this);
+					}
+					else {
+						// in our new MathPrimary, place this expression where it is
+						item_iter.previous();
+						item_iter.remove(); // remove the previous expression in the list.
+						MathItem new_item = new ParenthesisDelimitedMI(new_expr.getSpan(),new_expr);
+						item_iter.add(new_item); // replace both item with new item
+						MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),that.getFront(),new_items);
+						return new_primary.accept(this);
+					}
+				}
+			}
+		}
+		
+		// If you've made is this far, there are only expressions left in the math primary.
+		// helper method handles the last two rules
+		return juxtaposeMathPrimary(that);
+	}
+	
+	 // Okay let's try to do these MathPrimary things
+//	@Override
+//	public TypeCheckerResult forMathPrimary(MathPrimary that) {
+//		
+//
+//		Expr front = that.getFront();
+//		List<MathItem> mathitems = that.getRest();
+//		
+//		//Visitor checks for two exponentiations or an exponentiation and a subscript in a row
+//		NodeDepthFirstVisitor<TypeCheckerResult> static_error = new NodeDepthFirstVisitor<TypeCheckerResult>() {
+//			Option<Node> exponent = Option.none();
+//			@Override
+//			public TypeCheckerResult defaultCase(Node that) {
+//				exponent=Option.none();
+//				return new TypeCheckerResult(that);
+//			}
+//
+//			@Override
+//			public TypeCheckerResult forExponentiationMI(ExponentiationMI that) {
+//				if(exponent.isNone()){
+//					exponent=Option.<Node>some(that);
+//					return new TypeCheckerResult(that);
+//				}
+//				else{
+//					String err_message = "Two consecutive ^s";
+//					StaticError err=TypeError.make(err_message, new Span(exponent.unwrap().getSpan(),that.getSpan()).toString());
+//					return new TypeCheckerResult(that,err);
+//				}
+//			}
+//
+//			@Override
+//			public TypeCheckerResult forSubscriptingMI(SubscriptingMI that) {
+//				if(exponent.isNone()){
+//					return new TypeCheckerResult(that);
+//				}
+//				else{
+//					String err_message = "Exponentiation followed by subscripting is illegal";
+//					StaticError err=TypeError.make(err_message, new Span(exponent.unwrap().getSpan(),that.getSpan()).toString());
+//					exponent = Option.none();
+//					return new TypeCheckerResult(that,err);
+//				}
+//			}
+//		};
+//		List<TypeCheckerResult> static_errors = static_error.recurOnListOfMathItem(mathitems);
+//		TypeCheckerResult static_error_result = TypeCheckerResult.compose(that, subtypeChecker, static_errors);
+//		if(!static_error_result.isSuccessful()){
+//			return static_error_result;
+//		}
+//		
+//		//Turns MathItems into Exprs so we can turn MathPrimary into a TightJuxt
+//		final List<Expr> temp = new ArrayList<Expr>();
+//		temp.add(front);
+//		for(MathItem mathitem : mathitems){
+//			NodeDepthFirstVisitor<Expr> unwrap = new NodeDepthFirstVisitor<Expr>() {
+//				@Override
+//				public Expr forNonParenthesisDelimitedMI(NonParenthesisDelimitedMI that) {return that.getExpr();}
+//				@Override
+//				public Expr forParenthesisDelimitedMI(ParenthesisDelimitedMI that) {return ExprFactory.makeInParentheses(that.getExpr());}
+//				@Override
+//				public Expr forExponentiationMI(ExponentiationMI that) {
+//					// how could an expression not exist in an exponentiation?
+//					return ExprFactory.makeOpExpr(that.getOp(), temp.remove(temp.size()-1), that.getExpr().unwrap());
+//				}
+//				@Override
+//				public Expr forSubscriptingMI(SubscriptingMI that) {
+//					Expr last = temp.remove(temp.size()-1);
+//					Span span = new Span(last.getSpan(),that.getSpan());
+//					return ExprFactory.makeSubscriptExpr(span, last, that.getExprs(), Option.some(that.getOp()), that.getStaticArgs());
+//				}
+//			};
+//			temp.add(mathitem.accept(unwrap));
+//		}
+//		
+//		// take temp list, make a tight juxt and then typecheck it
+//		TightJuxt temp_juxt = ExprFactory.makeTightJuxt(that.getSpan(), temp, that.isParenthesized(), that.getInfixJuxt(), that.getMultiJuxt());
+//		return temp_juxt.accept(this);
+//	}
 
 
 }

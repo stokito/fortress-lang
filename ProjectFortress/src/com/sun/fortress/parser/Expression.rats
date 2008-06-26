@@ -624,11 +624,11 @@ ExponentiationMI Exponentiation =
      }
    / a1:caret a2:Exponent
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new ExponentiationMI(span, NodeFactory.makeOpInfix(span, a1),
+       yyValue = new ExponentiationMI(span, ExprFactory.makeOpRef(NodeFactory.makeOpInfix(span, a1)),
                                       Option.some(a2));
      }
    / a1:ExponentOp
-     { yyValue = new ExponentiationMI(a1.getSpan(), a1, Option.<Expr>none()); };
+     { yyValue = new ExponentiationMI(a1.getSpan(), ExprFactory.makeOpRef(a1), Option.<Expr>none()); };
 
 /* Exponent ::=
      Id

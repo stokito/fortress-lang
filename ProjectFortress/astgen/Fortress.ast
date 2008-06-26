@@ -1254,7 +1254,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * MathPrimary ::= PrimaryFront MathItem*
                      * e.g.) a[3, 4]
                      */
-                    MathPrimary(Expr front, List<MathItem> rest);
+                    MathPrimary(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
+                                OpRef infixJuxt = ExprFactory.makeInfixJuxt(), 
+                                Expr front, List<MathItem> rest);
                     /**
                      * array expression
                      * ArrayExpr ::= [ StaticArgs? RectElements ]
@@ -2164,7 +2166,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                  * MathItem ::= Exponentiation
                  * e.g.) ^3
                  */
-                ExponentiationMI(Op op, Option<Expr> expr);
+                ExponentiationMI(OpRef op, Option<Expr> expr);
                 /**
                  * mathematical item that is a subscripting
                  * MathItem ::= Subscripting

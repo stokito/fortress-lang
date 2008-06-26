@@ -478,9 +478,11 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         return rVarName;
     }
 
+
     @Override
-    public String forMathPrimaryOnly(MathPrimary that, String front_result,
-            List<String> rest_result) {
+	public String forMathPrimaryOnly(MathPrimary that, String multiJuxt_result,
+			String infixJuxt_result, String front_result,
+			List<String> rest_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -490,9 +492,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.addAll(mkList(rest_result, rest, "MathItem"));
         this.code.add(String.format("MathPrimary %s = new MathPrimary(%s, %s, %s);", rVarName, sVarName, front_result, rest) );
         return rVarName;
-    }
+	}
 
-    @Override
+	@Override
     public String forNoFixityOnly(NoFixity that) {
         String varName = FreshName.getFreshName("noFixity");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
