@@ -124,13 +124,26 @@ public class ProjectProperties {
             new StringMap.FromSysProps(),
             new StringMap.FromEnv());
     
-    public static final String REPOSITORY_PATH_STRING = 
+    private static final String explicitRepository = searchHead.get("fortress.repository");
+    public static final String REPOSITORY_PATH_STRING = explicitRepository != null ? explicitRepository :
         searchHead.getCompletely(";.fortress;${HOME}/.fortress;${FORTRESS_AUTOHOME}/local_repository;${FORTRESS_AUTOHOME}/default_repository",
                 1000);
     public static final Path REPOSITORY_PATH = new Path(REPOSITORY_PATH_STRING);
-    public static final String REPOSITORY = REPOSITORY_PATH.findDirName(".", "fortress.repository.not.found").toString();
+    static {
+        if (REPOSITORY_PATH.length() == 0) {
+            if (explicitRepository != null)
+                throw new Error("User-specified repository " + explicitRepository + " is not a readable directory");
+            else
+                throw new Error("Could not find any readable directories in the (semicolon-separated) repository list " + REPOSITORY_PATH_STRING);
+        }
+    }
+    public static final String REPOSITORY = REPOSITORY_PATH.findDirName(".", "").toString();
 
     static {
+        if ("".equals(REPOSITORY)) {
+            throw new Error("Could not find any readable directories in the (semicolon-separated) repository list " + REPOSITORY_PATH_STRING);
+        }
+        
         File config = new File(REPOSITORY + "/configuration");
         File otherConfig = null;
         try {
