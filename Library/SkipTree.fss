@@ -1,0 +1,100 @@
+component SkipTree
+export Executable
+
+
+
+object Node[\Key,Value\](keys     : Array[\Key,ZZ32\],
+                         values   : Array[\Value,ZZ32\],
+                         children : Array[\Maybe[\Node[\Key,Value\]\],ZZ32\],
+                         height   : ZZ32)
+
+    getter toString() : String = keys "" values "" children " h" height
+    
+    find(queryKey : Key) : Maybe[\Value\] = do
+        parentIndex = binarySearch[\Key\](keys, queryKey)
+        if parentIndex >= 0 then
+            Just[\Value\](values[parentIndex])
+        else
+            childIndex = makeChildIndex(parentIndex)
+            typecase child = children[childIndex] of
+                Just[\Value\] => child.getVal().find(queryKey)
+                else => Nothing[\Value\]
+            end
+        end
+    end (* find(queryKey : Key) : Maybe[\Value\] *)
+    
+    makeChildIndex(index : ZZ32) : ZZ32 = do
+        if index >= 0 then index
+        else |index| - 1 end
+    end (* makeChildIndex(index : ZZ32) : ZZ32 *)
+    
+end (* object Node[\Key,Value\] *)
+
+LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) = do
+    keys = array1[\Key, 1\](key)
+    values = array1[\Value, 1\](val)
+    children = array1[\Maybe[\Node[\Key,Value\]\], 2\](Nothing[\Node[\Key,Value\]\])
+    Node[\Key,Value\](keys,values,children,height) 
+end (* LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) *)
+
+
+(**
+  *  Implementation of java.util.Collections.binarySearch
+  *  JavaDoc from http://java.sun.com/javase/6/docs/api/java/util/Collections.html
+  *
+  *  Searches the specified list for the specified object using
+  *  the binary search algorithm. The list must be sorted into
+  *  ascending order according to the natural ordering of its 
+  *  elements prior to making this call. If it is not sorted, the
+  *  results are undefined. If the list contains multiple elements
+  *  equal to the specified object, there is no guarantee which one will be found.
+  *
+  *  Parameters:
+  *      array - the array to be searched.
+  *      key - the key to be searched for. 
+  *  Returns:
+  *      the index of the search key, if it is contained in the list;
+  *      otherwise, (-(insertion point) - 1). The insertion point is defined
+  *      as the point at which the key would be inserted into the list: 
+  *      the index of the first element greater than the key, or list.size()
+  *      if all elements in the list are less than the specified key. 
+  *      Note that this guarantees that the return value will be >= 0
+  *      if and only if the key is found. 
+  **)
+binarySearch[\T\](array : Array[\T, ZZ32\], key) : ZZ32 = do
+    if array.size() = 1 then (* base case *)
+        if key < array[0] then -1
+        elif key = array[0] then 0
+        else -2 end
+    else (* recursive step *)
+        split = array.size() DIV 2
+        (left,right) = (binarySearch[\T\](array[0 # split], key),
+                        binarySearch[\T\](array[split : (array.size() - 1)], key))
+        if left >= 0 then left
+        elif right >= 0 then right + split
+        elif right = -1 then left
+        else right - split end
+    end
+end (* binarySearch[\T\](array : Array[\T, ZZ32\], key) : ZZ32 *)
+
+
+run(args:String...):() = do
+    leaf = LeafNode[\ZZ32,ZZ32\](3,5,1)
+    println leaf.toString()
+    println leaf.find(3)
+    println leaf.find(5)    
+    testArray:ZZ32[4] = [5 10 15 20]
+    assert(binarySearch[\ZZ32\](testArray, 2), -1)
+    assert(binarySearch[\ZZ32\](testArray, 5), 0)
+    assert(binarySearch[\ZZ32\](testArray, 7), -2)
+    assert(binarySearch[\ZZ32\](testArray, 10), 1)
+    assert(binarySearch[\ZZ32\](testArray, 13), -3)
+    assert(binarySearch[\ZZ32\](testArray, 15), 2)
+    assert(binarySearch[\ZZ32\](testArray, 17), -4)
+    assert(binarySearch[\ZZ32\](testArray, 20), 3)
+    assert(binarySearch[\ZZ32\](testArray, 23), -5)
+    
+end (* run(args:String...):() *)
+
+
+end
