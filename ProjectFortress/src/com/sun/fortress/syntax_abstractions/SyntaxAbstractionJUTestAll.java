@@ -38,8 +38,8 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         "ChurchBooleans.fss",
         "ChurchBooleans.fsi",
         "XXXSyntaxGrammarImportsUse.fss",
-        "SXXTemplateGapWithWrongASTTypeUse.fss",
-        "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss");
+        "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss",
+        "UsingJavaIdentifiersAsPatternVariablesUse.fss");
         
 //        "SyntaxTest.fss",
 //        "SyntaxGrammarImportsUse.fss",
