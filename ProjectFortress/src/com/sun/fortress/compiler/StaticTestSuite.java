@@ -53,7 +53,7 @@ public final class StaticTestSuite extends TestSuite {
     public StaticTestSuite(String _name, String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
         super(_name);
         testDir = _testDir;
-        Debug.setDebug( 0 );
+        // Debug.setDebug( 0 );
         skipTypeChecker = (_failingTypeChecker == null);
         failingDisambiguator = fileSetFromStringList(_failingDisambiguator);
         failingTypeChecker = fileSetFromStringList(_failingTypeChecker);
@@ -162,8 +162,6 @@ public final class StaticTestSuite extends TestSuite {
 
         private void assertSyntaxAbstractionFails(File f) throws IOException {
             com.sun.fortress.compiler.StaticChecker.typecheck = false;
-            ProjectProperties.debug = true;
-            Debug.setDebug( 2 );
             Iterable<? extends StaticError> errors = compile(f);
             assertFalse("Source " + f + " was compiled without syntax abstraction errors",
                         IterUtil.isEmpty(errors));

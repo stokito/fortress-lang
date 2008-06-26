@@ -81,7 +81,7 @@ api SyntaxSymbols
     AnyCharTest : Expr:=
       boz a:_ _# bar _? baz b:AnyCharTest2 <[ "Any char test " a b(a, bar) "   ok"]>
 
-    AnyCharTest2(x:AnyChar, y:Expr) : Expr:=
+    AnyCharTest2(x:CharLiteralExpr, y:Expr) : Expr:=
       boz a:_ <[ "boz " a " " x " " y ]>
 
     AnyChar :CharLiteralExpr:= a:_ <[ a ]>

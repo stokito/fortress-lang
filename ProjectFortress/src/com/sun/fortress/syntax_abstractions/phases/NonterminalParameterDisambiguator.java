@@ -39,6 +39,7 @@ import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
 
+@Deprecated // Maybe...
 public class NonterminalParameterDisambiguator extends NodeUpdateVisitor {
 
     private Collection<StaticError> _errors;
@@ -79,20 +80,20 @@ public class NonterminalParameterDisambiguator extends NodeUpdateVisitor {
         return super.forGrammarDef(that);
     }
 
-    // Disambiguate the parameters
-    @Override
-    public Node forNonterminalHeader(NonterminalHeader that) {
-        List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
-        for (NonterminalParameter p: that.getParams()) {
-            NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
-            Option<Id> n = pnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), p.getType());
-            this._errors.addAll(pnd.errors());
-            if (n.isSome()) {
-                params.add(new NonterminalParameter(p.getName(), n.unwrap()));
-            }
-        }
-        return new NonterminalHeader(that.getSpan(), that.getModifier(), that.getName(), params, that.getType(), that.getWhereClause());
-    }
+//    // Disambiguate the parameters
+//    @Override
+//    public Node forNonterminalHeader(NonterminalHeader that) {
+//        List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
+//        for (NonterminalParameter p: that.getParams()) {
+//            NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
+//            Option<Id> n = pnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), p.getType());
+//            this._errors.addAll(pnd.errors());
+//            if (n.isSome()) {
+//                params.add(new NonterminalParameter(p.getName(), n.unwrap()));
+//            }
+//        }
+//        return new NonterminalHeader(that.getSpan(), that.getModifier(), that.getName(), params, that.getType(), that.getWhereClause());
+//    }
 
     public Collection<? extends StaticError> errors() {
         return this._errors;

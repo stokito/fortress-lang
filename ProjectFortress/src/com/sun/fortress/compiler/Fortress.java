@@ -186,13 +186,13 @@ public class Fortress {
 		return result;
 	}
 
-	private Iterable<? extends StaticError> analyze(GlobalEnvironment env,
-			Parser.Result pr) {
-		Iterable<Api> apis = pr.apis();
-		Iterable<Component> components = pr.components();
-		long lastModified = pr.lastModified();
-		return analyze(env, apis, components, lastModified);
-	}
+//	private Iterable<? extends StaticError> analyze(GlobalEnvironment env,
+//			Parser.Result pr) {
+//		Iterable<Api> apis = pr.apis();
+//		Iterable<Component> components = pr.components();
+//		long lastModified = pr.lastModified();
+//		return analyze(env, apis, components, lastModified);
+//	}
 
         private boolean compiledApi( APIName name, Iterable<Api> apis ){
             for ( Api api : apis ){

@@ -61,6 +61,7 @@ import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -76,6 +77,7 @@ public class SyntaxAbstractionUtil {
     public static final String NOTHING = "Nothing";
     public static final String STRING = "String";
     public static final String LIST = "List";
+    public static final String CHAR = "Char";
 
     /**
      * Returns a qualified id name where the grammar name is added to the api.
@@ -247,21 +249,42 @@ public class SyntaxAbstractionUtil {
     }
 
     /**
-     * Given the pattern variable id, return the name of the grammar member
-     * it is bound to. 
+     * Given a pattern variable, look up the type of the variable and
+     * return a Java representation of the type as a type
      * @param id
      * @return
      */
-    public static MemberEnv getMemberEnvironment(SyntaxDeclEnv syntaxDeclEnv, Id id) {
-        Id memberName = syntaxDeclEnv.getNonterminalName(id);
+    public static String getJavaType(SyntaxDeclEnv syntaxDeclEnv, Id id){
+        BaseType type = GrammarEnv.getType(syntaxDeclEnv, id);
+        String stype = new FortressTypeToJavaType().analyze(type);
+        String s = SyntaxAbstractionUtil.cutPackage(stype);
+        Debug.debug( 4, "Found " + s );
+        return s;
+    }
 
-        if (syntaxDeclEnv.getMemberEnv().isParameter(id)) {
-            memberName = syntaxDeclEnv.getMemberEnv().getParameter(id);
+    /**
+     * TODO: remove this completely, use SyntaxAbstractionUtil.getJavaType instead
+     * @param name
+     * @return
+     */
+    @Deprecated
+    public static String getJavaTypeOld(Id name){      
+        Debug.debug( 4, "Looking up " + name + " in grammar env" );
+        if ( name == null  || GrammarEnv.getMemberEnv(name) == null ){
+            Debug.debug( 4, "Didn't find it.." );
+            return "StringLiteralExpr";
         }
+        String stype = new FortressTypeToJavaType().analyze(GrammarEnv.getMemberEnv(name).getAstType());
+        String s = SyntaxAbstractionUtil.cutPackage(stype);
+        Debug.debug( 4, "Found " + s );
+        return s;
+    }
 
-        if (!GrammarEnv.contains(memberName)) {
-            throw new RuntimeException("Grammar environment does not contain identifier: "+memberName);
+    private static String cutPackage(String name){
+        int last = name.lastIndexOf('.');
+        if ( last != -1 ){
+            return name.substring( last + 1 );
         }
-        return GrammarEnv.getMemberEnv(memberName);
+        return name;
     }
 }

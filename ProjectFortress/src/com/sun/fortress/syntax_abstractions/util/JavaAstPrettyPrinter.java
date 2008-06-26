@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.AnonymousFnName;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BigFixity;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.ChainExpr;
@@ -216,14 +217,14 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-	public String forLinkOnly(Link that, String op_result, String expr_result) {
-    	String rVarName = FreshName.getFreshName("link");
-    	String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
-    	this.code.add( String.format("Link %s = new Link(%s, %s, %s);", rVarName, sVarName, op_result, expr_result));
-    	return rVarName;
-	}
+    public String forLinkOnly(Link that, String op_result, String expr_result) {
+        String rVarName = FreshName.getFreshName("link");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        this.code.add( String.format("Link %s = new Link(%s, %s, %s);", rVarName, sVarName, op_result, expr_result));
+        return rVarName;
+    }
 
-	@Override
+    @Override
     public String forVoidLiteralExprOnly(VoidLiteralExpr that){
         String rVarName = FreshName.getFreshName("voidExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
@@ -330,9 +331,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
     @Override
     public String forFnRefOnly(FnRef that,
-                               String originalName_result,
-                               List<String> fns_result,
-                               List<String> staticArgs_result) {
+            String originalName_result,
+            List<String> fns_result,
+            List<String> staticArgs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -448,8 +449,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
     @Override
     public String forLooseJuxtOnly(LooseJuxt that, String multiJuxt_result,
-                                   String infixJuxt_result,
-                                   List<String> exprs_result) {
+            String infixJuxt_result,
+            List<String> exprs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -746,9 +747,9 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
     @Override
     public String forOpRefOnly(OpRef that,
-                               String originalName_result,
-                               List<String> ops_result,
-                               List<String> staticArgs_result) {
+            String originalName_result,
+            List<String> ops_result,
+            List<String> staticArgs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -759,14 +760,10 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String staticArgsVarName = FreshName.getFreshName("ls");
         this.code.addAll(mkList(staticArgs_result, staticArgsVarName, "StaticArg"));
         this.code.add( String.format("OpRef %s = new OpRef(%s, %b, %s, %s);",
-                                     rVarName, sVarName, that.isParenthesized(),
-                                     originalName_result,
-                                     opsVarName, staticArgsVarName) );
+                rVarName, sVarName, that.isParenthesized(),
+                originalName_result,
+                opsVarName, staticArgsVarName) );
         return rVarName;
-    }
-
-    private String lookupAstNode(Id id){
-        return GrammarEnv.getType(id);
     }
 
     private String extractVar(Id id){
@@ -819,7 +816,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         String params = FreshName.getFreshName("params");
         this.code.add("List<Id> "+params+" = new LinkedList<Id>();");
         String sVarName = JavaAstPrettyPrinter.getSpan((AbstractNode) t, this.code);
-        String typeName = SyntaxAbstractionUtil.getMemberEnvironment(this.syntaxDeclEnv, id).getAstType().accept(new BaseTypeCollector());
+        String typeName = syntaxDeclEnv.getMemberEnv().getParameterType(id).accept(new BaseTypeCollector()); 
         return SyntaxAbstractionUtil.makeTemplateGap(code, new LinkedList<Integer>(), typeName, idVarName, params, sVarName);
 
     }
@@ -827,23 +824,28 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     private String parameterizedGap(TemplateGap t){
         Id id = t.getId();
 
-        MemberEnv mEnv = SyntaxAbstractionUtil.getMemberEnvironment(this.syntaxDeclEnv, id);
-
-        String paramEnv = FreshName.getFreshName("paramEnv");
-        List<String> ls = new LinkedList<String>();
-        ls.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
-        for (int inx=0;inx<t.getTemplateParams().size();inx++) {
-            Id formalParam = mEnv.getParameter(inx);
-            Id actualParam = t.getTemplateParams().get(inx);
-            String var = actualParam.toString();
-            Option<String> op = ActionCreaterUtil.FortressWrapper(actualParam, this.syntaxDeclEnv, this.code, ls, new LinkedList<Integer>());
-            if (op.isSome()) {
-                var = op.unwrap();
-            }
-            ls.add(paramEnv+".put(\""+formalParam +"\", "+var+");");
+        if (this.syntaxDeclEnv.getMemberEnv().isParameter(id) ||
+            this.syntaxDeclEnv.isAnyChar(id) ||
+            this.syntaxDeclEnv.isCharacterClass(id)) {
+            throw new RuntimeException("Should not occur, a static check should have caught this: "+id);
         }
-        this.code.addAll(ls);
-        return addParamHandlers(id, mEnv, t.getTemplateParams(), paramEnv, this.code);
+            MemberEnv mEnv = GrammarEnv.getMemberEnv(this.syntaxDeclEnv.getNonterminalName(id));
+
+            String paramEnv = FreshName.getFreshName("paramEnv");
+            List<String> ls = new LinkedList<String>();
+            ls.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
+            for (int inx=0;inx<t.getTemplateParams().size();inx++) {
+                Id formalParam = mEnv.getParameter(inx);
+                Id actualParam = t.getTemplateParams().get(inx);
+                String var = actualParam.toString();
+                Option<String> op = ActionCreaterUtil.FortressWrapper(actualParam, this.syntaxDeclEnv, this.code, ls, new LinkedList<Integer>());
+                if (op.isSome()) {
+                    var = op.unwrap();
+                }
+                ls.add(paramEnv+".put(\""+formalParam +"\", "+var+");");
+            }
+            this.code.addAll(ls);
+            return addParamHandlers(id, mEnv, t.getTemplateParams(), paramEnv, this.code);
     }
 
     private String addParamHandlers(Id id, MemberEnv env, List<Id> params, String paramEnv,
@@ -857,9 +859,8 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         Set<String> templateTypes = new HashSet<String>();
         for (int inx=0;inx<params.size();inx++) {
             Id formalParam = env.getParameter(inx);
-            Id nonterminal = env.getParameter(formalParam);
-            MemberEnv nonterminalEnv = GrammarEnv.getMemberEnv(nonterminal);
-            String templateTypeName = nonterminalEnv.getAstType().accept(new BaseTypeCollector());
+            BaseType nonterminalType = env.getParameterType(formalParam);
+            String templateTypeName = nonterminalType.accept(new BaseTypeCollector());
             String className = String.format("TemplateGap%s", templateTypeName);
             templateTypes.add(className);
         }

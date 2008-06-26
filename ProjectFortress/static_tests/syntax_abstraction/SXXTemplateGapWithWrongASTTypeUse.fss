@@ -21,6 +21,6 @@ component SXXTemplateGapWithWrongASTTypeUse
 
   export Executable
 
-  run(args:String...) = print 42
+  run(args:String...) = print (hello world)
 
 end

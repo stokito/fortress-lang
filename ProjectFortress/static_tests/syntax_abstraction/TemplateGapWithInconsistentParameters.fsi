@@ -22,9 +22,9 @@ api TemplateGapWithInconsistentParameters
 
   grammar helloworld extends { Expression }
     Expr |Expr:=
-      hello a1:World <[ hello " " a1(hello) ]>
+      hello a1:World <[ hello " " a1(hello, hello) ]>
 
-    World(e:Expr) :Expr:=
+    World(e:StringLiteralExpr) :Expr:=
       world <[ e " world" ]>
 
   end

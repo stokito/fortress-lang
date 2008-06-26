@@ -48,10 +48,10 @@ public class MemberEnv {
     private Id[] params;
     
     private Map<SyntaxDef, SyntaxDeclEnv> syntaxDefToEnv;
-    private Map<Id, Id> argsToNonterminalMap;
+    private Map<Id, BaseType> parameterToTypeMap;
 
 	private MemberEnv() {
-		this.argsToNonterminalMap = new HashMap<Id, Id>();
+		this.parameterToTypeMap = new HashMap<Id, BaseType>();
 		this.syntaxDefToEnv = new HashMap<SyntaxDef, SyntaxDeclEnv>();
 	}
 	
@@ -101,8 +101,8 @@ public class MemberEnv {
         }
     }
 
-	private void addArgsNonterminal(Id var, Id t) {
-		this.argsToNonterminalMap.put(var, t);		
+	private void addArgsNonterminal(Id var, BaseType t) {
+		this.parameterToTypeMap.put(var, t);		
 	}
 	
 	private void setParamArray(Id[] params) {
@@ -132,7 +132,7 @@ public class MemberEnv {
 	public String toString() {
 	    String s = "params: ";
 	    for (Id id: params) {
-	        s += id+":"+this.argsToNonterminalMap.get(id)+", ";
+	        s += id+":"+this.parameterToTypeMap.get(id)+", ";
 	    }
 		return this.name+", "+s+this.syntaxDefToEnv;
 	}
@@ -146,12 +146,12 @@ public class MemberEnv {
      * @param id
      * @return
      */
-    public Id getParameter(Id id) {
-        return this.argsToNonterminalMap.get(id);
+    public BaseType getParameterType(Id id) {
+        return this.parameterToTypeMap.get(id);
     }
 
     public boolean isParameter(Id id) {
-        return this.argsToNonterminalMap.containsKey(id);
+        return this.parameterToTypeMap.containsKey(id);
     }
 
     public List<Id> getParameters() {
@@ -171,7 +171,7 @@ public class MemberEnv {
         if (!Arrays.deepEquals(this.params, other.params)) {
             throw new RuntimeException("Incompatible member environments, parameters mismatch");
         }
-        this.argsToNonterminalMap.putAll(other.argsToNonterminalMap);
+        this.parameterToTypeMap.putAll(other.parameterToTypeMap);
         this.syntaxDefToEnv.putAll(other.syntaxDefToEnv);
     }
 

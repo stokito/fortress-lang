@@ -123,7 +123,7 @@ private List<NonterminalParameter> DeclList =
         { yyValue = FortressUtil.mkList(a1); };
 
 private NonterminalParameter Decl =
-        a1:Id colon a2:Id
+        a1:Id colon a2:TraitType
         { yyValue = new NonterminalParameter(a1,a2); };
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/

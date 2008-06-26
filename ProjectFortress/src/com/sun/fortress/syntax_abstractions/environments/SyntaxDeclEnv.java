@@ -24,9 +24,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sun.fortress.nodes.AnyCharacterSymbol;
+import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.CarriageReturnSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
+import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
@@ -35,7 +39,9 @@ import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
 import com.sun.fortress.syntax_abstractions.util.TypeCollector;
@@ -48,6 +54,7 @@ public class SyntaxDeclEnv {
     private final Set<Id> characterClasses;
     private final Set<Id> options;
     private final Set<Id> repeats;
+    private final Set<Id> specialSymbols;
     private final Map<Id, Id> varToNonterminalName;
     private final Map<Id, BaseType> varToType;
     private boolean init;
@@ -58,6 +65,7 @@ public class SyntaxDeclEnv {
         this.characterClasses = new HashSet<Id>();
         this.options = new HashSet<Id>();
         this.repeats = new HashSet<Id>();
+        this.specialSymbols = new HashSet<Id>();
         this.varToNonterminalName = new HashMap<Id, Id>();
         this.varToType = new HashMap<Id, BaseType>();
         this.init = false;
@@ -78,6 +86,7 @@ public class SyntaxDeclEnv {
                     characterClasses.addAll(psg.getCharacterClasses());
                     options.addAll(psg.getOptions());
                     repeats.addAll(psg.getRepeats());
+                    specialSymbols.addAll(psg.getSpecialSymbols());
                     varToNonterminalName.putAll(psg.getVarToNonterminalName());
                     varToType.put(id, TypeCollector.getType(that));
                     super.forPrefixedSymbolOnly(that);
@@ -105,10 +114,10 @@ public class SyntaxDeclEnv {
         return s;
     }
 
-    public boolean isNonterminal(Id var) {
+    public boolean isNonterminal(Id id) {
         if (!init)
             init();
-        return this.varToNonterminalName.containsKey(var);
+        return this.varToNonterminalName.containsKey(id);
     }
 
     /**
@@ -120,34 +129,43 @@ public class SyntaxDeclEnv {
         if (!init)
             init();
         if (this.getMemberEnv().isParameter(var)) {
-            Id s = this.getMemberEnv().getParameter(var);
-            return s;
+            throw new RuntimeException("Parameter changed: "+var);
+//            Id s = this.getMemberEnv().getParameter(var);
+//            return s;
         }
         return this.varToNonterminalName.get(var);
     }
 
     /**
      * Returns the type of the given variable
-     * @param var
+     * @param id
      * @return
      */
-    public BaseType getType(Id var) {
+    public BaseType getType(Id id) {
         if (!init)
             init();
-        if (this.isAnyChar(var)) {
-            return NodeFactory.makeTraitType("FortressAst", "StringLiteralExpr");            
-        } else if (this.isCharacterClass(var)) {
-            return NodeFactory.makeTraitType("FortressAst", "StringLiteralExpr");
-        } else if (this.isNonterminal(var)) {
-            return this.varToType.get(var);    
-        } else if (this.isOption(var)) {
-            throw new RuntimeException("NYI - Syntax declaration environment getType option: "+var);
-        } else if (this.isRepeat(var)) {
-            throw new RuntimeException("NYI - Syntax declaration environment getType repeat: "+var);
+        if (this.isNonterminal(id)) {
+            return this.varToType.get(id);
+        } else if (this.isOption(id)) {
+            throw new RuntimeException("NYI - Syntax declaration environment getType option: "+id);
+        } else if (this.isRepeat(id)) {
+            throw new RuntimeException("NYI - Syntax declaration environment getType repeat: "+id);
+        } else if (this.isCharacterClass(id)) {
+            return NodeFactory.makeTraitType("FortressAst", "CharLiteralExpr");
+        } else if (this.isAnyChar(id)) {
+            return NodeFactory.makeTraitType("FortressAst", "CharLiteralExpr");
+        } else if (this.isSpecialSymbol(id)) {
+            return NodeFactory.makeTraitType("FortressAst", "CharLiteralExpr");
         }        
-        throw new RuntimeException("NYI - Syntax declaration environment getType: "+var);
+        throw new RuntimeException("NYI - Syntax declaration environment getType: "+id);
     }
 
+    public boolean isPatternVariable(Id id) {
+        return isNonterminal(id) || isOption(id) || 
+               isRepeat(id) || isAnyChar(id) || 
+               isCharacterClass(id) || isSpecialSymbol(id);
+    }
+    
     public boolean isAnyChar(Id id) {
         if (!init)
             init();
@@ -172,6 +190,12 @@ public class SyntaxDeclEnv {
         return this.repeats.contains(id);
     }
 
+    private boolean isSpecialSymbol(Id id) {
+        if (!init)
+            init();
+        return this.specialSymbols.contains(id);
+    }
+    
     /**
      * At this point the only symbols which should be children of a 
      * prefix symbol are nonterminal, optional, repeat one or more times, 
@@ -186,6 +210,7 @@ public class SyntaxDeclEnv {
         private Set<Id> characterClasses;
         private Set<Id> options;
         private Set<Id> repeats;
+        private Set<Id> specialSymbols;
         private Map<Id, Id> varToNonterminalName;
         
         public PrefixSymbolSymbolGetter(Id id) {
@@ -193,6 +218,7 @@ public class SyntaxDeclEnv {
             this.characterClasses = new HashSet<Id>();
             this.options = new HashSet<Id>();
             this.repeats = new HashSet<Id>();
+            this.specialSymbols = new HashSet<Id>();
             this.varToNonterminalName = new HashMap<Id, Id>();
             this.id = id;
         }
@@ -201,22 +227,25 @@ public class SyntaxDeclEnv {
             return this.varToNonterminalName;
         }
 
-        public Set<Id> getRepeats() {
-            return this.repeats;
-        }
-
-        public Set<Id> getOptions() {
-            return this.options;
+        public Set<Id> getAnyChars() {
+            return this.anyChars;
         }
 
         public Set<Id> getCharacterClasses() {
             return this.characterClasses;
         }
 
-        public Set<Id> getAnyChars() {
-            return this.anyChars;
+        public Set<Id> getOptions() {
+            return this.options;
         }
 
+        public Set<Id> getRepeats() {
+            return this.repeats;
+        }
+        
+        public Set<Id> getSpecialSymbols() {
+            return this.specialSymbols;
+        }
         @Override
         public void forNonterminalSymbol(NonterminalSymbol that) {
             this.varToNonterminalName.put(this.id, that.getNonterminal());
@@ -251,17 +280,62 @@ public class SyntaxDeclEnv {
             this.repeats.add(id);
             super.forRepeatSymbol(that);
         }
+        
+        @Override
+        public void forTabSymbol(TabSymbol that) {
+            this.specialSymbols.add(id);
+            super.forTabSymbol(that);
+        }      
+        
+        @Override
+        public void forFormfeedSymbol(FormfeedSymbol that) {
+            this.specialSymbols.add(id);
+            super.forFormfeedSymbol(that);
+        }      
+        
+
+        @Override
+        public void forCarriageReturnSymbol(CarriageReturnSymbol that) {
+            this.specialSymbols.add(id);
+            super.forCarriageReturnSymbol(that);
+        }      
+
+        @Override
+        public void forNewlineSymbol(NewlineSymbol that) {
+            this.specialSymbols.add(id);
+            super.forNewlineSymbol(that);
+        }      
+
+        @Override
+        public void forWhitespaceSymbol(WhitespaceSymbol that) {
+            this.specialSymbols.add(id);
+            super.forWhitespaceSymbol(that);
+        }      
+
+        @Override
+        public void forBackspaceSymbol(BackspaceSymbol that) {
+            this.specialSymbols.add(id);
+            super.forBackspaceSymbol(that);
+        }      
+
     }
 
     public MemberEnv getMemberEnv() {
         return this.memberEnv;
     }
     
+    @Override
     public String toString() {
         String st = "";
         for (SyntaxSymbol s: sd.getSyntaxSymbols()) {
-            st += s.accept(new SyntaxSymbolPrinter());
+            st += " "+s.accept(new SyntaxSymbolPrinter());
         }
+        st += "\n AnyChars: "+this.anyChars;
+        st += "\n Characterclasses: "+this.characterClasses;
+        st += "\n Options: "+this.options;
+        st += "\n Repeats: "+this.repeats;
+        st += "\n Nonterminals: "+this.varToNonterminalName;
         return st;
     }
+
 }
