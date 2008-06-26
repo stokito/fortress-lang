@@ -15,12 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SXXTemplateGapWithInconsistentParametersUse
+api SXXTemplateGapWithInconsistentParameters
 
-  import SXXTemplateGapWithInconsistentParameters.{...}
+  import FortressAst.{...}
+  import FortressSyntax.{Expression}
 
-  export Executable
+  grammar helloworld extends { Expression }
+    Expr |Expr:=
+      hello a1:World <[ hello " " a1(hello, hello) ]>
 
-  run(args:String...) = println (hello world)
+    World(e:StringLiteralExpr) :Expr:=
+      world <[ e " world" ]>
+
+  end
+
 
 end
