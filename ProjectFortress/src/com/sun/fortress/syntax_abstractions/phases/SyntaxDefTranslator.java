@@ -83,6 +83,7 @@ import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -408,8 +409,10 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             return defaultCase(that);
         }
 
-        private String lookupAstType( Id nonterminal ){
-            return SyntaxAbstractionUtil.getJavaTypeOld(nonterminal);
+        private String lookupAstType( Id variable ){
+            // return SyntaxAbstractionUtil.getJavaTypeOld(nonterminal);
+            Debug.debug( 4, "Looking up ast type for " + variable );
+            return SyntaxAbstractionUtil.getJavaType(inner.getEnv(), variable);
         }
 
         /**
@@ -448,7 +451,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     Id varId = sym.getId().unwrap();
                     String varName = varId.toString();
                     Id ntName = inner.getEnv().getNonterminalName(varId);
-                    String baseFortressType = lookupAstType(ntName);
+                    String baseFortressType = lookupAstType(varId);
                     String fullType = varMap.get(sym).getType(baseFortressType); 
                     indents2.add(1);
                     code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
