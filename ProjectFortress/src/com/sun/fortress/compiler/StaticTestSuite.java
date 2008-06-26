@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Collections;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -30,6 +31,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
@@ -170,18 +172,76 @@ public final class StaticTestSuite extends TestSuite {
                 System.out.println(IterUtil.multilineToString(errors));
             }            
         }
+
+        private List<TypeError> findTypeErrors( StaticError error ){
+            try{
+                throw error;
+            } catch ( TypeError t ){
+                return Collections.singletonList(t);
+            } catch ( WrappedException w ){
+                try{
+                    throw w.getCause();
+                } catch ( StaticError s ){
+                    return findTypeErrors(s);
+                } catch ( Throwable t ){
+                    t.printStackTrace();
+                    fail("Saw a non-static error");
+                    /* ignore it */
+                }
+            } catch ( MultipleStaticError errors ){
+                List<TypeError> all = new ArrayList<TypeError>();
+                for ( StaticError s : errors ){
+                    all.addAll(findTypeErrors(s));
+                }
+                return all;
+            }
+            return Collections.emptyList();
+        }
         
         private void assertTypeCheckerFails(File f) throws IOException {
-            Iterable<? extends StaticError> allErrors = compile(f);
-            String message = "";
-            if (!IterUtil.isEmpty(allErrors)) {
-            	message = " but got:";
-            }
             List<TypeError> typeErrors = new ArrayList<TypeError>();
+            String message = "";
+            Iterable<? extends StaticError> allErrors = compile(f);
+            if (!IterUtil.isEmpty(allErrors)) {
+                message = " but got:";
+                for (StaticError error : allErrors) {
+                    typeErrors.addAll(findTypeErrors(error));
+                    /*
+                    try { throw error; }
+                    catch (TypeError e) { typeErrors.add(e); }
+                    catch ( MultipleStaticError errors ){
+                        for ( StaticError e : errors ){
+                            if ( e instanceof TypeError ){
+                                typeErrors.add((TypeError) e);
+                            }
+                        }
+                    } catch (WrappedException e) {
+                        try{
+                            throw e.getCause();
+                        } catch ( TypeError e1 ){
+                            typeErrors.add(e1);
+                        } catch ( Throwable e1 ){
+                            System.out.println( e1.getClass().getName() );
+                            e1.printStackTrace();
+                            message += "\nStaticError (wrapped): " + e1.toString();
+                        }
+                    }
+                    catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
+                    */
+                }
+            }
+
+            /*
             for (StaticError error : allErrors) {
                 try { throw error; }
                 catch (TypeError e) { typeErrors.add(e); }
-                catch (WrappedException e) {
+                catch ( MultipleStaticError errors ){
+                    for ( StaticError e : errors ){
+                        if ( e instanceof TypeError ){
+                            typeErrors.add((TypeError) e);
+                        }
+                    }
+                } catch (WrappedException e) {
                     try{
                         throw e.getCause();
                     } catch ( TypeError e1 ){
@@ -193,6 +253,7 @@ public final class StaticTestSuite extends TestSuite {
                 }
                 catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
             }
+            */
             assertFalse("Source " + f + " was compiled without TypeErrors" + message,
                         IterUtil.isEmpty(typeErrors));
             if (VERBOSE) {

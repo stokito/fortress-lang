@@ -130,8 +130,12 @@ public class Fortress {
 				}
 			} catch (RepositoryError ex) {
 				throw ex;
-			} catch (Exception ex) {
-				result = addExceptionToResult(result, ex);
+                        } catch ( FileNotFoundException ex ){
+                            throw new WrappedException(ex);
+                        } catch ( IOException e ){
+                            throw new WrappedException(e);
+			} catch (StaticError ex) {
+                            result = addExceptionToResult(result, ex);
 			}
 		}
 
