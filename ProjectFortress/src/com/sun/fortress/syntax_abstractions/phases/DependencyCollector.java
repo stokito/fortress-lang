@@ -35,7 +35,7 @@ import edu.rice.cs.plt.tuple.Option;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /*
- * Collect the names of nonterminals referred form the alternatives of any
+ * Collect the names of nonterminals referred from the alternatives of any
  * nonterminal declaration it is applied to.
  */
 public class DependencyCollector extends NodeDepthFirstVisitor_void {
@@ -44,15 +44,6 @@ public class DependencyCollector extends NodeDepthFirstVisitor_void {
 
     public DependencyCollector() {
         this.result = new HashSet<Id>();
-    }
-
-    @Override
-    public void forNonterminalHeader(NonterminalHeader that) {
-        /* Blah(e:Expr), e is the first Id, Expr is the second */
-        for ( NonterminalParameter params : that.getParams() ){
-            Debug.debug( 1 , "Add non-terminal param module " + params.getName() );
-            addModule( params.getType() );
-        }
     }
 
     @Override

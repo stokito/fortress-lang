@@ -550,7 +550,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * nonterminal parameter
          */
-        NonterminalParameter(Id name, Id type);
+        NonterminalParameter(Id name, BaseType type);
 
         /**
          * syntax declaration

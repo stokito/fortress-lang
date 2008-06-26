@@ -75,7 +75,7 @@ public class TemplateChecker extends TemplateUpdateVisitor {
     private MemberEnv currentMemberEnv;
     private GlobalEnvironment GLOBAL_ENV;
     private CompilationUnitIndex currentApiIndex;
-    
+
     public TemplateChecker(GlobalEnvironment globalEnv, CompilationUnitIndex currentApiIndex) {
         this.errors = new LinkedList<StaticError>();
         this.GLOBAL_ENV = globalEnv;
@@ -145,54 +145,62 @@ public class TemplateChecker extends TemplateUpdateVisitor {
      */
     @Override
     public void handleTemplateGap(TemplateGap gap) {
-//        System.err.println("handling: "+gap.getId());
-        
-        if (this.currentSyntaxDeclEnv.isAnyChar(gap.getId()) ||
-            this.currentSyntaxDeclEnv.isCharacterClass(gap.getId())) {
+        //        System.err.println("handling: "+gap.getId());
+
+        if ((this.currentSyntaxDeclEnv.isAnyChar(gap.getId()) ||
+             this.currentSyntaxDeclEnv.isCharacterClass(gap.getId()) ||
+             this.currentSyntaxDeclEnv.getMemberEnv().isParameter(gap.getId())) 
+             &&
+             !gap.getTemplateParams().isEmpty()) {
+            String error = String.format("%s is not applicable",gap.getId().toString());
+            this.errors.add(StaticError.make(error, gap));
             return;
         }
-        String errorMsg = "The nonterminal %1s is not applicable for the arguments (%2s), expected (%3s)";
-        MemberEnv memberEnv = SyntaxAbstractionUtil.getMemberEnvironment(this.currentSyntaxDeclEnv, gap.getId()); 
-        List<Id> formalParams = memberEnv.getParameters();
-        List<Id> actualParams = gap.getTemplateParams();
 
-        // 1) The number of formal and actual parameters are the same
-        if (formalParams.size() != actualParams.size()) {
-            String formals = getFormalParametersList(memberEnv, formalParams);
-            String actuals = getActualParametersList(actualParams);
-            String error = String.format(errorMsg, gap.getId(), actuals, formals);
-            this.errors.add(StaticError.make(error, gap));
-        }
+        if (!gap.getTemplateParams().isEmpty()) {
+            String errorMsg = "The nonterminal %1s is not applicable for the arguments (%2s), expected (%3s)";
+            MemberEnv memberEnv = GrammarEnv.getMemberEnv(this.currentSyntaxDeclEnv.getNonterminalName(gap.getId())); 
+            List<Id> formalParams = memberEnv.getParameters();
+            List<Id> actualParams = gap.getTemplateParams();
 
-        // 2) The asttype of the actual parameters is the same as the asttype of the formal parameters
-        boolean isError = false;
-        String formals = "";
-        String actuals = "";
-        for (int inx=0; inx < formalParams.size(); inx++) {
-            Id formalParamVar = formalParams.get(inx);
-            BaseType formalParamType = GrammarEnv.getMemberEnv(memberEnv.getParameter(formalParamVar)).getAstType();
-            Id actualParamVar = actualParams.get(inx);
-            BaseType actualParamType = this.currentSyntaxDeclEnv.getType(actualParamVar);
-            
-//            System.err.println(formalParamType);
-//            System.err.println(actualParamType);
-            
-            TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(currentApiIndex, GLOBAL_ENV));
-            ConstraintFormula subtype = ta.subtype(formalParamType,actualParamType);
-//            System.err.println(subtype.toString());
-            if (!ConstraintFormula.TRUE.equals(subtype)) {
-                isError = true;
+            // 1) The number of formal and actual parameters are the same
+            if (formalParams.size() != actualParams.size()) {
+                String formals = getFormalParametersList(memberEnv, formalParams);
+                String actuals = getActualParametersList(actualParams);
+                String error = String.format(errorMsg, gap.getId(), actuals, formals);
+                this.errors.add(StaticError.make(error, gap));
             }
-            formals += formalParamType.toString();
-            actuals += actualParamType.toString();
-            if (inx < formalParams.size()-1) {
-                formals += ", ";
-                actuals += ", ";
+
+            // 2) The asttype of the actual parameters is the same as the asttype of the formal parameters
+            boolean isError = false;
+            String formals = "";
+            String actuals = "";
+            for (int inx=0; inx < formalParams.size(); inx++) {
+                Id formalParamVar = formalParams.get(inx);
+                BaseType formalParamType = memberEnv.getParameterType(formalParamVar);
+                Id actualParamVar = actualParams.get(inx);
+                BaseType actualParamType = this.currentSyntaxDeclEnv.getType(actualParamVar);
+
+//                System.err.println(formalParamType);
+//                System.err.println(actualParamType);
+
+                TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(currentApiIndex, GLOBAL_ENV));
+                ConstraintFormula subtype = ta.subtype(actualParamType, formalParamType);
+//                System.err.println(subtype.toString());
+                if (!ConstraintFormula.TRUE.equals(subtype)) {
+                    isError = true;
+                }
+                formals += formalParamType.toString();
+                actuals += actualParamType.toString();
+                if (inx < formalParams.size()-1) {
+                    formals += ", ";
+                    actuals += ", ";
+                }
             }
-        }
-        if (isError) {
-            String error = " "+String.format(errorMsg, gap.getId().toString(), actuals, formals);
-            // this.errors.add(StaticError.make(error, gap));
+            if (isError) {
+                String error = " "+String.format(errorMsg, gap.getId().toString(), actuals, formals);
+                this.errors.add(StaticError.make(error, gap));
+            }
         }
     }
 
@@ -202,7 +210,7 @@ public class TemplateChecker extends TemplateUpdateVisitor {
         it = actualParams.iterator();
         while (it.hasNext()) {
             Id param = it.next();
-            actuals += GrammarEnv.getType(this.currentSyntaxDeclEnv.getNonterminalName(param));
+            actuals += GrammarEnv.getType(this.currentSyntaxDeclEnv, param);
             if (it.hasNext()) {
                 actuals += ", ";
             }
@@ -210,13 +218,12 @@ public class TemplateChecker extends TemplateUpdateVisitor {
         return actuals;
     }
 
-    private String getFormalParametersList(MemberEnv memberEnv,
-            List<Id> formalParams) {
+    private String getFormalParametersList(MemberEnv memberEnv, List<Id> formalParams) {
         String formals = "";
         Iterator<Id> it = formalParams.iterator();
         while (it.hasNext()) {
             Id param = it.next();
-            formals += GrammarEnv.getType(memberEnv.getParameter(param));
+            formals += memberEnv.getParameterType(param);
             if (it.hasNext()) {
                 formals += ", ";
             }

@@ -62,17 +62,40 @@ api FortressAst
                   so that they can't be extended *)
    trait AbstractNode extends { Node } end
 
-   (* TODO: Implement compilation unit *)
+   trait CompilationUnit extends AbstractNode end
+   object Api extends CompilationUnit end
+   object Component extends CompilationUnit end
 
-   (* TODO: Implement import *)
-
-   (* TODO: Implement export *)
+   trait Import extends AbstractNode end
+   trait Export extends AbstractNode end
 
    (* TODO: Implement aliasedName *)
 
    (* TODO: Implement aliasedAPIName *)
 
    (* TODO: Implement traitObjectAbsDeclOrDecls *)
+
+   object AbsTraitDecl extends {AbstractNode, AbsDecl} end
+   object TraitDecl extends {AbstractNode, GenericDecl} end
+
+   object AbsObjectDecl extends {AbstractNode, AbsDecl} end
+   object ObjectDecl extends {AbstractNode, GenericDeclWithParams} end
+
+   trait DimUnitDecl extends {AbstractNode, Decl, AbsDecl} end
+
+   object TestDecl extends {AbstractNode, Decl, AbsDecl} end
+   object TypeAlias extends {AbstractNode, Decl, AbsDecl} end
+   object PropertyDecl extends {AbstractNode, Decl, AbsDecl} end
+
+   trait GrammarDecl extends {AbstractNode, AbsDecl} end
+
+   trait GrammarMemberDecl extends {AbstractNode, AbsDecl} end
+   object SyntaxDef end
+
+   object TransformationTemplateDef end
+   object TransformationExpressionDef end
+   trait BaseType end
+   trait TransformationPreTemplateDef end
 
    trait VarAbsDeclOrDecl extends AbsDeclOrDecl
       lhs:List[\LValueBind\]
@@ -240,7 +263,7 @@ api FortressAst
            object IntLiteralExpr(val:ZZ32) extends NumberLiteralExpr end
 
          object CharLiteralExpr(val:ZZ32) extends LiteralExpr end
-         object StringLiteralExpr(val:String) extends LiteralExpr end
+         object StringLiteralExpr(val:String) extends {Expr, LiteralExpr} end
          object VoidLiteralExpr(val:String) extends LiteralExpr end
 
        object LooseJuxt(exprs:List[\Expr\]) extends Juxt end

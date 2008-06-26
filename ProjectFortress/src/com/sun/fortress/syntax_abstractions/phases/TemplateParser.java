@@ -129,7 +129,7 @@ public class TemplateParser extends NodeUpdateVisitor {
     public Node forNonterminalHeader(NonterminalHeader that) {
         this.vars = new HashMap<Id, BaseType>();
         for (NonterminalParameter p: that.getParams()) {           
-            this.vars.put(p.getName(), getType(p.getType()));
+            this.vars.put(p.getName(), p.getType());
         }
         return super.forNonterminalHeader(that);
     }

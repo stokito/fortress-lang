@@ -42,7 +42,6 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
@@ -67,7 +66,7 @@ public class ActionCreaterUtil {
             String var = sym.getId().unwrap().getText();
             if ( isTemplate ){
                 Debug.debug( 1, String.format("Depth for %s is %s", sym, depth ) );
-                final String astNode = GrammarEnv.getType(syntaxDeclEnv.getNonterminalName(sym.getId().unwrap()));
+                final String astNode = SyntaxAbstractionUtil.getJavaType(syntaxDeclEnv, sym.getId().unwrap());
                 class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                     String source;
                     int indent;

@@ -15,5 +15,5 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component SyntaxSymbols
-export SyntaxSymbols
+  export SyntaxSymbols
 end

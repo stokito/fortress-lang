@@ -22,11 +22,13 @@ api TemplateGapWithWrongASTType
 
   grammar helloworld extends { Expression, Declaration }
     Expr |Expr:=
-      x:Decl a1:World <[ x " " a1(x) ]>
+      x:Hello a1:World <[ x " " a1(x) ]>
 
-    World(e:Expr) :Expr:=
+    World(e:StringLiteralExpr) :Expr:=
       world <[ e " world" ]>
 
+    Hello :StringLiteralExpr:=
+      hello <[ "7" ]>
   end
 
 

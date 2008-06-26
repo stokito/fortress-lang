@@ -22,34 +22,30 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.ModifierPrivate;
-import com.sun.fortress.nodes.NonterminalHeader;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.KeywordSymbol;
-import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierPrivate;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalSymbol;
+import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.NotPredicateSymbol;
+import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
-import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TransformationTemplateDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
-import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -128,7 +124,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         Id name = NodeFactory.makeId(that.getSpan(), apiName, id);
 
         // Create a the return type - A StringLiteralExpr
-        Option<BaseType> type = Option.<BaseType>some(new VarType(that.getSpan(), NodeFactory.makeId("FortressAst", STRINGLITERALEXPR)));
+        Option<BaseType> type = Option.<BaseType>some(new TraitType(that.getSpan(), NodeFactory.makeId("FortressAst", STRINGLITERALEXPR)));
 
         // Create the syntax symbol inside the terminal definition
         List<SyntaxSymbol> syntaxSymbols = new LinkedList<SyntaxSymbol>();

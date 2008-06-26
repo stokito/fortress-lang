@@ -104,73 +104,73 @@ public class TypeCollector extends NodeDepthFirstVisitor<BaseType> {
     @Override
     public BaseType forKeywordSymbol(KeywordSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forTokenSymbol(TokenSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forCharacterClassSymbol(CharacterClassSymbol that) {
-        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.CHAR);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forAnyCharacterSymbol(AnyCharacterSymbol that) {
-        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.CHAR);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forBackspaceSymbol(BackspaceSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forBreaklineSymbol(BreaklineSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forCarriageReturnSymbol(CarriageReturnSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forCharSymbol(CharSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forFormfeedSymbol(FormfeedSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forNewlineSymbol(NewlineSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forNoWhitespaceSymbol(NoWhitespaceSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     @Override
     public BaseType forTabSymbol(TabSymbol that) {
         Id string = NodeFactory.makeId(SyntaxAbstractionUtil.FORTRESSBUILTIN, SyntaxAbstractionUtil.STRING);
-        return new VarType(string);
+        return new TraitType(string);
     }
 
     private BaseType handle(SyntaxSymbol symbol, String api, String id) {

@@ -340,7 +340,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     </target>
 
     <taskdef name="astgen" classpath="${astgen.third}/astgen.jar;${build}"
-	     classname="edu.rice.cs.astgen.AntTask" />
+	     classname="edu.rice.cs.astgen.AntTask"/>
 
     <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
      description="Automatically generate AST nodes.">
