@@ -24,8 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.fortress.shell.Files;
-
 public class MacPortsHelper {
 
     static Memo1<String, TopSortItemImpl<String>> table = new Memo1<String, TopSortItemImpl<String>>(

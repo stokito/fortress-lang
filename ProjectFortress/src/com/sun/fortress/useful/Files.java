@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell;
+package com.sun.fortress.useful;
 
 import java.io.*;
 //import org.apache.tools.ant.*;
