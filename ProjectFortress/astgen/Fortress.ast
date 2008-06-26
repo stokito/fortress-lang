@@ -18,6 +18,9 @@
 // REMINDER: If you modify this file, you probably ought to be
 // changing ExprFactory.makeInParentheses as well.
 
+// Please do not name any nodes all capital letters. This file is used to autogenerate
+// Library/FortressAst.fsi and fortress traits cannot have all capital letters.
+
 generateEmptyConstructor yes;   // for reflective object creation
 visitMethod accept;
 visitorMethodPrefix for;
@@ -66,7 +69,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * left-hand-side of assignments, local variable declarations, or
      * top-level declarations.
      */
-    interface LHS();
+    interface Lhs();
     /**
      * with static parameters
      * implemented by trait, object, and function declarations and
@@ -338,7 +341,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             LValueBind(Id name, Option<Type> type = Option.<Type>none(),
                        List<Modifier> mods = Collections.<Modifier>emptyList(),
-                       boolean mutable) implements LHS;
+                       boolean mutable) implements Lhs;
             /**
              * left-hand side of matrix unpasting
              * Unpasting ::= [ UnpastingElems ]
@@ -717,7 +720,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * AssignOp ::= := | Op=
              * e.g.) x += 1
              */
-            Assignment(List<LHS> lhs, Option<OpRef> opr, Expr rhs);
+            Assignment(List<Lhs> lhs, Option<OpRef> opr, Expr rhs);
             /**
              * expressions beginning and ending with reserved words
              * Expr ::= DelimitedExpr
@@ -1017,7 +1020,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                               Option<Enclosing> op = Option.<Enclosing>none(),
                               List<StaticArg> staticArgs
                                   = Collections.<StaticArg>emptyList())
-                              implements LHS;
+                              implements Lhs;
                 /**
                  * primary expression
                  */
@@ -1098,7 +1101,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * Primary ::= self
                      * e.g.) length
                      */
-                    VarRef(Id var, int lexicalDepth=-1) implements LHS;
+                    VarRef(Id var, int lexicalDepth=-1) implements Lhs;
                     /**
                      * A reference to a singleton object. Created at typechecking or disambiguation-time.
                      * Necessary because object references are initially parsed as FnRefs.
@@ -1111,7 +1114,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * field selection expression
                      * Primary ::= Primary . Id
                      */
-                    abstract AbstractFieldRef(Expr obj) implements LHS;
+                    abstract AbstractFieldRef(Expr obj) implements Lhs;
                         /**
                          * A field selection, unless it is a method reference
                          * Names of "field" must be unqualified.

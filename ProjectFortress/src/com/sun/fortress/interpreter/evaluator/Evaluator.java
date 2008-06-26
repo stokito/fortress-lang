@@ -102,7 +102,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteralExpr;
-import com.sun.fortress.nodes.LHS;
+import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetExpr;
@@ -262,7 +262,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forAssignment(Assignment x) {
         Option<OpRef> possOp = x.getOpr();
         LHSToLValue getLValue = new LHSToLValue(this);
-        List<? extends LHS> lhses = getLValue.inParallel(x.getLhs());
+        List<? extends Lhs> lhses = getLValue.inParallel(x.getLhs());
         int lhsSize = lhses.size();
         FValue rhs = x.getRhs().accept(this);
 
@@ -280,7 +280,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // which expect a List<Expr>---for example ArgExpr
                 // or evalExprListParallel!  This is extremely annoying!
                 List<FValue> lhsComps = new ArrayList<FValue>(lhsSize);
-                for (LHS lhs : lhses) {
+                for (Lhs lhs : lhses) {
                     // This should occur in parallel!!!
                     lhsComps.add(lhs.accept(this));
                 }
@@ -313,7 +313,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                            lhsSize, ", rhs is not a tuple"));
         }
 
-        for (LHS lhs : lhses) {
+        for (Lhs lhs : lhses) {
             if (rhsIt != null) {
                 rhs = rhsIt.next();
             }

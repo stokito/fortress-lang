@@ -1792,7 +1792,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	// Go through each lhs, and typecheck it with our visitor, which handles each subtype
     	// of LHS differently.
     	final Iterator<Type> inf_type_iter = inf_types.iterator();
-    	for( final LHS lhs : that.getLhs() ) {
+    	for( final Lhs lhs : that.getLhs() ) {
     		final Type rhs_type = inf_type_iter.next();
     		
     		NodeDepthFirstVisitor<TypeCheckerResult> visitor = 
@@ -3504,7 +3504,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					}
 				}
 				else {
-					// If there is any non-expression element then replace the Þrst such element and the 
+					// If there is any non-expression element then replace the first such element and the 
 					// element immediately preceding it (which must be an expression) with a single element that does the appropriate 
 					// operator application.
 					NodeDepthFirstVisitor<Expr> op_visitor = new NodeDepthFirstVisitor<Expr>() {
