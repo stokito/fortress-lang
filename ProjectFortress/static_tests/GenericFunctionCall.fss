@@ -18,19 +18,20 @@
 component GenericFunctionCall
 export Executable
 
-object A[\T, int n\]() end
-object B[\T, U, V\]() end
-
-f[\T\](x:T):T = x
-g[\T, int n\](a:A[\T, n+1\]):A[\T,n\] = a
-h[\T, U, V\](b:B[\V, U, T\]):() = ()
+  object A[\T, int n\]() end
+  object B[\T, U, V\]() end
+  f[\T\](x:T):T = x
+  g[\T, int n\](a:A[\T, n \]):A[\T,n\] = a
+  h[\T, U, V\](b:B[\V, U, T\]):() = ()
   
-run(args:String...):() = do
-  a = A[\String, 5\]()
-  b = B[\Boolean, ZZ32, String\]()
-  f[\String\]("asd")
-  g[\String, 5\](a)
-  h[\String, ZZ32, Boolean\](b)
-end
+  run(args:String...):() = ()
+
+  blah[\ int c \]():() = do
+    a = A[\String, c\]()
+    b = B[\Boolean, ZZ32, String\]()
+    ignore(f[\String\]("asd"))
+    ignore(g[\String, c\](a))
+    h[\String, ZZ32, Boolean\](b)
+  end
 
 end

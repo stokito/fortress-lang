@@ -20,11 +20,13 @@ import OverloadsA.{...}
 import OverloadsB.{...}
 export Executable
 
-  run(args) = do
-    10 * false
-    true * 5
-    +false
-    false+
+  run(args: String ...): () = ()
+  
+  blah(a:ZZ32, b:ZZ32): () = do
+    ignore(a * false)
+    ignore(true * b)
+    ignore(+false)
+    ignore(false+)
   end
 
 end

@@ -38,11 +38,6 @@ public class StaticJUTest extends TestCaseWrapper {
         "XXXUndefinedTopLevelVar.fss"
     );
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
-    	"GenericFunctionCall.fss",
-        "CrossOverloaded.fss",
-        "SimpleObject.fss",
-        "MutualLetFn.fss",
-        "DXXMutualSeparateLetFn.fss",
         "XXXMultipleRefErrors.fss",
         "XXXUndefinedArrayRef.fss",
         "XXXUndefinedInitializer.fss",
@@ -50,7 +45,8 @@ public class StaticJUTest extends TestCaseWrapper {
         "XXXUndefinedRefInLoop.fss",
         "XXXUndefinedVar.fss",
         "XXXUndefinedTopLevelVar.fss",
-        "Sum.fss",
+        // This test the accumulator which is not desugared yet
+         "Sum.fss",
         //These are broken until the constraint solver is fixed
         "GeneratorTest.fss",
         "MethodInvocationStaticInfer1.fss",
@@ -65,4 +61,3 @@ public class StaticJUTest extends TestCaseWrapper {
                                    FAILING_TYPE_CHECKER);     
     }
 }
-//"GenericSingleton.fss"      // FIXME
