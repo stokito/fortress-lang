@@ -94,7 +94,8 @@ List<Modifier> VarMods = a1s:(VarMod w)+
 
 /* Each modifier cannot appear more than once. */
 /* VarImmutableMods ::= (VarImmutableMod w)+ */
-List<Modifier> VarImmutableMods = a1s:(VarImmutableMod w)+
+List<Modifier> VarImmutableMods =
+     <NYI> a1s:(VarImmutableMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
@@ -102,12 +103,14 @@ List<Modifier> VarImmutableMods = a1s:(VarImmutableMod w)+
 /* VarMod ::= AbsVarMod | private */
 private Modifier VarMod =
      AbsVarMod
-   / a1:private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+   / <NYI> a1:private
+     { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
 
 /* VarImmutableMod ::= AbsVarImmutableMod | private */
 private Modifier VarImmutableMod =
-     AbsVarImmutableMod
-   / a1:private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+     <NYI1> AbsVarImmutableMod
+   / <NYI2> a1:private
+     { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
 
 /* VarWTypes ::=
      VarWType
@@ -167,8 +170,8 @@ List<Modifier> AbsVarMods = a1s:(AbsVarMod w)+
 /* AbsVarMod ::= var | test */
 private Modifier AbsVarMod =
      a1:var  { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
-   / a1:test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
+   / <NYI> a1:test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
 
 /* AbsVarImmutableMod ::= test */
 private Modifier AbsVarImmutableMod =
-     a1:test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
+     <NYI> a1:test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };

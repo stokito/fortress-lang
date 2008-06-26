@@ -36,8 +36,7 @@ public class ParserJUTest extends TestCaseWrapper {
     private final static String PARSER_NYI_TESTS_DIR =
         ProjectProperties.BASEDIR + "not_passing_yet/";
     private static boolean isNYI(String parent) {
-        int size = parent.length();
-        return (size > 3 && parent.substring(size-3,size).equals("yet"));
+        return parent.contains("not_passing_yet");
     }
 
     public static TestSuite suite() {
@@ -95,7 +94,8 @@ public class ParserJUTest extends TestCaseWrapper {
                 String name = file.getName();
                 String parent = file.getParent();
                 if (!isNYI(parent)) {
-                    assertParserFails(file);
+                    if (name.contains("XXX")) assertParserFails(file);
+                    else assertParserSucceeds(file);
                 } else if (isNYI(parent)) {
                     assertParserSucceeds(file);
                 } else {
