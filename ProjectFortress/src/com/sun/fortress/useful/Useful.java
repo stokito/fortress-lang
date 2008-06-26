@@ -924,6 +924,8 @@ public class Useful {
             String toReplace = e.substring(mr.start() + intro_len, mr.end()
                     - outro_len);
             String candidate = map.get(toReplace);
+            if (candidate == null)
+                candidate = "";
             newE.append(candidate);
         }
         if (newE != null) {

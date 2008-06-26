@@ -58,10 +58,12 @@ public class Path {
         path = Useful.substituteVars(path);
         StringTokenizer st = new StringTokenizer(path, p);
         while (st.hasMoreTokens()) {
-            String e = st.nextToken();           
-            File f = new File(e);
-            if (f.isDirectory()) {
-                dirs.add(f);
+            String e = st.nextToken();
+            if (!"".equals(e)) {
+                File f = new File(e);
+                if (f.isDirectory()) {
+                    dirs.add(f);
+                }
             }
         }
         return dirs;
@@ -181,6 +183,10 @@ public class Path {
         }
         throw new FileNotFoundException("File " + s
                 + " not found in directories " + dirs);
+    }
+
+    public int length() {
+        return dirs.size();
     }
 
 }
