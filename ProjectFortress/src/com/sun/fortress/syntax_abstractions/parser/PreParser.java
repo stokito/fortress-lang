@@ -60,7 +60,7 @@ public class PreParser {
 
 	   public static class Result extends StaticPhaseResult {
 	        private Collection<GrammarIndex> grammars;
-	        
+
 	        public Result(Collection<GrammarIndex> grammars) {
 	        	this.grammars = grammars;
 	        }
@@ -69,7 +69,7 @@ public class PreParser {
 	            super(IterUtil.singleton(error));
 	            this.grammars = new LinkedList<GrammarIndex>();
 	        }
-	        
+
 	        public Result(Iterable<? extends StaticError> errors) {
 	            super(errors);
 	            grammars = new LinkedList<GrammarIndex>();
@@ -82,7 +82,7 @@ public class PreParser {
 	            grammars.addAll(r2.grammars);
 	        }
 
-	        public Collection<GrammarIndex> getGrammars() { 
+	        public Collection<GrammarIndex> getGrammars() {
 	        	return this.grammars;
 	        }
 	    }
@@ -113,7 +113,7 @@ public class PreParser {
                        Debug.debug( 2, "Add export api " + that.getApis() );
                        all.addAll( that.getApis() );
                    }
-    
+
                    @Override
                    public void forImportApi(ImportApi that){
                        for ( AliasedAPIName api : that.getApis() ){
@@ -139,8 +139,15 @@ public class PreParser {
            public static List<APIName> collectApiImports(Api api){
                List<APIName> all = new ArrayList<APIName>();
                for ( Import i : api.getImports() ){
-                   ImportedNames names = (ImportedNames) i;
-                   all.add( names.getApi() );
+                   if (i instanceof ImportedNames) {
+                       ImportedNames names = (ImportedNames) i;
+                       all.add( names.getApi() );
+                   } else { // i instanceof ImportApi
+                       ImportApi apis = (ImportApi) i;
+                       for ( AliasedAPIName a : apis.getApis() ) {
+                           all.add( a.getApi() );
+                       }
+                   }
                }
 
                return removeExecutableApi(all);
@@ -166,10 +173,10 @@ public class PreParser {
 
 	/** Parses a single file. */
 	public static Result parse(APIName api_name, File f, GlobalEnvironment env) {
-		
+
 		Parser.Result pr = parseFile(api_name, f);
 		if (!pr.isSuccessful()) { return new Result(pr.errors()); }
-		
+
 		// TODO: Check that result only contains at most one component
 
         Collection<GrammarIndex> result = new LinkedList<GrammarIndex>();
@@ -181,7 +188,7 @@ public class PreParser {
 		    }
 		    if (ProjectProperties.debug) {
 			    if (!result.isEmpty()) {
-			        System.err.println("Component: "+c.getName()+" imports grammars...");	
+			        System.err.println("Component: "+c.getName()+" imports grammars...");
 			    }
 			}
 		}
@@ -191,7 +198,7 @@ public class PreParser {
 
     private static Parser.Result parseFile(APIName api_name, File f) {
         try {
-            return new Parser.Result(Parser.preparseFileConvertExn(api_name, f), 
+            return new Parser.Result(Parser.preparseFileConvertExn(api_name, f),
                                      f.lastModified());
         } catch (StaticError se) {
             return new Parser.Result(se);

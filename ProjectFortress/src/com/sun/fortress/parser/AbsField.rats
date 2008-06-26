@@ -34,7 +34,7 @@ import Spacing;
  */
 AbsVarDecl AbsFldDecl = AbsVarDecl ;
 
-List<Modifier> VarMods := AbsFldMods ;
+List<Modifier> AbsVarMods := AbsFldMods ;
 
 /* ApiFldDecl ::= ApiFldMods? BindId w NoNewlineIsType */
 AbsVarDecl ApiFldDecl = a1:ApiFldMods? a2:BindId w a3:NoNewlineIsType

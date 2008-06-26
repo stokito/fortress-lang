@@ -47,6 +47,14 @@ public CompilationUnit File =
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Import statements should come before export statements.");
      }
+   / w a1:Imports w semicolon? w (_)*
+     { if (a1 == null) a1 = Collections.<Import>emptyList();
+       List<AbsDecl> a2 = Collections.<AbsDecl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       yyValue = new Api(span, name, a1, a2);
+     }
    / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w (_)*
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        List<Decl> a3 = Collections.<Decl>emptyList();
@@ -55,13 +63,12 @@ public CompilationUnit File =
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
-   / w a1:Imports w semicolon? w (_)*
-     { if (a1 == null) a1 = Collections.<Import>emptyList();
-       List<AbsDecl> a2 = Collections.<AbsDecl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
+   / _
+     { Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = new Api(span, name, a1, a2);
+       yyValue = new Api(span, name, Collections.<Import>emptyList(),
+                         Collections.<AbsDecl>emptyList());
      };
 
 /* CompilationUnit ::=
@@ -92,11 +99,6 @@ private Component Component =
            yyValue = new Component(span, a2, a3, a4, a5);
        else
            yyValue = new Component(span, true, a2, a3, a4, a5);
-     }
-   / <ErrorProduction2>
-     (native w)? component w APIName (w Imports w semicolon?)? w (_)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Components should have at least one export statement.");
      };
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
