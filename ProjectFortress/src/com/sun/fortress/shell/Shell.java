@@ -29,6 +29,7 @@ import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -41,6 +42,8 @@ import static com.sun.fortress.shell.ConvenientStrings.*;
 public final class Shell {
     // public static boolean debug;
     static boolean test;
+    private static String COMPONENT_SUFFIX = ".fss";
+    private static String API_SUFFIX = ".fsi";
 
     public static String fortressLocation() {
         return ProjectProperties.ANALYZED_CACHE_DIR;
@@ -49,9 +52,10 @@ public final class Shell {
     /* Helper method to print usage message.*/
     private static void printUsageMessage() {
         System.err.println("Usage:");
-        System.err.println(" compile [-debug [#]]somefile.fs{s,i}");
+        System.err.println(" compile [-out file] [-debug [#]]somefile.fs{s,i}");
         System.err.println(" [run] [-test] [-debug [#]] somefile.fss arg...");
         System.err.println(" parse [-out file] [-debug [#]] somefile.fss...");
+        System.err.println(" typecheck [-out file] [-debug [#]] somefile.fss...");
         System.err.println(" help");
     }
 
@@ -73,6 +77,10 @@ public final class Shell {
         );
     }
 
+    private static void turnOnTypeChecking(){
+        com.sun.fortress.compiler.StaticChecker.typecheck = true;
+    }
+
     /* Main entry point for the fortress shell.*/
     public static void main(String[] tokens) throws InterruptedException, Throwable {
         if (tokens.length == 0) {
@@ -86,16 +94,15 @@ public final class Shell {
             if (what.equals("run")) {
                 run(Arrays.asList(tokens).subList(1, tokens.length));
             } else if (what.equals("compile")) {
-                compile(false, Arrays.asList(tokens).subList(1, tokens.length));
-            } else if (what.contains(".fss") || (what.startsWith("-") && tokens.length > 1)) {
+                compile(false, Arrays.asList(tokens).subList(1, tokens.length), Option.<String>none());
+            } else if (what.equals("typecheck")) {
+                turnOnTypeChecking();
+                compile(false, Arrays.asList(tokens).subList(1, tokens.length), Option.<String>none());
+            } else if (what.contains(COMPONENT_SUFFIX) || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
                 run(Arrays.asList(tokens));
             } else if ( what.equals("parse" ) ){
                 parse(Arrays.asList(tokens).subList(1, tokens.length), Option.<String>none());
-                /*
-            } else if ( what.equals("typecheck" ) ){
-                typecheck(Arrays.asList(tokens).subList(1, tokens.length));
-                */
             } else if (what.equals("help")) {
                 printHelpMessage();
 
@@ -142,7 +149,7 @@ public final class Shell {
 
     private static void parse( String file, Option<String> out){
         try{
-            CompilationUnit unit = Parser.parseFile(NodeFactory.makeAPIName(apiName(file)), new File(file));
+            CompilationUnit unit = Parser.parseFile(apiName(file), new File(file));
             if ( ! out.isSome() ){
                 System.out.println( "Ok" );
             } else {
@@ -162,14 +169,19 @@ public final class Shell {
         }
     }
 
-    private static String apiName( String file ){
-        if ( file.endsWith( ".fss" ) || file.endsWith( ".fsi" ) ){
-            return file.substring( 0, file.lastIndexOf(".") );
-        }
-        return file;
+    private static boolean isApi(String file){
+        return file.endsWith(API_SUFFIX);
     }
 
-    private static void typecheck( List<String> file ){
+    private static boolean isComponent(String file){
+        return file.endsWith(COMPONENT_SUFFIX);
+    }
+
+    private static APIName apiName( String file ){
+        if ( file.endsWith( COMPONENT_SUFFIX ) || file.endsWith( API_SUFFIX ) ){
+            return NodeFactory.makeAPIName(file.substring( 0, file.lastIndexOf(".") ));
+        }
+        return NodeFactory.makeAPIName(file);
     }
 
     /**
@@ -182,10 +194,11 @@ public final class Shell {
      * @throws InterruptedException
      * @throws IOException
      */
-    static void compile(boolean doLink, String s) throws UserError, InterruptedException, IOException {
+    static void compile(boolean doLink, String s, Option<String> out) throws UserError, InterruptedException, IOException {
         try {
             //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
-            Fortress fortress = new Fortress(new CacheBasedRepository(fortressLocation()));
+            FortressRepository repository = new CacheBasedRepository(fortressLocation());
+            Fortress fortress = new Fortress(repository);
 
             Path path = ProjectProperties.SOURCE_PATH;
 
@@ -197,8 +210,24 @@ public final class Shell {
 
             Iterable<? extends StaticError> errors = fortress.compile(path, s);
 
-            for (StaticError error: errors) {
-                System.err.println(error);
+            if ( errors.iterator().hasNext() ){
+                for (StaticError error: errors) {
+                    System.err.println(error);
+                }
+            } else if ( out.isSome() ){
+                try{
+                    if ( isApi(s) ){
+                        ASTIO.writeJavaAst(repository.getApi(apiName(s)).ast(), out.unwrap());
+                    } else if ( isComponent(s) ){
+                        ASTIO.writeJavaAst(repository.getComponent(apiName(s)).ast(), out.unwrap());
+                    } else {
+                        System.out.println( "Don't know what kind of file " + s + " is. Append .fsi or .fss." );
+                    }
+                } catch ( FileNotFoundException e ){
+                    System.out.println( "Could not find file " + s );
+                } catch ( IOException e ){
+                    System.out.println( "Error while writing " + out.unwrap() );
+                }
             }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }
@@ -207,7 +236,7 @@ public final class Shell {
         }
     }
 
-    static void compile(boolean doLink, List<String> args) throws UserError, InterruptedException, IOException {
+    static void compile(boolean doLink, List<String> args, Option<String> out) throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to compile");
         }
@@ -224,11 +253,15 @@ public final class Shell {
                     ProjectProperties.debug = true;
                 }
             }
+            if (s.equals("-out") && ! rest.isEmpty() ){
+                out = Option.wrap(rest.get(0));
+                rest = rest.subList(1, rest.size());
+            }
             if (s.equals("-test")) test = true;
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
-            compile( doLink, rest);
+            compile( doLink, rest, out);
         } else {
-            compile( doLink, s );
+            compile( doLink, s, out );
         }
     }
 
