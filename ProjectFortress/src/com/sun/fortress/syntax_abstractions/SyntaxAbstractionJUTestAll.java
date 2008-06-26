@@ -18,12 +18,14 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.compiler.StaticTestSuite;
+import com.sun.fortress.compiler.StaticTestSuite.TestCaseDir;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
 public class SyntaxAbstractionJUTestAll extends TestCase {
@@ -76,10 +78,14 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
 //        "ImportEmptyApiWhichImportsNonEmptyApiNonEmpty.fss");
     
     public static TestSuite suite() {
-        StaticTestSuite suite = new StaticTestSuite("SyntaxAbstractionJUTest",
-                STATIC_TESTS_DIR,
-                FAILING_SYNTAXABSTRACTIONS,
-                null);
+        TestCaseDir basisTests = new TestCaseDir(STATIC_TESTS_DIR, FAILING_SYNTAXABSTRACTIONS, null); 
+        StaticTestSuite suite = new StaticTestSuite("SyntaxAbstractionJUTestAll", basisTests);
+//        TestCaseDir xml = new TestCaseDir(STATIC_TESTS_DIR+"/xml/", Collections.<String>emptyList(), null);
+//        suite.addStaticTests(xml);
+//        TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"/regex/", Collections.<String>emptyList(), null);
+//        suite.addStaticTests(regex);
+//        TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"/sql/", Collections.<String>emptyList(), null);
+//        suite.addStaticTests(sql);
         return suite;
     }
     
