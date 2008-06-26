@@ -80,14 +80,6 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
                 STATIC_TESTS_DIR,
                 FAILING_SYNTAXABSTRACTIONS,
                 null);
-//        StaticTestSuite xml = new StaticTestSuite("SyntaxAbstraction Xml Test",
-//                STATIC_TESTS_DIR+"/xml",
-//                FAILING_SYNTAXABSTRACTIONS,
-//                null);
-//        StaticTestSuite regexp = new StaticTestSuite("SyntaxAbstraction RegExp Test",
-//                STATIC_TESTS_DIR,
-//                FAILING_SYNTAXABSTRACTIONS,
-//                null);
         return suite;
     }
     

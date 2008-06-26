@@ -15,12 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SXXTemplateGapWithInconsistentParametersUse
+component SXXTemplateParamsAreNotApplicableUse
 
-  import SXXTemplateGapWithInconsistentParameters.{...}
+  import SXXTemplateParamsAreNotApplicable.{...}
 
   export Executable
 
-  run(args:String...) = println (hello world)
+  run(args:String...) = 42
 
 end
+

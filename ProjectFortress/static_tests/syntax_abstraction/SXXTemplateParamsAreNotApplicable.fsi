@@ -15,19 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api TemplateGapWithInconsistentParameters
-
+api SXXTemplateParamsAreNotApplicable
   import FortressAst.{...}
-  import FortressSyntax.{Expression}
 
-  grammar helloworld extends { Expression }
-    Expr |Expr:=
-      hello a1:World <[ hello " " a1(hello, hello) ]>
-
-    World(e:StringLiteralExpr) :Expr:=
-      world <[ e " world" ]>
-
+  grammar A 
+    Foo(e:LooseJuxt) :Expr:= foo <[ e(foo) ]>
   end
-
 
 end
