@@ -15,12 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.drivers;
+package com.sun.fortress.interpreter.env;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.HashMap;
-
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -42,12 +40,12 @@ public class ComponentWrapper {
 
     BuildEnvironments be;
 
-    BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    public BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    public BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
 
-    Desugarer desugarer;
+    public Desugarer desugarer;
 
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
