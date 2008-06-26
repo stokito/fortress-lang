@@ -49,6 +49,8 @@ import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
@@ -502,7 +504,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
 	/* recompile anything that is out of date */
-	private Iterable<? extends StaticError> refreshGraph() throws FileNotFoundException, IOException, StaticError {
+	private void refreshGraph() throws FileNotFoundException, IOException, StaticError {
 	    Iterable<? extends StaticError> errors = IterUtil.empty();
 		if ( needUpdate ){
 			needUpdate = false;
@@ -519,10 +521,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                         Debug.debug( 1, "Out of date apis " + recompileApis );
                         Debug.debug( 1, "Out of date components " + recompileComponents );
 			/* these can be compiled all at once */
+                        compileApis(recompileApis);
+                        /*
 			errors = IterUtil.compose(errors, compileApis(recompileApis));
                         for ( StaticError e : errors ){
                             throw e;
                         }
+                        */
 
 			/* but these have to be done in a specific order due to
 			 * syntax expansion requiring some components, like
@@ -540,7 +545,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 				node.setComponent(compileComponent(syntaxExpand(node)));
 			}
 		}
-		return errors;
 	}
 
         /* getApi and getComponent add an api/component to the graph, find all the
@@ -549,20 +553,26 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
 		ApiGraphNode node = addApiGraph(name);
 		Debug.debug( 2, "Get api for " + name);
+                refreshGraph();
+                /*
 		Iterable<? extends StaticError> errors = refreshGraph();
                 for ( StaticError e : errors ){
                     throw e;
                 }
+                */
 		return node.getApi().unwrap();
 	}
 
 	public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
 		ComponentGraphNode node = addComponentGraph(name);
 		Debug.debug( 2, "Get component for " + name );
+                refreshGraph();
+                /*
 		Iterable<? extends StaticError> errors = refreshGraph();
                 for ( StaticError e : errors ){
                     throw e;
                 }
+                */
 		return node.getComponent().unwrap();
 	}
 
@@ -603,8 +613,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                  * in the graph will contain something and can be unwrap()'d at the end.
                  */
 		Iterable<? extends StaticError> errors = fort.analyze( knownApis, new ArrayList<Api>(), components, now );
-                for ( StaticError e : errors ){
-                    throw e;
+                if ( errors.iterator().hasNext() ){
+                    throw new MultipleStaticError(errors);
                 }
                 Debug.debug( 1, "No errors for " + component );
                 /*
@@ -643,7 +653,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
 
         /* syntaxExpand will parse a component for us, so this method is not needed */ 
-	private Component parseComponent( ComponentGraphNode node ){
+	private Component parseComponent( ComponentGraphNode node ) throws StaticError {
 		try{
 		        APIName api_name = node.getName();
 			File fdot = findFile(api_name, ProjectProperties.COMP_SOURCE_SUFFIX);
@@ -652,12 +662,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 			if (comp instanceof Component) {
 				return (Component) comp;
 			} else {
-				throw new RuntimeException("Unexpected parse of component");
+                            throw StaticError.make("Unexepcted parse of component " + api_name, "");
 			}
 		} catch ( FileNotFoundException e ){
-			throw new RuntimeException(e);
+                    throw new WrappedException(e);
 		} catch ( IOException e ){
-			throw new RuntimeException(e);
+                    throw new WrappedException(e);
 		}
 	}
 
@@ -670,12 +680,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 			if (api instanceof Api) {
 				return (Api) api;
 			} else {
-				throw new RuntimeException("Unexpected parse of api");
+				throw StaticError.make("Unexpected parse of api " + api_name, "");
 			}
 		} catch ( FileNotFoundException e ){
-			throw new RuntimeException(e);
+			throw new WrappedException(e);
 		} catch ( IOException e ){
-			throw new RuntimeException(e);
+			throw new WrappedException(e);
 		}
 	}
     
@@ -683,7 +693,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		return cache.apis();
 	}
 
-	private Iterable<? extends StaticError> compileApis( List<ApiGraphNode> apis ){
+	private void compileApis( List<ApiGraphNode> apis ){
 		for ( ApiGraphNode node : apis ){
 			/* yes, set the api to nothing so that it gets
 			 * recompiled no matter what
@@ -691,12 +701,14 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 			node.setApi(null);
 		}
 		if ( apis.size() > 0 ){
-			return compileApis();
+                    compileApis();
 		}
+                /*
 		return IterUtil.empty();
+                */
 	}
 
-	private Iterable<? extends StaticError> compileApis(){
+	private void compileApis(){
 		List<Api> uncompiled = Useful.applyToAll(graph.filter(new Fn<GraphNode,Boolean>(){
 			@Override
 			public Boolean apply(GraphNode g){
@@ -717,7 +729,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		List<Component> components = new ArrayList<Component>();
 		Fortress fort = new Fortress(this);
 		Iterable<? extends StaticError> errors = fort.analyze( knownApis, uncompiled, components, System.currentTimeMillis() );
-		return errors;
+                if ( errors.iterator().hasNext() ){
+                    throw new MultipleStaticError(errors);
+                }
+                
 //		for ( StaticError e : errors ){
 //			System.err.println("Error while compiling apis: " + e);
 //		}
