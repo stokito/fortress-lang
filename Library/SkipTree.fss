@@ -1,39 +1,109 @@
 component SkipTree
+import List.{...}
 export Executable
 
 
+object SkipTree[\Key,Value\](root : Maybe[\Node[\Key,Value\]\])
 
-object Node[\Key,Value\](keys     : Array[\Key,ZZ32\],
-                         values   : Array[\Value,ZZ32\],
-                         children : Array[\Maybe[\Node[\Key,Value\]\],ZZ32\],
+    (** Takes a queryKey as input and returns either a Just[\Value\]
+      * object if the (key,value) pair lives in this map, or
+      * returns Nothing[\Value\] otherwise.
+      *)
+    find(queryKey : Key) : Maybe[\Value\] = do
+        typecase root of    
+            Just[\Node[\Key,Value\]\] => root.getVal().find(queryKey)
+            else => Nothing[\Value\]
+        end
+    end
+
+    (** Takes a newKey and newValue as input and returns a 
+      * new skip tree with the (key, value) pair inserted.
+      *)
+    insert(newKey : Key, newValue : Value) : SkipTree[\Key,Value\] = do
+        newHeight = randomLevel()
+        typecase root of
+            Just[\Node[\Key,Value\]\] =>
+                root' = root.getVal().insert(newKey,newValue,newHeight)
+                SkipTree[\Key,Value\](Just[\Node[\Key,Value\]\](root'))                
+            else =>
+                root' = LeafNode[\Key,Value\](newKey,newValue,newHeight)
+                SkipTree[\Key,Value\](Just[\Node[\Key,Value\]\](root'))
+        end
+    end
+
+
+    (**
+     *  Return a random level >= 1 with a negative binomial distribution.
+     *)
+    randomLevel():ZZ32 = do
+        level:ZZ32 := 1
+        while random(1.0) < 0.5 do
+            level += 1
+        end
+        level
+    end
+    
+end
+
+object Node[\Key,Value\](keys     : List[\Key\],
+                         values   : List[\Value\],
+                         children : List[\Maybe[\Node[\Key,Value\]\]\],
                          height   : ZZ32)
 
     getter toString() : String = keys "" values "" children " h" height
-    
+
+    (** Takes a queryKey as input and returns either a Just[\Value\]
+      * object if the (key,value) pair lives in this map, or
+      * returns Nothing[\Value\] otherwise.
+      *)    
     find(queryKey : Key) : Maybe[\Value\] = do
         parentIndex = binarySearch[\Key\](keys, queryKey)
         if parentIndex >= 0 then
             Just[\Value\](values[parentIndex])
         else
-            childIndex = makeChildIndex(parentIndex)
+            childIndex = insertionPoint(parentIndex)
             typecase child = children[childIndex] of
                 Just[\Value\] => child.getVal().find(queryKey)
                 else => Nothing[\Value\]
             end
         end
-    end (* find(queryKey : Key) : Maybe[\Value\] *)
+    end
+
+
+    (** Takes a newKey and newValue as input and returns a 
+      * new node with the (key, value) pair inserted.
+      *)
+    insert(newKey:Key, newValue:Value, newHeight:ZZ32) : Node[\Key,Value\] = do
+        if newHeight < height then
+            insertBelowHeight(newKey,newValue,newHeight)
+        elif newHeight == height then
+            insertEqualHeight(newKey,newValue)
+        else
+            insertAboveHeight(newKey,newValue,newHeight)
+        end    
+    end
+
+    (* perform the insert operation when self.height = newHeight *)
+    private insertEqualHeight(newKey:Key, newValue:Value) : Node[\Key,Value\] = do
+        i = insertionPoint(binarySearch(keys,newKey))
+        newkeys = keys[0#i] || singleton[\Key\](newKey) || keys[i:]
+        newvalues = values[0#i] || singleton[\Value\](newValue) || values[i:]
+        (newleft, newright) = (makeLeftChild(), makeRightChild())
+        newchildren = children[0#i] || newLeft || newRight || children[i:]
+    end
     
-    makeChildIndex(index : ZZ32) : ZZ32 = do
+    insertionPoint(index : ZZ32) : ZZ32 = do
         if index >= 0 then index
         else |index| - 1 end
-    end (* makeChildIndex(index : ZZ32) : ZZ32 *)
+    end (* insertionPoint(index : ZZ32) : ZZ32 *)
     
 end (* object Node[\Key,Value\] *)
 
 LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) = do
-    keys = array1[\Key, 1\](key)
-    values = array1[\Value, 1\](val)
-    children = array1[\Maybe[\Node[\Key,Value\]\], 2\](Nothing[\Node[\Key,Value\]\])
+    keys = singleton[\Key\](key)
+    values = singleton[\Value\](val)
+    child = singleton[\Maybe[\Node[\Key,Value\]\]\](Nothing[\Node[\Key,Value\]\])
+    children = child.append(child)
     Node[\Key,Value\](keys,values,children,height) 
 end (* LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) *)
 
@@ -50,7 +120,7 @@ end (* LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) *)
   *  equal to the specified object, there is no guarantee which one will be found.
   *
   *  Parameters:
-  *      array - the array to be searched.
+  *      list - the list to be searched.
   *      key - the key to be searched for. 
   *  Returns:
   *      the index of the search key, if it is contained in the list;
@@ -61,21 +131,22 @@ end (* LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) *)
   *      Note that this guarantees that the return value will be >= 0
   *      if and only if the key is found. 
   **)
-binarySearch[\T\](array : Array[\T, ZZ32\], key) : ZZ32 = do
-    if array.size() = 1 then (* base case *)
-        if key < array[0] then -1
-        elif key = array[0] then 0
+binarySearch[\T\](list : List[\T\], key) : ZZ32 = do
+    if list.size() = 1 then (* base case *)
+        if key < list[0] then -1
+        elif key = list[0] then 0
         else -2 end
     else (* recursive step *)
-        split = array.size() DIV 2
-        (left,right) = (binarySearch[\T\](array[0 # split], key),
-                        binarySearch[\T\](array[split : (array.size() - 1)], key))
-        if left >= 0 then left
-        elif right >= 0 then right + split
-        elif right = -1 then left
-        else right - split end
+        split = list.size() DIV 2
+        if (key < list[split]) then
+            binarySearch[\T\](list[0 # split], key)
+        else
+            right = binarySearch[\T\](list[split:], key)
+            if right >= 0 then right + split
+            else right - split end
+        end
     end
-end (* binarySearch[\T\](array : Array[\T, ZZ32\], key) : ZZ32 *)
+end 
 
 
 run(args:String...):() = do
@@ -83,17 +154,22 @@ run(args:String...):() = do
     println leaf.toString()
     println leaf.find(3)
     println leaf.find(5)    
-    testArray:ZZ32[4] = [5 10 15 20]
-    assert(binarySearch[\ZZ32\](testArray, 2), -1)
-    assert(binarySearch[\ZZ32\](testArray, 5), 0)
-    assert(binarySearch[\ZZ32\](testArray, 7), -2)
-    assert(binarySearch[\ZZ32\](testArray, 10), 1)
-    assert(binarySearch[\ZZ32\](testArray, 13), -3)
-    assert(binarySearch[\ZZ32\](testArray, 15), 2)
-    assert(binarySearch[\ZZ32\](testArray, 17), -4)
-    assert(binarySearch[\ZZ32\](testArray, 20), 3)
-    assert(binarySearch[\ZZ32\](testArray, 23), -5)
+    testList = emptyList[\ZZ32\]().addRight(5).addRight(10).addRight(15).addRight(20)
+    assert(binarySearch[\ZZ32\](testList, 2), -1)
+    assert(binarySearch[\ZZ32\](testList, 5), 0)
+    assert(binarySearch[\ZZ32\](testList, 7), -2)
+    assert(binarySearch[\ZZ32\](testList, 10), 1)
+    assert(binarySearch[\ZZ32\](testList, 13), -3)
+    assert(binarySearch[\ZZ32\](testList, 15), 2)
+    assert(binarySearch[\ZZ32\](testList, 17), -4)
+    assert(binarySearch[\ZZ32\](testList, 20), 3)
+    assert(binarySearch[\ZZ32\](testList, 23), -5)
     
+    tree = SkipTree[\ZZ32,ZZ32\](Just[\Node[\ZZ32,ZZ32\]\](leaf))
+    for i <- 1:10 do
+        println tree.randomLevel()
+    end
+    print tree.randomLevel()    
 end (* run(args:String...):() *)
 
 
