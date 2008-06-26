@@ -125,6 +125,8 @@ trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
     (** %append% returns a list containing the elements of %self% followed
         by the elements of %f% *)
     append(f:List[\E\]): List[\E\]
+    (** the operator %||% performs the %append% operation *)
+    opr ||(self, other:List[\E\]): List[\E\] = append(other)
     (** Helper methods for %append% *)
     private appendRC[\T\](other:List[\T\]): List[\E\]
     private appendLC[\T\](other:List[\T\]): List[\E\]
