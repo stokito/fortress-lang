@@ -90,6 +90,7 @@ public class Coverage {
     private static final boolean INCLUDE_OK_ALTERNATES = false;
     private static final boolean SHOW_FREQUENCIES = true;
     private static final boolean SIMPLIFIED_REPORT = true;
+    private static final boolean VERBOSE = false;
 
     /* Use reflection for two reasons:
      * 1) To allow this collection to be compiled in "compile" target,
@@ -173,6 +174,8 @@ public class Coverage {
 
     private static void parseFile(Parser parser, File file) {
         String filename = file.getAbsolutePath();
+        if (VERBOSE)
+            System.out.println("Parsing " + filename + " ...");
         Reader in = null;
         try {
             in = Useful.utf8BufferedFileReader(filename);
@@ -269,6 +272,11 @@ public class Coverage {
         System.out.println(string_out.toString());
     }
 
+    /* We don't check the grammar coverage for error productions and
+       the following two modules:
+           com.sun.fortress.parser.Unicode
+           com.sun.fortress.parser.Syntax
+     */
     private static void printUnused(Info.ModuleInfo m) {
         if (SIMPLIFIED_REPORT &&
             (m.module.equals("com.sun.fortress.parser.Unicode") ||
@@ -283,10 +291,8 @@ public class Coverage {
                     int size = name.length();
                     boolean print = true;
                     if (SIMPLIFIED_REPORT) {
-                        if (size < 15) {
-                            print = (size < 3 ||
-                                     !(name.substring(0,3).equals("NYI")));
-                        } else if (name.substring(0,15).equals("ErrorProduction"))
+                        if (size >= 15 &&
+                            name.substring(0,15).equals("ErrorProduction"))
                             print = false;
                     }
                     if (print) {

@@ -57,7 +57,7 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 body {
 
-    /* 
+    /*
      * Set expectedName when parsing a file that should contain
      * exactly one API or Component, and set it to the expected name
      * of the API/Component (usually based on the file name).
