@@ -642,7 +642,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forObjectDecl(ObjectDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
         TypeCheckerResult nameResult = that.getName().accept(this);
-        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfStaticParam(that.getStaticParams()));
         TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
         TypeCheckerResult whereResult = that.getWhere().accept(this);
         TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnOptionOfListOfParam(that.getParams()));
@@ -683,7 +682,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         return TypeCheckerResult.compose(that, subtypeChecker, modsResult, nameResult,
-                                         staticParamsResult, extendsClauseResult, whereResult, paramsResult,
+                                         extendsClauseResult, whereResult, paramsResult,
                                          throwsClauseResult, contractResult, fieldsResult, methodsResult);
     }
 
@@ -731,7 +730,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	public TypeCheckerResult forTraitDecl(TraitDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
-        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfStaticParam(that.getStaticParams()));
         TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
         TypeCheckerResult whereResult = that.getWhere().accept(this);
         TypeCheckerResult excludesResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfBaseType(that.getExcludes()));
@@ -777,7 +775,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         return TypeCheckerResult.compose(that, subtypeChecker, modsResult,
-                                         staticParamsResult, extendsClauseResult, whereResult, excludesResult,
+                                         extendsClauseResult, whereResult, excludesResult,
                                          comprisesResult, fieldsResult, methodsResult);
     }
 
@@ -3273,7 +3271,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		
 		List<MathItem> items = IterUtil.asList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
 			public MathItem value(Expr arg0) {
-				if( arg0.isParenthesized() || arg0 instanceof TupleExpr )
+				if( arg0.isParenthesized() || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
 					return new ParenthesisDelimitedMI(arg0.getSpan(),arg0);
 				else
 					return new NonParenthesisDelimitedMI(arg0.getSpan(),arg0);
