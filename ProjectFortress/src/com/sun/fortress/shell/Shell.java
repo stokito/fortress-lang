@@ -54,8 +54,8 @@ public final class Shell {
         System.err.println("Usage:");
         System.err.println(" compile [-out file] [-debug [#]]somefile.fs{s,i}");
         System.err.println(" [run] [-test] [-debug [#]] somefile.fss arg...");
-        System.err.println(" parse [-out file] [-debug [#]] somefile.fss...");
-        System.err.println(" typecheck [-out file] [-debug [#]] somefile.fss...");
+        System.err.println(" parse [-out file] [-debug [#]] somefile.fs{s,i}...");
+        System.err.println(" typecheck [-out file] [-debug [#]] somefile.fs{s,i}...");
         System.err.println(" help");
     }
 
@@ -63,17 +63,31 @@ public final class Shell {
         System.err.println
         ("Invoked as script: fortress args\n"+
          "Invoked by java: java ... com.sun.fortress.shell.Shell args\n"+
-         "args: compile [-debug [#]] somefile.fs{s,i}\n"+
-         "  ensures that component or interface 'somefile' is up-to-date,\n"+
-         "  checked and present in the cache\n"+
-         "args: [run] [-test] [-debug [#]] somefile.fss more_args\n"+
-         "  compile somefile.fss and link/compile all APIs and components\n"+
-         "  necessary to run it, and then run it, passing more_args to the\n"+
-         "  fortress program.  A runnable fortress program exports Executable\n"+
-         "  and supplies a run(args:String...) function.\n"+
-         "  -test  first runs test functions associated with the program.\n"+
-         "  -debug includes Java stack traces with any errors, and enables\n"+
-         "         additional output."
+         "fortress [run] [-test] [-debug [#]] somefile.fss arg ...\n"+
+         "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
+         "  run method of somefile.fss.\n"+
+         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
+         "   -test : first runs test functions associated with the program.\n"+
+         "\n"+
+         "fortress compile [-debug [#]] [-out file] somefile.fs{s,i}\n"+
+         "  Compile somefile. If compilation succeeds no message will be printed.\n"+
+         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
+         "   -out file : dumps the processed abstract syntax tree to a file.\n" +
+         "\n"+
+         "fortress parse [-out file] [-debug [#]] somefile.fs{i,s}\n"+
+         "  Parses a file. If the parse succeeds the message \"Ok\" will be printed.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
+         "   -out file : dumps the abstract syntax tree to a file.\n"+
+         "\n"+
+         "fortress typecheck [-out file] [-debug [#]] somefile.fs{i,s}\n"+
+         "  Typechecks a file. If the typecheck succeeds no message will be printed.\n"+
+         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
+         "   -out file : dumps the processed abstract syntax tree to a file\n"
         );
     }
 
