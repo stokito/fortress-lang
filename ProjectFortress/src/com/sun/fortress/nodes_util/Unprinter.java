@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.LHS;
+import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 
@@ -296,7 +296,7 @@ public class Unprinter extends NodeReflection {
                 } else if (Option.class.isAssignableFrom(f.getType())) {
                     f.set(node, readOption());
                 } else if (AbstractNode.class.isAssignableFrom(f.getType())
-                        || LHS.class.isAssignableFrom(f.getType())) {
+                        || Lhs.class.isAssignableFrom(f.getType())) {
                     expectPrefix("(");
                     f.set(node, readNode(l.name()));
                 }

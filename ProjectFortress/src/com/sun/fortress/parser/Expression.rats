@@ -89,7 +89,7 @@ Expr AssignExpr = a1:AssignLefts w a2:AssignOp w a3:Expr
      ( w AssignLeft (w , w AssignLeft)* w )
    | AssignLeft
  */
-List<LHS> AssignLefts =
+List<Lhs> AssignLefts =
      openparen w a1:AssignLeft a2s:(w comma w AssignLeft)* w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s.list()); }
    / a1:AssignLeft
@@ -102,10 +102,10 @@ List<LHS> AssignLefts =
    SubscriptExpr ::= Primay LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
    FieldSelection ::= Primary . Id
  */
-LHS AssignLeft =
+Lhs AssignLeft =
      seed:PrimaryFront list:AssignLeftTail+
      { Expr left = (Expr)apply(list, seed);
-       if (left instanceof LHS) yyValue = (LHS)left;
+       if (left instanceof Lhs) yyValue = (Lhs)left;
        else yyValue = null;
      }
    / a1:QualifiedName

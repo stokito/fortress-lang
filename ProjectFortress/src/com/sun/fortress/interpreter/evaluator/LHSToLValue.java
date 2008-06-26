@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.LHS;
+import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
@@ -52,7 +52,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
  * ALHSEvaluator.  Cache computations are represented using
  * _WrappedFValue AST com.sun.fortress.interpreter.nodes.
  */
-public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
+public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
     Evaluator evaluator;
 
     LHSToLValue(Evaluator evaluator) {
@@ -81,10 +81,10 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     /**
      * Evaluate provided Exprs to obtain LValues.
      */
-    public List<LHS> inParallel(List<? extends LHS> es) {
+    public List<Lhs> inParallel(List<? extends Lhs> es) {
         // TODO: In parallel!
-        ArrayList<LHS> res = new ArrayList<LHS>(es.size());
-        for (LHS e : es) {
+        ArrayList<Lhs> res = new ArrayList<Lhs>(es.size());
+        for (Lhs e : es) {
             res.add(e.accept(this));
         }
         return res;
@@ -94,7 +94,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
      */
     @Override
-    public LHS forSubscriptExpr(SubscriptExpr x) {
+    public Lhs forSubscriptExpr(SubscriptExpr x) {
         Expr warray = wrapEval(x.getObj(), "Indexing non-object.");
         List<Expr> wsubs = wrapEvalParallel(x.getSubs());
         return ExprFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs,
@@ -105,7 +105,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFieldRef(com.sun.fortress.interpreter.nodes.FieldRef)
      */
     @Override
-    public LHS forFieldRef(FieldRef x) {
+    public Lhs forFieldRef(FieldRef x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
         return ExprFactory.makeFieldRef(x.getSpan(), from, x.getField());
@@ -113,13 +113,13 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
 
 
     @Override
-    public LHS for_RewriteFieldRef(_RewriteFieldRef x) {
+    public Lhs for_RewriteFieldRef(_RewriteFieldRef x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
         return new _RewriteFieldRef(x.getSpan(), false, from, x.getField());
     }
 
-    public LHS forVarRef(VarRef x) {
+    public Lhs forVarRef(VarRef x) {
         return x;
     }
 
@@ -127,7 +127,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingBind(com.sun.fortress.interpreter.nodes.UnpastingBind)
      */
     @Override
-    public LHS forUnpastingBind(UnpastingBind x) {
+    public Lhs forUnpastingBind(UnpastingBind x) {
         Id name = x.getName();
         List<ExtentRange> dim = x.getDim();
         return super.forUnpastingBind(x);
@@ -137,13 +137,13 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingSplit(com.sun.fortress.interpreter.nodes.UnpastingSplit)
      */
     @Override
-    public LHS forUnpastingSplit(UnpastingSplit x) {
+    public Lhs forUnpastingSplit(UnpastingSplit x) {
         int dim = x.getDim();
         List<Unpasting> elems = x.getElems();
         return super.forUnpastingSplit(x);
     }
 
-    public LHS forLValueBind(LValueBind x) {
+    public Lhs forLValueBind(LValueBind x) {
         return x;
     }
 
@@ -151,7 +151,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forArgExpr(com.sun.fortress.interpreter.nodes.ArgExpr)
      */
     @Override
-    public LHS forArgExpr(ArgExpr x) {
+    public Lhs forArgExpr(ArgExpr x) {
         return NI.nyi("nested tuple in LHS of binding");
     }
 
@@ -159,7 +159,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTupleExpr(com.sun.fortress.interpreter.nodes.TupleExpr)
      */
     @Override
-    public LHS forTupleExpr(TupleExpr x) {
+    public Lhs forTupleExpr(TupleExpr x) {
         return NI.nyi("nested tuple in LHS of binding");
     }
 }
