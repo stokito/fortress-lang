@@ -17,7 +17,7 @@
 
 component SXXTemplateGapWithWrongASTTypeUse
 
-  import TemplateGapWithWrongASTType.{...}
+  import SXXTemplateGapWithWrongASTType.{...}
 
   export Executable
 
