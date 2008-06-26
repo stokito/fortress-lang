@@ -267,6 +267,7 @@ public class SyntaxAbstractionUtil {
      * @param name
      * @return
      */
+    /*
     @Deprecated
     public static String getJavaTypeOld(Id name){      
         Debug.debug( 4, "Looking up " + name + " in grammar env" );
@@ -279,6 +280,7 @@ public class SyntaxAbstractionUtil {
         Debug.debug( 4, "Found " + s );
         return s;
     }
+    */
 
     private static String cutPackage(String name){
         int last = name.lastIndexOf('.');
