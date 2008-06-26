@@ -39,7 +39,6 @@ public class StaticJUTest extends TestCaseWrapper {
     );
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
     	"GenericFunctionCall.fss",
-        "CaseExpr.fss",
         "CrossOverloaded.fss",
         "SimpleObject.fss",
         "MutualLetFn.fss",

@@ -1,0 +1,10 @@
+component DXXVoidTest
+  export Executable
+
+  run() = do
+    a = true
+    ((a) = true)
+    false
+  end
+
+end

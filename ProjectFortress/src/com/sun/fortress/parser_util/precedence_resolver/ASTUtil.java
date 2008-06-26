@@ -61,8 +61,8 @@ public class ASTUtil {
     public static Expr infix(Span span, Expr left, Op op, Expr right) {
         return ExprFactory.makeOpExpr(span, NodeFactory.makeOpInfix(op),
                                        left, right);
-    }
-
+    }   
+    
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {

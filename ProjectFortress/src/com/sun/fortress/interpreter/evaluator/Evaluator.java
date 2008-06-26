@@ -1237,7 +1237,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                        MathItem loc) {
         if (opr instanceof ExponentiationMI) {
             ExponentiationMI expo = (ExponentiationMI)opr;
-            Op op = expo.getOp();
+            OpName op = expo.getOp().getOriginalName();
             FValue fvalue = op.accept(this);
             if (!isFunction(fvalue))
                 return error(op, errorMsg("Operator ", op.stringName(),

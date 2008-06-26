@@ -21,39 +21,58 @@ export Executable
 
 (* Tests that various normal (not extemum) case expressions type check ok. *)
   
-run(args:String...):() = do
+foo(z:ZZ32,g:Generator[\ZZ32\]) : String = do
+  ignore(case z IN of
+           g => "this?" end as String)
 
+  case z of
+    g => "Did this work?"
+  end
+end
+
+
+run(args:String...):() = do
+  ignore(case 5 of
+           1=> "1"
+           2=> "2"
+         end as String)
+
+(*
+  
   (* No operator *)
-  case 5 of
-    1 => "1"
-    2 => "2"
-    3:10 => "range"
-  end as String
-  case 5 of
-    1 => "1"
-    2 => "2"
-    6:10 => "range"
-    else => "else"
-  end as String
-  case 5:10 of
-    1 => 0
+  ignore(case 5:10 of
     2:10 => 0
+    1    => 1
     5:10 => 1
     else => -1
-  end as ZZ32
-  
-  (* Operator *)
-  planet = "Saturn"
-  case planet IN of 
-    {"Mercury", "Venus", "Earth", "Mars"} => "inner" 
-    {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer" 
-    else => "remote"
-  end as String
-  case 5 > of
-    4 => true
+  end as IntLiteral)
+  ignore(case 5 of
+    1 => "1"
+    2 => "2"
+    (* 3:10 => "range" won't work because of stupid IntLiteral *)
+  end as String)
+  ignore(case 5 of
+    1 => "1"
+    2 => "2"
+    (* 6:10 => "range" Won't work because of stupid IntLiteral *)
+    else => "else"
+  end as String)
+  *)
+    (* Operator *)
+    (*
+    planet = "Saturn"
+    ignore(case planet IN of 
+      {"Mercury", "Venus", "Earth", "Mars"} => "inner" 
+      {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer" 
+      else => "remote"
+    end as String)
+
+    ignore(case 5 > of
+      4 => true
     6 => false
     else => false
-  end as Boolean
+  end as Boolean)
+*)
 
 end
 

@@ -587,8 +587,8 @@ public class IndexBuilder {
     }
 
 
-    private static final Id COERCION_NAME = NodeFactory.makeId("coercion");
-    private static final Id SELF_NAME = NodeFactory.makeId("self");
+    public static final Id COERCION_NAME = NodeFactory.makeId("coercion");
+    public static final Id SELF_NAME = NodeFactory.makeId("self");
 
     private ModifierSet extractModifiers(List<Modifier> mods) {
         final ModifierSet result = new ModifierSet();

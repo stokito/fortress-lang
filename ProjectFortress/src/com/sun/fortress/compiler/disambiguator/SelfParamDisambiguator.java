@@ -18,7 +18,7 @@ package com.sun.fortress.compiler.disambiguator;
 
 import java.util.List;
 
-import com.sun.fortress.compiler.Types;
+import static com.sun.fortress.compiler.IndexBuilder.SELF_NAME;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.AbsObjectDecl;
@@ -32,12 +32,9 @@ import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -56,11 +53,6 @@ import edu.rice.cs.plt.tuple.Option;
  * the type of node given.
  */
 public class SelfParamDisambiguator extends NodeUpdateVisitor {
-
-	private static final String SELF_NAME = "self";
-	
-	// TODO: Do I need to do the same thing for ObjectExpr? What if there is
-	// no type? Do I use the traits that the object extends?
 	
 	@Override
 	public Node forAbsObjectDecl(AbsObjectDecl that) {
@@ -118,14 +110,14 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     private Node replaceSelfParamsWithType(Node that, final Type self_type) {
     	
     	NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
-			
+			int traitNestingDepth = 0;
     		@Override
 			public Node forNormalParamOnly(NormalParam that,
 					List<Modifier> mods_result, Id name_result,
 					Option<Type> type_result, Option<Expr> defaultExpr_result) {
     			// my type is broken I need to qualify the type name
     			Option<Type> new_type;
-    			if( name_result.getText().equals(SELF_NAME) )
+    			if( name_result.equals(SELF_NAME) )
     				new_type = Option.some(self_type);
     			else
     				new_type = type_result;
@@ -136,10 +128,23 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
 			               new_type,
 			               that.getDefaultExpr());
 			}
+    		
 			// end recurrance here
-			@Override public Node forObjectDecl(ObjectDecl that) { return that; }
-			@Override public Node forTraitDecl(TraitDecl that) { return that; }
-			@Override public Node forObjectExpr(ObjectExpr that) { return that; }
+			@Override public Node forObjectDecl(ObjectDecl that) { 
+				return (++traitNestingDepth) > 1 ? that : super.forObjectDecl(that);
+			}
+			@Override public Node forTraitDecl(TraitDecl that) { 
+				return (++traitNestingDepth) > 1 ? that : super.forTraitDecl(that);
+			}
+			@Override public Node forObjectExpr(ObjectExpr that) { 
+				return (++traitNestingDepth) > 1 ? that : super.forObjectExpr(that);
+			}
+			@Override public Node forAbsObjectDecl(AbsObjectDecl that) {
+				return (++traitNestingDepth) > 1 ? that : super.forAbsObjectDecl(that);
+			}
+			@Override public Node forAbsTraitDecl(AbsTraitDecl that) {
+				return (++traitNestingDepth) > 1 ? that : super.forAbsTraitDecl(that);
+			}
     	};
     	return that.accept(replacer);
     }
