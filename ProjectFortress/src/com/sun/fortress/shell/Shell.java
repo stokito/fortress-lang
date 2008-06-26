@@ -27,9 +27,12 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.interpreter.drivers.*;
+import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
@@ -48,6 +51,7 @@ public final class Shell {
         System.err.println("Usage:");
         System.err.println(" compile [-debug [#]]somefile.fs{s,i}");
         System.err.println(" [run] [-test] [-debug [#]] somefile.fss arg...");
+        System.err.println(" parse [-out file] [-debug [#]] somefile.fss...");
         System.err.println(" help");
     }
 
@@ -55,10 +59,10 @@ public final class Shell {
         System.err.println
         ("Invoked as script: fortress args\n"+
          "Invoked by java: java ... com.sun.fortress.shell.Shell args\n"+
-         "args: compile somefile.fs{s,i}\n"+
+         "args: compile [-debug [#]] somefile.fs{s,i}\n"+
          "  ensures that component or interface 'somefile' is up-to-date,\n"+
          "  checked and present in the cache\n"+
-         "args: [run] [-test] [-debug] somefile.fss more_args\n"+
+         "args: [run] [-test] [-debug [#]] somefile.fss more_args\n"+
          "  compile somefile.fss and link/compile all APIs and components\n"+
          "  necessary to run it, and then run it, passing more_args to the\n"+
          "  fortress program.  A runnable fortress program exports Executable\n"+
@@ -86,6 +90,12 @@ public final class Shell {
             } else if (what.contains(".fss") || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
                 run(Arrays.asList(tokens));
+            } else if ( what.equals("parse" ) ){
+                parse(Arrays.asList(tokens).subList(1, tokens.length), Option.<String>none());
+                /*
+            } else if ( what.equals("typecheck" ) ){
+                typecheck(Arrays.asList(tokens).subList(1, tokens.length));
+                */
             } else if (what.equals("help")) {
                 printHelpMessage();
 
@@ -97,6 +107,69 @@ public final class Shell {
         catch (IOException error) {
             System.err.println(error.getMessage());
         }
+    }
+
+    /**
+     * Parse a file. If the file parses ok it will say "Ok". If you want a dump then give
+     * -out somefile.
+     */
+    private static void parse(List<String> args, Option<String> out){
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                Debug.setDebug( 99 );
+                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
+                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
+                    rest = rest.subList( 1, rest.size() );
+                } else {
+                    ProjectProperties.debug = true;
+                }
+            }
+            if (s.equals("-out") && ! rest.isEmpty() ){
+                out = Option.<String>some(rest.get(0));
+                rest = rest.subList( 1, rest.size() );
+            }
+            if (s.equals("-test")) test = true;
+            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+
+            parse( rest, out );
+        } else {
+            parse( s, out );
+        }
+    }
+
+    private static void parse( String file, Option<String> out){
+        try{
+            CompilationUnit unit = Parser.parseFile(NodeFactory.makeAPIName(apiName(file)), new File(file));
+            if ( ! out.isSome() ){
+                System.out.println( "Ok" );
+            } else {
+                try{
+                    ASTIO.writeJavaAst(unit, out.unwrap());
+                    System.out.println( "Dumped parse tree to " + out.unwrap() );
+                } catch ( IOException e ){
+                    System.err.println( "Error while writing " + out.unwrap() );
+                }
+            }
+        } catch ( FileNotFoundException f ){
+            System.err.println( file + " not found" );
+        } catch ( IOException ie ){
+            System.err.println( "Error while reading " + file );
+        } catch ( StaticError s ){
+            System.err.println(s);
+        }
+    }
+
+    private static String apiName( String file ){
+        if ( file.endsWith( ".fss" ) || file.endsWith( ".fsi" ) ){
+            return file.substring( 0, file.lastIndexOf(".") );
+        }
+        return file;
+    }
+
+    private static void typecheck( List<String> file ){
     }
 
     /**
@@ -112,7 +185,7 @@ public final class Shell {
     static void compile(boolean doLink, String s) throws UserError, InterruptedException, IOException {
         try {
             //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
-            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
+            Fortress fortress = new Fortress(new CacheBasedRepository(fortressLocation()));
 
             Path path = ProjectProperties.SOURCE_PATH;
 
@@ -214,9 +287,6 @@ public final class Shell {
 
             Iterable<? extends StaticError> errors = fortress.run(path, fileName, test, args);
 
-            /* FIXME: this is a hack to get around some null pointer exceptions
-             * if a WrappedException is printed as-is.
-             */
             for (StaticError error: errors) {
                 System.err.println(error);
             }
