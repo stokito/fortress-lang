@@ -42,60 +42,81 @@ import com.sun.fortress.useful.Debug;
 public final class StaticTestSuite extends TestSuite {
     
     private final static boolean VERBOSE = false;
-    private final static boolean SKIP_FAILING = true;
-    
-    // relative to the top ProjectFortress directory
-    private final String testDir;
-    private final Set<File> failingDisambiguator;
-    private final Set<File> failingTypeChecker;
-    private final boolean skipTypeChecker;
+    private final static boolean SKIP_FAILING = true;  
 
-    public StaticTestSuite(String _name, String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
+    public StaticTestSuite(String _name, TestCaseDir testCaseDir) {
         super(_name);
-        testDir = _testDir;
-        // Debug.setDebug( 0 );
-        skipTypeChecker = (_failingTypeChecker == null);
-        failingDisambiguator = fileSetFromStringList(_failingDisambiguator);
-        failingTypeChecker = fileSetFromStringList(_failingTypeChecker);
-        addStaticTests();
+        addStaticTests(testCaseDir);
     }
     
-    private void addStaticTests() {
+    public StaticTestSuite(String _name, String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
+        super(_name);
+        TestCaseDir testCaseDir = new TestCaseDir(_testDir, _failingDisambiguator, _failingTypeChecker);
+        addStaticTests(testCaseDir);
+    }
+       
+    public void addStaticTests(TestCaseDir testCase) {
         FilenameFilter fssFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.endsWith("fss");
             }
         };
         
-        for (String filename : new File(testDir).list(fssFilter)) {
-            File f = new File(testDir + filename);
+        for (String filename : new File(testCase.getTestDir()).list(fssFilter)) {
+            File f = new File(testCase.getTestDir() + filename);
             
-            if (SKIP_FAILING && isFailingDisambiguator(f)) {
+            if (SKIP_FAILING && testCase.isFailingDisambiguator(f)) {
                 // skip
-            } else if (skipTypeChecker || (SKIP_FAILING && isFailingTypeChecker(f))) {
+            } else if (testCase.getSkipTypeChecker() || (SKIP_FAILING && testCase.isFailingTypeChecker(f))) {
                 addTest(new StaticTestCase(f, false));
             } else {
                 addTest(new StaticTestCase(f));
             }
         }
     }
-    
-    private Set<File> fileSetFromStringList(List<String> files) {
-        if (files == null) {
-            return CollectUtil.<File>emptySet();
-        } else {
-            return CollectUtil.asSet(IterUtil.map(files, new Lambda<String, File>() {
-                public File value(String s) { return new File(testDir + s); }
-            }));
+       
+    public static class TestCaseDir {
+        // relative to the top ProjectFortress directory
+        private String testDir;
+        private boolean skipTypeChecker;
+        private Set<File> failingDisambiguator;
+        private Set<File> failingTypeChecker;
+        
+        public TestCaseDir(String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
+            testDir = _testDir;
+            skipTypeChecker = (_failingTypeChecker == null);
+            failingDisambiguator = fileSetFromStringList(_failingDisambiguator);
+            failingTypeChecker = fileSetFromStringList(_failingTypeChecker);
         }
-    }
-    
-    protected boolean isFailingDisambiguator(File f) {
-        return failingDisambiguator.contains(f);
-    }
-    
-    protected boolean isFailingTypeChecker(File f) {
-        return failingDisambiguator.contains(f) || failingTypeChecker.contains(f);
+
+        public String getTestDir() {
+            return this.testDir;
+        }
+        
+        public boolean getSkipTypeChecker() {
+            return this.skipTypeChecker;
+        }
+
+        protected boolean isFailingDisambiguator(File f) {
+            return this.failingDisambiguator.contains(f);
+        }
+        
+        protected boolean isFailingTypeChecker(File f) {
+            return this.failingDisambiguator.contains(f) || this.failingTypeChecker.contains(f);
+        }
+
+
+
+        private Set<File> fileSetFromStringList(List<String> files) {
+            if (files == null) {
+                return CollectUtil.<File>emptySet();
+            } else {
+                return CollectUtil.asSet(IterUtil.map(files, new Lambda<String, File>() {
+                    public File value(String s) { return new File(testDir + s); }
+                }));
+            }
+        }
+        
     }
     
     public static class StaticTestCase extends TestCase {
