@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler;
 
+import com.sun.fortress.repository.FortressRepository;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

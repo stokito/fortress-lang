@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.StaticError;

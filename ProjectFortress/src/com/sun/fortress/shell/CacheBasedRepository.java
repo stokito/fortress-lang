@@ -17,6 +17,7 @@
 
 package com.sun.fortress.shell;
 
+import com.sun.fortress.repository.StubRepository;
 import static com.sun.fortress.shell.ConvenientStrings.DOT;
 import static com.sun.fortress.shell.ConvenientStrings.SEP;
 
@@ -29,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;

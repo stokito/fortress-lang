@@ -27,7 +27,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.repository.ProjectProperties;
@@ -37,7 +37,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.shell.CacheBasedRepository;
-import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 import com.sun.fortress.useful.Debug;
