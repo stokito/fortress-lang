@@ -17,43 +17,24 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import static com.sun.fortress.nodes_util.NodeFactory.makeEffect;
-import static com.sun.fortress.nodes_util.NodeFactory.makeTraitType;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import com.sun.fortress.compiler.IndexBuilder;
-import com.sun.fortress.compiler.index.Constructor;
-import com.sun.fortress.compiler.index.DeclaredFunction;
-import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.index.FunctionalMethod;
-import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.IntersectionType;
-import com.sun.fortress.nodes.NormalParam;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeParam;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes._RewriteGenericArrowType;
+import com.sun.fortress.compiler.*;
+import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 
+import edu.rice.cs.plt.collect.HashRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.Predicate;
+import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
+
+import java.util.*;
+
+import static com.sun.fortress.nodes_util.NodeFactory.*;
 
 /**
  * A type environment whose outermost lexical scope consists of a map from IDs
@@ -68,49 +49,6 @@ class FnTypeEnv extends TypeEnv {
         entries = _entries;
     }
 
-    // Takes a functional method declaration like: 
-    // opr IN(x:E, self:Generator[\E\]):Boolean
-    // and returns the type we want it to have,
-    // (x:$i, Generator[\$i\]) -> Boolean
-    private Type replaceGenericSelfParamsWithInferenceVars(FnAbsDeclOrDecl fn) {
-    	// First we need to get the lists of args -> params
-    	// To do this we must find self's type
-    	
-    	Option<Type> self_type_ = Option.none();
-    	for( Param param : fn.getParams() ) {
-    		if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
-    			if( param instanceof NormalParam )
-    				self_type_ = ((NormalParam)param).getType();
-    			else
-    				InterpreterBug.bug("self cannot be a varargs.");
-    		}
-    	}
-    	if( self_type_.isNone() )
-    		InterpreterBug.bug("We said this was a functional method (" + fn + ") but maybe it wasn't.");
-    	TraitType self_type = (TraitType)self_type_.unwrap();
-    	
-    	// This may be a seriously misguided attempt to get StaticParams from StaticArgs... NEB
-    	Iterable<StaticArg> only_typeargs = IterUtil.filter(self_type.getArgs(), new Predicate<StaticArg>(){
-			public Boolean value(StaticArg arg0) { return arg0 instanceof TypeArg; }});
-    	Iterable<Pair<StaticParam,StaticArg>> replacement_pairs =
-    		IterUtil.map(only_typeargs, new Lambda<StaticArg,Pair<StaticParam,StaticArg>>(){
-				public Pair<StaticParam, StaticArg> value(StaticArg arg0) {
-					// Ugh..
-					TypeArg type_arg = (TypeArg)arg0;
-					VarType v = (VarType)type_arg.getType();
-					StaticParam p = new TypeParam(v.getName());
-					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.makeInferenceVarType());
-					return Pair.make(p, a);
-				}});
-    	
-    	// Now replace
-    	StaticTypeReplacer st_replacer = 
-    		new StaticTypeReplacer(IterUtil.asList(IterUtil.pairFirsts(replacement_pairs)),
-    				               IterUtil.asList(IterUtil.pairSeconds(replacement_pairs)));
-    	
-    	return (Type)genericArrowFromDecl(fn).accept(st_replacer);
-    }
-    
     /**
      * Return a BindingLookup that binds the given Id to a type
      * (if the given Id is in this type environment).
@@ -134,7 +72,7 @@ class FnTypeEnv extends TypeEnv {
             } else if (fn instanceof FunctionalMethod) {
                 FunctionalMethod _fn = (FunctionalMethod)fn;
                 FnAbsDeclOrDecl decl = _fn.ast();
-                overloadedTypes.add(replaceGenericSelfParamsWithInferenceVars(decl));
+                overloadedTypes.add(genericArrowFromDecl(_fn.ast()));
             } else { // fn instanceof Constructor
                 final Constructor _fn = (Constructor)fn;
                 Span loc = _fn.declaringTrait().getSpan();

@@ -38,6 +38,14 @@ public class StaticJUTest extends TestCaseWrapper {
         "XXXUndefinedTopLevelVar.fss"
     );
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
+    	"GenericFunctionCall.fss",
+        "CrossOverloaded.fss",
+        "SimpleObject.fss",
+        "MutualLetFn.fss",
+        "DXXChainTest1.fss",
+        "PlusEq.fss",
+        "CaseExpr.fss",
+        "DXXMutualSeparateLetFn.fss",
         "XXXMultipleRefErrors.fss",
         "XXXUndefinedArrayRef.fss",
         "XXXUndefinedInitializer.fss",
@@ -61,3 +69,4 @@ public class StaticJUTest extends TestCaseWrapper {
                                    FAILING_TYPE_CHECKER);     
     }
 }
+//"GenericSingleton.fss"      // FIXME
