@@ -74,7 +74,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
     }
     
     
-    public Map<InferenceVarType, Type> getMap() {
+    public Map<_InferenceVarType, Type> getMap() {
 		return nodeConstraints.getMap();
 	}
 

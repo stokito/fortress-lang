@@ -89,7 +89,7 @@ public abstract class TypeEnv {
             return some(result);
         }
     }
-    
+
     protected static _RewriteGenericArrowType genericArrowFromDecl(FnAbsDeclOrDecl decl) {
         return new _RewriteGenericArrowType(decl.getSpan(),
                                             decl.getStaticParams(),
@@ -122,9 +122,9 @@ public abstract class TypeEnv {
                     }
                 } else { // No type is explicitly declared for this parameter.
                     if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
-                        keywordTypes.add(makeKeywordType(_param.getName(), NodeFactory.makeInferenceVarType()));
+                        keywordTypes.add(makeKeywordType(_param.getName(), NodeFactory.make_InferenceVarType()));
                     } else { // We have an ordinary param.
-                        paramTypes.add(NodeFactory.makeInferenceVarType());
+                        paramTypes.add(NodeFactory.make_InferenceVarType());
                     }
                 }
             } else { // We have a varargs param.
@@ -132,7 +132,7 @@ public abstract class TypeEnv {
                 varargsType = some(_param.getType());
             }
         }
-        
+
         return new Domain(paramTypes, varargsType, keywordTypes);
     }
 
@@ -192,7 +192,7 @@ public abstract class TypeEnv {
                 // called. This is necessary because TypeEnvs are immutable.
                 // It's up to the type checker to accumulate the constraints
                 // on implicit types.
-                return Option.<Type>wrap(NodeFactory.makeInferenceVarType());
+                return Option.<Type>wrap(NodeFactory.make_InferenceVarType());
             }
         } else {
             return Option.none();

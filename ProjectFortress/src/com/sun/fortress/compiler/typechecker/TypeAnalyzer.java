@@ -35,7 +35,7 @@ import com.sun.fortress.compiler.index.*;
 
 import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
-import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarType;
+import static com.sun.fortress.nodes_util.NodeFactory.make_InferenceVarType;
 import static edu.rice.cs.plt.iter.IterUtil.cross;
 import static edu.rice.cs.plt.iter.IterUtil.collapse;
 import static edu.rice.cs.plt.iter.IterUtil.map;
@@ -72,20 +72,20 @@ public class TypeAnalyzer {
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, WhereClause whereClause) {
         this(enclosing._table, enclosing._staticParamEnv.extend(params, whereClause), enclosing._cache);
     }
-    
+
     private TypeAnalyzer(TraitTable table, StaticParamEnv staticParamEnv, SubtypeCache parentCache) {
         _table = table;
         _staticParamEnv = staticParamEnv;
         _cache = new ChildSubtypeCache(parentCache);
         _emptyHistory = new SubtypeHistory();
     }
-    
+
     /** Verify that fundamental types are present in the current environment. */
     private void validateEnvironment() {
         // TODO NEB: Reinsert the following call after Jan puts Object into the library
     	// assertTraitIndex(OBJECT.getName());
     }
-    
+
     /** Verify that the given name is defined and is a TraitIndex. */
     private void assertTraitIndex(Id name) {
         // this will fail if the name is undefined:
@@ -107,7 +107,7 @@ public class TypeAnalyzer {
     public static TypeAnalyzer make(TraitTable _table) {
     	return new TypeAnalyzer(_table);
     }
-    
+
     /**
      * Extend this type analyzer with the given static parameters and WhereClause constraints.
      */
@@ -119,7 +119,7 @@ public class TypeAnalyzer {
      * <p>Convert the type to a normal form.  The argument is assumed to be
      * well-formed: trait and variable names are defined in this context,
      * and static parameter lists have the correct arity.</p>
-     * 
+     *
      * <p>A normalized type has the following properties:
      * <ul>
      * <li>All component types (subtrees of the AST) are normalized.</li>
@@ -134,19 +134,19 @@ public class TypeAnalyzer {
      * <li>TODO: It is not an AbbreviatedType.</li>
      * <li>A TraitType does not reference an alias.</li>
      * </ul></p>
-     * 
+     *
      * <p>Note that BaseTypes will be mapped to BaseTypes (and thus throws clauses can be
      * normalized without introducing non-BaseTypes into the list).</p>
      */
     public Type normalize(Type t) {
         return norm(t, _emptyHistory);
     }
-    
+
     /** Lambda for invoking {@link #normalize}. */
     public final Lambda<Type, Type> NORMALIZE = new Lambda<Type, Type>() {
         public Type value(Type t) { return normalize(t); }
     };
-    
+
     /**
      * Produce a formula that, if satisfied, will support {@code s} as a subtype of {@code t}.
      * {@code s} and {@code t} need not be normalized.
@@ -162,7 +162,7 @@ public class TypeAnalyzer {
     public ConstraintFormula subtypeNormal(Type s, Type t) {
         return sub(s, t, _emptyHistory);
     }
-    
+
     /**
      * Produce a formula that, if satisfied, will support {@code s} being equivalent to
      * {@code t}.  {@code s} and {@code t} need not be normalized.
@@ -170,7 +170,7 @@ public class TypeAnalyzer {
     public ConstraintFormula equivalent(Type s, Type t) {
         return equiv(normalize(s), normalize(t), _emptyHistory);
     }
-    
+
     /**
      * Given normalized {@code s} and {@code t}, produce a formula that, if satisfied, will
      * support {@code s} being equivalent to {@code t}.
@@ -178,17 +178,17 @@ public class TypeAnalyzer {
     public ConstraintFormula equivalentNormal(Type s, Type t) {
         return equiv(s, t, _emptyHistory);
     }
-    
+
     /** Create a minimal union representing the join of the given types. */
     public Type join(Type... ts) {
         return jn(map(IterUtil.make(ts), NORMALIZE), _emptyHistory);
     }
-    
+
     /** Create a minimal union representing the join of the given types. */
     public Type join(Iterable<? extends Type> ts) {
         return jn(map(ts, NORMALIZE), _emptyHistory);
     }
-    
+
     /**
      * Create a minimal union representing the join of the given
      * <em>normalized</em> types.
@@ -201,12 +201,12 @@ public class TypeAnalyzer {
     public Type meet(Type... ts) {
         return mt(map(IterUtil.make(ts), NORMALIZE), _emptyHistory);
     }
-    
+
     /** Create a minimal intersection representing the meet of the given types. */
     public Type meet(Iterable<? extends Type> ts) {
         return mt(map(ts, NORMALIZE), _emptyHistory);
     }
-    
+
     /**
      * Create a minimal intersection representing the meet of the given
      * <em>normalized</em> types.
@@ -214,12 +214,12 @@ public class TypeAnalyzer {
     public Type meetNormal(Iterable<? extends Type> ts) {
         return mt(ts, _emptyHistory);
     }
-    
+
     /** Implementation of normalization parameterized by a history. */
     private Type norm(Type t, final SubtypeHistory history) {
         debug.logStart("t", t);
         Type result = (Type) t.accept(new NodeUpdateVisitor() {
-            
+
             @Override public BaseType forTraitTypeOnly(TraitType t, Id name, List<StaticArg> normalArgs) {
                 Option<TypeConsIndex> ind = _table.typeCons(name);
             	if(ind.isNone()){
@@ -246,15 +246,15 @@ public class TypeAnalyzer {
                     throw new IllegalStateException("Unrecognized index type: " + index);
                 }
             }
-            
+
             @Override public Type forTupleTypeOnly(TupleType t, List<Type> normalElements) {
                 Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
                 return t.equals(result) ? t : result;
             }
-            
+
             @Override public Type forVarargTupleTypeOnly(VarargTupleType t, List<Type> normalElements,
                                                          Type normalVarargs) {
-                // the varargs type can be treated like just another tuple element, as far as 
+                // the varargs type can be treated like just another tuple element, as far as
                 // normalization is concerned, unless the varargs type is Bottom
                 if (normalVarargs.equals(BOTTOM)) {
                     return handleAbstractTuple(normalElements, MAKE_TUPLE);
@@ -275,7 +275,7 @@ public class TypeAnalyzer {
                     return t.equals(result) ? t : result;
                 }
             }
-            
+
             private Type handleAbstractTuple(Iterable<Type> normalElements,
                                              final Lambda<Iterable<Type>, Type> factory) {
                 // push unions out:
@@ -291,7 +291,7 @@ public class TypeAnalyzer {
                 // don't join, because the tuple intersections here aren't subtypes of each other
                 return makeUnion(map(cross(elementDisjuncts), handleDisjunct));
             }
-            
+
             @Override public Type forArrowTypeOnly(ArrowType t, Domain normalDomain, Type normalRange,
                                                    final Effect normalEffect) {
                 Type domainArg = stripKeywords(normalDomain);
@@ -318,7 +318,7 @@ public class TypeAnalyzer {
                 Type result = makeIntersection(overloads);
                 return t.equals(result) ? t : result;
             }
-            
+
             @Override public Domain forDomain(Domain d) {
                 // recur on a single args type rather than each element individually
                 Type args = stripKeywords(d);
@@ -328,7 +328,7 @@ public class TypeAnalyzer {
                 if (args == argsNorm && ks == ksNorm) { return d; }
                 else { return makeDomain(argsNorm, ksNorm); }
             }
-            
+
             @Override public Effect forEffectOnly(Effect e,
                                                   Option<List<BaseType>> normalThrows) {
                 if (normalThrows.isNone()) { return e; }
@@ -344,23 +344,23 @@ public class TypeAnalyzer {
                     }
                 }
             }
-            
+
             @Override public Type forUnionTypeOnly(UnionType t, List<Type> normalElements) {
                 Type result = jn(normalElements, history);
                 return t.equals(result) ? t : result;
             }
-            
+
             @Override public Type forIntersectionTypeOnly(IntersectionType t,
                                                           List<Type> normalElements) {
                 Type result = mt(normalElements, history);
                 return t.equals(result) ? t : result;
             }
-            
+
         });
         debug.logEnd("result", result);
         return result;
     }
-    
+
     /**
      * Implementation of equivalence parameterized by a history. Arguments must be
      * normalized.
@@ -373,7 +373,7 @@ public class TypeAnalyzer {
         debug.logEnd("result", result);
         return result;
     }
-    
+
     /**
      * Implementation of join parameterized by a history.  Arguments must be
      * normalized; the result will be normalized.
@@ -383,7 +383,7 @@ public class TypeAnalyzer {
         Iterable<Type> disjuncts = collapse(map(ts, DISJUNCTS));
         return makeUnion(this.<Type>reduceDisjuncts(disjuncts, h));
     }
-    
+
     /**
      * Implementation of meet parameterized by a history.  Arguments must be
      * normalized; the result will be normalized.
@@ -402,7 +402,7 @@ public class TypeAnalyzer {
         // disjuncts may be redundant (but, unlike jn, they don't need to be collapsed)
         return makeUnion(reduceDisjuncts(disjuncts, h));
     }
-    
+
     /**
      * Implementation of subtyping parameterized by a history.  Arguments must
      * be normalized.
@@ -430,24 +430,24 @@ public class TypeAnalyzer {
         else if (s instanceof BottomType) { result = TRUE; }
         else if (t instanceof AnyType) { result = TRUE; }
         else if (s.equals(t)) { result = TRUE; }
-        else if (s instanceof InferenceVarType) {
-            if (t instanceof InferenceVarType) {
-                ConstraintFormula f1 = upperBound((InferenceVarType) s, t, history);
-                ConstraintFormula f2 = lowerBound((InferenceVarType) t, s, history);
+        else if (s instanceof _InferenceVarType) {
+            if (t instanceof _InferenceVarType) {
+                ConstraintFormula f1 = upperBound((_InferenceVarType) s, t, history);
+                ConstraintFormula f2 = lowerBound((_InferenceVarType) t, s, history);
                 result = f1.and(f2, history);
             }
-            else { result = upperBound((InferenceVarType) s, t, history); }
+            else { result = upperBound((_InferenceVarType) s, t, history); }
         }
-        else if (t instanceof InferenceVarType) {
-            result = lowerBound((InferenceVarType) t, s, history);
+        else if (t instanceof _InferenceVarType) {
+            result = lowerBound((_InferenceVarType) t, s, history);
         }
         else {
             final SubtypeHistory h = history.extend(s, t);
             // a null result indicates that s should be used for dispatching instead
             result = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                
+
                 @Override public ConstraintFormula forType(Type t) { return null; }
-                
+
                 @Override public
                 ConstraintFormula forVarargTupleType(final VarargTupleType t) {
                     return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
@@ -473,7 +473,7 @@ public class TypeAnalyzer {
                         }
                     });
                 }
-                
+
                 @Override public ConstraintFormula forVarType(final VarType t) {
                     return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
@@ -491,7 +491,7 @@ public class TypeAnalyzer {
                         }
                     });
                 }
-                
+
                 @Override public
                 ConstraintFormula forIntersectionType(final IntersectionType t) {
                     return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
@@ -510,7 +510,7 @@ public class TypeAnalyzer {
                         }
                     });
                 }
-                
+
                 @Override public ConstraintFormula forUnionType(final UnionType t) {
                     return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
@@ -528,7 +528,7 @@ public class TypeAnalyzer {
                         }
                     });
                 }
-                
+
             });
             if (result == null) {
                 result = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
@@ -568,7 +568,7 @@ public class TypeAnalyzer {
         debug.logEnd("result", result);
         return result;
     }
-    
+
     /* SUBTYPING RULES: to eliminate ambiguity, for any pair of Types there should
      * either be one most-specific applicable signature, or none at all.  That is,
      * if the declarations all had the same name, they would comprise a valid Fortress
@@ -576,7 +576,7 @@ public class TypeAnalyzer {
      * are normalized, that they are not equal, that neither is an inference variable,
      * that {@code s} is not Bottom, and that {@code t} is not Any.
      */
-            
+
     private ConstraintFormula traitSubTrait(TraitType s, TraitType t, SubtypeHistory h) {
         ConstraintFormula result = FALSE;
         if (s.getName().equals(t.getName())) {
@@ -631,7 +631,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula arrowSubArrow(ArrowType s, ArrowType t, SubtypeHistory h) {
         ConstraintFormula f = sub(t.getDomain(), s.getDomain(), h);
         if (!f.isFalse()) {
@@ -642,7 +642,7 @@ public class TypeAnalyzer {
         }
         return f;
     }
-    
+
     private ConstraintFormula tupleSubTuple(TupleType s, TupleType t, SubtypeHistory h) {
         if (s.getElements().size() == t.getElements().size()) {
             ConstraintFormula f = TRUE;
@@ -654,23 +654,23 @@ public class TypeAnalyzer {
         }
         else { return FALSE; }
     }
-    
+
     private ConstraintFormula voidSubVararg(VoidType s, VarargTupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, 0), h);
     }
-    
+
     private ConstraintFormula traitSubVararg(TraitType s, VarargTupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, 1), h);
     }
-    
+
     private ConstraintFormula anySubVararg(AnyType s, VarargTupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, 1), h);
     }
-    
+
     private ConstraintFormula tupleSubVararg(TupleType s, VarargTupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, s.getElements().size()), h);
     }
-    
+
     private ConstraintFormula varargSubVararg(VarargTupleType s, VarargTupleType t,
                                               SubtypeHistory h) {
         int n = s.getElements().size();
@@ -681,22 +681,22 @@ public class TypeAnalyzer {
         }
         return f;
     }
-    
+
     private ConstraintFormula varSub(VarType s, Type t, SubtypeHistory h) {
         // TODO
         return FALSE;
     }
-    
+
     private ConstraintFormula subVar(Type s, VarType t, SubtypeHistory h) {
         // TODO
         return FALSE;
     }
-    
+
     private ConstraintFormula varSubVar(VarType s, VarType t, SubtypeHistory h) {
         // TODO
         return FALSE;
     }
-    
+
     private ConstraintFormula intersectionSubVar(IntersectionType s, VarType t,
                                                  SubtypeHistory h) {
         ConstraintFormula result = intersectionSub(s, t, h);
@@ -705,12 +705,12 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula varSubIntersection(VarType s, IntersectionType t,
                                                  SubtypeHistory h) {
         return subIntersection(s, t, h);
     }
-    
+
     private ConstraintFormula varSubUnion(VarType s, UnionType t, SubtypeHistory h) {
         ConstraintFormula result = varSub(s, t, h);
         if (!result.isTrue()) {
@@ -718,11 +718,11 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula unionSubVar(UnionType s, VarType t, SubtypeHistory h) {
         return unionSub(s, t, h);
     }
-    
+
     private ConstraintFormula subIntersection(Type s, IntersectionType t, SubtypeHistory h) {
         ConstraintFormula f = TRUE;
         for (Type elt : t.getElements()) {
@@ -731,7 +731,7 @@ public class TypeAnalyzer {
         }
         return f;
     }
-    
+
     private ConstraintFormula intersectionSub(IntersectionType s, Type t, SubtypeHistory h) {
         ConstraintFormula result = FALSE;
         for (Pair<Type, ConstraintFormula> sElt : expandIntersection(s, h)) {
@@ -742,7 +742,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula subUnion(Type s, UnionType t, SubtypeHistory h) {
         ConstraintFormula result = FALSE;
         for (Type elt : t.getElements()) {
@@ -751,7 +751,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula unionSub(UnionType s, Type t, SubtypeHistory h) {
         ConstraintFormula f = TRUE;
         for (Type elt : s.getElements()) {
@@ -760,7 +760,7 @@ public class TypeAnalyzer {
         }
         return f;
     }
-    
+
     private ConstraintFormula intersectionSubIntersection(IntersectionType s, IntersectionType t,
                                                           SubtypeHistory h) {
         ConstraintFormula result = TRUE;
@@ -777,7 +777,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula intersectionSubUnion(IntersectionType s, UnionType t,
                                                    SubtypeHistory h) {
         ConstraintFormula result = FALSE;
@@ -794,7 +794,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula unionSubIntersection(UnionType s, IntersectionType t,
                                                    SubtypeHistory h) {
         ConstraintFormula result = TRUE;
@@ -807,7 +807,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     private ConstraintFormula unionSubUnion(UnionType s, UnionType t, SubtypeHistory h) {
         ConstraintFormula result = TRUE;
         for (Type sElt : s.getElements()) {
@@ -823,7 +823,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     /**
      * Produce a list of all element types that can be inferred from the given union,
      * combined with a (non-false) assumption under which each type's inclusion may
@@ -864,7 +864,7 @@ public class TypeAnalyzer {
         // conjuncts may be redundant
         return reduceConjuncts(conjuncts, h);
     }
-        
+
     /**
      * Eliminate redundant conjuncts from the given list of normalized types.  A type is
      * redundant if some other type in the list is a subtype.  Where two elements are
@@ -874,7 +874,7 @@ public class TypeAnalyzer {
                                                      SubtypeHistory h) {
         return reduceList(conjuncts, h, true);
     }
-    
+
     /**
      * Eliminate redundant disjuncts from the given list of normalized types.  A type is
      * redundant if some other type in the list is a supertype.  Where two elements are
@@ -885,7 +885,7 @@ public class TypeAnalyzer {
         // TODO: check for exclusions (resulting in Bottom)
         return reduceList(disjuncts, h, false);
     }
-    
+
     /**
      * Generalization of {@link #reduceConjuncts} and {@link #reduceDisjuncts}: eliminate
      * redundant elements from the list of normalized types; where two are equivalent,
@@ -917,11 +917,11 @@ public class TypeAnalyzer {
                 return result;
         }
     }
-    
+
     /** Equivalence for StaticArgs. */
     private ConstraintFormula equiv(StaticArg a1, final StaticArg a2,
                                     final SubtypeHistory history) {
-        
+
         return a1.accept(new NodeAbstractVisitor<ConstraintFormula>() {
             @Override public ConstraintFormula forTypeArg(TypeArg a1) {
                 if (a2 instanceof TypeArg) {
@@ -966,7 +966,7 @@ public class TypeAnalyzer {
             }
         });
     }
-    
+
     /** Subtyping for Domains. */
     private ConstraintFormula sub(Domain s, Domain t, SubtypeHistory h) {
         Map<Id, Type> sMap = extractKeywords(s);
@@ -984,7 +984,7 @@ public class TypeAnalyzer {
         }
         else { return FALSE; }
     }
-    
+
     /** Subtyping for Effects. */
     private ConstraintFormula sub(Effect s, Effect t, SubtypeHistory h) {
         if (!s.isIo() || t.isIo()) {
@@ -996,34 +996,34 @@ public class TypeAnalyzer {
         else { return FALSE; }
     }
 
-    
+
     /** An immutable record of all subtyping invocations in the call stack. */
     // Package private -- accessed by ConstraintFormula
     class SubtypeHistory {
-        
+
         private final Relation<Type, Type> _entries;
         private final int _expansions;
-        
+
         public SubtypeHistory() {
             // no need for an index in either direction
             _entries = new HashRelation<Type, Type>(false, false);
             _expansions = 0;
         }
-        
+
         private SubtypeHistory(Relation<Type, Type> entries, int expansions) {
             _entries = entries;
             _expansions = expansions;
         }
-        
+
         public int size() { return _entries.size(); }
-        
+
         public int expansions() { return _expansions; }
-        
+
         public boolean contains(Type s, Type t) {
             InferenceVarTranslator trans = new InferenceVarTranslator();
             return _entries.contains(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
         }
-        
+
         public SubtypeHistory extend(Type s, Type t) {
             Relation<Type, Type> newEntries = new HashRelation<Type, Type>();
             newEntries.addAll(_entries);
@@ -1031,27 +1031,27 @@ public class TypeAnalyzer {
             newEntries.add(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
             return new SubtypeHistory(newEntries, _expansions);
         }
-        
+
         public SubtypeHistory expand() {
           return new SubtypeHistory(_entries, _expansions + 1);
         }
-        
+
         public ConstraintFormula subtypeNormal(Type s, Type t) {
             return TypeAnalyzer.this.sub(s, t, this);
         }
-        
+
         public Type meetNormal(Type... ts) {
             return TypeAnalyzer.this.mt(IterUtil.make(ts), this);
         }
-        
+
         public Type joinNormal(Type... ts) {
             return TypeAnalyzer.this.jn(IterUtil.make(ts), this);
         }
-        
+
         public String toString() {
           return IterUtil.multilineToString(_entries) + "\n" + _expansions + " expansions";
         }
-        
+
         public SubtypeHistory combine(SubtypeHistory h){
         	int newexpand = Math.max(this._expansions,h._expansions);
         	Relation<Type,Type> newrel= new HashRelation<Type,Type>();
@@ -1061,7 +1061,7 @@ public class TypeAnalyzer {
         	// sure why we should choose the other one.
         	return new SubtypeHistory(newrel, newexpand);
         }
-        
+
     }
 
 

@@ -33,37 +33,37 @@ import com.sun.fortress.nodes_util.NodeFactory;
  * where any renaming of inference variables can be treated as equivalent.
  */
 public class InferenceVarTranslator {
-    
+
     private final Iterator<Character> _canonicalNames;
-    private final OneToOneMap<InferenceVarType, InferenceVarType> _replacements;
+    private final OneToOneMap<_InferenceVarType, _InferenceVarType> _replacements;
     private final NodeVisitor<Node> _canonicalUpdater;
     private final NodeVisitor<Node> _reverseUpdater;
-    
+
     public InferenceVarTranslator() {
         // sequence starts with alpha = 03b1
         _canonicalNames = new SequenceIterator<Character>('\u03b1', CHAR_SEQUENCE);
-        _replacements = new OneToOneHashMap<InferenceVarType, InferenceVarType>();
-        
+        _replacements = new OneToOneHashMap<_InferenceVarType, _InferenceVarType>();
+
         _canonicalUpdater = new NodeUpdateVisitor() {
-            @Override public Node forInferenceVarType(InferenceVarType var) {
+            @Override public Node for_InferenceVarType(_InferenceVarType var) {
                 if (!_replacements.containsKey(var)) {
                     _replacements.put(var, nextCanonicalVar());
                 }
                 return _replacements.getValue(var);
             }
         };
-        
+
         _reverseUpdater = new NodeUpdateVisitor() {
-            @Override public Node forInferenceVarType(InferenceVarType var) {
+            @Override public Node for_InferenceVarType(_InferenceVarType var) {
                 if (!_replacements.containsValue(var)) {
-                    _replacements.put(NodeFactory.makeInferenceVarType(), var);
+                    _replacements.put(NodeFactory.make_InferenceVarType(), var);
                 }
                 return _replacements.getKey(var);
             }
-        
+
         };
     }
-    
+
     private static final Lambda<Character, Character> CHAR_SEQUENCE =
         new Lambda<Character, Character>() {
         public Character value(Character prev) {
@@ -81,33 +81,33 @@ public class InferenceVarTranslator {
             }
         }
     };
-    
-    private InferenceVarType nextCanonicalVar() {
+
+    private _InferenceVarType nextCanonicalVar() {
         // If it becomes a concern, we can replace the use of Characters as identifiers
         // with instances of a custom class, thus preventing name clashes with variables
         // created elsewhere that wrap Characters (currently, other instances just wrap
         // raw Objects)
-        return new InferenceVarType(_canonicalNames.next());
+        return new _InferenceVarType(_canonicalNames.next());
     }
-    
+
     public Type canonicalizeVars(Type t) {
         return (Type) t.accept(_canonicalUpdater);
     }
-    
+
     public Type revertVars(Type t) {
         return (Type) t.accept(_reverseUpdater);
     }
-    
+
     public Lambda<Type, Type> canonicalSubstitution() {
         return new Lambda<Type, Type>() {
             public Type value(Type t) { return canonicalizeVars(t); }
         };
     }
-    
+
     public Lambda<Type, Type> revertingSubstitution() {
         return new Lambda<Type, Type>() {
             public Type value(Type t) { return revertVars(t); }
         };
     }
-  
+
 }

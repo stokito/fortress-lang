@@ -557,7 +557,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         if (s.equals("Bottom")) { return BOTTOM; }
         
         if (s.startsWith("#")) {
-            return new InferenceVarType(s);
+            return new _InferenceVarType(s);
         }
         
         if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {

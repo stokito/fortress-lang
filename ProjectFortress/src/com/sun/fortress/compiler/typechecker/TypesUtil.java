@@ -63,14 +63,14 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * Contains static utility methods for type checking.
  */
 public class TypesUtil {
-    
+
     public static class ArgList {
-        
+
         private final List<Type> _args;
         // _keywords is null if there are none (avoiding needless
         // allocation in typical use cases)
         private Map<Id, Type> _keywords;
-        
+
         public ArgList(Type... args) {
             if (args.length == 0) {
                 // more elements will probably be added
@@ -83,21 +83,21 @@ public class TypesUtil {
             _keywords = null;
             for (Type t : args) { _args.add(t); }
         }
-        
+
         @Override
         public String toString() {
         	return _args.toString();
         }
-        
+
         /** All add() invocations should occur before calling getters. */
         public void add(Type arg) { _args.add(arg); }
-        
+
         /** All add() invocations should occur before calling getters. */
         public void add(Id name, Type type) {
             if (_keywords == null) {_keywords = new HashMap<Id, Type>(8); }
             _keywords.put(name, type);
         }
-        
+
         /**
          * Extract the type represented by non-keywords args.  May be (),
          * a TupleType, or the singleton member of the list of args.
@@ -109,18 +109,18 @@ public class TypesUtil {
                 default: return new TupleType(_args);
             }
         }
-        
+
         public Map<Id, Type> keywordTypes() {
             if (_keywords == null) { return Collections.emptyMap(); }
             else { return Collections.unmodifiableMap(_keywords); }
         }
-        
+
     }
-    
+
     /**
      * Given the type of a regular function, which is presumed to be an
      * arrow type, its arguments and its static arguments, return the
-     * resulting type of the function application. 
+     * resulting type of the function application.
      * @param checker Needed to check compatibility of arguments.
      * @param fn_type The type of the function.
      * @param args Type of arguments provided by the programmer.
@@ -154,26 +154,26 @@ public class TypesUtil {
 						List<StaticArg> static_args_to_apply = staticArgs;
 						if( num_static_params > 0 && num_static_args == 0 ) {
 							// inference must be done
-							 
-							// TODO if parameters are anything but TypeParam, we don't know 
+
+							// TODO if parameters are anything but TypeParam, we don't know
 							// how to infer it yet.
 							for( StaticParam p : static_params )
 								if( !(p instanceof TypeParam) ) return Pair.make(Option.<AbstractArrowType>none(), ConstraintFormula.FALSE);
-							
-							static_args_to_apply = 
+
+							static_args_to_apply =
 								IterUtil.asList(IterUtil.map(static_params,
 										new Lambda<StaticParam,StaticArg>() {
 									public StaticArg value(StaticParam arg0) {
 										// This is only legal if StaticParam is a TypeParam!!!
-										Type t = NodeFactory.makeInferenceVarType();
+										Type t = NodeFactory.make_InferenceVarType();
 										return new TypeArg(t);
 									}}));
 						}
 						else if( num_static_params != num_static_args ) {
 							// just not the right method
-							return Pair.make(Option.<AbstractArrowType>none(), ConstraintFormula.FALSE); 
+							return Pair.make(Option.<AbstractArrowType>none(), ConstraintFormula.FALSE);
 						}
-						// now apply the static arguments, 
+						// now apply the static arguments,
 						that = (AbstractArrowType)
 						that.accept(new StaticTypeReplacer(static_params,static_args_to_apply));
 						// and then check parameter sub-typing
@@ -196,7 +196,7 @@ public class TypesUtil {
     			result_constraint = result_constraint.and(pair.second(), checker.new SubtypeHistory());
     		}
     	}
-    	
+
     	// For better error messages, since we could always return bottom
     	if( matching_types.isEmpty() ) {
     		return Option.none();
@@ -211,11 +211,11 @@ public class TypesUtil {
 	        return Option.some(Pair.make(checker.meet(ranges), result_constraint));
     	}
     }
-    
+
     /**
-     * 
+     *
      * Checks whether a type is an arrow or a conjunct of arrows
-     * 
+     *
      */
     public static Boolean isArrows(Type type){
     	boolean valid=true;
@@ -223,16 +223,16 @@ public class TypesUtil {
     		valid&=t.accept(new NodeDepthFirstVisitor<Boolean>(){
 				@Override public Boolean defaultCase(Node that) {return false;				}
 				@Override public Boolean for_RewriteGenericArrowType(_RewriteGenericArrowType that) {return true;}
-				@Override public Boolean forArrowType(ArrowType that) {return true;}	
+				@Override public Boolean forArrowType(ArrowType that) {return true;}
     		});
     	}
     	return valid;
     }
-    
+
     /**
      * Figure out the static type of a non-generic function application. This
      * method is a rewrite of the old method with the same name but using a
-     * {@code TypeAnalyzer} rather than a Subtype checker. Accordingly, 
+     * {@code TypeAnalyzer} rather than a Subtype checker. Accordingly,
      * we may have to (in the future)
      * return a ConstraintFormula instead of a type.
      * @param checker the SubtypeChecker to use for any type comparisons
@@ -248,12 +248,12 @@ public class TypesUtil {
     		                                   final ArgList args) {
     	// Just a convenience method
     	return applicationType(checker,fn,args,Collections.<StaticArg>emptyList());
-    	
+
     	// NEB: I've kept this old code around because it used to handle keyword args and we may want
     	// to use this later when we put keyword args back in.
-    	
+
 //    	ConstraintFormula valid = checker.subtype(args.argType(), Types.stripKeywords(that.getDomain()));
-//      
+//
 //      Map<Id, Type> argMap = args.keywordTypes();
 //      Map<Id, Type> paramMap = Types.extractKeywords(that.getDomain());
 //      if (paramMap.keySet().containsAll(argMap.keySet())) {
@@ -263,7 +263,7 @@ public class TypesUtil {
 //      		valid = valid.and(checker.subtype(entry.getValue(), sup), checker.new SubtypeHistory());
 //      		//if (!valid) { break; }
     }
-    
+
     /**
      * Figure out the static type of a non-generic function application.
      * @param checker the SubtypeChecker to use for any type comparisons
@@ -375,7 +375,7 @@ public class TypesUtil {
     	if( static_args.size() == 0 ) {
     		return Option.some(type);
     	}
-    	else { 
+    	else {
     		return type.accept(new NodeDepthFirstVisitor<Option<Type>>() {
     			@Override
     			public Option<Type> defaultCase(Node that) {
@@ -419,12 +419,12 @@ public class TypesUtil {
      * @return
      */
     public static Type getObjectExprType(ObjectExpr obj) {
-    	List<Type> extends_types = IterUtil.asList(IterUtil.map(obj.getExtendsClause(), 
+    	List<Type> extends_types = IterUtil.asList(IterUtil.map(obj.getExtendsClause(),
     			new Lambda<TraitTypeWhere,Type>(){
     		public Type value(TraitTypeWhere arg0) {
     			return arg0.getType();
     		}}));
-    	Type self_type = 
+    	Type self_type =
     		extends_types.isEmpty() ?
     			Types.ANY :           // TODO: This line must be changed to OBJECT once Jan puts it in
     			Types.makeIntersection(extends_types);
