@@ -37,8 +37,11 @@ api SyntaxTest
                                      else
                                        exprs1.addRight(StringLiteralExpr(Fortress.in_text " " is.in_text " " a.in_text b.in_text " " indeed.in_text " " Verys " " c.in_text " ") asif Expr)
                                      end
+          (* Using LooseJuxt causes some wierd interpeter error of not being able to find
+           * the right overloading to use.
+           *)
           LooseJuxt1(es)
-          (* LooseJuxt1(emptyList[\Expr\]()) *)
+          (* LooseJuxt1(es) *)
 
         end
 
