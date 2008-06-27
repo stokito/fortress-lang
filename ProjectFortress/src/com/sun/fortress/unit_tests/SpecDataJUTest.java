@@ -14,35 +14,31 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
+package com.sun.fortress.unit_tests;
 
-package com.sun.fortress.interpreter.unit_tests;
 import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
-public class SystemJUTest {
-
-
+public class SpecDataJUTest {
     public static void main(String[] args) throws IOException {
-
         junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() throws IOException {
-        String testDir = ProjectProperties.BASEDIR + "tests";
-        String s = System.getProperty("tests");
-        boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
-        if (s != null) {
-            testDir = s;
-        }
-        TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
+        String testDir1 = ProjectProperties.FORTRESS_AUTOHOME + "/SpecData/examples/basic";
+        String testDir2 = ProjectProperties.FORTRESS_AUTOHOME +
+            "/SpecData/examples/preliminaries";
+        String testDir3 = ProjectProperties.FORTRESS_AUTOHOME +
+            "/SpecData/examples/advanced";
+        boolean failsOnly = ! ("1".equals(ProjectProperties.get("FORTRESS_JUNIT_VERBOSE")));
+        TestSuite suite = new TestSuite("Test all .fss files in 'SpecData/examples'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.0, 0.25));
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.25, 0.5));
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.5, 0.75));
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.75, 1.0));
+        suite.addTest(FileTests.suite(testDir1, failsOnly, false));
+        suite.addTest(FileTests.suite(testDir2, failsOnly, false));
+        suite.addTest(FileTests.suite(testDir3, failsOnly, false));
         //$JUnit-END$
         return suite;
     }

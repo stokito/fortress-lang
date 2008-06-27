@@ -33,7 +33,7 @@ import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes_util.ASTIO;
-import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
