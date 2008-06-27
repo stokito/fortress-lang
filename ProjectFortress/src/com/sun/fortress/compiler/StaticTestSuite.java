@@ -34,7 +34,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;

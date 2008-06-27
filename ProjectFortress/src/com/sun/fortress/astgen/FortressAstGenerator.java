@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.astgen;
 
 import java.util.Arrays;
@@ -164,7 +181,7 @@ public class FortressAstGenerator extends CodeGenerator {
                 String name = t.className();
                 if ( name.equals("BigInteger") ){
                     return "ZZ64";
-                } 
+                }
                 return t.className();
                 // throw new RuntimeException("General class " + t.className() + " should have been eliminated");
             }
@@ -272,7 +289,7 @@ public class FortressAstGenerator extends CodeGenerator {
         try{
             out = options.createFileInOutDir( file );
             writer = new PrintWriter(out);
-            
+
             writer.println( copyright() );
 
             writer.println( type );
@@ -282,7 +299,7 @@ public class FortressAstGenerator extends CodeGenerator {
             writer.println();
 
             generateBody(writer);
-            
+
             writer.println();
             writer.println( "end" );
 

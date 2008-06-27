@@ -38,7 +38,7 @@ import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 public class RatsParserGenerator {

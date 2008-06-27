@@ -32,7 +32,7 @@ import com.sun.fortress.exceptions.LabelException;
 import com.sun.fortress.exceptions.NamedLabelException;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;

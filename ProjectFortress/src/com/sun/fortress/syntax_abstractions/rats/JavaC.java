@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 
 public class JavaC {

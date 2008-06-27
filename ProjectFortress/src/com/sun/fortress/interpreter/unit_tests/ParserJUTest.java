@@ -23,7 +23,7 @@ import java.io.IOException;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.TestCaseWrapper;
 import com.sun.fortress.compiler.Parser;
 

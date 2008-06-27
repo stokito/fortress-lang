@@ -21,7 +21,7 @@ import java.io.File;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.compiler.StaticTestSuite;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 
 public class SyntaxAbstractionJUTest extends TestSuite {
 

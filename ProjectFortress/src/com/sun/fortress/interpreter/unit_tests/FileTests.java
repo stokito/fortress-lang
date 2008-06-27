@@ -30,7 +30,7 @@ import junit.framework.TestSuite;
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;

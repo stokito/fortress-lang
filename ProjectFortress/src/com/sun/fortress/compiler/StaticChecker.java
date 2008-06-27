@@ -23,7 +23,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.TypeError;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;

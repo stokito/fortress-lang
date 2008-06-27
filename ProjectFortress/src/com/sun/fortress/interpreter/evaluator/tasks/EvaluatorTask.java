@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.interpreter.drivers.Driver;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
