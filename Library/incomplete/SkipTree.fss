@@ -102,6 +102,17 @@ object Node[\Key,Value\](keys     : List[\Key\],
         end    
     end
 
+    (* perform the insert operation when self.height > newHeight *)
+    private insertBelowHeight(newKey:Key, newValue:Value, newHeight:ZZ32) : Node[\Key,Value\] = do
+        i = insertionPoint(binarySearch[\Key\](keys,newKey))
+        newchild = typecase child = children[i] of    
+            Just[\Node[\Key,Value\]\] => child.getVal().insert(newKey,newValue,newHeight)
+            else => LeafNode[\Key,Value\](newKey,newValue,newHeight)
+        end
+        newchildren = children[0 # i].addRight(Just[\Node[\Key,Value\]\](newchild)) || children[(i + 1):]
+        Node[\Key,Value\](keys,values,newchildren,height)
+    end
+
     (* perform the insert operation when self.height = newHeight *)
     private insertEqualHeight(newKey:Key, newValue:Value) : Node[\Key,Value\] = do
         i = insertionPoint(binarySearch[\Key\](keys,newKey))
@@ -247,7 +258,7 @@ run(args:String...):() = do
     assert(binarySearch[\ZZ32\](testList, 20), 3)
     assert(binarySearch[\ZZ32\](testList, 23), -5)
 
-    println leaf.insert(5,2,3).toString()    
+    println leaf.insert(5,2,2).toString()    
     (** tree = SkipTree[\ZZ32,ZZ32\](Just[\Node[\ZZ32,ZZ32\]\](leaf)) *)
     
     
