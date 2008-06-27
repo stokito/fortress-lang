@@ -17,7 +17,7 @@
 
 api Regex
 
-    (* import FortressAst.{...} *)
+    import FortressAst.{...}
     import FortressSyntax.{Expression,Literal}
     import Set.{...}
     import List.{...}
