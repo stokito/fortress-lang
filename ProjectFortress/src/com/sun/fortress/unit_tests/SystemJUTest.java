@@ -15,24 +15,34 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.unit_tests;
+package com.sun.fortress.unit_tests;
 import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
-public class NotPassingYet {
+public class SystemJUTest {
 
-    public static void main(String[] args) {
-        junit.swingui.TestRunner.run(NotPassingYet.class);
+
+    public static void main(String[] args) throws IOException {
+
+        junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() throws IOException {
-        String testDir = ProjectProperties.BASEDIR + "not_passing_yet";
+        String testDir = ProjectProperties.BASEDIR + "tests";
+        String s = System.getProperty("tests");
+        boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
+        if (s != null) {
+            testDir = s;
+        }
         TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir, true, true));
+        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.0, 0.25));
+        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.25, 0.5));
+        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.5, 0.75));
+        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.75, 1.0));
         //$JUnit-END$
         return suite;
     }

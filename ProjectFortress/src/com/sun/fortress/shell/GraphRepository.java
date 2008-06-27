@@ -52,7 +52,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.useful.Debug;
 

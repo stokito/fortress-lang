@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.unit_tests;
+package com.sun.fortress.unit_tests;
 
 import junit.framework.Assert;
 

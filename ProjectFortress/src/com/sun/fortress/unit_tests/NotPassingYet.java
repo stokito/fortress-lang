@@ -14,31 +14,25 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-package com.sun.fortress.interpreter.unit_tests;
 
+package com.sun.fortress.unit_tests;
 import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
-public class SpecDataJUTest {
-    public static void main(String[] args) throws IOException {
-        junit.textui.TestRunner.run(suite());
+public class NotPassingYet {
+
+    public static void main(String[] args) {
+        junit.swingui.TestRunner.run(NotPassingYet.class);
     }
 
     public static Test suite() throws IOException {
-        String testDir1 = ProjectProperties.FORTRESS_AUTOHOME + "/SpecData/examples/basic";
-        String testDir2 = ProjectProperties.FORTRESS_AUTOHOME +
-            "/SpecData/examples/preliminaries";
-        String testDir3 = ProjectProperties.FORTRESS_AUTOHOME +
-            "/SpecData/examples/advanced";
-        boolean failsOnly = ! ("1".equals(ProjectProperties.get("FORTRESS_JUNIT_VERBOSE")));
-        TestSuite suite = new TestSuite("Test all .fss files in 'SpecData/examples'.");
+        String testDir = ProjectProperties.BASEDIR + "not_passing_yet";
+        TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir1, failsOnly, false));
-        suite.addTest(FileTests.suite(testDir2, failsOnly, false));
-        suite.addTest(FileTests.suite(testDir3, failsOnly, false));
+        suite.addTest(FileTests.suite(testDir, true, true));
         //$JUnit-END$
         return suite;
     }
