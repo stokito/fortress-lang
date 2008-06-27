@@ -17,6 +17,7 @@
 
 package com.sun.fortress.shell;
 
+import com.sun.fortress.repository.StubRepository;
 import java.io.File;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -41,7 +42,7 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -62,11 +63,11 @@ import xtc.parser.ParseError;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.shell.graph.Graph;
-import com.sun.fortress.shell.graph.ComponentGraphNode;
-import com.sun.fortress.shell.graph.ApiGraphNode;
-import com.sun.fortress.shell.graph.GraphNode;
-import com.sun.fortress.shell.graph.GraphVisitor;
+import com.sun.fortress.repository.graph.Graph;
+import com.sun.fortress.repository.graph.ComponentGraphNode;
+import com.sun.fortress.repository.graph.ApiGraphNode;
+import com.sun.fortress.repository.graph.GraphNode;
+import com.sun.fortress.repository.graph.GraphVisitor;
 
 /* A graph-based repository. This repository determines the dependency structure
  * before any components/apis are compiled so that they can be compiled in an

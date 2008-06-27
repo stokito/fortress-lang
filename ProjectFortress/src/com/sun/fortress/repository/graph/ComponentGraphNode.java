@@ -15,47 +15,49 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell.graph;
+package com.sun.fortress.repository.graph;
 
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.compiler.index.ComponentIndex;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class ApiGraphNode extends GraphNode{
+public class ComponentGraphNode extends GraphNode{
+
 	private APIName name;
-	private Option<ApiIndex> api;
-	public ApiGraphNode( APIName name ){
+	private Option<ComponentIndex> component;
+
+	public ComponentGraphNode( APIName name ){
 		this.name = name;
-		this.api = Option.none();
+		this.component = Option.none();
 	}
 
 	public boolean equals( Object o ){
-		if ( o instanceof ApiGraphNode ){
-			ApiGraphNode a = (ApiGraphNode) o;
+		if ( o instanceof ComponentGraphNode ){
+			ComponentGraphNode a = (ComponentGraphNode) o;
 			return a.getName().equals( name );
 		}
 		return false;
+	}
+
+	public Option<ComponentIndex> getComponent(){
+		return component;
+	}
+
+	public void setComponent( ComponentIndex c ){
+		this.component = Option.wrap(c);
 	}
 
 	public APIName getName(){
 		return name;
 	}
 
-	public Option<ApiIndex> getApi(){
-		return this.api;
-	}
-
-	public void setApi(ApiIndex api){
-		this.api = Option.wrap(api);
-	}
-
 	public String toString(){
-		return "Api " + name.toString();
+		return "Component " + name.toString();
 	}
         
-        public <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F{
+        public <T,F extends Throwable> T accept( GraphVisitor<T,F>  g ) throws F{
             return g.visit(this);
         }
 }

@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell.graph;
+package com.sun.fortress.repository.graph;
 
 public abstract class GraphNode{
 

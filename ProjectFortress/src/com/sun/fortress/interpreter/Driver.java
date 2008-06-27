@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.RedefinitionError;

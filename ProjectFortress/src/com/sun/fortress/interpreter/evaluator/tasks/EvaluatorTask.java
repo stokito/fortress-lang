@@ -20,11 +20,10 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 import java.io.IOException;
 import java.util.List;
 
-import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 

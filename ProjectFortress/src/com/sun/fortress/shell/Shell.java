@@ -17,6 +17,7 @@
 
 package com.sun.fortress.shell;
 
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import java.io.*;
 import java.util.*;

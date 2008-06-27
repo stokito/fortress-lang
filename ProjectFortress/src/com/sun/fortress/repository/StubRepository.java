@@ -14,13 +14,11 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-package com.sun.fortress.shell;
+package com.sun.fortress.repository;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
-
-import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
