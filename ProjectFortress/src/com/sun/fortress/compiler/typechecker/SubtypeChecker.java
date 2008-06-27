@@ -39,7 +39,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
  * Used for checking subtype relationships between two types.
- * @deprecated This class has been replaced, for all intents and purposes, by 
+ * @deprecated This class has been replaced, for all intents and purposes, by
  * {@link com.sun.fortress.compiler.typechecker.TypeAnalyzer}.
  */
 @Deprecated
@@ -532,11 +532,11 @@ public abstract class SubtypeChecker {
         assert(length >= types.size());
         return IterUtil.asList(IterUtil.compose(types, IterUtil.copy(padType, length-types.size())));
     }
-    
+
     public Type join(Type... ts) {
         return join(IterUtil.make(ts));
     }
-    
+
     public Type join(Iterable<? extends Type> ts) {
         // eliminate duplicates but preserve order
         // (a better implementation would eliminate subtypes)
@@ -552,7 +552,7 @@ public abstract class SubtypeChecker {
     public Type meet(Type... ts) {
         return meet(IterUtil.make(ts));
     }
-    
+
     public Type meet(Iterable<? extends Type> ts) {
         // eliminate duplicates but preserve order
         // (a better implementation would eliminate supertypes)
@@ -570,7 +570,7 @@ public abstract class SubtypeChecker {
      * Assumes s and t satisfy the followings:
      * 1) The following types are not yet supported:
      *
-     *        InferenceVarType(Object id, int index = -1);
+     *        _InferenceVarType(Object id, int index = -1);
      *        VarargTupleType(Type varargs);
      *        abstract DimExpr();
      *            ExponentType(Type base, IntExpr power);
@@ -810,7 +810,7 @@ public abstract class SubtypeChecker {
             return FALSE;
         }
     }
-    
+
     private Boolean subdomain(Domain s, Domain t, SubtypeHistory history) {
         if (subtype(stripKeywords(s), stripKeywords(t), history)) {
             Map<Id, Type> sMap = extractKeywords(s);

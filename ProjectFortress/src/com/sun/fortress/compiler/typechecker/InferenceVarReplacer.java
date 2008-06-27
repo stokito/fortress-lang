@@ -21,39 +21,39 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.fortress.compiler.Types;
-import com.sun.fortress.nodes.InferenceVarType;
+import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Type;
 /**
- * 
+ *
  * After we have TypeChecked the program and generated constraints, this visitor
  * goes through the AST and replaces inference variables with concrete types
  *
  */
 public class InferenceVarReplacer extends NodeUpdateVisitor {
-	private final Map<InferenceVarType,Type> map;
+	private final Map<_InferenceVarType, Type> map;
 	private final Type defaultType;
-	
-	public InferenceVarReplacer(Map<InferenceVarType,Type> _map, Type _default){
-		map=new HashMap<InferenceVarType,Type>();
+
+	public InferenceVarReplacer(Map<_InferenceVarType, Type> _map, Type _default){
+		map=new HashMap<_InferenceVarType,Type>();
 		map.putAll(_map);
 		defaultType=_default;
 	}
-	
-	public InferenceVarReplacer(Map<InferenceVarType,Type> _map){
+
+	public InferenceVarReplacer(Map<_InferenceVarType, Type> _map){
 		this(_map,Types.ANY);
 	}
-	
-	
+
+
 	@Override
-	public Node forInferenceVarTypeOnly(InferenceVarType that) {
+	public Node for_InferenceVarTypeOnly(_InferenceVarType that) {
 		if(map.containsKey(that)){
 			return map.get(that);
 		}
 		else
 			return defaultType;
 	}
-	
-	
+
+
 }

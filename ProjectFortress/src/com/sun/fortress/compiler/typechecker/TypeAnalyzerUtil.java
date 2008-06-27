@@ -82,7 +82,7 @@ public class TypeAnalyzerUtil {
             });
         }
         for (Id id : hiddenParams) {
-            typeSubs.put(id, NodeFactory.makeInferenceVarType());
+            typeSubs.put(id, NodeFactory.make_InferenceVarType());
         }
 
         return new Lambda<Type, Type>() {
@@ -187,7 +187,7 @@ public class TypeAnalyzerUtil {
                 return false;
             }
             @Override public Boolean forVoidType(VoidType t) { return false; }
-            @Override public Boolean forInferenceVarType(InferenceVarType t) { return false; }
+            @Override public Boolean for_InferenceVarType(_InferenceVarType t) { return false; }
             @Override public Boolean forBoundType(BoundType t) {
                 return recurOnList(t.getElements());
             }

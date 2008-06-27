@@ -858,7 +858,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        else return new VarType(that.getSpan(), that.isParenthesized(), name_result);
 //    }
 //
-//    public Node forInferenceVarTypeOnly(InferenceVarType that) {
+//    public Node for_InferenceVarTypeOnly(_InferenceVarType that) {
 //        return that;
 //    }
 //
@@ -2071,8 +2071,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        return forVarTypeOnly(that, name_result);
 //    }
 //
-//    public Node forInferenceVarType(InferenceVarType that) {
-//        return forInferenceVarTypeOnly(that);
+//    public Node for_InferenceVarType(_InferenceVarType that) {
+//        return for_InferenceVarTypeOnly(that);
 //    }
 //
 //    public Node forMatrixType(MatrixType that) {

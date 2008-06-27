@@ -79,7 +79,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             + node.getRange().accept(this)
             + effectString;
     }
-    
+
     public String forDomain(Domain node) {
         StringBuilder result = new StringBuilder();
         result.append("(");
@@ -103,7 +103,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         result.append(")");
         return result.toString();
     }
-    
+
     public String forEffect(Effect node) {
         if (node.getThrowsClause().isNone()) {
             return node.isIo() ? "io" : "";
@@ -113,7 +113,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                 (node.isIo() ? " io" : "");
         }
     }
-            
+
     public String forVoidLiteralExpr(VoidLiteralExpr e) {
         return "()";
     }
@@ -264,7 +264,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return
             "(" +
             Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
-            node.getVarargs().accept(this) + "..." + 
+            node.getVarargs().accept(this) + "..." +
             ")";
     }
 
@@ -279,7 +279,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forVarDecl(VarDecl node) {
         return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().accept(this) + node.getSpan();
     }
-    
+
     public String forAnyType(AnyType node) {
         return "Any";
     }
@@ -290,7 +290,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     private static final int FOUR_DIGITS = 36 * 36 * 36 * 36;
 
-    public String forInferenceVarType(InferenceVarType node) {
+    public String for_InferenceVarType(_InferenceVarType node) {
         if (node.getId().getClass().equals(Object.class)) {
             int id = System.identityHashCode(node.getId()) % FOUR_DIGITS;
             return "#" + Integer.toString(id, 36);

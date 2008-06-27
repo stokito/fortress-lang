@@ -1258,7 +1258,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * e.g.) a[3, 4]
                      */
                     MathPrimary(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
-                                OpRef infixJuxt = ExprFactory.makeInfixJuxt(), 
+                                OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
                                 Expr front, List<MathItem> rest);
                     /**
                      * array expression
@@ -1442,7 +1442,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * inferred type
              * Used internally for type analysis
              */
-            InferenceVarType(Object id);
+            _InferenceVarType(Object id);
             /**
              * An intersection or union.
              */

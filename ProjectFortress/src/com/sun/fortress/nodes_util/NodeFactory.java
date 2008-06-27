@@ -178,13 +178,13 @@ public class NodeFactory {
     t.getName(), args);
  }
 
- public static InferenceVarType makeInferenceVarType() {
-  return new InferenceVarType(new Object());
+ public static _InferenceVarType make_InferenceVarType() {
+  return new _InferenceVarType(new Object());
  }
 
- public static List<Type> makeInferenceVarTypes(int size) {
+ public static List<Type> make_InferenceVarTypes(int size) {
   List<Type> result = new ArrayList<Type>(size);
-  for (int i = 0; i < size; i++) { result.add(makeInferenceVarType()); }
+  for (int i = 0; i < size; i++) { result.add(make_InferenceVarType()); }
   return result;
  }
 
