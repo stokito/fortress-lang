@@ -15,7 +15,7 @@
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
   ******************************************************************************/
 
-package com.sun.fortress.shell;
+package com.sun.fortress;
 
 import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.FortressRepository;
