@@ -100,7 +100,7 @@ APIName APIName =
      }
    / a1:idOrKeyword a2s:(dot idOrKeyword)* &(w ellipses)
      { Span span = createSpan(yyStart,yyCount);
-       List<Id> ids = IterUtil.asList(IterUtil.compose(new Id(span, a1),
+       List<Id> ids = CollectUtil.makeList(IterUtil.compose(new Id(span, a1),
                                                        IterUtil.map(a2s.list(),
                                                                     NodeUtil.StringToIdFn)));
        for (Id _id : ids) {
@@ -121,7 +121,7 @@ APIName APIName =
      }
    / a1:idOrKeyword a2s:(dot idOrKeyword)*
      { Span span = createSpan(yyStart,yyCount);
-       List<Id> ids = IterUtil.asList(IterUtil.compose(new Id(span, a1),
+       List<Id> ids = CollectUtil.makeList(IterUtil.compose(new Id(span, a1),
                                                        IterUtil.map(a2s.list(),
                                                                     NodeUtil.StringToIdFn)));
        for (Id _id : ids) {

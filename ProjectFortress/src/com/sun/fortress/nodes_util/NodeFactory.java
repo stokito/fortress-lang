@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.*;
 import java.math.BigInteger;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
@@ -408,15 +409,15 @@ public class NodeFactory {
  }
 
  public static APIName makeAPIName(Iterable<Id> ids) {
-  return new APIName(FortressUtil.spanAll(ids), IterUtil.asList(ids));
+  return new APIName(FortressUtil.spanAll(ids), CollectUtil.makeList(ids));
  }
 
  public static APIName makeAPIName(Id id, Iterable<Id> ids) {
-  return makeAPIName(IterUtil.asList(IterUtil.compose(id, ids)));
+  return makeAPIName(CollectUtil.makeList(IterUtil.compose(id, ids)));
  }
 
  public static APIName makeAPIName(Span span, Iterable<Id> ids) {
-  return new APIName(span, IterUtil.asList(ids));
+  return new APIName(span, CollectUtil.makeList(ids));
  }
 
  /**
@@ -503,7 +504,7 @@ public class NodeFactory {
 
  public static Id makeId(String nameFirst, String... nameRest) {
   Iterable<Id> ids = IterUtil.compose(makeId(nameFirst),
-    IterUtil.map(IterUtil.make(nameRest), STRING_TO_ID));
+    IterUtil.map(IterUtil.asIterable(nameRest), STRING_TO_ID));
   return makeId(ids);
  }
 
@@ -1134,11 +1135,11 @@ public class NodeFactory {
       makeId(api, type.getName()));
    }
    else if( type instanceof _RewriteGenericSingletonType ) {
-	   _RewriteGenericSingletonType rgs_type = (_RewriteGenericSingletonType)type;
-	   return new _RewriteGenericSingletonType(rgs_type.getSpan(),
-			   rgs_type.isParenthesized(),
-			   makeId(api,rgs_type.getName()),
-			   rgs_type.getStaticParams());
+    _RewriteGenericSingletonType rgs_type = (_RewriteGenericSingletonType)type;
+    return new _RewriteGenericSingletonType(rgs_type.getSpan(),
+      rgs_type.isParenthesized(),
+      makeId(api,rgs_type.getName()),
+      rgs_type.getStaticParams());
    }
    else { // type instanceof TraitType
     TraitType _type = (TraitType)type;

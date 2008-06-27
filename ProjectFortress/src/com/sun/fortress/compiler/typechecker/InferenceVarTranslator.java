@@ -20,8 +20,8 @@ package com.sun.fortress.compiler.typechecker;
 import java.util.Iterator;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.iter.SequenceIterator;
-import edu.rice.cs.plt.collect.OneToOneMap;
-import edu.rice.cs.plt.collect.OneToOneHashMap;
+import edu.rice.cs.plt.collect.OneToOneRelation;
+import edu.rice.cs.plt.collect.IndexedOneToOneRelation;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -35,30 +35,30 @@ import com.sun.fortress.nodes_util.NodeFactory;
 public class InferenceVarTranslator {
 
     private final Iterator<Character> _canonicalNames;
-    private final OneToOneMap<_InferenceVarType, _InferenceVarType> _replacements;
+    private final OneToOneRelation<_InferenceVarType, _InferenceVarType> _replacements;
     private final NodeVisitor<Node> _canonicalUpdater;
     private final NodeVisitor<Node> _reverseUpdater;
 
     public InferenceVarTranslator() {
         // sequence starts with alpha = 03b1
         _canonicalNames = new SequenceIterator<Character>('\u03b1', CHAR_SEQUENCE);
-        _replacements = new OneToOneHashMap<_InferenceVarType, _InferenceVarType>();
+        _replacements = new IndexedOneToOneRelation<_InferenceVarType, _InferenceVarType>();
 
         _canonicalUpdater = new NodeUpdateVisitor() {
             @Override public Node for_InferenceVarType(_InferenceVarType var) {
-                if (!_replacements.containsKey(var)) {
-                    _replacements.put(var, nextCanonicalVar());
+                if (!_replacements.containsFirst(var)) {
+                    _replacements.add(var, nextCanonicalVar());
                 }
-                return _replacements.getValue(var);
+                return _replacements.value(var);
             }
         };
 
         _reverseUpdater = new NodeUpdateVisitor() {
             @Override public Node for_InferenceVarType(_InferenceVarType var) {
-                if (!_replacements.containsValue(var)) {
-                    _replacements.put(NodeFactory.make_InferenceVarType(), var);
+                if (!_replacements.containsSecond(var)) {
+                    _replacements.add(NodeFactory.make_InferenceVarType(), var);
                 }
-                return _replacements.getKey(var);
+                return _replacements.antecedent(var);
             }
 
         };

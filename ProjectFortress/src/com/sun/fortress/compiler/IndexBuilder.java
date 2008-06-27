@@ -109,7 +109,7 @@ import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter.ApiResult;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
-import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -189,7 +189,7 @@ public class IndexBuilder {
     public ApiIndex buildApiIndex(Api ast, long modifiedDate) {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
-            new HashRelation<IdOrOpOrAnonymousName, Function>(true, false);
+            new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
         final Map<Id, Dimension> dimensions =
@@ -251,7 +251,7 @@ public class IndexBuilder {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
-            new HashRelation<IdOrOpOrAnonymousName, Function>(true, false);
+            new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
         final Map<Id, Dimension> dimensions =
@@ -314,9 +314,9 @@ public class IndexBuilder {
         final Map<Id, Method> setters = new HashMap<Id, Method>();
         final Set<Function> coercions = new HashSet<Function>();
         final Relation<IdOrOpOrAnonymousName, Method> dottedMethods =
-            new HashRelation<IdOrOpOrAnonymousName, Method>(true, false);
+            new IndexedRelation<IdOrOpOrAnonymousName, Method>(false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
-            new HashRelation<IdOrOpOrAnonymousName, FunctionalMethod>(true, false);
+            new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsVarDecl(AbsVarDecl d) {
                 buildTraitFields(d, name, getters, setters);
@@ -353,9 +353,9 @@ public class IndexBuilder {
         final Map<Id, Method> setters = new HashMap<Id, Method>();
         final Set<Function> coercions = new HashSet<Function>();
         final Relation<IdOrOpOrAnonymousName, Method> dottedMethods =
-            new HashRelation<IdOrOpOrAnonymousName, Method>(true, false);
+            new IndexedRelation<IdOrOpOrAnonymousName, Method>(false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
-            new HashRelation<IdOrOpOrAnonymousName, FunctionalMethod>(true, false);
+            new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
 
         Option<Constructor> constructor;
         if (ast.getParams().isSome()) {

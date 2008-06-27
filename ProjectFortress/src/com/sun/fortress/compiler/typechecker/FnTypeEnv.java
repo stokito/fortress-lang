@@ -25,8 +25,9 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 
-import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
@@ -54,7 +55,7 @@ class FnTypeEnv extends TypeEnv {
      * (if the given Id is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-        Set<? extends Function> fns = entries.getSeconds(var);
+        Set<? extends Function> fns = entries.matchFirst(var);
         if (fns.isEmpty()) {
             if (var instanceof Id) {
                 Id _var = (Id)var;
@@ -84,7 +85,7 @@ class FnTypeEnv extends TypeEnv {
                 overloadedTypes.add(new _RewriteGenericArrowType(loc, _fn.staticParameters(),
                                                                  domainFromParams(_fn.parameters()),
                                                                  selfType,
-                                                                 makeEffect(loc.getEnd(), IterUtil.asList(_fn.thrownTypes())),
+                                                                 makeEffect(loc.getEnd(), CollectUtil.makeList(_fn.thrownTypes())),
                                                                  _fn.where()));
             }
         }

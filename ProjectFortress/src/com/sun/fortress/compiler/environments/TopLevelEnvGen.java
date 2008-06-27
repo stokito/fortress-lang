@@ -50,7 +50,7 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 
-import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 
 
@@ -186,8 +186,8 @@ public class TopLevelEnvGen {
             className, null, Type.getType(WorseEnv.class).getInternalName(), null);
 
         // Implementing "static reflection" for the interpreter
-        Relation<String, Integer> fValueHashCode = new HashRelation<String,Integer>();
-        Relation<String, Integer> fTypeHashCode = new HashRelation<String,Integer>();
+        Relation<String, Integer> fValueHashCode = new IndexedRelation<String,Integer>();
+        Relation<String, Integer> fTypeHashCode = new IndexedRelation<String,Integer>();
 
         writeFields(componentIndex, cw, fValueHashCode, fTypeHashCode);
         writeMethodInit(cw, className);
@@ -318,7 +318,7 @@ public class TopLevelEnvGen {
             mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
             mv.visitLabel(beforeInnerLoop);
 
-            for(String testString : hashCodeRelation.getFirsts(testHashCode)) {
+            for(String testString : hashCodeRelation.matchSecond(testHashCode)) {
                 mv.visitVarInsn(Opcodes.ALOAD, 1);
                 mv.visitLdcInsn(testString);
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
@@ -411,7 +411,7 @@ public class TopLevelEnvGen {
             mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
             mv.visitLabel(beforeInnerLoop);
 
-            for(String testString : hashCodeRelation.getFirsts(testHashCode)) {
+            for(String testString : hashCodeRelation.matchSecond(testHashCode)) {
                 mv.visitVarInsn(Opcodes.ALOAD, 1);
                 mv.visitLdcInsn(testString);
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
@@ -463,26 +463,26 @@ public class TopLevelEnvGen {
     }
 
     private static void writeRemoveMethod(ClassWriter cw, String className, String methodName,
-    		String invokeMethod, EnvironmentClasses environmentClass) {
-    	MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, "(Ljava/lang/String;)V", null, null);
-    	mv.visitCode();
-    	Label l0 = new Label();
-    	mv.visitLabel(l0);
-    	mv.visitVarInsn(Opcodes.ALOAD, 0);
-    	mv.visitVarInsn(Opcodes.ALOAD, 1);
-    	mv.visitInsn(Opcodes.ACONST_NULL);
-    	mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-    			className, invokeMethod,
-    			"(Ljava/lang/String;" + environmentClass.descriptor() + ")V");
-    	Label l1 = new Label();
-    	mv.visitLabel(l1);
-    	mv.visitInsn(Opcodes.RETURN);
-    	Label l2 = new Label();
-    	mv.visitLabel(l2);
-    	mv.visitLocalVariable("this", "L" + className + ";", null, l0, l2, 0);
-    	mv.visitLocalVariable("name", "Ljava/lang/String;", null, l0, l2, 1);
-    	mv.visitMaxs(3, 2);
-    	mv.visitEnd();
+      String invokeMethod, EnvironmentClasses environmentClass) {
+     MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, "(Ljava/lang/String;)V", null, null);
+     mv.visitCode();
+     Label l0 = new Label();
+     mv.visitLabel(l0);
+     mv.visitVarInsn(Opcodes.ALOAD, 0);
+     mv.visitVarInsn(Opcodes.ALOAD, 1);
+     mv.visitInsn(Opcodes.ACONST_NULL);
+     mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+       className, invokeMethod,
+       "(Ljava/lang/String;" + environmentClass.descriptor() + ")V");
+     Label l1 = new Label();
+     mv.visitLabel(l1);
+     mv.visitInsn(Opcodes.RETURN);
+     Label l2 = new Label();
+     mv.visitLabel(l2);
+     mv.visitLocalVariable("this", "L" + className + ";", null, l0, l2, 0);
+     mv.visitLocalVariable("name", "Ljava/lang/String;", null, l0, l2, 1);
+     mv.visitMaxs(3, 2);
+     mv.visitEnd();
     }
 
     private static void writeEmptyMethods(ClassWriter cw, String className) {
@@ -497,115 +497,115 @@ public class TopLevelEnvGen {
     }
 
     private static void writeRemoveMethods(ClassWriter cw, String className) {
-    	writeRemoveMethod(cw, className, "removeVar", "putValueRaw", EnvironmentClasses.FVALUE);
-    	writeRemoveMethod(cw, className, "removeType", "putTypeRaw", EnvironmentClasses.FTYPE);
+     writeRemoveMethod(cw, className, "removeVar", "putValueRaw", EnvironmentClasses.FVALUE);
+     writeRemoveMethod(cw, className, "removeType", "putTypeRaw", EnvironmentClasses.FTYPE);
     }
 
     private static void writeDumpMethod(ClassWriter cw, String className,
-    		Set<String> values, Set<String> types) {
-    	MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
-    			"dump", "(Ljava/lang/Appendable;)Ljava/lang/Appendable;",
-    			null, new String[] { "java/io/IOException" });
-    	mv.visitCode();
-    	Label l0 = new Label();
-    	mv.visitLabel(l0);
-    	mv.visitVarInsn(Opcodes.ALOAD, 0);
-    	mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
-    	Label l1 = new Label();
-    	mv.visitJumpInsn(Opcodes.IFNULL, l1);
-    	Label l2 = new Label();
-    	mv.visitLabel(l2);
-    	mv.visitVarInsn(Opcodes.ALOAD, 1);
-    	mv.visitVarInsn(Opcodes.ALOAD, 0);
-    	mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
-    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(HasAt.class).getInternalName(), "at", "()Ljava/lang/String;");
-    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    	mv.visitInsn(Opcodes.POP);
-    	Label l3 = new Label();
-    	mv.visitLabel(l3);
-    	mv.visitVarInsn(Opcodes.ALOAD, 1);
-    	mv.visitLdcInsn("\n");
-    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    	mv.visitInsn(Opcodes.POP);
-    	Label l4 = new Label();
-    	mv.visitJumpInsn(Opcodes.GOTO, l4);
-    	mv.visitLabel(l1);
-    	mv.visitVarInsn(Opcodes.ALOAD, 1);
-    	mv.visitLdcInsn("Not within anything.\n");
-    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    	mv.visitInsn(Opcodes.POP);
-    	mv.visitLabel(l4);
-    	mv.visitVarInsn(Opcodes.ALOAD, 0);
-    	mv.visitFieldInsn(Opcodes.GETFIELD, className, "verboseDump", "Z");
-    	Label l5 = new Label();
-    	mv.visitJumpInsn(Opcodes.IFEQ, l5);
-    	int linebreaks = dumpFields(mv, className, values, EnvironmentClasses.FVALUE, 0);
-    	dumpFields(mv, className, types, EnvironmentClasses.FTYPE, linebreaks);
-    	mv.visitVarInsn(Opcodes.ALOAD, 1);
-    	mv.visitLdcInsn("\n");
-    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    	mv.visitInsn(Opcodes.POP);
-    	mv.visitLabel(l5);
-    	mv.visitVarInsn(Opcodes.ALOAD, 1);
-    	mv.visitInsn(Opcodes.ARETURN);
-    	Label l9 = new Label();
-    	mv.visitLabel(l9);
-    	mv.visitLocalVariable("this", "L" + className + ";", null, l0, l9, 0);
-    	mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l9, 1);
-    	mv.visitMaxs(2, 2);
-    	mv.visitEnd();
+      Set<String> values, Set<String> types) {
+     MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
+       "dump", "(Ljava/lang/Appendable;)Ljava/lang/Appendable;",
+       null, new String[] { "java/io/IOException" });
+     mv.visitCode();
+     Label l0 = new Label();
+     mv.visitLabel(l0);
+     mv.visitVarInsn(Opcodes.ALOAD, 0);
+     mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
+     Label l1 = new Label();
+     mv.visitJumpInsn(Opcodes.IFNULL, l1);
+     Label l2 = new Label();
+     mv.visitLabel(l2);
+     mv.visitVarInsn(Opcodes.ALOAD, 1);
+     mv.visitVarInsn(Opcodes.ALOAD, 0);
+     mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
+     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(HasAt.class).getInternalName(), "at", "()Ljava/lang/String;");
+     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+     mv.visitInsn(Opcodes.POP);
+     Label l3 = new Label();
+     mv.visitLabel(l3);
+     mv.visitVarInsn(Opcodes.ALOAD, 1);
+     mv.visitLdcInsn("\n");
+     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+     mv.visitInsn(Opcodes.POP);
+     Label l4 = new Label();
+     mv.visitJumpInsn(Opcodes.GOTO, l4);
+     mv.visitLabel(l1);
+     mv.visitVarInsn(Opcodes.ALOAD, 1);
+     mv.visitLdcInsn("Not within anything.\n");
+     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+     mv.visitInsn(Opcodes.POP);
+     mv.visitLabel(l4);
+     mv.visitVarInsn(Opcodes.ALOAD, 0);
+     mv.visitFieldInsn(Opcodes.GETFIELD, className, "verboseDump", "Z");
+     Label l5 = new Label();
+     mv.visitJumpInsn(Opcodes.IFEQ, l5);
+     int linebreaks = dumpFields(mv, className, values, EnvironmentClasses.FVALUE, 0);
+     dumpFields(mv, className, types, EnvironmentClasses.FTYPE, linebreaks);
+     mv.visitVarInsn(Opcodes.ALOAD, 1);
+     mv.visitLdcInsn("\n");
+     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+     mv.visitInsn(Opcodes.POP);
+     mv.visitLabel(l5);
+     mv.visitVarInsn(Opcodes.ALOAD, 1);
+     mv.visitInsn(Opcodes.ARETURN);
+     Label l9 = new Label();
+     mv.visitLabel(l9);
+     mv.visitLocalVariable("this", "L" + className + ";", null, l0, l9, 0);
+     mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l9, 1);
+     mv.visitMaxs(2, 2);
+     mv.visitEnd();
     }
 
-	private static int dumpFields(MethodVisitor mv, String className, Set<String> names,
-			EnvironmentClasses environmentClass, int linebreaks) {
-    	for (String fieldName : names) {
-    		Label l6 = new Label();
-    		mv.visitLabel(l6);
-    		mv.visitVarInsn(Opcodes.ALOAD, 1);
-    		mv.visitLdcInsn("(" + fieldName + " = ");
-    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    		mv.visitInsn(Opcodes.POP);
-    		Label l7 = new Label();
-    		mv.visitLabel(l7);
-    		mv.visitVarInsn(Opcodes.ALOAD, 0);
+ private static int dumpFields(MethodVisitor mv, String className, Set<String> names,
+   EnvironmentClasses environmentClass, int linebreaks) {
+     for (String fieldName : names) {
+      Label l6 = new Label();
+      mv.visitLabel(l6);
+      mv.visitVarInsn(Opcodes.ALOAD, 1);
+      mv.visitLdcInsn("(" + fieldName + " = ");
+      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+      mv.visitInsn(Opcodes.POP);
+      Label l7 = new Label();
+      mv.visitLabel(l7);
+      mv.visitVarInsn(Opcodes.ALOAD, 0);
             String idString = fieldName + environmentClass.namespace();
             mv.visitFieldInsn(Opcodes.GETFIELD, className,
                 mangleIdentifier(idString),
                 environmentClass.descriptor());
-    		Label l8 = new Label();
-    		mv.visitJumpInsn(Opcodes.IFNULL, l8);
-    		Label l9 = new Label();
-    		mv.visitLabel(l9);
-    		mv.visitVarInsn(Opcodes.ALOAD, 1);
-    		mv.visitVarInsn(Opcodes.ALOAD, 0);
+      Label l8 = new Label();
+      mv.visitJumpInsn(Opcodes.IFNULL, l8);
+      Label l9 = new Label();
+      mv.visitLabel(l9);
+      mv.visitVarInsn(Opcodes.ALOAD, 1);
+      mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitFieldInsn(Opcodes.GETFIELD, className,
                     mangleIdentifier(idString),
                     environmentClass.descriptor());
-    		mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, environmentClass.internalName(), "toString", "()Ljava/lang/String;");
-    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-      		mv.visitInsn(Opcodes.POP);
-      		Label afterNull = new Label();
-        	mv.visitJumpInsn(Opcodes.GOTO, afterNull);
-    		mv.visitLabel(l8);
-    		mv.visitVarInsn(Opcodes.ALOAD, 1);
-    		mv.visitLdcInsn("null");
-    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    		mv.visitInsn(Opcodes.POP);
-    		mv.visitLabel(afterNull);
-    		mv.visitVarInsn(Opcodes.ALOAD, 1);
-    		mv.visitLdcInsn(") ");
-    		mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    		mv.visitInsn(Opcodes.POP);
-    		linebreaks = (linebreaks + 1) % 5;
-    		if (linebreaks == 0) {
-    	    	mv.visitVarInsn(Opcodes.ALOAD, 1);
-    	    	mv.visitLdcInsn("\n");
-    	    	mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-    	    	mv.visitInsn(Opcodes.POP);
-    		}
-    	}
-    	return linebreaks;
-	}
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, environmentClass.internalName(), "toString", "()Ljava/lang/String;");
+      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+        mv.visitInsn(Opcodes.POP);
+        Label afterNull = new Label();
+         mv.visitJumpInsn(Opcodes.GOTO, afterNull);
+      mv.visitLabel(l8);
+      mv.visitVarInsn(Opcodes.ALOAD, 1);
+      mv.visitLdcInsn("null");
+      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+      mv.visitInsn(Opcodes.POP);
+      mv.visitLabel(afterNull);
+      mv.visitVarInsn(Opcodes.ALOAD, 1);
+      mv.visitLdcInsn(") ");
+      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+      mv.visitInsn(Opcodes.POP);
+      linebreaks = (linebreaks + 1) % 5;
+      if (linebreaks == 0) {
+          mv.visitVarInsn(Opcodes.ALOAD, 1);
+          mv.visitLdcInsn("\n");
+          mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+          mv.visitInsn(Opcodes.POP);
+      }
+     }
+     return linebreaks;
+ }
 
     private static void outputClassFiles(Map<APIName, byte[]> compiledComponents,
             HashSet<StaticError> errors) {

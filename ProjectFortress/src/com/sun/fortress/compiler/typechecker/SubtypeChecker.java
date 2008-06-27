@@ -19,10 +19,11 @@ package com.sun.fortress.compiler.typechecker;
 
 import java.util.*;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.lambda.Lambda;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
@@ -336,10 +337,10 @@ public abstract class SubtypeChecker {
     private boolean isValidVarType(Type t) {
         if (isVarType(t)) {
             try {
-            	Option<TypeConsIndex> ind= _table.typeCons(((VarType)t).getName());
-            	if(ind.isNone()){
-            		return false;
-            	}
+             Option<TypeConsIndex> ind= _table.typeCons(((VarType)t).getName());
+             if(ind.isNone()){
+              return false;
+             }
                 TypeConsIndex index = ind.unwrap();
                 return (index instanceof TraitIndex ||
                         index instanceof TypeAliasIndex);
@@ -354,10 +355,10 @@ public abstract class SubtypeChecker {
     private boolean isValidTraitType(Type t) {
         if (t instanceof NamedType) {
             try {
-            	Option<TypeConsIndex> ind= _table.typeCons(((NamedType)t).getName());
-            	if(ind.isNone()){
-            		return false;
-            	}
+             Option<TypeConsIndex> ind= _table.typeCons(((NamedType)t).getName());
+             if(ind.isNone()){
+              return false;
+             }
                 TypeConsIndex index = ind.unwrap();
                 return (index instanceof TraitIndex ||
                         index instanceof TypeAliasIndex);
@@ -530,11 +531,11 @@ public abstract class SubtypeChecker {
 
     private List<Type> pad(List<Type> types, Type padType, int length) {
         assert(length >= types.size());
-        return IterUtil.asList(IterUtil.compose(types, IterUtil.copy(padType, length-types.size())));
+        return CollectUtil.makeList(IterUtil.compose(types, IterUtil.copy(padType, length-types.size())));
     }
 
     public Type join(Type... ts) {
-        return join(IterUtil.make(ts));
+        return join(IterUtil.asIterable(ts));
     }
 
     public Type join(Iterable<? extends Type> ts) {
@@ -545,12 +546,12 @@ public abstract class SubtypeChecker {
         switch (elts.size()) {
             case 0: return BOTTOM;
             case 1: return IterUtil.first(elts);
-            default: return new UnionType(IterUtil.asList(elts));
+            default: return new UnionType(CollectUtil.makeList(elts));
         }
     }
 
     public Type meet(Type... ts) {
-        return meet(IterUtil.make(ts));
+        return meet(IterUtil.asIterable(ts));
     }
 
     public Type meet(Iterable<? extends Type> ts) {
@@ -561,7 +562,7 @@ public abstract class SubtypeChecker {
         switch (elts.size()) {
             case 0: return ANY;
             case 1: return IterUtil.first(elts);
-            default: return new IntersectionType(IterUtil.asList(elts));
+            default: return new IntersectionType(CollectUtil.makeList(elts));
         }
     }
 
@@ -746,7 +747,7 @@ public abstract class SubtypeChecker {
                 }
                 Option<TypeConsIndex> in = _table.typeCons(((NamedType)s).getName());
                 if(in.isNone()){
-                	throw new IllegalStateException("Bad API or Trait");
+                 throw new IllegalStateException("Bad API or Trait");
                 }
                 TypeConsIndex index = in.unwrap();
                 if (index instanceof TraitIndex) {
@@ -827,11 +828,11 @@ public abstract class SubtypeChecker {
         }
         return false;
     }
-
+    
     class SubtypeHistory {
         private final Relation<Type, Type> _entries;
         public SubtypeHistory() {
-            _entries = new HashRelation<Type, Type>(false, false);
+            _entries = CollectUtil.emptyRelation();
         }
         private SubtypeHistory(Relation<Type, Type> entries) {
             _entries = entries;
@@ -841,9 +842,8 @@ public abstract class SubtypeChecker {
             return _entries.contains(s, t);
         }
         public SubtypeHistory extend(Type s, Type t) {
-            Relation<Type, Type> newEntries = new HashRelation<Type, Type>();
-            newEntries.addAll(_entries);
-            newEntries.add(s, t);
+            Relation<Type, Type> newEntries = CollectUtil.union(_entries, s, t);
+            newEntries = CollectUtil.conditionalSnapshot(_entries, 8);
             return new SubtypeHistory(newEntries);
         }
     }

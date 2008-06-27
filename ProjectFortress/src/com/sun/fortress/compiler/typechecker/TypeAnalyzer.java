@@ -24,7 +24,8 @@ import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.IndexedRelation;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
 
@@ -46,7 +47,8 @@ import static edu.rice.cs.plt.iter.IterUtil.skipFirst;
 import static edu.rice.cs.plt.iter.IterUtil.first;
 import static edu.rice.cs.plt.iter.IterUtil.skipLast;
 import static edu.rice.cs.plt.iter.IterUtil.last;
-import static edu.rice.cs.plt.iter.IterUtil.asList;
+import static edu.rice.cs.plt.collect.CollectUtil.makeLinkedList;
+import static edu.rice.cs.plt.collect.CollectUtil.makeList;
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
@@ -83,17 +85,17 @@ public class TypeAnalyzer {
     /** Verify that fundamental types are present in the current environment. */
     private void validateEnvironment() {
         // TODO NEB: Reinsert the following call after Jan puts Object into the library
-    	// assertTraitIndex(OBJECT.getName());
+     // assertTraitIndex(OBJECT.getName());
     }
 
     /** Verify that the given name is defined and is a TraitIndex. */
     private void assertTraitIndex(Id name) {
         // this will fail if the name is undefined:
-    	Option<TypeConsIndex> ind = _table.typeCons(name);
-    	if(ind.isNone()){
-    		 throw new IllegalArgumentException("Trait " + name +
+     Option<TypeConsIndex> ind = _table.typeCons(name);
+     if(ind.isNone()){
+       throw new IllegalArgumentException("Trait " + name +
              "in the given TraitTable.");
-    	}
+     }
         TypeConsIndex index = ind.unwrap();
         if (!(index instanceof TraitIndex)) {
             throw new IllegalArgumentException("Trait " + name + " is not a trait " +
@@ -105,14 +107,14 @@ public class TypeAnalyzer {
      * Factory method for creating empty type analyzers.
      */
     public static TypeAnalyzer make(TraitTable _table) {
-    	return new TypeAnalyzer(_table);
+     return new TypeAnalyzer(_table);
     }
 
     /**
      * Extend this type analyzer with the given static parameters and WhereClause constraints.
      */
     public TypeAnalyzer extend(List<StaticParam> params, WhereClause whereClause) {
-    	return new TypeAnalyzer(this, params, whereClause);
+     return new TypeAnalyzer(this, params, whereClause);
     }
 
     /**
@@ -181,7 +183,7 @@ public class TypeAnalyzer {
 
     /** Create a minimal union representing the join of the given types. */
     public Type join(Type... ts) {
-        return jn(map(IterUtil.make(ts), NORMALIZE), _emptyHistory);
+        return jn(map(IterUtil.asIterable(ts), NORMALIZE), _emptyHistory);
     }
 
     /** Create a minimal union representing the join of the given types. */
@@ -199,7 +201,7 @@ public class TypeAnalyzer {
 
     /** Create a minimal intersection representing the meet of the given types. */
     public Type meet(Type... ts) {
-        return mt(map(IterUtil.make(ts), NORMALIZE), _emptyHistory);
+        return mt(map(IterUtil.asIterable(ts), NORMALIZE), _emptyHistory);
     }
 
     /** Create a minimal intersection representing the meet of the given types. */
@@ -222,10 +224,10 @@ public class TypeAnalyzer {
 
             @Override public BaseType forTraitTypeOnly(TraitType t, Id name, List<StaticArg> normalArgs) {
                 Option<TypeConsIndex> ind = _table.typeCons(name);
-            	if(ind.isNone()){
-            		throw new IllegalArgumentException("Unrecognized name: " + name);
-            	}
-            	TypeConsIndex index = ind.unwrap();
+             if(ind.isNone()){
+              throw new IllegalArgumentException("Unrecognized name: " + name);
+             }
+             TypeConsIndex index = ind.unwrap();
                 if (index instanceof TypeAliasIndex) {
                     TypeAliasIndex aliasIndex = (TypeAliasIndex) index;
                     // TODO: can we optimize substitution so that the result is already normalized?
@@ -264,7 +266,7 @@ public class TypeAnalyzer {
                         public Type value(Iterable<Type> ts) {
                             if (IterUtil.isEmpty(ts)) { return VOID; }
                             else {
-                                List<Type> elts = asList(skipLast(ts));
+                                List<Type> elts = makeList(skipLast(ts));
                                 Type varargs = last(ts);
                                 return new VarargTupleType(elts, varargs);
                             }
@@ -588,10 +590,10 @@ public class TypeAnalyzer {
             result = result.or(f, h);
         }
         if (!result.isTrue()) {
-        	Option<TypeConsIndex> ind = _table.typeCons(s.getName());
-        	if(ind.isNone()){
-        		throw new IllegalArgumentException(s.getName() +"is undefined");
-        	}
+         Option<TypeConsIndex> ind = _table.typeCons(s.getName());
+         if(ind.isNone()){
+          throw new IllegalArgumentException(s.getName() +"is undefined");
+         }
             TraitIndex index = (TraitIndex) ind.unwrap();
             List<Id> hidden = index.hiddenParameters();
             Lambda<Type, Type> subst = makeSubstitution(index.staticParameters(),
@@ -626,7 +628,7 @@ public class TypeAnalyzer {
 //                result = result.or(sub(OBJECT, t, h), h);
 //            }
             if( !s.equals(ANY) ) {
-            	result = result.or(sub(ANY,t,h), h);
+             result = result.or(sub(ANY,t,h), h);
             }
         }
         return result;
@@ -899,7 +901,7 @@ public class TypeAnalyzer {
             case 0: return Collections.emptyList();
             case 1: return Collections.singletonList(first(ts));
             default:
-                LinkedList<? extends T> workList = IterUtil.asLinkedList(ts);
+                LinkedList<? extends T> workList = makeLinkedList(ts);
                 LinkedList<T> result = new LinkedList<T>();
                 Iterable<T> remainingTs = compose(workList, result);
                 while (!workList.isEmpty()) {
@@ -1005,8 +1007,7 @@ public class TypeAnalyzer {
         private final int _expansions;
 
         public SubtypeHistory() {
-            // no need for an index in either direction
-            _entries = new HashRelation<Type, Type>(false, false);
+            _entries = CollectUtil.emptyRelation();
             _expansions = 0;
         }
 
@@ -1025,10 +1026,10 @@ public class TypeAnalyzer {
         }
 
         public SubtypeHistory extend(Type s, Type t) {
-            Relation<Type, Type> newEntries = new HashRelation<Type, Type>();
-            newEntries.addAll(_entries);
             InferenceVarTranslator trans = new InferenceVarTranslator();
-            newEntries.add(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
+            Relation<Type, Type> newEntries =
+                CollectUtil.union(_entries, trans.canonicalizeVars(s), trans.canonicalizeVars(t));
+            newEntries = CollectUtil.conditionalSnapshot(newEntries, 8);
             return new SubtypeHistory(newEntries, _expansions);
         }
 
@@ -1041,11 +1042,11 @@ public class TypeAnalyzer {
         }
 
         public Type meetNormal(Type... ts) {
-            return TypeAnalyzer.this.mt(IterUtil.make(ts), this);
+            return TypeAnalyzer.this.mt(IterUtil.asIterable(ts), this);
         }
 
         public Type joinNormal(Type... ts) {
-            return TypeAnalyzer.this.jn(IterUtil.make(ts), this);
+            return TypeAnalyzer.this.jn(IterUtil.asIterable(ts), this);
         }
 
         public String toString() {
@@ -1053,13 +1054,10 @@ public class TypeAnalyzer {
         }
 
         public SubtypeHistory combine(SubtypeHistory h){
-        	int newexpand = Math.max(this._expansions,h._expansions);
-        	Relation<Type,Type> newrel= new HashRelation<Type,Type>();
-        	newrel.addAll(this._entries);
-        	newrel.addAll(h._entries);
-        	// TODO: NEB we are trying this out but we are not
-        	// sure why we should choose the other one.
-        	return new SubtypeHistory(newrel, newexpand);
+         int newexpand = Math.max(this._expansions,h._expansions);
+         // TODO: NEB we are trying this out but we are not
+         // sure why we should choose the other one.
+         return new SubtypeHistory(CollectUtil.union(_entries, h._entries), newexpand);
         }
 
     }

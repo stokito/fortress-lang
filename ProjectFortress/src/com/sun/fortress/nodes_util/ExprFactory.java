@@ -120,6 +120,7 @@ import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
@@ -293,7 +294,7 @@ public class ExprFactory {
     public static GeneratorClause makeGeneratorClause(Span span,
             Iterable<Id> ids,
             Expr expr) {
-        return new GeneratorClause(span, IterUtil.asList(ids), expr);
+        return new GeneratorClause(span, CollectUtil.makeList(ids), expr);
     }
 
     public static GeneratorClause makeGeneratorClause(Span span, Expr cond) {
@@ -321,11 +322,11 @@ public class ExprFactory {
     }
 
     public static OpRef makeInfixEq(){
-    	return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("=")));
+     return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("=")));
     }
     
     public static OpRef makeInfixIn(){
-    	return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
+     return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
     }
     
     public static OpRef makeOpRef(OpName op) {
@@ -365,11 +366,11 @@ public class ExprFactory {
      * Creates an OpExpr using the Spans from e_1 and e_2.
      */
     public static OpExpr makeOpExpr(OpRef op, Expr e_1, Expr e_2) {
-    	return new OpExpr(new Span(e_1.getSpan(), e_2.getSpan()), false, op, Useful.list(e_1, e_2));
+     return new OpExpr(new Span(e_1.getSpan(), e_2.getSpan()), false, op, Useful.list(e_1, e_2));
     }
     
     public static OpExpr makeOpExpr(Expr e,OpRef op) {
-    	return new OpExpr(new Span(e.getSpan(),op.getSpan()),false,op,Useful.list(e));
+     return new OpExpr(new Span(e.getSpan(),op.getSpan()),false,op,Useful.list(e));
     }
     
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
@@ -384,11 +385,11 @@ public class ExprFactory {
     }
 
     public static FnRef makeFnRef(Id name, Id orig){
-    	return new FnRef(name.getSpan(),false, orig, Collections.singletonList(name),Collections.<StaticArg>emptyList());
+     return new FnRef(name.getSpan(),false, orig, Collections.singletonList(name),Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(Id orig, List<Id> names){
-    	return new FnRef(orig.getSpan(),false, orig, names,Collections.<StaticArg>emptyList());
+     return new FnRef(orig.getSpan(),false, orig, names,Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
@@ -406,7 +407,7 @@ public class ExprFactory {
     }
 
     public static FnRef makeFnRef(Span span, boolean paren, Id original_fn, List<Id> fns, List<StaticArg> sargs) {
-    	return new FnRef(span, paren, original_fn, fns, sargs);
+     return new FnRef(span, paren, original_fn, fns, sargs);
     }
 
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
@@ -436,7 +437,7 @@ public class ExprFactory {
     }
     
     public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs, Boolean isParenthesized, OpRef infixJuxt, OpRef multiJuxt){
-    	return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,exprs);
+     return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,exprs);
     }
 
     /**
@@ -444,7 +445,7 @@ public class ExprFactory {
      * with new exprs.
      */
     public static TightJuxt makeTightJuxt(TightJuxt that, List<Expr> exprs) {
-    	return new TightJuxt(that.getSpan(), that.isParenthesized(), that.getMultiJuxt(), that.getInfixJuxt(), exprs);
+     return new TightJuxt(that.getSpan(), that.isParenthesized(), that.getMultiJuxt(), that.getInfixJuxt(), exprs);
     }
 
     public static VarRef makeVarRef(Span span, String s) {
@@ -596,7 +597,7 @@ public class ExprFactory {
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-    	List<Link> links = new ArrayList<Link>();
+     List<Link> links = new ArrayList<Link>();
         Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);
@@ -636,20 +637,20 @@ public class ExprFactory {
      * Uses the Spans from e_1 and e_2.
      */
     public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
-    	return new _RewriteFnApp(new Span(e_1.getSpan(), e_2.getSpan()), e_1, e_2);
+     return new _RewriteFnApp(new Span(e_1.getSpan(), e_2.getSpan()), e_1, e_2);
     }
     
     public static Expr makeInParentheses(Expr expr) {
         return expr.accept(new NodeAbstractVisitor<Expr>() {
             @Override
-			public Expr for_RewriteFnApp(_RewriteFnApp that) {
-            	return new _RewriteFnApp(that.getSpan(),true,that.getFunction(),that.getArgument());
-			}
-			@Override
-			public Expr for_RewriteObjectRef(_RewriteObjectRef that) {
-				return new _RewriteObjectRef(that.getSpan(),true,that.getObj(),that.getStaticArgs());
-			}
-			public Expr forAsExpr(AsExpr e) {
+   public Expr for_RewriteFnApp(_RewriteFnApp that) {
+             return new _RewriteFnApp(that.getSpan(),true,that.getFunction(),that.getArgument());
+   }
+   @Override
+   public Expr for_RewriteObjectRef(_RewriteObjectRef that) {
+    return new _RewriteObjectRef(that.getSpan(),true,that.getObj(),that.getStaticArgs());
+   }
+   public Expr forAsExpr(AsExpr e) {
                 return new AsExpr(e.getSpan(), true, e.getExpr(), e.getType());
             }
             public Expr forAsIfExpr(AsIfExpr e) {
@@ -834,41 +835,41 @@ public class ExprFactory {
      * made into an infix operator. 
      */
     private static Expr makeInfixOpExpr(Span s, Expr lhs, OpRef op, Expr rhs) {
-    	List<OpName> new_ops = IterUtil.asList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
-			public Op value(OpName arg0) {
-				if( arg0 instanceof Enclosing )
-					return bug("Can't make an infix operator out of an enclosing operator.");
-				else
-					return NodeFactory.makeOpInfix((Op)arg0);
-			}}));
-    	// We are remaking this because we think that the Interpreter expects originalName to be infix
-    	Op new_original_name;
-    	if( op.getOriginalName() instanceof Enclosing )
-    		return bug("Can't make an infix operator out of an enclosing operator.");
-    	else
-    		new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
-    	
-    	OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
-    	return ExprFactory.makeOpExpr(new_op, lhs, rhs);
+     List<OpName> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
+   public Op value(OpName arg0) {
+    if( arg0 instanceof Enclosing )
+     return bug("Can't make an infix operator out of an enclosing operator.");
+    else
+     return NodeFactory.makeOpInfix((Op)arg0);
+   }}));
+     // We are remaking this because we think that the Interpreter expects originalName to be infix
+     Op new_original_name;
+     if( op.getOriginalName() instanceof Enclosing )
+      return bug("Can't make an infix operator out of an enclosing operator.");
+     else
+      new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
+     
+     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
+     return ExprFactory.makeOpExpr(new_op, lhs, rhs);
     }
     
     private static Expr makePostfixOpExpr(Span s, Expr e, OpRef op) {
-    	List<OpName> new_ops = IterUtil.asList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
-			public Op value(OpName arg0) {
-				if( arg0 instanceof Enclosing )
-					return bug("Can't make an postfix operator out of an enclosing operator.");
-				else
-					return NodeFactory.makeOpPostfix((Op)arg0);
-			}}));
-    	// We are remaking this because we think that the Interpreter expects originalName to be postfix
-    	Op new_original_name;
-    	if( op.getOriginalName() instanceof Enclosing )
-    		return bug("Can't make an postfix operator out of an enclosing operator.");
-    	else
-    		new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
-    	
-    	OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
-    	return ExprFactory.makeOpExpr(e, new_op);	
+     List<OpName> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
+   public Op value(OpName arg0) {
+    if( arg0 instanceof Enclosing )
+     return bug("Can't make an postfix operator out of an enclosing operator.");
+    else
+     return NodeFactory.makeOpPostfix((Op)arg0);
+   }}));
+     // We are remaking this because we think that the Interpreter expects originalName to be postfix
+     Op new_original_name;
+     if( op.getOriginalName() instanceof Enclosing )
+      return bug("Can't make an postfix operator out of an enclosing operator.");
+     else
+      new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
+     
+     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
+     return ExprFactory.makeOpExpr(e, new_op); 
     }
     
     public static Expr simplifyMathPrimary(Span span, Expr front, MathItem mi) {
@@ -879,7 +880,7 @@ public class ExprFactory {
             ExponentiationMI expo = (ExponentiationMI)mi;
             Option<Expr> expr = expo.getExpr();
             if (expr.isSome()) // ^ Exponent
-            	return makeInfixOpExpr(span, front, expo.getOp(), expr.unwrap());
+             return makeInfixOpExpr(span, front, expo.getOp(), expr.unwrap());
             else // ExponentOp
                 return makePostfixOpExpr(span, front, expo.getOp());
         } else { // mi instanceof SubscriptingMI

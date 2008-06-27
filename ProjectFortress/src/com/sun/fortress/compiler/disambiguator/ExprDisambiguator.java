@@ -206,7 +206,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forTraitDecl(final TraitDecl that) {
-		ExprDisambiguator v = this.extend(extractStaticExprVars
+  ExprDisambiguator v = this.extend(extractStaticExprVars
                                           (that.getStaticParams())).
                                   extendWithSelf(that.getSpan());
 
@@ -230,7 +230,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
-		Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+  Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).
                                   extendWithSelf(that.getSpan()).
@@ -256,7 +256,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forObjectDecl(final ObjectDecl that) {
-		Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+  Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).
                                   extendWithSelf(that.getSpan()).
@@ -361,7 +361,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
       return result;
     }
 
-	/** VarRefs can be made qualified or translated into FnRefs. */
+ /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
         Id name = that.getVar();
         Option<APIName> api = name.getApi();
@@ -377,7 +377,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 APIName realApiName = realApiNameOpt.unwrap();
                 Id newId = NodeFactory.makeId(realApiName, name);
                 if (_env.hasQualifiedVariable(newId)) {
-                    if (ConsList.isEmpty(fields) && givenApiName == realApiName) {
+                    if (fields.isEmpty() && givenApiName == realApiName) {
                         // no change -- no need to recreate the VarRef
                         return that;
                     }
@@ -419,15 +419,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             if (vars.size() == 1 && fns.isEmpty()) {
                 Id newName = IterUtil.first(vars);
 
-                if (newName.getApi().isNone() && newName == name &&
-                    ConsList.isEmpty(fields)) {
+                if (newName.getApi().isNone() && newName == name && fields.isEmpty()) {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }
                 else { result = new VarRef(that.getSpan(), newName); }
             }
             else if (vars.isEmpty() && !fns.isEmpty()) {
-                result = ExprFactory.makeFnRef(name,IterUtil.asList(fns));
+                result = ExprFactory.makeFnRef(name,CollectUtil.makeList(fns));
                 // TODO: insert correct number of to-infer arguments?
             }
             else if (!vars.isEmpty() || !fns.isEmpty()) {
@@ -439,7 +438,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // Turn off error message on this branch until we can ensure
                 // that the VarRef doesn't resolve to an inherited method.
                 // For now, assume it does refer to an inherited method.
-                if (ConsList.isEmpty(fields)) {
+                if (fields.isEmpty()) {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }
@@ -461,98 +460,98 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return result;
     }
 
-	@Override
-	public Node forAccumulatorOnly(Accumulator that,
-			List<StaticArg> staticArgs_result, OpName opr_result,
-			List<GeneratorClause> gens_result, Expr body_result) {
-		// This method is currently a complete special case that we
-		// are only using because the Accumulator node of the AST
-		// doesn't hold an OpRef, which I believe it should. NEB
-		OpName acc_op = that.getOpr();
-		Set<OpName> ops = _env.explicitFunctionNames(acc_op);
-		if( ops.isEmpty() ) {
-			ops = _env.onDemandFunctionNames(acc_op);
-			_onDemandImports.add(acc_op);
-		}
-		if( ops.isEmpty() ) {
-			return that;
-		}
+ @Override
+ public Node forAccumulatorOnly(Accumulator that,
+   List<StaticArg> staticArgs_result, OpName opr_result,
+   List<GeneratorClause> gens_result, Expr body_result) {
+  // This method is currently a complete special case that we
+  // are only using because the Accumulator node of the AST
+  // doesn't hold an OpRef, which I believe it should. NEB
+  OpName acc_op = that.getOpr();
+  Set<OpName> ops = _env.explicitFunctionNames(acc_op);
+  if( ops.isEmpty() ) {
+   ops = _env.onDemandFunctionNames(acc_op);
+   _onDemandImports.add(acc_op);
+  }
+  if( ops.isEmpty() ) {
+   return that;
+  }
 
-		// This is where the hacking comes in
-		if( ops.size() > 1 ) {
-			return NI.nyi("This means that we need to change the AST.");
-		}
-		Expr result = new Accumulator(that.getSpan(),
-				                      that.isParenthesized(),
-				                      staticArgs_result,
-				                      IterUtil.first(ops),
-				                      gens_result,
-				                      body_result);
-		return result;
-	}
+  // This is where the hacking comes in
+  if( ops.size() > 1 ) {
+   return NI.nyi("This means that we need to change the AST.");
+  }
+  Expr result = new Accumulator(that.getSpan(),
+                          that.isParenthesized(),
+                          staticArgs_result,
+                          IterUtil.first(ops),
+                          gens_result,
+                          body_result);
+  return result;
+ }
 
-	
-	
+ 
+ 
     @Override
-	public Node for_RewriteObjectRef(_RewriteObjectRef that) {
-    	Id obj_name = that.getObj();
-    	
-    	Set<Id> objs = _env.explicitTypeConsNames(obj_name);
-    	if( objs.isEmpty() ) {
-    		objs = _env.onDemandTypeConsNames(obj_name);
-    		_onDemandImports.add(obj_name);
-    	}
-    	
-    	if( objs.isEmpty() ) {
-    		return that;
-    	}
-    	else if( objs.size() == 1 ) {
-    		return new _RewriteObjectRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
-    	}
-    	else {
-    		error("Name may refer to: " + NodeUtil.namesString(objs), that);
-    		return that;
-    	}
-	}
+ public Node for_RewriteObjectRef(_RewriteObjectRef that) {
+     Id obj_name = that.getObj();
+     
+     Set<Id> objs = _env.explicitTypeConsNames(obj_name);
+     if( objs.isEmpty() ) {
+      objs = _env.onDemandTypeConsNames(obj_name);
+      _onDemandImports.add(obj_name);
+     }
+     
+     if( objs.isEmpty() ) {
+      return that;
+     }
+     else if( objs.size() == 1 ) {
+      return new _RewriteObjectRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
+     }
+     else {
+      error("Name may refer to: " + NodeUtil.namesString(objs), that);
+      return that;
+     }
+ }
 
-	@Override
-	public Node forFnRef(FnRef that) {
-		// Many FnRefs will be covered by the VarRef case, since many functions are parsed
-    	// as variables. FnRefs can be parsed if, for example, explicit static arguments are
-    	// provided. These function references must still be disambiguated.
+ @Override
+ public Node forFnRef(FnRef that) {
+  // Many FnRefs will be covered by the VarRef case, since many functions are parsed
+     // as variables. FnRefs can be parsed if, for example, explicit static arguments are
+     // provided. These function references must still be disambiguated.
 
-    	Id fn_name = IterUtil.first(that.getFns());
-    	Set<Id> fns = _env.explicitFunctionNames(fn_name);
-    	if( fns.isEmpty() ) {
-    		fns = _env.onDemandFunctionNames(fn_name);
-    		_onDemandImports.add(fn_name);
-    	}
+     Id fn_name = IterUtil.first(that.getFns());
+     Set<Id> fns = _env.explicitFunctionNames(fn_name);
+     if( fns.isEmpty() ) {
+      fns = _env.onDemandFunctionNames(fn_name);
+      _onDemandImports.add(fn_name);
+     }
 
-    	if( fns.isEmpty() ) {
-    		// Could be a singleton object with static arguments.
-    		Set<Id> types = _env.explicitTypeConsNames(fn_name);
-    		if( types.isEmpty() ) {
-    			types = _env.onDemandTypeConsNames(fn_name);
-    			_onDemandImports.add(fn_name);
-    		}
-    		if( !types.isEmpty() ) {
-    			// create _RewriteObjectRef
-    			_RewriteObjectRef obj = new _RewriteObjectRef(that.getSpan(), fn_name, that.getStaticArgs());
-    			return obj.accept(this);
-    		}
-    		else {
-    			//error("Function " + that + " could not be disambiguated.", that);
-    			// TODO: The above line is giving fits to the tests, but it'd be nice to pass.
-    			return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
-    					that.getFns(), that.getStaticArgs());
-    		}
-    	}
+     if( fns.isEmpty() ) {
+      // Could be a singleton object with static arguments.
+      Set<Id> types = _env.explicitTypeConsNames(fn_name);
+      if( types.isEmpty() ) {
+       types = _env.onDemandTypeConsNames(fn_name);
+       _onDemandImports.add(fn_name);
+      }
+      if( !types.isEmpty() ) {
+       // create _RewriteObjectRef
+       _RewriteObjectRef obj = new _RewriteObjectRef(that.getSpan(), fn_name, that.getStaticArgs());
+       return obj.accept(this);
+      }
+      else {
+       //error("Function " + that + " could not be disambiguated.", that);
+       // TODO: The above line is giving fits to the tests, but it'd be nice to pass.
+       return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
+         that.getFns(), that.getStaticArgs());
+      }
+     }
 
-    	return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
-    			IterUtil.asList(fns), that.getStaticArgs());
-	}
+     return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
+       CollectUtil.makeList(fns), that.getStaticArgs());
+ }
 
-	// Note how this method does not delegate to
+ // Note how this method does not delegate to
     // forOp().
     @Override public Node forOpRef(OpRef that) {
         OpName entity = IterUtil.first(that.getOps());
@@ -564,11 +563,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         if (ops.isEmpty()) {
             //System.err.println("OpRef:" + entity);
-        	return new OpRef(that.getSpan(),that.isParenthesized(),entity,that.getOps(),that.getStaticArgs());
+         return new OpRef(that.getSpan(),that.isParenthesized(),entity,that.getOps(),that.getStaticArgs());
         }
 
         //System.err.println("OpRef:" + entity);
-        return new OpRef(that.getSpan(),that.isParenthesized(),entity,IterUtil.asList(ops),that.getStaticArgs());
+        return new OpRef(that.getSpan(),that.isParenthesized(),entity,CollectUtil.makeList(ops),that.getStaticArgs());
     }
 
     @Override public Node forLabel(Label that) {

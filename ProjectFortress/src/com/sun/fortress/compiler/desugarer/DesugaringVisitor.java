@@ -28,7 +28,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
-import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
