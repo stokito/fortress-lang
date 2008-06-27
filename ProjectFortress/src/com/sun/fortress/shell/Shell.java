@@ -17,6 +17,7 @@
 
 package com.sun.fortress.shell;
 
+import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import java.io.*;
@@ -38,7 +39,7 @@ import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
-import static com.sun.fortress.shell.ConvenientStrings.*;
+import static com.sun.fortress.useful.ConvenientStrings.*;
 
 public final class Shell {
     // public static boolean debug;

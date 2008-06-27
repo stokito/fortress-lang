@@ -15,11 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell;
+package com.sun.fortress.repository;
 
-import com.sun.fortress.repository.StubRepository;
-import static com.sun.fortress.shell.ConvenientStrings.DOT;
-import static com.sun.fortress.shell.ConvenientStrings.SEP;
+import static com.sun.fortress.useful.ConvenientStrings.DOT;
+import static com.sun.fortress.useful.ConvenientStrings.SEP;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,15 +28,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.exceptions.shell.ShellException;
 import com.sun.fortress.nodes_util.ASTIO;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;

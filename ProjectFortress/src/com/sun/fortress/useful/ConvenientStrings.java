@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2007 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,24 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell;
+package com.sun.fortress.useful;
+import java.io.*;
 
-import java.io.IOException;
-import java.io.File;
-import junit.framework.TestCase;
-
-import com.sun.fortress.exceptions.shell.UserError;
-import com.sun.fortress.nodes.*;
-
-/**
- * A JUnit test case class.
- * Every method starting with the word "test" will be called when running
- * the test with JUnit.
- */
-public class ShellJUTest extends TestCase {
-
-   public void testCompile() throws UserError, InterruptedException, IOException {
-       // TODO: Rewrite this test for the new Shell structure.
-   }
-
+public interface ConvenientStrings {
+   public static final String SEP = File.separator;
+   public static final String DOT = ".";
 }
