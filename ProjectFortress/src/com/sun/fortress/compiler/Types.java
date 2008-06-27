@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
@@ -74,16 +75,16 @@ public final class Types {
     }
     
     public static Id getArrayKName(int k){
-    	String name = "Array"+k;
-    	return makeId("FortressLibrary",name);
+     String name = "Array"+k;
+     return makeId("FortressLibrary",name);
     }
     
     public static TraitType makeArrayType(Type elem, Type indexed){
-    	return makeTraitType(ARRAY_NAME, makeTypeArg(elem),makeTypeArg(indexed));
+     return makeTraitType(ARRAY_NAME, makeTypeArg(elem),makeTypeArg(indexed));
     }
     
     public static TraitType makeArrayKType(int k, List<StaticArg> args){
-    	return  makeTraitType(getArrayKName(k),args);
+     return  makeTraitType(getArrayKName(k),args);
     }
     
     /**
@@ -114,7 +115,7 @@ public final class Types {
             switch (IterUtil.sizeOf(ts, 2)) {
                 case 0: return BOTTOM;
                 case 1: return IterUtil.first(ts);
-                default: return new UnionType(IterUtil.asList(ts));
+                default: return new UnionType(CollectUtil.makeList(ts));
             }
         }
     };
@@ -131,7 +132,7 @@ public final class Types {
             switch (IterUtil.sizeOf(ts, 2)) {
                 case 0: return ANY;
                 case 1: return IterUtil.first(ts);
-                default: return new IntersectionType(IterUtil.asList(ts));
+                default: return new IntersectionType(CollectUtil.makeList(ts));
             }
         }
     };
@@ -192,7 +193,7 @@ public final class Types {
             switch (IterUtil.sizeOf(ts, 2)) {
                 case 0: return VOID;
                 case 1: return IterUtil.first(ts);
-                default: return new TupleType(IterUtil.asList(ts));
+                default: return new TupleType(CollectUtil.makeList(ts));
             }
         }
     };
@@ -291,11 +292,11 @@ public final class Types {
      * Given A and Op, returns the type
      * TotalOperatorOrder[\A,<,<=,>=,>,Op]
      */
-	public static Type makeTotalOperatorOrder(Type A, OpName op) {
-//		NodeFactory.makeTraitType(makeId("TotalOperater"), sargs)
-//		NodeFactory.makeOpArg("whoa");
-		
-		return NI.nyi();
-	}
+ public static Type makeTotalOperatorOrder(Type A, OpName op) {
+//  NodeFactory.makeTraitType(makeId("TotalOperater"), sargs)
+//  NodeFactory.makeOpArg("whoa");
+  
+  return NI.nyi();
+ }
     
 }

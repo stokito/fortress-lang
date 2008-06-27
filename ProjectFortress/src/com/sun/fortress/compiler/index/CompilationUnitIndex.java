@@ -18,7 +18,6 @@
 package com.sun.fortress.compiler.index;
 
 import java.util.*;
-import java.util.Collections;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.*;
@@ -44,14 +43,13 @@ public abstract class CompilationUnitIndex {
                                 Map<Id, Unit> units,
                                 long modifiedDate) {
         _ast = ast;
-        _variables = Collections.unmodifiableMap(variables);
-        _functions = CollectUtil.unmodifiableRelation(functions);
-        _typeConses = Collections.
-            unmodifiableMap(CollectUtil.
-                            compose(typeConses, 
-                                    CollectUtil.compose(dimensions, units)));
-        _dimensions = Collections.unmodifiableMap(dimensions);
-        _units = Collections.unmodifiableMap(units);
+        _variables = CollectUtil.immutable(variables);
+        _functions = CollectUtil.immutable(functions);
+        _typeConses = CollectUtil.immutable(
+                          CollectUtil.union(typeConses, 
+                                  CollectUtil.union(dimensions, units)));
+        _dimensions = CollectUtil.immutable(dimensions);
+        _units = CollectUtil.immutable(units);
         _modifiedDate = modifiedDate;
     }
 

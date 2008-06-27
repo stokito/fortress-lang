@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
@@ -40,95 +41,95 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
     private static Pair<ConstraintFormula, Option<StaticError>> 
     collectConstraints(Iterable<? extends TypeCheckerResult> results,
-    		           TypeAnalyzer checker, Node ast) {
-    	SubtypeHistory empty_history = checker.new SubtypeHistory();
-    	
-    	Iterable<ConstraintFormula> constraints =
-    		IterUtil.map(results, new Lambda<TypeCheckerResult, ConstraintFormula>(){
-    			public ConstraintFormula value(TypeCheckerResult arg0) {
-    				return arg0.nodeConstraints;
-    			}});    	
+                 TypeAnalyzer checker, Node ast) {
+     SubtypeHistory empty_history = checker.new SubtypeHistory();
+     
+     Iterable<ConstraintFormula> constraints =
+      IterUtil.map(results, new Lambda<TypeCheckerResult, ConstraintFormula>(){
+       public ConstraintFormula value(TypeCheckerResult arg0) {
+        return arg0.nodeConstraints;
+       }});     
 
-    	Boolean was_sat =
-    		IterUtil.fold(constraints, true, new Lambda2<Boolean,ConstraintFormula,Boolean>(){
-				public Boolean value(Boolean arg0, ConstraintFormula arg1) {
-					return arg0 & (arg1.isSatisfiable());
-				}});
-    	
-    	ConstraintFormula and = ConstraintFormula.bigAnd(constraints, empty_history);
-    	
-    	// we want to report if this particular addition of constraints made the
-    	// whole thing unsatisfiable.
-    	boolean became_unsat = was_sat & !(and.isSatisfiable());
-    	Option<StaticError> error;
-    	if( became_unsat ) {
-    		String err_str = "Type inference constraints became unsatisfiable " +
-    			"with the following set of constraints: " + constraints;
-    		error = Option.<StaticError>some(TypeError.make(err_str,ast));
-    	}
-    	else {
-    		error = Option.none();
-    	}
-    	
-    	return Pair.make(and, error);
+     Boolean was_sat =
+      IterUtil.fold(constraints, true, new Lambda2<Boolean,ConstraintFormula,Boolean>(){
+    public Boolean value(Boolean arg0, ConstraintFormula arg1) {
+     return arg0 & (arg1.isSatisfiable());
+    }});
+     
+     ConstraintFormula and = ConstraintFormula.bigAnd(constraints, empty_history);
+     
+     // we want to report if this particular addition of constraints made the
+     // whole thing unsatisfiable.
+     boolean became_unsat = was_sat & !(and.isSatisfiable());
+     Option<StaticError> error;
+     if( became_unsat ) {
+      String err_str = "Type inference constraints became unsatisfiable " +
+       "with the following set of constraints: " + constraints;
+      error = Option.<StaticError>some(TypeError.make(err_str,ast));
+     }
+     else {
+      error = Option.none();
+     }
+     
+     return Pair.make(and, error);
     }
     
     
     public Map<_InferenceVarType, Type> getMap() {
-		return nodeConstraints.getMap();
-	}
+  return nodeConstraints.getMap();
+ }
 
 
 
-	public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
+ public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
                                             TypeAnalyzer type_analyzer, 
                                             TypeCheckerResult... results) {
-		
-		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-			collectConstraints(Arrays.asList(results),type_analyzer,_ast);
-			
-		List<StaticError> errors = IterUtil.asList(IterUtil.relax(collectErrors(Arrays.asList(results))));
-		
-		if( constraints_.second().isSome() ) {
-			errors = Useful.prepend(constraints_.second().unwrap(), errors);
-		}
-		
+  
+  Pair<ConstraintFormula,Option<StaticError>> constraints_ =
+   collectConstraints(Arrays.asList(results),type_analyzer,_ast);
+   
+  List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(Arrays.asList(results))));
+  
+  if( constraints_.second().isSome() ) {
+   errors = Useful.prepend(constraints_.second().unwrap(), errors);
+  }
+  
         return new TypeCheckerResult(_ast, 
-        		                     _type, 
-        		                     errors, 
-        		                     constraints_.first());
+                               _type, 
+                               errors, 
+                               constraints_.first());
     }
     
     public static TypeCheckerResult compose(Node _ast, Type _type,
                                             TypeAnalyzer type_analyzer, 
                                             TypeCheckerResult... results) {
-		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-			collectConstraints(Arrays.asList(results),type_analyzer,_ast);
-			
-		List<StaticError> errors = IterUtil.asList(IterUtil.relax(collectErrors(Arrays.asList(results))));
-		
-		if( constraints_.second().isSome() ) {
-			errors = Useful.prepend(constraints_.second().unwrap(), errors);
-		}
-    	
+  Pair<ConstraintFormula,Option<StaticError>> constraints_ =
+   collectConstraints(Arrays.asList(results),type_analyzer,_ast);
+   
+  List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(Arrays.asList(results))));
+  
+  if( constraints_.second().isSome() ) {
+   errors = Useful.prepend(constraints_.second().unwrap(), errors);
+  }
+     
         return new TypeCheckerResult(_ast, 
-        		                     _type, 
-        		                     errors, 
-        		                     constraints_.first());
+                               _type, 
+                               errors, 
+                               constraints_.first());
     }
     
     public static TypeCheckerResult compose(Node _ast,
-    		                                TypeAnalyzer type_analyzer,
-    		                                TypeCheckerResult... results) {
-		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-			collectConstraints(Arrays.asList(results),type_analyzer,_ast);
-			
-		List<StaticError> errors = IterUtil.asList(IterUtil.relax(collectErrors(Arrays.asList(results))));
-		
-		if( constraints_.second().isSome() ) {
-			errors = Useful.prepend(constraints_.second().unwrap(), errors);
-		}
-    	
+                                      TypeAnalyzer type_analyzer,
+                                      TypeCheckerResult... results) {
+  Pair<ConstraintFormula,Option<StaticError>> constraints_ =
+   collectConstraints(Arrays.asList(results),type_analyzer,_ast);
+   
+  List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(Arrays.asList(results))));
+  
+  if( constraints_.second().isSome() ) {
+   errors = Useful.prepend(constraints_.second().unwrap(), errors);
+  }
+     
         return new TypeCheckerResult(_ast,
                                      Option.<Type>none(),
                                      errors,
@@ -136,16 +137,16 @@ public class TypeCheckerResult extends StaticPhaseResult {
     }
     
     public static TypeCheckerResult compose(Node _ast, 
-    		                                TypeAnalyzer type_analyzer, 
-    		                                List<TypeCheckerResult> results) {
-		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-			collectConstraints(results,type_analyzer,_ast);
-			
-		List<StaticError> errors = IterUtil.asList(IterUtil.relax(collectErrors(results)));
-		
-		if( constraints_.second().isSome() ) {
-			errors = Useful.prepend(constraints_.second().unwrap(), errors);
-		}
+                                      TypeAnalyzer type_analyzer, 
+                                      List<TypeCheckerResult> results) {
+  Pair<ConstraintFormula,Option<StaticError>> constraints_ =
+   collectConstraints(results,type_analyzer,_ast);
+   
+  List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(results)));
+  
+  if( constraints_.second().isSome() ) {
+   errors = Useful.prepend(constraints_.second().unwrap(), errors);
+  }
         return new TypeCheckerResult(_ast,
                                      Option.<Type>none(),
                                      errors,
@@ -153,17 +154,17 @@ public class TypeCheckerResult extends StaticPhaseResult {
     }
     
     public static TypeCheckerResult compose(Node _ast, 
-    		                                Type _type, 
-    		                                TypeAnalyzer type_analyzer, 
-    		                                List<TypeCheckerResult> results) {
-		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-			collectConstraints(results,type_analyzer,_ast);
-			
-		List<StaticError> errors = IterUtil.asList(IterUtil.relax(collectErrors(results)));
-		
-		if( constraints_.second().isSome() ) {
-			errors = Useful.prepend(constraints_.second().unwrap(), errors);
-		}
+                                      Type _type, 
+                                      TypeAnalyzer type_analyzer, 
+                                      List<TypeCheckerResult> results) {
+  Pair<ConstraintFormula,Option<StaticError>> constraints_ =
+   collectConstraints(results,type_analyzer,_ast);
+   
+  List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(results)));
+  
+  if( constraints_.second().isSome() ) {
+   errors = Useful.prepend(constraints_.second().unwrap(), errors);
+  }
         return new TypeCheckerResult(_ast,
                                      Option.wrap(_type),
                                      errors,
@@ -171,17 +172,17 @@ public class TypeCheckerResult extends StaticPhaseResult {
     }
     
     public static TypeCheckerResult compose(Node _ast, 
-    		                                Option<Type> _type, 
-    		                                TypeAnalyzer type_analyzer,
-    		                                List<TypeCheckerResult> results) {
-    	Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-			collectConstraints(results,type_analyzer,_ast);
-			
-		List<StaticError> errors = IterUtil.asList(IterUtil.relax(collectErrors(results)));
-		
-		if( constraints_.second().isSome() ) {
-			errors = Useful.prepend(constraints_.second().unwrap(), errors);
-		}
+                                      Option<Type> _type, 
+                                      TypeAnalyzer type_analyzer,
+                                      List<TypeCheckerResult> results) {
+     Pair<ConstraintFormula,Option<StaticError>> constraints_ =
+   collectConstraints(results,type_analyzer,_ast);
+   
+  List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(results)));
+  
+  if( constraints_.second().isSome() ) {
+   errors = Useful.prepend(constraints_.second().unwrap(), errors);
+  }
         return new TypeCheckerResult(_ast,
                                      _type,
                                      errors,
@@ -189,21 +190,21 @@ public class TypeCheckerResult extends StaticPhaseResult {
     }
     
     public static TypeCheckerResult compose(Node _ast, 
-    		                                TypeAnalyzer type_analyzer,
-    		                                Option<List<TypeCheckerResult>> results_) {
+                                      TypeAnalyzer type_analyzer,
+                                      Option<List<TypeCheckerResult>> results_) {
         if (results_.isSome()) {
             List<TypeCheckerResult> results = results_.unwrap();
             
             Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-    			collectConstraints(results,type_analyzer,_ast);
-    			
-    		List<StaticError> errors = IterUtil.asList(IterUtil.relax(collectErrors(results)));
-    		
-    		if( constraints_.second().isSome() ) {
-    			errors = Useful.prepend(constraints_.second().unwrap(), errors);
-    		}
+       collectConstraints(results,type_analyzer,_ast);
+       
+      List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(results)));
+      
+      if( constraints_.second().isSome() ) {
+       errors = Useful.prepend(constraints_.second().unwrap(), errors);
+      }
             
-			return new TypeCheckerResult(_ast,
+   return new TypeCheckerResult(_ast,
                                          Option.<Type>none(),
                                          errors,
                                          constraints_.first());
@@ -217,19 +218,19 @@ public class TypeCheckerResult extends StaticPhaseResult {
      * only to be called if you no longer care about propagating constraints upwards.
      */
     public static TypeCheckerResult addError(TypeCheckerResult result,
-    		                                 StaticError s_err) {
-    	List<StaticError> errs = new ArrayList<StaticError>();
-    	for( StaticError err : result.errors() ) {
-    		errs.add(err);
-    	}
-    	errs.add(s_err);
-    	    	
-    	return new TypeCheckerResult(result.ast, result.type(), errs, result.nodeConstraints);
+                                       StaticError s_err) {
+     List<StaticError> errs = new ArrayList<StaticError>();
+     for( StaticError err : result.errors() ) {
+      errs.add(err);
+     }
+     errs.add(s_err);
+          
+     return new TypeCheckerResult(result.ast, result.type(), errs, result.nodeConstraints);
     }
     
     /** Takes a TypeCheckerResult and returns a copy with the new AST **/
     public static TypeCheckerResult replaceAST(TypeCheckerResult result, Node _ast){
-    	return new TypeCheckerResult(_ast, result.type(),result.errors(),result.nodeConstraints);
+     return new TypeCheckerResult(_ast, result.type(),result.errors(),result.nodeConstraints);
     }
     
     public TypeCheckerResult(Node _ast, Type _type,
@@ -241,12 +242,12 @@ public class TypeCheckerResult extends StaticPhaseResult {
     }
     
     public TypeCheckerResult(Node _ast, Type _type,
-    		                 Iterable<? extends StaticError> _errors,
-    		                 ConstraintFormula c) {
-    	super(_errors);
-    	ast = _ast;
-    	type = Option.wrap(_type);
-    	nodeConstraints = c;
+                       Iterable<? extends StaticError> _errors,
+                       ConstraintFormula c) {
+     super(_errors);
+     ast = _ast;
+     type = Option.wrap(_type);
+     nodeConstraints = c;
     }
     
     public TypeCheckerResult(Node _ast, 
@@ -286,9 +287,9 @@ public class TypeCheckerResult extends StaticPhaseResult {
     }
     
     public TypeCheckerResult(Node _ast,
-    		                 Option<Type> _type, 
-    		                 Iterable<? extends StaticError> _errors,
-    		                 ConstraintFormula c) {
+                       Option<Type> _type, 
+                       Iterable<? extends StaticError> _errors,
+                       ConstraintFormula c) {
         super(_errors);
         ast = _ast;
         type = _type;
@@ -336,7 +337,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
     public Node ast() { return ast; }
     public Option<Type> type() { return type; }
 
-	public ConstraintFormula getNodeConstraints() {
-		return nodeConstraints;
-	}
+ public ConstraintFormula getNodeConstraints() {
+  return nodeConstraints;
+ }
 }

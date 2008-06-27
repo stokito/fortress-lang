@@ -51,7 +51,7 @@ class FnDefTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-        Set<? extends FnDef> fns = entries.getSeconds(var);
+        Set<? extends FnDef> fns = entries.matchFirst(var);
         if (fns.isEmpty()) {
             if (var instanceof Id) {
                 Id _var = (Id)var;

@@ -139,6 +139,7 @@ import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 import xtc.util.Action;
 import java.util.Collections;
 import java.util.ArrayList;
