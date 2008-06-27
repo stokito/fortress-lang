@@ -45,6 +45,7 @@
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
  <property name="src" location="${basedir}/src"/>
+ <property name="library" location="${basedir}/../Library"/>
  <property name="astgen.generators.src" location="${src}/${packagePrefix}/astgen"/>
  <!-- Third party jar files -->
  <property name="asm" location="${basedir}/third_party/asm"/>
@@ -329,9 +330,12 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <available file="${nodes}/AbstractNode.java"/>
             <uptodate srcfile="${astgen}/Fortress.ast"
                       targetfile="${nodes}/AbstractNode.java"/>
-	    <available file="${astgen}/FortressAst.fsi" />
+	    <available file="${library}/FortressAst.fsi" />
 	    <uptodate srcfile="${astgen}/Fortress.ast"
-		    targetfile="${astgen}/FortressAst.fsi" />
+		    targetfile="${library}/FortressAst.fsi" />
+	    <available file="${library}/FortressAst.fss" />
+	    <uptodate srcfile="${astgen}/Fortress.ast"
+		    targetfile="${library}/FortressAst.fss" />
             <uptodate srcfile="${basedir}/src/com/sun/fortress/astgen/FortressAstGenerator.java"
                     targetfile="${astgen}/FortressAst.fsi" />
           </and>
@@ -350,6 +354,11 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
           <fileset dir="${astgen}">
             <include name="**/*.java"/>
             <exclude name="**/Fortress.ast"/>
+          </fileset>
+        </move>
+        <move todir="${library}">
+          <fileset dir="${astgen}">
+            <include name="FortressAst.*" />
           </fileset>
         </move>
     </target>

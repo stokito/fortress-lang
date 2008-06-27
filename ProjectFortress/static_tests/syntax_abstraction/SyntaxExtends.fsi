@@ -26,15 +26,15 @@ api SyntaxExtends
       some Thing 
         do
           fnDef : FnDef = FnDef(emptyList[\Modifier\](), 
-                     Id(Nothing[\APIName\], "some" Thing.val),
+                     Id(Nothing[\APIName\], "some" Thing.in_text),
                      emptyList[\StaticParam\](),
                      emptyList[\Param\](),
                      Nothing[\Type\],
-                     Nothing[\List[\TraitType\]\],
+                     Nothing[\List[\BaseType\]\],
                      WhereClause(emptyList[\WhereBinding\](), emptyList[\WhereConstraint\]()),
                      Contract(Nothing[\List[\Expr\]\], Nothing[\List[\EnsuresClause\]\], Nothing[\List[\Expr\]\]),
                      "foo",
-                     StringLiteralExpr("some " Thing.val))
+                     StringLiteralExpr("some " Thing.in_text))
           ls : List[\FnDef\] = emptyList[\FnDef\](1)
           ls.addRight(fnDef)
         end
@@ -52,7 +52,7 @@ api SyntaxExtends
 
   grammar D extends { Expression, C }
     Expr |Expr:=
-      Thing do Thing.val end
+      Thing do Thing.in_text end
 
     Bar :Expr:=
       Expr do Expr end
@@ -63,7 +63,7 @@ api SyntaxExtends
       thingC1 <[ thingC1 ]>
 
     Gnu :Expr:= 
-      Thing do Thing.val end
+      Thing do Thing.in_text end
 
   end
 

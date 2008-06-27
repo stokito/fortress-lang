@@ -69,6 +69,7 @@ public class ActionCreater {
     protected static final String BOUND_VARIABLES = "boundVariables";
     protected static final String PACKAGE = "com.sun.fortress.syntax_abstractions.util";
     private static final String FORTRESS_AST = "FortressAst";
+    private static final String FORTRESS_AST_UTIL = "FortressAstUtil";
 
     public class Result extends StaticPhaseResult {
         private Action action;
@@ -139,6 +140,8 @@ public class ActionCreater {
         APIName name = NodeFactory.makeAPIName("TransformationComponent");
         Span span = new Span();
         List<Import> imports = new LinkedList<Import>();
+        /* TODO: these imports should be the same imports that the api with the grammar had */
+        imports.add(NodeFactory.makeImportStar(FORTRESS_AST_UTIL));
         imports.add(NodeFactory.makeImportStar(FORTRESS_AST));
         imports.add(NodeFactory.makeImportStar("List"));
         // Exports:

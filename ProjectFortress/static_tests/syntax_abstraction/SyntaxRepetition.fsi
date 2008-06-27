@@ -79,7 +79,7 @@ api SyntaxRepetition
       a SPACE do 
         exprs:List[\Expr\] = emptyList[\Expr\](2)
         exprs1:List[\Expr\] = exprs.addRight(StringLiteralExpr(""))
-        exprs2:List[\Expr\] = exprs1.addRight(StringLiteralExpr(a.val))
+        exprs2:List[\Expr\] = exprs1.addRight(StringLiteralExpr(a.in_text))
         LooseJuxt(exprs2) end
   end
 

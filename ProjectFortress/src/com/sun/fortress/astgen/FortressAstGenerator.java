@@ -64,17 +64,49 @@ public class FortressAstGenerator extends CodeGenerator {
         return mkList(ast.interfaces());
     }
 
+    /* Ignore some interfaces.
+     * List:
+     *  UIDObject
+     *  HasAt
+     *  Applicable
+     */
+    private boolean ignoreInterface( String name ){
+        if ( name.equals( "UIDObject" ) ){
+            return true;
+        }
+        if ( name.equals( "HasAt" ) ){
+            return true;
+        }
+        if ( name.equals( "Applicable" ) ){
+            return true;
+        }
+        return false;
+    }
+
+    private List<TypeName> filterInterfaces(List<TypeName> interfaces){
+        List<TypeName> ok = new ArrayList<TypeName>();
+
+        for ( TypeName name : interfaces ){
+            if ( ! ignoreInterface(fieldType(name)) ){
+                ok.add(name);
+            }
+        }
+
+        return ok;
+    }
+
     private String extendsClause( NodeInterface box ){
-        if ( box.interfaces().isEmpty() ){
+        List<TypeName> interfaces = filterInterfaces(box.interfaces());
+        if ( interfaces.isEmpty() ){
             return "";
         }
-        if ( box.interfaces().size() == 1 ){
-            return "extends " + fieldType(box.interfaces().get(0));
+        if ( interfaces.size() == 1 ){
+            return "extends " + fieldType(interfaces.get(0));
         }
         StringBuffer buffer = new StringBuffer();
         buffer.append( "extends { " );
         int i = 0;
-        for ( TypeName name : box.interfaces() ){
+        for ( TypeName name : interfaces ){
             if ( i != 0 ){
                 buffer.append( ", " );
             }
@@ -91,9 +123,13 @@ public class FortressAstGenerator extends CodeGenerator {
             return "";
         }
         List<String> names = new ArrayList<String>();
-        names.add(fieldType(box.superClass()));
+        if ( ! ignoreInterface(fieldType(box.superClass())) ){
+            names.add(fieldType(box.superClass()));
+        }
         for ( TypeName name : box.interfaces() ){
-            names.add(fieldType(name));
+            if ( ! ignoreInterface(fieldType(name)) ){
+                names.add(fieldType(name));
+            }
         }
         StringBuffer buffer = new StringBuffer();
         buffer.append("extends ");
@@ -188,10 +224,38 @@ public class FortressAstGenerator extends CodeGenerator {
         });
     }
 
+    /* return true if some fields should be ignored.
+     * List:
+     *  span
+     */
+    private boolean ignoreField( Field field ){
+        if ( field.name().equals( "span" ) ){
+            return true;
+        }
+        if ( field.name().equals( "parenthesized" ) ){
+            return true;
+        }
+
+        return false;
+    }
+
+    /* remove ignored fields */
+    private Iterable<Field> filterFields(Iterable<Field> fields){
+        List<Field> ok = new ArrayList<Field>();
+
+        for ( Field field : fields ){
+            if ( ! ignoreField( field ) ){
+                ok.add( field );
+            }
+        }
+
+        return ok;
+    }
+
     private String traitFields( List<Field> fields ){
         StringBuffer buffer = new StringBuffer();
         boolean first = true;
-        for ( Field field : fields ){
+        for ( Field field : filterFields(fields) ){
             if ( first ){
                 buffer.append( "\n" );
                 first = false;
@@ -210,13 +274,13 @@ public class FortressAstGenerator extends CodeGenerator {
         if ( box.isAbstract() ){
             return traitFields(box.fields());
         } else {
-            if ( mkList(box.allFields(ast)).isEmpty() ){
+            if ( mkList(filterFields(box.allFields(ast))).isEmpty() ){
                 return "";
             } else {
                 StringBuffer buffer = new StringBuffer();
                 buffer.append("(");
                 int i = 0;
-                for ( Field field : box.allFields(ast) ){
+                for ( Field field : filterFields(box.allFields(ast)) ){
                     if ( i != 0 ){
                         buffer.append( ", " );
                     }
@@ -238,7 +302,7 @@ public class FortressAstGenerator extends CodeGenerator {
             return s;
         } else {
             Map<String,String> map = new HashMap<String,String>();
-            return sub(String.format(s.replaceAll( args[ 0 ], "%s" ), args[ 1 ]), Arrays.asList( args ).subList( 2, args.length ).toArray(new String[0]) );
+            return sub(String.format(s.replaceAll( args[ 0 ], "%1\\$s" ), args[ 1 ]), Arrays.asList( args ).subList( 2, args.length ).toArray(new String[0]) );
             // return sub( s.replaceAll( args[ 0 ], args[ 1 ] ), Arrays.asList( args ).subList( 2, args.length ).toArray(new String[0]) );
         }
     }
@@ -263,7 +327,19 @@ public class FortressAstGenerator extends CodeGenerator {
         return list;
     }
 
-    private void generateBody( PrintWriter writer ){
+    private boolean ignoreClass( String name ){
+        if ( name.startsWith("_") ){
+            return true;
+        }
+
+        /* TODO: this won't be needed once TemplateGap's are removed from Fortress.ast */
+        if ( name.startsWith( "TemplateGap" ) ){
+            return true;
+        }
+        return false;
+    }
+
+    private void generateBody( PrintWriter writer, boolean isApi ){
         for ( NodeInterface box : sort(getInterfaces()) ){
             if ( box.name().startsWith("_") ){
                 continue;
@@ -272,18 +348,24 @@ public class FortressAstGenerator extends CodeGenerator {
         }
 
         for ( NodeClass c : sort(ast.classes()) ){
-            if ( c.name().startsWith("_") ){
+            if ( ignoreClass(c.name()) ){
                 continue;
             }
             if ( c.isAbstract() ){
                 writer.println(sub( "trait @name @extends @fields end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c) ));
             } else {
-                writer.println(sub( "object @name @fields @extends end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c) ));
+                String toString;
+                if ( isApi ){
+                    toString = "toString():String";
+                } else {
+                    toString = sub("toString():String = \"@name\"", "@name", c.name());
+                }
+                writer.println(sub( "object @name @fields @extends\n @toString\n end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c), "@toString", toString ));
             }
         }
     }
 
-    private void generateFile( String file, String type ){
+    private void generateFile( String file, String preamble, boolean isApi ){
         FileWriter out = null;
         PrintWriter writer = null;
         try{
@@ -292,13 +374,11 @@ public class FortressAstGenerator extends CodeGenerator {
 
             writer.println( copyright() );
 
-            writer.println( type );
+            writer.println( preamble );
+
             writer.println();
 
-            writer.println("import List.{...}");
-            writer.println();
-
-            generateBody(writer);
+            generateBody(writer, isApi);
 
             writer.println();
             writer.println( "end" );
@@ -322,11 +402,11 @@ public class FortressAstGenerator extends CodeGenerator {
     }
 
     private void generateApi(){
-        generateFile( "FortressAst.fsi", "api FortressAst" );
+        generateFile( "FortressAst.fsi", "api FortressAst\nimport List.{...}", true );
     }
 
     private void generateComponent(){
-        generateFile( "FortressAst.fss", "component FortressAst" );
+        generateFile( "FortressAst.fss", "component FortressAst\nimport List.{...}\nexport FortressAst", false );
     }
 
     public void generateAdditionalCode(){

@@ -24,7 +24,7 @@ api SyntaxHelloWorld
     Expr |Expr:=
        hello world
          do
-           StringLiteralExpr(hello.val " " world.val)
+           StringLiteralExpr(hello.in_text " " world.in_text)
          end
   end
 
