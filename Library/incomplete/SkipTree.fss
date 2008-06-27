@@ -95,7 +95,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
     insert(newKey:Key, newValue:Value, newHeight:ZZ32) : Node[\Key,Value\] = do
         if newHeight < height then
             insertBelowHeight(newKey,newValue,newHeight)
-        elif newHeight == height then
+        elif newHeight = height then
             insertEqualHeight(newKey,newValue)
         else
             insertAboveHeight(newKey,newValue,newHeight)
@@ -104,46 +104,72 @@ object Node[\Key,Value\](keys     : List[\Key\],
 
     (* perform the insert operation when self.height = newHeight *)
     private insertEqualHeight(newKey:Key, newValue:Value) : Node[\Key,Value\] = do
-        i = insertionPoint(binarySearch(keys,newKey))
+        i = insertionPoint(binarySearch[\Key\](keys,newKey))
         newkeys = keys[0#i] || singleton[\Key\](newKey) || keys[i:]
         newvalues = values[0#i] || singleton[\Value\](newValue) || values[i:]
-        (newleft, newright) = (makeLeftChild(newKey, children[i]), makeRightChild(newKey, children[i]))
-        newchildren = children[0#i] || newLeft || newRight || children[i:]
+        (newleft, newright) = (filterChild(newKey, children[i], true), filterChild(newKey, children[i], false))
+        leftchildren = children[0#i].addRight(newleft)
+        rightchildren = children[(i + 1):].addLeft(newright)
+        newchildren =  leftchildren || rightchildren
+        Node[\Key,Value\](newkeys,newvalues,newchildren,height)
     end
 
-    private makeLeftChild(newKey : Key, 
-                          target : Maybe[\Node[\Key,Value\]\] target)
-                         : List[\Maybe[\Node[\Key,Value\]\]\] = do
+    private filterChild(newKey : Key, 
+                        target : Maybe[\Node[\Key,Value\]\],
+                        lessThanOrEquals : Boolean)
+                       : Maybe[\Node[\Key,Value\]\] = do
         typecase target of
             Just[\Value\] =>
-                filter = Filter[\Key\](newKey, true); 
+                filter = Filter[\Key\](newKey, lessThanOrEquals) 
                 child.getVal().applyFilter(filter)
             else =>
-                singleton[\Maybe[\Node[\Key,Value\]\]\](Nothing[\Node[\Key,Value\]\])
+                Nothing[\Node[\Key,Value\]\]
         end    
     end
 
-    private makeRightChild(newKey : Key, 
-                           target : Maybe[\Node[\Key,Value\]\] target)
-                         : List[\Maybe[\Node[\Key,Value\]\]\] = do
-        typecase target of
-            Just[\Value\] => 
-                filter = Filter[\Key\](newkey, false)            
-                child.getVal().applyFilter(filter)
-            else =>
-                singleton[\Maybe[\Node[\Key,Value\]\]\](Nothing[\Node[\Key,Value\]\])
-        end    
-    end
-
-    applyFilter(filter : Filter[\Key\]) : List[\Maybe[\Node[\Key,Value\]\]\] = do
+    applyFilter(filter : Filter[\Key\]) : Maybe[\Node[\Key,Value\]\] = do
         parentIndex = binarySearch(keys, filter.pivot)
         childIndex = if (parentIndex >= 0 AND filter.lessThanOrEquals = false) then
             insertionPoint(parentIndex) + 1
         else
             insertionPoint(parentIndex)
         end
-        
+        filteredChild = typecase child = children[childIndex] of    
+            Just[\Node[\Key,Value\]\] => child.getVal().applyFilter(filter)
+            else => child
+        end
+        if filter.lessThanOrEquals then
+            filterLessThanOrEquals(childIndex, filteredChild)
+        else
+            filterGreaterThan(childIndex, filteredChild)
+        end     
     end
+
+    filterLessThanOrEquals(insertIndex   : ZZ32, 
+                           filteredChild : Maybe[\Node[\Key,Value\]\]) 
+                          : Maybe[\Node[\Key,Value\]\] = do
+        if insertIndex = 0 then
+            filteredChild
+        else
+            newkeys = keys[0 # insertIndex]
+            newvalues = values[0 # insertIndex]
+            newchildren = children[0 # insertIndex].addRight(filteredChild) 
+            Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
+        end
+    end
+    
+    filterGreaterThan(insertIndex   : ZZ32, 
+                      filteredChild : Maybe[\Node[\Key,Value\]\]) 
+                     : Maybe[\Node[\Key,Value\]\] = do
+        if insertIndex = keys.size() then
+            filteredChild
+        else
+            newkeys = keys[insertIndex:]
+            newvalues = values[insertIndex:]
+            newchildren = children[(insertIndex + 1):].addLeft(filteredChild) 
+            Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
+        end
+    end    
     
     (* transform the index from binarySearch(list, key)
      * into an insertion point.
@@ -206,10 +232,10 @@ end
 
 
 run(args:String...):() = do
-    leaf = LeafNode[\ZZ32,ZZ32\](3,5,1)
+    leaf = LeafNode[\ZZ32,ZZ32\](7,1,3)
     println leaf.toString()
     println leaf.find(3)
-    println leaf.find(5)    
+    println leaf.find(7)    
     testList = emptyList[\ZZ32\]().addRight(5).addRight(10).addRight(15).addRight(20)
     assert(binarySearch[\ZZ32\](testList, 2), -1)
     assert(binarySearch[\ZZ32\](testList, 5), 0)
@@ -220,12 +246,13 @@ run(args:String...):() = do
     assert(binarySearch[\ZZ32\](testList, 17), -4)
     assert(binarySearch[\ZZ32\](testList, 20), 3)
     assert(binarySearch[\ZZ32\](testList, 23), -5)
+
+    println leaf.insert(5,2,3).toString()    
+    (** tree = SkipTree[\ZZ32,ZZ32\](Just[\Node[\ZZ32,ZZ32\]\](leaf)) *)
     
-    tree = SkipTree[\ZZ32,ZZ32\](Just[\Node[\ZZ32,ZZ32\]\](leaf))
-    for i <- 1:10 do
-        println tree.randomLevel()
-    end
-    print tree.randomLevel()    
+    
+        
+    
 end (* run(args:String...):() *)
 
 
