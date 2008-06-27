@@ -78,14 +78,15 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
 //        "ImportEmptyApiWhichImportsNonEmptyApiNonEmpty.fss");
     
     public static TestSuite suite() {
-        TestCaseDir basisTests = new TestCaseDir(STATIC_TESTS_DIR, FAILING_SYNTAXABSTRACTIONS, null); 
+        TestCaseDir xml = new TestCaseDir(STATIC_TESTS_DIR+"/xml/", Collections.<String>emptyList(), null);
+        TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"/regex/", Collections.<String>emptyList(), null);
+        TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"/sql/", Collections.<String>emptyList(), null);
+        TestCaseDir basisTests = new TestCaseDir(STATIC_TESTS_DIR, FAILING_SYNTAXABSTRACTIONS, null);
+        
         StaticTestSuite suite = new StaticTestSuite("SyntaxAbstractionJUTestAll", basisTests);
-//        TestCaseDir xml = new TestCaseDir(STATIC_TESTS_DIR+"/xml/", Collections.<String>emptyList(), null);
-//        suite.addStaticTests(xml);
-//        TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"/regex/", Collections.<String>emptyList(), null);
-//        suite.addStaticTests(regex);
-//        TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"/sql/", Collections.<String>emptyList(), null);
-//        suite.addStaticTests(sql);
+        suite.addStaticTests(xml);
+        // suite.addStaticTests(regex);
+        // suite.addStaticTests(sql);
         return suite;
     }
     
