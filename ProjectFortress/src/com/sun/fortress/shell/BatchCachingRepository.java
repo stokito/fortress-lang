@@ -33,7 +33,7 @@ import com.sun.fortress.compiler.RepositoryUpdater;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;

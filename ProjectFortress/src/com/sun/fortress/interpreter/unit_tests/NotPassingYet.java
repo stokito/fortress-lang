@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 
 public class NotPassingYet {
 

@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.MultiMap;

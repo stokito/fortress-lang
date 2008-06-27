@@ -40,7 +40,7 @@ import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.env.WorseEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;

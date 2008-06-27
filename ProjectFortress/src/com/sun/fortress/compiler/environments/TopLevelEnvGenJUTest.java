@@ -25,7 +25,7 @@ import junit.framework.TestCase;
 
 import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;

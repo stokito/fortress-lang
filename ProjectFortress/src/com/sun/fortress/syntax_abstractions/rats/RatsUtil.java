@@ -47,7 +47,7 @@ import xtc.tree.Comment;
 import xtc.tree.Printer;
 import xtc.type.JavaAST;
 
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.useful.Useful;
 

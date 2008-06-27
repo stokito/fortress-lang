@@ -26,7 +26,7 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.compiler.StaticTestSuite;
 import com.sun.fortress.compiler.StaticTestSuite.TestCaseDir;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 
 public class SyntaxAbstractionJUTestAll extends TestCase {
     

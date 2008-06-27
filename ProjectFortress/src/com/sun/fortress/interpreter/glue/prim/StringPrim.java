@@ -67,7 +67,7 @@ public static final class ThrowError extends Util.S2V {
 
 public static final class GetEnvironment extends Util.SS2S {
     protected String f(String name, String defaultValue) {
-        return com.sun.fortress.interpreter.drivers.ProjectProperties.get(name,defaultValue);
+        return com.sun.fortress.repository.ProjectProperties.get(name,defaultValue);
     }
 }
 }

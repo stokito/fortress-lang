@@ -22,7 +22,7 @@ import java.util.List;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.TestCaseWrapper;
 
 public class StaticJUTest extends TestCaseWrapper {

@@ -33,7 +33,7 @@ import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.shell;
 
+import com.sun.fortress.repository.ProjectProperties;
 import java.io.*;
 import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
