@@ -15,38 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api SyntaxOption
+(* Helper library to create fortress ast nodes. Somewhat like nodes_util.NodeFactory *)
+api FortressAstUtil
 
-  import FortressAst.{...}
-  import FortressSyntax.{Expression}
+import List.{...}
+import FortressAst.{...}
 
-  grammar Helloworld extends { A, Expression }
-      Expr |Expr:=
-        Hello? world
-        do
-        if h <- Hello then
-            StringLiteralExpr(h.in_text " " world.in_text ", ")
-          else
-            StringLiteralExpr(world.in_text ", ")
-          end
-        end
-      | Foo? bar <[
-          if h <- Foo then
-            "h bar"
-          else
-            "bar"
-          end
-        ]>
-
-  end
- 
-  grammar A
-      Hello :StringLiteralExpr:=
-         hello       do StringLiteralExpr(hello.in_text) end
-       | skjfjhfdskh do StringLiteralExpr("hello") end
-
-      Foo :StringLiteralExpr:=
-         foo <[ foo ]>
-  end
+LooseJuxt1(exprs:List[\Expr\])
 
 end

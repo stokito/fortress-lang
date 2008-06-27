@@ -73,7 +73,7 @@ import edu.rice.cs.plt.tuple.Option;
 @SuppressWarnings("unchecked")
 public class FortressObjectASTVisitor<T> {
 
-    private static final String VALUE_FIELD_NAME = "val";
+    private static final String VALUE_FIELD_NAME = "in_text";
     private Span span;
 
     public FortressObjectASTVisitor(Span span) {
@@ -189,25 +189,25 @@ public class FortressObjectASTVisitor<T> {
       body:Expr
      */
     private T dispatchFnDef(FObject value) {
-        FValue v1 = getField(value, "mods");
+        FValue v1 = getField(value, "in_mods");
         List<Modifier> mods = dispatchList((FObject)v1);
-        FValue v2 = getField(value, "name");
+        FValue v2 = getField(value, "in_name");
         IdOrOpOrAnonymousName name = new FortressObjectASTVisitor<IdOrOpOrAnonymousName>(this.span).dispatch((FObject)v2);
-        FValue v3 = getField(value, "staticParams");
+        FValue v3 = getField(value, "in_staticParams");
         List<StaticParam> staticParams = dispatchList((FObject)v3);
-        FValue v4 = getField(value, "params");
+        FValue v4 = getField(value, "in_params");
         List<Param> params = dispatchList((FObject)v4);
-        FValue v5 = getField(value, "returnType");
+        FValue v5 = getField(value, "in_returnType");
         Option<Type> returnType = dispatchMaybe((FObject)v5);
-        FValue v6 = getField(value, "throwsClause");
+        FValue v6 = getField(value, "in_throwsClause");
         Option<List<BaseType>> throwsClause = dispatchMaybe((FObject)v6);
-        FValue v7 = getField(value, "whereClause");
+        FValue v7 = getField(value, "in_where");
         WhereClause whereClause = new FortressObjectASTVisitor<WhereClause>(this.span).dispatch((FObject)v7);
-        FValue v8 = getField(value, "acontract");
+        FValue v8 = getField(value, "in_contract");
         Contract acontract = new FortressObjectASTVisitor<Contract>(this.span).dispatch((FObject)v8);
-        FValue v9 = getField(value, "selfName");
+        FValue v9 = getField(value, "in_selfName");
         String selfName = new FortressObjectASTVisitor<String>(this.span).dispatch((FValue)v9);
-        FValue v10 = getField(value, "body");
+        FValue v10 = getField(value, "in_body");
         Expr body = new FortressObjectASTVisitor<Expr>(this.span).dispatch((FObject)v10);
         return (T) new FnDef(this.span, mods, name, staticParams, params, returnType,
                               throwsClause, whereClause, acontract, selfName, body);
@@ -218,39 +218,39 @@ public class FortressObjectASTVisitor<T> {
     }
 
     private T dispatchFnRef(FObject value) {
-        FValue v1 = getField(value, "fns");
+        FValue v1 = getField(value, "in_fns");
         List<Id> fns = dispatchList((FObject)v1);
         Id originalName = fns.get(0); // HACK should be: (Id) dispatch((FObject)getField(value, "originalName")); //???
-        FValue v2 = getField(value, "staticArgs");
+        FValue v2 = getField(value, "in_staticArgs");
         List<StaticArg> staticArgs = dispatchList((FObject)v2);
         return (T) new FnRef(this.span, originalName, fns, staticArgs);
     }
 
     private T dispatchOpRef(FObject value) {
-        FValue v1 = getField(value, "ops");
+        FValue v1 = getField(value, "in_ops");
         List<OpName> ops = dispatchList((FObject)v1);
         OpName originalName = ops.get(0); // HACK should be: (OpName) dispatch(getField(value, "originalName")); //???
-        FValue v2 = getField(value, "staticArgs");
+        FValue v2 = getField(value, "in_staticArgs");
         List<StaticArg> staticArgs = dispatchList((FObject)v2);
         return (T) new OpRef(this.span, originalName, ops, staticArgs);
     }
 
     private T dispatchLooseJuxt(FObject value) {
-        FValue v = getField(value, "exprs");
+        FValue v = getField(value, "in_exprs");
         List<Expr> exprs = dispatchList((FObject)v);
         return (T) new LooseJuxt(this.span, exprs);
     }
 
     private T dispatchTightJuxt(FObject value) {
-        FValue v = getField(value, "exprs");
+        FValue v = getField(value, "in_exprs");
         List<Expr> exprs = dispatchList((FObject)v);
         return (T) NodeFactory.makeTightJuxt(this.span, exprs);
     }
 
     private T dispatchOpExpr(FObject value) {
-        FValue v1 = getField(value, "op");
+        FValue v1 = getField(value, "in_op");
         OpRef opRef = new FortressObjectASTVisitor<OpRef>(this.span).dispatch((FObject)v1);
-        FValue v2 = getField(value, "args");
+        FValue v2 = getField(value, "in_args");
         List<Expr> exprs = dispatchList((FObject) v2);
         return (T) new OpExpr(this.span, opRef, exprs);
     }
@@ -282,9 +282,9 @@ public class FortressObjectASTVisitor<T> {
     }
 
     private T dispatchTraitType(FObject value) {
-        FValue v1 = getField(value, "name");
+        FValue v1 = getField(value, "in_name");
         Id name = new FortressObjectASTVisitor<Id>(this.span).dispatch((FObject)v1);
-        FValue v2 = getField(value, "args");
+        FValue v2 = getField(value, "in_args");
         List<StaticArg> staticArgs = dispatchList((FObject) v2);
         return (T) new TraitType(name, staticArgs);
     }
@@ -301,30 +301,30 @@ public class FortressObjectASTVisitor<T> {
         return (T) new Contract();
     }
     private T dispatchAPIName(FObject value) {
-        FValue v1 = getField(value, "ids");
+        FValue v1 = getField(value, "in_ids");
         List<Id> ids = dispatchList((FObject)v1);
         return (T) new APIName(this.span, ids);
     }
 
     private T dispatchId(FObject value) {
-        FValue v1 = getField(value, "apiName");
+        FValue v1 = getField(value, "in_api");
         Option<APIName> apiName = dispatchMaybe((FObject)v1);
-        FValue v2 = getField(value, "name");
+        FValue v2 = getField(value, "in_text");
         String id = ((FString) v2).getString();
         return (T) new Id(this.span, apiName, id);
     }
 
     private T dispatchOp(FObject value) {
-        FValue v1 = getField(value, "text");
-        FValue v2 = getField(value, "fixity");
+        FValue v1 = getField(value, "in_text");
+        FValue v2 = getField(value, "in_fixity");
         Option<Fixity> fixity = dispatchMaybe((FObject) v2);
         return (T) new Op(this.span, v1.getString(), fixity);
     }
 
     private T dispatchEnclosing(FObject value) {
-        FValue v1 = getField(value, "open");
+        FValue v1 = getField(value, "in_open");
         Op op1 = new FortressObjectASTVisitor<Op>(this.span).dispatch((FObject)v1);
-        FValue v2 = getField(value, "close");
+        FValue v2 = getField(value, "in_close");
         Op op2 = new FortressObjectASTVisitor<Op>(this.span).dispatch((FObject)v2);
         return (T) new Enclosing(this.span, op1, op2);
     }

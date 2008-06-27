@@ -18,6 +18,7 @@
 api SyntaxTest
 
   import FortressAst.{...}
+  import FortressAstUtil.{...}
   import FortressSyntax.{Expression}
   import List.{...}
 
@@ -30,13 +31,15 @@ api SyntaxTest
           apiName:APIName = APIName(ids1)
           name:Id = Id(Just[\APIName\](apiName), "print")
           exprs: List[\Expr\] = emptyList[\Expr\](2)
-          exprs1: List[\Expr\] = exprs.addRight(FnRef( <| name |> , emptyList[\StaticArg\]()))
+          exprs1: List[\Expr\] = exprs.addRight(FnRef( 0, Id(Nothing[\APIName\], "fn"), <| name |> , emptyList[\StaticArg\]()) asif Expr)
           es:List[\Expr\] = if v <- very then
-                                       exprs1.addRight(StringLiteralExpr(Fortress.val " " is.val " " v.val " " a.val b.val " " indeed.val " " Verys " " c.val))
+                                       exprs1.addRight(StringLiteralExpr(Fortress.in_text " " is.in_text " " v.in_text " " a.in_text b.in_text " " indeed.in_text " " Verys " " c.in_text) asif Expr)
                                      else
-                                       exprs1.addRight(StringLiteralExpr(Fortress.val " " is.val " " a.val b.val " " indeed.val " " Verys " " c.val " "))
+                                       exprs1.addRight(StringLiteralExpr(Fortress.in_text " " is.in_text " " a.in_text b.in_text " " indeed.in_text " " Verys " " c.in_text " ") asif Expr)
                                      end
-          LooseJuxt(es)
+          LooseJuxt1(es)
+          (* LooseJuxt1(emptyList[\Expr\]()) *)
+
         end
 
       Verys :Expr:= 

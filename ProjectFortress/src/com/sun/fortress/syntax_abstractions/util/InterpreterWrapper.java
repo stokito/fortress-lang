@@ -127,6 +127,8 @@ public class InterpreterWrapper {
         c.getDecls().clear();
         c.getDecls().addAll(decls);
 
+        Debug.debug( 2, "Imports for transformation component: " + c.getImports() );
+
         //  try {
         //   System.err.println(writeJavaAST(c));
         //  } catch (IOException e1) {
