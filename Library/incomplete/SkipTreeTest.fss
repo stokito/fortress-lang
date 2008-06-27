@@ -1,0 +1,30 @@
+component SkipTreeTest
+import SkipTree.{...}
+import List.{...}
+export Executable
+
+run(args:String...):() = do
+    leaf = LeafNode[\ZZ32,ZZ32\](7,1,3)
+    println leaf.toString()
+    println leaf.find(3)
+    println leaf.find(7)    
+    testList = emptyList[\ZZ32\]().addRight(5).addRight(10).addRight(15).addRight(20)
+    assert(binarySearch[\ZZ32\](testList, 2), -1)
+    assert(binarySearch[\ZZ32\](testList, 5), 0)
+    assert(binarySearch[\ZZ32\](testList, 7), -2)
+    assert(binarySearch[\ZZ32\](testList, 10), 1)
+    assert(binarySearch[\ZZ32\](testList, 13), -3)
+    assert(binarySearch[\ZZ32\](testList, 15), 2)
+    assert(binarySearch[\ZZ32\](testList, 17), -4)
+    assert(binarySearch[\ZZ32\](testList, 20), 3)
+    assert(binarySearch[\ZZ32\](testList, 23), -5)
+
+    println leaf.insert(5,2,4).toString()    
+    (** tree = SkipTree[\ZZ32,ZZ32\](Just[\Node[\ZZ32,ZZ32\]\](leaf)) *)
+    
+    
+        
+    
+end (* run(args:String...):() *)
+
+end (* component SkipTreeTest *)

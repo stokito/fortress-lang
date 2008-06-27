@@ -1,43 +1,41 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
 component SkipTree
 import List.{...}
-export Executable
 
 
-object SkipTree[\Key,Value\](root : Maybe[\Node[\Key,Value\]\])
+export SkipTree
 
-    (** Takes a queryKey as input and returns either a Just[\Value\]
+trait SkipTree[\Key,Value\]
+
+    (** Takes a querykey as input and returns either a Just[\Value\]
       * object if the (key,value) pair lives in this map, or
       * returns Nothing[\Value\] otherwise.
       *)
-    find(queryKey : Key) : Maybe[\Value\] = do
-        typecase root of    
-            Just[\Node[\Key,Value\]\] => root.getVal().find(queryKey)
-            else => Nothing[\Value\]
-        end
-    end
+    find(querykey : Key) : Maybe[\Value\]
 
-    (** Takes a newKey and newValue as input and returns a 
+    (** Takes a newkey and newvalue as input and returns a 
       * new skip tree with the (key, value) pair inserted.
-      * Currently, if newKey already exists in the tree,
-      * then this operation does not insert (key, newValue)
+      * Currently, if newkey already exists in the tree,
+      * then this operation does not insert (key, newvalue)
       * into the tree.
       *)
-    insert(newKey : Key, newValue : Value) : SkipTree[\Key,Value\] = do
-        newHeight = randomLevel()
-        typecase root of
-            Just[\Node[\Key,Value\]\] =>
-                typecase exists = root.getVal().find(newKey) of
-                    Just[\Value\] => self
-                    else =>
-                        root' = root.getVal().insert(newKey,newValue,newHeight)
-                        SkipTree[\Key,Value\](Just[\Node[\Key,Value\]\](root'))
-                end
-            else =>                
-                root' = LeafNode[\Key,Value\](newKey,newValue,newHeight)
-                SkipTree[\Key,Value\](Just[\Node[\Key,Value\]\](root'))
-        end
-    end
-
+    insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\]
 
     (**
      *  Return a random level >= 1 with a negative binomial distribution.
@@ -49,8 +47,38 @@ object SkipTree[\Key,Value\](root : Maybe[\Node[\Key,Value\]\])
         end
         level
     end
+
+end (* trait SkipTree[\Key,Value\] *)
+
+
+object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTree[\Key,Value\] }
+
+    find(querykey : Key) : Maybe[\Value\] = root.find(querykey)
+
+    insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\] = do
+        newheight = randomLevel()
+        typecase exists = root.find(newkey) of
+            Just[\Value\] => self
+            else =>
+                root' = root.insert(newkey,newvalue,newheight)
+                NonEmptySkipTree[\Key,Value\](root')
+        end
+    end
     
 end
+
+object EmptySkipTree[\Key,Value\] extends { SkipTree[\Key,Value\] }
+
+    find(querykey : Key) : Maybe[\Value\] = Nothing[\Value\]
+    
+    insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\] = do
+        newheight = randomLevel()
+        root = LeafNode[\Key,Value\](newkey, newvalue, newheight)     
+        NonEmptySkipTree[\Key,Value\](root')        
+    end
+
+end
+
 
 object Filter[\Key\](pivot : Key, lessThanOrEquals : Boolean)
 
@@ -71,82 +99,97 @@ object Node[\Key,Value\](keys     : List[\Key\],
 
     getter toString() : String = keys "" values "" children " h" height
 
-    (** Takes a queryKey as input and returns either a Just[\Value\]
+    (** Takes a querykey as input and returns either a Just[\Value\]
       * object if the (key,value) pair lives in this map, or
       * returns Nothing[\Value\] otherwise.
       *)    
-    find(queryKey : Key) : Maybe[\Value\] = do
-        parentIndex = binarySearch[\Key\](keys, queryKey)
+    find(querykey : Key) : Maybe[\Value\] = do
+        parentIndex = binarySearch[\Key\](keys, querykey)
         if parentIndex >= 0 then
             Just[\Value\](values[parentIndex])
         else
             childIndex = insertionPoint(parentIndex)
             typecase child = children[childIndex] of
-                Just[\Value\] => child.getVal().find(queryKey)
+                Just[\Value\] => child.get().find(querykey)
                 else => Nothing[\Value\]
             end
         end
     end
 
 
-    (** Takes a newKey and newValue as input and returns a 
+    (** Takes a newkey and newvalue as input and returns a 
       * new node with the (key, value) pair inserted.
+      * Currently, if newkey already exists in the tree,
+      * then this operation does not insert (key, newvalue)
+      * into the tree.      
       *)
-    insert(newKey:Key, newValue:Value, newHeight:ZZ32) : Node[\Key,Value\] = do
-        if newHeight < height then
-            insertBelowHeight(newKey,newValue,newHeight)
-        elif newHeight = height then
-            insertEqualHeight(newKey,newValue)
+    insert(newkey:Key, newvalue:Value, newheight:ZZ32) : Node[\Key,Value\] = do
+        if newheight < height then
+            insertBelowHeight(newkey,newvalue,newheight)
+        elif newheight = height then
+            insertEqualHeight(newkey,newvalue)
         else
-            insertAboveHeight(newKey,newValue,newHeight)
+            insertAboveHeight(newkey,newvalue,newheight)
         end    
     end
 
-    (* perform the insert operation when self.height > newHeight *)
-    private insertBelowHeight(newKey:Key, newValue:Value, newHeight:ZZ32) : Node[\Key,Value\] = do
-        i = insertionPoint(binarySearch[\Key\](keys,newKey))
+    (* perform the insert operation when self.height > newheight *)
+    private insertBelowHeight(newkey:Key, newvalue:Value, newheight:ZZ32) : Node[\Key,Value\] = do
+        i = insertionPoint(binarySearch[\Key\](keys,newkey))
         newchild = typecase child = children[i] of    
-            Just[\Node[\Key,Value\]\] => child.getVal().insert(newKey,newValue,newHeight)
-            else => LeafNode[\Key,Value\](newKey,newValue,newHeight)
+            Just[\Node[\Key,Value\]\] => child.get().insert(newkey,newvalue,newheight)
+            else => LeafNode[\Key,Value\](newkey,newvalue,newheight)
         end
         newchildren = children[0 # i].addRight(Just[\Node[\Key,Value\]\](newchild)) || children[(i + 1):]
         Node[\Key,Value\](keys,values,newchildren,height)
     end
 
-    (* perform the insert operation when self.height = newHeight *)
-    private insertEqualHeight(newKey:Key, newValue:Value) : Node[\Key,Value\] = do
-        i = insertionPoint(binarySearch[\Key\](keys,newKey))
-        newkeys = keys[0#i] || singleton[\Key\](newKey) || keys[i:]
-        newvalues = values[0#i] || singleton[\Value\](newValue) || values[i:]
-        (newleft, newright) = (filterChild(newKey, children[i], true), filterChild(newKey, children[i], false))
+    (* perform the insert operation when self.height = newheight *)
+    private insertEqualHeight(newkey:Key, newvalue:Value) : Node[\Key,Value\] = do
+        i = insertionPoint(binarySearch[\Key\](keys,newkey))
+        newkeys = keys[0#i] || singleton[\Key\](newkey) || keys[i:]
+        newvalues = values[0#i] || singleton[\Value\](newvalue) || values[i:]
+        (newleft, newright) = 
+                (filterChild(newkey, children[i], true),
+                 filterChild(newkey, children[i], false))
         leftchildren = children[0#i].addRight(newleft)
         rightchildren = children[(i + 1):].addLeft(newright)
         newchildren =  leftchildren || rightchildren
         Node[\Key,Value\](newkeys,newvalues,newchildren,height)
     end
 
-    private filterChild(newKey : Key, 
+    (* perform the insert operation when self.height < newheight *)
+    private insertAboveHeight(newkey:Key,newvalue:Value,newheight:ZZ32) : Node[\Key,Value\] = do
+        newkeys     = singleton[\Key\](newkey)
+        newvalues   = singleton[\Value\](newvalue)
+        (newleft,newright) = (filterChild(newkey, Just[\Node[\Key,Value\]\](self), true),
+                         filterChild(newkey, Just[\Node[\Key,Value\]\](self), false))
+        newchildren = emptyList[\Maybe[\Node[\Key,Value\]\]\]().addRight(newleft).addRight(newright)
+        Node[\Key,Value\](newkeys,newvalues,newchildren,newheight)
+    end
+
+    private filterChild(newkey : Key, 
                         target : Maybe[\Node[\Key,Value\]\],
                         lessThanOrEquals : Boolean)
                        : Maybe[\Node[\Key,Value\]\] = do
         typecase target of
-            Just[\Value\] =>
-                filter = Filter[\Key\](newKey, lessThanOrEquals) 
-                child.getVal().applyFilter(filter)
+            Just[\Node[\Key,Value\]\] =>
+                filter = Filter[\Key\](newkey, lessThanOrEquals) 
+                target.get().applyFilter(filter)
             else =>
                 Nothing[\Node[\Key,Value\]\]
         end    
     end
 
-    applyFilter(filter : Filter[\Key\]) : Maybe[\Node[\Key,Value\]\] = do
-        parentIndex = binarySearch(keys, filter.pivot)
+    private applyFilter(filter : Filter[\Key\]) : Maybe[\Node[\Key,Value\]\] = do
+        parentIndex = binarySearch[\Key\](keys, filter.pivot)
         childIndex = if (parentIndex >= 0 AND filter.lessThanOrEquals = false) then
             insertionPoint(parentIndex) + 1
         else
             insertionPoint(parentIndex)
         end
         filteredChild = typecase child = children[childIndex] of    
-            Just[\Node[\Key,Value\]\] => child.getVal().applyFilter(filter)
+            Just[\Node[\Key,Value\]\] => child.get().applyFilter(filter)
             else => child
         end
         if filter.lessThanOrEquals then
@@ -156,7 +199,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
         end     
     end
 
-    filterLessThanOrEquals(insertIndex   : ZZ32, 
+    private filterLessThanOrEquals(insertIndex   : ZZ32, 
                            filteredChild : Maybe[\Node[\Key,Value\]\]) 
                           : Maybe[\Node[\Key,Value\]\] = do
         if insertIndex = 0 then
@@ -169,7 +212,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
         end
     end
     
-    filterGreaterThan(insertIndex   : ZZ32, 
+    private filterGreaterThan(insertIndex   : ZZ32, 
                       filteredChild : Maybe[\Node[\Key,Value\]\]) 
                      : Maybe[\Node[\Key,Value\]\] = do
         if insertIndex = keys.size() then
@@ -185,7 +228,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
     (* transform the index from binarySearch(list, key)
      * into an insertion point.
      *)
-    insertionPoint(index : ZZ32) : ZZ32 = do
+    private insertionPoint(index : ZZ32) : ZZ32 = do
         if index >= 0 then index
         else |index| - 1 end
     end
@@ -224,7 +267,7 @@ end (** LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) **)
   *      Note that this guarantees that the return value will be >= 0
   *      if and only if the key is found. 
   **)
-binarySearch[\T\](list : List[\T\], key) : ZZ32 = do
+binarySearch[\T\](list : List[\T\], key : T) : ZZ32 = do
     if list.size() = 1 then (* base case *)
         if key < list[0] then -1
         elif key = list[0] then 0
@@ -242,29 +285,4 @@ binarySearch[\T\](list : List[\T\], key) : ZZ32 = do
 end 
 
 
-run(args:String...):() = do
-    leaf = LeafNode[\ZZ32,ZZ32\](7,1,3)
-    println leaf.toString()
-    println leaf.find(3)
-    println leaf.find(7)    
-    testList = emptyList[\ZZ32\]().addRight(5).addRight(10).addRight(15).addRight(20)
-    assert(binarySearch[\ZZ32\](testList, 2), -1)
-    assert(binarySearch[\ZZ32\](testList, 5), 0)
-    assert(binarySearch[\ZZ32\](testList, 7), -2)
-    assert(binarySearch[\ZZ32\](testList, 10), 1)
-    assert(binarySearch[\ZZ32\](testList, 13), -3)
-    assert(binarySearch[\ZZ32\](testList, 15), 2)
-    assert(binarySearch[\ZZ32\](testList, 17), -4)
-    assert(binarySearch[\ZZ32\](testList, 20), 3)
-    assert(binarySearch[\ZZ32\](testList, 23), -5)
-
-    println leaf.insert(5,2,2).toString()    
-    (** tree = SkipTree[\ZZ32,ZZ32\](Just[\Node[\ZZ32,ZZ32\]\](leaf)) *)
-    
-    
-        
-    
-end (* run(args:String...):() *)
-
-
-end
+end (* component SkipTree *)
