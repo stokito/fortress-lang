@@ -15,9 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.shell;
+package com.sun.fortress.repository;
 
-import com.sun.fortress.repository.StubRepository;
 import java.io.File;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -42,7 +41,6 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -52,7 +50,6 @@ import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.MultipleStaticError;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.useful.Debug;

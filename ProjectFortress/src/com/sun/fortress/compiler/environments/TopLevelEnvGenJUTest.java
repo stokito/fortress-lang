@@ -30,7 +30,7 @@ import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.shell.CacheBasedRepository;
+import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
 
 public class TopLevelEnvGenJUTest extends TestCase {
