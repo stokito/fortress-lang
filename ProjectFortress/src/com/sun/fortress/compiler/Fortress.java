@@ -39,8 +39,6 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
-import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;

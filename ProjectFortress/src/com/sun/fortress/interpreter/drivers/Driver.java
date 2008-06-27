@@ -90,8 +90,6 @@ import com.sun.fortress.nodes.VarAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
-import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.GraphRepository;
 import com.sun.fortress.useful.BASet;
@@ -162,7 +160,7 @@ public class Driver {
     public static FortressRepository extendedRepository(String s) {
        return specificRepository(ProjectProperties.SOURCE_PATH.prepend(s));
     }
-    
+
     public static FortressRepository extendedRepository(String s, FortressRepository cache ) {
        return specificRepository(ProjectProperties.SOURCE_PATH.prepend(s), cache);
     }

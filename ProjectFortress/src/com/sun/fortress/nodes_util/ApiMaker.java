@@ -14,7 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-package com.sun.fortress.shell;
+package com.sun.fortress.nodes_util;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
 
