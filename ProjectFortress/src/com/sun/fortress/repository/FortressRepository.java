@@ -38,19 +38,44 @@ public interface FortressRepository {
      */
     public Map<APIName, ApiIndex> apis();
 
+    /**
+     * Add a compiled/processed api to the repository.
+     */
     public void addApi(APIName name, ApiIndex definition);
 
+    /**
+     * Add a compiled/processed component to the repository.
+     */
     public void addComponent(APIName name, ComponentIndex definition);
 
+    /**
+     * Retrieve an api from the repository given a name.
+     */
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException;
 
+    /**
+     * Retrieve a component from the repository given a name.
+     */
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError;
+
+    /**
+     * Retrieve a component from the repository that is linked properly to other components.
+     */
     public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException, StaticError;
 
+    /**
+     * Return the last modification date of an api.
+     */
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException ;
 
+    /**
+     * Return the last modification date of a component.
+     */
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException ;
 
+    /**
+     * Debugging methods.
+     */
     public boolean setVerbose(boolean new_value);
     public boolean verbose();
 }
