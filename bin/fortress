@@ -34,4 +34,4 @@ else
 fi
 
 "$JAVACMD" $JAVA_FLAGS -cp "$CP" -Dfortress.static.analysis=1 \
-com.sun.fortress.shell.Shell "$@"
+com.sun.fortress.Shell "$@"
