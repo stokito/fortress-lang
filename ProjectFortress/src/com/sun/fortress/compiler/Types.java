@@ -32,6 +32,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
+import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
 
 /**
  * General-purpose type constants and constructors/destructors for types.
@@ -44,70 +45,70 @@ public final class Types {
     private Types() {}
 
     public static final Id ANY_NAME = makeId("AnyType", "Any");
-    public static final Id ARRAY_NAME = makeId("FortressLibrary","Array");
+    public static final Id ARRAY_NAME = makeId(fortressLibrary,"Array");
     public static final AnyType ANY = new AnyType();
     public static final BottomType BOTTOM = new BottomType();
-    public static final TraitType OBJECT = makeTraitType("FortressLibrary", "Object");
-    // public static final Type TUPLE = NodeFactory.makeTraitType("FortressBuiltin", "Tuple");
-    
+    public static final TraitType OBJECT = makeTraitType(fortressLibrary, "Object");
+    // public static final Type TUPLE = NodeFactory.makeTraitType(fortressBuiltin, "Tuple");
+
     public static final Domain BOTTOM_DOMAIN = NodeFactory.makeDomain(BOTTOM);
 
     public static final VoidType VOID = new VoidType();
-    public static final TraitType FLOAT_LITERAL = makeTraitType("FortressBuiltin", "FloatLiteral");
-    public static final TraitType INT_LITERAL = makeTraitType("FortressBuiltin", "IntLiteral");
-    public static final TraitType BOOLEAN = makeTraitType("FortressBuiltin", "Boolean");
-    public static final TraitType CHAR = makeTraitType("FortressBuiltin", "Char");
-    public static final TraitType STRING = makeTraitType("FortressBuiltin", "String");
-    public static final TraitType REGION = makeTraitType("FortressLibrary", "Region");
-    public static final TraitType EXCEPTION = makeTraitType("FortressLibrary", "Exception");
-    public static final TraitType CHECKED_EXCEPTION = makeTraitType("FortressLibrary", "CheckedException");
-    
+    public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin, "FloatLiteral");
+    public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin, "IntLiteral");
+    public static final TraitType BOOLEAN = makeTraitType(fortressBuiltin, "Boolean");
+    public static final TraitType CHAR = makeTraitType(fortressBuiltin, "Char");
+    public static final TraitType STRING = makeTraitType(fortressBuiltin, "String");
+    public static final TraitType REGION = makeTraitType(fortressLibrary, "Region");
+    public static final TraitType EXCEPTION = makeTraitType(fortressLibrary, "Exception");
+    public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary, "CheckedException");
+
     public static final LabelType LABEL = new LabelType();
-    
+
     public static final TraitType makeVarargsParamType(Type varargsType) {
         // TODO: parameterize?
-        return makeTraitType("FortressBuiltin", "ImmutableHeapSequence");
+        return makeTraitType(fortressBuiltin, "ImmutableHeapSequence");
     }
-    
+
     public static TraitType makeThreadType(Type typeArg) {
-        return makeTraitType(makeId("FortressBuiltin", "Thread"),
+        return makeTraitType(makeId(fortressBuiltin, "Thread"),
                              makeTypeArg(typeArg));
     }
-    
+
     public static Id getArrayKName(int k){
      String name = "Array"+k;
-     return makeId("FortressLibrary",name);
+     return makeId(fortressLibrary,name);
     }
-    
+
     public static TraitType makeArrayType(Type elem, Type indexed){
      return makeTraitType(ARRAY_NAME, makeTypeArg(elem),makeTypeArg(indexed));
     }
-    
+
     public static TraitType makeArrayKType(int k, List<StaticArg> args){
      return  makeTraitType(getArrayKName(k),args);
     }
-    
+
     /**
      * Create a type {@code FortressLibrary.Generator[\typeArg\]}.
      */
     public static TraitType makeGeneratorType(Type typeArg) {
-        return makeTraitType(makeId("FortressLibrary", "Generator"),
+        return makeTraitType(makeId(fortressLibrary, "Generator"),
                              makeTypeArg(typeArg));
     }
-    
+
     /**
      * Create a type {@code FortressLibrary.Condition[\typeArg\]}.
      */
     public static TraitType makeConditionType(Type typeArg) {
-        return makeTraitType(makeId("FortressLibrary", "Condition"),
+        return makeTraitType(makeId(fortressLibrary, "Condition"),
                              makeTypeArg(typeArg));
     }
-    
+
     /** Construct the appropriate type from a list of union elements. */
     public static Type makeUnion(Iterable<Type> disjuncts) {
         return MAKE_UNION.value(disjuncts);
     }
-    
+
     /** Construct the appropriate type from a list of union elements. */
     public static final Lambda<Iterable<Type>, Type> MAKE_UNION =
         new Lambda<Iterable<Type>, Type>() {
@@ -124,7 +125,7 @@ public final class Types {
     public static Type makeIntersection(Iterable<Type> conjuncts) {
         return MAKE_INTERSECTION.value(conjuncts);
     }
-    
+
     /** Construct the appropriate type from a list of intersection elements. */
     public static final Lambda<Iterable<Type>, Type> MAKE_INTERSECTION =
         new Lambda<Iterable<Type>, Type>() {
@@ -136,12 +137,12 @@ public final class Types {
             }
         }
     };
-    
+
     /** Treat an arbitrary type as a union and enumerate its elements. */
     public static Iterable<Type> disjuncts(Type t) {
         return t.accept(DISJUNCTS);
     }
-    
+
     /** Treat an arbitrary type as a union and enumerate its elements. */
     public static final NodeVisitorLambda<Iterable<Type>> DISJUNCTS =
         new NodeAbstractVisitor<Iterable<Type>>() {
@@ -155,7 +156,7 @@ public final class Types {
             return IterUtil.empty();
         }
     };
-    
+
     /** Treat an arbitrary type as an intersection and enumerate its elements. */
     public static Iterable<Type> conjuncts(Type t) {
         return t.accept(CONJUNCTS);
@@ -177,7 +178,7 @@ public final class Types {
         //    return IterUtil.empty();
         //}
     };
-    
+
     /**
      * Construct the appropriate type (void, a tuple, or the type itself) from a list of
      * tuple elements.
@@ -197,7 +198,7 @@ public final class Types {
             }
         }
     };
-    
+
     /**
      * Produce the union disjunct of the given vararg tuple at a certain arity.
      * This is the arity+1st element of a union equivalent to the vararg tuple
@@ -236,7 +237,7 @@ public final class Types {
             }
         }
     }
-    
+
     /**
      * Produce a map from keyword names to types.  The iteration order of the
      * map is identical to that of the KeywordType list.
@@ -252,7 +253,7 @@ public final class Types {
             return result;
         }
     }
-    
+
     /**
      * Construct a Domain from a single type representing the required arguments
      * and a keywords map representing the keyword arguments.
@@ -264,7 +265,7 @@ public final class Types {
         }
         return makeDomain(argsType, keywordList);
     }
-    
+
     /**
      * Construct a Domain from a single type representing the required arguments
      * and a list of KeywordTypes.  Unlike {@link NodeFactory#makeDomain}, does
@@ -295,8 +296,8 @@ public final class Types {
  public static Type makeTotalOperatorOrder(Type A, OpName op) {
 //  NodeFactory.makeTraitType(makeId("TotalOperater"), sargs)
 //  NodeFactory.makeOpArg("whoa");
-  
+
   return NI.nyi();
  }
-    
+
 }

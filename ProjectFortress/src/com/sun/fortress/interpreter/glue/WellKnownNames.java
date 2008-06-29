@@ -27,6 +27,14 @@ public class WellKnownNames {
     public static String arrayMaker(int rank) {
         return "__builtinFactory"+rank;
     }
+
+    public static String fortressLibrary = "FortressLibrary";
+    public static String fortressBuiltin = "FortressBuiltin";
+
+    public static final String[] defaultLibrary =
+        { fortressLibrary, "AnyType", fortressBuiltin, "NatReflect",
+          "NativeArray" };
+
     public static String varargsFactoryName = "__immutableFactory1";
     public static String arrayElementTypeName = "T";
     public static String arrayGetter = "get";

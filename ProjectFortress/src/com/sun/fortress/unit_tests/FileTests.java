@@ -29,6 +29,7 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.Driver;
@@ -99,7 +100,7 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     APIName apiname = NodeFactory.makeAPIName(s);
-                    FortressRepository fr = Driver.extendedRepository( path, cache );
+                    FortressRepository fr = Fortress.extendedRepository( path, cache );
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
 
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
@@ -195,33 +196,6 @@ public class FileTests {
         }
     }
 
-    public static class JSTTest extends TestCase {
-        String s;
-        String d;
-
-        public JSTTest(String d, String s) {
-            super("testFile");
-            this.s = s;
-            this.d = d;
-        }
-
-        public String getName() {
-            return d + "/" + s;
-        }
-
-        public void testFile() throws Throwable {
-            System.out.println(s + " test");
-            BufferedReader br = new BufferedReader(new FileReader(d + "/" + s + ".tfs"));
-            FortressRepository fr = Driver.defaultRepository();
-            Lex lex = new Lex(br);
-            Unprinter up = new Unprinter(lex);
-            lex.name(); // Inhale opening parentheses
-            CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
-            Driver.runProgram(fr, p, true, false, new ArrayList<String>());
-        }
-
-    }
-
     public static void main(String[] args) throws IOException {
         junit.textui.TestRunner.run(FileTests.suite("tests", true, false));
         junit.textui.TestRunner.run(FileTests.suite("not_passing_yet", false, true));
@@ -241,26 +215,6 @@ public class FileTests {
 
         FortressRepository cache = new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR );
 
-        /*
-        FortressRepository fr =
-            Driver.extendedRepository(dir.getCanonicalPath());
-            */
-
-//            ProjectProperties.noStaticAnalysis ?
-//                    new BatchCachingRepository(
-//                          //new PathBasedSyntaxTransformingRepository
-//                          (ProjectProperties.SOURCE_PATH.prepend(dir)),
-//                          new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
-//                          )
-//                    :
-//            new BatchCachingAnalyzingRepository(false,
-//                (ProjectProperties.SOURCE_PATH.prepend(dir)),
-//                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
-//                );
-
-
-        // fr.addRootApis();
-
         for (int i = 0; i < files.length; i++) {
             double f = i / (double) files.length;
             if (f < begin || f >= end)
@@ -274,9 +228,6 @@ public class FileTests {
                     //System.err.println("Adding " + s);
                     String testname = s.substring(0, l);
                     suite.addTest(new FSSTest(cache, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
-                } else if (s.endsWith(".tfs")) {
-                    int l = s.lastIndexOf(".tfs");
-                    suite.addTest(new JSTTest(dirname, s.substring(0, l)));
                 } else {
                     System.out.println("Not compiling file " + s);
                 }

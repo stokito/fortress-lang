@@ -50,7 +50,6 @@ import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.MultipleStaticError;
-import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.useful.Debug;
 
@@ -66,6 +65,8 @@ import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.GraphNode;
 import com.sun.fortress.repository.graph.GraphVisitor;
 
+import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
+
 /* A graph-based repository. This repository determines the dependency structure
  * before any components/apis are compiled so that they can be compiled in an
  * efficient and deterministic order.
@@ -80,7 +81,7 @@ import com.sun.fortress.repository.graph.GraphVisitor;
 public class GraphRepository extends StubRepository implements FortressRepository {
 
         /* files that are dependancies of everything */
-	private static final String[] roots = {"FortressLibrary", "AnyType", "FortressBuiltin", "NatReflect", "NativeArray" };
+    private static final String[] roots = defaultLibrary;
 
         /* stores the nodes and their relationships */
 	private Graph<GraphNode> graph;
@@ -142,7 +143,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 needUpdate = true;
             }
         }
-        
+
         private class CacheVisitor implements GraphVisitor<Long, FileNotFoundException>{
             public Long visit(ApiGraphNode node) throws FileNotFoundException {
                 return getCacheDate(node);
@@ -156,7 +157,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         private long getFileDate( ComponentGraphNode node ) throws FileNotFoundException {
             return findFile( node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX ).lastModified();
         }
-        
+
         private long getFileDate( ApiGraphNode node ) throws FileNotFoundException {
             return findFile( node.getName(), ProjectProperties.API_SOURCE_SUFFIX ).lastModified();
         }
@@ -355,7 +356,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             File source = findFile(node.getName(), ProjectProperties.API_SOURCE_SUFFIX);
             return source.lastModified() > now;
         }
-        
+
         private boolean newer( ComponentGraphNode node, long now ) throws FileNotFoundException {
             File source = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
             return source.lastModified() > now;
@@ -584,11 +585,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 File file = findFile(api_name, ProjectProperties.COMP_SOURCE_SUFFIX);
                 GraphRepository g1 = new GraphRepository( this.path, this.cache );
                 /* FIXME: hack to prevent infinite recursion */
-                Driver.setCurrentInterpreterRepository( g1 );
+                Fortress.setCurrentInterpreterRepository( g1 );
 		Result result = FortressParser.parse(api_name, file, new GlobalEnvironment.FromRepository( g1 ), verbose());
 		// Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository(this), verbose());
                 /* FIXME: hack to prevent infinite recursion */
-                Driver.setCurrentInterpreterRepository( this );
+                Fortress.setCurrentInterpreterRepository( this );
 		if (result.isSuccessful()) {
                     Debug.debug( 1, "Expanded component " + node );
 			Iterator<Component> components = result.components().iterator();
@@ -650,7 +651,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 return Parser.parseFile(api_name, file);
         }
 
-        /* syntaxExpand will parse a component for us, so this method is not needed */ 
+        /* syntaxExpand will parse a component for us, so this method is not needed */
 	private Component parseComponent( ComponentGraphNode node ) throws StaticError {
 		try{
 		        APIName api_name = node.getName();
@@ -670,7 +671,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 	}
 
         /* return a parsed api */
-	private Api parseApi( ApiGraphNode node ){ 
+	private Api parseApi( ApiGraphNode node ){
 		try{
 		        APIName api_name = node.getName();
 			File fdot = findFile(api_name, ProjectProperties.API_SOURCE_SUFFIX);
@@ -686,7 +687,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 			throw new WrappedException(e);
 		}
 	}
-    
+
 	public Map<APIName, ApiIndex> apis() {
 		return cache.apis();
 	}
@@ -730,7 +731,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 if ( errors.iterator().hasNext() ){
                     throw new MultipleStaticError(errors);
                 }
-                
+
 //		for ( StaticError e : errors ){
 //			System.err.println("Error while compiling apis: " + e);
 //		}
@@ -765,7 +766,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		return com.sun.fortress.syntax_abstractions.parser.PreParser.getImportedApis(node.getName(), fdot);
             }
         }
-     
+
         /* add a compiled api to the repository */
 	public void addApi(APIName name, ApiIndex definition) {
 		if ( ! graph.contains(new ApiGraphNode(name)) ){
@@ -890,7 +891,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 		node.setComponent(component);
 		return builder.buildComponentIndex( component, fdot.lastModified() );
 	}
-	
+
 	public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException {
 		ComponentGraphNode node = addComponentGraph(name);
 		return indexOf(node);
