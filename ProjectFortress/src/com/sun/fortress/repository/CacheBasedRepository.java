@@ -107,13 +107,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         apis.put(name, def);
 
         try {
-
-            if (ast instanceof Component) {
-                ASTIO.writeJavaAst(ast, compFileName(ast.getName() ));
-            }
-            else { // ast instanceof Api
-                ASTIO.writeJavaAst(ast, apiFileName(ast.getName() ));
-            }
+            ASTIO.writeJavaAst(ast, apiFileName(ast.getName() ));
         } catch (IOException e) {
             throw new ShellException(e);
         }
@@ -124,7 +118,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         APIName actual = ast.getName();
         if (! actual.equals(name)) {
             boolean flag = actual.equals(name);
-            throw new RepositoryError(ast.getName() + " cannot be cached under name " + name);
+            throw new RepositoryError(actual + " cannot be cached under name " + name);
         }
     }
 
@@ -142,8 +136,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         components.put(name, def);
 
         try {
-            name = ast.getName();
-            ASTIO.writeJavaAst(ast, compFileName(name));
+            ASTIO.writeJavaAst(ast, compFileName(ast.getName()));
         } catch (IOException e) {
             throw new ShellException(e);
         }

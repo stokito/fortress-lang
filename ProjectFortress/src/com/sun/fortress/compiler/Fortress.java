@@ -315,27 +315,11 @@ public class Fortress {
   return IterUtil.empty();
  }
 
- public Iterable<? extends StaticError>  run(Path path, String componentName, boolean test, List<String> args) {
+ public Iterable<? extends StaticError>  run(Path path, APIName componentName, boolean test, List<String> args) {
   FortressRepository bcr = Driver.specificRepository(path);
 
-                /*
-  if (! (_bcr instanceof BatchCachingAnalyzingRepository) ) {
-   throw new ProgramError("Please set property fortress.static.analysis=1.");
-  }
-                */
-
-  // BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
-                /*
-  bcr.setVerbose(ProjectProperties.debug);
-  Parser.Result result = compileInner(bcr, componentName);
-  if (!result.isSuccessful()) { return result.errors(); }
-
-  if (bcr.verbose())
-   System.err.println("Parsing done.");
-                */
-
   try {
-   CompilationUnit cu = bcr.getLinkedComponent(NodeFactory.makeAPIName(componentName)).ast();
+   CompilationUnit cu = bcr.getLinkedComponent(componentName).ast();
    Driver.runProgram(bcr, cu, test, args);
   } catch (Throwable th) {
    // TODO FIXME what is the proper treatment of errors/exceptions etc.?
