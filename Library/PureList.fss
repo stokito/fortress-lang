@@ -51,6 +51,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
   append(f:List[\E\]): List[\E\]
+  opr ||(self, other:List[\E\]): List[\E\]     
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]
   take(n:ZZ32): List[\E\]
@@ -128,6 +129,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
   seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
+  opr ||(self, other:List[\E\]): List[\E\] = append(other)     
   append(f:List[\E\]): PureList[\E\] =
       append(f.generate[\PureList[\E\]\](PLConcat[\E\],singleton[\E\]))
   append(f:PureList[\E\]): PureList[\E\] =
