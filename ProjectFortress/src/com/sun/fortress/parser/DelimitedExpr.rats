@@ -114,17 +114,32 @@ Expr DelimitedExpr =
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
                               Option.some(a1), compare, a3, _else);
      }
+   / <ErrorProduction1>
+     case w Expr (w (Encloser / Op))? w do w CaseClauses (w CaseElse)? w end
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "In a case expression, 'do' is used instead of 'of'.");
+     }
    / case w most w a1:(Encloser / Op) w of w a2:CaseClauses w end
      { Option<OpRef> compare = Option.some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a1)));
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
                               Option.<Expr>none(), compare, a2,
                               Option.<Block>none());
      }
+   / <ErrorProduction2>
+     case w most w (Encloser / Op) w do w CaseClauses w end
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "In an extremum expression, 'do' is used instead of 'of'.");
+     }
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
-       w end
+     w end
      { Option<Block> caseElse = Option.wrap(a3);
        yyValue = new Typecase(createSpan(yyStart,yyCount), false, a1.getA(),
                               a1.getB(), a2, caseElse);
+     }
+   / <ErrorProduction3>
+     typecase w TypecaseBindings w do w TypecaseClauses (br CaseElse)? w end
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "In a typecase expression, 'do' is used instead of 'of'.");
      }
    / <TRY> try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
