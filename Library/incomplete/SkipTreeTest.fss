@@ -26,7 +26,7 @@ run(args:String...):() = do
     println leaf.toString()
     println leaf.find(3)
     println leaf.find(7)
-    testList = emptyList[\ZZ32\]().addRight(5).addRight(10).addRight(15).addRight(20)
+    testList = <| 5, 10, 15, 20 |>
     assert(binarySearch[\ZZ32\](testList, 2), -1)
     assert(binarySearch[\ZZ32\](testList, 5), 0)
     assert(binarySearch[\ZZ32\](testList, 7), -2)

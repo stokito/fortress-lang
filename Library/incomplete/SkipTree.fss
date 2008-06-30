@@ -64,11 +64,11 @@ object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTre
 
     insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\] = do
         newheight = randomLevel()
-        typecase exists = root.find(newkey) of
-            Just[\Value\] => self
-            else =>
-                root' = root.insert(newkey,newvalue,newheight)
-                NonEmptySkipTree[\Key,Value\](root')
+        if root.find(newkey).isEmpty() then
+            root' = root.insert(newkey,newvalue,newheight)
+            NonEmptySkipTree[\Key,Value\](root')
+        else
+            self
         end
     end
     
@@ -147,24 +147,24 @@ object Node[\Key,Value\](keys     : List[\Key\],
     (* perform the insert operation when self.height > newheight *)
     private insertBelowHeight(newkey:Key, newvalue:Value, newheight:ZZ32) : Node[\Key,Value\] = do
         i = insertionPoint(binarySearch[\Key\](keys,newkey))
-        newchild = typecase child = children[i] of    
+        newchild = typecase child = children[i] of
             Just[\Node[\Key,Value\]\] => child.get().insert(newkey,newvalue,newheight)
             else => LeafNode[\Key,Value\](newkey,newvalue,newheight)
         end
-        newchildren = children[0 # i].addRight(Just[\Node[\Key,Value\]\](newchild)) || children[(i + 1):]
+        newchildren = children[0 # i] || <| newchild |> || children[(i + 1):]
         Node[\Key,Value\](keys,values,newchildren,height)
     end
 
     (* perform the insert operation when self.height = newheight *)
     private insertEqualHeight(newkey:Key, newvalue:Value) : Node[\Key,Value\] = do
         i = insertionPoint(binarySearch[\Key\](keys,newkey))
-        newkeys = keys[0#i] || singleton[\Key\](newkey) || keys[i:]
-        newvalues = values[0#i] || singleton[\Value\](newvalue) || values[i:]
+        newkeys = keys[0#i] || <| newkey |> || keys[i:]
+        newvalues = values[0#i] || <| newvalue |> || values[i:]
         (newleft, newright) = 
                 (filterChild(newkey, children[i], true),
                  filterChild(newkey, children[i], false))
-        leftchildren = children[0#i].addRight(newleft)
-        rightchildren = children[(i + 1):].addLeft(newright)
+        leftchildren = children[0#i] || <|[\Maybe[\Node[\Key,Value\]\]\] newleft |>
+        rightchildren = <|[\Maybe[\Node[\Key,Value\]\]\] newright |> || children[(i + 1):]
         newchildren =  leftchildren || rightchildren
         Node[\Key,Value\](newkeys,newvalues,newchildren,height)
     end
@@ -175,7 +175,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
         newvalues   = singleton[\Value\](newvalue)
         (newleft,newright) = (filterChild(newkey, Just[\Node[\Key,Value\]\](self), true),
                          filterChild(newkey, Just[\Node[\Key,Value\]\](self), false))
-        newchildren = emptyList[\Maybe[\Node[\Key,Value\]\]\]().addRight(newleft).addRight(newright)
+        newchildren = <| newleft, newright |>
         Node[\Key,Value\](newkeys,newvalues,newchildren,newheight)
     end
 
@@ -218,7 +218,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
         else
             newkeys = keys[0 # insertIndex]
             newvalues = values[0 # insertIndex]
-            newchildren = children[0 # insertIndex].addRight(filteredChild) 
+            newchildren = children[0 # insertIndex] || <| filteredChild |>
             Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
         end
     end
@@ -231,7 +231,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
         else
             newkeys = keys[insertIndex:]
             newvalues = values[insertIndex:]
-            newchildren = children[(insertIndex + 1):].addLeft(filteredChild) 
+            newchildren = <|[\Maybe[\Node[\Key,Value\]\]\] filteredChild |> || children[(insertIndex + 1):] 
             Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
         end
     end    
@@ -308,10 +308,10 @@ object Node[\Key,Value\](keys     : List[\Key\],
 end (** object Node[\Key,Value\] **)
 
 LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) = do
-    keys = singleton[\Key\](key)
-    values = singleton[\Value\](val)
-    child = singleton[\Maybe[\Node[\Key,Value\]\]\](Nothing[\Node[\Key,Value\]\])
-    children = child.append(child)
+    keys = <| key |>
+    values = <| val |>
+    child = <|[\Maybe[\Node[\Key,Value\]\]\] Nothing[\Node[\Key,Value\]\] |>
+    children = child || child
     Node[\Key,Value\](keys,values,children,height) 
 end (** LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) **)
 
@@ -346,10 +346,10 @@ binarySearch[\T\](list : List[\T\], key : T) : ZZ32 = do
             for i <- seq(0 # list.size()) do
                 if list[i] = key then
                     index := i
-                    exit loop
+                    exit
                 elif list[i] > key then
                     index := -i - 1
-                    exit loop                    
+                    exit
                 end
            end
         end loop
