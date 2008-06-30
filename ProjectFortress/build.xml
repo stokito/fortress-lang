@@ -41,7 +41,7 @@
 	 <property name="cache9" location="${basedir}/.presyntax_cache"/>
 	 <property name="cache10" location="${basedir}/../.bytecode_cache"/>
 	 <property name="cache11" location="${basedir}/.bytecode_cache"/>
-<property name="astgen" location="${basedir}/astgen"/>
+<property name="astgen.src" location="${basedir}/astgen"/>
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
  <property name="src" location="${basedir}/src"/>
@@ -57,7 +57,7 @@
  <property name="unicode.third" location="${basedir}/third_party/unicode"/>
  <property name="xtc" location="${basedir}/third_party/xtc"/>
  <!-- astgen -->
- <property name="generate-sourcefile" value="${astgen}/Fortress.ast" />
+ <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
  <!-- nodes -->
  <property name="nodesPackage" value="${packagePrefix}/nodes"/>
  <property name="nodes"  location="${src}/${nodesPackage}"/>
@@ -300,7 +300,15 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	        </java>
 	    </target>
 
-    <target name="astGenerators" depends="init" 
+    <target name="checkAstgen">
+        <condition property="astgenerators.uptodate">
+                <uptodate targetfile="${basedir}/build/com/sun/fortress/astgen/FortressAstGenerator.class">
+                    <srcfiles dir="${basedir}/src/com/sun/fortress/astgen/" includes="*.java"/>
+                </uptodate>
+        </condition>
+    </target>
+
+    <target name="astGenerators" unless="astgenerators.uptodate" depends="init,checkAstgen" 
      description="Compile all AstGen custom generators.">
         <depend srcdir="${astgen.generators.src}"
          destdir="${build}"
@@ -328,16 +336,16 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <condition property="nodes.uptodate">
           <and>
             <available file="${nodes}/AbstractNode.java"/>
-            <uptodate srcfile="${astgen}/Fortress.ast"
+            <uptodate srcfile="${astgen.src}/Fortress.ast"
                       targetfile="${nodes}/AbstractNode.java"/>
 	    <available file="${library}/FortressAst.fsi" />
-	    <uptodate srcfile="${astgen}/Fortress.ast"
+	    <uptodate srcfile="${astgen.src}/Fortress.ast"
 		    targetfile="${library}/FortressAst.fsi" />
 	    <available file="${library}/FortressAst.fss" />
-	    <uptodate srcfile="${astgen}/Fortress.ast"
+	    <uptodate srcfile="${astgen.src}/Fortress.ast"
 		    targetfile="${library}/FortressAst.fss" />
             <uptodate srcfile="${basedir}/src/com/sun/fortress/astgen/FortressAstGenerator.java"
-                    targetfile="${astgen}/FortressAst.fsi" />
+                    targetfile="${library}/FortressAst.fsi" />
           </and>
         </condition>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
@@ -351,13 +359,13 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <echo message="Processing ${generate-sourcefile}" />
         <astgen file="${generate-sourcefile}" />
         <move todir="${nodes}">
-          <fileset dir="${astgen}">
+          <fileset dir="${astgen.src}">
             <include name="**/*.java"/>
             <exclude name="**/Fortress.ast"/>
           </fileset>
         </move>
         <move todir="${library}">
-          <fileset dir="${astgen}">
+          <fileset dir="${astgen.src}">
             <include name="FortressAst.*" />
           </fileset>
         </move>
@@ -434,7 +442,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
              <include name="${unicodePackage}/*.java"/>
 -->
              <include name="${blahblahblah}/useful/*.java"/>
-             <include name="${blahblahblah}/astgen/*.java"/>
+             <!-- <include name="${blahblahblah}/astgen/*.java"/> -->
              <include name="${blahblahblah}/unicode/*.java"/>
          </javac>
      </target>
