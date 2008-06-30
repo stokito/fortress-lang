@@ -47,6 +47,13 @@ trait SkipTree[\Key,Value\]
         end
         level
     end
+    
+    (**
+     * The verify method will throw an error
+     * if this structure does not satisfy the properties
+     * of a Skip Tree.
+     **)    
+    verify():()    
 
 end (* trait SkipTree[\Key,Value\] *)
 
@@ -65,6 +72,8 @@ object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTre
         end
     end
     
+    verify():() = root.verify()
+   
 end
 
 object EmptySkipTree[\Key,Value\] extends { SkipTree[\Key,Value\] }
@@ -76,6 +85,8 @@ object EmptySkipTree[\Key,Value\] extends { SkipTree[\Key,Value\] }
         root = LeafNode[\Key,Value\](newkey, newvalue, newheight)     
         NonEmptySkipTree[\Key,Value\](root')        
     end
+    
+    verify():() = ()
 
 end
 
@@ -232,6 +243,67 @@ object Node[\Key,Value\](keys     : List[\Key\],
         if index >= 0 then index
         else |index| - 1 end
     end
+
+    smallestKey():Key = do
+        typecase child = children[0] of    
+            Just[\Node[\Key,Value\]\] => child.get().smallestKey()
+            else => keys[0]
+        end
+    end
+    
+    largestKey():Key = do
+        typecase child = children[children.size() - 1] of    
+            Just[\Node[\Key,Value\]\] => child.get().largestKey()
+            else => keys[keys.size() - 1]
+        end
+    end
+
+    (**
+     * The verify method will throw an error
+     * if this structure does not satisfy the properties
+     * of a Skip Tree.
+     **)        
+    verify():() = do
+        if height <= 0 then
+            fail(toString() " : All nodes must have a height that is a positive integer")
+        end
+        if |keys| =/= |values| then
+            fail(toString() " : Size of keys is not equal to size of values")
+        end
+        if |keys| + 1 =/= |children| then
+            fail(toString() " : Size of children is not equal to size of keys plus one")
+        end
+        for i <- 0 # (keys.size() - 1) do
+            if keys[i] >= keys[i + 1] then
+                fail(toString() " : Keys " keys[i] " and " keys[i + 1] " are not in sorted order")
+            end
+        end
+        for i <- 0 # keys.size() do        
+            typecase child = children[i] of    
+                Just[\Node[\Key,Value\]\] => do
+                    if child.get().largestKey() > keys[i] then
+                        fail(toString() " : " child.get().largestKey() " > " keys[i])
+                    end
+                end
+                else => ()
+            end
+            typecase child = children[i + 1] of    
+                Just[\Node[\Key,Value\]\] => do
+                    if child.get().smallestKey() < keys[i] then
+                        fail(toString() " : " child.get().smallestKey() " < " keys[i])
+                    end
+                end
+                else => ()
+            end            
+        end
+        (* recusively check non-empty children *)
+        for i <- 0 # children.size() do
+            typecase child = children[i] of    
+                Just[\Node[\Key,Value\]\] => child.get().verify()
+                else => ()
+            end        
+        end
+    end
     
 end (** object Node[\Key,Value\] **)
 
@@ -268,10 +340,20 @@ end (** LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) **)
   *      if and only if the key is found. 
   **)
 binarySearch[\T\](list : List[\T\], key : T) : ZZ32 = do
-    if list.size() = 1 then (* base case *)
-        if key < list[0] then -1
-        elif key = list[0] then 0
-        else -2 end
+    if list.size() <= 8 then (* base case *)
+        index:ZZ32 := - list.size() - 1
+        label loop
+            for i <- seq(0 # list.size()) do
+                if list[i] = key then
+                    index := i
+                    exit loop
+                elif list[i] > key then
+                    index := -i - 1
+                    exit loop                    
+                end
+           end
+        end loop
+        index
     else (* recursive step *)
         split = list.size() DIV 2
         if (key < list[split]) then

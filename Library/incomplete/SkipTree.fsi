@@ -39,6 +39,13 @@ trait SkipTree[\Key,Value\]
      *)
     randomLevel():ZZ32
 
+    (**
+     * The verify method will throw an error
+     * if this structure does not satisfy the properties
+     * of a Skip Tree.
+     **)    
+    verify():()
+
 end (* trait SkipTree[\Key,Value\] *)
 
 object Node[\Key,Value\](keys     : List[\Key\], values   : List[\Value\],

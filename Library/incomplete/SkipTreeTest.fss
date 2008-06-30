@@ -15,6 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
+
 component SkipTreeTest
 import SkipTree.{...}
 import List.{...}
@@ -37,6 +38,10 @@ run(args:String...):() = do
     assert(binarySearch[\ZZ32\](testList, 23), -5)
 
     println leaf.insert(5,2,4).toString()
+    foo = leaf.insert(5,2,3)
+    println foo.toString()
+    foo.verify();
+    
     (** tree = SkipTree[\ZZ32,ZZ32\](Just[\Node[\ZZ32,ZZ32\]\](leaf)) *)
 
 
