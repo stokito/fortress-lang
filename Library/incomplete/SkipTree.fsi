@@ -20,6 +20,10 @@ import List.{...}
 
 trait SkipTree[\Key,Value\]
 
+    getter toString():String
+
+    opr |self| : ZZ32
+
     (** Takes a querykey as input and returns either a Just[\Value\]
       * object if the (key,value) pair lives in this map, or
       * returns Nothing[\Value\] otherwise.

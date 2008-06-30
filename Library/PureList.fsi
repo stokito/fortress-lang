@@ -58,8 +58,10 @@ trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
   (** %append% returns a list containing the elements of %self% followed
       by the elements of %f% *)
   append(f:List[\E\]): List[\E\]
+  (** the operator %||% performs the %append% operation *)
+  opr ||(self, other:List[\E\]): List[\E\]     
   (** %addLeft% and %addRight% add an element to the left or right of
-      the list, respectively *)
+      the list, respectively *)      
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]
   (** %take% returns the leftmost %n% elements of the list; if the

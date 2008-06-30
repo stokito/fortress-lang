@@ -16,12 +16,16 @@
  ******************************************************************************)
 
 component SkipTree
-import List.{...}
+import PureList.{...}
 
 
 export SkipTree
 
 trait SkipTree[\Key,Value\]
+
+    getter toString():String
+
+    opr |self| : ZZ32
 
     (** Takes a querykey as input and returns either a %Just[\Value\]%
       * object if the %(key, val)% pair lives in this map, or
@@ -54,6 +58,8 @@ trait SkipTree[\Key,Value\]
      * of a Skip Tree.
      **)    
     verify():()    
+    
+
 
 end
 
@@ -61,21 +67,30 @@ end
 
 object EmptySkipTree[\Key,Value\] extends { SkipTree[\Key,Value\] }
 
+    getter toString():String = "(EMPTY)"
+
+    opr |self| : ZZ32 = 0
+
     find(querykey : Key) : Maybe[\Value\] = Nothing[\Value\]
     
     insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\] = do
         newheight = randomLevel()
         root = LeafNode[\Key,Value\](newkey, newvalue, newheight)     
-        NonEmptySkipTree[\Key,Value\](root')        
+        NonEmptySkipTree[\Key,Value\](root)        
     end
     
     verify():() = ()
+    
 
 end
 
 
 
 object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTree[\Key,Value\] }
+
+    getter toString():String = root.toString()
+
+    opr |self| : ZZ32 = |root|
 
     find(querykey : Key) : Maybe[\Value\] = root.find(querykey)
 
@@ -89,7 +104,7 @@ object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTre
         end
     end
     
-    verify():() = root.verify()
+    verify():() = root.verify()   
    
 end
 
@@ -104,6 +119,19 @@ object Node[\Key,Value\](keys     : List[\Key\],
 
     getter toString() : String = keys "" values "" children " h" height
 
+    opr |self| : ZZ32 = |keys| + children.generate[\Number\](SumReduction, 
+        fn (child) => typecase child of
+                Just[\Node[\Key,Value\]\] => |child.get()|
+                else => 0 end)
+    
+
+    opr =(self, other:Node[\Key,Value\]): Boolean =
+        if self SEQV other then true
+        else
+            (keys = other.keys AND values = other.values 
+            AND children = other.children AND height = other.height)
+        end
+
 
     (** Takes a querykey as input and returns either a %Just[\Value\]%
       * object if the %(key,val)% pair lives in this map, or
@@ -116,7 +144,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
         else
             childIndex = insertionPoint(parentIndex)
             typecase child = children[childIndex] of
-                Just[\Value\] => child.get().find(querykey)
+                Just[\Node[\Key,Value\]\] => child.get().find(querykey)
                 else => Nothing[\Value\]
             end
         end
@@ -146,11 +174,11 @@ object Node[\Key,Value\](keys     : List[\Key\],
         newchild:Maybe[\Node[\Key,Value\]\]
         typecase child = children[i] of
             Just[\Node[\Key,Value\]\] => 
-                newchild = child.get().insert(newkey,newvalue,newheight)
+                newchild = Just[\Node[\Key,Value\]\](child.get().insert(newkey,newvalue,newheight))
             else => 
-                newchild = LeafNode[\Key,Value\](newkey,newvalue,newheight)
+                newchild = Just[\Node[\Key,Value\]\](LeafNode[\Key,Value\](newkey,newvalue,newheight))
         end
-        newchildren = children[0 # i] || <| newchild |> || children[(i + 1):]
+        newchildren = children[0 # i].addRight(newchild) || children[(i + 1) : (|children| - 1)]
         Node[\Key,Value\](keys,values,newchildren,height)
     end
 
@@ -158,13 +186,13 @@ object Node[\Key,Value\](keys     : List[\Key\],
     (** perform the insert operation when %self.height = newheight% *)
     private insertEqualHeight(newkey:Key, newvalue:Value) : Node[\Key,Value\] = do
         i = insertionPoint(binarySearch[\Key\](keys,newkey))
-        newkeys = keys[0#i] || <| newkey |> || keys[i:]
-        newvalues = values[0#i] || <| newvalue |> || values[i:]
+        newkeys = keys[0#i].addRight(newkey) || keys[i:(|keys| - 1)]
+        newvalues = values[0#i].addRight(newvalue) || values[i : (|values| - 1)]
         (newleft, newright) = 
-                (filter(newkey, children[i], true),
-                 filter(newkey, children[i], false))
-        leftchildren = children[0#i] || <|[\Maybe[\Node[\Key,Value\]\]\] newleft |>
-        rightchildren = <|[\Maybe[\Node[\Key,Value\]\]\] newright |> || children[(i + 1):]
+                (filterTarget(newkey, children[i], true),
+                 filterTarget(newkey, children[i], false))
+        leftchildren = children[0#i].addRight(newleft)
+        rightchildren = children[(i + 1):(|children| - 1)].addLeft(newright)
         newchildren =  leftchildren || rightchildren
         Node[\Key,Value\](newkeys,newvalues,newchildren,height)
     end
@@ -174,14 +202,14 @@ object Node[\Key,Value\](keys     : List[\Key\],
     private insertAboveHeight(newkey:Key,newvalue:Value,newheight:ZZ32) : Node[\Key,Value\] = do
         newkeys     = singleton[\Key\](newkey)
         newvalues   = singleton[\Value\](newvalue)
-        (newleft,newright) = (filter(newkey, Just[\Node[\Key,Value\]\](self), true),
-                         filter(newkey, Just[\Node[\Key,Value\]\](self), false))
-        newchildren = <| newleft, newright |>
+        (newleft,newright) = (filterTarget(newkey, Just[\Node[\Key,Value\]\](self), true),
+                         filterTarget(newkey, Just[\Node[\Key,Value\]\](self), false))
+        newchildren = <|[\Maybe[\Node[\Key,Value\]\]\] newleft, newright |>
         Node[\Key,Value\](newkeys,newvalues,newchildren,newheight)
     end
 
 
-    private filter(newkey : Key, 
+    private filterTarget(newkey : Key, 
                    target : Maybe[\Node[\Key,Value\]\],
                    lessThanOrEquals : Boolean)
                   : Maybe[\Node[\Key,Value\]\] = do
@@ -225,7 +253,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
         else
             newkeys = keys[0 # insertIndex]
             newvalues = values[0 # insertIndex]
-            newchildren = children[0 # insertIndex] || <| filteredChild |>
+            newchildren = children[0 # insertIndex].addRight(filteredChild)
             Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
         end
     end
@@ -234,12 +262,12 @@ object Node[\Key,Value\](keys     : List[\Key\],
     private filterGreaterThan(insertIndex   : ZZ32, 
                               filteredChild : Maybe[\Node[\Key,Value\]\]) 
                              : Maybe[\Node[\Key,Value\]\] = do
-        if insertIndex = keys.size() then
+        if insertIndex = |keys| then
             filteredChild
         else
-            newkeys = keys[insertIndex:]
-            newvalues = values[insertIndex:]
-            newchildren = <|[\Maybe[\Node[\Key,Value\]\]\] filteredChild |> || children[(insertIndex + 1):] 
+            newkeys = keys[insertIndex : (|keys| - 1)]
+            newvalues = values[insertIndex : (|values| - 1)]
+            newchildren = children[(insertIndex + 1) : |children| - 1].addLeft(filteredChild) 
             Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
         end
     end    
@@ -263,9 +291,9 @@ object Node[\Key,Value\](keys     : List[\Key\],
 
     
     largestKey():Key = do
-        typecase child = children[children.size() - 1] of    
+        typecase child = children[|children| - 1] of    
             Just[\Node[\Key,Value\]\] => child.get().largestKey()
-            else => keys[keys.size() - 1]
+            else => keys[|keys| - 1]
         end
     end
 
@@ -284,12 +312,12 @@ object Node[\Key,Value\](keys     : List[\Key\],
         if |keys| + 1 =/= |children| then
             fail(toString() " : Size of children is not equal to size of keys plus one")
         end
-        for i <- 0 # (keys.size() - 1) do
+        for i <- 0 # (|keys| - 1) do
             if keys[i] >= keys[i + 1] then
                 fail(toString() " : Keys " keys[i] " and " keys[i + 1] " are not in sorted order")
             end
         end
-        for i <- 0 # keys.size() do        
+        for i <- 0 # |keys| do        
             typecase child = children[i] of    
                 Just[\Node[\Key,Value\]\] => do
                     if child.get().largestKey() > keys[i] then
@@ -308,7 +336,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
             end            
         end
         (* recusively check non-empty children *)
-        for i <- 0 # children.size() do
+        for i <- 0 # |children| do
             typecase child = children[i] of    
                 Just[\Node[\Key,Value\]\] => child.get().verify()
                 else => ()
@@ -345,16 +373,16 @@ end
   *      the index of the search key, if it is contained in the list;
   *      otherwise, (-(insertion point) - 1). The insertion point is defined
   *      as the point at which the key would be inserted into the list: 
-  *      the index of the first element greater than the key, or list.size()
+  *      the index of the first element greater than the key, or |list|
   *      if all elements in the list are less than the specified key. 
   *      Note that this guarantees that the return value will be %>=% 0
   *      if and only if the key is found. 
   **)
 binarySearch[\T\](list : List[\T\], key : T) : ZZ32 = do
-    if list.size() <= 8 then (* base case *)
-        index:ZZ32 := - list.size() - 1
+    if |list| <= 8 then (* base case *)
+        index:ZZ32 := - |list| - 1
         label loop
-            for i <- seq(0 # list.size()) do
+            for i <- seq(0 # |list|) do
                 if list[i] = key then
                     index := i
                     exit
@@ -366,11 +394,11 @@ binarySearch[\T\](list : List[\T\], key : T) : ZZ32 = do
         end loop
         index
     else (* recursive step *)
-        split = list.size() DIV 2
+        split = |list| DIV 2
         if (key < list[split]) then
             binarySearch[\T\](list[0 # split], key)
         else
-            right = binarySearch[\T\](list[split:], key)
+            right = binarySearch[\T\](list[split:(|list| - 1)], key)
             if right >= 0 then right + split
             else right - split end
         end
