@@ -24,7 +24,7 @@ api SyntaxHelloWorldTemplate
     Expr |Expr:=
        h:hello Beautiful World
          do
-           StringLiteralExpr(h.val " " Beautiful.val " " World.val)
+           StringLiteralExpr(h.in_text " " Beautiful.in_text " " World.in_text)
          end
      | hello a1:Beautiful a2:Beautiful World <[ hello " " a1 " " a2 " " World ]>
 
