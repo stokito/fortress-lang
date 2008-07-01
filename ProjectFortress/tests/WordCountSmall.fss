@@ -77,7 +77,7 @@ opr BIG UNIONSUM(): BigReduction[\Map[\String,ZZ32\],
     embiggen[\Map[\String,ZZ32\]\](fn (a,b) => a UNIONSUM b, {[\String,ZZ32\]})
 
 opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
-    a.union(fn(k,x,y) =>x.append(y),b)
+    a.union(fn(k,x,y) => x || y, b)
 
 opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
     embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
@@ -85,18 +85,22 @@ opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[
 processFile(name:String):() = do
     println("Processing file " name)
     var rs:FileReadStream = FileReadStream(name)
-    rs.close()
     database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
+    rs.close()
     var invDatabase:Map[\ZZ32,List[\String\]\] = BIG UNIONUNION [(x,y) <-database] (makeInv(x,y))
+    expected = <| (6,1),(4,2),(3,1),(2,13),(1,154) |>
     try
-        for i <- seq(1#100) do
+        for (ce,me) <- seq(expected) do
             (c:ZZ32,m:List[\String\]) = invDatabase.maximum().get()
             invDatabase := invDatabase.deleteMaximum()
             println(m ": " c " times")
+            assert(c,ce," expected occurrences mismatched")
+            assert(|m|,me," expected number of words mismatched")
         end
     catch e
-            NotFound => println("end")
+            NotFound => fail("ended too early!")
     end
+    assert(|invDatabase|, 0, "Still entries in invDatabase ", invDatabase)
 end
 
 
@@ -104,4 +108,3 @@ run(args:String...)= do
     processFile(getEnvironment("fortress.autohome", ".") "/ProjectFortress/tests/presidents")
 end
 end
-
