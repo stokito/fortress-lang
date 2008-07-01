@@ -32,10 +32,11 @@ syn keyword  fortressType  ZZ32 ZZ64 RR32 RR64
 
 syn keyword  fortressOperator println
 
-syn keyword  fortressKeyword opr for private asif
+syn keyword  fortressKeyword opr for private asif throw
 
 syn match    fortressThenErr    "\<then\>"
 syn match    fortressCaseErr    "\<case\>"
+syn match    fortressCatchErr    "\<catch\>"
 syn match    fortressTypecaseErr    "\<of\>"
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<if\>" matchgroup=fortressKeyword end="\<then\>" contains=ALLBUT,fortressThenErr nextgroup=fortressIf
@@ -47,6 +48,9 @@ syn region   fortressCase matchgroup=fortressKeyword start="\<in\>" matchgroup=f
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<typecase\>" matchgroup=fortressKeyword end="\<of\>" contains=ALLBUT,fortressTypecaseErr nextgroup=fortressTypecase
 syn region   fortressTypecase matchgroup=fortressKeyword start="\<of\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressEndErr
+
+syn region   fortressNone matchgroup=fortressKeyword start="\<try\>" matchgroup=fortressKeyword end="\<catch\>" contains=ALLBUT,fortressCatchErr nextgroup=fortressCatch
+syn region   fortressCatch matchgroup=fortressKeyword start="\<catch\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressEndErr
 
 syn region   fortressNone matchgroup=fortressKeyword start="\<do\>" matchgroup=fortressKeyword end="\<end\>" contains=ALLBUT,fortressEndErr
 
