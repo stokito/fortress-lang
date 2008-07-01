@@ -176,10 +176,10 @@ object Csc[\N extends Number, nat n, nat m\]
     init0(t:(ZZ32,ZZ32), v:N) = fail("init: Csc is immutable")
     replica[\U\]() = fail("Csc replica undefined")
     indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
-        SparseGen[\N,((ZZ32,ZZ32),N)\](rows,
+        SparseGen[\N,((ZZ32,ZZ32),N)\](cols,
             fn (i:ZZ32,j:ZZ32,n:N):((ZZ32,ZZ32),N) => ((j,i),n))
     zeroIndices():Generator[\(ZZ32,ZZ32)\] =
-        SparseGen[\N,(ZZ32,ZZ32)\](rows,
+        SparseGen[\N,(ZZ32,ZZ32)\](cols,
             fn (i:ZZ32,j:ZZ32,n:N):((ZZ32,ZZ32),N) => (j,i))
     t() = Csr[\N,m,n\](cols)
     lmul(other:Vector[\N,n\]): Vector[\N,m\] = t().rmul(other)

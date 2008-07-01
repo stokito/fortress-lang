@@ -24,6 +24,7 @@ f(x) = 0
 
 g() = do
 var x: ZZ32
+var y: ZZ32
 var a: ZZ32 = 1
 var b: ZZ32 = 3
 var c: ZZ32 = 5

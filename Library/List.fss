@@ -378,18 +378,18 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
             fresh = enlargeRight[\E\](|other|)
             fresh.appendR[\T\](other)
         end
-    appendL[\T\](left:List[\T\]): List[\E\] = do
-        lsz = |left|
+    appendL[\T\](left_1:List[\T\]): List[\E\] = do
+        lsz = |left_1|
         fstUsed = firstUsed - lsz
-        left.fill[\E\](fstUsed,underlying)
+        left_1.fill[\E\](fstUsed,underlying)
         ArrayList(underlying,fstUsed,oneShot(),firstUnused,canExtendRight)
       end
-    appendLC[\T\](left:List[\T\]): List[\E\] =
-        if leftSpace() >= |left| AND: canExtendLeft.tryOnce() then
-            appendL[\T\](left)
+    appendLC[\T\](left_1:List[\T\]): List[\E\] =
+        if leftSpace() >= |left_1| AND: canExtendLeft.tryOnce() then
+            appendL[\T\](left_1)
         else
-            fresh = enlargeLeft[\E\](|left|)
-            fresh.appendL[\T\](left)
+            fresh = enlargeLeft[\E\](|left_1|)
+            fresh.appendL[\T\](left_1)
         end
 
     (** Return first n elements of this list.  take(n) never fails: If n is

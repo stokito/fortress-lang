@@ -974,4 +974,13 @@ public class ExprFactory {
     public static TemplateGapVoidLiteralExpr makeTemplateGapVoidLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapVoidLiteralExpr(s, id, params);
     }
+
+    public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj, List<StaticArg> static_args) {
+    	return new _RewriteObjectRef(in_obj.getSpan(), parenthesized, in_obj, static_args);
+    }
+    
+    //Span in_span, boolean in_parenthesized, Id in_obj, List<StaticArg> in_staticArgs
+	public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj) {
+		return make_RewriteObjectRef(parenthesized, in_obj, Collections.<StaticArg>emptyList());
+	}
 }

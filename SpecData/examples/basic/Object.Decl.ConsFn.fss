@@ -24,6 +24,13 @@ export Executable
 trait List[\T\]
   append(List[\T\]):List[\T\]
 end
+
+object Empty[\T\]
+  extends List[\T\]
+  cons(x) = Cons(x,self)
+  append(xs:List[\T\]):List[\T\] = xs
+end
+
 object Cons[\T\](first:T, rest:List[\T\])
   extends List[\T\]
   cons(x) = Cons(x,self)

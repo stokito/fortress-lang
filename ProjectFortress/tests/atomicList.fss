@@ -27,9 +27,11 @@ trait List[\E\] comprises {Elem[\E\], Empty[\E\]}
    count():ZZ32
 end
 
+object ListError(msg:String) extends Exception end
+
 object Empty[\E\] extends List[\E\]
-   car():E = do ThrowError(" Empty List has no car") car() end
-   cdr():List[\E\] = do ThrowError(" Empty List has no cdr") cdr() end
+   car():E = throw ListError("Empty List has no car")
+   cdr():List[\E\] = throw ListError(" Empty List has no cdr")
    cons(z:E) =  Elem[\E\](z, self)
    toString() = " Empty"
    isEmpty() = true

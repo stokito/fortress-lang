@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -42,6 +43,8 @@ import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 import com.sun.fortress.useful.Debug;
+
+import edu.rice.cs.plt.iter.IterUtil;
 
 public class FileTests {
 
@@ -202,9 +205,31 @@ public class FileTests {
     }
 
     public static Test suite(String dirname, boolean failsOnly, boolean expect_failure) throws IOException {
-        return suite(dirname, failsOnly, expect_failure, 0.0, 1.0);
+        TestSuite suite = new TestSuite("Test for default package");
+        // $JUnit-BEGIN$
+        dirname = ProjectProperties.backslashToSlash(dirname);
+        File dir = new File(dirname);
+        String[] files = dir.list();
+        System.err.println(dir);
+        Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
+        FortressRepository cache = new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR );
+        for(String s : shuffled){
+        	  if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss"))
+                  System.out.println("Not compiling file " + s);
+              else if (!s.startsWith(".")) {
+                  if (s.endsWith(".fss")) {
+                      int l = s.lastIndexOf(".fss");
+                      String testname = s.substring(0, l);
+                      suite.addTest(new FSSTest(cache, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                  } else {
+                      System.out.println("Not compiling file " + s);
+                  }
+              }
+        }
+        return suite;
     }
 
+    /*
     public static Test suite(String dirname, boolean failsOnly, boolean expect_failure, double begin, double end) throws IOException {
         TestSuite suite = new TestSuite("Test for default package");
         // $JUnit-BEGIN$
@@ -212,9 +237,7 @@ public class FileTests {
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);
-
         FortressRepository cache = new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR );
-
         for (int i = 0; i < files.length; i++) {
             double f = i / (double) files.length;
             if (f < begin || f >= end)
@@ -232,9 +255,9 @@ public class FileTests {
                     System.out.println("Not compiling file " + s);
                 }
             }
-
         }
         // $JUnit-END$
         return suite;
     }
+    */
 }

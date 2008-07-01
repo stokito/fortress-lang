@@ -468,32 +468,32 @@ public final class Shell {
         // on the rawApiEnv constructed in the previous step. Note that, after this
         // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
         Disambiguator.ApiResult apiDR =
-            Disambiguator.disambiguateApis(apis, rawApiEnv);
+            Disambiguator.disambiguateApis(apis, rawApiEnv, _repository.apis());
         if (!apiDR.isSuccessful()) { return apiDR.errors(); }
 
+        // Rebuild ApiIndices.
+        IndexBuilder.ApiResult apiIR =
+            IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
+        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
+        
+        // Rebuild GlobalEnvironment.
+        GlobalEnvironment apiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
+                                                            apiIR.apis()));
+        
         Disambiguator.ComponentResult componentDR =
-            Disambiguator.disambiguateComponents(components, env,
+            Disambiguator.disambiguateComponents(components, apiEnv,
                                                  rawComponentIR.components());
         if (!componentDR.isSuccessful()) { return componentDR.errors(); }
 
         if (phase.equals("disambiguate"))
             return IterUtil.empty();
 
-        // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR =
-            IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
-        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
-
         // Rebuild ComponentIndices.
         IndexBuilder.ComponentResult componentIR =
             IndexBuilder.buildComponents(componentDR.components(),
                                          System.currentTimeMillis());
         if (!componentIR.isSuccessful()) { return componentIR.errors(); }
-
-        // Rebuild GlobalEnvironment.
-        GlobalEnvironment apiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                            apiIR.apis()));
 
         // Rewrite grammars, see GrammarRewriter for more details.
         GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(apiIR.apis(), apiEnv);

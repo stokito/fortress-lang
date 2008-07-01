@@ -131,19 +131,19 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     		
 			// end recurrance here
 			@Override public Node forObjectDecl(ObjectDecl that) { 
-				return (++traitNestingDepth) > 0 ? that : super.forObjectDecl(that);
+				return (++traitNestingDepth) > 1 ? that : super.forObjectDecl(that);
 			}
 			@Override public Node forTraitDecl(TraitDecl that) { 
-				return (++traitNestingDepth) > 0 ? that : super.forTraitDecl(that);
+				return (++traitNestingDepth) > 1 ? that : super.forTraitDecl(that);
 			}
 			@Override public Node forObjectExpr(ObjectExpr that) { 
-				return (++traitNestingDepth) > 0 ? that : super.forObjectExpr(that);
+				return (++traitNestingDepth) > 1 ? that : super.forObjectExpr(that);
 			}
 			@Override public Node forAbsObjectDecl(AbsObjectDecl that) {
-				return (++traitNestingDepth) > 0 ? that : super.forAbsObjectDecl(that);
+				return (++traitNestingDepth) > 1 ? that : super.forAbsObjectDecl(that);
 			}
 			@Override public Node forAbsTraitDecl(AbsTraitDecl that) {
-				return (++traitNestingDepth) > 0 ? that : super.forAbsTraitDecl(that);
+				return (++traitNestingDepth) > 1 ? that : super.forAbsTraitDecl(that);
 			}
     	};
     	return that.accept(replacer);

@@ -20,12 +20,16 @@ package com.sun.fortress.unit_tests;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
+
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.TestCaseWrapper;
 import com.sun.fortress.compiler.Parser;
+
+import edu.rice.cs.plt.iter.IterUtil;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 
@@ -67,11 +71,17 @@ public class ParserJUTest extends TestCaseWrapper {
                     }
                 };
 
-            for (String filename : new File(failTestDir).list(fssFilter)) {
+            //Permute filenames for randomness
+            String[] files = new File(failTestDir).list(fssFilter);
+            Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
+            for (String filename : shuffled) {
                 File f = new File(failTestDir + filename);
                 addTest(new ParserTestCase(f));
             }
-            for (String filename : new File(nyiTestDir).list(fssFilter)) {
+            //Permute filenames for randomness
+            files = new File(nyiTestDir).list(fssFilter);
+            shuffled = IterUtil.shuffle(Arrays.asList(files));
+            for (String filename : shuffled) {
                 File f = new File(nyiTestDir + filename);
                 addTest(new ParserTestCase(f));
             }

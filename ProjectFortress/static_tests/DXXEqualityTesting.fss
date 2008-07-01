@@ -18,10 +18,10 @@
 component DXXEqualityTesting
   export Executable
 
-  foo(a:ZZ32,b:ZZ32):() = do
-    a
-    b
-    c
+  foo(a:ZZ32,b:ZZ32,c:ZZ32):() = do
+    (a = b)
+    (b = c)
+    (c = a)
     ()
   end
 

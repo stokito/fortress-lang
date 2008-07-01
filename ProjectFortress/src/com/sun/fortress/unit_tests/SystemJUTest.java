@@ -39,10 +39,7 @@ public class SystemJUTest {
         }
         TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.0, 0.25));
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.25, 0.5));
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.5, 0.75));
-        suite.addTest(FileTests.suite(testDir, failsOnly, false, 0.75, 1.0));
+        suite.addTest(FileTests.suite(testDir, failsOnly, false));
         //$JUnit-END$
         return suite;
     }
