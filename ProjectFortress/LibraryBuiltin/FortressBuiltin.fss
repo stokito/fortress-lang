@@ -201,7 +201,7 @@ object String
     opr [i:ZZ32]: Char =
         if 0 <= i < |self|
         then get(i)
-        else throw IndexOutOfBounds
+        else throw IndexOutOfBounds(0,(|self|)-1,i)
         end
     (** get skips bounds checking. **)
     get(i:ZZ32): Char =
