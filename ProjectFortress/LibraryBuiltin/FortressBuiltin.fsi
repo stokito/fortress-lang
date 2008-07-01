@@ -54,11 +54,11 @@ end
 
 object IntLiteral extends Integral
     opr =(self, b: IntLiteral):Boolean
-    opr <(self, other:String): Boolean
-    opr <=(self, other:String): Boolean
-    opr >(self, other:String): Boolean
-    opr >=(self, other:String): Boolean
-    opr CMP(self, other:String): TotalComparison
+    opr <(self, other:IntLiteral): Boolean
+    opr <=(self, other:IntLiteral): Boolean
+    opr >(self, other:IntLiteral): Boolean
+    opr >=(self, other:IntLiteral): Boolean
+    opr CMP(self, other:IntLiteral): TotalComparison
 
     opr -(self): IntLiteral
     opr +(self, b: IntLiteral): IntLiteral
