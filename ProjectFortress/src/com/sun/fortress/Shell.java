@@ -191,15 +191,15 @@ public final class Shell {
         }
     }
 
-    private static boolean isApi(String file){
+    public static boolean isApi(String file){
         return file.endsWith(ProjectProperties.API_SOURCE_SUFFIX);
     }
 
-    private static boolean isComponent(String file){
+    public static boolean isComponent(String file){
         return file.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX);
     }
 
-    private static APIName cuName( String file ){
+    public static APIName cuName( String file ){
         if ( file.endsWith( ProjectProperties.COMP_SOURCE_SUFFIX ) ||
              file.endsWith( ProjectProperties.API_SOURCE_SUFFIX ) ){
             return NodeFactory.makeAPIName(file.substring( 0, file.lastIndexOf(".") ));
