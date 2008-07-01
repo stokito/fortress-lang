@@ -45,4 +45,7 @@ end
 LooseJuxt1(exprs:List[\Expr\]) =
     LooseJuxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
 
+TightJuxt1(exprs:List[\Expr\]) =
+    TightJuxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
+
 end

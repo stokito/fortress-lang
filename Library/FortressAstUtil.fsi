@@ -22,5 +22,6 @@ import List.{...}
 import FortressAst.{...}
 
 LooseJuxt1(exprs:List[\Expr\])
+TightJuxt1(exprs:List[\Expr\])
 
 end
