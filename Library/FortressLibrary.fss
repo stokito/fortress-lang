@@ -932,49 +932,64 @@ object FailCalled(s:String) extends UncheckedException
 end
 
 object DivisionByZero extends UncheckedException
+    toString(): String = "Division by zero"
 end
 
 object UnpastingError extends UncheckedException
+    toString(): String = "Unpasting error"
 end
 
 object CallerViolation extends UncheckedException
+    toString(): String = "Caller violation"
 end
 
 object CalleeViolation extends UncheckedException
+    toString(): String = "Callee violation"
 end
 
 object TestFailure extends UncheckedException
+    toString(): String = "Test failure"
 end
 
 object ContractHierarchyViolation extends UncheckedException
+    toString(): String = "Contract hierarchy violation"
 end
 
 object NoEqualityOnFunctions extends UncheckedException
+    toString(): String = "No equality on functions"
 end
 
 object InvalidRange extends UncheckedException
+    toString(): String = "Invalid range"
 end
 
 object ForbiddenException(chain : Exception) extends UncheckedException
+    toString(): String = "Forbidden exception"
 end
 
 (* Should this be called "IndexNotFound" instead? *)
 object NotFound extends UncheckedException
+    toString(): String = "Not found"
 end
 
-object IndexOutOfBounds extends UncheckedException
+object IndexOutOfBounds(min:ZZ32,max:ZZ32,index:ZZ32) extends UncheckedException
+    toString(): String = index " is outside the range " min " to " max
 end
 
 object NegativeLength extends UncheckedException
+    toString(): String = "Negative length"
 end
 
 object IntegerOverflow extends UncheckedException
+    toString(): String = "Integer Overflow"
 end
 
 object RationalComparisonError extends UncheckedException
+    toString(): String = "Rational comparison error"
 end
 
 object FloatingComparisonError extends UncheckedException
+    toString(): String = "Floating comparison error"
 end
 
 (* Checked Exceptions *)
@@ -983,35 +998,45 @@ trait CheckedException extends Exception excludes UncheckedException
 end
 
 object CastError extends CheckedException
+    toString(): String = "Cast error"
 end
 
 object IOFailure extends CheckedException
+    toString(): String = "I/O error"
 end
 
 object MatchFailure extends CheckedException
+    toString(): String = "Match failure"
 end
 
 (* SetsNotDisjoint? *)
 object DisjointUnionError extends CheckedException
+    toString(): String = "Disjoint union error"
 end
 
 object APIMissing extends CheckedException
+    toString(): String = "Api is missing"
 end
 
 object APINameCollision extends CheckedException
+    toString(): String = "Api name collides with another"
 end
 
 object ExportedAPIMissing extends CheckedException
+    toString(): String = "Exported api is missing"
 end
 
 object HiddenAPIMissing extends CheckedException
+    toString(): String = "Hidden api is missing"
 end
 
 object TryAtomicFailure extends CheckedException
+    toString(): String = "Try/atomic failure"
 end
 
 (* Should take a spawned thread as an argument *)
 object AtomicSpawnSynchronization extends {UncheckedException}
+    toString(): String = "Atomic spawn synchronization"
 end
 
 (************************************************************
