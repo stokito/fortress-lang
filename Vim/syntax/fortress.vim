@@ -21,6 +21,7 @@ syn keyword  fortressKeyword getter else var test
 syn keyword  fortressExternal import export
 
 syn region   fortressString       start=+"+ skip=+\\\\\|\\"+ end=+"+
+syn match    fortressChar         "'.'"
 syn match    fortressNumber       "\<-\=\d\(_\|\d\)*"
 
 syn keyword  fortressType  api object trait value
@@ -75,6 +76,7 @@ if version >= 508 || !exists("did_fortress_syntax_inits")
   HiLink fortressEnd               Statement
 
   HiLink fortressString	           String
+  HiLink fortressChar	           String
   HiLink fortressNumber	           Number
   
   HiLink fortressThenErr	   Error
