@@ -30,103 +30,102 @@ public class WorseEnv extends BaseEnv {
 
 	@Override
 	public Appendable dump(Appendable a) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	public Environment extend() {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	public Environment extend(Environment additions) {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	public Environment extendAt(HasAt x) {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	@Override
 	public Boolean getBoolNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	public Number getIntNull(String s) {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	@Override
 	public Number getNatNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	@Override
 	public FType getTypeNull(String str) {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	public FValue getValueRaw(String s) {
-		// TODO Auto-generated method stub
-		return null;
+            throw new Error();
+
 	}
 
 	public void putBoolRaw(String str, Boolean f2) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void putIntRaw(String str, Number f2) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void putNatRaw(String str, Number f2) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void putTypeRaw(String str, FType f2) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void putValueRaw(String str, FValue f2) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void removeType(String s) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void removeVar(String name) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void visit(Visitor2<String, FType> vt, Visitor2<String, Number> vn,
 			Visitor2<String, Number> vi, Visitor2<String, FValue> vv,
 			Visitor2<String, Boolean> vb) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public void visit(Visitor2<String, Object> nameCollector) {
-		// TODO Auto-generated method stub
+            throw new Error();
 
 	}
 
 	public Iterable<String> youngestFrame() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new Error();
 	}
 
 }

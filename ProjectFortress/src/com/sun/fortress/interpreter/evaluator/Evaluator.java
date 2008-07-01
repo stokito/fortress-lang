@@ -1610,49 +1610,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forVarRef(VarRef x) {
-        Iterable<Id> names = NodeUtil.getIds(x.getVar());
-
-        FValue res = e.getValueNull(IterUtil.last(names).getText());
-        if (res == null)
+        FValue res = e.getValueNull(x);
+        if (res == null) {
+            Iterable<Id> names = NodeUtil.getIds(x.getVar());
             error(x, e, errorMsg("undefined variable ", names));
-        return res;
-
-        /*
-        if (!ProjectProperties.noStaticAnalysis) {
-            FValue res = e.getValueNull(IterUtil.last(names).getText());
-            if (res == null)
-                error(x, e, errorMsg("undefined variable ", names));
-            return res;
-
-        } else {
-
-            FValue res = e.getValueNull(IterUtil.first(names).getText());
-            if (res == null)
-                error(x, e, errorMsg("undefined variable ", IterUtil.first(
-                        names).getText()));
-
-            for (Id fld : IterUtil.skipFirst(names)) {
-                if (res instanceof Selectable) {
-                    / *
-                     * Selectable was introduced to make it not necessary to
-                     * know whether a.b was field b of object a, or member b of
-                     * api a (or api name prefix, extended).
-                     * /
-                    // TODO Need to distinguish between public/private
-                    // methods/fields
-                    try {
-                        res = ((Selectable) res).select(fld.getText());
-                    } catch (FortressException ex) {
-                        throw ex.setContext(x, e);
-                    }
-                } else {
-                    res = error(x, e, errorMsg("Non-object cannot have field ",
-                            fld.getText()));
-                }
-            }
-            return res;
         }
-    */
+        return res;
     }
 
     public FValue forVoidLiteralExpr(VoidLiteralExpr x) {
@@ -1700,22 +1663,30 @@ public class Evaluator extends EvaluatorBase<FValue> {
      *
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnRef(com.sun.fortress.interpreter.nodes.FnRef)
      */
-    /** Assumes {@code x.getIds()} is a list of length 1. */
     @Override
     public FValue forFnRef(FnRef x) {
-        Id name = x.getFns().get(0);
-        FValue g = forVarRef(new VarRef(name.getSpan(), name));
+        Id name = x.getOriginalName();
+        FValue g = forIdOfRef(name);
         return applyToActualStaticArgs(g,x.getStaticArgs(),x);
     }
 
     @Override
 	public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
     	Id name = that.getObj();
-    	FValue g = forVarRef(new VarRef(name.getSpan(), name));
-		return applyToActualStaticArgs(g,that.getStaticArgs(),that);
+    	FValue g = forIdOfRef(name);
+        return applyToActualStaticArgs(g,that.getStaticArgs(),that);
 	}
 
-	@Override
+    private FValue forIdOfRef(Id x) {
+        String s = x.getText();
+        FValue res = e.getValueNull(s);
+        if (res == null) {
+            error(x, e, errorMsg("undefined variable ", x));
+        }
+        return res;
+    }
+
+    @Override
     public FValue for_RewriteFnRef(_RewriteFnRef x) {
         Expr name = x.getFn();
         FValue g = name.accept(this);

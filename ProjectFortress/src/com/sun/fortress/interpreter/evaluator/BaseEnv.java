@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringArrayIterator;
 import com.sun.fortress.useful.Visitor2;
@@ -354,13 +355,20 @@ abstract public class BaseEnv implements Environment {
         return getValueNullTail(s, v);
     }
 
+    static private BASet<String> missedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    
     final public  FValue getValueNull(VarRef vr) {
         Id name = vr.getVar();
         String s = NodeUtil.nameString(name);
         int l = vr.getLexicalDepth();
-        if (l == -1)
-            return error(errorMsg("Untagged VarRef ", vr));
         FValue v = getValueRaw(s, l);
+        if (l == -1) {
+            // Debugging code, currently fires for $self
+            if (false)
+                return error(errorMsg("Untagged VarRef ", vr));
+            if (false)
+                missedNames.syncPut(s);
+        }
         return getValueNullTail(s, v);
     }
         

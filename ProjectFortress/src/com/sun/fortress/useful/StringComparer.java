@@ -19,6 +19,12 @@ package com.sun.fortress.useful;
 
 import java.util.Comparator;
 
+/**
+ * Provides an ordinary, boring, comparator for strings that provides the
+ * default order.
+ * 
+ * @author dr2chase
+ */
 public final class StringComparer implements Comparator<String> {
 
     public int compare(String arg0, String arg1) {

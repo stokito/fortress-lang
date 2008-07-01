@@ -159,7 +159,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
 
                 // Create a little expression to run the constructor.
                 Expr init = ExprFactory.makeTightJuxt(x.getSpan(), ExprFactory
-                        .makeVarRef(x.getSpan(), obfuscatedSingletonConstructorName(fname, x)),
+                        .makeVarRef(x.getSpan(), obfuscatedSingletonConstructorName(fname, x), 0),
                         ExprFactory.makeVoidLiteralExpr(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);
