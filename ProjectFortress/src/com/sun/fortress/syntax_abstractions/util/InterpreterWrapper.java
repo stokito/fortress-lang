@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sun.fortress.repository.FortressRepository;
-import com.sun.fortress.compiler.Fortress;
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.StaticError;
@@ -82,7 +82,7 @@ public class InterpreterWrapper {
     FortressRepository repository;
 
     public  InterpreterWrapper() {
-        repository = Fortress.CURRENT_INTERPRETER_REPOSITORY;
+        repository = Shell.CURRENT_INTERPRETER_REPOSITORY;
     }
 
     public class Result extends StaticPhaseResult {

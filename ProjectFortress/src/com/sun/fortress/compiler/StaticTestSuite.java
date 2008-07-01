@@ -30,6 +30,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.TypeError;
@@ -297,8 +298,7 @@ public final class StaticTestSuite extends TestSuite {
         }
 
         private Iterable<? extends StaticError> compile(File f) throws IOException {
-            Fortress fortress = new Fortress();
-            return fortress.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());
+            return Shell.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());
         }
     }
 }

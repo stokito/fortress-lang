@@ -43,8 +43,9 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Fortress;
+import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
@@ -471,8 +472,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         /***/
 		GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
 		List<Component> components = new ArrayList<Component>();
-		Fortress fort = new Fortress(this);
-		Iterable<? extends StaticError> errors = fort.analyze( knownApis, unparsed, components, System.currentTimeMillis() );
+		Shell shell = new Shell(this);
+		Iterable<? extends StaticError> errors = Fortress.analyze(shell.getRepository(),
+                                                                          knownApis, unparsed, components, System.currentTimeMillis() );
                 if ( errors.iterator().hasNext() ){
                     throw new MultipleStaticError(errors);
                 }
@@ -526,13 +528,14 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         long now = System.currentTimeMillis();
         Debug.debug( 1, "Parsing " + component + " at " + now );
 
-            Fortress fort = new Fortress(this);
+            Shell shell = new Shell(this);
             /* fort.analyze will call repository.add() with the parsed component,
                  * where that repository is 'this'. After that add the component node
                  * in the graph will contain something and can be unwrap()'d at the end.
                  */
         /***/
-            Iterable<? extends StaticError> errors = fort.analyze( knownApis, new ArrayList<Api>(), components, now );
+            Iterable<? extends StaticError> errors = Fortress.analyze(shell.getRepository(),
+                                                                      knownApis, new ArrayList<Api>(), components, now );
         if ( errors.iterator().hasNext() ){
                     throw new MultipleStaticError(errors);
         }
@@ -553,11 +556,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         File file = findFile(api_name, ProjectProperties.COMP_SOURCE_SUFFIX);
         GraphRepository g1 = new GraphRepository( this.path, this.cache );
         /* FIXME: hack to prevent infinite recursion */
-        Fortress.setCurrentInterpreterRepository( g1 );
+        Shell.setCurrentInterpreterRepository( g1 );
         Result result = FortressParser.parse(api_name, file, new GlobalEnvironment.FromRepository( g1 ), verbose());
         // Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository(this), verbose());
         /* FIXME: hack to prevent infinite recursion */
-        Fortress.setCurrentInterpreterRepository( this );
+        Shell.setCurrentInterpreterRepository( this );
         if (result.isSuccessful()) {
             Debug.debug( 1, "Expanded component " + node );
             Iterator<Component> components = result.components().iterator();

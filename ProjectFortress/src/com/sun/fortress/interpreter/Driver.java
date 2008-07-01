@@ -104,7 +104,6 @@ import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
-import static com.sun.fortress.compiler.Fortress.CURRENT_INTERPRETER_REPOSITORY;
 
 public class Driver {
 
