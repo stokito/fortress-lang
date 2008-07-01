@@ -26,6 +26,7 @@ import java.util.Map;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.CacheBasedRepository;
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -68,7 +69,7 @@ public class Fortress {
         return fr;
     }
 
-    private static FortressRepository specificRepository(Path p) {
+    public static FortressRepository specificRepository(Path p) {
         // This is bogus; we need to find a better way to communicate with the
         // syntax transfomer.
 
@@ -87,12 +88,12 @@ public class Fortress {
      * Compile all definitions in the given files, and any additional sources that
      * they depend on, and add them to the fortress.
      */
-    public Iterable<? extends StaticError> compile(Path path, String... files) {
+    public Iterable<? extends StaticError> compile(Path path, String file) {
         FortressRepository bcr = new GraphRepository( path, _repository );
         CURRENT_INTERPRETER_REPOSITORY = bcr;
 
-        Debug.debug( 2, "Compiling files " + java.util.Arrays.asList(files) );
-        Parser.Result result = compileInner(bcr, files);
+        Debug.debug( 2, "Compiling file " + file );
+        Parser.Result result = compileInner(bcr, file);
 
         if (!result.isSuccessful()) { return result.errors(); }
         if (bcr.verbose())
@@ -103,45 +104,39 @@ public class Fortress {
         return IterUtil.empty();
     }
 
- private Parser.Result compileInner(FortressRepository bcr,
-   String... files) {
-  Parser.Result result = new Parser.Result();
+    private Parser.Result compileInner(FortressRepository bcr,
+                                       String file) {
+        Parser.Result result = new Parser.Result();
 
-  // bcr.addRootApis();
+        // bcr.addRootApis();
 
-  for (String s : files) {
-   APIName name  = Driver.fileAsApi(s);
+        APIName name  = Shell.cuName(file);
 
-   try {
-    if (name != null) {
-     result = addApiToResult(bcr, result, name);
-    } else {
-     name = Driver.fileAsComponent(s);
-
-     if (name != null) {
-      result = addComponentToResult(bcr, result, name);
-     } else {
-      result = addComponentToResult(bcr, result, NodeFactory.makeAPIName(s));
-     }
-    }
-   } catch (ProgramError pe) {
-    Iterable<? extends StaticError> se = pe.getStaticErrors();
-    if (se == null) {
-     result = new Parser.Result(result, new Parser.Result(new WrappedException(pe, ProjectProperties.debug)));
-    }
-    else {
-     result = new Parser.Result(result, new Parser.Result(se));
-    }
-   } catch (RepositoryError ex) {
-    throw ex;
-                        } catch ( FileNotFoundException ex ){
-                            throw new WrappedException(ex);
-                        } catch ( IOException e ){
-                            throw new WrappedException(e);
-   } catch (StaticError ex) {
-                            result = addExceptionToResult(result, ex);
-   }
-  }
+        try {
+            if (Shell.isApi(file)) {
+                result = addApiToResult(bcr, result, name);
+            } else if (Shell.isComponent(file)) {
+                result = addComponentToResult(bcr, result, name);
+            } else {
+                result = addComponentToResult(bcr, result, NodeFactory.makeAPIName(file));
+            }
+        } catch (ProgramError pe) {
+            Iterable<? extends StaticError> se = pe.getStaticErrors();
+            if (se == null) {
+                result = new Parser.Result(result, new Parser.Result(new WrappedException(pe, ProjectProperties.debug)));
+            }
+            else {
+                result = new Parser.Result(result, new Parser.Result(se));
+            }
+        } catch (RepositoryError ex) {
+            throw ex;
+        } catch ( FileNotFoundException ex ){
+            throw new WrappedException(ex);
+        } catch ( IOException e ){
+            throw new WrappedException(e);
+        } catch (StaticError ex) {
+            result = addExceptionToResult(result, ex);
+        }
 
                 /*
   for (APIName name : bcr.staleApis()) {
