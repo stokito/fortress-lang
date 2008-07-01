@@ -24,6 +24,10 @@ export SkipTree
 trait SkipTree[\Key,Value\]
 
     getter toString():String
+    
+    getter toDotString(name:String):String
+    
+    getter count():ZZ32
 
     opr |self| : ZZ32
 
@@ -69,6 +73,10 @@ object EmptySkipTree[\Key,Value\] extends { SkipTree[\Key,Value\] }
 
     getter toString():String = "(EMPTY)"
 
+    getter toDotString(name:String):String = "digraph " || name || " {}"
+
+    getter count():ZZ32 = 0
+
     opr |self| : ZZ32 = 0
 
     find(querykey : Key) : Maybe[\Value\] = Nothing[\Value\]
@@ -90,8 +98,13 @@ object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTre
 
     getter toString():String = root.toString()
 
-    opr |self| : ZZ32 = |root|
+    getter toDotString(name:String):String =  "digraph " || name  || (" {" // 
+        "node [shape=record];" // "ordering=out;"  //  root.toDotString() ) || "}" 
 
+    getter count():ZZ32 = root.count()
+
+    opr |self| : ZZ32 = |root|
+    
     find(querykey : Key) : Maybe[\Value\] = root.find(querykey)
 
     insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\] = do
@@ -119,11 +132,37 @@ object Node[\Key,Value\](keys     : List[\Key\],
 
     getter toString() : String = keys "" values "" children " h" height
 
+    getter toDotString() : String = do
+        name = keys[0]
+        s1 = "node" || name || " [label=\"" || childrenDotString() || "\"];"//
+        s2 = children.generate[\String\](StringReduction,fn (child) => typecase child of
+                Just[\Node[\Key,Value\]\] => child.get().toDotString()
+                else => "" end) 
+        s3 = children.indexValuePairs().generate[\String\](StringReduction, 
+            fn (i,child) => typecase child of
+                Just[\Node[\Key,Value\]\] => do
+                    childname = child.get().keys[0]
+                    "\"node" || name || "\":" || i || "-> \"node" || childname || "\";"// 
+                end
+                else => "" end)
+        s1 s2 s3
+    end
+
+    getter childrenDotString() : String = do
+        s1 = keys.indexValuePairs().generate[\String\](StringReduction, 
+            fn (i, key) => "<" || i  || "> " || key || " | ")
+        s1 || "<" || |keys| || "> h" || height
+    end
+    
+    getter count() : ZZ32 = 1 + children.generate[\Number\](SumReduction, 
+        fn (child) => typecase child of
+                Just[\Node[\Key,Value\]\] => child.get().count()
+                else => 0 end)
+
     opr |self| : ZZ32 = |keys| + children.generate[\Number\](SumReduction, 
         fn (child) => typecase child of
                 Just[\Node[\Key,Value\]\] => |child.get()|
-                else => 0 end)
-    
+                else => 0 end)    
 
     opr =(self, other:Node[\Key,Value\]): Boolean =
         if self SEQV other then true
