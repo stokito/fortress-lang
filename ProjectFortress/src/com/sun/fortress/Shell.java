@@ -211,7 +211,7 @@ public final class Shell {
      * Compile a file.
      * If you want a dump then give -out somefile.
      */
-    static void compile(List<String> args, Option<String> out)
+    private static void compile(List<String> args, Option<String> out)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to compile");
@@ -250,15 +250,14 @@ public final class Shell {
      * @throws InterruptedException
      * @throws IOException
      */
-    static void compile(String s, Option<String> out)
+    private static void compile(String s, Option<String> out)
         throws UserError, InterruptedException {
         try {
-            FortressRepository repository = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
-            Fortress fortress = new Fortress(repository);
-
+            Fortress fortress = new Fortress();
             Path path = ProjectProperties.SOURCE_PATH;
 
-            /* 1) Not for parse
+            /* Questions 1)
+               1) Not for parse
                2) What if there are multiple "/"s
              */
             if (s.contains("/")) {
@@ -277,9 +276,9 @@ public final class Shell {
             } else if ( out.isSome() ){
                 try{
                     if ( isApi(s) ){
-                        ASTIO.writeJavaAst(repository.getApi(cuName(s)).ast(), out.unwrap());
+                        ASTIO.writeJavaAst(fortress.getRepository().getApi(cuName(s)).ast(), out.unwrap());
                     } else if ( isComponent(s) ){
-                        ASTIO.writeJavaAst(repository.getComponent(cuName(s)).ast(), out.unwrap());
+                        ASTIO.writeJavaAst(fortress.getRepository().getComponent(cuName(s)).ast(), out.unwrap());
                     } else {
                         System.out.println( "Don't know what kind of file " + s + " is. Append .fsi or .fss." );
                     }
@@ -295,7 +294,7 @@ public final class Shell {
     /**
      * Run a file.
      */
-    static void run(List<String> args)
+    private static void run(List<String> args)
         throws UserError, IOException, Throwable {
         if (args.size() == 0) {
             throw new UserError("Need a file to run");
@@ -321,10 +320,10 @@ public final class Shell {
         }
     }
 
-    static void run(String fileName, List<String> args)
+    private static void run(String fileName, List<String> args)
         throws UserError, Throwable {
         try {
-            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
+            Fortress fortress = new Fortress();
 
             Path path = ProjectProperties.SOURCE_PATH;
 

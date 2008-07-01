@@ -123,27 +123,6 @@ public class Driver {
 
     public static ArrayList<ComponentWrapper> components;
 
-    public static APIName fileAsComponent(String s) {
-        APIName name = null;
-        if (s.endsWith("." + ProjectProperties.COMP_SOURCE_SUFFIX)) {
-             name =
-                NodeFactory.makeAPIName(s.substring(0,s.length() -
-               (1 + ProjectProperties.COMP_SOURCE_SUFFIX.length())));
-             return name;
-        }
-        return null;
-    }
-    public static APIName fileAsApi(String s) {
-        APIName name = null;
-        if (s.endsWith("." + ProjectProperties.API_SOURCE_SUFFIX)) {
-             name =
-                NodeFactory.makeAPIName(s.substring(0,s.length() -
-               (1 + ProjectProperties.API_SOURCE_SUFFIX.length())));
-             return name;
-        }
-        return null;
-    }
-
     private static boolean injectLibraryTraits(List<ComponentWrapper> components,
                                                ComponentWrapper lib) {
         boolean change = false;
