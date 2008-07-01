@@ -46,36 +46,57 @@ export PureList
 *)
 trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
         excludes { Number, HasRank }
-  getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
-  getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
-  getter extractLeft(): Maybe[\(E,List[\E\])\]
-  getter extractRight(): Maybe[\(List[\E\],E)\]
-  append(f:List[\E\]): List[\E\]
-  opr ||(self, other:List[\E\]): List[\E\]     
-  addLeft(e:E):List[\E\]
-  addRight(e:E):List[\E\]
-  take(n:ZZ32): List[\E\]
-  drop(n:ZZ32): List[\E\]
-  opr [n:ZZ32]: E
-  opr [n:Range[\ZZ32\]]: List[\E\] =
-      drop(n.lower()).take(n.extent())
-  split(n:ZZ32): (List[\E\], List[\E\])
-  split(): (List[\E\], List[\E\])
-  reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
-  filter(p: E -> Boolean): List[\E\] =
-      concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
-                                              else emptyList[\E\]() end)
-  toString():String =
+    (** %left% and %extractLeft% return the leftmost element in the list
+        (and in the latter case, the remainder of the list without its
+        leftmost element).  They return %Nothing% if the list is empty.
+        %right% and %extractRight% do the same with the rightmost
+        element. *)
+    getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
+    getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
+    getter extractLeft(): Maybe[\(E,List[\E\])\]
+    getter extractRight(): Maybe[\(List[\E\],E)\]
+    opr ||(self, other:List[\E\]): List[\E\]
+    (** %addLeft% and %addRight% add an element to the left or right of
+        the list, respectively *)
+    addLeft(e:E):List[\E\]
+    addRight(e:E):List[\E\]
+    (** %take% returns the leftmost %n% elements of the list; if the
+        list is shorter than this, the entire list is returned. *)
+    take(n:ZZ32): List[\E\]
+    (** %drop% drops the leftmost %n% elements of the list; if the list
+        is shorter than this, an empty list is returned. *)
+    drop(n:ZZ32): List[\E\]
+    opr [n:ZZ32]: E
+    opr [n:Range[\ZZ32\]]: List[\E\] = do
+        r = (0 # |self|)[n]
+        drop(r.lower()).take(r.extent())
+      end
+    (** %l.split(n)% is equivalent to %(l.take(n),l.drop(n))%.  Note in
+        particular that appending its results yields the original
+        list. *)
+    split(n:ZZ32): (List[\E\], List[\E\])
+    (** %split% splits the list into two smaller lists.  If %|l| > 1%
+        both lists will be non-empty. *)
+    split(): (List[\E\], List[\E\])
+    reverse(): List[\E\] =
+        generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
+    filter(p: E -> Boolean): List[\E\] =
+        concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
+                                             else emptyList[\E\]() end)
+    toString():String =
       "<|" (if (h,t) <- extractLeft() then
                 h (BIG ||[e<-t] ", " e)
             else " " end) "|>"
-  concatMap[\G\](f: E->List[\G\]): List[\G\] =
-      generate[\List[\G\]\](Concat[\G\],f)
-  map[\G\](f: E->G): List[\G\] =
-      concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
-  ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
-      indexValuePairs().generate[\List[\G\]\](Concat[\G\],
-                fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
+    (** %concatMap% is an in-place version of the %nest% method from
+        %Generator%; it flattens the result into an actual list, rather than
+        returning an abstract %Generator%. *)
+    concatMap[\G\](f: E->List[\G\]): List[\G\] =
+        generate[\List[\G\]\](Concat[\G\],f)
+    map[\G\](f: E->G): List[\G\] =
+        concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
+    ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
+        indexValuePairs().generate[\List[\G\]\](Concat[\G\],
+                  fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
 end
 
 (** Vararg factory for lists; provides aggregate list constants **)
@@ -95,21 +116,21 @@ concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
 private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
   getter toString(): String = "List concatenation reduction"
   empty(): List[\E\] = emptyList[\E\]()
-  join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
+  join(a:List[\E\], b:List[\E\]): List[\E\] = a || b
 end
 
 (** The same for reverse concatenation *)
 private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
   getter toString(): String = "List reversal reduction"
   empty(): List[\E\] = emptyList[\E\]()
-  join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
+  join(a:List[\E\], b:List[\E\]): List[\E\] = b || a
 end
 
 (** A reduction object for concatenating specifically PureLists. *)
 private object PLConcat[\E\] extends MonoidReduction[\ PureList[\E\] \]
   getter toString(): String = "PureList concatenation reduction"
   empty(): PureList[\E\] = D0[\E\]
-  join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
+  join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a || b
 end
 
 (* We must wrap the FingerTree, since we need to also wrap the elements
@@ -129,10 +150,9 @@ value object PureList[\E\]( it: FingerTree[\E\] )
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
   seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
-  opr ||(self, other:List[\E\]): List[\E\] = append(other)     
-  append(f:List[\E\]): PureList[\E\] =
-      append(f.generate[\PureList[\E\]\](PLConcat[\E\],singleton[\E\]))
-  append(f:PureList[\E\]): PureList[\E\] =
+  opr ||(self, other:List[\E\]): List[\E\] =
+      self || f.generate[\PureList[\E\]\](PLConcat[\E\],singleton[\E\])
+  opr ||(self, f:PureList[\E\]): PureList[\E\] =
       PureList[\E\](it.append(f.contents()))
   addLeft(e:E):PureList[\E\] =
       PureList[\E\](it.addLeft(e))

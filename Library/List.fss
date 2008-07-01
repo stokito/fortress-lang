@@ -87,14 +87,14 @@ private expansion(curr: ZZ32, new: ZZ32) =
     into a list whose element type is as specific as possible. **)
 trait SomeList excludes { Number, HasRank }
         (* comprises List[\E\] where [\E\] *)
-    append(f:SomeList): SomeList = app(self,f)
+    opr ||(self, f:SomeList): SomeList = app(self,f)
     addLeft(e:Any): SomeList = addL(e,self)
     addRight(e:Any): SomeList = addR(self,e)
 end
 
 private app[\T,E extends T,F extends T\](a:List[\E\], b:List[\F\]): List[\T\] =
     typecase (a,b) of
-        (List[\T\],List[\T\]) => a.append(b)
+        (List[\T\],List[\T\]) => a || b
         (List[\T\],List[\F\]) => a.appendRC[\F\](b)
         (List[\E\],List[\T\]) => b.appendLC[\E\](a)
         else =>
@@ -122,11 +122,9 @@ trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
     getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
-    (** %append% returns a list containing the elements of %self% followed
+    (** the operator %||% returns a list containing the elements of %self% followed
         by the elements of %f% *)
-    append(f:List[\E\]): List[\E\]
-    (** the operator %||% performs the %append% operation *)
-    opr ||(self, other:List[\E\]): List[\E\] = append(other)
+    opr ||(self, other:List[\E\]): List[\E\]
     (** Helper methods for %append% *)
     private appendRC[\T\](other:List[\T\]): List[\E\]
     private appendLC[\T\](other:List[\T\]): List[\E\]
@@ -182,7 +180,7 @@ opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\] =
 
 covariantComprehension[\T,R\](unwrap:SomeList->R): Comprehension[\T,R,SomeList,SomeList\] =
     Comprehension[\T,R,SomeList,SomeList\](
-        fn xs => unwrap(xs.append(emptyList[\T\]())), CVConcat[\T\], cvSingleton)
+        fn xs => unwrap(xs || emptyList[\T\]()), CVConcat[\T\], cvSingleton)
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -231,21 +229,21 @@ concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
 private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
   getter toString():String = "List concatenation"
   empty(): List[\E\] = emptyList[\E\]()
-  join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
+  join(a:List[\E\], b:List[\E\]): List[\E\] = a || b
 end
 
 (** A reduction object for concatenating lists covariantly. *)
 private object CVConcat[\T\] extends MonoidReduction[\SomeList\]
   getter toString():String = "Covariant list concatenation"
   empty(): SomeList = emptyList[\T\]()
-  join(a:SomeList, b:SomeList): SomeList = a.append(b)
+  join(a:SomeList, b:SomeList): SomeList = a || b
 end
 
 (** The same for reverse concatenation *)
 private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
   getter toString():String = "List reversal concatenation"
   empty(): List[\E\] = emptyList[\E\]()
-  join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
+  join(a:List[\E\], b:List[\E\]): List[\E\] = b || a
 end
 
 object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
@@ -352,10 +350,10 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
                                 cFirstUnused+1, oneShot() )
       end
 
-    (** %append%.  Can either append %other% to the right of %self%
+    (** %||% cab either append %other% to the right of %self%
         or %self% to the left of %other%.  Choose based on available
         space, preferring right append and if necessary right extension. **)
-    append(other:List[\E\]): List[\E\] =
+    opr ||(self, other:List[\E\]): List[\E\] =
         if rightSpace() >= |other| AND: canExtendRight.tryOnce() then
             appendR[\E\](other)
         elif other.leftSpace() >= |self| AND: other.canExtendLeft.tryOnce() then

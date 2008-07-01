@@ -78,7 +78,7 @@ run(args:String...):() = do
       chkPop(li,i)
       chkExtract(li,i)
       (ll,lr) = li.split()
-      lii = ll.append(lr)
+      lii = ll || lr
       chkPop(lii,i)
       fli = li.filter(fn x => x REM 2 = 0)
       chkPop(fli,0,(i+1) DIV 2,2)
@@ -113,7 +113,7 @@ run(args:String...):() = do
       for j <- testLens do
           print(".")
           lj = list(i#j)
-          chkPop(li.append(lj),i+j)
+          chkPop(li || lj, i+j)
           gz = li.zip[\ZZ32\](lj)
           assert(|gz|,|li| MIN |lj|, "zip size wrong")
           assertStr(BIG AND [(x,y)<-gz] x+i=y,"zip mismatch ",li,lj)

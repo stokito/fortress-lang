@@ -2886,6 +2886,12 @@ trait FullRange[\T\]
         comprises { ScalarRange[\T\], TupleRange[\T\] }
     getter indices(): FullRange[\T\] = bounds()
 
+    (** The following two methods are used in bounds checking code to
+        permit ranges that are just outside the edge of the given
+        range. **)
+    widenUpper(): FullRange[\T\]
+    widenLower(): FullRange[\T\]
+
     opr[r:Range[\T\]]: FullRange[\T\] = fail("Unrecognized Range " r)
     opr[_:OpenRange[\T\]]: FullRange[\T\] = self
     (** Square-bracket indexing on a FullRange restricts that range to
@@ -2900,7 +2906,7 @@ trait FullRange[\T\]
         if r.lower() = lower() then
             (* Important, also handles empty range case. *)
             self
-        elif r.lower() IN self then
+        elif r.lower() IN widenUpper() then
             r.lower():upper()
         else
             rangeBoundError[\T\](self,r)
@@ -2909,7 +2915,7 @@ trait FullRange[\T\]
         if r.upper() = upper() then
             (* Important, also handles empty range case. *)
             self
-        elif r.upper() IN self then
+        elif r.upper() IN widenLower() then
             lower():r.upper()
         else
             rangeBoundError[\T\](self,r)
@@ -2963,6 +2969,8 @@ trait ScalarRange[\N extends Integral\]
     getter bounds():FullRange[\N\] = 0#extent()
     getter upper():N = lower() + extent() - 1
     getter size():ZZ32 = |self|
+    widenUpper(): ScalarRange[\N\] = lower()#(extent()+1)
+    widenLower(): ScalarRange[\N\] = (lower()-1)#(extent()+1)
     opr |self| : ZZ32 = narrow(extent())
     opr[i:N]: N =
         if 0 <= i < extent() then
@@ -3092,6 +3100,8 @@ object Tuple2Range[\N extends Integral, M extends Integral\]
     getter indexValuePairs() =
         Tuple2Range[\N\](0,0,x1,x2).map[\((N,M),(N,M))\](
             fn (n:N,m:M):((N,M),(N,M)) => ((n,m),(n+l1,m+l2)))
+    widenUpper(): Tuple2Range[\N,M\] = (l1,l2)#(x1+1,x2+1)
+    widenLower(): Tuple2Range[\N,M\] = (l1-1,l2-1)#(x1+1,x2+1)
     opr |self| : ZZ32 = |l1#x1| |l2#x2|
     opr[i:(N,M)]: (N,M) = do
         (i1,i2) = i
@@ -3127,6 +3137,8 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
         (0#x1).cross(0#x2).cross(0#x3).map[\((N1,N2,N3),(N1,N2,N3))\](
             fn (t:(N1,N2),n3:N3):((N1,N2,N3),(N1,N2,N3)) =>
                 do (n1,n2)=t; ((n1,n2,n3),(n1+l1,n2+l2,n3+l3)) end)
+    widenUpper(): Tuple3Range[\N1,N2,N3\] = (l1,l2,l3)#(x1+1,x2+1,x3+1)
+    widenLower(): Tuple3Range[\N1,N2,N3\] = (l1-1,l2-1,l3-1)#(x1+1,x2+1,x3+1)
     opr |self| : (N1,N2,N3) = |l1#x1| |l2#x2| |l3#x3|
     opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
         (i1,i2,i3) = i
@@ -3209,10 +3221,14 @@ println():() = println("")
 
 match(regex:String,some:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
 
-(** opr // appends a single newline separator. **)
+(** postfix %//% appends a single newline separator.  The postfix version
+    performs implicit conversion to String, which is why it's a
+    standalone top-level function.  Infix and prefix versions are defined by String. **)
 opr (x:Any)// : String = x||"\n"
 
-(** opr /// appends a double newline separator **)
+(** postfix %///% appends a double newline separator.  The postfix version
+    performs implicit conversion to String, which is why it's a
+    standalone top-level function.  Infix and prefix versions are defined by String. **)
 opr (x:Any)/// : String = x||"\n\n"
 
 (* A way to get environment information from inside of fortress *)

@@ -61,7 +61,7 @@ run(args:String...):() = do
     x : List[\Foo\] = <| Bar asif Foo, Bar, Bar |>
     y : List[\Foo\] = <| Baz asif Foo, Baz |>
     (* Now appending the two ought to work. *)
-    println(x.append(y))
+    println(x || y)
 
     (* Top-level overloading *)
     a : List[\RR64\] = <| 1.0 asif RR64, 2.0, 3.0, 4.0 |>

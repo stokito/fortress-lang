@@ -206,15 +206,6 @@ object String
     (** get skips bounds checking. **)
     get(i:ZZ32): Char =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.String$Index")
-    (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
-        of the string, returning the empty string, in order to permit some convenient
-        string-trimming idioms. **)
-    opr[r0:LowerRange[\ZZ32\]]: String = do
-        l = r0.lower()
-        if l = |self| then ""
-        else self[l#(|self| - l)]
-        end
-      end
     opr[r0:Range[\ZZ32\]] : String = do
         r1 = (bounds())[r0]
         l = r1.lower()
@@ -258,13 +249,21 @@ object String
     opr juxtaposition(self, b:String):String = self || b
     opr juxtaposition(self, b:Any):String = self || b
 
-    (** opr // appends with a single newline separator. **)
+    (** opr %//% appends with a single newline separator.  Note that as
+        with %||% and %|||% at least one argument must be a String.
+        There is a postfix version in FortressLibrary that performs
+        string conversion, but the prefix version must occur before a
+        String. **)
     opr //(self) : String = "\n"||self
     opr //(self, a:String): String = self||"\n"||a
     opr //(self, a:Any): String    = self||"\n"||a
     opr //(a:Any, self): String    = a||"\n"||self
 
-    (** opr /// appends with a double newline separator **)
+    (** opr %///% appends with a double newline separator.  Note that as
+        with %||% and %|||% at least one argument must be a String.
+        There is a postfix version in FortressLibrary that performs
+        string conversion, but the prefix version must occur before a
+        String. **)
     opr ///(self) : String = "\n\n"||self
     opr ///(self, a:String): String = self||"\n\n"||a
     opr ///(self, a:Any): String    = self||"\n\n"||a
