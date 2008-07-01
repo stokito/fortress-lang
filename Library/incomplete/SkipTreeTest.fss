@@ -99,9 +99,11 @@ export Executable
                     fail("Skip Tree has not grown on attempt to insert a new key!")
                 elif NOT oldvalue.isEmpty() AND (|tree| =/= |newTree|) then
                     fail("Skip Tree has grown on attempt to insert an existing key!")
-                end 
+                end
                 tree := newTree
             end
+            (* println tree.toDotString("WallE") *)
+            (* println (|tree| / tree.count()) *)
         end
     end
 
