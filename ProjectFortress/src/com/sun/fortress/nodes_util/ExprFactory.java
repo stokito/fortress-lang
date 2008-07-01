@@ -452,6 +452,10 @@ public class ExprFactory {
         return new VarRef(span, false, NodeFactory.makeId(span, s));
     }
 
+    public static VarRef makeVarRef(Span span, String s, int lexical_depth) {
+        return new VarRef(span, false, NodeFactory.makeId(span, s), lexical_depth);
+    }
+
     public static VarRef makeVarRef(String s) {
         return makeVarRef(NodeFactory.makeId(s));
     }

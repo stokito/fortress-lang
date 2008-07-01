@@ -50,11 +50,17 @@ import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.ExtentRange;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.UnpastingBind;
+import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.FnRef;
@@ -314,6 +320,10 @@ public class Desugarer extends Rewrite {
      * Rewritings in scope.
      */
     private BATree<String, Thing> rewrites;
+    
+    public Thing rewrites_put(String k, Thing d) {
+        return rewrites.put(k, d);
+    }
 
     /**
      * Things that are arrow-typed (used to avoid method-invoking self fields)
@@ -396,7 +406,7 @@ public class Desugarer extends Rewrite {
 
     /**
      * Adds, to the supplied environment, constructors for any object
-     * expressions encountered the tree(s) processed by this Disambiguator.
+     * expressions encountered in the tree(s) processed by this Disambiguator.
      * @param env
      */
     public void registerObjectExprs(Environment env) {
@@ -496,7 +506,7 @@ public class Desugarer extends Rewrite {
             return false;
         /* Empty means do  add */
         if (old == null) {
-            rewrites.put(putName, th);
+            rewrites_put(putName, th);
             return true;
         }
         excluded.add(putName);
@@ -698,7 +708,7 @@ public class Desugarer extends Rewrite {
                     FnDef fndef = (FnDef) node;
                     if (atTopLevelInsideTraitOrObject) {
                         currentSelfName = fndef.getSelfName();
-                        rewrites.put(currentSelfName, new SelfRewrite(currentSelfName));
+                        rewrites_put(currentSelfName, new SelfRewrite(currentSelfName));
                     }
                     atTopLevelInsideTraitOrObject = false;
                     lexicalNestingDepth++;
@@ -771,9 +781,17 @@ public class Desugarer extends Rewrite {
 
                 } else if (node instanceof LocalVarDecl) {
                     atTopLevelInsideTraitOrObject = false;
-                    // defined var is no longer eligible for rewrite.
-                    //LocalVarDecl lb = (LocalVarDecl) node;
-                    //List<LValue> lvals = lb.getLhs();
+                    lexicalNestingDepth++;
+                    
+                    LocalVarDecl lvd = (LocalVarDecl) node;
+                    
+                    List<LValue> lhs = lvd.getLhs();
+                    Option<Expr> rhs = lvd.getRhs();
+                    List<Expr> body = lvd.getBody();
+                    
+                    lvaluesToLocal(lhs);
+                    // not quite right because initializing exprs are evaluated in the wrong context.
+                    
                     // TODO wip
 
                 } else if (node instanceof LetFn) {
@@ -796,10 +814,12 @@ public class Desugarer extends Rewrite {
                     Option<List<Param>> params = od.getParams();
                     List<StaticParam> tparams = od.getStaticParams();
                     List<BaseType> xtends = NodeUtil.getTypes(od.getExtendsClause());
+                    
                     // TODO wip
                     lexicalNestingDepth++;
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
+                    
                     defsToMembers(defs);
                     immediateDef = tparamsToLocals(tparams, immediateDef);
                     paramsToMembers(params);
@@ -1284,12 +1304,31 @@ public class Desugarer extends Rewrite {
      */
     private void defsToLocals(List<? extends AbsDeclOrDecl> defs) {
         for (AbsDeclOrDecl d : defs) {
-            String s = d.stringName();
             if (d instanceof TraitAbsDeclOrDecl) {
+                String s = d.stringName();
                 TraitAbsDeclOrDecl dod = (TraitAbsDeclOrDecl) d;
-                rewrites.put(s, new Trait(dod, rewrites));
+                rewrites_put(s, new Trait(dod, rewrites));
+            } else if (d instanceof ObjectDecl) {
+                ObjectDecl od = (ObjectDecl) d;
+                Option<List<Param>> params = od.getParams();
+                /*
+                 *  Add the object itself (either constructor or singleton,
+                 *  we don't care much) to the locals.
+                 *  
+                 *  If it is a constructor, it is also an arrow type.
+                 *  
+                 */
+                String s = od.getName().getText();
+                rewrites_put(s, new Local());
+                
+                if (params.isNone())
+                    arrows.remove(s);
+                else
+                    arrows.add(s);
             } else {
-                rewrites.put(s, new Local());
+                for (String s : NodeUtil.stringNames(d)) {
+                    rewrites_put(s, new Local());
+                }
             }
         }
     }
@@ -1302,10 +1341,53 @@ public class Desugarer extends Rewrite {
             String s = d.getName().getText();
             // "self" is not a local.
             if (! s.equals(currentSelfName)) {
-                rewrites.put(s, new Local());
+                rewrites_put(s, new Local());
 
             }
         }
+    }
+
+    
+    private NodeAbstractVisitor_void localVisitor = new  NodeAbstractVisitor_void() {
+
+        @Override
+        public void forExtentRange(ExtentRange that) {
+            // TODO Auto-generated method stub
+            super.forExtentRange(that);
+        }
+
+        @Override
+        public void forLValueBind(LValueBind that) {
+            that.getName().accept(this);
+        }
+
+        @Override
+        public void forId(Id that) {
+            String s = that.getText();
+            rewrites_put(s, new Local());
+        }
+
+        @Override
+        public void forUnpastingBind(UnpastingBind that) {
+            that.getName().accept(this);
+            for (ExtentRange er : that.getDim())
+                er.accept(this);
+        }
+
+        @Override
+        public void forUnpastingSplit(UnpastingSplit that) {
+            for (Unpasting up : that.getElems())
+                up.accept(this);
+        }
+    
+    };
+    
+    /**
+     * @param params
+     */
+    private void lvaluesToLocal(List<? extends LValue> params) {
+        for (LValue param : params) 
+            param.accept(localVisitor);
     }
 
     /**
@@ -1315,7 +1397,7 @@ public class Desugarer extends Rewrite {
         if (!params.isEmpty())
             for (StaticParam d : params) {
                 String s = NodeUtil.getName(d);
-                rewrites.put(s, new Local());
+                rewrites_put(s, new Local());
                 visibleGenericParameters.put(s, d);
                 immediateDef = addToImmediateDef(immediateDef, s);
             }
@@ -1340,7 +1422,7 @@ public class Desugarer extends Rewrite {
     private void defsToMembers(List<? extends AbsDeclOrDecl> defs) {
         for (AbsDeclOrDecl d : defs) {
             for (String s: NodeUtil.stringNames(d))
-            rewrites.put(s, new Member());
+            rewrites_put(s, new Member());
         }
 
     }
@@ -1352,7 +1434,7 @@ public class Desugarer extends Rewrite {
         if (params.isSome())
             for (Param d : params.unwrap()) {
                 String s = d.getName().getText();
-                rewrites.put(s, new Member(NodeUtil.isTransient(d)));
+                rewrites_put(s, new Member(NodeUtil.isTransient(d)));
                 if (d.accept(isAnArrowName))
                     arrows.add(s);
                 else
@@ -1367,7 +1449,7 @@ public class Desugarer extends Rewrite {
      */
     private void stringsToMembers(Collection<String> strings) {
         for (String s : strings) {
-            rewrites.put(s, new Member());
+            rewrites_put(s, new Member());
             arrows.remove(s);
         }
     }
@@ -1377,7 +1459,7 @@ public class Desugarer extends Rewrite {
      */
     private void stringsToLocals(Collection<String> strings) {
         for (String s : strings) {
-            rewrites.put(s, new Local());
+            rewrites_put(s, new Local());
             arrows.remove(s);
         }
     }

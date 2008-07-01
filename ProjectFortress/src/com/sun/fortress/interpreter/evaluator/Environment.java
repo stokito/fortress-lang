@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
 
@@ -105,6 +106,15 @@ public interface Environment  {
      * @param s
      */
     public abstract FValue getValueNull(String s);
+    
+    /**
+     * Similar to the string version, but able to deal with
+     * depth information on the VarRef.
+     * 
+     * @param vr
+     * @return
+     */
+    public abstract FValue getValueNull(VarRef vr);
 
     public abstract FValue getValueRaw(String s);
 
