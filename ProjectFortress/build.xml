@@ -230,6 +230,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <delete file="${precedenceResolver}/Operators.java"/>
         <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${instrumentation.outfile}"/>
+        <delete file="${library}/FortressAst.fsi" />
+        <delete file="${library}/FortressAst.fss" />
         <delete file="FortressLibrary.ast"/>
         <delete file="FortressLibrary.tfs"/>
         <delete file="testFile.txt"/>
