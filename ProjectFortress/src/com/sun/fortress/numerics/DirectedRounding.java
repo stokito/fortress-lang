@@ -25,7 +25,9 @@ import java.lang.Math.*;
  * Directed rounding for Java float and double, implemented
  * in pure Java.
  */
-public class DirectedRounding {
+public final class DirectedRounding {
+
+  private DirectedRounding() {}
 
   public static float nextUp(float x) {
     if (Float.isNaN(x)) return x;

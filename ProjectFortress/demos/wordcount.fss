@@ -76,7 +76,7 @@ opr BIG UNIONSUM(): BigReduction[\Map[\CaseInsensitiveString,ZZ32\],
         fn (a,b) => a UNIONSUM b, {[\CaseInsensitiveString,ZZ32\]})
 
 opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
-    a.union(fn(k,x,y) =>x.append(y),b)
+    a.union(fn(k,x,y) => x || y, b)
 
 opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
     embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})

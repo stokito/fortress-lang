@@ -34,6 +34,11 @@ assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
     fail("Failed assertion: " s l.toString() " and " r.toString())
   end
 
+chkApp(tl: List[\ZZ32\], t : List[\Any\]) = do
+    assert("Hello" IN t, true, "missing Hello from ", t)
+    assert(l IN t, true, "missing ",l," from ",t), l <- tl
+  end
+
 chkPop[\T\](l:List[\T\],fro:ZZ32,sz:ZZ32,by:ZZ32): () =
   typecase l of
     List[\ZZ32\] => chkPopZ(l,fro,sz,by)
@@ -80,7 +85,7 @@ run(args:String...):() = do
   testLens : List[\ZZ32\] = <|0,1,2,7,10|>
   assert(20,SUM testLens,"sum wrong")
   for i <- seq(testLens) do
-      print( //i ":")
+      print( // i ":")
       li = list(0#i)
       print(li)
       chkPop(li,i)
@@ -88,9 +93,12 @@ run(args:String...):() = do
       print(".")
       assert(li,li,"Lists unequal")
       assert(li CMP li,EqualTo,"Lists CMP unequal")
+      chkPop(li[#],i)
+      chkPop(li.addRight(i),i+1)
+      chkPop(li.addLeft(-1),-1,i+1)
       (ll,lr) = li.split()
       print(".")
-      lii = ll.append(lr)
+      lii = ll || lr
       chkPop(lii,i)
       print(".")
       fli = li.filter(fn x => x REM 2 = 0)
@@ -136,11 +144,17 @@ run(args:String...):() = do
           (l2,r2) = (li[0#j],li[j#(i-j)])
           chkPop(l2,j)
           chkPop(r2,j,i-j)
+          (l3,r3) = (li[#j],li[j#])
+          chkPop(l3,j)
+          chkPop(r3,j,i-j)
+          (l4,r4) = (li[:(j-1)],li[j:])
+          chkPop(l4,j)
+          chkPop(r4,j,i-j)
       end
       for j <- testLens do
           print(".")
           lj = list(i#j)
-          chkPop(li.append(lj),i+j)
+          chkPop(li || lj, i+j)
           print(".")
           gz = li.zip[\ZZ32\](lj)
           assert(|gz|,|li| MIN |lj|, "zip size wrong")
