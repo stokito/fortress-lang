@@ -29,6 +29,7 @@ import java.util.HashSet;
 import org.apache.tools.ant.util.CollectionUtils;
 
 import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.Api;
@@ -81,56 +82,6 @@ import com.sun.fortress.exceptions.StaticError;
  * treated as static errors.
  */
 public class Disambiguator {
-
-    /** Result of {@link #disambiguateApis}. */
-    public static class ApiResult extends StaticPhaseResult {
-        private final Iterable<Api> _apis;
-
-        public ApiResult(Iterable<Api> apis, 
-                Iterable<? extends StaticError> errors) {
-            super(errors);
-            _apis = apis;
-        }
-
-        public Iterable<Api> apis() { return _apis; }
-    }
-
-    /**
-     * Disambiguate the given apis. To support circular references,
-     * the apis should appear in the given environment.
-     */
-    public static ApiResult disambiguateApis(Iterable<Api> apis,
-            GlobalEnvironment globalEnv) {
-        List<Api> results = new ArrayList<Api>();
-        List<StaticError> errors = new ArrayList<StaticError>();
-        for (Api api : apis) {
-            ApiIndex index = globalEnv.api(api.getName());
-            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-            Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
-            
-            SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
-            Api spd_result = (Api)api.accept(self_disambig);
-            
-            List<StaticError> newErrs = new ArrayList<StaticError>();
-            TypeDisambiguator td = 
-                new TypeDisambiguator(env, onDemandImports, newErrs);
-            Api tdResult = (Api) spd_result.accept(td);
-            if (newErrs.isEmpty()) {
-                ExprDisambiguator ed = 
-                    new ExprDisambiguator(env, onDemandImports, newErrs);
-                Api edResult = (Api) tdResult.accept(ed);
-                if (newErrs.isEmpty()) { results.add(edResult); }
-            }
-
-            if (!newErrs.isEmpty()) { 
-                errors.addAll(newErrs); 
-            }
-        }
-        results = disambiguateGrammarMembers(results, errors, globalEnv);
-        return new ApiResult(results, errors);
-    }
-
-
     /**
      * Disambiguate the names of nonterminals.
      */
@@ -152,6 +103,77 @@ public class Disambiguator {
         return results;
     }
 
+    /** Result of {@link #disambiguateApis}. */
+    public static class ApiResult extends StaticPhaseResult {
+        private final Iterable<Api> _apis;
+
+        public ApiResult(Iterable<Api> apis, 
+                Iterable<? extends StaticError> errors) {
+            super(errors);
+            _apis = apis;
+        }
+
+        public Iterable<Api> apis() { return _apis; }
+    }
+
+    /**
+     * Disambiguate the given apis. To support circular references,
+     * the apis should appear in the given environment.
+     * @param apis_to_disambiguate Apis currently being disambiguated.
+     * @param globalEnv The current global environment.
+     * @param repository_apis Apis that already exist in the repository.
+     */
+    public static ApiResult disambiguateApis(Iterable<Api> apis_to_disambiguate,
+            GlobalEnvironment globalEnv, Map<APIName, ApiIndex> repository_apis) {
+        
+        List<StaticError> errors = new ArrayList<StaticError>();
+        
+        // First, loop through apis disambiguating types.
+        List<Api> new_apis = new ArrayList<Api>();
+        for( Api api : apis_to_disambiguate ) {
+        	 ApiIndex index = globalEnv.api(api.getName());
+             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
+             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+             
+             SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
+             Api spd_result = (Api)api.accept(self_disambig);
+             
+             List<StaticError> newErrs = new ArrayList<StaticError>();
+             TypeDisambiguator td = 
+                 new TypeDisambiguator(env, onDemandImports, newErrs);
+             Api tdResult = (Api) spd_result.accept(td);
+             
+             if( newErrs.isEmpty() )
+            	 new_apis.add(tdResult);
+             else 
+             	errors.addAll(newErrs);
+        }
+        
+        // then, rebuild the indices
+        IndexBuilder.ApiResult rebuilt_indx = IndexBuilder.buildApis(new_apis, System.currentTimeMillis());
+        GlobalEnvironment new_global_env = new GlobalEnvironment.FromMap(CollectUtil.union(repository_apis,
+        		rebuilt_indx.apis()));
+
+        // Finally, disambiguate the expressions using the rebuild indices.
+        List<Api> results = new ArrayList<Api>();
+        for( Api api : new_apis ) {
+        	ApiIndex index = new_global_env.api(api.getName());
+        	NameEnv env = new TopLevelEnv(new_global_env, index, errors);
+        	Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+        	
+        	List<StaticError> newErrs = new ArrayList<StaticError>();
+        	ExprDisambiguator ed = 
+                new ExprDisambiguator(env, onDemandImports, newErrs);
+            Api edResult = (Api) api.accept(ed);
+            if (newErrs.isEmpty())
+            	results.add(edResult);
+            else 
+            	errors.addAll(newErrs);
+        }
+     
+        results = disambiguateGrammarMembers(results, errors, globalEnv);
+        return new ApiResult(results, errors);
+    }
 
     /** Result of {@link #disambiguateComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
@@ -165,12 +187,16 @@ public class Disambiguator {
     }
 
     /** Disambiguate the given components. */
-    public static ComponentResult
-    disambiguateComponents(Iterable<Component> components,
-            GlobalEnvironment globalEnv,
-            Map<APIName, ComponentIndex> indices) {
+    public static ComponentResult disambiguateComponents(Iterable<Component> components,
+                                                         GlobalEnvironment globalEnv,
+                                                         Map<APIName, ComponentIndex> indices) {
+    	
+    	
         List<Component> results = new ArrayList<Component>();
         List<StaticError> errors = new ArrayList<StaticError>();
+        
+        // First, disambiguate the types
+        List<Component> new_comps = new ArrayList<Component>();
         for (Component comp : components) {
             ComponentIndex index = indices.get(comp.getName());
             if (index == null) {
@@ -186,16 +212,33 @@ public class Disambiguator {
             TypeDisambiguator td = 
                 new TypeDisambiguator(env, onDemandImports, newErrs);
             Component tdResult = (Component) spdResult.accept(td);
-            if (newErrs.isEmpty()) {
-                ExprDisambiguator ed = 
-                    new ExprDisambiguator(env, onDemandImports, newErrs);
-                Component edResult = (Component) tdResult.accept(ed);
-                if (newErrs.isEmpty()) { results.add(edResult); }
+            if (newErrs.isEmpty())
+            	new_comps.add(tdResult);
+            else
+            	errors.addAll(newErrs);
+        }
+        
+        // Then, rebuild the component indices based on disambiguated types
+        IndexBuilder.ComponentResult new_comp_ir =
+        	IndexBuilder.buildComponents(new_comps, System.currentTimeMillis());
+        
+        // Finall, disambiguate the expressions
+        for( Component comp : new_comps ) {
+        	ComponentIndex index = new_comp_ir.components().get(comp.getName());
+        	if (index == null) {
+                throw new IllegalArgumentException("Missing component index");
             }
-
-            if (!newErrs.isEmpty()) { 
-                errors.addAll(newErrs); 
-            }
+        	NameEnv env = new TopLevelEnv(globalEnv, index, errors);
+            Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+            
+            List<StaticError> newErrs = new ArrayList<StaticError>();
+            ExprDisambiguator ed = 
+                new ExprDisambiguator(env, onDemandImports, newErrs);
+            Component edResult = (Component) comp.accept(ed);
+            if (newErrs.isEmpty())
+            	results.add(edResult);
+            else 
+            	errors.addAll(newErrs);
         }
         return new ComponentResult(results, errors);
     }

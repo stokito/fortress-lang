@@ -28,16 +28,9 @@ import com.sun.fortress.useful.TestCaseWrapper;
 public class StaticJUTest extends TestCaseWrapper {
     
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/";
-    private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList(
-        "XXXMultipleRefErrors.fss",
-        "XXXUndefinedArrayRef.fss",
-        "XXXUndefinedInitializer.fss",
-        "XXXUndefinedNestedRef.fss",
-        "XXXUndefinedRefInLoop.fss",
-        "XXXUndefinedVar.fss",
-        "XXXUndefinedTopLevelVar.fss"
-    );
+    private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList();
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
+        /* "XXXMultipleRefErrors.fss",
     	"GenericFunctionCall.fss",
         "CrossOverloaded.fss",
         "SimpleObject.fss",
@@ -46,13 +39,7 @@ public class StaticJUTest extends TestCaseWrapper {
         "PlusEq.fss",
         "CaseExpr.fss",
         "DXXMutualSeparateLetFn.fss",
-        "XXXMultipleRefErrors.fss",
-        "XXXUndefinedArrayRef.fss",
-        "XXXUndefinedInitializer.fss",
-        "XXXUndefinedNestedRef.fss",
-        "XXXUndefinedRefInLoop.fss",
-        "XXXUndefinedVar.fss",
-        "XXXUndefinedTopLevelVar.fss",
+        "XXXMultipleRefErrors.fss", */
         // This test the accumulator which is not desugared yet
          "Sum.fss",
         //These are broken until the constraint solver is fixed
@@ -69,4 +56,3 @@ public class StaticJUTest extends TestCaseWrapper {
                                    FAILING_TYPE_CHECKER);     
     }
 }
-//"GenericSingleton.fss"      // FIXME

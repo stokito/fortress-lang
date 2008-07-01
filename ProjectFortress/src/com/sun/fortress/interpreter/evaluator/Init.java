@@ -48,6 +48,7 @@ public class Init {
         FTypeOpr.reset();
         FTypeRest.reset();
         FTypeOverloadedArrow.reset();
+        FTypeGeneric.reset();
         FortressTests.reset();
         IntNat.reset();
         GenericFunctionOrMethod.FunctionsAndState.reset();

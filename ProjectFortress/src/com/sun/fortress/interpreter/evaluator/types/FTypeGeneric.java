@@ -87,6 +87,10 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     static List<FTraitOrObjectOrGeneric> pendingFunctionalMethodFinishes =
         new ArrayList<FTraitOrObjectOrGeneric>();
 
+    public static void reset() {
+    	pendingFunctionalMethodFinishes = new ArrayList<FTraitOrObjectOrGeneric>();
+    }
+    
     private final Generic def;
     private final FTypeGeneric original;
 

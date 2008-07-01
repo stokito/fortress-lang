@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.Collections;
@@ -63,7 +64,10 @@ public final class StaticTestSuite extends TestSuite {
             }
         };
 
-        for (String filename : new File(testCase.getTestDir()).list(fssFilter)) {
+        //Permute filenames for randomness
+        String[] files = new File(testCase.getTestDir()).list(fssFilter);
+        Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
+        for (String filename : shuffled) {
             File f = new File(testCase.getTestDir() + filename);
 
             if (SKIP_FAILING && testCase.isFailingDisambiguator(f)) {

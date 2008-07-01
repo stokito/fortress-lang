@@ -150,7 +150,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
   seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
-  opr ||(self, other:List[\E\]): List[\E\] =
+  opr ||(self, f:List[\E\]): List[\E\] =
       self || f.generate[\PureList[\E\]\](PLConcat[\E\],singleton[\E\])
   opr ||(self, f:PureList[\E\]): PureList[\E\] =
       PureList[\E\](it.append(f.contents()))
