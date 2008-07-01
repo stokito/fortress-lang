@@ -165,7 +165,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     }
 
     private void compileTestProgram() {
-        Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
+        Fortress fortress = new Fortress();
 
         Path path = ProjectProperties.SOURCE_PATH;
         String s = ProjectProperties.BASEDIR + "tests" +

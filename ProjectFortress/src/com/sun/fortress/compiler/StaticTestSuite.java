@@ -40,31 +40,31 @@ import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
 public final class StaticTestSuite extends TestSuite {
-    
+
     private final static boolean VERBOSE = false;
-    private final static boolean SKIP_FAILING = true;  
+    private final static boolean SKIP_FAILING = true;
 
     public StaticTestSuite(String _name, TestCaseDir testCaseDir) {
         super(_name);
         addStaticTests(testCaseDir);
     }
-    
+
     public StaticTestSuite(String _name, String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
         super(_name);
         TestCaseDir testCaseDir = new TestCaseDir(_testDir, _failingDisambiguator, _failingTypeChecker);
         addStaticTests(testCaseDir);
     }
-       
+
     public void addStaticTests(TestCaseDir testCase) {
         FilenameFilter fssFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.endsWith("fss");
             }
         };
-        
+
         for (String filename : new File(testCase.getTestDir()).list(fssFilter)) {
             File f = new File(testCase.getTestDir() + filename);
-            
+
             if (SKIP_FAILING && testCase.isFailingDisambiguator(f)) {
                 // skip
             } else if (testCase.getSkipTypeChecker() || (SKIP_FAILING && testCase.isFailingTypeChecker(f))) {
@@ -74,14 +74,14 @@ public final class StaticTestSuite extends TestSuite {
             }
         }
     }
-       
+
     public static class TestCaseDir {
         // relative to the top ProjectFortress directory
         private String testDir;
         private boolean skipTypeChecker;
         private Set<File> failingDisambiguator;
         private Set<File> failingTypeChecker;
-        
+
         public TestCaseDir(String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
             testDir = _testDir;
             skipTypeChecker = (_failingTypeChecker == null);
@@ -92,7 +92,7 @@ public final class StaticTestSuite extends TestSuite {
         public String getTestDir() {
             return this.testDir;
         }
-        
+
         public boolean getSkipTypeChecker() {
             return this.skipTypeChecker;
         }
@@ -100,7 +100,7 @@ public final class StaticTestSuite extends TestSuite {
         protected boolean isFailingDisambiguator(File f) {
             return this.failingDisambiguator.contains(f);
         }
-        
+
         protected boolean isFailingTypeChecker(File f) {
             return this.failingDisambiguator.contains(f) || this.failingTypeChecker.contains(f);
         }
@@ -116,15 +116,15 @@ public final class StaticTestSuite extends TestSuite {
                 }));
             }
         }
-        
+
     }
-    
+
     public static class StaticTestCase extends TestCase {
-        
+
         private final File file;
         private final boolean typecheck;
         private boolean typecheckStore = true;
-        
+
         /**
          * Construct a static test case for the given file.  The file will be type checked
          * as dictated by the file name.
@@ -134,7 +134,7 @@ public final class StaticTestSuite extends TestSuite {
             file = _file;
             typecheck = true;
         }
-        
+
         /**
          * Construct a static test case for the given file.  The typecheck parameter should
          * be false if the test should not be type checked (i.e. if the file name dictates
@@ -145,18 +145,18 @@ public final class StaticTestSuite extends TestSuite {
             file = _file;
             typecheck = _typecheck;
         }
-        
+
         @Override
         protected void setUp() throws Exception {
             typecheckStore = com.sun.fortress.compiler.StaticChecker.typecheck;
             com.sun.fortress.compiler.StaticChecker.typecheck = typecheck;
         }
-        
+
         @Override
         protected void tearDown() throws Exception {
             com.sun.fortress.compiler.StaticChecker.typecheck = typecheckStore;
         }
-        
+
         @Override
         protected void runTest() throws Throwable {
             if (file.getName().startsWith("XXX")) {
@@ -169,7 +169,7 @@ public final class StaticTestSuite extends TestSuite {
                 assertWellFormedProgram(file);
             }
         }
-        
+
         private void assertDisambiguatorFails(File f) throws IOException {
             com.sun.fortress.compiler.StaticChecker.typecheck = false;
             Iterable<? extends StaticError> errors = compile(f);
@@ -189,7 +189,7 @@ public final class StaticTestSuite extends TestSuite {
             if (VERBOSE) {
                 System.out.println(f + "  OK -- errors:");
                 System.out.println(IterUtil.multilineToString(errors));
-            }            
+            }
         }
 
         private List<TypeError> findTypeErrors( StaticError error ){
@@ -216,7 +216,7 @@ public final class StaticTestSuite extends TestSuite {
             }
             return Collections.emptyList();
         }
-        
+
         private void assertTypeCheckerFails(File f) throws IOException {
             List<TypeError> typeErrors = new ArrayList<TypeError>();
             String message = "";
@@ -280,7 +280,7 @@ public final class StaticTestSuite extends TestSuite {
                 System.out.println(IterUtil.multilineToString(typeErrors));
             }
         }
-        
+
         private void assertWellFormedProgram(File f) throws IOException {
             Iterable<? extends StaticError> errors = compile(f);
             String message = "Source " + f + " produces static errors:";
@@ -295,10 +295,10 @@ public final class StaticTestSuite extends TestSuite {
             assertTrue(message, IterUtil.isEmpty(errors));
             if (VERBOSE) { System.out.println(f + "  OK"); }
         }
-        
+
         private Iterable<? extends StaticError> compile(File f) throws IOException {
-            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
-            return fortress.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());           
+            Fortress fortress = new Fortress();
+            return fortress.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());
         }
     }
 }

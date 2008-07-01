@@ -100,7 +100,7 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     APIName apiname = NodeFactory.makeAPIName(s);
-                    FortressRepository fr = Fortress.extendedRepository( path, cache );
+                    FortressRepository fr = Fortress.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path), cache );
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
 
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
