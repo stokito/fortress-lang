@@ -24,6 +24,7 @@ import java.io.*;
 import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.compiler.*;
@@ -34,6 +35,9 @@ import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.compiler.Parser;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -41,6 +45,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
+import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
@@ -429,5 +434,129 @@ public final class Shell {
             }
             System.exit(1);
         }
+    }
+
+    public static Iterable<? extends StaticError> analyze(FortressRepository _repository,
+                                                          GlobalEnvironment env,
+                                                          Iterable<Api> apis,
+                                                          Iterable<Component> components,
+                                                          long lastModified) {
+        String phase = "";
+
+        // Build ApiIndices before disambiguating to allow circular references.
+        // An IndexBuilder.ApiResult contains a map of strings (names) to
+        // ApiIndices.
+        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(apis, lastModified);
+        if (!rawApiIR.isSuccessful()) { return rawApiIR.errors(); }
+
+        // Build ComponentIndices before disambiguating to allow circular references.
+        // An IndexBuilder.ComponentResult contains a map of strings (names) to
+        // ComponentIndices.
+        IndexBuilder.ComponentResult rawComponentIR =
+            IndexBuilder.buildComponents(components, lastModified);
+        if (!rawComponentIR.isSuccessful()) { return rawComponentIR.errors(); }
+
+        // Build a new GlobalEnvironment consisting of all APIs in a global
+        // repository combined with all APIs that have been processed in the previous
+        // step.  For now, we are implementing pure static linking, so there is
+        // no global repository.
+        GlobalEnvironment rawApiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
+                                                            rawApiIR.apis()));
+
+        // Rewrite all API ASTs so they include only fully qualified names, relying
+        // on the rawApiEnv constructed in the previous step. Note that, after this
+        // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
+        Disambiguator.ApiResult apiDR =
+            Disambiguator.disambiguateApis(apis, rawApiEnv);
+        if (!apiDR.isSuccessful()) { return apiDR.errors(); }
+
+        Disambiguator.ComponentResult componentDR =
+            Disambiguator.disambiguateComponents(components, env,
+                                                 rawComponentIR.components());
+        if (!componentDR.isSuccessful()) { return componentDR.errors(); }
+
+        if (phase.equals("disambiguate"))
+            return IterUtil.empty();
+
+        // Rebuild ApiIndices.
+        IndexBuilder.ApiResult apiIR =
+            IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
+        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
+
+        // Rebuild ComponentIndices.
+        IndexBuilder.ComponentResult componentIR =
+            IndexBuilder.buildComponents(componentDR.components(),
+                                         System.currentTimeMillis());
+        if (!componentIR.isSuccessful()) { return componentIR.errors(); }
+
+        // Rebuild GlobalEnvironment.
+        GlobalEnvironment apiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
+                                                            apiIR.apis()));
+
+        // Rewrite grammars, see GrammarRewriter for more details.
+        GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(apiIR.apis(), apiEnv);
+        if (!apiID.isSuccessful()) { return apiID.errors(); }
+
+        // Rebuild ApiIndices.
+        apiIR = IndexBuilder.buildApis(apiID.apis(), System.currentTimeMillis());
+        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
+
+        // Rebuild GlobalEnvironment.
+        apiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
+                                                            apiIR.apis()));
+
+        // Do all type checking and other static checks on APIs.
+        StaticChecker.ApiResult apiSR =
+            StaticChecker.checkApis(apiIR.apis(), apiEnv);
+        if (!apiSR.isSuccessful()) { return apiSR.errors(); }
+
+        StaticChecker.ComponentResult componentSR =
+            StaticChecker.checkComponents(componentIR.components(), env);
+        if (!componentSR.isSuccessful()) { return componentSR.errors(); }
+
+        if (phase.equals("compile"))
+            return IterUtil.empty();
+
+        Desugarer.ApiResult apiDSR =
+            Desugarer.desugarApis(apiSR.apis(), apiEnv);
+
+        // Generate top-level byte code environments
+        TopLevelEnvGen.ComponentResult componentGR =
+            TopLevelEnvGen.generate(componentSR.components(), env);
+        if(!componentGR.isSuccessful()) { return componentGR.errors(); }
+
+        // Generate code.  Code is stored in the _repository object.
+        // In an implementation with pure static linking, we would have to write
+        // this code back out to a file.
+        // In an implementation with fortresses,
+        // we would write this code into the resident fortress.
+        for (Map.Entry<APIName, ApiIndex> newApi : apiDSR.apis().entrySet()) {
+            if ( compiledApi( newApi.getKey(), apis ) ){
+                Debug.debug( 2, "Analyzed api " + newApi.getKey() );
+                _repository.addApi(newApi.getKey(), newApi.getValue());
+            }
+        }
+
+        // Additional optimization phases can be inserted here
+
+        for (Map.Entry<APIName, ComponentIndex> newComponent :componentSR.components().entrySet()) {
+            _repository.addComponent(newComponent.getKey(), newComponent.getValue());
+        }
+
+        Debug.debug( 2, "Done with analyzing apis " + apis + ", components " + components );
+
+        return IterUtil.empty();
+    }
+
+    private static boolean compiledApi( APIName name, Iterable<Api> apis ){
+        for ( Api api : apis ){
+            if ( api.getName().equals(name) ){
+                return true;
+            }
+        }
+        return false;
     }
 }
