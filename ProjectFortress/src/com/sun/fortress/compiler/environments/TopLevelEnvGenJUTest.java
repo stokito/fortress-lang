@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import com.sun.fortress.compiler.Fortress;
+import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
@@ -165,8 +165,6 @@ public class TopLevelEnvGenJUTest extends TestCase {
     }
 
     private void compileTestProgram() {
-        Fortress fortress = new Fortress();
-
         Path path = ProjectProperties.SOURCE_PATH;
         String s = ProjectProperties.BASEDIR + "tests" +
         File.separator + "TestCompiledEnvironments.fss";
@@ -180,7 +178,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
             path = path.prepend(head);
         }
 
-        Iterable<? extends StaticError> errors = fortress.compile(path, s);
+        Iterable<? extends StaticError> errors = Shell.compile(path, s);
 
         for (StaticError error: errors) {
             fail(error.toString());

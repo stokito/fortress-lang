@@ -18,7 +18,7 @@
 /*
  * Class given a set of Rats! modules it generates a new Fortress parser extended
  * with the modifications in the given modules.
- * 
+ *
  */
 
 package com.sun.fortress.syntax_abstractions.rats;
@@ -34,7 +34,6 @@ import java.util.List;
 import xtc.parser.Module;
 import xtc.tree.Attribute;
 
-import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.StaticError;

@@ -29,7 +29,7 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.Fortress;
+import com.sun.fortress.Shell;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.Driver;
@@ -100,7 +100,7 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     APIName apiname = NodeFactory.makeAPIName(s);
-                    FortressRepository fr = Fortress.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path), cache );
+                    FortressRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path), cache );
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
 
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
