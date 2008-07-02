@@ -24,6 +24,10 @@ object FloatLiteral extends RR64
 end
 
 value object ZZ32 extends ZZ64
+    getter zero(): Number
+    getter one(): Number
+
+    opr |self| : ZZ32
     opr =(self, b:ZZ32):Boolean
     opr <(self, b:ZZ32):Boolean
 
@@ -41,10 +45,10 @@ value object ZZ32 extends ZZ64
     opr BITAND(self,b:ZZ32):ZZ32
     opr BITOR(self,b:ZZ32):ZZ32
     opr BITXOR(self,b:ZZ32):ZZ32
-    opr LSHIFT(self,b:Integral):ZZ32
-    opr RSHIFT(self,b:Integral):ZZ32
+    opr LSHIFT(self,b:ZZ64):ZZ32
+    opr RSHIFT(self,b:ZZ64):ZZ32
     opr BITNOT(self):ZZ32
-    opr ^(self, b:Integral):Number
+    opr ^(self, b:ZZ64):RR64
     widen(self):ZZ64
     partitionL(self):ZZ32
 end
@@ -52,7 +56,7 @@ end
 value object Long extends ZZ64
 end
 
-object IntLiteral extends Integral
+object IntLiteral extends Integral[\IntLiteral\]
     opr =(self, b: IntLiteral):Boolean
     opr <(self, other:IntLiteral): Boolean
     opr <=(self, other:IntLiteral): Boolean
@@ -74,10 +78,10 @@ object IntLiteral extends Integral
     opr BITAND(self, b: IntLiteral): IntLiteral
     opr BITOR(self, b: IntLiteral): IntLiteral
     opr BITXOR(self, b: IntLiteral): IntLiteral
-    opr LSHIFT(self, b:Integral): IntLiteral
-    opr RSHIFT(self, b:Integral): IntLiteral
+    opr LSHIFT(self, b:ZZ64): IntLiteral
+    opr RSHIFT(self, b:ZZ64): IntLiteral
     opr BITNOT(self): IntLiteral
-    opr ^(self, b:Integral):Number
+    opr ^(self, b:ZZ64):RR64
 end
 
 object Boolean

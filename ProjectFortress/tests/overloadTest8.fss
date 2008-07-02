@@ -22,9 +22,12 @@ export Executable
    Need this to get excludes relationship that ought to be
    derived automatically for any two object types.
 
-   Ought to work as of r1071 *)
+   Ought to work as of r1071
 
-trait notRR64 (* excludes {RR64} *) end
+   But now doesn't anymore, as RR64 is no longer closed due to absence
+   of where clauses preventing Integral closure. *)
+
+trait notRR64 excludes {RR64} end
 
 trait super extends {notRR64} end
 

@@ -18,7 +18,7 @@
 component BitTwiddle
 export Executable
 
-doit[\I extends Integral\](n:I,sz:ZZ64) = do
+doit[\I extends Integral[\I\]\](n:I,sz:ZZ64) = do
   n_bar = BITNOT n
   z : I = 0
   z_bar = BITNOT z
@@ -50,7 +50,7 @@ run(args:String...) = do
   n' : ZZ64 = 24579235987
   doit(n,32)
   println("ZZ32 OK")
-  doit[\ZZ64\](n',64)
+  doit(n',64)
   println("ZZ64 OK")
 end
 

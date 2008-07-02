@@ -106,7 +106,7 @@ run(args:String...):() = do
 
     (* Mixed generic and overloaded method, at supertype. *)
     typecase z = (3 asif RR64) + 17 of
-        Integral => println("FAIL, got ZZ32 " z)
+        ZZ64 => println("FAIL, got ZZ64 " z)
         RR64 => println("PASS, got RR64 " z)
         else => println("Got unknown typed " z)
     end
