@@ -23,7 +23,7 @@ classes and operators, which results in "get of unset extends" in
 FTraitOrObject. *)
 
 (* Everything must extend this trait, or the bug will disappear. *)
-trait S
+trait S excludes { Number }
 end
 
 (* Moving this definition down past the definition of object V

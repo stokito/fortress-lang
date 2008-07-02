@@ -317,7 +317,7 @@ trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
     opr TIMES(self, other:Self): Self
     opr juxtaposition(self, other:Self): Self = self TIMES other
     (** Exponentiation need only deal with natural exponents. **)
-    opr ^(self, other:Integral): Self
+    opr ^(self, other:ZZ64): Self
 end
 
 (** The use of StandardTotalOrder here is a lie; it will have to suffice
@@ -396,7 +396,7 @@ trait Number
     opr ^(self, b:Number):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
     (** Shouldn't need this extra declaration. **)
-    opr ^(self, b:Integral):RR64 =
+    opr ^(self, b:ZZ64):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
     sin(self):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
@@ -428,7 +428,7 @@ trait Number
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
 end
 
-trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
+trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
     (** returns true if the value is an IEEE NaN **)
     getter isNaN(): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isNaN")
@@ -479,67 +479,85 @@ trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
       end
 end
 
-trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
+trait AnyIntegral extends { RR64 } end
+
+trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], AnyIntegral }
         comprises { ZZ64, IntLiteral }
-    getter zero(): Number = widen(0)
-    getter one(): Number = widen(1)
+    getter zero(): I
+    getter one(): I
 
-    opr =(self, b:Integral):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
-    opr =/=(self, b:Integral): Boolean = NOT (self=b)
-
-    opr <(self, b:Integral):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
-
-    opr -(self):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
-    opr +(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
-    opr -(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
-    opr DOT(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
-    opr TIMES(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
-    opr juxtaposition(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
-    opr DIV(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
-    opr REM(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
-    opr MOD(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mod")
-    opr GCD(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Gcd")
-    opr LCM(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Lcm")
-    opr CHOOSE(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Choose")
-    opr BITAND(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitAnd")
-    opr BITOR(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitOr")
-    opr BITXOR(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitXor")
-    opr LSHIFT(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LShift")
-    opr RSHIFT(self,b:Integral):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
-    opr BITNOT(self):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
-    opr ^(self, b:Integral):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
-    narrow(self):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$FromLong")
+    opr -(self):I
+    opr +(self,b:I):I
+    opr -(self,b:I):I
+    opr DOT(self,b:I):I
+    opr TIMES(self,b:I):I
+    opr juxtaposition(self,b:I):I
+    opr DIV(self,b:I):I
+    opr REM(self,b:I):I
+    opr MOD(self,b:I):I
+    opr GCD(self,b:I):I
+    opr LCM(self,b:I):I
+    opr CHOOSE(self,b:I):I
+    opr BITAND(self,b:I):I
+    opr BITOR(self,b:I):I
+    opr BITXOR(self,b:I):I
+    opr LSHIFT(self,b:ZZ64):I
+    opr RSHIFT(self,b:ZZ64):I
+    opr BITNOT(self):I
+    opr ^(self, b:ZZ64):RR64
 end
 
-trait ZZ64 extends { StandardTotalOrder[\ZZ64\], Integral } comprises { Long, ZZ32 }
+trait ZZ64 extends { Integral[\ZZ64\] } comprises { Long, ZZ32 }
+    getter zero(): ZZ64 = widen(0)
+    getter one(): ZZ64 = widen(1)
+
     opr |x:ZZ64| : ZZ64 = if x>=0 then x else -x end
 
     opr =(self, b:ZZ64):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
     opr <(self, b:ZZ64):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
+
+    opr -(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
+    opr +(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
+    opr -(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
+    opr DOT(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr TIMES(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr juxtaposition(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr DIV(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
+    opr REM(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
+    opr MOD(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mod")
+    opr GCD(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Gcd")
+    opr LCM(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Lcm")
+    opr CHOOSE(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Choose")
+    opr BITAND(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitAnd")
+    opr BITOR(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitOr")
+    opr BITXOR(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitXor")
+    opr LSHIFT(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LShift")
+    opr RSHIFT(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
+    opr BITNOT(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
+    opr ^(self, b:ZZ64):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
+    narrow(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$FromLong")
 end
 
 (************************************************************
@@ -1708,7 +1726,6 @@ array1[\T, nat s0\]():Array1[\T,0,s0\] =
     typecase _ = __Proxy[\T\] of
         __Proxy[\ZZ32\] => vector[\T,s0\]()
         __Proxy[\ZZ64\] => vector[\T,s0\]()
-        __Proxy[\Integral\] => vector[\T,s0\]()
         __Proxy[\RR64\] => vector[\T,s0\]()
         __Proxy[\Number\] => vector[\T,s0\]()
         else => PrimitiveArray[\T,s0\]()
@@ -2005,7 +2022,6 @@ array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
     typecase _ = __Proxy[\T\] of
         __Proxy[\ZZ32\] => matrix[\T,s0,s1\]()
         __Proxy[\ZZ64\] => matrix[\T,s0,s1\]()
-        __Proxy[\Integral\] => matrix[\T,s0,s1\]()
         __Proxy[\RR64\] => matrix[\T,s0,s1\]()
         __Proxy[\Number\] => matrix[\T,s0,s1\]()
         else => __DefaultArray2[\T,0,s0,0,s1\]()
@@ -2744,7 +2760,7 @@ opr PCMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison = do
     (a1 CMP a2) PARTIAL_LEXICO: (b1 CMP b2) PARTIAL_LEXICO (c1 CMP c2)
   end
 
-opr PCMP(a:Integral, b:Integral): TotalComparison = a CMP b
+opr PCMP(a:Number, b:Number): TotalComparison = a CMP b
 
 (** Non-traditional subtraction of bounds, elementwise on tuples **)
 opr SUBTR[\A,B\](t1:(A,B), t2:(A,B)): (A,B) = do
@@ -2759,7 +2775,7 @@ opr SUBTR[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): (A,B,C) = do
     (a1 SUBTR a2, b1 SUBTR b2, c1 SUBTR c2)
   end
 
-opr SUBTR[\T extends Integral\](a:T, b:T):T = 1 + a - b
+opr SUBTR[\T extends MultiplicativeRing[\T\]\](a:T, b:T):T = a.one() + a - b
 
 (** join upper and lower bounds comparisons (total or partial) to
     yield partial containment. **)
@@ -2965,7 +2981,7 @@ rangeIndexFailure[\T\](r:FullRange[\T\],i:T): () =
 (** ParRanges and SeqRanges, the simplest and most basic of all
 generators.  They generate |self| numbers, incrementing by 1, starting
 with lower() (that's the canonical ordering). *)
-trait ScalarRange[\N extends Integral\]
+trait ScalarRange[\N extends Integral[\N\]\]
         extends { FullRange[\N\] }
         comprises { ParRange[\N\], SeqRange[\N\] }
     getter bounds():FullRange[\N\] = 0#extent()
@@ -2986,7 +3002,7 @@ trait ScalarRange[\N extends Integral\]
       end
 end
 
-value object ParRange[\N extends Integral\](lo:N, ex:N)
+value object ParRange[\N extends Integral[\N\]\](lo:N, ex:N)
         extends ScalarRange[\N\]
     getter extent() = ex
     getter lower() = lo
@@ -3056,7 +3072,7 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
             gen(lo,|self|)
         end
 end
-value object SeqRange[\N extends Integral\](lo:N, ex:N)
+value object SeqRange[\N extends Integral[\N\]\](lo:N, ex:N)
         extends { ScalarRange[\N\], SequentialGenerator[\N\] }
     getter extent() = ex
     getter lower() = lo
@@ -3089,7 +3105,7 @@ end
 trait TupleRange[\T\] extends FullRange[\T\]
 end
 
-object Tuple2Range[\N extends Integral, M extends Integral\]
+object Tuple2Range[\N extends Integral[\N\], M extends Integral[\M\]\]
                   (l1:N,l2:M,x1:N,x2:M)
         extends { TupleRange[\(N,M)\], DelegatedIndexed[\(N,M),(N,M)\] }
     getter bounds():Tuple2Range[\N,M\] = (0,0)#(x1,x2)
@@ -3121,7 +3137,7 @@ object Tuple2Range[\N extends Integral, M extends Integral\]
         l1=r.l1 AND l2=r.l2 AND x1=r.x1 AND x2=r.x2
 end
 
-object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integral\]
+object Tuple3Range[\N1 extends Integral[\N1\], N2 extends Integral[\N2\], N3 extends Integral[\N3\]\]
                   (l1:N1,l2:N2,l3:N3,x1:N1,x2:N2,x3:N3)
         extends { TupleRange[\(N1,N2,N3)\],
                   DelegatedIndexed[\(N1,N2,N3),(N1,N2,N3)\] }
@@ -3159,23 +3175,27 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
 end
 
 (** The # and : operators serve as factories for parallel ranges. **)
-opr #[\I extends Integral\](lo:I, ex:I): ParRange[\I\] = ParRange[\I\](lo,ex)
+opr #[\I extends AnyIntegral\](lo:I, ex:I): ParRange[\I\] = ParRange[\I\](lo,ex)
+(*
 opr #(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] = ParRange[\ZZ32\](lo,ex)
-opr #[\I extends Integral, J extends Integral\]
+*)
+opr #[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), ex:(I,J)): Tuple2Range[\I,J\] =
     do (l1,l2)=lo; (x1,x2)=ex; Tuple2Range[\I,J\](l1,l2,x1,x2) end
-opr #[\I extends Integral, J extends Integral, K extends Integral\]
+opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), ex:(I,J,K)): Tuple3Range[\I,J,K\] =
     do (l1,l2,l3)=lo; (x1,x2,x3)=ex; Tuple3Range[\I,J,K\](l1,l2,l3,x1,x2,x3) end
 
-opr :[\I extends Integral\](lo:I, hi:I): ParRange[\I\] =
+opr :[\I extends AnyIntegral\](lo:I, hi:I): ParRange[\I\] =
         ParRange[\I\](lo,hi-lo+1)
+(*
 opr :(lo:IntLiteral, hi:IntLiteral): ParRange[\ZZ32\] =
         ParRange[\ZZ32\](lo,hi-lo+1)
-opr :[\I extends Integral, J extends Integral\]
+*)
+opr :[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), hi:(I,J)): Tuple2Range[\I,J\] =
     do (l1,l2)=lo; (h1,h2)=hi; Tuple2Range[\I,J\](l1,l2,h1-l1+1,h2-l2+1) end
-opr :[\I extends Integral, J extends Integral, K extends Integral\]
+opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), hi:(I,J,K)): Tuple3Range[\I,J,K\] = do
     (l1,l2,l3)=lo; (h1,h2,h3)=hi
     Tuple3Range[\I,J,K\](l1,l2,l3,h1-l1+1,h2-l2+1,h3-l3+1)

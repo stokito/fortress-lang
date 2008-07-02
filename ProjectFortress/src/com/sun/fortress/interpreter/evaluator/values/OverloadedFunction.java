@@ -73,7 +73,7 @@ public class  OverloadedFunction extends Fcn
     protected IdOrOpOrAnonymousName fnName;
 
     static final boolean DUMP_EXCLUSION = false;
-    static int excl_skip = 1000000;
+    static int excl_skip = 100000;
 
     public static void exclDump(Object... os) {
         if (DUMP_EXCLUSION && excl_skip <= 0) {
@@ -499,7 +499,7 @@ public class  OverloadedFunction extends Fcn
                     }
                 }
             }
-            
+
 
             describeOverloadingFailure(o1, o2, within, pl1,
                                        pl2);
@@ -525,7 +525,7 @@ public class  OverloadedFunction extends Fcn
             // neither is better, not a functional method
             if (p1better < 0 && p2better < 0 && selfIndex < 0)
                 return false;
-            
+
             if (result1Subtype2Failure || result2Subtype1Failure)
                 return false;
 
@@ -581,7 +581,7 @@ public class  OverloadedFunction extends Fcn
                     " fails because of ambiguity in overlapping rest (...) parameters");
                 error(o1, o2, within, explanation);
             }
-            
+
             if (result1Subtype2Failure) {
                 String explanation = errorMsg("Overloading of ", o1, " and ", o2,
                 " fails because the first parameter list is a subtype of the second, but the first result is not a subtype of the second");

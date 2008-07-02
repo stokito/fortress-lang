@@ -19,7 +19,7 @@ component tupleInfer
 export Executable
 
 (* Tests that we can instantiate generics inside tuples *)
-opr MAXMIN[\N extends Number, I extends Integral\](a:(N,I),b:(N,I)):(N,I) = a
+opr MAXMIN[\N extends Number, I extends AnyIntegral\](a:(N,I),b:(N,I)):(N,I) = a
 
 run(args:String...):()=do
   d = (3,4)

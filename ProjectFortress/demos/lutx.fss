@@ -23,7 +23,7 @@ export Executable
 *)
 
 
-opr MAXMIN[\N extends Number, I extends Integral\](a:(N,I),b:(N,I)):(N,I) = do
+opr MAXMIN[\N extends Number, I extends AnyIntegral\](a:(N,I),b:(N,I)):(N,I) = do
   (x1,n1) = a
   (x2,n2) = b
   if x1 > x2 then

@@ -264,7 +264,7 @@ trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
     abstract opr TIMES(self, other:Self): Self
     opr juxtaposition(self, other:Self): Self
     (** Exponentiation need only deal with natural exponents. **)
-    opr ^(self, other:Integral): Self
+    opr ^(self, other:ZZ64): Self
 end
 
 trait Number
@@ -319,7 +319,7 @@ trait Number
     truncate(self):ZZ64
 end
 
-trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
+trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
     (** returns true if the value is an IEEE NaN **)
     getter isNaN(): Boolean
     (** returns true if the value is an IEEE infinity **)
@@ -334,6 +334,10 @@ trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
     getter check_star(): Maybe[\RR64\]
     (** obtain the raw bits of the IEEE floating-point representation of this value. **)
     getter rawBits():ZZ64
+    (** next higher IEEE float **)
+    getter nextUp():RR64
+    (** next lower IEEE float **)
+    getter nextDown():RR64
     (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
         Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
         that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
@@ -341,34 +345,36 @@ trait RR64 extends Number comprises { Float, Integral, FloatLiteral }
     opr MAXNUM(self, b:RR64):RR64
 end
 
-trait Integral extends { StandardTotalOrder[\Integral\], RR64 }
-        comprises { ZZ64, IntLiteral }
-    opr =(self, b:Integral):Boolean
-    opr <(self, b:Integral):Boolean
+trait AnyIntegral extends { RR64 } end
 
-    opr -(self):ZZ64
-    opr +(self,b:Integral):ZZ64
-    opr -(self,b:Integral):ZZ64
-    opr DOT(self,b:Integral):ZZ64
-    opr TIMES(self,b:Integral):ZZ64
-    opr juxtaposition(self,b:Integral):ZZ64
-    opr DIV(self,b:Integral):ZZ64
-    opr REM(self,b:Integral):ZZ64
-    opr MOD(self,b:Integral):ZZ64
-    opr GCD(self,b:Integral):ZZ64
-    opr LCM(self,b:Integral):ZZ64
-    opr CHOOSE(self,b:Integral):ZZ64
-    opr BITAND(self,b:Integral):ZZ64
-    opr BITOR(self,b:Integral):ZZ64
-    opr BITXOR(self,b:Integral):ZZ64
-    opr LSHIFT(self,b:Integral):ZZ64
-    opr RSHIFT(self,b:Integral):ZZ64
-    opr BITNOT(self):ZZ64
-    opr ^(self, b:Integral):Number
-    narrow(self):ZZ32
+trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], AnyIntegral }
+        comprises { ZZ64, IntLiteral }
+    getter zero(): I
+    getter one(): I
+
+    opr -(self):I
+    opr +(self,b:I):I
+    opr -(self,b:I):I
+    opr DOT(self,b:I):I
+    opr TIMES(self,b:I):I
+    opr juxtaposition(self,b:I):I
+    opr DIV(self,b:I):I
+    opr REM(self,b:I):I
+    opr MOD(self,b:I):I
+    opr GCD(self,b:I):I
+    opr LCM(self,b:I):I
+    opr CHOOSE(self,b:I):I
+    opr BITAND(self,b:I):I
+    opr BITOR(self,b:I):I
+    opr BITXOR(self,b:I):I
+    opr LSHIFT(self,b:ZZ64):I
+    opr RSHIFT(self,b:ZZ64):I
+    opr BITNOT(self):I
+    opr ^(self, b:ZZ64):RR64
 end
 
-trait ZZ64 extends Integral comprises { Long, ZZ32 }
+trait ZZ64 extends { Integral[\ZZ64\] } comprises { Long, ZZ32 }
+    narrow(self):ZZ32
 end
 
 (************************************************************
@@ -450,7 +456,7 @@ trait Generator[\E\]
     (** Filtering data from a generator.  Only elements that satisfy
         the predicate p are retained.  Natural order and cross product
         properties are otherwise preserved. **)
-    filter(f: E -> Condition[\()\]): Generator[\E\] 
+    filter(f: E -> Condition[\()\]): Generator[\E\]
 
     (** Cross product of two generators.  This is specifically
         designed to be overloaded, such that pairs of independent
@@ -1630,10 +1636,10 @@ embiggen[\T\](j:(Any,Any)->T, z:T) : Comprehension[\T,T,Any,Any\]
 trait FilterGenerator[\E\] extends Generator[\E\]
     getter g(): Generator[\E\]
     getter p(): E -> Condition[\()\]
-    getter toString(): String 
+    getter toString(): String
     generate[\R\](r:Reduction[\R\], m: E->R): R
     reduce(r: Reduction[\E\]): E
-    filter(p': E -> Condition[\()\]): FilterGenerator[\E\] 
+    filter(p': E -> Condition[\()\]): FilterGenerator[\E\]
     seq(self)
 end
 
@@ -1736,17 +1742,17 @@ trait FullRange[\T\]
 end
 
 (** The %#% and %:% operators serve as factories for parallel ranges. **)
-opr #[\I extends Integral\](lo:I, ex:I): Range[\I\]
+opr #[\I extends AnyIntegral\](lo:I, ex:I): Range[\I\]
 opr #(lo:IntLiteral, ex:IntLiteral): Range[\ZZ32\]
-opr #[\I extends Integral, J extends Integral\]
+opr #[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), ex:(I,J)): Range[\(I,J)\]
-opr #[\I extends Integral, J extends Integral, K extends Integral\]
+opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), ex:(I,J,K)): Range[\(I,J,K)\]
-opr :[\I extends Integral\](lo:I, hi:I): FullRange[\I\]
+opr :[\I extends AnyIntegral\](lo:I, hi:I): FullRange[\I\]
 opr :(lo:IntLiteral, ex:IntLiteral): FullRange[\ZZ32\]
-opr :[\I extends Integral, J extends Integral\]
+opr :[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), hi:(I,J)): Range[\(I,J)\]
-opr :[\I extends Integral, J extends Integral, K extends Integral\]
+opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), hi:(I,J,K)): Range[\(I,J,K)\]
 
 (** Factories for incomplete ranges. **)

@@ -172,10 +172,11 @@ abstract public class FType implements Comparable<FType> {
     }
 
     private void computeTransitiveExcludes() {
+        exclDump("Computing transitive excludes for ",this,":");
         for (FType t : getExtends()) {
             for (FType x : t.getExcludes()) {
                 addExclude(x);
-                exclDump(" ",t," excludes ",x);
+                exclDump(t," excludes ",x,"; ");
             }
         }
         excludesClosed = true;
@@ -228,7 +229,6 @@ abstract public class FType implements Comparable<FType> {
         if (other instanceof FTypeTuple) // FTypeTuple handles other case
             return true;
         if (excludesOtherSimply(other)) {
-            exclDump("Ought to return true now.");
             return true;
         }
         return excludesOtherInner(other);
@@ -281,12 +281,25 @@ abstract public class FType implements Comparable<FType> {
             return true;
         }
         // Next, check that a supertype of other isn't excluded by us.
+        exclDump("\nChecking for supertype exclusion of ",this,": ");
         for (FType t1 : other.getTransitiveExtends()) {
             if (excludes.contains(t1)) {
                 exclDumpln("Excludes supertype ", t1, ".");
                 addExclude(other);
                 return true;
             }
+            exclDump("Not ",t1,"; ");
+        }
+        // And vice versa.
+        exclDump("\nChecking for supertype exclusion of ",other,": ");
+        Set<FType> oexcl = other.getExcludes();
+        for (FType t1 : this.getTransitiveExtends()) {
+            if (oexcl.contains(t1)) {
+                exclDumpln("Excludes supertype ", t1, ".");
+                addExclude(other);
+                return true;
+            }
+            exclDump("Not ",t1,"; ");
         }
         // We shouldn't need to check the other way 'round by reflexivity.
         // Now check transitive comprises for exclusion.
@@ -299,7 +312,7 @@ abstract public class FType implements Comparable<FType> {
         exclDump("\n");
         for (FType t1 : getTransitiveComprises()) {
             for (FType t2 : other.getTransitiveComprises()) {
-                exclDump("Checking extends of comprised ",t1," and ",t2);
+                exclDump("Checking extends of comprised ",t1," and ",t2,"; ");
                 if (!t1.excludesOther(t2)) {
                     return false;
                 }
