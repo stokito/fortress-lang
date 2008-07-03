@@ -43,9 +43,6 @@ public class FAsIf extends FConstructedValue {
         return "(" + fvalue.getString() + " asif " + type().getName() + ")";
     }
 
-    public BufferedWriter getBufferedWriter() {
-        return fvalue.getBufferedWriter();
-    }
     public int getInt() {
         return fvalue.getInt();
     }

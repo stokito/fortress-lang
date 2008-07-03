@@ -858,6 +858,38 @@ opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 (* seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq() *)
 sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
+(************************************************************
+* Meta-generators: BIG GENERATOR
+************************************************************)
+
+(** The problem: Your code is sprinkled with the same generator code,
+    over and over again.  Maybe it looks something like this:
+    % for (i,v) <- a.indexValuePairs(), v =/= 0, j <- 0:i do (code using i and j) %
+    You goal: abstract this into a single generator.  You can do this as follows:
+    % usefulGen = BIG GENERATOR[(i,v) <- a.indexValuePairs(), v =/= 0, j <- 0:i] (i,j) %
+    Not much savings there, but the important part is that you can just
+    cut and paste the generators from the original code.  And all occurrences
+    can be cleaned up:
+    % for (i,j) <- usefulGen do (code using i and j) %
+    This is possible using %map%, %filter%, and %nest%, but you end up
+    effectively desugaring the code by hand.  Using BIG GENERATOR is much easier.
+ **)
+
+(** TODO
+
+The big problem here is that the new desugaring story actually gets in
+the way.  We can't simply package up a function passed in, because
+that's being done by the __bigOperator functionality directly.
+
+How do we deal with reduction properties?  It's all very sticky.  And
+we're already running into difficulties with co- and contra-variance
+of the type parameters floating around that force us to use Any in
+awkward places.
+
+In particular, we don't want to generate the data when creating the
+generator, as that misses the whole point.  We want to defer the
+object traversals until the moment the resulting generator is used.
+**)
 
 (************************************************************
 * The Maybe type, used instead of null
