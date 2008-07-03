@@ -159,7 +159,7 @@ private String multiOp =
 
 private String singleOp =
      !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
-     a1:_ &{ PrecedenceMap.ONLY.isOperator("" + a1) }
+     a1:_ !("*") &{ PrecedenceMap.ONLY.isOperator("" + a1) }
      { yyValue = "" + a1; } ;
 
 String op =
@@ -221,7 +221,7 @@ transient void opendoublesquare = "[\\";
 transient void openparen = !(leftEncloser) "(";
 transient void plus = "+":singleOp;
 transient void pound = "#":singleOp;
-transient void star = "*":singleOp;
+transient void star = !("**") "*":singleOp;
 transient void underscore = "_";
 
 transient void comma = ",";
@@ -256,3 +256,5 @@ ArrayComprehensionClause ArrayComprehensionClause =
      { yyValue = new ArrayComprehensionClause(createSpan(yyStart,yyCount),
                                               a1.getA(), a1.getB(), a2);
      };
+
+transient void DoubleStar = "**";
