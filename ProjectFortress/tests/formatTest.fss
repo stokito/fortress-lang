@@ -1,0 +1,209 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component formatTest
+
+import Format.{...}
+export Executable
+
+tst(a1:String,a2:String) =
+    if a1 =/= a2 then
+        println "Test failed '" a1 "' != '" a2 "'"
+    end
+
+tst_fail(a1:String,a2:String) =
+    if a1 = a2 then
+        println "Test succeeded when it should have failed '" a1 "' != '" a2 "'"
+    end
+
+run(args:String...) = do
+    tst(padLeft("foo",' ',1),"foo")
+    tst(padLeft("foo",' ',4)," foo")
+    tst(padLeft("foo",' ',10),"       foo")
+    tst(padRight("foo",' ',4), "foo ")
+    tst(padRight("foo",' ',1), "foo")
+    tst(padRight("foo",' ',10), "foo       ")
+    tst(radix(16, 15),"f")
+    tst(radix(16, 1),"1")
+    tst(radix(16, -1),"-1")
+    tst(radix(16, 32),"20")
+    tst(radix(8, 10),"12")
+    tst(radix(10, (-2) DOT 1024 DOT 1024 DOT 1024),"-2147483648")
+    tst(digitSeparator("1000",3,","),"1,000")
+    tst(digitSeparator("1000",10,","),"1000")
+    tst(digitSeparator("1000",1,","),"1,0,0,0")
+    tst(digitSeparator("1234567",3,","),"1,234,567")
+    tst(digitSeparator("12.34567",3,",",'.'),"12.345,67")
+    tst(digitSeparator("1234.56789",3,",",'.'),"1,234.567,89")
+    tst(digitSeparator("123456789.5678912345",3,",",'.'),"123,456,789.567,891,234,5")
+    tst(digitSeparator("-123456789.5678912345",3,",",'.'),"-123,456,789.567,891,234,5")
+    tst(scientific(0),"0.000000e+00")
+    tst(scientific(1),"1.000000e+00")
+    tst(scientific(-1),"-1.000000e+00")
+    tst(scientific(1.0),"1.000000e+00")
+    tst(scientific(10.0),"1.000000e+01")
+    tst(scientific(2835.235235),"2.835235e+03")
+    (*
+    tst(scientific(0.000345),"3.450000e-04")
+    *)
+
+    try
+        tst(format("hello"),"hello")
+    catch e
+        Exception => fail("Test failed for 'hello'. " e)
+    end
+
+    try
+        tst(format("hello %d", 5), "hello 5")
+    catch e
+        Exception => fail("Test failed for 'hello 5'. " e)
+    end
+    
+    try
+        tst(format("hello %%"), "hello %")
+    catch e
+        Exception => fail("Test failed for 'hello %'. " e)
+    end
+
+    try
+        tst(format("hello %d %d %d", 5, 6, 7 ), "hello 5 6 7")
+    catch e
+        Exception => fail("Test failed for 'hello 5 6 7'. " e)
+    end
+    
+    try
+        tst(format("hello %w=5d", 2), "hello     2")
+    catch e
+        Exception => fail("Test failed for 'hello     2'. " e)
+    end
+    
+    try
+        tst(format("hello %r=2d", 3), "hello 11")
+    catch e
+        Exception => fail("Test failed for 'hello 11'. " e)
+    end
+    
+    try
+        tst(format("hello %ww=5d", 2), "hello 2    ")
+    catch e
+        Exception => fail("Test failed for 'hello 2    '. " e)
+    end
+    
+    try
+        tst(format("hello %w=3&p=0d", 7), "hello 007")
+    catch e
+        Exception => fail("Test failed for 'hello 007'. " e)
+    end
+    
+    try
+        tst(format("hello %n=3d", 1024), "hello 1,024")
+    catch e
+        Exception => fail("Test failed for 'hello 1,024'. " e)
+    end
+    
+    try
+        tst(format("hello %n=3&nn= d", 1024), "hello 1 024")
+    catch e
+        Exception => fail("Test failed for 'hello 1 024'. " e)
+    end
+    
+    try
+        tst(format("hello %n=3&nn=\\'d", 1024), "hello 1'024")
+    catch e
+        Exception => fail("Test failed for 'hello 1'024'. " e)
+    end
+    
+    try
+        tst(format("hello %n=3&nn=\\'x", 64250), "hello f'afa")
+    catch e
+        Exception => fail("Test failed for 'hello f'afa'. " e)
+    end
+
+    try
+        tst(format("hello %s", 5),"hello 5")
+    catch e
+        Exception => fail("Test failed for 'hello 5'. " e)
+    end
+
+    try
+        tst(format("hello %s", "hi"),"hello hi")
+    catch e
+        Exception => fail("Test failed for 'hello hi'. " e)
+    end
+
+    try
+        tst(format("hello %i=2d %i=1d", 1, 2),"hello 2 1")
+    catch e
+        Exception => fail("Test failed for 'hello 2 1'. " e)
+    end
+    
+    try
+        tst(format("hello %i=2d %i=1d %d", 1, 2),"hello 2 1 1")
+    catch e
+        Exception => fail("Test failed for 'hello 2 1'. " e)
+    end
+    
+    try
+        tst(format("hello %i=2d %i=1d %d %d", 1, 2),"hello 2 1 1 2")
+    catch e
+        Exception => fail("Test failed for 'hello 2 1 1 2'. " e)
+    end
+    
+    try
+        tst(format("hello %w=5s", "hi"), "hello    hi")
+    catch e
+        Exception => fail("Test failed for 'hello    hi'. " e)
+    end
+    
+    try
+        tst(format("hello %b", true), "hello true")
+    catch e
+        Exception => fail("Test failed for 'hello true'. " e)
+    end
+    
+    try
+        tst(format("hello %b", 1 > 2), "hello false")
+    catch e
+        Exception => fail("Test failed for 'hello false'. " e)
+    end
+    
+    try
+        tst(format("hello %m", Just[\ZZ32\](12)), "hello 12")
+    catch e
+        Exception => fail("Test failed for 'hello 12'. " e)
+    end
+    
+    try
+        tst(format("hello %m", Nothing[\ZZ32\]), "hello ")
+    catch e
+        Exception => fail("Test failed for 'hello '. " e)
+    end
+    
+    try
+        tst(format("hello %e", 345.123), "hello 3.451230e+02")
+    catch e
+        Exception => fail("Test failed for 'hello 3.451230+e02'. " e)
+    end
+    
+    try
+        tst(format("hello %x", 23545), "hello 5bf9")
+    catch e
+        Exception => fail("Test failed for 'hello 5bf9'. " e)
+    end
+end
+
+end
