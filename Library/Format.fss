@@ -95,7 +95,6 @@ scientificHelper(number:RR64):String = do
         sign = if power >= 0 then "+" else "-" end
         tens = |\(|power|)/|
         if number < 1 AND number > -1 then
-            println number " then " (number 10^(-power)) " p " 10^(-power) " " (number 100)
             ((padRight((number 10^(-power))"",'0',8))[0#8]) "e" sign "" padLeft(tens"",'0',2)
         else
             ((padRight((number / 10^(power))"",'0',8))[0#8]) "e" sign "" padLeft(tens"",'0',2)
@@ -380,7 +379,7 @@ compilePercent(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] =
             var in_string:Boolean := false
             var escape:Boolean := false
             var result:String := ""
-            for i <- 0#|string| do
+            for i <- seq(0#|string|) do
                 count := count + 1
                 if escape then
                     escape := false
