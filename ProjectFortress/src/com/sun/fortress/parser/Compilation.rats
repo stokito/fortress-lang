@@ -108,12 +108,6 @@ private Component Component =
            yyValue = new Component(span, a2, a3, a4, a5);
        else
            yyValue = new Component(span, true, a2, a3, a4, a5);
-     }
-   / <ErrorProduction3>
-     (native w)? component w APIName (w Imports w semicolon?)? w
-     Exports w semicolon? (w Decls w semicolon?)? w
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "The \"end\" keyword is missing from a component definition.");
      };
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
@@ -130,11 +124,6 @@ private Api Api =
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        yyValue = new Api(span, a1, a2, a3);
-     }
-   / <ErrorProduction2>
-     api w APIName (w Imports w semicolon?)? (w AbsDecls w semicolon?)? w
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "The \"end\" keyword is missing from an API definition.");
      };
 
 /* Imports ::= Import (br Import)* */
