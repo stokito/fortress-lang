@@ -47,13 +47,13 @@ public abstract class FValue {
         return getString() + ":" + getClass().getSimpleName();
         //getClass().getSimpleName() + " " + getString();
     }
-    public String getString() { 
+    public String getString() {
         return "No String Representation Implemented for " + getClass().getSimpleName();
     }
     public abstract FType type();
 
     public FValue getValue() { return this; }
-    public BufferedWriter getBufferedWriter() { return bug("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
+
     public int getInt() { throw new InterpreterBug("getInt not implemented for "  + getClass().getSimpleName());}
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}
