@@ -237,4 +237,8 @@ public interface Environment  {
      * @return
      */
     public FValue getValueRaw(String s, int level);
+    
+    public Environment getApiNull(String apiName);
+    
+    public void putApi(String apiName, Environment env);
 }

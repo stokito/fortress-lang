@@ -27,8 +27,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -37,16 +37,24 @@ import org.objectweb.asm.Type;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.env.WorseEnv;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.AliasedAPIName;
+import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 
@@ -67,7 +75,8 @@ public class TopLevelEnvGen {
      */
     public enum EnvironmentClasses {
         FTYPE("$FType", Type.getType(FType.class).getInternalName()),
-        FVALUE("$FValue", Type.getType(FValue.class).getInternalName());
+        FVALUE("$FValue", Type.getType(FValue.class).getInternalName()),
+        ENVIRONMENT("$Api", Type.getType(Environment.class).getInternalName());
 
         private final String namespace;
         private final String internalName;
@@ -86,17 +95,18 @@ public class TopLevelEnvGen {
     private static final String STRING_INTERNALNAME = Type.getType(String.class).getInternalName();
     private static final String STRING_DESCRIPTOR = Type.getType(String.class).getDescriptor();
 
-    private static final String CLASSNAME_SUFFIX = "Env";
+	public static final String API_ENV_SUFFIX = "ApiEnv";
+	public static final String COMPONENT_ENV_SUFFIX = "ComponentEnv";
+	
 
-
-    public static class ComponentResult extends StaticPhaseResult {
-        private final Map<APIName, byte[]> _components;
-        public ComponentResult(Map<APIName, byte[]> components,
+    public static class CompilationUnitResult extends StaticPhaseResult {
+        private final Map<APIName, byte[]> _compUnits;
+        public CompilationUnitResult(Map<APIName, byte[]> compUnits,
                        Iterable<? extends StaticError> errors) {
             super(errors);
-            _components = components;
+            _compUnits = compUnits;
         }
-        public Map<APIName, byte[]> components() { return _components; }
+        public Map<APIName, byte[]> generatedEnvs() { return _compUnits; }
     }
 
     /**
@@ -132,14 +142,39 @@ public class TopLevelEnvGen {
         if (!mangledString.equals(identifier) && !(mangledString.charAt(0) == '\\')) {
             mangledString = "\\=" + mangledString;
         }
-        return mangledString;
+        return mangledString; 
     }
 
     /**
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
      */
-    public static ComponentResult generate(Map<APIName, ComponentIndex> components,
+    public static CompilationUnitResult generateApiEnvs(Map<APIName, ApiIndex> apis,
+                        GlobalEnvironment env) {
+
+        Map<APIName, byte[]> compiledApis = new HashMap<APIName, byte[]>();
+        HashSet<StaticError> errors = new HashSet<StaticError>();
+
+        for(APIName apiName : apis.keySet()) {
+            String className = NodeUtil.nameString(apiName);
+            className = className + API_ENV_SUFFIX;
+
+            byte[] envClass = generateForCompilationUnit(className, apis.get(apiName), env);
+            compiledApis.put(apiName, envClass);
+        }
+
+        if (errors.isEmpty()) {
+            outputClassFiles(compiledApis, API_ENV_SUFFIX, errors);
+        }
+
+        return new CompilationUnitResult(compiledApis, errors);
+    }
+ 
+	/**
+     * Given a list of components, generate a Java bytecode compiled environment
+     * for each component.
+     */
+    public static CompilationUnitResult generateComponentEnvs(Map<APIName, ComponentIndex> components,
                         GlobalEnvironment env) {
 
         Map<APIName, byte[]> compiledComponents = new HashMap<APIName, byte[]>();
@@ -147,27 +182,28 @@ public class TopLevelEnvGen {
 
         for(APIName componentName : components.keySet()) {
             String className = NodeUtil.nameString(componentName);
-            className = className + CLASSNAME_SUFFIX;
+            className = className + COMPONENT_ENV_SUFFIX;
 
-            byte[] envClass = generateForComponent(className,
+            byte[] envClass = generateForCompilationUnit(className,
                               components.get(componentName), env);
 
             compiledComponents.put(componentName, envClass);
         }
 
         if (errors.isEmpty()) {
-            outputClassFiles(compiledComponents, errors);
+            outputClassFiles(compiledComponents, COMPONENT_ENV_SUFFIX, errors);
         }
 
-        return new ComponentResult(compiledComponents, errors);
+        return new CompilationUnitResult(compiledComponents, errors);
     }
+
 
     /**
      * Given one component, generate a Java bytecode compiled environment
      * for that component.
      */
-    private static byte[] generateForComponent(String className,
-                               ComponentIndex componentIndex,
+    private static byte[] generateForCompilationUnit(String className,
+                               CompilationUnitIndex compUnitIndex,
                                GlobalEnvironment env) {
 
         /*
@@ -188,10 +224,14 @@ public class TopLevelEnvGen {
         // Implementing "static reflection" for the interpreter
         Relation<String, Integer> fValueHashCode = new IndexedRelation<String,Integer>();
         Relation<String, Integer> fTypeHashCode = new IndexedRelation<String,Integer>();
+        Relation<String, Integer> apiEnvHashCode = new IndexedRelation<String,Integer>();
 
-        writeFields(componentIndex, cw, fValueHashCode, fTypeHashCode);
+        writeImportFields(compUnitIndex, cw, apiEnvHashCode);
+        writeFields(compUnitIndex, cw, fValueHashCode, fTypeHashCode);
         writeMethodInit(cw, className);
 
+        writeMethodGetRaw(cw, className, "getApiNull", EnvironmentClasses.ENVIRONMENT, apiEnvHashCode);
+        writeMethodPutRaw(cw, className, "putApi", EnvironmentClasses.ENVIRONMENT, apiEnvHashCode);
         writeMethodGetRaw(cw, className, "getValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);
         writeMethodPutRaw(cw, className, "putValueRaw", EnvironmentClasses.FVALUE, fValueHashCode);
         writeMethodGetRaw(cw, className, "getTypeNull", EnvironmentClasses.FTYPE, fTypeHashCode);
@@ -204,40 +244,67 @@ public class TopLevelEnvGen {
         return(cw.toByteArray());
     }
 
-    private static void writeFields(ComponentIndex componentIndex,
-            ClassVisitor cv, Relation<String, Integer> fValueHashCode,
+    private static void writeImportFields(CompilationUnitIndex compUnitIndex,
+			                              ClassWriter cw, Relation<String,Integer> apiEnvHashCode) {
+    	CompilationUnit comp = compUnitIndex.ast();
+    	final Vector<String> importedApiNames = new Vector<String>();
+    	
+    	comp.accept(new NodeDepthFirstVisitor_void() {
+            @Override
+            public void forImportedNamesDoFirst(ImportedNames that) {
+            	importedApiNames.add( NodeUtil.nameString(that.getApi()) );
+            }
+
+            @Override
+            public void forImportApi(ImportApi that){
+                for ( AliasedAPIName api : that.getApis() ){
+                	importedApiNames.add( NodeUtil.nameString(api.getApi()) );
+                }
+            }
+        }); 
+    	
+    	for(String apiName : importedApiNames) {
+    		apiEnvHashCode.add(apiName, apiName.hashCode());
+    		apiName = apiName + EnvironmentClasses.ENVIRONMENT.namespace();
+            cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(apiName), 
+            		      EnvironmentClasses.ENVIRONMENT.descriptor(), null, null).visitEnd();
+    	}
+	}
+
+	private static void writeFields(CompilationUnitIndex compUnitIndex,
+            ClassWriter cw, Relation<String, Integer> fValueHashCode,
             Relation<String, Integer> fTypeHashCode) {
 
         // Create all variables as fields in the environment
-        for(Id id : componentIndex.variables().keySet()) {
+        for(Id id : compUnitIndex.variables().keySet()) {
             String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());
             idString = idString + EnvironmentClasses.FVALUE.namespace();
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FVALUE.descriptor(), null, null).visitEnd();
+            cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FVALUE.descriptor(), null, null).visitEnd();
         }
 
         // Create all functions as fields in the environment
-        for(IdOrOpOrAnonymousName id : componentIndex.functions().firstSet()) {
+        for(IdOrOpOrAnonymousName id : compUnitIndex.functions().firstSet()) {
             String idString = NodeUtil.nameString(id);
             fValueHashCode.add(idString, idString.hashCode());
             idString = idString + EnvironmentClasses.FVALUE.namespace();
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FVALUE.descriptor(), null, null).visitEnd();
+            cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FVALUE.descriptor(), null, null).visitEnd();
         }
 
         // Create all types as fields in the environment
-        for(Id id : componentIndex.typeConses().keySet()) {
+        for(Id id : compUnitIndex.typeConses().keySet()) {
             String idString = NodeUtil.nameString(id);
             fTypeHashCode.add(idString, idString.hashCode());
             idString = idString + EnvironmentClasses.FTYPE.namespace();
-            cv.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FTYPE.descriptor(), null, null).visitEnd();
+            cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FTYPE.descriptor(), null, null).visitEnd();
         }
     }
 
     /**
      * Generate the default constructor for this class.
      */
-    private static void writeMethodInit(ClassVisitor cv, String className) {
-        MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+    private static void writeMethodInit(ClassWriter cw, String className) {
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         Label l0 = new Label();
         mv.visitLabel(l0);
@@ -258,9 +325,9 @@ public class TopLevelEnvGen {
      * interpreter has O(log n) lookups based on the hash values of String names
      * in this namespace.
      */
-    private static void writeMethodGetRaw(ClassVisitor cv, String className,
+    private static void writeMethodGetRaw(ClassWriter cw, String className,
             String methodName, EnvironmentClasses environmentClass, Relation<String, Integer> hashCodeRelation) {
-        MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
             methodName,
             "(Ljava/lang/String;)" +
             environmentClass.descriptor(),
@@ -348,9 +415,9 @@ public class TopLevelEnvGen {
      * interpreter has O(log n) lookups based on the hash values of String names
      * in this namespace.
      */
-    private static void writeMethodPutRaw(ClassVisitor cv, String className,
+    private static void writeMethodPutRaw(ClassWriter cw, String className,
             String methodName, EnvironmentClasses environmentClass, Relation<String, Integer> hashCodeRelation) {
-        MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC,
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
             methodName,
             "(" + STRING_DESCRIPTOR + environmentClass.descriptor() + ")V",
             null, null);
@@ -608,13 +675,13 @@ public class TopLevelEnvGen {
  }
 
     private static void outputClassFiles(Map<APIName, byte[]> compiledComponents,
-            HashSet<StaticError> errors) {
+                            String classSuffix, HashSet<StaticError> errors) {
         try {
             boolean writeCompleted = true;
             for (APIName componentName : compiledComponents.keySet()) {
                 if (writeCompleted) {
                     String className = NodeUtil.nameString(componentName);
-                    className = className + CLASSNAME_SUFFIX + ".class";
+                    className = className + classSuffix + ".class";
                     String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + className;
                     writeCompleted = outputClassFile(compiledComponents.get(componentName),
                         fileName, errors);

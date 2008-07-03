@@ -383,7 +383,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
        }
 
        TupleTask[] tasks = new TupleTask[s];
-       List<Expr> locs = new ArrayList(0);
+       List<Expr> locs = new ArrayList<Expr>(0);
        for (int i = 0; i < s; i++) {
            DoFront f = x.getFronts().get(i);
            if (f.getLoc().isSome()) {

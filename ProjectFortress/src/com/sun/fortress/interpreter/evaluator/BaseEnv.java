@@ -546,6 +546,12 @@ abstract public class BaseEnv implements Environment {
         return getValueRaw(s);
     }
  
-
+    public Environment getApiNull(String apiName) {
+    	return null;
+    }
+    
+    public void putApi(String apiName, Environment env) {
+        /* Should override in the generated top level environment */
+    }
     
 }
