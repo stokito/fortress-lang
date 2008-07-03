@@ -323,7 +323,7 @@ collectVars(name: String, e: App) =
    in its true and false branches.
  *)
 collectVars(name: String, e: If) =
-  colelctVars(name, e.thenB) UNION colelctVars(name, e.elseB)
+  collectVars(name, e.thenB) UNION collectVars(name, e.elseB)
 
 (* Add control flow equations into the cfa_eqns table. *************************)
 (* For a given function id,
