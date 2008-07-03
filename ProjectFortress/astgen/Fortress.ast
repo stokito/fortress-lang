@@ -688,6 +688,12 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * expression
          */
         abstract Expr(boolean parenthesized = false);
+
+            /**
+             * Repeated expression in a macro
+             */
+            _EllipsesExpr(Expr expr);
+
             /**
              * Template gap for expressions
              */

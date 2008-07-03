@@ -61,7 +61,7 @@ Expr ExprFront =
 constant transient Action<Expr> ExprTail =
      <As> As
    / <Asif> AsIf
-   / <DoubleStar> Star
+   / <DoubleStar> Ellipsis
    ;
 
 constant inline Action<Expr> As =
@@ -82,11 +82,11 @@ constant inline Action<Expr> AsIf =
            }};
      };
 
-constant inline Action<Expr> Star =
+constant inline Action<Expr> Ellipsis =
      DoubleStar
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return base;
+               return new _EllipsesExpr(base);
            }};
      };
 

@@ -60,7 +60,7 @@ Expr NoNewlineAssignExpr =
 Action<Expr> ExprTail :=
      <As> NoNewlineAs
    / <AsIf> NoNewlineAsIf
-   / <DoubleStar> NoNewlineStar
+   / <DoubleStar> NoNewlineEllipsis
    ;
 
 inline Action<Expr> NoNewlineAs =
@@ -83,11 +83,11 @@ inline Action<Expr> NoNewlineAsIf =
            }};
      };
 
-constant inline Action<Expr> NoNewlineStar =
+constant inline Action<Expr> NoNewlineEllipsis =
      DoubleStar
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return base;
+               return new _EllipsesExpr(base);
            }};
      };
 
