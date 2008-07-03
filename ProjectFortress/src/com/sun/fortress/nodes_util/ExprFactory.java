@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
+import com.sun.fortress.nodes._EllipsesExpr;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.ExponentiationMI;
@@ -647,189 +648,194 @@ public class ExprFactory {
     public static Expr makeInParentheses(Expr expr) {
         return expr.accept(new NodeAbstractVisitor<Expr>() {
             @Override
-   public Expr for_RewriteFnApp(_RewriteFnApp that) {
-             return new _RewriteFnApp(that.getSpan(),true,that.getFunction(),that.getArgument());
-   }
-   @Override
-   public Expr for_RewriteObjectRef(_RewriteObjectRef that) {
-    return new _RewriteObjectRef(that.getSpan(),true,that.getObj(),that.getStaticArgs());
-   }
-   public Expr forAsExpr(AsExpr e) {
-                return new AsExpr(e.getSpan(), true, e.getExpr(), e.getType());
+            public Expr for_RewriteFnApp(_RewriteFnApp that) {
+                return new _RewriteFnApp(that.getSpan(),true,that.getFunction(),that.getArgument());
             }
-            public Expr forAsIfExpr(AsIfExpr e) {
-                return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
+        @Override
+            public Expr for_RewriteObjectRef(_RewriteObjectRef that) {
+                return new _RewriteObjectRef(that.getSpan(),true,that.getObj(),that.getStaticArgs());
             }
-            public Expr forAssignment(Assignment e) {
-                return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
-                        e.getRhs());
-            }
-            public Expr forBlock(Block e) {
-                return new Block(e.getSpan(), true, e.getExprs());
-            }
-            public Expr forCaseExpr(CaseExpr e) {
-                return new CaseExpr(e.getSpan(), true, e.getParam(),
-                        e.getCompare(), e.getClauses(),
-                        e.getElseClause());
-            }
-            public Expr forDo(Do e) {
-                return new Do(e.getSpan(), true, e.getFronts());
-            }
-            public Expr forFor(For e) {
-                return new For(e.getSpan(), true, e.getGens(), e.getBody());
-            }
-            public Expr forIf(If e) {
-                return new If(e.getSpan(), true, e.getClauses(),
-                        e.getElseClause());
-            }
-            public Expr forLabel(Label e) {
-                return new Label(e.getSpan(), true, e.getName(), e.getBody());
-            }
-            public Expr forMathPrimary(MathPrimary e) {
-                return new MathPrimary(e.getSpan(), true, e.getFront(),
-                        e.getRest());
-            }
-            public Expr forObjectExpr(ObjectExpr e) {
-                return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
-                        e.getDecls());
-            }
-            public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
-                return new _RewriteObjectExpr(e.getSpan(), true,
-                        e.getExtendsClause(), e.getDecls(),
-                        e.getImplicitTypeParameters(),
-                        e.getGenSymName(),
-                        e.getStaticParams(),
-                        e.getStaticArgs(), e.getParams());
-            }
-            public Expr forTry(Try e) {
-                return new Try(e.getSpan(), true, e.getBody(),
-                        e.getCatchClause(), e.getForbid(),
-                        e.getFinallyClause());
-            }
-            public Expr forArgExpr(ArgExpr e) {
-                return new ArgExpr(e.getSpan(), true, e.getExprs(), e.getVarargs());
-            }
-            public Expr forTupleExpr(TupleExpr e) {
-                return new TupleExpr(e.getSpan(), true, e.getExprs());
-            }
-            public Expr forTypecase(Typecase e) {
-                return new Typecase(e.getSpan(), true, e.getBindIds(),
-                                    e.getBindExpr(), e.getClauses(),
-                                    e.getElseClause());
-            }
-            public Expr forWhile(While e) {
-                return new While(e.getSpan(), true, e.getTest(), e.getBody());
-            }
-            public Expr forAccumulator(Accumulator e) {
-                return new Accumulator(e.getSpan(), true, e.getStaticArgs(),
-                        e.getOpr(), e.getGens(), e.getBody());
-            }
-            public Expr forAtomicExpr(AtomicExpr e) {
-                return new AtomicExpr(e.getSpan(), true, e.getExpr());
-            }
-            public Expr forExit(Exit e) {
-                return new Exit(e.getSpan(), true, e.getTarget(), e.getReturnExpr());
-            }
-            public Expr forSpawn(Spawn e) {
-                return new Spawn(e.getSpan(), true, e.getBody());
-            }
-            public Expr forThrow(Throw e) {
-                return new Throw(e.getSpan(), true, e.getExpr());
-            }
-            public Expr forTryAtomicExpr(TryAtomicExpr e) {
-                return new TryAtomicExpr(e.getSpan(), true, e.getExpr());
-            }
-            public Expr forFnExpr(FnExpr e) {
-                return new FnExpr(e.getSpan(), true, e.getName(),
-                        e.getStaticParams(), e.getParams(),
-                        e.getReturnType(), e.getWhere(),
-                        e.getThrowsClause(), e.getBody());
-            }
-            public Expr forGeneratedExpr(GeneratedExpr e) {
-                return new GeneratedExpr(e.getSpan(), true,
-                        e.getExpr(), e.getGens());
-            }
-            public Expr forLetFn(LetFn e) {
-                return new LetFn(e.getSpan(), true, e.getBody(), e.getFns());
-            }
-            public Expr forLocalVarDecl(LocalVarDecl e) {
-                return new LocalVarDecl(e.getSpan(), true, e.getBody(),
-                        e.getLhs(), e.getRhs());
-            }
-            public Expr forOpExpr(OpExpr e) {
-                return new OpExpr(e.getSpan(), true, e.getOp(), e.getArgs());
-            }
-            public Expr forArrayElement(ArrayElement e) {
-                return new ArrayElement(e.getSpan(), true, e.getElement());
-            }
-            public Expr forArrayElements(ArrayElements e) {
-                return new ArrayElements(e.getSpan(), true, e.getDimension(),
-                        e.getElements());
-            }
-            public Expr forFloatLiteralExpr(FloatLiteralExpr e) {
-                return new FloatLiteralExpr(e.getSpan(), true, e.getText(),
-                        e.getIntPart(), e.getNumerator(),
-                        e.getDenomBase(), e.getDenomPower());
-            }
-            public Expr forIntLiteralExpr(IntLiteralExpr e) {
-                return new IntLiteralExpr(e.getSpan(), true, e.getText(),
-                        e.getVal());
-            }
-            public Expr forCharLiteralExpr(CharLiteralExpr e) {
-                return new CharLiteralExpr(e.getSpan(), true, e.getText(),
-                        e.getVal());
-            }
-            public Expr forStringLiteralExpr(StringLiteralExpr e) {
-                return new StringLiteralExpr(e.getSpan(), true, e.getText());
-            }
-            public Expr forVoidLiteralExpr(VoidLiteralExpr e) {
-                return new VoidLiteralExpr(e.getSpan(), true, e.getText());
-            }
-            public Expr forVarRef(VarRef e) {
-                return new VarRef(e.getSpan(), true, e.getVar());
-            }
-            public Expr forArrayComprehension(ArrayComprehension e) {
-                return new ArrayComprehension(e.getSpan(), true, e.getClauses());
-            }
-            public Expr forChainExpr(ChainExpr e) {
-                return new ChainExpr(e.getSpan(), true, e.getFirst(),
-                                     e.getLinks());
-            }
-            public Expr forFieldRef(FieldRef e) {
-                return new FieldRef(e.getSpan(), true, e.getObj(),
-                                    e.getField());
-            }
-            public Expr forMethodInvocation(MethodInvocation e) {
-                return new MethodInvocation(e.getSpan(), true, e.getObj(),
-                                            e.getMethod(), e.getStaticArgs(),
-                                            e.getArg());
-            }
-            public Expr forLooseJuxt(LooseJuxt e) {
-                return new LooseJuxt(e.getSpan(), true, e.getExprs());
-            }
-            public Expr forTightJuxt(TightJuxt e) {
-                return new TightJuxt(e.getSpan(), true, e.getExprs());
-            }
-            public Expr forFnRef(FnRef e) {
-                return new FnRef(e.getSpan(), true, e.getOriginalName(), e.getFns(),
-                        e.getStaticArgs());
-            }
-            public Expr forOpRef(OpRef e) {
-                return new OpRef(e.getSpan(), true, e.getOriginalName(), e.getOps(),
-                        e.getStaticArgs());
-            }
-            public Expr forSubscriptExpr(SubscriptExpr e) {
-                return new SubscriptExpr(e.getSpan(), true, e.getObj(),
-                        e.getSubs(), e.getOp(),
-                        e.getStaticArgs());
-            }
-            public Expr forTemplateGapExpr(TemplateGapExpr e) {
-                return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getTemplateParams());
-            }
-            public Expr defaultCase(Node x) {
-                return bug(x, "makeInParentheses: " + x.getClass() +
-                        " is not a subtype of Expr.");
-            }
+        public Expr forAsExpr(AsExpr e) {
+            return new AsExpr(e.getSpan(), true, e.getExpr(), e.getType());
+        }
+        public Expr forAsIfExpr(AsIfExpr e) {
+            return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
+        }
+        @Override
+        public Expr for_EllipsesExpr(_EllipsesExpr e){
+            return new _EllipsesExpr(e.getSpan(), true, e.getExpr());
+        }
+
+        public Expr forAssignment(Assignment e) {
+            return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
+                e.getRhs());
+        }
+        public Expr forBlock(Block e) {
+            return new Block(e.getSpan(), true, e.getExprs());
+        }
+        public Expr forCaseExpr(CaseExpr e) {
+            return new CaseExpr(e.getSpan(), true, e.getParam(),
+                    e.getCompare(), e.getClauses(),
+                    e.getElseClause());
+        }
+        public Expr forDo(Do e) {
+            return new Do(e.getSpan(), true, e.getFronts());
+        }
+        public Expr forFor(For e) {
+            return new For(e.getSpan(), true, e.getGens(), e.getBody());
+        }
+        public Expr forIf(If e) {
+            return new If(e.getSpan(), true, e.getClauses(),
+                    e.getElseClause());
+        }
+        public Expr forLabel(Label e) {
+            return new Label(e.getSpan(), true, e.getName(), e.getBody());
+        }
+        public Expr forMathPrimary(MathPrimary e) {
+            return new MathPrimary(e.getSpan(), true, e.getFront(),
+                    e.getRest());
+        }
+        public Expr forObjectExpr(ObjectExpr e) {
+            return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
+                    e.getDecls());
+        }
+        public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
+            return new _RewriteObjectExpr(e.getSpan(), true,
+                    e.getExtendsClause(), e.getDecls(),
+                    e.getImplicitTypeParameters(),
+                    e.getGenSymName(),
+                    e.getStaticParams(),
+                    e.getStaticArgs(), e.getParams());
+        }
+        public Expr forTry(Try e) {
+            return new Try(e.getSpan(), true, e.getBody(),
+                    e.getCatchClause(), e.getForbid(),
+                    e.getFinallyClause());
+        }
+        public Expr forArgExpr(ArgExpr e) {
+            return new ArgExpr(e.getSpan(), true, e.getExprs(), e.getVarargs());
+        }
+        public Expr forTupleExpr(TupleExpr e) {
+            return new TupleExpr(e.getSpan(), true, e.getExprs());
+        }
+        public Expr forTypecase(Typecase e) {
+            return new Typecase(e.getSpan(), true, e.getBindIds(),
+                    e.getBindExpr(), e.getClauses(),
+                    e.getElseClause());
+        }
+        public Expr forWhile(While e) {
+            return new While(e.getSpan(), true, e.getTest(), e.getBody());
+        }
+        public Expr forAccumulator(Accumulator e) {
+            return new Accumulator(e.getSpan(), true, e.getStaticArgs(),
+                    e.getOpr(), e.getGens(), e.getBody());
+        }
+        public Expr forAtomicExpr(AtomicExpr e) {
+            return new AtomicExpr(e.getSpan(), true, e.getExpr());
+        }
+        public Expr forExit(Exit e) {
+            return new Exit(e.getSpan(), true, e.getTarget(), e.getReturnExpr());
+        }
+        public Expr forSpawn(Spawn e) {
+            return new Spawn(e.getSpan(), true, e.getBody());
+        }
+        public Expr forThrow(Throw e) {
+            return new Throw(e.getSpan(), true, e.getExpr());
+        }
+        public Expr forTryAtomicExpr(TryAtomicExpr e) {
+            return new TryAtomicExpr(e.getSpan(), true, e.getExpr());
+        }
+        public Expr forFnExpr(FnExpr e) {
+            return new FnExpr(e.getSpan(), true, e.getName(),
+                    e.getStaticParams(), e.getParams(),
+                    e.getReturnType(), e.getWhere(),
+                    e.getThrowsClause(), e.getBody());
+        }
+        public Expr forGeneratedExpr(GeneratedExpr e) {
+            return new GeneratedExpr(e.getSpan(), true,
+                    e.getExpr(), e.getGens());
+        }
+        public Expr forLetFn(LetFn e) {
+            return new LetFn(e.getSpan(), true, e.getBody(), e.getFns());
+        }
+        public Expr forLocalVarDecl(LocalVarDecl e) {
+            return new LocalVarDecl(e.getSpan(), true, e.getBody(),
+                    e.getLhs(), e.getRhs());
+        }
+        public Expr forOpExpr(OpExpr e) {
+            return new OpExpr(e.getSpan(), true, e.getOp(), e.getArgs());
+        }
+        public Expr forArrayElement(ArrayElement e) {
+            return new ArrayElement(e.getSpan(), true, e.getElement());
+        }
+        public Expr forArrayElements(ArrayElements e) {
+            return new ArrayElements(e.getSpan(), true, e.getDimension(),
+                    e.getElements());
+        }
+        public Expr forFloatLiteralExpr(FloatLiteralExpr e) {
+            return new FloatLiteralExpr(e.getSpan(), true, e.getText(),
+                    e.getIntPart(), e.getNumerator(),
+                    e.getDenomBase(), e.getDenomPower());
+        }
+        public Expr forIntLiteralExpr(IntLiteralExpr e) {
+            return new IntLiteralExpr(e.getSpan(), true, e.getText(),
+                    e.getVal());
+        }
+        public Expr forCharLiteralExpr(CharLiteralExpr e) {
+            return new CharLiteralExpr(e.getSpan(), true, e.getText(),
+                    e.getVal());
+        }
+        public Expr forStringLiteralExpr(StringLiteralExpr e) {
+            return new StringLiteralExpr(e.getSpan(), true, e.getText());
+        }
+        public Expr forVoidLiteralExpr(VoidLiteralExpr e) {
+            return new VoidLiteralExpr(e.getSpan(), true, e.getText());
+        }
+        public Expr forVarRef(VarRef e) {
+            return new VarRef(e.getSpan(), true, e.getVar());
+        }
+        public Expr forArrayComprehension(ArrayComprehension e) {
+            return new ArrayComprehension(e.getSpan(), true, e.getClauses());
+        }
+        public Expr forChainExpr(ChainExpr e) {
+            return new ChainExpr(e.getSpan(), true, e.getFirst(),
+                    e.getLinks());
+        }
+        public Expr forFieldRef(FieldRef e) {
+            return new FieldRef(e.getSpan(), true, e.getObj(),
+                    e.getField());
+        }
+        public Expr forMethodInvocation(MethodInvocation e) {
+            return new MethodInvocation(e.getSpan(), true, e.getObj(),
+                    e.getMethod(), e.getStaticArgs(),
+                    e.getArg());
+        }
+        public Expr forLooseJuxt(LooseJuxt e) {
+            return new LooseJuxt(e.getSpan(), true, e.getExprs());
+        }
+        public Expr forTightJuxt(TightJuxt e) {
+            return new TightJuxt(e.getSpan(), true, e.getExprs());
+        }
+        public Expr forFnRef(FnRef e) {
+            return new FnRef(e.getSpan(), true, e.getOriginalName(), e.getFns(),
+                    e.getStaticArgs());
+        }
+        public Expr forOpRef(OpRef e) {
+            return new OpRef(e.getSpan(), true, e.getOriginalName(), e.getOps(),
+                    e.getStaticArgs());
+        }
+        public Expr forSubscriptExpr(SubscriptExpr e) {
+            return new SubscriptExpr(e.getSpan(), true, e.getObj(),
+                    e.getSubs(), e.getOp(),
+                    e.getStaticArgs());
+        }
+        public Expr forTemplateGapExpr(TemplateGapExpr e) {
+            return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getTemplateParams());
+        }
+        public Expr defaultCase(Node x) {
+            return bug(x, "makeInParentheses: " + x.getClass() +
+                    " is not a subtype of Expr.");
+        }
         });
     }
 
