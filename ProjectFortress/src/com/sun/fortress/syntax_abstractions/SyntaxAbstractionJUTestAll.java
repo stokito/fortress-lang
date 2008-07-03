@@ -29,7 +29,7 @@ import com.sun.fortress.compiler.StaticTestSuite.TestCaseDir;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class SyntaxAbstractionJUTestAll extends TestCase {
-    
+
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
     private final static List<String> FAILING_SYNTAXABSTRACTIONS = Arrays.asList(
         "SyntaxASTUse.fss",
@@ -38,16 +38,16 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         "ChurchBooleans.fss",
         "ChurchBooleans.fsi",
         "XXXSyntaxGrammarImportsUse.fss",
+        "SyntaxRepetition.fss",
+        "SyntaxRepetitionUse.fss",
         "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss",
         "UsingJavaIdentifiersAsPatternVariablesUse.fss");
-        
+
 //        "SyntaxTest.fss",
 //        "SyntaxGrammarImportsUse.fss",
-//        "SyntaxRepetition.fss",
 //        "SyntaxOptionUse.fss",
 //        "SyntaxHelloWorldUse.fss",
 //        "SyntaxTestUse.fss",
-//        "SyntaxRepetitionUse.fss",
 //        "SyntaxGrammarImports.fss",
 //        "SyntaxGrammarImportsA.fss",
 //        "SyntaxGrammarImportsUse.fss",
@@ -76,18 +76,18 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
 //        "TemplateGapWithWrongASTType.fss",
 //        "SXXTemplateGapWithInconsistentParametersUse.fss",
 //        "ImportEmptyApiWhichImportsNonEmptyApiNonEmpty.fss");
-    
+
     public static TestSuite suite() {
         TestCaseDir xml = new TestCaseDir(STATIC_TESTS_DIR+"/xml/", Collections.<String>emptyList(), null);
         TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"/regex/", Collections.<String>emptyList(), null);
         TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"/sql/", Collections.<String>emptyList(), null);
         TestCaseDir basisTests = new TestCaseDir(STATIC_TESTS_DIR, FAILING_SYNTAXABSTRACTIONS, null);
-        
+
         StaticTestSuite suite = new StaticTestSuite("SyntaxAbstractionJUTestAll", basisTests);
         suite.addStaticTests(xml);
         // suite.addStaticTests(regex);
         // suite.addStaticTests(sql);
         return suite;
     }
-    
+
 }
