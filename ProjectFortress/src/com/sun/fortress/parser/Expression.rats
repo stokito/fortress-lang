@@ -61,6 +61,7 @@ Expr ExprFront =
 constant transient Action<Expr> ExprTail =
      <As> As
    / <Asif> AsIf
+   / <DoubleStar> Star
    ;
 
 constant inline Action<Expr> As =
@@ -78,6 +79,14 @@ constant inline Action<Expr> AsIf =
            public Expr run(Expr base) {
                return new AsIfExpr(createSpan(yyStart,yyCount), false,
                                    (Expr)base, a1);
+           }};
+     };
+
+constant inline Action<Expr> Star =
+     DoubleStar
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return base;
            }};
      };
 

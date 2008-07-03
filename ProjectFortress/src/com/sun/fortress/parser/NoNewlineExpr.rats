@@ -60,6 +60,7 @@ Expr NoNewlineAssignExpr =
 Action<Expr> ExprTail :=
      <As> NoNewlineAs
    / <AsIf> NoNewlineAsIf
+   / <DoubleStar> NoNewlineStar
    ;
 
 inline Action<Expr> NoNewlineAs =
@@ -79,6 +80,14 @@ inline Action<Expr> NoNewlineAsIf =
            public Expr run(Expr base) {
                return new AsIfExpr(createSpan(yyStart,yyCount), false,
                                    (Expr)base, t);
+           }};
+     };
+
+constant inline Action<Expr> NoNewlineStar =
+     DoubleStar
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return base;
            }};
      };
 
