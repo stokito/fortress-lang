@@ -149,6 +149,11 @@ public class Disambiguator {
              	errors.addAll(newErrs);
         }
         
+        // Go no further if we couldn't disambiguate the types.
+        if( errors.size() > 0 ) {
+        	return new ApiResult(new_apis, errors);
+        }
+        
         // then, rebuild the indices
         IndexBuilder.ApiResult rebuilt_indx = IndexBuilder.buildApis(new_apis, System.currentTimeMillis());
         GlobalEnvironment new_global_env = new GlobalEnvironment.FromMap(CollectUtil.union(repository_apis,
