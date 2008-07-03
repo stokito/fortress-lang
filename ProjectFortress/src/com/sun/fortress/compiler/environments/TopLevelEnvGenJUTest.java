@@ -27,23 +27,31 @@ import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
-import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.useful.Path;
 
 public class TopLevelEnvGenJUTest extends TestCase {
 
-    BaseEnv environment;
-
+    private BaseEnv testCompiledEnv;
+    private BaseEnv testCompiledImportEnv;
+    private BaseEnv asciiValApiEnv;
+ 
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
      */
     @Override
     protected void setUp() throws Exception {
-    	compileTestProgram();
-        loadEnvironment();
+    	String fssFiles[] = {"TestCompiledEnvironments", "TestCompiledImports"};
+    	for(String fssFile : fssFiles) {
+        	compileTestProgram(fssFile + ".fss");	
+    	}
+    	testCompiledEnv = loadEnvironment(fssFiles[0] + TopLevelEnvGen.COMPONENT_ENV_SUFFIX);
+    	testCompiledImportEnv = loadEnvironment(fssFiles[1] + TopLevelEnvGen.COMPONENT_ENV_SUFFIX);
+    	
+    	String apiName = "AsciiVal";
+       	asciiValApiEnv = loadEnvironment(apiName + TopLevelEnvGen.API_ENV_SUFFIX);
     }
 
     public void testNameMangling() {
@@ -57,49 +65,62 @@ public class TopLevelEnvGenJUTest extends TestCase {
 
     public void testRemoveMethods() {
         IntNat three = IntNat.make(3);
-        environment.putTypeRaw("Empty", three);
-        assertEquals(environment.getTypeNull("Empty"), three);
-        environment.removeType("Empty");
-        assertNull(environment.getTypeNull("Empty"));
+        testCompiledEnv.putTypeRaw("Empty", three);
+        assertEquals(testCompiledEnv.getTypeNull("Empty"), three);
+        testCompiledEnv.removeType("Empty");
+        assertNull(testCompiledEnv.getTypeNull("Empty"));
 
         FInt seven = FInt.make(7);
 
-        environment.putValueRaw("run", seven);
-        assertEquals(environment.getValueRaw("run"), seven);
-        environment.removeVar("run");
-        assertNull(environment.getValueRaw("run"));
+        testCompiledEnv.putValueRaw("run", seven);
+        assertEquals(testCompiledEnv.getValueRaw("run"), seven);
+        testCompiledEnv.removeVar("run");
+        assertNull(testCompiledEnv.getValueRaw("run"));
 
     }
 
     public void testNullGetters() {
-        assertNull(environment.getBoolNull("run"));
-        assertNull(environment.getIntNull("run"));
-        assertNull(environment.getNatNull("run"));
+        assertNull(testCompiledEnv.getBoolNull("run"));
+        assertNull(testCompiledEnv.getIntNull("run"));
+        assertNull(testCompiledEnv.getNatNull("run"));
     }
 
     public void testNullSetters() {
-        environment.putBoolRaw("run", true);
-        environment.putIntRaw("run", 0);
-        environment.putNatRaw("run", 0);
+        testCompiledEnv.putBoolRaw("run", true);
+        testCompiledEnv.putIntRaw("run", 0);
+        testCompiledEnv.putNatRaw("run", 0);
     }
-
+    
+    public void testGetPutApi() {
+    	String apiName = "AsciiVal";
+    	FInt val = FInt.make(65);
+    	
+        assertNull(testCompiledImportEnv.getApiNull(apiName));        
+        testCompiledImportEnv.putApi(apiName, asciiValApiEnv);
+        Environment env = testCompiledImportEnv.getApiNull(apiName);        
+        assertEquals(env, asciiValApiEnv);
+        
+        env.putValueRaw("A", val);
+        assertEquals(asciiValApiEnv.getValueNull("A"), val);
+    }
+    
     public void testGetPutTypeRaw() {
         IntNat three = IntNat.make(3);
         IntNat a = IntNat.make((int) '$');
         IntNat b = IntNat.make((int) 'K');
         IntNat c = IntNat.make((int) 'l');
 
-        environment.putTypeRaw("Empty", three);
-        environment.putTypeRaw("Empty" + '\u05D0', a);
-        environment.putTypeRaw("Empty" + '\u05D1', b);
-        environment.putTypeRaw("Empty" + '\u05D2', c);
+        testCompiledEnv.putTypeRaw("Empty", three);
+        testCompiledEnv.putTypeRaw("Empty" + '\u05D0', a);
+        testCompiledEnv.putTypeRaw("Empty" + '\u05D1', b);
+        testCompiledEnv.putTypeRaw("Empty" + '\u05D2', c);
 
-        assertEquals(environment.getTypeNull("Empty"), three);
-        assertEquals(environment.getTypeNull("Empty" + '\u05D0'), a);
-        assertEquals(environment.getTypeNull("Empty" + '\u05D1'), b);
-        assertEquals(environment.getTypeNull("Empty" + '\u05D2'), c);
+        assertEquals(testCompiledEnv.getTypeNull("Empty"), three);
+        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D0'), a);
+        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D1'), b);
+        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D2'), c);
 
-        assertNull(environment.getTypeNull("Chupacabra"));
+        assertNull(testCompiledEnv.getTypeNull("Chupacabra"));
     }
 
     public void testGetPutValueRaw() {
@@ -111,23 +132,23 @@ public class TopLevelEnvGenJUTest extends TestCase {
         FInt b = FInt.make((int) 'K');
         FInt c = FInt.make((int) 'l');
 
-        environment.putValueRaw("run", three);
-        environment.putValueRaw("$", a);
-        environment.putValueRaw("K", b);
-        environment.putValueRaw("l", c);
+        testCompiledEnv.putValueRaw("run", three);
+        testCompiledEnv.putValueRaw("$", a);
+        testCompiledEnv.putValueRaw("K", b);
+        testCompiledEnv.putValueRaw("l", c);
 
         // Now test hash collisions
-        environment.putValueRaw("Aa", seven);
-        environment.putValueRaw("BB", thirteen);
+        testCompiledEnv.putValueRaw("Aa", seven);
+        testCompiledEnv.putValueRaw("BB", thirteen);
 
-        assertEquals(environment.getValueRaw("run"), three);
-        assertEquals(environment.getValueRaw("$"), a);
-        assertEquals(environment.getValueRaw("K"), b);
-        assertEquals(environment.getValueRaw("l"), c);
+        assertEquals(testCompiledEnv.getValueRaw("run"), three);
+        assertEquals(testCompiledEnv.getValueRaw("$"), a);
+        assertEquals(testCompiledEnv.getValueRaw("K"), b);
+        assertEquals(testCompiledEnv.getValueRaw("l"), c);
 
-        assertEquals(environment.getValueRaw("Aa"), seven);
-        assertEquals(environment.getValueRaw("BB"), thirteen);
-        assertNull(environment.getValueRaw("Chupacabra"));
+        assertEquals(testCompiledEnv.getValueRaw("Aa"), seven);
+        assertEquals(testCompiledEnv.getValueRaw("BB"), thirteen);
+        assertNull(testCompiledEnv.getValueRaw("Chupacabra"));
 
     }
 
@@ -137,37 +158,38 @@ public class TopLevelEnvGenJUTest extends TestCase {
         FInt b = FInt.make((int) 'K');
         FInt c = FInt.make((int) 'l');
 
-        environment.putValueRaw("run", three);
-        environment.putValueRaw("$", a);
-        environment.putValueRaw("K", b);
-        environment.putValueRaw("l", c);
+        testCompiledEnv.putValueRaw("run", three);
+        testCompiledEnv.putValueRaw("$", a);
+        testCompiledEnv.putValueRaw("K", b);
+        testCompiledEnv.putValueRaw("l", c);
 
     	StringBuffer buffer = new StringBuffer();
-    	environment.verboseDump = true;
-    	environment.dump(buffer);
+    	testCompiledEnv.verboseDump = true;
+    	testCompiledEnv.dump(buffer);
     }
 
-    private void loadEnvironment() throws IOException,
-    InstantiationException, IllegalAccessException {
+    private BaseEnv loadEnvironment(String className) throws IOException,
+                                                             InstantiationException, 
+                                                             IllegalAccessException {
         SimpleClassLoader classLoader = new SimpleClassLoader();
         File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR +
-                File.separator + "TestCompiledEnvironmentsEnv.class");
+                                  File.separator + className + ".class");
         byte[] bytecode = new byte[(int) classfile.length()];
         FileInputStream classStream = new FileInputStream(classfile);
         int read = classStream.read(bytecode);
         if (read != classfile.length()) {
-            fail("Expected to read " + classfile.length() + " bytes but only read " + read + " bytes.");
+            fail("Expected to read " + classfile.length() + " bytes but read " + read + " bytes instead.");
         }
 
-        Class generatedClass = classLoader.defineClass("TestCompiledEnvironmentsEnv", bytecode);
-        Object envObject = generatedClass.newInstance();
-        environment = (BaseEnv) envObject;
+        Class generatedClass = classLoader.defineClass(className, bytecode);
+        BaseEnv envObject = (BaseEnv) generatedClass.newInstance();
+        return(envObject);
     }
 
-    private void compileTestProgram() {
+    private void compileTestProgram(String testFileName) {
         Path path = ProjectProperties.SOURCE_PATH;
         String s = ProjectProperties.BASEDIR + "tests" +
-        File.separator + "TestCompiledEnvironments.fss";
+                   File.separator + testFileName;
 
         File file = new File(s);
         s = file.getPath();

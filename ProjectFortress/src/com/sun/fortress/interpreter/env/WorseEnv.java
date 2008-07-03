@@ -127,5 +127,16 @@ public class WorseEnv extends BaseEnv {
 	public Iterable<String> youngestFrame() {
 		throw new Error();
 	}
+	
+	@Override
+    public Environment getApiNull(String apiName) {
+    	throw new Error();
+    }
+    
+	@Override
+    public void putApi(String apiName, Environment env) {
+        throw new Error();
+    }
+    
 
 }

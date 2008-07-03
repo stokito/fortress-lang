@@ -49,8 +49,6 @@ import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
-import static com.sun.fortress.useful.ConvenientStrings.*;
-
 public final class Shell {
     static boolean test;
 
@@ -523,9 +521,14 @@ public final class Shell {
         Desugarer.ApiResult apiDSR =
             Desugarer.desugarApis(apiSR.apis(), apiEnv);
 
-        // Generate top-level byte code environments
-        TopLevelEnvGen.ComponentResult componentGR =
-            TopLevelEnvGen.generate(componentSR.components(), env);
+        // Generate top-level byte code environments for apis
+        TopLevelEnvGen.CompilationUnitResult apiGR =
+            TopLevelEnvGen.generateApiEnvs(apiDSR.apis(), apiEnv);
+        if(!apiGR.isSuccessful()) { return apiGR.errors(); }
+        
+        // Generate top-level byte code environments for components
+        TopLevelEnvGen.CompilationUnitResult componentGR =
+            TopLevelEnvGen.generateComponentEnvs(componentSR.components(), env);
         if(!componentGR.isSuccessful()) { return componentGR.errors(); }
 
         // Generate code.  Code is stored in the _repository object.
