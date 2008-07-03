@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,7 +22,7 @@ import java.util.Comparator;
 /**
  * Provides an ordinary, boring, comparator for strings that provides the
  * default order.
- * 
+ *
  * @author dr2chase
  */
 public final class StringComparer implements Comparator<String> {
