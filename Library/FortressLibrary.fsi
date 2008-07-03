@@ -953,9 +953,39 @@ end
 (** Array whose bounds are implicit rather than static, and which may
     be either mutable or immutable. *)
 trait ReadableArray[\E,I\]
-        extends { HasRank, Indexed[\E,I\] }
+        extends { HasRank, Indexed[\E,I\], DelegatedIndexed[\E,I\] }
         comprises { Array[\E,I\], ImmutableArray[\E,I\] }
+    (** CONCRETE GETTERS
+        Default implementations of getters based on abstract methods
+        below. **)
+    getter indices(): Indexed[\I,I\]
+    getter indexValuePairs(): Indexed[\(I,E),I\]
+    getter generator(): Indexed[\E,I\]
 
+    (** CONCRETE METHODS
+        Default implementations of most array stuff based on the above.
+        The things we can't provide are anything involving replica. **)
+
+    opr[i:I]:E
+
+    (** Initialize element at index i with value v.  This should occur
+        once, before any other access or assignment occurs to element
+        i.  An error will be signaled if an uninitialized element is
+        read or an initialized element is re-initialized. **)
+    init(i:I, v:E)
+
+    generate[\R\](r: Reduction[\R\], body: E->R): R
+    seq(self): SequentialGenerator[\E\]
+
+    (** 0-based non-bounds-checked indexing. **)
+    abstract get(i:I): E
+    abstract init0(i:I, e:E): ()
+    abstract zeroIndices(): FullRange[\I\]
+    (** Convert from %base%-based indexing to 0-based indexing,
+        performing bounds checking. **)
+    abstract offset(i:I): I
+    (** Convert from 0-based indexing to %base%-based indexing. **)
+    abstract toIndex(i:I): I
     (** Indexed functionality with more specific type information. **)
     abstract opr[r:Range[\I\]] : ReadableArray[\E,I\]
     abstract opr[_:OpenRange[\Any\]] : ReadableArray[\E,I\]
@@ -967,13 +997,9 @@ trait ReadableArray[\E,I\]
         be reflected in the other. **)
     abstract shift(newOrigin:I):ReadableArray[\E,I\]
 
-    (** Initialize element at index %i% with value %v%.  This should occur
-        once, before any other access or assignment occurs to element
-        %i%.  An error will be signaled if an uninitialized element is
-        read or an initialized element is re-initialized. **)
-    abstract init(i:I, v:E): ()
-
-    (** Bulk initialization of an array using a given function or value. **)
+    (** Bulk initialization of an array using a given function or
+        value.  These are defined with more specific self types in
+        StandardImmutableArrayType. **)
     abstract fill(f:I->E):ReadableArray[\E,I\]
     abstract fill(v:E):ReadableArray[\E,I\]
 
@@ -993,7 +1019,6 @@ trait ImmutableArray[\E,I\] extends { ReadableArray[\E,I\] }
     abstract ivmap[\R\](f:(I,E)->R): ImmutableArray[\R, I\]
     abstract map[\R\](f:E->R): ImmutableArray[\R, I\]
     abstract shift(newOrigin:I):ImmutableArray[\E,I\]
-    abstract init(i:I, v:E): ()
     abstract fill(f:I->E):ImmutableArray[\E,I\]
     abstract fill(v:E):ImmutableArray[\E,I\]
     abstract copy():ImmutableArray[\E,I\]
@@ -1004,12 +1029,16 @@ trait ImmutableArray[\E,I\] extends { ReadableArray[\E,I\] }
 end
 
 trait Array[\E,I\] extends { ReadableArray[\E,I\], MutableIndexed[\E,I\] }
+    abstract put(i:I, e:E): ()
+    opr[i:I]:=(v:E):()
+
+    opr[r:Range[\I\]]:=(a:Indexed[\E,I\]):()
+
     abstract opr[r:Range[\I\]] : Array[\E,I\]
     abstract opr[_:OpenRange[\Any\]] : Array[\E,I\]
     abstract ivmap[\R\](f:(I,E)->R): Array[\R, I\]
     abstract map[\R\](f:E->R): Array[\R, I\]
     abstract shift(newOrigin:I):Array[\E,I\]
-    abstract init(i:I, v:E): ()
     abstract fill(f:I->E):Array[\E,I\]
     abstract fill(v:E):Array[\E,I\]
     abstract assign(f:I->E):Array[\E,I\]
@@ -1036,43 +1065,12 @@ primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\]
 
 primitiveImmutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\]
 
-(** Array type supporting un-bounds-checked 0-based indexing.
-    Useful for the internals of all the array functionality. **)
-trait ArrayTypeWith0[\E,I\]
-      extends { ReadableArray[\E,I\], DelegatedIndexed[\E,I\] }
-    (** 0-based non-bounds-checked indexing. **)
-    abstract getDefault(i:I): E
-    abstract init0(i:I, e:E): ()
-    abstract zeroIndices(): FullRange[\I\]
-    (** Convert from %base%-based indexing to 0-based indexing,
-        performing bounds checking. **)
-    abstract offset(i:I): I
-    (** Convert from 0-based indexing to %base%-based indexing. **)
-    abstract toIndex(i:I): I
-end
-
 (** NOTE: %StandardImmutableArrayType% is a parent of
     %StandardMutableArrayType%.  It therefore does not extend
-    %ImmutableArrayType% as you might expect.  Other types that extend
-    it should also extend %ImmutableArrayType% explicitly. **)
+    %ImmutableArray% as you might expect.  Other types that extend
+    it should also extend %ImmutableArray% explicitly. **)
 trait StandardImmutableArrayType[\T extends StandardImmutableArrayType[\T,E,I\],E,I\]
-        extends { ArrayTypeWith0[\E,I\] }
-    (** CONCRETE GETTERS:
-        Default implementations of getters based on abstract methods
-        in %StandardArrayType%. **)
-    getter indices(): Indexed[\I,I\]
-    getter indexValuePairs(): Indexed[\(I,E),I\]
-    getter generator(): Indexed[\E,I\]
-
-    (** CONCRETE METHODS:
-        Default implementations of most array stuff based on the above.
-        The things we cannot provide are anything involving replica. **)
-    opr[i:I]:E
-    init(i:I, v:E)
-
-    generate[\R\](r: Reduction[\R\], body: E->R): R
-    seq(self): SequentialGenerator[\E\]
-
+        extends { ReadableArray[\E,I\] }
     fill(f:I->E):T
     fill(v:E):T
     abstract copy():T
@@ -1080,13 +1078,7 @@ end
 
 
 trait StandardMutableArrayType[\T extends StandardMutableArrayType[\T,E,I\],E,I\]
-    extends { StandardImmutableArrayType[\T,E,I\], Array[\E,I\] }
-    (** 0-based non-bounds-checked indexing. **)
-    abstract put(i:I, e:E): ()
-    opr[i:I]:=(v:E):()
-
-    opr[r:Range[\I\]]:=(a:Indexed[\E,I\]):()
-
+        extends { StandardImmutableArrayType[\T,E,I\], Array[\E,I\] }
     assign(v:T):T
     assign(f:I->E):T
 end
@@ -1105,7 +1097,7 @@ partition(x:ZZ32):(ZZ32,ZZ32)
     The natural order of all generators is from %b0% to
     %b0+s0-1%. **)
 trait ReadableArray1[\T, nat b0, nat s0\]
-        extends { Indexed1[\s0\], Rank1, ArrayTypeWith0[\T,ZZ32\] }
+        extends { Indexed1[\s0\], Rank1, ReadableArray[\T,ZZ32\] }
         comprises { ImmutableArray1[\T,b0,s0\], Array1[\T,b0,s0\] }
     getter size():ZZ32
     getter bounds():FullRange[\ZZ32\]
