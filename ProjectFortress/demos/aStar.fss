@@ -301,7 +301,7 @@ verifySudoku(st0) =
     if legalState(st0.state) then
         st0
     else
-        fail("Bad initial state:" // res)
+        fail("Bad initial state:" // st0)
     end
 
 sudoku(givens:(ZZ32,ZZ32,ZZ32)...): Sudoku = do

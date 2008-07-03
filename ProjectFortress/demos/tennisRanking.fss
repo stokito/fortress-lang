@@ -387,8 +387,8 @@ addGame(fout: FileWriteStream, winnerName: String, loserName: String) =
   if database.member(winnerName)
   then if database.member(loserName)
        then addGame(fout, winnerName, true, loserName, true)
-       else println loserName " is a new member!"; die end
-  else println winnerName " is a new member!"; die end
+       else println loserName " is a new member!"; fail("end") end
+  else println winnerName " is a new member!"; fail("end") end
 
 (* doubles games ****************************************)
 won(player1: Player, player2: Player, against1: Player, against2: Player,
@@ -477,10 +477,10 @@ addGame(fout: FileWriteStream,
             then if database.member(loserName2)
                  then addGame(fout, winnerName1, true, winnerName2, true,
                                     loserName1 , true, loserName2 , true)
-                 else println loserName2 " is a new member!"; die end
-            else println loserName1 " is a new member!"; die end
-       else println winnerName2 " is a new member!"; die end
-  else println winnerName1 " is a new member!"; die end
+                 else println loserName2 " is a new member!"; fail("end") end
+            else println loserName1 " is a new member!"; fail("end") end
+       else println winnerName2 " is a new member!"; fail("end") end
+  else println winnerName1 " is a new member!"; fail("end") end
 
 (* Print result ***************************************************************)
 (* MVP(Most Valuable Players): the biggest points earned in this term *)

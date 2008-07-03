@@ -176,7 +176,7 @@ lookup(global:String):Term =
     if t <- globalEnv.member(global) then
         t
     else
-        freeVar(global)
+        fv(global)
     end
 
 forms(t:Term): () = do
@@ -258,7 +258,7 @@ object Parser(f:FileReadStream)
             char(0) => fail ("unexpected eof in arg list, last arg " id)
             ')'  => fail ("unexpected ')' in arg list, last arg " id)
             else => if curr IN digits then
-                        fail ("unexpected digit " c2.toString() " in arg list")
+                        fail ("unexpected digit " curr.toString() " in arg list")
                     else
                         mkLambda(id,parseLambdaF(newlineOK))
                     end
