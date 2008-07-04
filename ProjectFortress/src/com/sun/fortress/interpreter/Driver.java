@@ -612,6 +612,10 @@ public class Driver {
         collectImportedValueAndTypeNames(fromApi, vnames, tnames);
 
        final Importer imp = new Importer() {
+           public String toString() {
+               return  a + "/" + c + "->" + importer.name();
+           }
+           
            final boolean[] noisy = new boolean[1];
 
            final Set<String> added = new HashSet<String>();
@@ -659,7 +663,7 @@ public class Driver {
                 try {
                     if (!except_names.contains(s) &&
                             !importer.excludedImportNames.contains(s) &&
-                            !importer.ownNames.contains(s)) {
+                            !importer.ownTypeNames.contains(s)) {
                         FType old = into_e.getTypeNull(s);
                         if (old == null) {
                             into_e.putType(s, NI.cnnf(from_e.getTypeNull(s)));
@@ -920,7 +924,8 @@ public class Driver {
             }
             if (api_e.getTypeNull(s) != null) {
                 e.putType(add_as, NI.cnnf(from_e.getTypeNull(s)));
-            }
+                importer.ownTypeNames.add(add_as);
+           }
             if (api_e.getValueRaw(s) != null) {
                 FValue fv = api_e.getValueRaw(s);
                 isOverloadable = ComponentWrapper.overloadable(fv);

@@ -18,10 +18,12 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.HasAt;
@@ -238,7 +240,9 @@ public interface Environment  {
      */
     public FValue getValueRaw(String s, int level);
     
+    public Environment getApi(String s);
+    public Environment getApi(APIName s);
+    public Environment getApi(List<Id> s);    
     public Environment getApiNull(String apiName);
-    
     public void putApi(String apiName, Environment env);
 }

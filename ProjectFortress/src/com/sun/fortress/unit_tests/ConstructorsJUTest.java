@@ -105,6 +105,8 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
         Assert.assertEquals(di1, di2);
         Assert.assertEquals(di1.hashCode(), di2.hashCode());
         Assert.assertFalse(di1.equals(di3));
+        int h1 = di1.hashCode();
+        int h2 = di3.hashCode();
         Assert.assertFalse(di1.hashCode() == di3.hashCode());
 
         APIName di4 = NodeFactory.makeAPIName(span12, Useful.list(newId("foo"), newId("bar"), newId("baz")));

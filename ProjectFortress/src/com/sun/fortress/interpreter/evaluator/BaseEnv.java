@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import com.sun.fortress.exceptions.CircularDependenceError;
 import com.sun.fortress.exceptions.RedefinitionError;
@@ -35,6 +36,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -52,6 +54,21 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
  */
 
 abstract public class BaseEnv implements Environment {
+
+    public Environment getApi(APIName s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Environment getApi(List<Id> s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Environment getApi(String s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     /** Names noted for possible future overloading */
     private String[] namesPut;

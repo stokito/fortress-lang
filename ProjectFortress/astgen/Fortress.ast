@@ -1984,8 +1984,10 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * Names in the list must be unqualified.
              * APIName ::= Id(.Id)*
              * e.g.) com.sun.fortress.nodes_util
+             *
              */
-            APIName(List<Id> ids);
+            APIName(List<Id> ids,
+                    ignoreForEquals String text = com.sun.fortress.useful.Useful.<Id>dottedList(in_ids).intern());
             /**
              * non-API name
              * SimpleName ::= Id

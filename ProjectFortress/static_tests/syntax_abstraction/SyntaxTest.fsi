@@ -28,7 +28,7 @@ api SyntaxTest
         do 
           ids: List[\Id\] = emptyList[\Id\](1)
           ids1: List[\Id\] = ids.addRight(Id(Nothing[\APIName\], "FortressLibrary"))
-          apiName:APIName = APIName(ids1)
+          apiName:APIName = APIName1(ids1)
           name:Id = Id(Just[\APIName\](apiName), "print")
           exprs: List[\Expr\] = emptyList[\Expr\](2)
           exprs1: List[\Expr\] = exprs.addRight(FnRef( 0, Id(Nothing[\APIName\], "fn"), <| name |> , emptyList[\StaticArg\]()) asif Expr)

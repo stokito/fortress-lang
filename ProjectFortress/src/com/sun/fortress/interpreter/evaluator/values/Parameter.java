@@ -40,4 +40,14 @@ public class Parameter {
   public String toString() {
       return param_name+":"+param_type;
   }
+  
+  public boolean equals(Object o) {
+      if (o instanceof Parameter) {
+          Parameter p = (Parameter) o;
+          if (! param_type.equals(p.param_type))
+              return false;
+          return is_mutable == p.is_mutable && is_transient == p.is_transient;
+      }
+      return false;
+  }
 }

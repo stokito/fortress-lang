@@ -22,6 +22,8 @@ import java.util.HashMap;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
@@ -42,6 +44,7 @@ public class ComponentWrapper {
 
     public BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    public BASet<String> ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
 
@@ -58,7 +61,10 @@ public class ComponentWrapper {
                 if (t.equals(":"))
                     System.err.println(": import of " + u);
                 ownNonFunctionNames.add(t);
-            }
+            } 
+            if (u instanceof FType || u instanceof FTypeGeneric) {
+                ownTypeNames.add(t);
+            } 
             ownNames.add(t);
         }
     };
@@ -159,6 +165,7 @@ public class ComponentWrapper {
         be.visit(cu);
         // Reset the non-function names from the disambiguator.
         ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+        ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
         be.getEnvironment().visit(nameCollector);
         p = cu;

@@ -42,10 +42,16 @@ makeInfixJuxt():OpRef = do
     OpRef(0, name, singleton(name asif OpName), emptyList[\StaticArg\]())
 end
 
-LooseJuxt1(exprs:List[\Expr\]) =
+LooseJuxt1(exprs:List[\Expr\]):LooseJuxt =
     LooseJuxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
 
-TightJuxt1(exprs:List[\Expr\]) =
+TightJuxt1(exprs:List[\Expr\]):TightJuxt =
     TightJuxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
+
+APIName1(in_ids:List[\Id\]):APIName = do
+    t1 = BIG || [e <- in_ids] (e ".")
+    t2 = t1[0#(|t1| - 1)]
+    APIName(in_ids,  t2)
+    end
 
 end

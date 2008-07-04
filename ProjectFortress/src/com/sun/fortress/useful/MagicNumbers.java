@@ -219,4 +219,10 @@ public final class MagicNumbers {
         }
         return xx;
     }
+    
+    public static int hashList(List list) {
+        int ls = list.size();
+        return hashList(list, ls * array[ (ls + 512) & 1023]);
+    }
+
 }
