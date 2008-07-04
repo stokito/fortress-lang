@@ -22,9 +22,10 @@ component SyntaxRepetitionUse
   export Executable
 
   run(args:String...) = do
-                          print (SELECT a a  a from)
-                          print (SELECT b b b b from)
-                          print (SELECT a a a a world)
-                          print (SELECT b b world) 
+                          println (SELECT a a  a from)
+                          println (SELECT b b b b from)
+                          println (SELECT world)
+(*                          println (SELECT b b world)  *)
+                          println 42
                         end
 end

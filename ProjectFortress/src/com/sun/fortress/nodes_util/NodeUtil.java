@@ -328,6 +328,9 @@ public class NodeUtil {
             public IterableOnce<String> forVarAbsDeclOrDecl(VarAbsDeclOrDecl d) {
                 return new IterableOnceForLValueList(d.getLhs());
             }
+            public IterableOnce<String> forGrammarDecl(GrammarDecl d) {
+                return new UnitIterable<String>(d.getName().getText());
+            }
         });
     }
 

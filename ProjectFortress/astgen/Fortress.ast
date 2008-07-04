@@ -34,6 +34,7 @@ generateSerializers yes;
 customClassPath ../build;
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
+// customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
 
 package com.sun.fortress.nodes;
 import java.math.BigInteger;
