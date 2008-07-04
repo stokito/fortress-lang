@@ -49,7 +49,7 @@ body {
         "throws",       "trait",        "transient",    "try",
         "tryatomic",    "type",         "typecase",     "unit",
         "value",        "var",          "where",        "while",
-        "widens",       "with",         "wrapped",      "gap"
+        "widens",       "with",         "wrapped"
     });
   }
 }

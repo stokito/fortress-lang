@@ -41,7 +41,8 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         "SyntaxRepetition.fss",
         "SyntaxRepetitionUse.fss",
         "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss",
-        "UsingJavaIdentifiersAsPatternVariablesUse.fss");
+        "UsingJavaIdentifiersAsPatternVariablesUse.fss",
+        "UsingJavaIdentifiersAsPatternVariables.fss");
 
 //        "SyntaxTest.fss",
 //        "SyntaxGrammarImportsUse.fss",

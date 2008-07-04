@@ -18,9 +18,11 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticPhaseResult;
@@ -36,16 +38,21 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
+import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.NonterminalParameter;
+import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateUpdateVisitor;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._TerminalDef;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
+import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -75,11 +82,13 @@ public class TemplateChecker extends TemplateUpdateVisitor {
     private MemberEnv currentMemberEnv;
     private GlobalEnvironment GLOBAL_ENV;
     private CompilationUnitIndex currentApiIndex;
+    private Map<Id, Id> patternVariablesAndArguments;
 
     public TemplateChecker(GlobalEnvironment globalEnv, CompilationUnitIndex currentApiIndex) {
         this.errors = new LinkedList<StaticError>();
         this.GLOBAL_ENV = globalEnv;
         this.currentApiIndex = currentApiIndex;
+        this.patternVariablesAndArguments = new HashMap<Id, Id>();
     }
 
     private Collection<StaticError> getErrors() {
@@ -100,21 +109,14 @@ public class TemplateChecker extends TemplateUpdateVisitor {
     }
 
     @Override
-    public Node forNonterminalDef(NonterminalDef that) {
-        this.currentMemberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-        return super.forNonterminalDef(that);
-    }
-
-    @Override
-    public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
-        this.currentMemberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-        return super.forNonterminalExtensionDef(that);
-    }
-
-    @Override
-    public Node for_TerminalDef(_TerminalDef that) {
-        this.currentMemberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-        return super.for_TerminalDef(that);
+    public Node forNonterminalHeader(NonterminalHeader that) {
+        this.currentMemberEnv = GrammarEnv.getMemberEnv(that.getName());
+        for (NonterminalParameter np: that.getParams()) {
+            Id oldName = np.getName();
+            Id freshName = freshId(oldName);
+            this.patternVariablesAndArguments.put(oldName, freshName);
+        }
+        return super.forNonterminalHeader(that);
     }
 
     @Override
@@ -131,12 +133,17 @@ public class TemplateChecker extends TemplateUpdateVisitor {
         return super.forSyntaxDef(that);
     }
 
-    //    Waiting for the new Astgen interface
-    //    @Override
-    //    public Node forTemplateGap(TemplateGap that) {
-    //        handleTemplateGap(that);
-    //        return super.forTemplateGap(that);
-    //    }
+    @Override
+    public Node forPrefixedSymbol(PrefixedSymbol that) {
+        Id oldName = that.getId().unwrap();
+        Id freshName = freshId(oldName);
+        this.patternVariablesAndArguments.put(oldName, freshName);
+        return super.forPrefixedSymbol(that);
+    }
+
+    private Id freshId(Id oldName) {
+        return NodeFactory.makeId(FreshName.getFreshName("$"+oldName.getText()+"$"));
+    }
 
     /*
      * 1) The number of formal and actual parameters are the same
@@ -144,31 +151,31 @@ public class TemplateChecker extends TemplateUpdateVisitor {
      * 3) TODO: Rewrite pattern variables to fresh names (which are legal Java identifers)
      */
     @Override
-    public void handleTemplateGap(TemplateGap gap) {
-        //        System.err.println("handling: "+gap.getId());
-
-        if ((this.currentSyntaxDeclEnv.isAnyChar(gap.getId()) ||
-             this.currentSyntaxDeclEnv.isCharacterClass(gap.getId()) ||
-             this.currentSyntaxDeclEnv.getMemberEnv().isParameter(gap.getId())) 
+    public Node forTemplateGapOnly(TemplateGap that, Id id_result, List<Id> params_result) {
+//        System.err.println("handling: "+that.getId());
+               
+        if ((this.currentSyntaxDeclEnv.isCharacterClass(that.getId()) ||
+             this.currentSyntaxDeclEnv.isAnyChar(that.getId()) ||
+             this.currentSyntaxDeclEnv.getMemberEnv().isParameter(that.getId())) 
              &&
-             !gap.getTemplateParams().isEmpty()) {
-            String error = String.format("%s is not applicable",gap.getId().toString());
-            this.errors.add(StaticError.make(error, gap));
-            return;
+             !that.getTemplateParams().isEmpty()) {
+            String error = String.format("%s is not applicable",that.getId().toString());
+            this.errors.add(StaticError.make(error, that));
+            return that;
         }
 
-        if (!gap.getTemplateParams().isEmpty()) {
+        if (!that.getTemplateParams().isEmpty()) {
             String errorMsg = "The nonterminal %1s is not applicable for the arguments (%2s), expected (%3s)";
-            MemberEnv memberEnv = GrammarEnv.getMemberEnv(this.currentSyntaxDeclEnv.getNonterminalName(gap.getId())); 
+            MemberEnv memberEnv = GrammarEnv.getMemberEnv(this.currentSyntaxDeclEnv.getNonterminalName(that.getId())); 
             List<Id> formalParams = memberEnv.getParameters();
-            List<Id> actualParams = gap.getTemplateParams();
+            List<Id> actualParams = that.getTemplateParams();
 
             // 1) The number of formal and actual parameters are the same
             if (formalParams.size() != actualParams.size()) {
                 String formals = getFormalParametersList(memberEnv, formalParams);
                 String actuals = getActualParametersList(actualParams);
-                String error = String.format(errorMsg, gap.getId(), actuals, formals);
-                this.errors.add(StaticError.make(error, gap));
+                String error = String.format(errorMsg, that.getId(), actuals, formals);
+                this.errors.add(StaticError.make(error, that));
             }
 
             // 2) The asttype of the actual parameters is the same as the asttype of the formal parameters
@@ -198,10 +205,18 @@ public class TemplateChecker extends TemplateUpdateVisitor {
                 }
             }
             if (isError) {
-                String error = " "+String.format(errorMsg, gap.getId().toString(), actuals, formals);
-                this.errors.add(StaticError.make(error, gap));
+                String error = " "+String.format(errorMsg, that.getId().toString(), actuals, formals);
+                this.errors.add(StaticError.make(error, that));
             }
         }
+        
+        if (!this.patternVariablesAndArguments.containsKey(that.getId())) {
+            throw new RuntimeException("Unknown pattern variable: "+that.getId());
+        }
+
+//        Id freshName = this.patternVariables.get(gap.getId());
+//        gap.setId(freshName);
+        return that;
     }
 
     private String getActualParametersList(List<Id> actualParams) {

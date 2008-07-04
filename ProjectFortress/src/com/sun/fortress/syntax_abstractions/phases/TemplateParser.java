@@ -158,6 +158,12 @@ public class TemplateParser extends NodeUpdateVisitor {
         for (Id i: psg.getAnyChars()) {
             this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
         }
+        for (Id i: psg.getCharacterClasses()) {
+            this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
+        }
+        for (Id i: psg.getSpecialSymbols()) {
+            this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
+        }
 		return super.forPrefixedSymbol(that);
 	}
 

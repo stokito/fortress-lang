@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.TemplateGap;
+import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntLiteralExpr;
