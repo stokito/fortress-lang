@@ -180,7 +180,7 @@ String crossOp = "BY":OpName &(w ExtentRange);
 
 String leftarrow = "<-";
 
-String caret = "^";
+String caret = "^" !("T");
 String colonequals = ":=";
 String equals = "=" (!op);
 String equalsOp = "=":singleOp;
