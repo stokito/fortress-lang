@@ -140,6 +140,7 @@ public class Unprinter extends NodeReflection {
         line = Integer.parseInt(l1, 10);
         column = Integer.parseInt(c1, 10);
 
+        fname = fname.intern();
         sloc.setFileName(fname);
         sloc.setLine(line);
         sloc.setColumn(column);
@@ -187,6 +188,7 @@ public class Unprinter extends NodeReflection {
         line = Integer.parseInt(l1, 10);
         column = Integer.parseInt(c1, 10);
 
+        fname = fname.intern();
         sloc.setFileName(fname);
         sloc.setLine(line);
         sloc.setColumn(column);

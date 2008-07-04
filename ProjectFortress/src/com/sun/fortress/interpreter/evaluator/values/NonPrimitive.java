@@ -71,14 +71,18 @@ public abstract class NonPrimitive extends Simple_fcn {
      * @param params
      *            The params to set.
      */
-    public final void setParams(List<Parameter> params) {
-        if (this.params != null) {
-            bug(this.getAt(),
-                errorMsg("Attempted second set of constructor/function/method params of ",
-                         this, " to ", Useful.listInParens(params)));
-        }
+    public final void setParams(List<Parameter> original_params) {
 
-        params = adjustParameterList(params);
+        List<Parameter> params = adjustParameterList(original_params);
+
+        if (this.params != null) {
+            if (! this.params.equals(params))
+                bug(this.getAt(),
+                        errorMsg("Attempted second set of constructor/function/method params of ",
+                                this, " to ", Useful.listInParens(original_params)));
+            // be idempotent
+            return;
+        }
 
         this.params = params;
         lastParamIsRest = params.size() > 0

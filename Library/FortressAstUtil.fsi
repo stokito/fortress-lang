@@ -21,7 +21,9 @@ api FortressAstUtil
 import List.{...}
 import FortressAst.{...}
 
-LooseJuxt1(exprs:List[\Expr\])
-TightJuxt1(exprs:List[\Expr\])
+LooseJuxt1(exprs:List[\Expr\]):LooseJuxt
+TightJuxt1(exprs:List[\Expr\]):TightJuxt
+
+APIName1(in_ids:List[\Id\]):APIName
 
 end

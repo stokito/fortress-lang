@@ -39,7 +39,10 @@ public CompilationUnit File =
        Option<APIName> expectedName = this.getExpectedName();
        if (expectedName.isSome()) {
            APIName filename = expectedName.unwrap();
-           if (!filename.equals(yyValue.getName()))
+           String filenamestring = filename.toString().replace('/','.');
+           filenamestring = filenamestring.replace('\\','.');
+           String filereadstring = yyValue.getName().toString();
+           if (!filenamestring.endsWith(filereadstring))
                yyValue = syntaxError(createSpan(yyStart,yyCount),
                                      "Component/API names must match their enclosing file names, from name="+ filename+", from contents="+yyValue.getName());
        }
