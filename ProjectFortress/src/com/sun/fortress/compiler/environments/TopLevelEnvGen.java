@@ -158,9 +158,13 @@ public class TopLevelEnvGen {
         for(APIName apiName : apis.keySet()) {
             String className = NodeUtil.nameString(apiName);
             className = className + API_ENV_SUFFIX;
-
-            byte[] envClass = generateForCompilationUnit(className, apis.get(apiName), env);
-            compiledApis.put(apiName, envClass);
+            
+            try {
+            	byte[] envClass = generateForCompilationUnit(className, apis.get(apiName), env);
+            	compiledApis.put(apiName, envClass);
+            } catch(StaticError staticError) {
+            	errors.add(staticError);
+            }            	            	
         }
 
         if (errors.isEmpty()) {
@@ -230,8 +234,7 @@ public class TopLevelEnvGen {
         Relation<String, Integer> fTypeHashCode = new IndexedRelation<String,Integer>();
         Relation<String, Integer> apiEnvHashCode = new IndexedRelation<String,Integer>();
 
-        writeImportFields(cw, compUnitIndex, apiEnvHashCode);
-        writeFields(cw, compUnitIndex, fValueHashCode, fTypeHashCode);
+        writeFields(cw, compUnitIndex, fValueHashCode, fTypeHashCode, apiEnvHashCode);
         writeMethodInit(cw, className);
 
         writeMethodGetRaw(cw, className, "getApiNull", EnvironmentClasses.ENVIRONMENT, apiEnvHashCode);
@@ -248,6 +251,10 @@ public class TopLevelEnvGen {
         return(cw.toByteArray());
     }
 
+    /**
+     * Write the import statments as fields in this compiled environment.
+     * This method will be invoked by writeFields().
+     */
     private static void writeImportFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
 			                              Relation<String,Integer> apiEnvHashCode) {
     	CompilationUnit comp = compUnitIndex.ast();
@@ -275,9 +282,13 @@ public class TopLevelEnvGen {
     	}
 	}
 
+    /**
+     * Write all the fields that will be used in this compiled environment
+     */
 	private static void writeFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
             Relation<String, Integer> fValueHashCode,
-            Relation<String, Integer> fTypeHashCode) {
+            Relation<String, Integer> fTypeHashCode,
+            Relation<String, Integer> apiEnvHashCode) {
 
         // Create all variables as fields in the environment
         for(Id id : compUnitIndex.variables().keySet()) {
@@ -302,6 +313,8 @@ public class TopLevelEnvGen {
             idString = idString + EnvironmentClasses.FTYPE.namespace();
             cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClasses.FTYPE.descriptor(), null, null).visitEnd();
         }
+        
+        writeImportFields(cw, compUnitIndex, apiEnvHashCode);
     }
 
     /**
