@@ -51,10 +51,10 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 
@@ -184,10 +184,14 @@ public class TopLevelEnvGen {
             String className = NodeUtil.nameString(componentName);
             className = className + COMPONENT_ENV_SUFFIX;
 
-            byte[] envClass = generateForCompilationUnit(className,
+            try {
+            	byte[] envClass = generateForCompilationUnit(className,
                               components.get(componentName), env);
-
-            compiledComponents.put(componentName, envClass);
+            	
+            	compiledComponents.put(componentName, envClass);
+            } catch(StaticError staticError) {
+            	errors.add(staticError);
+            }
         }
 
         if (errors.isEmpty()) {
@@ -226,8 +230,8 @@ public class TopLevelEnvGen {
         Relation<String, Integer> fTypeHashCode = new IndexedRelation<String,Integer>();
         Relation<String, Integer> apiEnvHashCode = new IndexedRelation<String,Integer>();
 
-        writeImportFields(compUnitIndex, cw, apiEnvHashCode);
-        writeFields(compUnitIndex, cw, fValueHashCode, fTypeHashCode);
+        writeImportFields(cw, compUnitIndex, apiEnvHashCode);
+        writeFields(cw, compUnitIndex, fValueHashCode, fTypeHashCode);
         writeMethodInit(cw, className);
 
         writeMethodGetRaw(cw, className, "getApiNull", EnvironmentClasses.ENVIRONMENT, apiEnvHashCode);
@@ -244,24 +248,24 @@ public class TopLevelEnvGen {
         return(cw.toByteArray());
     }
 
-    private static void writeImportFields(CompilationUnitIndex compUnitIndex,
-			                              ClassWriter cw, Relation<String,Integer> apiEnvHashCode) {
+    private static void writeImportFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
+			                              Relation<String,Integer> apiEnvHashCode) {
     	CompilationUnit comp = compUnitIndex.ast();
     	final Vector<String> importedApiNames = new Vector<String>();
     	
-    	comp.accept(new NodeDepthFirstVisitor_void() {
-            @Override
-            public void forImportedNamesDoFirst(ImportedNames that) {
-            	importedApiNames.add( NodeUtil.nameString(that.getApi()) );
-            }
-
-            @Override
-            public void forImportApi(ImportApi that){
-                for ( AliasedAPIName api : that.getApis() ){
-                	importedApiNames.add( NodeUtil.nameString(api.getApi()) );
-                }
-            }
-        }); 
+    	for(Import imports : comp.getImports()) {
+    		if (imports instanceof ImportApi) {
+    			ImportApi importApi = (ImportApi) imports;
+    			for (AliasedAPIName api : importApi.getApis()) {
+                	importedApiNames.add(NodeUtil.nameString(api.getApi()));    				
+    			}
+    		} else if (imports instanceof ImportedNames) {
+    			ImportedNames importNames = (ImportedNames) imports;
+    			importedApiNames.add(NodeUtil.nameString(importNames.getApi()));
+    		} else {
+    			throw StaticError.make("Unrecognized import type in bytecode generation", imports);
+    		}
+    	}
     	
     	for(String apiName : importedApiNames) {
     		apiEnvHashCode.add(apiName, apiName.hashCode());
@@ -271,8 +275,8 @@ public class TopLevelEnvGen {
     	}
 	}
 
-	private static void writeFields(CompilationUnitIndex compUnitIndex,
-            ClassWriter cw, Relation<String, Integer> fValueHashCode,
+	private static void writeFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
+            Relation<String, Integer> fValueHashCode,
             Relation<String, Integer> fTypeHashCode) {
 
         // Create all variables as fields in the environment
