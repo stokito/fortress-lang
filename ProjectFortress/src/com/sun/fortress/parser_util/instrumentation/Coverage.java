@@ -17,7 +17,9 @@
 
 package com.sun.fortress.parser_util.instrumentation;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
@@ -27,6 +29,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.TreeSet;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -37,6 +42,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.sun.fortress.useful.Useful;
+
+import xtc.parser.ParserBase;
+import xtc.parser.ParseError;
+import xtc.parser.SemanticValue;
 
 /*
  * Parser coverage command-line tool
@@ -84,13 +93,17 @@ import com.sun.fortress.useful.Useful;
 public class Coverage {
 
     private static final String[] TEST_DIRS =
-        new String[] {"tests", "static_tests", "parser_tests", "not_passing_yet"};
+        new String[] {"tests", "static_tests", "parser_tests", "not_passing_yet",
+                      "../Library"};
 
     private static final boolean RETHROW_PROGRAM_ERRORS = false;
     private static final boolean INCLUDE_OK_ALTERNATES = false;
     private static final boolean SHOW_FREQUENCIES = true;
     private static final boolean SIMPLIFIED_REPORT = true;
     private static final boolean VERBOSE = false;
+
+    private static final boolean SHOW_COVERAGE = true;
+    private static final boolean SHOW_MEMO = true;
 
     /* Use reflection for two reasons:
      * 1) To allow this collection to be compiled in "compile" target,
@@ -107,6 +120,7 @@ public class Coverage {
         Constructor<?> constructor;
         Method parserMethod;
         Method infoMethod;
+        public long parseTime = 0;
 
         Parser(Class<?> parserClass, String parserMethod, String infoMethod) {
             try {
@@ -122,22 +136,62 @@ public class Coverage {
         void parse(Reader in, String filename) {
             try {
                 Object p = this.constructor.newInstance(in, filename);
+                long startTime = System.currentTimeMillis();
                 this.parserMethod.invoke(p, 0);
-            } catch (InstantiationException ie) {
-                throw new RuntimeException(ie);
-            } catch (IllegalAccessException iae) {
-                throw new RuntimeException(iae);
-            } catch (InvocationTargetException ite) {
-                throw new RuntimeException(ite);
+                parseTime = parseTime + (System.currentTimeMillis() - startTime);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
         Collection<Info.ModuleInfo> info() {
             try {
                 return (Collection<Info.ModuleInfo>)this.infoMethod.invoke(null);
-            } catch (IllegalAccessException iae) {
-                throw new RuntimeException(iae);
-            } catch (InvocationTargetException ite) {
-                throw new RuntimeException(ite);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public Map<String, Integer> hits = new HashMap<String, Integer>();
+        public Map<String, Integer> misses = new HashMap<String, Integer>();
+        public Map<String, Long> missLocalCost = new HashMap<String, Long>();
+        public Map<String, Long> missCost = new HashMap<String, Long>();
+        public Map<String, String> names = new HashMap<String, String>();
+        public boolean memoInfoFound = false;
+
+        void analyzeMemoRates() {
+            try {
+                Field[] fields = parserClass.getDeclaredFields();
+                for (Field field : fields) {
+                    String fieldName = field.getName();
+                    if (fieldName.endsWith("MemoMisses")) {
+                        String name = 
+                            fieldName.substring(0, fieldName.length() - "MemoMisses".length());
+                        misses.put(name, (Integer)field.get(null));
+                        this.memoInfoFound = true;
+                    } else if (field.getName().endsWith("MemoHits")) {
+                        String name = 
+                            fieldName.substring(0, fieldName.length() - "MemoHits".length());
+                        hits.put(name, (Integer)field.get(null));
+                        this.memoInfoFound = true;
+                    } else if (field.getName().endsWith("MissCost")) {
+                        String name =
+                            fieldName.substring(0, fieldName.length() - "MissCost".length());
+                        missCost.put(name, (Long)field.get(null));
+                        this.memoInfoFound = true;
+                    } else if (field.getName().endsWith("MissLocalCost")) {
+                        String name =
+                            fieldName.substring(0, fieldName.length() - "MissLocalCost".length());
+                        missLocalCost.put(name, (Long)field.get(null));
+                        this.memoInfoFound = true;
+                    } else if (field.getName().endsWith("NTName")) {
+                        String name =
+                            fieldName.substring(0, fieldName.length() - "NTName".length());
+                        names.put(name, (String)field.get(null));
+                        this.memoInfoFound = true;
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -205,14 +259,24 @@ public class Coverage {
                                  return a.module.compareTo(b.module);
                              }
                          });
-        System.out.println("** Coverage summary: Alternate coverage by module");
-        for (Info.ModuleInfo moduleInfo : moduleInfos) {
-            printStats(moduleInfo);
-        }
+        System.out.println("** Time");
+        System.out.println("  Parse time: " + parser.parseTime + " ms");
         System.out.println();
-        System.out.println("** Coverage details");
-        for (Info.ModuleInfo moduleInfo : moduleInfos) {
-            printUnused(moduleInfo);
+        if (SHOW_COVERAGE) {
+            System.out.println("** Coverage summary: Alternate coverage by module");
+            for (Info.ModuleInfo moduleInfo : moduleInfos) {
+                printStats(moduleInfo);
+            }
+            System.out.println();
+            System.out.println("** Coverage details");
+            for (Info.ModuleInfo moduleInfo : moduleInfos) {
+                printUnused(moduleInfo);
+            }
+            System.out.println();
+        }
+        if (SHOW_MEMO) {
+            System.out.println("** Memoization details");
+            printMemoRates(parser);
         }
     }
 
@@ -317,6 +381,31 @@ public class Coverage {
                     }
                 }
             }
+        }
+    }
+
+    private static void printMemoRates(Parser p) {
+        p.analyzeMemoRates();
+
+        if (!p.memoInfoFound) {
+            System.out.println("  No memoization info found!");
+            System.out.println("  Are you using the modified Rats! parser generator?");
+        }
+
+        for (String key : new TreeSet<String>(p.hits.keySet())) {
+            int hitCount = p.hits.get(key);
+            int missCount = p.misses.get(key);
+            long missCost = p.missCost.get(key);
+            long missLocalCost = p.missLocalCost.get(key);
+            String name = p.names.get(key);
+            name = (name != null) ? name : ("f = " + key);
+            System.out.print(coverage(0, name, hitCount, hitCount + missCount));
+            if (missCount > 0) {
+                float avgMissCost = ((float)missCost) / missCount;
+                float avgMissLocalCost = ((float)missLocalCost) / missCount;
+                System.out.print(String.format("; avg miss cost %.3f ms", avgMissCost));
+            }
+            System.out.println();
         }
     }
 
