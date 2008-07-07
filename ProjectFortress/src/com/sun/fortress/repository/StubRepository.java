@@ -56,6 +56,10 @@ public class StubRepository implements FortressRepository {
         throw new UnsupportedOperationException();
     }
 
+    public Map<APIName, ComponentIndex> components() {
+        throw new UnsupportedOperationException();
+    }
+
     public ApiIndex getApi(APIName name) throws FileNotFoundException,
             IOException {
 	    throw new FileNotFoundException("No such api");

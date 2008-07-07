@@ -59,6 +59,8 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     public Map<APIName, ApiIndex> apis() { return apis; }
 
+    public Map<APIName, ComponentIndex> components() { return components; }
+
     public ApiIndex getApi(APIName name) throws FileNotFoundException,
             IOException {
         ApiIndex ci = apis.get(name);
