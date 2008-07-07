@@ -17,7 +17,6 @@
 
 component AsciiVal 
 export AsciiVal
-export Executable 
 
 A:ZZ32 := 65
 B:ZZ32 = 66
@@ -71,8 +70,6 @@ w:ZZ32 = 119
 x:ZZ32 = 120
 y:ZZ32 = 121
 z:ZZ32 = 122
-
-run(args:String...) = println "I define the ASCII values for A-Z and a-z."
 
 end
 
