@@ -57,6 +57,7 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
@@ -95,18 +96,18 @@ public class TopLevelEnvGen {
     private static final String STRING_INTERNALNAME = Type.getType(String.class).getInternalName();
     private static final String STRING_DESCRIPTOR = Type.getType(String.class).getDescriptor();
 
-	public static final String API_ENV_SUFFIX = "ApiEnv";
-	public static final String COMPONENT_ENV_SUFFIX = "ComponentEnv";
-	
+    public static final String API_ENV_SUFFIX = "ApiEnv";
+    public static final String COMPONENT_ENV_SUFFIX = "ComponentEnv";
+
 
     public static class CompilationUnitResult extends StaticPhaseResult {
-        private final Map<APIName, byte[]> _compUnits;
-        public CompilationUnitResult(Map<APIName, byte[]> compUnits,
+        private final Map<APIName, Pair<String,byte[]>> _compUnits;
+        public CompilationUnitResult(Map<APIName, Pair<String, byte[]>> compUnits,
                        Iterable<? extends StaticError> errors) {
             super(errors);
             _compUnits = compUnits;
         }
-        public Map<APIName, byte[]> generatedEnvs() { return _compUnits; }
+        public Map<APIName, Pair<String, byte[]>> generatedEnvs() { return _compUnits; }
     }
 
     /**
@@ -152,19 +153,20 @@ public class TopLevelEnvGen {
     public static CompilationUnitResult generateApiEnvs(Map<APIName, ApiIndex> apis,
                         GlobalEnvironment env) {
 
-        Map<APIName, byte[]> compiledApis = new HashMap<APIName, byte[]>();
+        Map<APIName, Pair<String,byte[]>> compiledApis = new HashMap<APIName, Pair<String,byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
         for(APIName apiName : apis.keySet()) {
             String className = NodeUtil.nameString(apiName);
             className = className + API_ENV_SUFFIX;
-            
+
             try {
-            	byte[] envClass = generateForCompilationUnit(className, apis.get(apiName), env);
-            	compiledApis.put(apiName, envClass);
+                className = mangleIdentifier(className);  // Need to mangle the name if it contains "."
+                byte[] envClass = generateForCompilationUnit(className, apis.get(apiName), env);
+                compiledApis.put(apiName, new Pair<String,byte[]>(className, envClass));
             } catch(StaticError staticError) {
-            	errors.add(staticError);
-            }            	            	
+                errors.add(staticError);
+            }
         }
 
         if (errors.isEmpty()) {
@@ -174,27 +176,26 @@ public class TopLevelEnvGen {
         return new CompilationUnitResult(compiledApis, errors);
     }
  
-	/**
+    /**
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
      */
     public static CompilationUnitResult generateComponentEnvs(Map<APIName, ComponentIndex> components,
                         GlobalEnvironment env) {
 
-        Map<APIName, byte[]> compiledComponents = new HashMap<APIName, byte[]>();
+        Map<APIName, Pair<String,byte[]>> compiledComponents = new HashMap<APIName, Pair<String,byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
         for(APIName componentName : components.keySet()) {
             String className = NodeUtil.nameString(componentName);
             className = className + COMPONENT_ENV_SUFFIX;
-
+            className = mangleIdentifier(className);  // Need to mangle the name if it contains "."
             try {
-            	byte[] envClass = generateForCompilationUnit(className,
-                              components.get(componentName), env);
-            	
-            	compiledComponents.put(componentName, envClass);
+                byte[] envClass = generateForCompilationUnit(className,
+                                                             components.get(componentName), env);
+                compiledComponents.put(componentName, new Pair<String,byte[]>(className,envClass));
             } catch(StaticError staticError) {
-            	errors.add(staticError);
+                errors.add(staticError);
             }
         }
 
@@ -256,39 +257,39 @@ public class TopLevelEnvGen {
      * This method will be invoked by writeFields().
      */
     private static void writeImportFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
-			                              Relation<String,Integer> apiEnvHashCode) {
-    	CompilationUnit comp = compUnitIndex.ast();
-    	final Vector<String> importedApiNames = new Vector<String>();
-    	
-    	for(Import imports : comp.getImports()) {
-    		if (imports instanceof ImportApi) {
-    			ImportApi importApi = (ImportApi) imports;
-    			for (AliasedAPIName api : importApi.getApis()) {
-                	importedApiNames.add(NodeUtil.nameString(api.getApi()));    				
-    			}
-    		} else if (imports instanceof ImportedNames) {
-    			ImportedNames importNames = (ImportedNames) imports;
-    			importedApiNames.add(NodeUtil.nameString(importNames.getApi()));
-    		} else {
-    			throw StaticError.make("Unrecognized import type in bytecode generation", imports);
-    		}
-    	}
-    	
-    	for(String apiName : importedApiNames) {
-    		apiEnvHashCode.add(apiName, apiName.hashCode());
-    		apiName = apiName + EnvironmentClasses.ENVIRONMENT.namespace();
+                                          Relation<String,Integer> apiEnvHashCode) {
+        CompilationUnit comp = compUnitIndex.ast();
+        final Vector<String> importedApiNames = new Vector<String>();
+
+        for(Import imports : comp.getImports()) {
+            if (imports instanceof ImportApi) {
+                ImportApi importApi = (ImportApi) imports;
+                for (AliasedAPIName api : importApi.getApis()) {
+                    importedApiNames.add(NodeUtil.nameString(api.getApi()));                    
+                }
+            } else if (imports instanceof ImportedNames) {
+                ImportedNames importNames = (ImportedNames) imports;
+                importedApiNames.add(NodeUtil.nameString(importNames.getApi()));
+            } else {
+                throw StaticError.make("Unrecognized import type in bytecode generation", imports);
+            }
+        }
+        
+        for(String apiName : importedApiNames) {
+            apiEnvHashCode.add(apiName, apiName.hashCode());
+            apiName = apiName + EnvironmentClasses.ENVIRONMENT.namespace();
             cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(apiName), 
-            		      EnvironmentClasses.ENVIRONMENT.descriptor(), null, null).visitEnd();
-    	}
-	}
+                          EnvironmentClasses.ENVIRONMENT.descriptor(), null, null).visitEnd();
+        }
+    }
 
     /**
      * Write all the fields that will be used in this compiled environment
      */
-	private static void writeFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
-            Relation<String, Integer> fValueHashCode,
-            Relation<String, Integer> fTypeHashCode,
-            Relation<String, Integer> apiEnvHashCode) {
+    private static void writeFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
+                                    Relation<String, Integer> fValueHashCode,
+                                    Relation<String, Integer> fTypeHashCode,
+                                    Relation<String, Integer> apiEnvHashCode) {
 
         // Create all variables as fields in the environment
         for(Id id : compUnitIndex.variables().keySet()) {
@@ -353,6 +354,7 @@ public class TopLevelEnvGen {
 
         Label defQueryHashCode = new Label();
         mv.visitLabel(defQueryHashCode);
+
         mv.visitVarInsn(Opcodes.ALOAD, 1);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "hashCode", "()I");
         mv.visitVarInsn(Opcodes.ISTORE, 2);
@@ -547,26 +549,25 @@ public class TopLevelEnvGen {
     }
 
     private static void writeRemoveMethod(ClassWriter cw, String className, String methodName,
-      String invokeMethod, EnvironmentClasses environmentClass) {
-     MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, "(Ljava/lang/String;)V", null, null);
-     mv.visitCode();
-     Label l0 = new Label();
-     mv.visitLabel(l0);
-     mv.visitVarInsn(Opcodes.ALOAD, 0);
-     mv.visitVarInsn(Opcodes.ALOAD, 1);
-     mv.visitInsn(Opcodes.ACONST_NULL);
-     mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-       className, invokeMethod,
-       "(Ljava/lang/String;" + environmentClass.descriptor() + ")V");
-     Label l1 = new Label();
-     mv.visitLabel(l1);
-     mv.visitInsn(Opcodes.RETURN);
-     Label l2 = new Label();
-     mv.visitLabel(l2);
-     mv.visitLocalVariable("this", "L" + className + ";", null, l0, l2, 0);
-     mv.visitLocalVariable("name", "Ljava/lang/String;", null, l0, l2, 1);
-     mv.visitMaxs(3, 2);
-     mv.visitEnd();
+                                          String invokeMethod, EnvironmentClasses environmentClass) {
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, "(Ljava/lang/String;)V", null, null);
+        mv.visitCode();
+        Label l0 = new Label();
+        mv.visitLabel(l0);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitInsn(Opcodes.ACONST_NULL);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, invokeMethod,
+                           "(Ljava/lang/String;" + environmentClass.descriptor() + ")V");
+        Label l1 = new Label();
+        mv.visitLabel(l1);
+        mv.visitInsn(Opcodes.RETURN);
+        Label l2 = new Label();
+        mv.visitLabel(l2);
+        mv.visitLocalVariable("this", "L" + className + ";", null, l0, l2, 0);
+        mv.visitLocalVariable("name", "Ljava/lang/String;", null, l0, l2, 1);
+        mv.visitMaxs(3, 2);
+        mv.visitEnd();
     }
 
     private static void writeEmptyMethods(ClassWriter cw, String className) {
@@ -581,131 +582,129 @@ public class TopLevelEnvGen {
     }
 
     private static void writeRemoveMethods(ClassWriter cw, String className) {
-     writeRemoveMethod(cw, className, "removeVar", "putValueRaw", EnvironmentClasses.FVALUE);
-     writeRemoveMethod(cw, className, "removeType", "putTypeRaw", EnvironmentClasses.FTYPE);
+        writeRemoveMethod(cw, className, "removeVar", "putValueRaw", EnvironmentClasses.FVALUE);
+        writeRemoveMethod(cw, className, "removeType", "putTypeRaw", EnvironmentClasses.FTYPE);
     }
 
     private static void writeDumpMethod(ClassWriter cw, String className,
-      Set<String> values, Set<String> types) {
-     MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
-       "dump", "(Ljava/lang/Appendable;)Ljava/lang/Appendable;",
-       null, new String[] { "java/io/IOException" });
-     mv.visitCode();
-     Label l0 = new Label();
-     mv.visitLabel(l0);
-     mv.visitVarInsn(Opcodes.ALOAD, 0);
-     mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
-     Label l1 = new Label();
-     mv.visitJumpInsn(Opcodes.IFNULL, l1);
-     Label l2 = new Label();
-     mv.visitLabel(l2);
-     mv.visitVarInsn(Opcodes.ALOAD, 1);
-     mv.visitVarInsn(Opcodes.ALOAD, 0);
-     mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
-     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(HasAt.class).getInternalName(), "at", "()Ljava/lang/String;");
-     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-     mv.visitInsn(Opcodes.POP);
-     Label l3 = new Label();
-     mv.visitLabel(l3);
-     mv.visitVarInsn(Opcodes.ALOAD, 1);
-     mv.visitLdcInsn("\n");
-     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-     mv.visitInsn(Opcodes.POP);
-     Label l4 = new Label();
-     mv.visitJumpInsn(Opcodes.GOTO, l4);
-     mv.visitLabel(l1);
-     mv.visitVarInsn(Opcodes.ALOAD, 1);
-     mv.visitLdcInsn("Not within anything.\n");
-     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-     mv.visitInsn(Opcodes.POP);
-     mv.visitLabel(l4);
-     mv.visitVarInsn(Opcodes.ALOAD, 0);
-     mv.visitFieldInsn(Opcodes.GETFIELD, className, "verboseDump", "Z");
-     Label l5 = new Label();
-     mv.visitJumpInsn(Opcodes.IFEQ, l5);
-     int linebreaks = dumpFields(mv, className, values, EnvironmentClasses.FVALUE, 0);
-     dumpFields(mv, className, types, EnvironmentClasses.FTYPE, linebreaks);
-     mv.visitVarInsn(Opcodes.ALOAD, 1);
-     mv.visitLdcInsn("\n");
-     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-     mv.visitInsn(Opcodes.POP);
-     mv.visitLabel(l5);
-     mv.visitVarInsn(Opcodes.ALOAD, 1);
-     mv.visitInsn(Opcodes.ARETURN);
-     Label l9 = new Label();
-     mv.visitLabel(l9);
-     mv.visitLocalVariable("this", "L" + className + ";", null, l0, l9, 0);
-     mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l9, 1);
-     mv.visitMaxs(2, 2);
-     mv.visitEnd();
+                                        Set<String> values, Set<String> types) {
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
+                               "dump", "(Ljava/lang/Appendable;)Ljava/lang/Appendable;",
+                               null, new String[] { "java/io/IOException" });
+        mv.visitCode();
+        Label l0 = new Label();
+        mv.visitLabel(l0);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
+        Label l1 = new Label();
+        mv.visitJumpInsn(Opcodes.IFNULL, l1);
+        Label l2 = new Label();
+        mv.visitLabel(l2);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitFieldInsn(Opcodes.GETFIELD, className, "within", Type.getType(HasAt.class).getDescriptor());
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(HasAt.class).getInternalName(), "at", "()Ljava/lang/String;");
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+        mv.visitInsn(Opcodes.POP);
+        Label l3 = new Label();
+        mv.visitLabel(l3);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitLdcInsn("\n");
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+        mv.visitInsn(Opcodes.POP);
+        Label l4 = new Label();
+        mv.visitJumpInsn(Opcodes.GOTO, l4);
+        mv.visitLabel(l1);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitLdcInsn("Not within anything.\n");
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+        mv.visitInsn(Opcodes.POP);
+        mv.visitLabel(l4);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitFieldInsn(Opcodes.GETFIELD, className, "verboseDump", "Z");
+        Label l5 = new Label();
+        mv.visitJumpInsn(Opcodes.IFEQ, l5);
+        int linebreaks = dumpFields(mv, className, values, EnvironmentClasses.FVALUE, 0);
+        dumpFields(mv, className, types, EnvironmentClasses.FTYPE, linebreaks);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitLdcInsn("\n");
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+        mv.visitInsn(Opcodes.POP);
+        mv.visitLabel(l5);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitInsn(Opcodes.ARETURN);
+        Label l9 = new Label();
+        mv.visitLabel(l9);
+        mv.visitLocalVariable("this", "L" + className + ";", null, l0, l9, 0);
+        mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l9, 1);
+        mv.visitMaxs(2, 2);
+        mv.visitEnd();
     }
 
- private static int dumpFields(MethodVisitor mv, String className, Set<String> names,
-   EnvironmentClasses environmentClass, int linebreaks) {
-     for (String fieldName : names) {
-      Label l6 = new Label();
-      mv.visitLabel(l6);
-      mv.visitVarInsn(Opcodes.ALOAD, 1);
-      mv.visitLdcInsn("(" + fieldName + " = ");
-      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-      mv.visitInsn(Opcodes.POP);
-      Label l7 = new Label();
-      mv.visitLabel(l7);
-      mv.visitVarInsn(Opcodes.ALOAD, 0);
+    private static int dumpFields(MethodVisitor mv, String className,
+                                  Set<String> names, EnvironmentClasses environmentClass,
+                                  int linebreaks) {
+        for (String fieldName : names) {
+            Label l6 = new Label();
+            mv.visitLabel(l6);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitLdcInsn("(" + fieldName + " = ");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
+                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitInsn(Opcodes.POP);
+            Label l7 = new Label();
+            mv.visitLabel(l7);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
             String idString = fieldName + environmentClass.namespace();
             mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                mangleIdentifier(idString),
-                environmentClass.descriptor());
-      Label l8 = new Label();
-      mv.visitJumpInsn(Opcodes.IFNULL, l8);
-      Label l9 = new Label();
-      mv.visitLabel(l9);
-      mv.visitVarInsn(Opcodes.ALOAD, 1);
-      mv.visitVarInsn(Opcodes.ALOAD, 0);
+                    mangleIdentifier(idString), environmentClass.descriptor());
+            Label l8 = new Label();
+            mv.visitJumpInsn(Opcodes.IFNULL, l8);
+            Label l9 = new Label();
+            mv.visitLabel(l9);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                    mangleIdentifier(idString),
-                    environmentClass.descriptor());
-      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, environmentClass.internalName(), "toString", "()Ljava/lang/String;");
-      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-        mv.visitInsn(Opcodes.POP);
-        Label afterNull = new Label();
-         mv.visitJumpInsn(Opcodes.GOTO, afterNull);
-      mv.visitLabel(l8);
-      mv.visitVarInsn(Opcodes.ALOAD, 1);
-      mv.visitLdcInsn("null");
-      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-      mv.visitInsn(Opcodes.POP);
-      mv.visitLabel(afterNull);
-      mv.visitVarInsn(Opcodes.ALOAD, 1);
-      mv.visitLdcInsn(") ");
-      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-      mv.visitInsn(Opcodes.POP);
-      linebreaks = (linebreaks + 1) % 5;
-      if (linebreaks == 0) {
-          mv.visitVarInsn(Opcodes.ALOAD, 1);
-          mv.visitLdcInsn("\n");
-          mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
-          mv.visitInsn(Opcodes.POP);
-      }
-     }
-     return linebreaks;
- }
-
-    private static void outputClassFiles(Map<APIName, byte[]> compiledComponents,
-                            String classSuffix, HashSet<StaticError> errors) {
-        try {
-            boolean writeCompleted = true;
-            for (APIName componentName : compiledComponents.keySet()) {
-                if (writeCompleted) {
-                    String className = NodeUtil.nameString(componentName);
-                    className = className + classSuffix + ".class";
-                    String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + className;
-                    writeCompleted = outputClassFile(compiledComponents.get(componentName),
-                        fileName, errors);
-                }
+                    mangleIdentifier(idString), environmentClass.descriptor());
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, environmentClass
+                    .internalName(), "toString", "()Ljava/lang/String;");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
+                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitInsn(Opcodes.POP);
+            Label afterNull = new Label();
+            mv.visitJumpInsn(Opcodes.GOTO, afterNull);
+            mv.visitLabel(l8);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitLdcInsn("null");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
+                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitInsn(Opcodes.POP);
+            mv.visitLabel(afterNull);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitLdcInsn(") ");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
+                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitInsn(Opcodes.POP);
+            linebreaks = (linebreaks + 1) % 5;
+            if (linebreaks == 0) {
+                mv.visitVarInsn(Opcodes.ALOAD, 1);
+                mv.visitLdcInsn("\n");
+                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
+                        "java/lang/Appendable", "append",
+                        "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+                mv.visitInsn(Opcodes.POP);
             }
-        } catch (IOException e) {
-            errors.add(new WrappedException(e));
+        }
+
+        return linebreaks;
+    }
+
+    private static void outputClassFiles(Map<APIName, Pair<String,byte[]>> compiledCompUnits,
+                            String classSuffix, HashSet<StaticError> errors) {
+        for (APIName componentName : compiledCompUnits.keySet()) {
+            Pair<String,byte[]> compOutput = compiledCompUnits.get(componentName);
+            String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + compOutput.getA() + ".class";
+             outputClassFile(compOutput.getB(), fileName, errors); 
         }
     }
 
@@ -714,21 +713,23 @@ public class TopLevelEnvGen {
      * class into a file on disk.
      * @throws IOException
      */
-    private static boolean outputClassFile(byte[] bytecode, String fileName,
-            HashSet<StaticError> errors) throws IOException {
+    private static void outputClassFile(byte[] bytecode, String fileName,
+                                           HashSet<StaticError> errors) {
         FileOutputStream outStream = null;
-        boolean writeCompleted = true;
         try {
             outStream = new FileOutputStream(new File(fileName));
             outStream.write(bytecode);
-            outStream.close();
         } catch (IOException e) {
             errors.add(new WrappedException(e));
-            writeCompleted = false;
         } finally {
-            if (outStream != null) outStream.close();
+            try {
+                outStream.close();
+            } catch(IOException e) {
+                errors.add(new WrappedException(e));
+            }
         }
-        return writeCompleted;
     }
 
 }
+
+
