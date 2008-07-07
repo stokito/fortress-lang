@@ -38,6 +38,8 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BASet;
@@ -355,10 +357,12 @@ abstract public class BaseEnv implements Environment {
         FValue x = getValueNull(vr);
         return getValueTail(vr, x);
     }
-//    final public FValue getValueNull(Id name) {
-//        return getValueNull(NodeUtil.nameString(name));
-//    }
-
+    
+    final public  FValue getValue(OpRef vr) {
+        FValue x = getValueNull(vr);
+        return getValueTail(vr, x);
+    }
+    
     private FValue getValueTail(Object str, FValue x) {
         if (x == null) {
             return error(errorMsg("Missing value: ", str," in environment:\n",this));
@@ -383,6 +387,21 @@ abstract public class BaseEnv implements Environment {
             // Debugging code, currently fires for $self
             if (false)
                 return error(errorMsg("Untagged VarRef ", vr));
+            if (false)
+                missedNames.syncPut(s);
+        }
+        return getValueNullTail(s, v);
+    }
+        
+    final public  FValue getValueNull(OpRef vr) {
+        OpName name = vr.getOriginalName();
+        String s = NodeUtil.nameString(name);
+        int l = vr.getLexicalDepth();
+        FValue v = getValueRaw(s, l);
+        if (l == -1) {
+            // Debugging code, currently fires for $self
+            if (false)
+                return error(errorMsg("Untagged OpRef ", vr));
             if (false)
                 missedNames.syncPut(s);
         }

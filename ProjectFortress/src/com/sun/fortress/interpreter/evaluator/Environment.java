@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
@@ -117,6 +118,12 @@ public interface Environment  {
      * @return
      */
     public abstract FValue getValueNull(VarRef vr);
+    
+    public abstract FValue getValueNull(OpRef vr);
+
+    public abstract FValue getValue(VarRef vr);
+    
+    public abstract FValue getValue(OpRef vr);
 
     public abstract FValue getValueRaw(String s);
 

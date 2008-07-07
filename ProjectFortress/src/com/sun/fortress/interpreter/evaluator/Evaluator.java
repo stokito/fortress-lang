@@ -270,8 +270,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
             OpRef opr_ = possOp.unwrap();
-            OpName opr = opr_.getOriginalName();
-            Fcn fcn = (Fcn) opr.accept(this);
+            //OpName opr = opr_.getOriginalName();
+            Fcn fcn = (Fcn) getOp(opr_);// opr.accept(this);
             FValue lhsValue;
             if (lhsSize > 1) {
                 // TODO:  An LHS walks, talks, and barks just like
@@ -602,7 +602,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FValue> vargs = new ArrayList<FValue>(2);
         if (links.size() == 1) {
             Link link = i.next();
-            Fcn fcn = (Fcn) link.getOp().getOriginalName().accept(this);
+            Fcn fcn = (Fcn) getOp(link.getOp()); // link.getOp().getOriginalName().accept(this);
             FValue exprVal = link.getExpr().accept(this);
             vargs.add(idVal);
             vargs.add(exprVal);
@@ -613,7 +613,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             vargs.add(idVal);
             while (boolres.getBool() && i.hasNext()) {
                 Link link = i.next();
-                Fcn fcn = (Fcn) link.getOp().getOriginalName().accept(this);
+                Fcn fcn = (Fcn) getOp(link.getOp()); // link.getOp().getOriginalName().accept(this);
                 FValue exprVal = link.getExpr().accept(this);
                 vargs.set(0, idVal);
                 vargs.set(1, exprVal);
@@ -1020,21 +1020,21 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
-    private FValue getOp(OpName op) {
+    private FValue getOp(OpRef op) {
         try {
-            return e.getValue(NodeUtil.nameString(op));
+            return e.getValue(op);
         } catch (FortressException ex) {
             throw ex.setContext(op,e);
         }
     }
 
-    public FValue forEnclosing(Enclosing x) {
-        return getOp(x);
-    }
-
-    public FValue forOp(Op op) {
-        return getOp(op);
-    }
+//    public FValue forEnclosing(Enclosing x) {
+//        return getOp(x);
+//    }
+//
+//    public FValue forOp(Op op) {
+//        return getOp(op);
+//    }
 
     private boolean isExponentiation(OpExpr expr) {
         OpRef ref = expr.getOp();
@@ -1054,7 +1054,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         OpName op = ref.getOriginalName();
         List<Expr> args = x.getArgs();
-        FValue fvalue = op.accept(this);
+        FValue fvalue = getOp(ref); //op.accept(this);
         fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);
         // Evaluate actual parameters.
         int s = args.size();
@@ -1238,7 +1238,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (opr instanceof ExponentiationMI) {
             ExponentiationMI expo = (ExponentiationMI)opr;
             OpName op = expo.getOp().getOriginalName();
-            FValue fvalue = op.accept(this);
+            FValue fvalue = getOp(expo.getOp()); //op.accept(this);
             if (!isFunction(fvalue))
                 return error(op, errorMsg("Operator ", op.stringName(),
                                           " has a non-function value ", fvalue));
