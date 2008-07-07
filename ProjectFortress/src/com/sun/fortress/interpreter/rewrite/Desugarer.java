@@ -165,6 +165,12 @@ public class Desugarer extends Rewrite {
         Expr replacement(VarRef original) {
             return NodeFactory.makeVarRef(original, lexicalNestedness);
         }
+        Expr replacement(FnRef original) {
+            return NodeFactory.makeFnRef(original, lexicalNestedness);
+        }
+        Expr replacement(OpRef original) {
+            return NodeFactory.makeOpRef(original, lexicalNestedness);
+        }
         public String toString() { return "Thing@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
@@ -447,6 +453,16 @@ public class Desugarer extends Rewrite {
 
     }
 
+    Expr newName(OpRef vre, String s) {
+        Thing t = rewrites.get(s);
+        if (t == null) {
+            return vre;
+        } else {
+            return t.replacement(vre);
+        }
+
+    }
+
 //    Iterable<Id> newName(Iterable<Id> ids, String s) {
 //        Thing t = e.get(s);
 //        if (t == null) {
@@ -620,6 +636,12 @@ public class Desugarer extends Rewrite {
                     if (tp != null) {
                         usedGenericParameters.put(s, tp);
                     }
+                    Expr update = newName(vre, s);
+                    return update;
+                } else if (node instanceof OpRef) {
+                    OpRef vre = (OpRef) node;
+                    String s = vre.getOriginalName().toString();
+                    
                     Expr update = newName(vre, s);
                     return update;
                 } else if (node instanceof OpExpr) {

@@ -1102,6 +1102,15 @@ public class NodeFactory {
    ids.add(name);
    return new FnRef(span, name, ids);
   }
+  
+  public static Expr makeFnRef(FnRef original, int lexicalNestedness) {
+      return new FnRef(original.getSpan(), original.isParenthesized(), original.getLexicalDepth(), original.getOriginalName(), original.getFns(), original.getStaticArgs());
+  }
+  
+  public static Expr makeOpRef(OpRef original, int lexicalNestedness) {
+      return new OpRef(original.getSpan(), original.isParenthesized(), original.getLexicalDepth(), original.getOriginalName(), original.getOps(), original.getStaticArgs());
+
+  }
 
   public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs) {
    return new TightJuxt(span, exprs);
