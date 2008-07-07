@@ -39,6 +39,12 @@ public interface FortressRepository {
     public Map<APIName, ApiIndex> apis();
 
     /**
+     * Provide an updating view of the components present in the repository.
+     * Need not support mutation.
+     */
+    public Map<APIName, ComponentIndex> components();
+
+    /**
      * Add a compiled/processed api to the repository.
      */
     public void addApi(APIName name, ApiIndex definition);
