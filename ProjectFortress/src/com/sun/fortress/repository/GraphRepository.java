@@ -84,22 +84,24 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /* files that are dependancies of everything */
     private static final String[] roots = defaultLibrary;
+
     /* stores the nodes and their relationships */
     private Graph<GraphNode> graph;
     /* current source path */
     private Path path;
     /* underlying cache of compiled files */
-    private FortressRepository cache;
+    private CacheBasedRepository cache;
     private GlobalEnvironment env;
     /* true if a recompile is needed */
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
-    public GraphRepository(Path p, FortressRepository cache) {
+    public GraphRepository(Path p, CacheBasedRepository cache) {
         this.path = p;
         this.cache = cache;
         graph = new Graph<GraphNode>();
         env = new GlobalEnvironment.FromRepository(this);
+
         addRoots();
     }
 
@@ -132,14 +134,35 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
         ApiGraphNode node = addApiGraph(name);
         Debug.debug( 2, "Get API for " + name);
-        refreshGraph();
+        Shell.AnalyzeResult result = refreshGraph();
+        Shell shell = new Shell(this);
+        Map<APIName, ApiIndex> parsedApis = parsedApis();
+        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis);
+        Iterable<? extends StaticError> errors = Shell.analyze(shell.getRepository(), result.apis(), result.components(), knownApis);
+        if ( errors.iterator().hasNext() ){
+            throw new MultipleStaticError(errors);
+        }
         return node.getApi().unwrap();
+        //        throw StaticError.make("Use getMyApi, instead", name);
+    }
+
+    public Shell.AnalyzeResult getMyApi(APIName name) throws FileNotFoundException, IOException, StaticError {
+        ApiGraphNode node = addApiGraph(name);
+        Debug.debug( 2, "Get API for " + name);
+        return refreshGraph();
     }
 
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
         ComponentGraphNode node = addComponentGraph(name);
         Debug.debug( 2, "Get component for " + name );
-        refreshGraph();
+        Shell.AnalyzeResult result = refreshGraph();
+        Shell shell = new Shell(this);
+        Map<APIName, ApiIndex> parsedApis = parsedApis();
+        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis);
+        Iterable<? extends StaticError> errors = Shell.analyze(shell.getRepository(), result.apis(), result.components(), knownApis);
+        if ( errors.iterator().hasNext() ){
+            throw new MultipleStaticError(errors);
+        }
         return node.getComponent().unwrap();
     }
 
@@ -303,8 +326,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /**************************************************************************************************************/
     /* reparse anything that is out of date */
-    private void refreshGraph() throws FileNotFoundException, IOException, StaticError {
-        Iterable<? extends StaticError> errors = IterUtil.empty();
+    private Shell.AnalyzeResult refreshGraph() throws FileNotFoundException, IOException, StaticError {
+        Shell.AnalyzeResult result =
+            new Shell.AnalyzeResult(IterUtil.<StaticError>empty());
         if ( needUpdate ){
             needUpdate = false;
             OutOfDateVisitor date = new OutOfDateVisitor();
@@ -316,8 +340,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             Debug.debug( 1, "Out of date APIs " + reparseApis );
             Debug.debug( 1, "Out of date components " + reparseComponents );
             /* these can be parsed all at once */
-            parseApis(reparseApis);
-
+            result = parseApis(reparseApis);
             /* but these have to be done in a specific order due to
              * syntax expansion requiring some components, like
              * FortressBuiltin, being parsed.
@@ -330,9 +353,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                  * call setComponent() on this node with the same component
                  * that parseComponent is going to return.
                  */
-                parseComponent(syntaxExpand(node));
+                result = parseComponent(syntaxExpand(node));
             }
         }
+        return result;
     }
 
     private class OutOfDateVisitor implements GraphVisitor<Boolean,FileNotFoundException>{
@@ -440,7 +464,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return rest;
     }
 
-    private void parseApis( List<ApiGraphNode> apis ){
+    private Shell.AnalyzeResult parseApis( List<ApiGraphNode> apis ){
         for ( ApiGraphNode node : apis ){
             /* yes, set the API to nothing so that it gets
              * reparsed no matter what
@@ -448,11 +472,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             node.setApi(null);
         }
         if ( apis.size() > 0 ){
-            parseApis();
+            return parseApis();
         }
+        return new Shell.AnalyzeResult(IterUtil.<StaticError>empty());
     }
 
-    private void parseApis(){
+    private Shell.AnalyzeResult parseApis(){
         List<Api> unparsed = Useful.applyToAll(graph.filter(new Fn<GraphNode,Boolean>(){
                     @Override
                     public Boolean apply(GraphNode g){
@@ -472,12 +497,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
         List<Component> components = new ArrayList<Component>();
         Shell shell = new Shell(this);
-        Iterable<? extends StaticError> errors =
+        Shell.AnalyzeResult result =
             Shell.analyze(shell.getRepository(),
                           knownApis, unparsed, components, System.currentTimeMillis() );
-        if ( errors.iterator().hasNext() ){
-            throw new MultipleStaticError(errors);
+        if ( !result.isSuccessful() ){
+            throw new MultipleStaticError(result.errors());
         }
+        return result;
     }
 
     /* return a parsed API */
@@ -520,7 +546,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* parse a single component. */
-    private ComponentIndex parseComponent( Component component ) throws StaticError {
+    private Shell.AnalyzeResult parseComponent( Component component ) throws StaticError {
         GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
         List<Component> components = new ArrayList<Component>();
         components.add(component);
@@ -532,16 +558,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
          * where that repository is 'this'. After that add the component node
          * in the graph will contain something and can be unwrap()'d at the end.
          */
-        Iterable<? extends StaticError> errors =
+        Shell.AnalyzeResult result =
             Shell.analyze(shell.getRepository(),
                           knownApis, new ArrayList<Api>(), components, now );
-        if ( errors.iterator().hasNext() ){
-                    throw new MultipleStaticError(errors);
+        if ( !result.isSuccessful() ){
+            throw new MultipleStaticError(result.errors());
         }
-        Debug.debug( 1, "No errors for " + component );
-
-        ComponentGraphNode node = (ComponentGraphNode) graph.find( new ComponentGraphNode(component.getName()) );
-        return node.getComponent().unwrap();
+        return result;
     }
 
     /* parse a component and run it through syntax expansion, may

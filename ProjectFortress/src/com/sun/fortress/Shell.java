@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.*;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.shell.RepositoryError;
@@ -39,6 +40,8 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
+import com.sun.fortress.compiler.IndexBuilder.ApiResult;
+import com.sun.fortress.compiler.IndexBuilder.ComponentResult;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -54,6 +57,8 @@ public final class Shell {
     static boolean test;
 
     private final FortressRepository _repository;
+    private static final CacheBasedRepository defaultRepository =
+        new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
     public static FortressRepository CURRENT_INTERPRETER_REPOSITORY = null;
 
     public FortressRepository getRepository() {
@@ -68,18 +73,14 @@ public final class Shell {
         CURRENT_INTERPRETER_REPOSITORY = g;
     }
 
-    public static GraphRepository specificRepository(Path p, FortressRepository cache ){
+    private static GraphRepository specificRepository(Path p, CacheBasedRepository cache ){
         GraphRepository fr = new GraphRepository( p, cache );
         CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
     }
 
     public static GraphRepository specificRepository(Path p) {
-        return specificRepository( p, new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR) );
-    }
-
-    public Shell() {
-        _repository = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
+        return specificRepository( p, defaultRepository );
     }
 
     public Shell(FortressRepository repository) { _repository = repository; }
@@ -308,20 +309,28 @@ public final class Shell {
     }
 
     private static Iterable<? extends StaticError> compile(Path path, String file, Option<String> out) {
-        Shell shell = new Shell();
-        GraphRepository bcr = specificRepository( path, shell.getRepository() );
+        GraphRepository bcr = specificRepository( path, defaultRepository );
 
         Debug.debug( 2, "Compiling file " + file );
         APIName name = cuName(file);
         try {
             if ( isApi(file) ) {
-                Api a = (Api) bcr.getApi(name).ast();
+                AnalyzeResult result = bcr.getMyApi(name);
+
+                Map<APIName, ApiIndex> parsedApis = bcr.parsedApis();
+                GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis);
+                Iterable<? extends StaticError> errors =
+                    analyze(bcr, result.apis(), result.components(), knownApis);
+                if ( errors.iterator().hasNext() ){
+                    throw new MultipleStaticError(errors);
+                }
+                Api a = (Api) result.apis().get(name).ast();
                 if ( out.isSome() )
-                    ASTIO.writeJavaAst(shell.getRepository().getApi(name).ast(), out.unwrap());
+                    ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
             } else if (isComponent(file)) {
                 Component c = (Component) bcr.getComponent(name).ast();
                 if ( out.isSome() )
-                    ASTIO.writeJavaAst(shell.getRepository().getComponent(name).ast(), out.unwrap());
+                    ASTIO.writeJavaAst(defaultRepository.getComponent(name).ast(), out.unwrap());
             } else {
                 System.out.println( "Don't know what kind of file " + file +
                                     " is. Append .fsi or .fss." );
@@ -382,7 +391,6 @@ public final class Shell {
     private static void run(String fileName, List<String> args)
         throws UserError, Throwable {
         try {
-            Shell shell = new Shell();
             Path path = ProjectProperties.SOURCE_PATH;
 
             if (fileName.contains("/")) {
@@ -392,7 +400,7 @@ public final class Shell {
             }
 
             APIName componentName = cuName(fileName);
-            GraphRepository bcr = specificRepository( path, shell.getRepository() );
+            GraphRepository bcr = specificRepository( path, defaultRepository );
             Iterable<? extends StaticError> errors = IterUtil.empty();
 
             try {
@@ -435,25 +443,47 @@ public final class Shell {
         }
     }
 
-    public static Iterable<? extends StaticError> analyze(FortressRepository _repository,
-                                                          GlobalEnvironment env,
-                                                          Iterable<Api> apis,
-                                                          Iterable<Component> components,
-                                                          long lastModified) {
+    public static class AnalyzeResult extends StaticPhaseResult {
+        private final Map<APIName, ApiIndex> _apis;
+        private final Map<APIName, ComponentIndex> _components;
+
+        public AnalyzeResult(Iterable<? extends StaticError> errors) {
+            super(errors);
+            _apis = new HashMap<APIName, ApiIndex>();
+            _components = new HashMap<APIName, ComponentIndex>();
+        }
+
+        public AnalyzeResult(Map<APIName, ApiIndex> apis,
+                             Map<APIName, ComponentIndex> components,
+                             Iterable<? extends StaticError> errors) {
+            super(errors);
+            _apis = apis;
+            _components = components;
+        }
+
+        public Map<APIName, ApiIndex> apis() { return _apis; }
+        public Map<APIName, ComponentIndex> components() { return _components; }
+    }
+
+    public static AnalyzeResult analyze(FortressRepository _repository,
+                                        GlobalEnvironment env,
+                                        Iterable<Api> apis,
+                                        Iterable<Component> components,
+                                        long lastModified) {
         /* Preparation for disambiguation **********************************************
          */
         // Build ApiIndices before disambiguating to allow circular references.
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
         IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(apis, lastModified);
-        if (!rawApiIR.isSuccessful()) { return rawApiIR.errors(); }
+        if (!rawApiIR.isSuccessful()) { return new AnalyzeResult(rawApiIR.errors()); }
 
         // Build ComponentIndices before disambiguating to allow circular references.
         // An IndexBuilder.ComponentResult contains a map of strings (names) to
         // ComponentIndices.
         IndexBuilder.ComponentResult rawComponentIR =
             IndexBuilder.buildComponents(components, lastModified);
-        if (!rawComponentIR.isSuccessful()) { return rawComponentIR.errors(); }
+        if (!rawComponentIR.isSuccessful()) { return new AnalyzeResult(rawComponentIR.errors()); }
 
         // Build a new GlobalEnvironment consisting of all APIs in a global
         // repository combined with all APIs that have been processed in the previous
@@ -470,12 +500,12 @@ public final class Shell {
         // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
         Disambiguator.ApiResult apiDR =
             Disambiguator.disambiguateApis(apis, rawApiEnv, _repository.apis());
-        if (!apiDR.isSuccessful()) { return apiDR.errors(); }
+        if (!apiDR.isSuccessful()) { return new AnalyzeResult(apiDR.errors()); }
 
         // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR =
             IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
-        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
+        if (!apiIR.isSuccessful()) { return new AnalyzeResult(apiIR.errors()); }
 
         // Rebuild GlobalEnvironment.
         GlobalEnvironment apiEnv =
@@ -485,23 +515,23 @@ public final class Shell {
         Disambiguator.ComponentResult componentDR =
             Disambiguator.disambiguateComponents(components, apiEnv,
                                                  rawComponentIR.components());
-        if (!componentDR.isSuccessful()) { return componentDR.errors(); }
+        if (!componentDR.isSuccessful()) { return new AnalyzeResult(componentDR.errors()); }
 
         // Rebuild ComponentIndices.
         IndexBuilder.ComponentResult componentIR =
             IndexBuilder.buildComponents(componentDR.components(),
                                          System.currentTimeMillis());
-        if (!componentIR.isSuccessful()) { return componentIR.errors(); }
+        if (!componentIR.isSuccessful()) { return new AnalyzeResult(componentIR.errors()); }
 
         /* Grammar rewriting ***********************************************************
          */
         // Rewrite grammars, see GrammarRewriter for more details.
         GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(apiIR.apis(), apiEnv);
-        if (!apiID.isSuccessful()) { return apiID.errors(); }
+        if (!apiID.isSuccessful()) { return new AnalyzeResult(apiID.errors()); }
 
         // Rebuild ApiIndices.
         apiIR = IndexBuilder.buildApis(apiID.apis(), System.currentTimeMillis());
-        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
+        if (!apiIR.isSuccessful()) { return new AnalyzeResult(apiIR.errors()); }
 
         /* Repository updates **********************************************************
          */
@@ -521,14 +551,29 @@ public final class Shell {
             _repository.addComponent(newComponent.getKey(), newComponent.getValue());
         }
 
-        /* Type checking ***************************************************************
-         */
+        return new AnalyzeResult(apiIR.apis(), componentIR.components(), IterUtil.<StaticError>empty());
+    }
 
+    public static Iterable<? extends StaticError> analyze(FortressRepository _repository,
+                                                          Map<APIName, ApiIndex> apis,
+                                                          Map<APIName, ComponentIndex> components,
+                                                          GlobalEnvironment env) {
+
+        /* Preparation for type checking ***********************************************
+         */
+        // Rebuild ApiIndices.
+        IndexBuilder.ApiResult apiIR =
+            new ApiResult(apis, IterUtil.<StaticError>empty());
+        // Rebuild ComponentIndices.
+        IndexBuilder.ComponentResult componentIR =
+            new ComponentResult(components, IterUtil.<StaticError>empty());
         // Rebuild GlobalEnvironment.
-        apiEnv =
+        GlobalEnvironment apiEnv =
             new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
                                                             apiIR.apis()));
 
+        /* Type checking ***************************************************************
+         */
         // Do all type checking and other static checks on APIs.
         StaticChecker.ApiResult apiSR =
             StaticChecker.checkApis(apiIR.apis(), apiEnv);
