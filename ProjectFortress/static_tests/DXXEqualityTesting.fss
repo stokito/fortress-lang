@@ -25,6 +25,8 @@ component DXXEqualityTesting
     ()
   end
 
+(* blah *)
+
   run(args:String...):() = ()
 
 end
