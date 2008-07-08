@@ -37,7 +37,15 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements Map<K, Set<V>>
         super();
     }
 
-    // TODO can we get the Java generics right on this?
+    
+    
+    public MultiMap(Map<? extends K, ? extends Set<V>> m) {
+		super(m);
+	}
+
+
+
+	// TODO can we get the Java generics right on this?
     public void addInverse(Map<V, K> m) {
         for (Map.Entry<V, K> e : m.entrySet()) {
             putItem((K)e.getValue(), (V)e.getKey());

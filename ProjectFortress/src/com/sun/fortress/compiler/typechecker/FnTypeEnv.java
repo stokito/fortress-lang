@@ -117,13 +117,10 @@ class FnTypeEnv extends TypeEnv {
      * (if the given Id is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-        Set<? extends Function> fns = entries.matchFirst(var);
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	Set<? extends Function> fns = entries.matchFirst(no_api_var);
         if (fns.isEmpty()) {
-            if (var instanceof Id) {
-                Id _var = (Id)var;
-                if (_var.getApi().isSome())
-                    return binding(new Id(_var.getSpan(), _var.getText()));
-            }
             return parent.binding(var);
         }
 

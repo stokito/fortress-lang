@@ -25,13 +25,13 @@ trait Identity[\opr PLUS\] end
 trait RationalQuantity[\unit U absorbs unit, bool ninf, bool lt, bool eq,
                         bool gt, bool pinf, bool nan\]
     extends { 
-     (* RationalQuantity[\U, ninf', lt', eq', gt', pinf', nan'\]
+      RationalQuantity[\U, ninf', lt', eq', gt', pinf', nan'\]
               where [\bool ninf', bool lt', bool eq', bool gt', bool pinf',
                       bool nan' \]
                     { ninf IMPLIES ninf', lt IMPLIES lt',
                       eq IMPLIES eq', gt IMPLIES gt', pinf IMPLIES pinf',
                       nan IMPLIES nan'
-                    }, *)
+                    },
               PartialOrderAndBoundedLattice[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\], <=, MIN, MAX\]
               where { ninf AND pinf AND NOT nan }
             }

@@ -15,17 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component IfThenElse
+component DXXMutualSeparateLetFn
 export Executable
 
-(* Tests that If expression correctly has union of its IfClauses' types. *)
+(* Tests that mutually recursive, *nonconsecutive* local function definitions
+ * do not work. *)
   
 run(args:String...):() = do
-  x:IntLiteral = if true then
-    1
-  else
-    0
-  end
+  odd(x:ZZ32):Boolean = if x = 1 then true else even(x-1) end
+  odd(5)
+  f(x:ZZ32):ZZ32 = 0
+  even(x:ZZ32):Boolean = if x = 0 then true else odd(x-1) end
+  even(5)
 end
 
 end

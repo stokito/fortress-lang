@@ -22,8 +22,8 @@ export Executable
  * definitions and its enclosing Block. *)
   
 run(args:String...):() = do
-  x:ZZ64 = 23
-  y:ZZ64 = x
+  x:IntLiteral = 23
+  y:IntLiteral = x
   ignore(y)
   ignore(x)
   ()

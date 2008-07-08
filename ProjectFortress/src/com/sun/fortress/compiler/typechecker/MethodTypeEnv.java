@@ -46,13 +46,10 @@ class MethodTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-        Set<Method> methods = entries.matchFirst(var);
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	Set<Method> methods = entries.matchFirst(no_api_var);
         if (methods.isEmpty()) {
-            if (var instanceof Id) {
-                Id _var = (Id)var;
-                if (_var.getApi().isSome())
-                    return binding(new Id(_var.getSpan(), _var.getText()));
-            }
             return parent.binding(var);
         }
 

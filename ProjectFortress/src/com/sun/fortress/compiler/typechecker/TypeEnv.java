@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -169,6 +170,40 @@ public abstract class TypeEnv {
         return result;
     }
 
+    static Id removeApi(Id id) {
+    	return NodeFactory.makeIdFromLast(id);
+    }
+    
+    static Enclosing removeApi(Enclosing id) {
+    	return NodeFactory.makeEnclosing(id.getSpan(), id.getOpen(), id.getClose());
+    }
+    
+    static Op removeApi(Op id) {
+    	return NodeFactory.makeOp(id.getSpan(), id.getText(), id.getFixity());
+    }
+    
+    static IdOrOpOrAnonymousName removeApi(IdOrOpOrAnonymousName id) {
+    	return id.accept(new NodeDepthFirstVisitor<IdOrOpOrAnonymousName>(){
+			@Override 
+			public IdOrOpOrAnonymousName forEnclosing(Enclosing that) {
+				return NodeFactory.makeEnclosing(that.getSpan(), that.getOpen(), that.getClose());
+			}
+			@Override public IdOrOpOrAnonymousName forId(Id that) { return removeApi(that); }
+			@Override
+			public IdOrOpOrAnonymousName forOp(Op that) {
+				return NodeFactory.makeOp(that.getSpan(), that.getText(), that.getFixity());
+			}
+			@Override
+			public IdOrOpOrAnonymousName forAnonymousFnName(AnonymousFnName that) {
+				return new AnonymousFnName(that.getSpan());
+			}
+			@Override
+			public IdOrOpOrAnonymousName forConstructorFnName(ConstructorFnName that) {
+				return new ConstructorFnName(that.getSpan(), that.getDef());
+			}
+    	});
+    }
+    
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
