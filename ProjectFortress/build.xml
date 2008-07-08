@@ -111,9 +111,9 @@
     <pathelement location="${astgen.third}/astgen.jar"/>
 </path>
 
- <property name="instrumentation.package" 
+ <property name="instrumentation.package"
            value="${package.prefix}.parser_util.instrumentation"/>
- <property name="instrumentationPackage" 
+ <property name="instrumentationPackage"
            value="${packagePrefix}/parser_util/instrumentation"/>
  <property name="instrumentation.outfile"
            location="${parserUtil}/instrumentation/coverage-report.txt"/>
@@ -310,7 +310,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         </condition>
     </target>
 
-    <target name="astGenerators" unless="astgenerators.uptodate" depends="init,checkAstgen" 
+    <target name="astGenerators" unless="astgenerators.uptodate" depends="init,checkAstgen"
      description="Compile all AstGen custom generators.">
         <depend srcdir="${astgen.generators.src}"
          destdir="${build}"
@@ -346,9 +346,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	    <available file="${library}/FortressAst.fss" />
 	    <uptodate srcfile="${astgen.src}/Fortress.ast"
 		    targetfile="${library}/FortressAst.fss" />
-            <uptodate targetfile="${astgen}/Fortress.ast">
-              <srcfiles dir="${preparser}" includes="${basedir}/src/com/sun/fortress/astgen/*.java"/>
-            </uptodate>
+            <uptodate srcfile="${basedir}/src/com/sun/fortress/astgen/FortressAstGenerator.java"
+                    targetfile="${library}/FortressAst.fsi" />
           </and>
         </condition>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
@@ -731,7 +730,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     </target>
 
     <target name="checkInstrumentedParserUptodate" depends="init">
-        <uptodate property="instrumentedparser.uptodate" 
+        <uptodate property="instrumentedparser.uptodate"
                   targetfile="${parser}/FortressInstrumented.java">
             <srcfiles dir="${parser}" includes="**/*.rats"/>
             <srcfiles dir="${src}/${instrumentationPackage}"
