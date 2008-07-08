@@ -83,6 +83,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.ConsList;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Runnable1;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -144,7 +145,9 @@ public abstract class ConstraintFormula {
 
     /**
      * This is a prototype class in an attempt to more closely implement the algorithm
-     * described in 
+     * described in the spec
+     * 
+     * We maintain an invariant that if (i1,i2) is in uppers (12,i1) is in lowers.
      */
     public static class SimpleFormula extends ConstraintFormula {
     	
@@ -356,8 +359,10 @@ public abstract class ConstraintFormula {
 		
 		// Returns a solved constraint formula, solved by doing the steps in 20.2 of spec1 beta
 		private ConstraintFormula solve() {
-			// 1.) for every cycle of constraints of naked prime static variables...
+			
 			Set<_InferenceVarType> ivars = CollectUtil.union(ivarLowerBounds.keySet(), ivarUpperBounds.keySet());
+			
+			// 1.) for every cycle of constraints of naked prime static variables...
 			for( _InferenceVarType ivar : ivars ) {
 				Option<ConsList<_InferenceVarType>> cycle =
 					findCycle(ivar, ConsList.singleton(ivar));
@@ -370,17 +375,54 @@ public abstract class ConstraintFormula {
 			}
 
 			
-			// 3.) If some primed static variable ...
-			Map<_InferenceVarType,Type> lubs = solveHelper(ivars, ivarUpperBounds, 
+			//Preprocess: make sure every inference variable is bounded
+			
+			final Set<_InferenceVarType> temp = new HashSet<_InferenceVarType>();
+			temp.addAll(ivars);
+			final NodeDepthFirstVisitor_void v=new NodeDepthFirstVisitor_void(){
+				@Override
+				public void for_InferenceVarType(_InferenceVarType that) {
+					temp.add(that);
+				}
+			};
+			Runnable1<Type> accepter=new Runnable1<Type>(){
+				public void run(Type arg0) {
+					arg0.accept(v);
+				}
+			};
+			
+			for(_InferenceVarType ivar: ivars){
+				if(ivarUpperBounds.containsKey(ivar)){
+					Set<Type> potentials = ivarUpperBounds.get(ivar);
+					IterUtil.run(potentials, accepter);
+				}
+				if(ivarLowerBounds.containsKey(ivar)){
+					Set<Type> potentials = ivarLowerBounds.get(ivar);
+					IterUtil.run(potentials, accepter);
+				}
+			}
+			MultiMap<_InferenceVarType,Type> newuppers = new MultiMap<_InferenceVarType,Type>(ivarUpperBounds);
+			MultiMap<_InferenceVarType,Type> newlowers = new MultiMap<_InferenceVarType,Type>(ivarLowerBounds);
+			for(_InferenceVarType ivar: CollectUtil.complement(temp,ivarUpperBounds.keySet())){
+				newuppers.putItem(ivar,Types.ANY);
+			}
+			for(_InferenceVarType ivar: CollectUtil.complement(temp,ivarLowerBounds.keySet())){
+				newlowers.putItem(ivar,Types.BOTTOM);
+			}
+			
+			ivars=temp;
+			
+			// 2-3
+			Map<_InferenceVarType,Type> lubs = solveHelper(ivars, newuppers, 
 					new Lambda<Set<Type>,Type>(){
 						public Type value(Set<Type> arg0) {
 							return arg0.size() == 1 ? IterUtil.first(arg0) : NodeFactory.makeIntersectionType(arg0);
 						}});
 			
-			// 4.) for every naked static prime variable ...
+			// 4-3'
 			// TODO: check to see if invariant is being violated by not using the new bounds from
 			// above here where we use ivarLowerbounds.
-			Map<_InferenceVarType,Type> glbs = solveHelper(ivars, ivarLowerBounds,
+			Map<_InferenceVarType,Type> glbs = solveHelper(ivars, newlowers,
 					new Lambda<Set<Type>,Type>(){
 						public Type value(Set<Type> arg0) {
 							return arg0.size() == 1 ? IterUtil.first(arg0) : NodeFactory.makeUnionType(arg0);
