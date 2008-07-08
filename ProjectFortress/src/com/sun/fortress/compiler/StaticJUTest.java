@@ -42,12 +42,14 @@ public class StaticJUTest extends TestCaseWrapper {
         "XXXMultipleRefErrors.fss", */
         // This test the accumulator which is not desugared yet
          "Sum.fss",
+    	"DXXGeneratorTuple.fss"
         //These are broken until the constraint solver is fixed
-        "GeneratorTest.fss",
-        "MethodInvocationStaticInfer1.fss",
-        "MethodInvocationStaticInfer2.fss",
-        "While.fss",
-        "PlusEq.fss" // Regression after library change: See ticket #143
+        //"TupleAssignment.fss",
+        //"GeneratorTest.fss",
+        //"MethodInvocationStaticInfer1.fss",
+        //"MethodInvocationStaticInfer2.fss",
+        //"While.fss",
+        //"PlusEq.fss" // Regression after library change: See ticket #143
     );
 
     public static TestSuite suite() {

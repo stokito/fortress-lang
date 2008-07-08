@@ -25,6 +25,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Node;
@@ -123,24 +124,28 @@ public class StaticChecker {
             // Add all top-level object names declared in the component-level environment.
             typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
             
+            Node component_ast = component.ast();
+            
+            // Replace implicit types with explicit ones.
+            component_ast = component_ast.accept(new InferenceVarInserter());
+            // Is it a problem that component's ast doesn't match the one we are typechecking?
             TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env), 
                                                       StaticParamEnv.make(),
                                                       typeEnv,
                                                       component);
            
-            TypeCheckerResult result =  component.ast().accept(typeChecker);
+            TypeCheckerResult result = component_ast.accept(typeChecker);
             
             // We need to make sure type inference succeeded.
             if( !result.getNodeConstraints().isSatisfiable() ) {
             	// Oh no! Type inference failed. Our error message will suck.
-            	String err = "Type inference failed.";
-            	result = TypeCheckerResult.addError(result, TypeError.make(err, component.ast()));
+            	String err = "Type inference failed";
+            	result = TypeCheckerResult.addError(result, TypeError.make(err, component_ast));
             	return result;
             }
             else{
-            	InferenceVarReplacer rep=new InferenceVarReplacer(result.getMap());
+            	InferenceVarReplacer rep = new InferenceVarReplacer(result.getMap());
             	Node replaced = result.ast().accept(rep);
-            	
             	
             	return TypeCheckerResult.replaceAST(result, replaced);
             }

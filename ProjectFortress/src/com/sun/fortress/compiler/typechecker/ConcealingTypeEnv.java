@@ -51,7 +51,9 @@ class ConcealingTypeEnv extends TypeEnv {
      * type (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-        if (!entries.contains(var)) { return parent.binding(var); }
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	if (!entries.contains(no_api_var)) { return parent.binding(var); }
         return some(new BindingLookup(var, Option.<Type>none()));
     }
 

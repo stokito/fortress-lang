@@ -249,6 +249,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(TRUE, sub(t, "B&D", "D"));
         assertEquals(FALSE, sub(t, "B&D", "E"));
 
+        assertEquals(FALSE, sub(t,"A", "A&B"));
         assertEquals(TRUE, sub(t, "C&E", "A"));
         assertEquals(TRUE, sub(t, "C&E", "B"));
         assertEquals(TRUE, sub(t, "C&E", "C"));
@@ -436,7 +437,7 @@ public class TypeAnalyzerJUTest extends TestCase {
      * @param name  A simple name.
      * @param supers  Type strings (parsed by parseType()); must parse to TraitTypes.
      */
-    private static ProperTraitIndex trait(String name, String... supers) {
+    public static ProperTraitIndex trait(String name, String... supers) {
         return traitHelper(name, supers, false);
     }
 
@@ -477,7 +478,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     }
     
     /** Shortcut for parseType */
-    private static Type type(String s) { return parseType(s); }
+    public static Type type(String s) { return parseType(s); }
 
     /**
      * Parse the given string as a type.  This is a permissive algorithm: many strings that
@@ -686,7 +687,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     
 
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */
-    private static TypeAnalyzer makeAnalyzer(TraitIndex... traits) {
+    public static TypeAnalyzer makeAnalyzer(TraitIndex... traits) {
         ComponentIndex c = component("TypeAnalyzerTestComponent", traits);
         return new TypeAnalyzer(new TraitTable(c, GLOBAL_ENV));
     }

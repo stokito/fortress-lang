@@ -99,7 +99,6 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -388,6 +387,22 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				v.recurOnListOfDecl(that.getDecls()));
 	}
 
+	// Make sure we don't infinitely explore supertraits that are acyclic
+	private class HierarchyHistory {
+		final private Set<Type> explored;
+		
+		public HierarchyHistory() {	explored = Collections.emptySet();	}
+		private HierarchyHistory(Set<Type> explored) { this.explored = explored; }
+		
+		public HierarchyHistory explore(Type t) {
+			return new HierarchyHistory(CollectUtil.union(explored, t));
+		}
+		
+		public boolean hasExplored(Type t) {
+			return explored.contains(t);
+		}
+	}
+	
 	/**
 	 * Given a list of TraitTypeWhere that some trait or object extends,
 	 * this method returns a list of method ids that the trait receives
@@ -398,11 +413,20 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	 * @param extended_traits
 	 * @return
 	 */
-	private Set<IdOrOpOrAnonymousName> inheritedMethods(List<TraitTypeWhere> extended_traits) {
+	private Set<IdOrOpOrAnonymousName> inheritedMethods(List<TraitTypeWhere> extended_traits) {	
+		return inheritedMethodsHelper(new HierarchyHistory(), extended_traits);
+	}
+
+	private Set<IdOrOpOrAnonymousName> inheritedMethodsHelper(HierarchyHistory h,
+			List<TraitTypeWhere> extended_traits) {
 		Set<IdOrOpOrAnonymousName> methods = new HashSet<IdOrOpOrAnonymousName>();
 		for( TraitTypeWhere trait_ : extended_traits ) {
 			
 			BaseType type_ = trait_.getType();
+			
+			if( h.hasExplored(type_) )
+				continue;
+			h = h.explore(type_);
 			
 			// Trait types or VarTypes can represent traits at this phase of compilation.
 			Id trait_name;
@@ -429,12 +453,15 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				// For now we won't add functional methods. They are not received through inheritance.
 
 				// Now recursively add methods from trait's extends clause
-				methods.addAll(inheritedMethods(ti.extendsTypes()));
+				
+				methods.addAll(inheritedMethodsHelper(h, ti.extendsTypes()));
 			}
 			else {
 				// Probably ANY
 				return Collections.emptySet();
 			}
+			
+			
 		}
 		return methods;
 	}
@@ -997,11 +1024,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		}
 
 		if (ops.isEmpty()) {
-			//System.err.println("OpRef:" + entity);
 			return new OpRef(that.getSpan(),that.isParenthesized(),entity,that.getOps(),that.getStaticArgs());
 		}
 
-		//System.err.println("OpRef:" + entity);
 		return new OpRef(that.getSpan(),that.isParenthesized(),entity,CollectUtil.makeList(ops),that.getStaticArgs());
 	}
 
@@ -1016,10 +1041,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
 	@Override public Node forExitOnly(Exit that, Option<Id> target_result, Option<Expr> returnExpr_result) {
 		Option<Id> target = target_result.isSome() ? target_result : _innerMostLabel;
-		Option<Expr> with = returnExpr_result.isSome() ? returnExpr_result
-				: wrap((Expr)new VoidLiteralExpr(that.getSpan()));
-		
-		
+		Option<Expr> with = returnExpr_result.isSome() ? 
+				returnExpr_result :
+				wrap((Expr)new VoidLiteralExpr(that.getSpan()));
 		
 		if (target.isNone()) {
 			error("Exit occurs outside of a label", that);
@@ -1035,8 +1059,5 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	@Override
 	public Node forGrammarDef(GrammarDef that) {
 		return that;
-	}
-	
-	
-	
+	}	
 }

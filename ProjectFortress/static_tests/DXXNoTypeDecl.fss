@@ -15,17 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component IfThenElse
-export Executable
+component DXXNoTypeDecl
+  export Executable
 
-(* Tests that If expression correctly has union of its IfClauses' types. *)
-  
-run(args:String...):() = do
-  x:IntLiteral = if true then
-    1
-  else
-    0
+  foo() : () = do
+    var a : String
+    b = 1
+    a := b
   end
-end
 
+  run(args:String...) : () = ()
 end

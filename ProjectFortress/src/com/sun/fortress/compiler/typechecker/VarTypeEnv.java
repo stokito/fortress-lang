@@ -17,16 +17,23 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.compiler.*;
-import com.sun.fortress.compiler.index.*;
-import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
-import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
+import static com.sun.fortress.nodes_util.NodeFactory.makeLValue;
+import static edu.rice.cs.plt.tuple.Option.some;
 
-import static com.sun.fortress.nodes_util.NodeFactory.*;
-import static edu.rice.cs.plt.tuple.Option.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.sun.fortress.compiler.index.DeclaredVariable;
+import com.sun.fortress.compiler.index.ParamVariable;
+import com.sun.fortress.compiler.index.SingletonVariable;
+import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.Type;
+
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * This environment represents bindings of top-level variables in a component.
@@ -48,8 +55,11 @@ class VarTypeEnv extends TypeEnv {
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
      if (!(var instanceof Id)) { return parent.binding(var); }
      Id _var = (Id)var;
-        if (entries.containsKey(_var)) {
-            Variable result = entries.get(_var);
+     
+     Id no_api_var = removeApi(_var);
+     
+        if (entries.containsKey(no_api_var)) {
+            Variable result = entries.get(no_api_var);
             if (result instanceof DeclaredVariable) {
                 return some(new BindingLookup(((DeclaredVariable)result).ast()));
             } else if (result instanceof SingletonVariable) {

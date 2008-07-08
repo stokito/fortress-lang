@@ -413,11 +413,12 @@ public class TypeAnalyzer {
         debug.logStart(new String[]{"s", "t"}, s, t);
         ConstraintFormula result;
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
-        if (cached.isSome()) {
-            result = cached.unwrap();
-            debug.log("found in cache");
-        }
-        else if (history.expansions() > MAX_SUBTYPE_EXPANSIONS) {
+//        if (cached.isSome()) {
+//            result = cached.unwrap();
+//            debug.log("found in cache");
+//        }
+//        else 
+        	if (history.expansions() > MAX_SUBTYPE_EXPANSIONS) {
             result = FALSE;
             debug.log("reached max subtype expansions");
         }
@@ -547,12 +548,13 @@ public class TypeAnalyzer {
                         }
                         else { return FALSE; }
                     }
-                    @Override public ConstraintFormula forArrowType(ArrowType s) {
-                        if (t instanceof ArrowType) {
-                            return arrowSubArrow(s, (ArrowType) t, h);
+                    @Override public ConstraintFormula forAbstractArrowType(AbstractArrowType s) {
+                        if (t instanceof AbstractArrowType) {
+                            return arrowSubArrow(s, (AbstractArrowType) t, h);
                         }
                         else { return FALSE; }
                     }
+                    
                     @Override public ConstraintFormula forVarType(VarType s) {
                         return varSub(s, t, h);
                     }
@@ -580,61 +582,61 @@ public class TypeAnalyzer {
      */
 
     private ConstraintFormula traitSubTrait(TraitType s, TraitType t, SubtypeHistory h) {
-        ConstraintFormula result = FALSE;
-        if (s.getName().equals(t.getName())) {
-            ConstraintFormula f = TRUE;
-            for (Pair<StaticArg, StaticArg> p : zip(s.getArgs(), t.getArgs())) {
-                f = f.and(equiv(p.first(), p.second(), h), h);
-                if (f.isFalse()) { break; }
-            }
-            result = result.or(f, h);
-        }
-        if (!result.isTrue()) {
-         Option<TypeConsIndex> ind = _table.typeCons(s.getName());
-         if(ind.isNone()){
-          throw new IllegalArgumentException(s.getName() +"is undefined");
-         }
-            TraitIndex index = (TraitIndex) ind.unwrap();
-            List<Id> hidden = index.hiddenParameters();
-            Lambda<Type, Type> subst = makeSubstitution(index.staticParameters(),
-                                                        s.getArgs(),
-                                                        hidden);
-            for (TraitTypeWhere sup : index.extendsTypes()) {
-                ConstraintFormula f = TRUE;
-                for (Pair<Type, Type> c : index.typeConstraints()) {
-                    // TODO: optimize substitution/normalization?
-                    SubtypeHistory newH = h;
-                    if (containsVariable(c.first(), hidden) ||
-                        containsVariable(c.second(), hidden)) {
-                        newH = h.expand();
-                    }
-                    Type lower = norm(subst.value(c.first()), newH);
-                    Type upper = norm(subst.value(c.second()), newH);
-                    f = f.and(sub(lower, upper, newH), h);
-                    if (f.isFalse()) { break; }
-                }
-                if (!f.isFalse()) {
-                    // TODO: optimize substitution/normalization?
-                    Type supT = sup.getType();
-                    SubtypeHistory newH = containsVariable(supT, hidden) ? h.expand() : h;
-                    Type supInstance = norm(subst.value(supT), newH);
-                    f = f.and(sub(supInstance, t, newH), h);
-                }
-                result = result.or(f, h);
-                if (result.isTrue()) { break; }
-            }
-            // TODO NEB: Reinsert the following conditional after Jan puts object into the library
-//            if (!s.equals(OBJECT)) {
-//                result = result.or(sub(OBJECT, t, h), h);
-//            }
-            if( !s.equals(ANY) ) {
-             result = result.or(sub(ANY,t,h), h);
-            }
-        }
-        return result;
+    	ConstraintFormula result = FALSE;
+    	if (s.getName().equals(t.getName())) {
+    		ConstraintFormula f = TRUE;
+    		for (Pair<StaticArg, StaticArg> p : zip(s.getArgs(), t.getArgs())) {
+    			f = f.and(equiv(p.first(), p.second(), h), h);
+    			if (f.isFalse()) { break; }
+    		}
+    		result = result.or(f, h);
+    	}
+    	if (!result.isTrue()) {
+    		Option<TypeConsIndex> ind = _table.typeCons(s.getName());
+    		if(ind.isNone()){
+    			throw new IllegalArgumentException(s.getName() +" is undefined");
+    		}
+    		TraitIndex index = (TraitIndex) ind.unwrap();
+    		List<Id> hidden = index.hiddenParameters();
+    		Lambda<Type, Type> subst = makeSubstitution(index.staticParameters(),
+    				s.getArgs(),
+    				hidden);
+    		for (TraitTypeWhere sup : index.extendsTypes()) {
+    			ConstraintFormula f = TRUE;
+    			for (Pair<Type, Type> c : index.typeConstraints()) {
+    				// TODO: optimize substitution/normalization?
+    				SubtypeHistory newH = h;
+    				if (containsVariable(c.first(), hidden) ||
+    						containsVariable(c.second(), hidden)) {
+    					newH = h.expand();
+    				}
+    				Type lower = norm(subst.value(c.first()), newH);
+    				Type upper = norm(subst.value(c.second()), newH);
+    				f = f.and(sub(lower, upper, newH), h);
+    				if (f.isFalse()) { break; }
+    			}
+    			if (!f.isFalse()) {
+    				// TODO: optimize substitution/normalization?
+    				Type supT = sup.getType();
+    				SubtypeHistory newH = containsVariable(supT, hidden) ? h.expand() : h;
+    				Type supInstance = norm(subst.value(supT), newH);
+    				f = f.and(sub(supInstance, t, newH), h);
+    			}
+    			result = result.or(f, h);
+    			if (result.isTrue()) { break; }
+    		}
+    		// TODO NEB: Reinsert the following conditional after Jan puts object into the library
+//  		if (!s.equals(OBJECT)) {
+//  		result = result.or(sub(OBJECT, t, h), h);
+//  		}
+    		if( !s.equals(ANY) ) {
+    			result = result.or(sub(ANY,t,h), h);
+    		}
+    	}
+    	return result;
     }
 
-    private ConstraintFormula arrowSubArrow(ArrowType s, ArrowType t, SubtypeHistory h) {
+    private ConstraintFormula arrowSubArrow(AbstractArrowType s, AbstractArrowType t, SubtypeHistory h) {
         ConstraintFormula f = sub(t.getDomain(), s.getDomain(), h);
         if (!f.isFalse()) {
             f = f.and(sub(s.getRange(), t.getRange(), h), h);
@@ -1052,14 +1054,6 @@ public class TypeAnalyzer {
         public String toString() {
           return IterUtil.multilineToString(_entries) + "\n" + _expansions + " expansions";
         }
-
-        public SubtypeHistory combine(SubtypeHistory h){
-         int newexpand = Math.max(this._expansions,h._expansions);
-         // TODO: NEB we are trying this out but we are not
-         // sure why we should choose the other one.
-         return new SubtypeHistory(CollectUtil.union(_entries, h._entries), newexpand);
-        }
-
     }
 
 

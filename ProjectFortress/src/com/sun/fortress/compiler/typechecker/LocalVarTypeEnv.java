@@ -46,20 +46,17 @@ class LocalVarTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-        for (LValue lval : decl.getLhs()) {
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	for (LValue lval : decl.getLhs()) {
             if (lval instanceof LValueBind) {
                 LValueBind _lval = (LValueBind) lval;
-                if (_lval.getName().equals(var)) {
+                if (_lval.getName().equals(var) || _lval.getName().equals(no_api_var)) {
                     return some(new BindingLookup(_lval));
                 }
             } else {
                 return NI.nyi();
             }
-        }
-        if (var instanceof Id) {
-            Id _var = (Id)var;
-            if (_var.getApi().isSome())
-                return binding(new Id(_var.getSpan(), _var.getText()));
         }
         return parent.binding(var);
     }

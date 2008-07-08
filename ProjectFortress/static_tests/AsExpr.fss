@@ -21,7 +21,7 @@ export Executable
 (* Test that expression type <: ascripted type. *)
 
 run(args:String...):() = do
-  x:ZZ32 = 5
+  x:IntLiteral = 5
   y:Any = x as Any
 end
 

@@ -17,16 +17,21 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.compiler.*;
-import com.sun.fortress.compiler.index.*;
-import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import static com.sun.fortress.nodes_util.NodeFactory.*;
+import com.sun.fortress.compiler.index.ObjectTraitIndex;
+import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._RewriteGenericArrowType;
+import com.sun.fortress.nodes_util.NodeFactory;
+
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * A type environment whose outermost lexical scope consists of a map from IDs
@@ -49,8 +54,11 @@ class ObjectTypeEnv extends TypeEnv {
         if (!(var instanceof Id)) { return parent.binding(var); }
         Id _var = (Id)var;
 
-        if (!entries.containsKey(_var)) { return parent.binding(var); }
-        TypeConsIndex typeCons = entries.get(_var);
+        // Api-less name used for look-up only.
+        Id no_api_var = removeApi(_var);
+        
+        if (!entries.containsKey(no_api_var)) { return parent.binding(var); }
+        TypeConsIndex typeCons = entries.get(no_api_var);
         
         if (!(typeCons instanceof ObjectTraitIndex)) { return parent.binding(var); }
         ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
@@ -74,10 +82,11 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
-                type = new _RewriteGenericArrowType(decl.getSpan(), decl.getStaticParams(),
-                                                    domainFromParams(decl.getParams().unwrap()),
-                                                    NodeFactory.makeTraitType(_var),
-                                                    decl.getWhere());
+                type = 
+                	new _RewriteGenericArrowType(decl.getSpan(), decl.getStaticParams(),
+                                                 domainFromParams(decl.getParams().unwrap()),
+                                                 NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
+                                                 decl.getWhere());
             }
         }
 
