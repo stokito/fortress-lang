@@ -82,11 +82,12 @@ run(args:String...):() = do
     ll  : Range[\ZZ32\] = 0#4
     lm  : Range[\ZZ32\] = 0:7
     lh  : Range[\ZZ32\] = 0#10
+    lh' : Range[\ZZ32\] = 0:9
     mm  : Range[\ZZ32\] = 6:7
     mh  : Range[\ZZ32\] = 6:10
     hh  : Range[\ZZ32\] = 8:10
     chkOrder(mt,mt,EqualTo)
-    for i <- <|llo, hlo, lsz, hsz, lhi, hhi, ll, lm, lh, mm, mh, hh|> do
+    for i <- <|llo, hlo, lsz, hsz, lhi, hhi, ll, lm, lh', lh, mm, mh, hh|> do
         chkOrder(mt,i,GreaterThan)
         chkOrder(i,i,EqualTo)
     end
@@ -95,7 +96,7 @@ run(args:String...):() = do
         chkOrder(llo,i,Unordered)
         chkOrder(hlo,i,Unordered)
     end
-    for i <- <|ll,lm,lh|> do
+    for i <- <|ll,lm,lh',lh|> do
         chkOrder(llo,i,GreaterThan)
         chkOrder(hlo,i,Unordered)
     end
@@ -104,7 +105,7 @@ run(args:String...):() = do
         chkOrder(hlo,i,GreaterThan)
     end
     chkOrder(lsz,hsz,LessThan)
-    for i <- <|lhi,hhi,ll,lm,lh,mm,mh,hh|> do
+    for i <- <|lhi,hhi,ll,lm,lh',lh,mm,mh,hh|> do
         chkOrder(lsz,i,Unordered)
         chkOrder(hsz,i,Unordered)
     end
@@ -120,13 +121,17 @@ run(args:String...):() = do
         chkOrder(hhi,i,Unordered)
     end
     chkOrder(ll,lm,LessThan)
+    chkOrder(ll,lh',LessThan)
     chkOrder(ll,lh,LessThan)
     chkOrder(ll,i,Unordered), i <- <|mm,mh,hh|>
+    chkOrder(lm,lh',LessThan)
     chkOrder(lm,lh,LessThan)
     chkOrder(lm,i,Unordered), i <- <|mh,hh|>
     chkOrder(lh,i,Unordered), i <- <|mh,hh|>
-    chkOrder(mm,i,LessThan), i <- <|lm,lh,mh|>
+    chkOrder(mm,i,LessThan), i <- <|lm,lh',lh,mh|>
     chkOrder(mm,hh,Unordered)
+    chkOrder(lh,lh',Unordered)
+    chkOrder(lh',lh,Unordered)
   end
 
 end

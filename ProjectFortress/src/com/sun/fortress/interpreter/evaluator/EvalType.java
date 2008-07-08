@@ -315,8 +315,53 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
 
-    public FType forBoolArg(BoolArg b) {
-        return b.getBool().accept(this);
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forIntArg(com.sun.fortress.interpreter.nodes.IntArg)
+     */
+    @Override
+    public FType forBoolArg(BoolArg x) {
+        BoolExpr i = x.getBool();
+        return i.accept(new NodeAbstractVisitor<FType>() {
+            private boolean boolify(BoolExpr ie) {
+                FType t = ie.accept(this);
+                if (!(t instanceof Bool)) {
+                    error(ie, errorMsg("BoolExpr ", ie, " evaluated to ", t,
+                                       " (instead of Bool)"));
+                }
+                return ((Bool)t).getBooleanValue();
+            }
+            public FType forBoolConstant(BoolConstant b) {
+                return Bool.make(b.isBool());
+            }
+            public FType forBoolRef(BoolRef n) {
+                Id q = n.getName();
+                try {
+                    FType result = env.getType(q);
+                    return result;
+                } catch (FortressException p) {
+                    throw p.setContext(q, env);
+                }
+            }
+            public FType forNotConstraint(NotConstraint n) {
+                return Bool.make(!boolify(n.getBool()));
+            }
+            public FType forOrConstraint(OrConstraint n) {
+                return Bool.make(boolify(n.getLeft()) || boolify(n.getRight()));
+            }
+            public FType forAndConstraint(AndConstraint n) {
+                return Bool.make(boolify(n.getLeft()) && boolify(n.getRight()));
+            }
+            public FType forImpliesConstraint(ImpliesConstraint n) {
+                return Bool.make(!boolify(n.getLeft()) || boolify(n.getRight()));
+            }
+            public FType forBEConstraint(BEConstraint n) {
+                return Bool.make(boolify(n.getLeft()) == boolify(n.getRight()));
+            }
+            public FType defaultCase(Node x) {
+                return bug(x, errorMsg("EvalType: ", x.getClass(),
+                                       " is not a subtype of BoolExpr."));
+            }
+        });
     }
 
     public FType forBoolConstant(BoolConstant b) {
@@ -393,8 +438,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 return IntNat.make(longify(n.getLeft()) * longify(n.getRight()));
             }
             public FType defaultCase(Node x) {
-                return bug(x, "EvalType: " + x.getClass() +
-         " is not a subtype of IntExpr.");
+                return bug(x, errorMsg("EvalType: ",x.getClass(),
+                                       " is not a subtype of IntExpr."));
             }
         });
     }

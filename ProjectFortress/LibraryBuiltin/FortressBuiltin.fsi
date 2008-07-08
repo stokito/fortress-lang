@@ -105,7 +105,7 @@ end
 object String extends { StandardTotalOrder[\String\] }
     getter size() : ZZ32
     getter toString() : String
-    getter indices() : FullRange[\ZZ32\]
+    getter indices() : FullRange[\ZZ32,true\]
     getter generator() : Generator[\Char\]
     opr |self| : ZZ32
     opr =(self, other:String): Boolean
