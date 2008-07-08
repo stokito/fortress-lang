@@ -28,17 +28,15 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.Shell;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Unprinter;
-import com.sun.fortress.repository.CacheBasedRepository;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
@@ -53,7 +51,6 @@ public class FileTests {
         String dir;
         String name;
         String path;
-        FortressRepository cache;
 
         /**
          * If true, only print test output for unexpected results.
@@ -64,7 +61,7 @@ public class FileTests {
         boolean printSuccess;
         boolean printFailure;
 
-        public FSSTest(FortressRepository cache, String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
+        public FSSTest(String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
             super("testFile");
             this.f = d + "/" + s;
             this.dir = d;
@@ -73,7 +70,6 @@ public class FileTests {
             this.unexpectedOnly = unexpected_only;
             this.printSuccess = !unexpected_only || expect_failure;
             this.printFailure = !unexpected_only || !expect_failure;
-            this.cache = cache;
         }
 
         public String getName() {
@@ -103,7 +99,7 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     APIName apiname = NodeFactory.makeAPIName(s);
-                    FortressRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path), cache );
+                    FortressRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
 
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
@@ -212,7 +208,6 @@ public class FileTests {
         String[] files = dir.list();
         System.err.println(dir);
         Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
-        FortressRepository cache = new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR );
         for(String s : shuffled){
         	  if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss"))
                   System.out.println("Not compiling file " + s);
@@ -220,7 +215,7 @@ public class FileTests {
                   if (s.endsWith(".fss")) {
                       int l = s.lastIndexOf(".fss");
                       String testname = s.substring(0, l);
-                      suite.addTest(new FSSTest(cache, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                      suite.addTest(new FSSTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                   } else {
                       System.out.println("Not compiling file " + s);
                   }
@@ -228,36 +223,4 @@ public class FileTests {
         }
         return suite;
     }
-
-    /*
-    public static Test suite(String dirname, boolean failsOnly, boolean expect_failure, double begin, double end) throws IOException {
-        TestSuite suite = new TestSuite("Test for default package");
-        // $JUnit-BEGIN$
-        dirname = ProjectProperties.backslashToSlash(dirname);
-        File dir = new File(dirname);
-        String[] files = dir.list();
-        System.err.println(dir);
-        FortressRepository cache = new CacheBasedRepository( ProjectProperties.ANALYZED_CACHE_DIR );
-        for (int i = 0; i < files.length; i++) {
-            double f = i / (double) files.length;
-            if (f < begin || f >= end)
-                continue;
-            String s = files[i];
-            if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss"))
-                System.out.println("Not compiling file " + s);
-            else if (!s.startsWith(".")) {
-                if (s.endsWith(".fss")) {
-                    int l = s.lastIndexOf(".fss");
-                    //System.err.println("Adding " + s);
-                    String testname = s.substring(0, l);
-                    suite.addTest(new FSSTest(cache, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
-                } else {
-                    System.out.println("Not compiling file " + s);
-                }
-            }
-        }
-        // $JUnit-END$
-        return suite;
-    }
-    */
 }
