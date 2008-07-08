@@ -263,7 +263,8 @@ public abstract class ConstraintFormula {
 			return false;
 		}
 		
-		/** Find a cycle in naked inference variables starting at the given one */
+		/** Find a cycle in naked inference variables starting at the given one, the cycle must have length greater than
+		 *  one, so T_1 <: T_1 does not qualify. */
 		private Option<ConsList<_InferenceVarType>> findCycle(_InferenceVarType cur_start, final ConsList<_InferenceVarType> cur_path) {
 			assert(cur_path.size() > 0);
 			// First element of path is the thing we are looking for
@@ -282,8 +283,12 @@ public abstract class ConstraintFormula {
 					@Override
 					public Option<ConsList<_InferenceVarType>> for_InferenceVarType(_InferenceVarType that) {
 						// See if this var forms a cycle, and if not recur
-						if( that.equals(var_to_find) ) return Option.some(cur_path);
-						else return findCycle(that, 
+						if( that.equals(var_to_find) && cur_path.size() > 1 ) 
+							return Option.some(cur_path);
+						else if( that.equals(var_to_find) )
+							return Option.none();
+						else 
+							return findCycle(that, 
 									CollectUtil.makeConsList(ConsList.append(cur_path, ConsList.singleton(that))));
 					}
 					
@@ -341,6 +346,11 @@ public abstract class ConstraintFormula {
 				Set<Type> l_bounds = entry.getValue();
 				new_lowers.putItems((_InferenceVarType)sigma.value(ivar), CollectUtil.asSet(IterUtil.map(l_bounds, lambda)));
 			}
+			
+			// "Remove redundant constraints"
+			// For now we will just remove #1 <: #1
+			new_uppers.get(new_ivar).remove(new_ivar);
+			new_lowers.get(new_ivar).remove(new_ivar);
 			return new SimpleFormula(new_uppers, new_lowers, this.history);
 		}
 		

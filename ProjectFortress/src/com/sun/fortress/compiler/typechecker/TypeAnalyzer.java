@@ -413,11 +413,11 @@ public class TypeAnalyzer {
         debug.logStart(new String[]{"s", "t"}, s, t);
         ConstraintFormula result;
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
-//        if (cached.isSome()) {
-//            result = cached.unwrap();
-//            debug.log("found in cache");
-//        }
-//        else 
+        if (cached.isSome()) {
+            result = cached.unwrap();
+            debug.log("found in cache");
+        }
+        else 
         	if (history.expansions() > MAX_SUBTYPE_EXPANSIONS) {
             result = FALSE;
             debug.log("reached max subtype expansions");
