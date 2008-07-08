@@ -92,9 +92,16 @@ import xtc.parser.SemanticValue;
 
 public class Coverage {
 
-    private static final String[] TEST_DIRS =
-        new String[] {"tests", "static_tests", "parser_tests", "not_passing_yet",
-                      "../Library"};
+    private static final boolean EXCLUDE_SLOW_FILES = false;
+
+    private static final List<String> TEST_DIRS = new LinkedList<String>();
+    static {
+        TEST_DIRS.add("tests");
+        TEST_DIRS.add("static_tests");
+        TEST_DIRS.add("parser_tests");
+        TEST_DIRS.add("not_passing_yet");
+        if (!EXCLUDE_SLOW_FILES) TEST_DIRS.add("../Library");
+    }
 
     private static final boolean RETHROW_PROGRAM_ERRORS = false;
     private static final boolean INCLUDE_OK_ALTERNATES = false;
@@ -230,6 +237,12 @@ public class Coverage {
         String filename = file.getAbsolutePath();
         if (VERBOSE)
             System.out.println("Parsing " + filename + " ...");
+
+        if (EXCLUDE_SLOW_FILES) {
+            // FIXME: temp blacklist
+            if (file.getName().endsWith("taskTrace2.fss")) return;
+        }
+
         Reader in = null;
         try {
             in = Useful.utf8BufferedFileReader(filename);
