@@ -73,6 +73,14 @@ public class InstrumentedParserGenerator {
     private File srcDir;
     private File destinationDir;
 
+    // Add instrumentation for Coverage analysis?
+    private static final boolean ADD_INSTRUMENTATION = true;
+
+    // Force all productions to be transient?
+    // (Setting both ADD_INSTRUMENTATION and FORCE_ALL_TRANSIENT 
+    // makes a very slow parser.)
+    private static final boolean FORCE_ALL_TRANSIENT = false;
+
     private InstrumentedParserGenerator(String srcDir, 
                                         String destinationDir) {
         this.srcDir = new File(srcDir);
@@ -148,18 +156,17 @@ public class InstrumentedParserGenerator {
         module.attributes = module.attributes == null 
             ? new LinkedList<Attribute>() 
             : new LinkedList<Attribute>(module.attributes);
-        module.attributes.add(new Attribute("stateful", STATE_CLASS));
+        if (ADD_INSTRUMENTATION) {
+            module.attributes.add(new Attribute("stateful", STATE_CLASS));
+        }
     }
 
     private void instrument(Production p, String mi, List<String> infoCode) {
         String productionInfo = getFreshName("productionInfo");
         infoCode.add(declaration(PRODUCTION_INFO_CLASS, productionInfo, mi, quote(p.name.name)));
 
-        if (p.isFull()) {
-            List<Attribute> p_attrs = new LinkedList<Attribute>();
-            p_attrs.add(new Attribute("stateful"));
-            if (p.attributes != null) { p_attrs.addAll(p.attributes); }
-            p.attributes = p_attrs;
+        if (p.isFull()) { 
+            p.attributes = adjustAttributes(p, p.attributes);
         }
 
         int index = 1;
@@ -169,6 +176,37 @@ public class InstrumentedParserGenerator {
             index++;
         }
     }
+
+    private List<Attribute> adjustAttributes(Production p, List<Attribute> old_attrs) {
+        List<Attribute> attrs = new LinkedList<Attribute>();
+        boolean saw_inline_or_transient = false;
+        if (old_attrs != null) {
+            for (Attribute old_attr : old_attrs) {
+                String name = old_attr.getName();
+                if (name.equals("transient")) {
+                    attrs.add(old_attr);
+                    saw_inline_or_transient = true;
+                } else if (name.equals("memoized")) {
+                    if (!FORCE_ALL_TRANSIENT) attrs.add(old_attr);
+                } else if (name.equals("inline")) {
+                    attrs.add(old_attr);
+                    saw_inline_or_transient = true;
+                } else if (name.equals("noinline")) {
+                    attrs.add(old_attr);
+                } else {
+                    attrs.add(old_attr);
+                }
+            }
+        }
+        if (FORCE_ALL_TRANSIENT && !saw_inline_or_transient) {
+            attrs.add(new Attribute("transient"));
+        }
+        if (ADD_INSTRUMENTATION) {
+            attrs.add(new Attribute("stateful"));
+        }
+        return attrs;
+    }
+
     private void instrument(Sequence seq, int index, String pi, List<String> infoCode) {
         String sequenceInfo = getFreshName("sequenceInfo");
         infoCode.add(declaration(SEQUENCE_INFO_CLASS, sequenceInfo, pi, quote(seq.name == null ? null : seq.name.name), index));
@@ -183,8 +221,10 @@ public class InstrumentedParserGenerator {
         List<String> code = new LinkedList<String>();
         List<Integer> indents = new LinkedList<Integer>();
 
-        indents.add(0);
-        code.add(String.format("%s.registerOccurrence(yyState);", si));
+        if (ADD_INSTRUMENTATION) {
+            indents.add(0);
+            code.add(String.format("%s.registerOccurrence(yyState);", si));
+        }
         return new Action(code, indents);
     }
 
