@@ -55,6 +55,11 @@ public interface FortressRepository {
     public void addComponent(APIName name, ComponentIndex definition);
 
     /**
+     * Delete a compiled/processed component from the repository.
+     */
+    public void deleteComponent(APIName name);
+
+    /**
      * Retrieve an api from the repository given a name.
      */
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException;

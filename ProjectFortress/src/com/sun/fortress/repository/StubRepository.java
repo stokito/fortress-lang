@@ -52,6 +52,11 @@ public class StubRepository implements FortressRepository {
 
     }
 
+    public void deleteComponent(APIName name) {
+        throw new UnsupportedOperationException();
+
+    }
+
     public Map<APIName, ApiIndex> apis() {
         throw new UnsupportedOperationException();
     }

@@ -144,6 +144,15 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         }
     }
 
+    public void deleteComponent(APIName name) {
+        try {
+            components.remove(name);
+            ASTIO.deleteJavaAst(compFileName(name));
+        } catch (IOException e) {
+            throw new ShellException(e);
+        }
+    }
+
     private String deCase(APIName s) {
         return "-" + Integer.toString(s.hashCode()&0x7fffffff,16);
     }

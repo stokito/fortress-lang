@@ -581,7 +581,12 @@ public final class Shell {
 
         StaticChecker.ComponentResult componentSR =
             StaticChecker.checkComponents(componentIR.components(), env);
-        if (!componentSR.isSuccessful()) { return componentSR.errors(); }
+        if (!componentSR.isSuccessful()) {
+            for (APIName failed : componentSR.failed()) {
+                _repository.deleteComponent(failed);
+            }
+            return componentSR.errors();
+        }
 
         /* Desugaring ******************************************************************
          */
