@@ -136,9 +136,11 @@ class FnTypeEnv extends TypeEnv {
             } else { // fn instanceof Constructor
                 final Constructor _fn = (Constructor)fn;
                 Span loc = _fn.declaringTrait().getSpan();
-                Type selfType = makeTraitType(_fn.declaringTrait(),
+                // Make trait name fully qualified, since Constructors are not.
+                Id qualified_trait_name = NodeFactory.makeId(var.getApi(), _fn.declaringTrait());
+                Type selfType = makeTraitType(qualified_trait_name,
                                               staticParamsToArgs(_fn.staticParameters()));
-
+                
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
                 overloadedTypes.add(new _RewriteGenericArrowType(loc, _fn.staticParameters(),

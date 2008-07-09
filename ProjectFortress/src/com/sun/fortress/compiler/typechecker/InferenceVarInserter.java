@@ -18,12 +18,22 @@ package com.sun.fortress.compiler.typechecker;
 
 import java.util.List;
 
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Contract;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.NormalParam;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarargsParam;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -47,6 +57,35 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 		}
 	}
 
-	
-	
+	@Override
+	public Node forFnDefOnly(FnDef that, List<Modifier> mods_result,
+			IdOrOpOrAnonymousName name_result,
+			List<StaticParam> staticParams_result, List<Param> params_result,
+			Option<Type> returnType_result,
+			Option<List<BaseType>> throwsClause_result,
+			WhereClause where_result, Contract contract_result, Expr body_result) {
+		// Is the return type given?
+		Option<Type> new_ret_type = 
+			returnType_result.isNone() ? 
+					Option.<Type>some(NodeFactory.make_InferenceVarType()) :
+					returnType_result;	
+		
+		return super.forFnDefOnly(that, mods_result, name_result, staticParams_result,
+				params_result, new_ret_type, throwsClause_result, where_result,
+				contract_result, body_result);
+	}
+
+	@Override
+	public Node forNormalParamOnly(NormalParam that,
+			List<Modifier> mods_result, Id name_result,
+			Option<Type> type_result, Option<Expr> defaultExpr_result) {
+		// Is the type given?
+		Option<Type> new_type = 
+			type_result.isNone() ? 
+					Option.<Type>some(NodeFactory.make_InferenceVarType()) :
+						type_result;
+		
+		return super.forNormalParamOnly(that, mods_result, name_result, new_type,
+				defaultExpr_result);
+	}
 }

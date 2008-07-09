@@ -613,8 +613,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
- private static TypeChecker addSelf(Id name, TypeChecker newChecker, List<StaticParam> static_params){
-     TraitType self_type = NodeFactory.makeTraitType(name,TypeEnv.staticParamsToArgs(static_params));
+ private static TypeChecker addSelf(APIName api, Id name, TypeChecker newChecker, List<StaticParam> static_params){
+     Id qualified_type_name = NodeFactory.makeId(api, name);
+	 TraitType self_type = NodeFactory.makeTraitType(qualified_type_name,TypeEnv.staticParamsToArgs(static_params));
      return newChecker.extend(Collections.singletonList(NodeFactory.makeLValue("self", self_type)));
     }
 
@@ -642,15 +643,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Check method declarations.
         Option<TypeConsIndex> ind = table.typeCons(that.getName());
         if(ind.isNone()){
-         bug(that.getName()+"is not in table");
+        	bug(that.getName()+"is not in table");
         }
         TraitIndex thatIndex = (TraitIndex)ind.unwrap();
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
 
-        // Extend checker with self
-
-        newChecker = TypeChecker.addSelf(that.getName(),newChecker,thatIndex.staticParameters());
+        // Extend checker with self, (could we ever be nested more deeply than Component/Object, so that api of cu would be wrong?) 
+        APIName api = this.compilationUnit.ast().getName();
+        newChecker = TypeChecker.addSelf(api, that.getName(),newChecker,thatIndex.staticParameters());
 
 
         TypeCheckerResult methodsResult = new TypeCheckerResult(that);
@@ -743,8 +744,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TraitIndex thatIndex = (TraitIndex)ind.unwrap();
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
-        //add self param
-        newChecker = TypeChecker.addSelf(that.getName(),newChecker,thatIndex.staticParameters());
+        
+        // Extend checker with self, (could we ever be nested more deeply than Component/Object, so that api of cu would be wrong?) 
+        APIName api = this.compilationUnit.ast().getName();
+        newChecker = TypeChecker.addSelf(api, that.getName(),newChecker,thatIndex.staticParameters());
 
         TypeCheckerResult methodsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
@@ -1032,19 +1035,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return forForOnly(that, pair.first(), body_result);
     }
 
-   private Pair<List<TypeCheckerResult>, List<LValueBind>> recurOnListsOfGeneratorClauseBindings(List<GeneratorClause> gens){
-    GeneratorClause gen = gens.get(0);
-    Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(gen, false);
-    if(gens.size()>1){
-     TypeChecker extend = this.extend(pair.second());
-     Pair<List<TypeCheckerResult>,List<LValueBind>> pair2 =extend.recurOnListsOfGeneratorClauseBindings(gens.subList(1, gens.size()-1));
-     pair2.first().add(0,pair.first());
-     pair2.second().addAll(0,pair.second());
-     return pair2;
-    } else
-     return Pair.make(Collections.singletonList(pair.first()), pair.second());
+    private Pair<List<TypeCheckerResult>, List<LValueBind>> recurOnListsOfGeneratorClauseBindings(List<GeneratorClause> gens){
+    	GeneratorClause gen = gens.get(0);
+    	Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(gen, false);
+    	if(gens.size()>1){
+    		TypeChecker extend = this.extend(pair.second());
+    		Pair<List<TypeCheckerResult>,List<LValueBind>> pair2 =extend.recurOnListsOfGeneratorClauseBindings(gens.subList(1, gens.size()-1));
+    		pair2.first().add(0,pair.first());
+    		pair2.second().addAll(0,pair.second());
+    		return pair2;
+    	} else
+    		return Pair.make(Collections.singletonList(pair.first()), pair.second());
 
-   }
+    }
 
     @Override
     public TypeCheckerResult forForOnly(For that, List<TypeCheckerResult> gens_result, TypeCheckerResult body_result) {

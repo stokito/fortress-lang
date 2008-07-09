@@ -121,6 +121,12 @@ public class StaticChecker {
                                                    GlobalEnvironment env)
     {
         if (typecheck) {
+            Node component_ast = component.ast();
+            
+            // Replace implicit types with explicit ones.
+            component_ast = component_ast.accept(new InferenceVarInserter());
+            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast, System.currentTimeMillis());
+        	
             TypeEnv typeEnv = TypeEnv.make(component);
 
             // Add all top-level function names to the component-level environment.
@@ -132,11 +138,6 @@ public class StaticChecker {
             // Add all top-level object names declared in the component-level environment.
             typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
 
-            Node component_ast = component.ast();
-
-            // Replace implicit types with explicit ones.
-            component_ast = component_ast.accept(new InferenceVarInserter());
-            // Is it a problem that component's ast doesn't match the one we are typechecking?
             TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env),
                                                       StaticParamEnv.make(),
                                                       typeEnv,
