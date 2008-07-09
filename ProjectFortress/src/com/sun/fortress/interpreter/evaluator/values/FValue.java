@@ -58,7 +58,7 @@ public abstract class FValue {
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}
     public float getRR32() { throw new InterpreterBug("getRR32 not implemented for "  + getClass().getSimpleName());}
-    public char getChar() { throw new InterpreterBug("getChar not implemented for "  + getClass().getSimpleName());}
+    public int getChar() { throw new InterpreterBug("getChar not implemented for "  + getClass().getSimpleName());}
 
     /**
      * seqv can ignore pointer equivalence; that must be checked before calling.

@@ -116,17 +116,54 @@ object Boolean
 end
 
 object Char extends { StandardTotalOrder[\Char\] }
-    (** %char.ord% converts %char% to the equivalent integer code point.
-        It is always the case that %c = char(c.ord())% for %c : Char%. **)
-    getter ord(): ZZ32
+    (** %char.codePoint% converts %char% to the equivalent integer code point.
+        It is always the case that %c = char(c.codePoint())% for %c : Char%. **)
+    getter codePoint(): ZZ32
 
     (** |c| means the same as %c.chr()%; it's unclear if this is
         actually a good idea, and we solicit feedback on the subject. **)
     opr |self| : ZZ32
 
-    (** Ordering resepects %ord%. **)
+    (** Ordering resepects %codePoint%. **)
     opr =(self, other:Char): Boolean
     opr <(self, other:Char): Boolean
+
+    (* The following methods have the same behavior as the methods in Java
+       Character class, except for methods digit and forDigit.  These two 
+       particular methods deviate from Java Character class when it gets 
+       argument radix = 12.  For radix 12, the digits are "0123456789xe" 
+       instead of "0123456789ab". *)
+    javaDigit(self, radix:ZZ32): ZZ32
+    digit(self, radix:ZZ32): Maybe[\ZZ32\] 
+    getDirectionality(self): ZZ32
+    getNumericValue(self): ZZ32
+    getType(self): ZZ32
+    isDefined(self): Boolean
+    isDigit(self): Boolean
+    isFortressIdentifierPart(self): Boolean
+    isFortressIdentifierStart(self): Boolean
+    isHighSurrogate(self): Boolean
+    isIdentifierIgnorable(self): Boolean
+    isISOControl(self): Boolean
+    isJavaIdentifierPart(self): Boolean
+    isJavaIdentifierStart(self): Boolean
+    isLetter(self): Boolean
+    isLetterOrDigit(self): Boolean
+    isLowerCase(self): Boolean
+    isLowSurrogate(self): Boolean
+    isMirrored(self): Boolean
+    isSpaceChar(self): Boolean
+    isSupplementaryCodePoint(self): Boolean
+    isSurrogatePair(self, Char low): Boolean
+    isTitleCase(self): Boolean
+    isUnicodeIdentifierPart(self): Boolean
+    isUnicodeIdentifierStart(self): Boolean
+    isUpperCase(self): Boolean
+    isValidCodePoint(self): Boolean
+    isWhitespace(self): Boolean
+    toLowerCase(self): Char
+    toTitleCase(self): Char
+    toUpperCase(self): Char
 end
 
 object String extends { StandardTotalOrder[\String\] }

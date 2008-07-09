@@ -3332,6 +3332,28 @@ println(a:Any):() = println("" a)
 print():() = print("()")
 println():() = println("")
 
+forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] = do
+    if( 2 <= radix <= 16 ) then
+        if( radix = 12 ) then
+            forDigit(x, "0123456789xe")
+        elif(x < radix) then
+            forDigit(x, "0123456789abcdef") 
+        else 
+            Nothing[\Char\]
+        end
+    else 
+        Nothing[\Char\]
+    end
+end
+
+forDigit(x:ZZ32, radixString:String): Maybe[\Char\] = do
+    if( 0 <= x < |radixString| ) then
+        Just[\Char\](radixString[x])
+    else
+        Nothing[\Char\]
+    end
+end
+
 match(regex:String,some:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
 
 (** postfix %//% appends a single newline separator.  The postfix version

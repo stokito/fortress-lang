@@ -52,7 +52,7 @@ public class FAsIf extends FConstructedValue {
     public double getFloat() {
         return fvalue.getFloat();
     }
-    public char getChar() {
+    public int getChar() {
         return fvalue.getChar();
     }
     public boolean seqv(FValue v) {
