@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component importBig
+import List.{ opr BIG <| |>, singleton, List, Concat }
+export Executable
+
+run(args:String...) = do
+  a: List[\ZZ32\] := singleton(3)
+  b: List[\ZZ32\] := singleton(5)
+  a := Concat[\ZZ32\].join(a, b)
+  a := <| 10 i | i <- a |>
+  println a
+end
+
+end

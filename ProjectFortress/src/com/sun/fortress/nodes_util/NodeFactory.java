@@ -240,7 +240,7 @@ public class NodeFactory {
 		return new FixedPointType(t.getSpan(), t.isParenthesized(), t.getName(),
 				s);
 	}
-	
+
 	public static FixedPointType makeFixedPointType(Id name, Type s) {
 		return new FixedPointType(s.getSpan(), s.isParenthesized(), name, s);
 	}
@@ -282,7 +282,7 @@ public class NodeFactory {
 	public static IntersectionType makeIntersectionType(Type t1, Type t2) {
 		return new IntersectionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
 	}
-	
+
 	public static IntersectionType makeIntersectionType(Set<Type> types){
 		return new IntersectionType(FortressUtil.spanAll(types),CollectUtil.makeList(types));
 	}
@@ -294,7 +294,7 @@ public class NodeFactory {
 	public static UnionType makeUnionType(Set<Type> types){
 		return new UnionType(FortressUtil.spanAll(types),CollectUtil.makeList(types));
 	}
-	
+
 //	public static ArrowType makeArrowType(Span span, Type domain,
 //	Type range,
 //	Option<List<BaseType>> throws_) {
@@ -761,6 +761,14 @@ public class NodeFactory {
 	public static Op makeOpUnknown(Span span, String name) {
 		return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
 	}
+
+        public static Op makeBig(Op op) {
+            return new Op(op.getSpan(), PrecedenceMap.ONLY.canon("BIG " + op.getText()), big);
+        }
+
+        public static Enclosing makeBig(Enclosing op) {
+            return new Enclosing(op.getSpan(), makeBig(op.getOpen()), makeBig(op.getClose()));
+        }
 
 	public static VarargsParam makeVarargsParam(Id name, Type type) {
 		return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);

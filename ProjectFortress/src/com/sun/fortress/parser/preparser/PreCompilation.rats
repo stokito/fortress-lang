@@ -191,8 +191,8 @@ private List<IdOrOpOrAnonymousName> SimpleNameList =
 
 /* AliasedSimpleName ::=
      Id (w as w Id)?
-   | opr w (Encloser / Op) (w as w (Encloser / Op))?
-   | opr w EncloserPair (w as w EncloserPair)?
+   | opr (w BIG)? w (Encloser / Op) (w as w (Encloser / Op))?
+   | opr (w BIG)? w EncloserPair (w as w EncloserPair)?
  */
 private AliasedSimpleName AliasedSimpleName =
      a1:Id a2:(w as w Id)?
@@ -202,19 +202,35 @@ private AliasedSimpleName AliasedSimpleName =
        else
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      }
-   / opr w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
+   / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
      { Span span = createSpan(yyStart,yyCount);
+       if (big != null) {
+           a1 = NodeFactory.makeBig(a1);
+       }
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
-       else
-           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
+       else {
+           if (big != null)
+               yyValue = NodeFactory.makeAliasedSimpleName(span, a1,
+                                                           NodeFactory.makeBig(a2));
+           else
+               yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
+       }
      }
-   / opr w a1:EncloserPair a2:(w as w EncloserPair)?
+   / opr big:(w BIG)? w a1:EncloserPair a2:(w as w EncloserPair)?
      { Span span = createSpan(yyStart,yyCount);
+       if (big != null) {
+           a1 = NodeFactory.makeBig(a1);
+       }
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
-       else
-           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
+       else {
+           if (big != null)
+               yyValue = NodeFactory.makeAliasedSimpleName(span, a1,
+                                                           NodeFactory.makeBig(a2));
+           else
+               yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
+       }
      };
 
 /* AliasedSimpleNameList ::= AliasedSimpleName (w , w AliasedSimpleName)* */

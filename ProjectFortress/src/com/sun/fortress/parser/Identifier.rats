@@ -49,7 +49,7 @@ option setOfString(FORTRESS_KEYWORDS);
         String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
 private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
 
-Id Id = 
+Id Id =
      <FIRST> a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
 /* BindId ::= Id / _ */
@@ -74,8 +74,14 @@ List<Id> BindIdOrBindIdTuple =
 /* SimpleName ::= Id | opr w (Encloser / Op) | opr w EncloserPair */
 IdOrOpOrAnonymousName SimpleName =
      Id
-   / opr w (Encloser / Op)
-   / opr w EncloserPair;
+   / opr big:(w BIG)? w a1:(Encloser / Op)
+     { if (big != null) yyValue = NodeFactory.makeBig(a1);
+       else yyValue = a1;
+     }
+   / opr big:(w BIG)? w a1:EncloserPair
+     { if (big != null) yyValue = NodeFactory.makeBig(a1);
+       else yyValue = a1;
+     };
 
 private String idOrKeyword = s:(idstart idrest*) &{ true };
 
