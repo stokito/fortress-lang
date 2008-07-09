@@ -71,12 +71,12 @@ NumberLiteralExpr NumericLiteralExpr =
      FloatLiteralExpr
    / IntLiteralExpr ;
 
-transient FloatLiteralExpr FloatLiteralExpr = 
+transient FloatLiteralExpr FloatLiteralExpr =
      <FIRST> a1:DigitString dot a2:DigitString
      { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
                                                   a1 + "." + a2); };
 
-transient IntLiteralExpr IntLiteralExpr = 
+transient IntLiteralExpr IntLiteralExpr =
      <FIRST> a1:DigitString
      { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount),
                                                 a1);
@@ -90,7 +90,7 @@ CharLiteralExpr CharLiteralExpr =
                                                  a1);
      };
 
-StringLiteralExpr StringLiteralExpr = 
+StringLiteralExpr StringLiteralExpr =
      <FIRST> ["] a1:StringLiteralContent* ["]
      { String str = "";
        for (String c : (List<String>)a1.list()) {
@@ -118,4 +118,4 @@ private String EscapeSequence = '\\' a1:[btnfr"\\]
 
 private String CharLiteralContent =
      EscapeSequence
-   / a1:(!['\\] _) { yyValue = String.valueOf(a1); };
+   / a1:(![\\] _) { yyValue = String.valueOf(a1); };
