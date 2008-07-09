@@ -47,7 +47,7 @@ public abstract class NativeConstructor extends Constructor {
     public Environment getLexicalEnv() {
         return lexEnv;
     }
-    
+
     protected FValue check(FValue x) {
         return x;
     }
@@ -74,9 +74,6 @@ public abstract class NativeConstructor extends Constructor {
         }
 
         public FType type() {
-            if (getConstructor() == null) {
-                getConstructor();
-            }
             return getConstructor().selfType;
         }
     }

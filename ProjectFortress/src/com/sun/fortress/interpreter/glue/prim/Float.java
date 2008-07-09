@@ -24,6 +24,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
+import com.sun.fortress.interpreter.evaluator.values.FRR32;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -46,6 +47,13 @@ protected FNativeObject makeNativeObject(List<FValue> args,
                                          NativeConstructor con) {
     FFloat.setConstructor(this);
     return FFloat.ZERO;
+}
+
+static private abstract class R2F extends NativeMeth0 {
+    protected abstract float f(double x);
+    protected final FValue act(FObject x) {
+        return FRR32.make(f(x.getFloat()));
+    }
 }
 
 static private abstract class R2B extends NativeMeth0 {
@@ -77,6 +85,10 @@ static private abstract class RR2R extends NativeMeth1 {
     protected final FValue act(FObject x, FValue y) {
         return FFloat.make(f(x.getFloat(),y.getFloat()));
     }
+}
+
+public static final class Narrow extends R2F {
+    protected float f(double x) { return (float)x; }
 }
 
 public static final class Negate extends R2R {

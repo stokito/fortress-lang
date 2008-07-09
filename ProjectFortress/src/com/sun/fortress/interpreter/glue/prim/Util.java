@@ -23,6 +23,7 @@ import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
 
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
+import com.sun.fortress.interpreter.evaluator.values.FRR32;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FString;
@@ -120,6 +121,20 @@ public class Util {
         protected abstract int f(long x);
         protected final FValue act(FValue x) {
             return FInt.make(f(x.getLong()));
+        }
+    }
+
+    static public abstract class I2F extends NativeFn1 {
+        protected abstract float f(int x);
+        protected final FValue act(FValue x) {
+            return FRR32.make(f(x.getInt()));
+        }
+    }
+
+    static public abstract class F2F extends NativeFn1 {
+        protected abstract float f(float x);
+        protected final FValue act(FValue x) {
+            return FRR32.make(f(x.getRR32()));
         }
     }
 

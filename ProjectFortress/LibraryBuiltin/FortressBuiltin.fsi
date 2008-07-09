@@ -23,6 +23,33 @@ end
 object FloatLiteral extends RR64
 end
 
+value object RR32 extends RR64
+    (** returns true if the value is an IEEE NaN **)
+    getter isNaN(): Boolean
+    (** returns true if the value is an IEEE infinity **)
+    getter isInfinite(): Boolean
+    (** returns true if the value is a valid number (not NaN) **)
+    getter isNumber(): Boolean
+    (** returns true if the value is finite **)
+    getter isFinite(): Boolean
+    (** %check% returns %Just(its argument)% if it is finite, otherwise %Nothing%. **)
+    getter check(): Maybe[\RR32\]
+    (** %check_star% returns %Just(its argument)% if it is non-NaN, otherwise %Nothing%. **)
+    getter check_star(): Maybe[\RR32\]
+    (** obtain the raw bits of the IEEE floating-point representation of this value. **)
+    getter rawBits():ZZ32
+    (** next higher IEEE float **)
+    getter nextUp():RR32
+    (** next lower IEEE float **)
+    getter nextDown():RR32
+    opr ^(self, b:RR32):RR32
+    (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
+        Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
+        that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
+    opr MINNUM(self, b:RR32):RR32
+    opr MAXNUM(self, b:RR32):RR32
+end
+
 value object ZZ32 extends ZZ64
     getter zero(): Number
     getter one(): Number
