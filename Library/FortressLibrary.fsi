@@ -302,14 +302,14 @@ trait Number
     opr SLASH_DOWN(self,b:Number):RR64
     opr SQRT_DOWN(self):RR64
     opr |a:RR64| : RR64
-    opr ^(self, b:Number):RR64
+    opr ^(self, b:RR64):RR64
     sin(self):RR64
     cos(self):RR64
     tan(self):RR64
     asin(self):RR64
     acos(self):RR64
     atan(self):RR64
-    atan2(y:Number,x:Number):RR64
+    atan2(self,x:Number):RR64
     log(self):RR64
     exp(self):RR64
     floor(self):RR64
@@ -319,7 +319,7 @@ trait Number
     truncate(self):ZZ64
 end
 
-trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
+trait RR64 extends Number comprises { RR32, Float, AnyIntegral, FloatLiteral }
     (** returns true if the value is an IEEE NaN **)
     getter isNaN(): Boolean
     (** returns true if the value is an IEEE infinity **)
@@ -343,6 +343,8 @@ trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
         that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
     opr MINNUM(self, b:RR64):RR64
     opr MAXNUM(self, b:RR64):RR64
+    (** returns a value of type RR32 **)
+    narrow(self): RR32
 end
 
 trait AnyIntegral extends { RR64 } end
