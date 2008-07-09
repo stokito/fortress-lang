@@ -17,44 +17,27 @@
 
 package com.sun.fortress.compiler;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.apache.tools.ant.util.CollectionUtils;
-
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.iter.IterUtil;
-
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.NoWhitespaceSymbol;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SyntaxSymbol;
-import com.sun.fortress.nodes.WhitespaceSymbol;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.syntax_abstractions.phases.EscapeRewriter;
-import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalDisambiguator;
 import com.sun.fortress.compiler.disambiguator.SelfParamDisambiguator;
 import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
 import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
-import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+
+import edu.rice.cs.plt.collect.CollectUtil;
 
 /**
  * Eliminates ambiguities in an AST that can be resolved solely by knowing what
@@ -164,11 +147,12 @@ public class Disambiguator {
         for( Api api : new_apis ) {
         	ApiIndex index = new_global_env.api(api.getName());
         	NameEnv env = new TopLevelEnv(new_global_env, index, errors);
-        	Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+        	//Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
         	
         	List<StaticError> newErrs = new ArrayList<StaticError>();
         	ExprDisambiguator ed = 
-                new ExprDisambiguator(env, onDemandImports, newErrs);
+                new ExprDisambiguator(env, //onDemandImports, 
+                		newErrs);
             Api edResult = (Api) api.accept(ed);
             if (newErrs.isEmpty())
             	results.add(edResult);
@@ -234,11 +218,12 @@ public class Disambiguator {
                 throw new IllegalArgumentException("Missing component index");
             }
         	NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-            Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+            //Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
             
             List<StaticError> newErrs = new ArrayList<StaticError>();
             ExprDisambiguator ed = 
-                new ExprDisambiguator(env, onDemandImports, newErrs);
+                new ExprDisambiguator(env, //onDemandImports, 
+                		newErrs);
             Component edResult = (Component) comp.accept(ed);
             if (newErrs.isEmpty())
             	results.add(edResult);

@@ -726,6 +726,14 @@ public class TypeAnalyzer {
         return unionSub(s, t, h);
     }
 
+    /**
+     * <pre>
+     * S \notin {Any, Bottom}
+     * \forall i, \Gamma \turnstile S <: Ti
+	 * ------------------ [?-\and]
+	 * \Gamma \turnstile S <: \and{T1..Tn}
+	 * </pre>
+     */
     private ConstraintFormula subIntersection(Type s, IntersectionType t, SubtypeHistory h) {
         ConstraintFormula f = TRUE;
         for (Type elt : t.getElements()) {
@@ -735,6 +743,15 @@ public class TypeAnalyzer {
         return f;
     }
 
+	/**
+	 * <pre>
+	 * S \notin {Any, Bottom}
+     * {T'1..T'm} = expand_and(\and{T1..Tn})
+     * \exists i, \Gamma \turnstile T'i <: S
+     * ------------------------------------- [\and-?]
+     * \Gamma \turnstile \and{T1..Tn} <: S
+     * </pre>
+	 */
     private ConstraintFormula intersectionSub(IntersectionType s, Type t, SubtypeHistory h) {
         ConstraintFormula result = FALSE;
         for (Pair<Type, ConstraintFormula> sElt : expandIntersection(s, h)) {
@@ -746,6 +763,16 @@ public class TypeAnalyzer {
         return result;
     }
 
+
+    /**
+     * <pre>
+     * S \notin {Any, Bottom}
+     * {T'1..T'm} = expand_or(\or{T1..Tn})
+     * \Gamma \turnstile S <: T'i
+     * -------------------------------- [?-\or]
+     * \exists i, \Gamma \turnstile S <: \or{T1..Tn}
+     * </pre>
+     */
     private ConstraintFormula subUnion(Type s, UnionType t, SubtypeHistory h) {
         ConstraintFormula result = FALSE;
         for (Type elt : t.getElements()) {
@@ -755,6 +782,14 @@ public class TypeAnalyzer {
         return result;
     }
 
+	/**
+	 * <pre>
+	 * S \notin {Any, Bottom}
+     * \forall i, \Gamma \turnstile Ti <: S
+     * -------------------------- [\or-?]
+     * \Gamma \turnstile \or{T1..Tn} <: S
+     * </pre>
+	 */
     private ConstraintFormula unionSub(UnionType s, Type t, SubtypeHistory h) {
         ConstraintFormula f = TRUE;
         for (Type elt : s.getElements()) {
@@ -764,6 +799,14 @@ public class TypeAnalyzer {
         return f;
     }
 
+    /**
+     * <pre>
+     * {S'1..S'p} = expand_and(\and{S1..Sm})
+     * \forall i, \exists j, \Gamma \turnstile S'i <: Tj
+     * --------------------------------------------------- [\and-\and]
+     * \Gamma \turnstile \and{S1..Sm} <: \and{T1..Tn}
+     * </pre>
+     */
     private ConstraintFormula intersectionSubIntersection(IntersectionType s, IntersectionType t,
                                                           SubtypeHistory h) {
         ConstraintFormula result = TRUE;
@@ -781,6 +824,15 @@ public class TypeAnalyzer {
         return result;
     }
 
+    /**
+     * <pre>
+     * {S'1..S'p} = expand_and(\and{S1..Sm})
+     * {T'1..T'm} = expand_or(\or{T1..Tn})
+     * \exists i, \exists j, \Gamma \turnstile S'i <: T'j
+     * ---------------------------------------------------- [\and-\or]
+     * \Gamma \turnstile \and{S1..Sm} <: \or{T1..Tn}
+     * </pre>
+     */
     private ConstraintFormula intersectionSubUnion(IntersectionType s, UnionType t,
                                                    SubtypeHistory h) {
         ConstraintFormula result = FALSE;
@@ -798,21 +850,36 @@ public class TypeAnalyzer {
         return result;
     }
 
+    /**
+     * <pre>
+     * \forall i,j, \Gamma \turnstile Si <: Tj
+     * ---------------------------------------------- [\Or-\And]
+     * \Gamma \turnstile \Or{S1..Sm} <: \And{T1..Tn}
+     * </pre>
+     */
     private ConstraintFormula unionSubIntersection(UnionType s, IntersectionType t,
                                                    SubtypeHistory h) {
         ConstraintFormula result = TRUE;
         for (Type sElt : s.getElements()) {
             for (Type tElt : t.getElements()) {
                 result = result.and(sub(sElt, tElt, h), h);
-                if (result.isTrue()) { break; }
+                if (result.isFalse()) { break; }
             }
-            if (result.isTrue()) { break; }
+            if (result.isFalse()) { break; }
         }
         return result;
     }
-
+    
+    /**
+     * <pre>
+     * {T'1..T'p} = expand_or(\or{T1..Tn})
+     * \forall i, \exists j, \Gamma \turnstile Si <: T'j
+     *---------------------------------------------------- [\or-\or]
+     * \Gamma \turnstile \or{S1..Sm} <: \or{T1..Tn}
+     * </pre>
+     */
     private ConstraintFormula unionSubUnion(UnionType s, UnionType t, SubtypeHistory h) {
-        ConstraintFormula result = TRUE;
+    	ConstraintFormula result = TRUE;
         for (Type sElt : s.getElements()) {
             ConstraintFormula r = FALSE;
             for (Pair<Type, ConstraintFormula> tElt : expandUnion(t, h)) {

@@ -31,7 +31,7 @@ public class StaticJUTest extends TestCaseWrapper {
     private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList();
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
         // This test the accumulator which is not desugared yet
-        "DXXGeneratorTuple.fss"
+        //"DXXGeneratorTuple.fss"
     );
 
     public static TestSuite suite() {
