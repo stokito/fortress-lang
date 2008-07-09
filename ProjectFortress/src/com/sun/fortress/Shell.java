@@ -26,6 +26,7 @@ import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.compiler.*;
@@ -55,14 +56,34 @@ import com.sun.fortress.useful.Debug;
 
 public final class Shell {
     static boolean test;
+            
+    /* These numbers have no importance, so dont worry about the order or even
+     * their value( but they must be unique )
+     * If you feel like changing this to an enum at any point that is fine.
+     */
+    private static final int PHASE_TOPLEVEL = 0;
+    private static final int PHASE_DESUGAR = 1;
+    private static final int PHASE_TYPECHECK = 2;
+    private static final int PHASE_GRAMMAR = 3;
+    private static final int PHASE_DISAMBIGUATE = 4;
+    private static final int PHASE_EMPTY = 5;
+
+    /* set this statically if you only want to run upto a certain phase */
+    private static int currentPhase = PHASE_TOPLEVEL;
 
     private final FortressRepository _repository;
     private static final CacheBasedRepository defaultRepository =
         new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
     public static FortressRepository CURRENT_INTERPRETER_REPOSITORY = null;
 
+    public Shell(FortressRepository repository) { _repository = repository; }
+
     public FortressRepository getRepository() {
         return _repository;
+    }
+
+    private static void setPhase( int phase ){
+        currentPhase = phase;
     }
 
     /**
@@ -83,14 +104,15 @@ public final class Shell {
         return specificRepository( p, defaultRepository );
     }
 
-    public Shell(FortressRepository repository) { _repository = repository; }
-
     /* Helper method to print usage message.*/
     private static void printUsageMessage() {
         System.err.println("Usage:");
         System.err.println(" compile [-out file] [-debug [#]] somefile.fs{s,i}");
         System.err.println(" [run] [-test] [-debug [#]] somefile.fss arg...");
         System.err.println(" parse [-out file] [-debug [#]] somefile.fs{s,i}...");
+        System.err.println(" disambiguate [-out file] [-debug [#]] somefile.fs{s,i}...");
+        System.err.println(" desugar [-out file] [-debug [#]] somefile.fs{s,i}...");
+        System.err.println(" grammar [-out file] [-debug [#]] somefile.fs{s,i}...");
         System.err.println(" typecheck [-out file] [-debug [#]] somefile.fs{s,i}...");
         System.err.println(" help");
     }
@@ -148,8 +170,19 @@ public final class Shell {
                 run(args);
             } else if ( what.equals("parse" ) ){
                 parse(args, Option.<String>none());
+            } else if ( what.equals( "disambiguate" ) ){
+                setPhase( PHASE_DISAMBIGUATE );
+                compile(args, Option.<String>none());
+            } else if ( what.equals( "desugar" ) ){
+                setPhase( PHASE_DESUGAR );
+                compile(args, Option.<String>none());
+            } else if ( what.equals( "grammar" ) ){
+                setPhase( PHASE_GRAMMAR );
+                compile(args, Option.<String>none());
             } else if (what.equals("typecheck")) {
+                /* TODO: remove the netx line once type checking is permanently turned on */
                 turnOnTypeChecking();
+                setPhase( PHASE_TYPECHECK );
                 compile(args, Option.<String>none());
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
@@ -621,35 +654,34 @@ public final class Shell {
         return new AnalyzeResult(apiIndex.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
     }
 
-    public static AnalyzeResult analyze(final FortressRepository repository,
-                                        final GlobalEnvironment env,
-                                        final Iterable<Api> apis,
-                                        final Iterable<Component> components,
-                                        final long lastModified) throws StaticError {
-
-        abstract class Phase{
-            Phase parent;
-            public Phase( Phase parent ){
-                this.parent = parent;
-            }
-
-            public abstract AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError ;
-
-            public AnalyzeResult run() throws StaticError {
-                AnalyzeResult result = parent.run();
-                List<Api> apis = new ArrayList<Api>();
-                List<Component> components = new ArrayList<Component>();
-                for ( Map.Entry<APIName,ApiIndex> entry : result.apis().entrySet() ){
-                    apis.add( (Api) entry.getValue().ast() );
-                }
-                for ( Map.Entry<APIName,ComponentIndex> entry : result.components().entrySet() ){
-                    components.add( (Component) entry.getValue().ast() );
-                }
-                return execute( apis, components );
-            }
-        
+    private static abstract class Phase{
+        Phase parent;
+        public Phase( Phase parent ){
+            this.parent = parent;
         }
 
+        public abstract AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError ;
+
+        public AnalyzeResult run() throws StaticError {
+            AnalyzeResult result = parent.run();
+            List<Api> apis = new ArrayList<Api>();
+            List<Component> components = new ArrayList<Component>();
+            for ( Map.Entry<APIName,ApiIndex> entry : result.apis().entrySet() ){
+                apis.add( (Api) entry.getValue().ast() );
+            }
+            for ( Map.Entry<APIName,ComponentIndex> entry : result.components().entrySet() ){
+                components.add( (Component) entry.getValue().ast() );
+            }
+            return execute( apis, components );
+        }
+    }
+
+    private static Phase getPhase(final FortressRepository repository,
+                                  final GlobalEnvironment env,
+                                  final Iterable<Api> apis,
+                                  final Iterable<Component> components,
+                                  final long lastModified,
+                                  final int phase){
         class EmptyPhase extends Phase{
             public EmptyPhase(){
                 super(null);
@@ -722,7 +754,30 @@ public final class Shell {
             }
         }
 
-        return new TopLevelPhase( new DesugarPhase( new TypecheckPhase( new GrammarPhase( new DisambiguatePhase( new EmptyPhase() ) ) ) ) ).run();
+        Lambda<Integer,Phase> nextPhase = new Lambda<Integer,Phase>(){
+            public Phase value(Integer phase){
+                return getPhase(repository, env, apis, components, lastModified, phase );
+            }
+        };
+
+        switch (phase){
+            case PHASE_TOPLEVEL : return new TopLevelPhase(nextPhase.value(PHASE_DESUGAR));
+            case PHASE_DESUGAR : return new DesugarPhase(nextPhase.value(PHASE_TYPECHECK));
+            case PHASE_TYPECHECK : return new TypecheckPhase(nextPhase.value(PHASE_GRAMMAR));
+            case PHASE_GRAMMAR : return new GrammarPhase(nextPhase.value(PHASE_DISAMBIGUATE));
+            case PHASE_DISAMBIGUATE : return new DisambiguatePhase(nextPhase.value(PHASE_EMPTY));
+            case PHASE_EMPTY : return new EmptyPhase();
+            default : throw new RuntimeException( "Invalid phase number: " + phase );
+        }
+    }
+
+    /* run all the analysis available */
+    public static AnalyzeResult analyze(final FortressRepository repository,
+                                        final GlobalEnvironment env,
+                                        final Iterable<Api> apis,
+                                        final Iterable<Component> components,
+                                        final long lastModified) throws StaticError {
+        return getPhase(repository, env, apis, components, lastModified, currentPhase).run();
     }
 
     public static AnalyzeResult analyze1(FortressRepository _repository,
