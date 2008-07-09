@@ -134,6 +134,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
         ApiGraphNode node = addApiGraph(name);
         Debug.debug( 2, "Get API for " + name);
+        refreshGraph();
+        return node.getApi().unwrap();
+        /*
         Shell.AnalyzeResult result = refreshGraph();
         Shell shell = new Shell(this);
         Map<APIName, ApiIndex> parsedApis = parsedApis();
@@ -143,18 +146,24 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             throw new MultipleStaticError(errors);
         }
         return node.getApi().unwrap();
+        */
         //        throw StaticError.make("Use getMyApi, instead", name);
     }
 
+    /*
     public Shell.AnalyzeResult getMyApi(APIName name) throws FileNotFoundException, IOException, StaticError {
         ApiGraphNode node = addApiGraph(name);
         Debug.debug( 2, "Get API for " + name);
         return refreshGraph();
     }
+    */
 
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
         ComponentGraphNode node = addComponentGraph(name);
         Debug.debug( 2, "Get component for " + name );
+        refreshGraph();
+        return node.getComponent().unwrap();
+        /*
         Shell.AnalyzeResult result = refreshGraph();
         Shell shell = new Shell(this);
         Map<APIName, ApiIndex> parsedApis = parsedApis();
@@ -164,6 +173,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             throw new MultipleStaticError(errors);
         }
         return node.getComponent().unwrap();
+        */
     }
 
     /* add an API node to the graph and return the node. if the API exists in the
@@ -306,6 +316,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
+    /* what if the file has been edited to include import statements that the cached
+     * version doesn't have? thats ok because the cached version won't be loaded unless it
+     * is newer than the file on disk.
+     */
     private List<APIName> dependencies(ApiGraphNode node) throws FileNotFoundException, StaticError {
         if ( node.getApi().isSome() ){
             return PreParser.collectApiImports((Api)node.getApi().unwrap().ast());
@@ -324,7 +338,24 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    /**************************************************************************************************************/
+    private boolean inApiList( APIName name, List<ApiGraphNode> nodes ){
+        for ( ApiGraphNode node : nodes ){
+            if ( node.getName().equals( name ) ){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean inComponentList( APIName name, List<ComponentGraphNode> nodes ){
+        for ( ComponentGraphNode node : nodes ){
+            if ( node.getName().equals( name ) ){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /* reparse anything that is out of date */
     private Shell.AnalyzeResult refreshGraph() throws FileNotFoundException, IOException, StaticError {
         Shell.AnalyzeResult result =
@@ -341,6 +372,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             Debug.debug( 1, "Out of date components " + reparseComponents );
             /* these can be parsed all at once */
             result = parseApis(reparseApis);
+            for ( Map.Entry<APIName, ApiIndex> entry : result.apis().entrySet() ){
+                if ( inApiList(entry.getKey(), reparseApis) ){
+                    addApi( entry.getKey(), entry.getValue() );
+                }
+            }
+
             /* but these have to be done in a specific order due to
              * syntax expansion requiring some components, like
              * FortressBuiltin, being parsed.
@@ -354,6 +391,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                  * that parseComponent is going to return.
                  */
                 result = parseComponent(syntaxExpand(node));
+                for ( Map.Entry<APIName, ComponentIndex> entry : result.components().entrySet() ){
+                    if ( inComponentList( entry.getKey(), reparseComponents ) ){
+                        addComponent( entry.getKey(), entry.getValue() );
+                    }
+                }
             }
         }
         return result;
@@ -591,7 +633,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         throw new ProgramError(result.errors());
     }
 
-    /* add a parsed API to the repository */
+    /* add an API to the repository and cache it */
     public void addApi(APIName name, ApiIndex definition) {
         ApiGraphNode graphNode = new ApiGraphNode(name);
         if ( ! graph.contains(graphNode) ){
@@ -603,7 +645,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    /* add a parsed component to the repository */
+    /* add a component to the repository and cache it */
     public void addComponent(APIName name, ComponentIndex definition){
         ComponentGraphNode graphNode = new ComponentGraphNode(name);
         if ( ! graph.contains(graphNode) ){

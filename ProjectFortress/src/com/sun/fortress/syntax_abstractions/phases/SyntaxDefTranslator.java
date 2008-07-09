@@ -283,6 +283,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that, 
                     Option<List<Element>> id_result, Option<List<Element>> type_result,
                     List<Element> symbol_result) {
+                Debug.debug( 2, "Prefixed symbol has " + symbol_result.size() );
                 if (symbol_result.size() == 1) {
                     Element e = symbol_result.get(0);
                     assert(that.getId().isSome());
