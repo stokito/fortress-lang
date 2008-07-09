@@ -311,11 +311,14 @@ public final class Shell {
     private static Iterable<? extends StaticError> compile(Path path, String file, Option<String> out) {
         GraphRepository bcr = specificRepository( path, defaultRepository );
 
+        // Debug.setDebug( 2 );
+
         Debug.debug( 2, "Compiling file " + file );
         APIName name = cuName(file);
         try {
             if ( isApi(file) ) {
-                AnalyzeResult result = bcr.getMyApi(name);
+                /*
+                AnalyzeResult result = bcr.getApi(name);
 
                 Map<APIName, ApiIndex> parsedApis = bcr.parsedApis();
                 GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis);
@@ -325,6 +328,8 @@ public final class Shell {
                     throw new MultipleStaticError(errors);
                 }
                 Api a = (Api) result.apis().get(name).ast();
+                */
+                Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
             } else if (isComponent(file)) {
@@ -465,7 +470,262 @@ public final class Shell {
         public Map<APIName, ComponentIndex> components() { return _components; }
     }
 
-    public static AnalyzeResult analyze(FortressRepository _repository,
+    public static AnalyzeResult disambiguate(FortressRepository repository,
+                                        GlobalEnvironment env,
+                                        Iterable<Api> apis,
+                                        Iterable<Component> components,
+                                        long lastModified) throws StaticError {
+        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(apis, lastModified);
+        if (!rawApiIR.isSuccessful()) {
+            throw new MultipleStaticError(rawApiIR.errors());
+        }
+
+        // Build ComponentIndices before disambiguating to allow circular references.
+        // An IndexBuilder.ComponentResult contains a map of strings (names) to
+        // ComponentIndices.
+        IndexBuilder.ComponentResult rawComponentIR =
+            IndexBuilder.buildComponents(components, lastModified);
+        if (!rawComponentIR.isSuccessful()) {
+            throw new MultipleStaticError(rawComponentIR.errors());
+        }
+
+        // Build a new GlobalEnvironment consisting of all APIs in a global
+        // repository combined with all APIs that have been processed in the previous
+        // step.  For now, we are implementing pure static linking, so there is
+        // no global repository.
+        GlobalEnvironment rawApiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
+                                                            rawApiIR.apis()));
+        Disambiguator.ApiResult apiDR =
+            Disambiguator.disambiguateApis(apis, rawApiEnv, repository.apis());
+
+        IndexBuilder.ApiResult apiIR =
+            IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
+        if (!apiIR.isSuccessful()) {
+            throw new MultipleStaticError(apiIR.errors());
+        }
+
+        // Rebuild GlobalEnvironment.
+        GlobalEnvironment apiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
+                                                            apiIR.apis()));
+
+        Disambiguator.ComponentResult componentDR =
+            Disambiguator.disambiguateComponents(components, apiEnv,
+                                                 rawComponentIR.components());
+        if (!componentDR.isSuccessful()) {
+            throw new MultipleStaticError(componentDR.errors());
+        }
+        
+        IndexBuilder.ComponentResult componentsDone =
+            IndexBuilder.buildComponents(componentDR.components(), lastModified);
+
+        return new AnalyzeResult(apiIR.apis(), componentsDone.components(), IterUtil.<StaticError>empty());
+    }
+    
+    public static AnalyzeResult rewriteGrammar(FortressRepository repository,
+                                        GlobalEnvironment env,
+                                        Iterable<Api> apis,
+                                        Iterable<Component> components,
+                                        long lastModified) throws StaticError {
+        
+        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
+        IndexBuilder.ComponentResult componentsDone = IndexBuilder.buildComponents(components, lastModified);
+        GlobalEnvironment apiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
+                                                            apiIndex.apis()));
+        GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(apiIndex.apis(), apiEnv);
+        if (!apiID.isSuccessful()) {
+            throw new MultipleStaticError(apiID.errors());
+        }
+        
+        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(), System.currentTimeMillis());
+        
+        return new AnalyzeResult(apiDone.apis(), componentsDone.components(), IterUtil.<StaticError>empty());
+    }
+    
+    public static AnalyzeResult typecheck(FortressRepository _repository,
+                                        GlobalEnvironment env,
+                                        Iterable<Api> apis,
+                                        Iterable<Component> components,
+                                        long lastModified) throws StaticError {
+        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
+        IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
+                                                            apiIndex.apis()));
+
+        StaticChecker.ApiResult apiSR = StaticChecker.checkApis( apiIndex.apis(), apiEnv );
+
+        if ( !apiSR.isSuccessful() ){
+            throw new MultipleStaticError(apiSR.errors());
+        }
+
+        StaticChecker.ComponentResult componentSR =
+            StaticChecker.checkComponents( componentIndex.components(), env);
+
+        if ( !componentSR.isSuccessful() ){
+            throw new MultipleStaticError(componentSR.errors());
+        }
+
+        return new AnalyzeResult(apiSR.apis(), componentSR.components(), IterUtil.<StaticError>empty());
+
+    }
+    
+    public static AnalyzeResult desugar(FortressRepository _repository,
+                                        GlobalEnvironment env,
+                                        Iterable<Api> apis,
+                                        Iterable<Component> components,
+                                        long lastModified) throws StaticError {
+        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
+        IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
+                                                            apiIndex.apis()));
+
+        Desugarer.ApiResult apiDSR = Desugarer.desugarApis(apiIndex.apis(), apiEnv);
+
+        if ( ! apiDSR.isSuccessful() ){
+            throw new MultipleStaticError(apiDSR.errors());
+        }
+        
+        // IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiDSR.apis(), lastModified);
+
+        return new AnalyzeResult(apiDSR.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
+    }
+
+    public static AnalyzeResult topLevelEnvironment(FortressRepository _repository,
+                                        GlobalEnvironment env,
+                                        Iterable<Api> apis,
+                                        Iterable<Component> components,
+                                        long lastModified) throws StaticError {
+        
+        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
+        IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
+                                                            apiIndex.apis()));
+
+        TopLevelEnvGen.CompilationUnitResult apiGR =
+            TopLevelEnvGen.generateApiEnvs(apiIndex.apis(), apiEnv);
+
+        if ( !apiGR.isSuccessful() ){
+            throw new MultipleStaticError(apiGR.errors());
+        }
+
+        // Generate top-level byte code environments for components
+        TopLevelEnvGen.CompilationUnitResult componentGR =
+            TopLevelEnvGen.generateComponentEnvs(componentIndex.components(), env);
+
+        if ( !componentGR.isSuccessful() ){
+            throw new MultipleStaticError(componentGR.errors());
+        }
+        
+        return new AnalyzeResult(apiIndex.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
+    }
+
+    public static AnalyzeResult analyze(final FortressRepository repository,
+                                        final GlobalEnvironment env,
+                                        final Iterable<Api> apis,
+                                        final Iterable<Component> components,
+                                        final long lastModified) throws StaticError {
+
+        abstract class Phase{
+            Phase parent;
+            public Phase( Phase parent ){
+                this.parent = parent;
+            }
+
+            public abstract AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError ;
+
+            public AnalyzeResult run() throws StaticError {
+                AnalyzeResult result = parent.run();
+                List<Api> apis = new ArrayList<Api>();
+                List<Component> components = new ArrayList<Component>();
+                for ( Map.Entry<APIName,ApiIndex> entry : result.apis().entrySet() ){
+                    apis.add( (Api) entry.getValue().ast() );
+                }
+                for ( Map.Entry<APIName,ComponentIndex> entry : result.components().entrySet() ){
+                    components.add( (Component) entry.getValue().ast() );
+                }
+                return execute( apis, components );
+            }
+        
+        }
+
+        class EmptyPhase extends Phase{
+            public EmptyPhase(){
+                super(null);
+            }
+
+            public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
+                return null;
+            }
+
+            public AnalyzeResult run() throws StaticError {
+                Debug.debug( 1, "Start phase Empty" );
+                IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
+                IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
+                return new AnalyzeResult(apiIndex.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
+            }
+        }
+
+        class DisambiguatePhase extends Phase {
+            public DisambiguatePhase( Phase parent ){
+                super(parent);
+            }
+
+            public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
+                Debug.debug( 1, "Start phase Disambiguate" );
+                return disambiguate(repository, env, apis, components, lastModified);
+            }
+        }
+
+        class TypecheckPhase extends Phase {
+            public TypecheckPhase( Phase parent ){
+                super(parent);
+            }
+
+            public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
+                Debug.debug( 1, "Start phase TypeCheck" );
+                return typecheck(repository, env, apis, components, lastModified);
+            }
+        }
+        
+        class DesugarPhase extends Phase {
+            public DesugarPhase( Phase parent ){
+                super(parent);
+            }
+
+            public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
+                Debug.debug( 1, "Start phase Desugar" );
+                return desugar(repository, env, apis, components, lastModified);
+            }
+        }
+        
+        class TopLevelPhase extends Phase {
+            public TopLevelPhase( Phase parent ){
+                super(parent);
+            }
+
+            public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
+                Debug.debug( 1, "Start phase TopLevelEnvironment" );
+                return topLevelEnvironment(repository, env, apis, components, lastModified);
+            }
+        }
+
+        class GrammarPhase extends Phase {
+            public GrammarPhase( Phase parent ){
+                super(parent);
+            }
+
+            public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
+                Debug.debug( 1, "Start phase GrammarPhase" );
+                return rewriteGrammar(repository, env, apis, components, lastModified);
+            }
+        }
+
+        return new TopLevelPhase( new DesugarPhase( new TypecheckPhase( new GrammarPhase( new DisambiguatePhase( new EmptyPhase() ) ) ) ) ).run();
+    }
+
+    public static AnalyzeResult analyze1(FortressRepository _repository,
                                         GlobalEnvironment env,
                                         Iterable<Api> apis,
                                         Iterable<Component> components,
@@ -483,6 +743,7 @@ public final class Shell {
         // ComponentIndices.
         IndexBuilder.ComponentResult rawComponentIR =
             IndexBuilder.buildComponents(components, lastModified);
+
         if (!rawComponentIR.isSuccessful()) { return new AnalyzeResult(rawComponentIR.errors()); }
 
         // Build a new GlobalEnvironment consisting of all APIs in a global
@@ -554,7 +815,7 @@ public final class Shell {
         return new AnalyzeResult(apiIR.apis(), componentIR.components(), IterUtil.<StaticError>empty());
     }
 
-    public static Iterable<? extends StaticError> analyze(FortressRepository _repository,
+    public static Iterable<? extends StaticError> analyze2(FortressRepository _repository,
                                                           Map<APIName, ApiIndex> apis,
                                                           Map<APIName, ComponentIndex> components,
                                                           GlobalEnvironment env) {
