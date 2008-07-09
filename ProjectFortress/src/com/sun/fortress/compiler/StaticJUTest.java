@@ -41,7 +41,8 @@ public class StaticJUTest extends TestCaseWrapper {
         "DXXMutualSeparateLetFn.fss",
         "XXXMultipleRefErrors.fss", */
         // This test the accumulator which is not desugared yet
-         "Sum.fss"
+        "Sum.fss",
+        "DXXGeneratorTuple.fss"
         //These are broken until the constraint solver is fixed
         //"TupleAssignment.fss",
         //"GeneratorTest.fss",
