@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,9 +93,12 @@ import xtc.parser.SemanticValue;
 
 public class Coverage {
 
+    static final String PARSER_CLASS =
+        InstrumentedParserGenerator.INSTR_PARSER;
+
     private static final boolean EXCLUDE_SLOW_FILES = false;
 
-    private static final List<String> TEST_DIRS = new LinkedList<String>();
+    static final List<String> TEST_DIRS = new LinkedList<String>();
     static {
         TEST_DIRS.add("tests");
         TEST_DIRS.add("static_tests");
@@ -111,51 +115,12 @@ public class Coverage {
 
     private static final boolean SHOW_COVERAGE = true;
     private static final boolean SHOW_MEMO = true;
+    private static final boolean SHOW_TRANSIENT_LIST = true;
 
-    /* Use reflection for two reasons:
-     * 1) To allow this collection to be compiled in "compile" target,
-     *    when FortressInstrumented may not yet exist.
-     * 2) To allow for eventual separation into separate utility.
-     */
-    private static final String PARSER_CLASS =
-        "com.sun.fortress.parser.FortressInstrumented";
-    private static final String PARSER_METHOD = "pFile";
-    private static final String PARSER_INFO_METHOD = "moduleInfos";
+    static class AnalyzingParser extends Parser {
 
-    private static class Parser {
-        Class<?> parserClass;
-        Constructor<?> constructor;
-        Method parserMethod;
-        Method infoMethod;
-        public long parseTime = 0;
-
-        Parser(Class<?> parserClass, String parserMethod, String infoMethod) {
-            try {
-                this.parserClass = parserClass;
-                this.constructor = parserClass.getConstructor(Reader.class, String.class);
-                this.parserMethod = parserClass.getDeclaredMethod(parserMethod, Integer.TYPE);
-                this.infoMethod = parserClass.getDeclaredMethod(infoMethod);
-            } catch (NoSuchMethodException nsme) {
-                throw new RuntimeException(nsme);
-            }
-        }
-
-        void parse(Reader in, String filename) {
-            try {
-                Object p = this.constructor.newInstance(in, filename);
-                long startTime = System.currentTimeMillis();
-                this.parserMethod.invoke(p, 0);
-                parseTime = parseTime + (System.currentTimeMillis() - startTime);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Collection<Info.ModuleInfo> info() {
-            try {
-                return (Collection<Info.ModuleInfo>)this.infoMethod.invoke(null);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        AnalyzingParser(String parserClass) {
+            super(parserClass);
         }
 
         public Map<String, Integer> hits = new HashMap<String, Integer>();
@@ -167,7 +132,7 @@ public class Coverage {
 
         void analyzeMemoRates() {
             try {
-                Field[] fields = parserClass.getDeclaredFields();
+                Field[] fields = this.parserClass.getDeclaredFields();
                 for (Field field : fields) {
                     String fieldName = field.getName();
                     if (fieldName.endsWith("MemoMisses")) {
@@ -207,12 +172,7 @@ public class Coverage {
         if (args.length > 1) {
             System.err.println("Warning: Ignoring command-line arguments!");
         }
-        Parser parser;
-        try {
-            parser = new Parser(Class.forName(PARSER_CLASS), PARSER_METHOD, PARSER_INFO_METHOD);
-        } catch (ClassNotFoundException cnfe) {
-            throw new RuntimeException(cnfe);
-        }
+        AnalyzingParser parser = new AnalyzingParser(PARSER_CLASS);
         parseFiles(parser);
         reportCoverage(parser);
     }
@@ -243,49 +203,47 @@ public class Coverage {
             if (file.getName().endsWith("taskTrace2.fss")) return;
         }
 
-        Reader in = null;
         try {
-            in = Useful.utf8BufferedFileReader(filename);
-            parser.parse(in, filename);
-        } catch (FileNotFoundException fnfe) {
-            throw new RuntimeException(fnfe);
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+            parser.parse(file);
         } catch (RuntimeException re) {
             String parent = file.getParent();
             int size = parent.length();
             if (size < 12 || !(parent.substring(size-12,size).equals("parser_tests")))
                 System.out.println("Parse error in file: " + filename);
             if (RETHROW_PROGRAM_ERRORS) { throw re; }
-        } finally {
-            if (in != null) try { in.close(); } catch (IOException ioe) {}
         }
     }
 
-    private static void reportCoverage(Parser parser) {
-        Collection<Info.ModuleInfo> rawModuleInfos = parser.info();
-        List<Info.ModuleInfo> moduleInfos;
-        moduleInfos = new LinkedList<Info.ModuleInfo>(rawModuleInfos);
-        Collections.sort(moduleInfos,
-                         new Comparator<Info.ModuleInfo>() {
-                             public int compare(Info.ModuleInfo a, Info.ModuleInfo b) {
-                                 return a.module.compareTo(b.module);
-                             }
-                         });
+    private static void reportCoverage(AnalyzingParser parser) {
         System.out.println("** Time");
         System.out.println("  Parse time: " + parser.parseTime + " ms");
         System.out.println();
-        if (SHOW_COVERAGE) {
-            System.out.println("** Coverage summary: Alternate coverage by module");
-            for (Info.ModuleInfo moduleInfo : moduleInfos) {
-                printStats(moduleInfo);
+
+        Collection<Info.ModuleInfo> rawModuleInfos = parser.info();
+        if (rawModuleInfos == null) {
+            System.out.println("** Coverage");
+            System.out.println("No coverage info available. Are you using an instrumented parser?");
+        } else {
+            List<Info.ModuleInfo> moduleInfos;
+            moduleInfos = new LinkedList<Info.ModuleInfo>(rawModuleInfos);
+            Collections.sort(moduleInfos,
+                             new Comparator<Info.ModuleInfo>() {
+                                 public int compare(Info.ModuleInfo a, Info.ModuleInfo b) {
+                                     return a.module.compareTo(b.module);
+                                 }
+                             });
+            if (SHOW_COVERAGE) {
+                System.out.println("** Coverage summary: Alternate coverage by module");
+                for (Info.ModuleInfo moduleInfo : moduleInfos) {
+                    printStats(moduleInfo);
+                }
+                System.out.println();
+                System.out.println("** Coverage details");
+                for (Info.ModuleInfo moduleInfo : moduleInfos) {
+                    printUnused(moduleInfo);
+                }
+                System.out.println();
             }
-            System.out.println();
-            System.out.println("** Coverage details");
-            for (Info.ModuleInfo moduleInfo : moduleInfos) {
-                printUnused(moduleInfo);
-            }
-            System.out.println();
         }
         if (SHOW_MEMO) {
             System.out.println("** Memoization details");
@@ -397,14 +355,16 @@ public class Coverage {
         }
     }
 
-    private static void printMemoRates(Parser p) {
+    private static void printMemoRates(AnalyzingParser p) {
         p.analyzeMemoRates();
 
         if (!p.memoInfoFound) {
             System.out.println("  No memoization info found!");
             System.out.println("  Are you using the modified Rats! parser generator?");
+            return;
         }
 
+        List<String> transientList = new ArrayList<String>();
         for (String key : new TreeSet<String>(p.hits.keySet())) {
             int hitCount = p.hits.get(key);
             int missCount = p.misses.get(key);
@@ -414,11 +374,33 @@ public class Coverage {
             name = (name != null) ? name : ("f = " + key);
             System.out.print(coverage(0, name, hitCount, hitCount + missCount));
             if (missCount > 0) {
-                float avgMissCost = ((float)missCost) / missCount;
-                float avgMissLocalCost = ((float)missLocalCost) / missCount;
+                double avgMissCost = ((float)missCost) / (missCount * 1.0e6);
                 System.out.print(String.format("; avg miss cost %.3f ms", avgMissCost));
             }
+            if (lowCacheBenefit(hitCount, missCount, missCost)) {
+                transientList.add(name);
+            }
             System.out.println();
+        }
+        System.out.println();
+
+        if (SHOW_TRANSIENT_LIST) {
+            System.out.println("** Transient List Recommendation");
+            for (String name : transientList) {
+                System.out.println(name);
+            }
+            System.out.println();
+        }
+    }
+
+    private static boolean lowCacheBenefit(int hits, int misses, long cost) {
+        int total = hits + misses;
+        if (total == 0) {
+            return true;
+        } else {
+            float ratio = ((float) hits) / ((float) total);
+            double avgCost = ((double) cost) / ((double) misses * 1.0e6);
+            return ratio < 0.10 || avgCost < 0.10;
         }
     }
 

@@ -117,6 +117,8 @@
            value="${packagePrefix}/parser_util/instrumentation"/>
  <property name="instrumentation.outfile"
            location="${parserUtil}/instrumentation/coverage-report.txt"/>
+ <property name="instrumentation.transient"
+           location="${parserUtil}/instrumentation/transient.txt"/>
 
  <path id="instrumentedparser.classpath">
     <pathelement location="${build}"/>
@@ -828,7 +830,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     -->
 
     <target name="instrumentedparser" unless="instrumentedparser.uptodate"
-            depends="compileCommon, checkInstrumentedParserUptodate"
+            depends="compile, checkInstrumentedParserUptodate"
             description="Instrumented Parser">
             <java fork="yes"
                   maxmemory="256m"
@@ -838,6 +840,21 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 <arg value="${parser}"/> <!-- input dir -->
                 <arg value="${parser}"/> <!-- output dir for FortressInstrumented.java -->
             </java>
+    </target>
+
+    <target name="optimizeParser"
+            depends="compile"
+            description="Optimized Parser">
+            <java fork="yes"
+                  maxmemory="256m"
+                  failonerror="yes"
+                  classname="${instrumentation.package}.OptimizedParserGenerator">
+                <classpath refid="instrumentedparser.classpath"/>
+                <arg value="${parser}"/> <!-- input dir -->
+                <arg value="${parser}"/> <!-- output dir for Fortress.java -->
+                <arg value="${instrumentation.transient}"/>
+            </java>
+            <ant target="compile"/>
     </target>
 
     <target name="parser" unless="parser.uptodate"

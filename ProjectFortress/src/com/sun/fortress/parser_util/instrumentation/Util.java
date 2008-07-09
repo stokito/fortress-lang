@@ -120,4 +120,10 @@ public class Util {
     public static String getModulePath(String dottedName) {
         return dottedName.replace('.', File.separatorChar);
     }
+
+    private static int freshid = 0;
+    public static String getFreshName(String s) {
+        return s+(++freshid);
+    }
+
 }
