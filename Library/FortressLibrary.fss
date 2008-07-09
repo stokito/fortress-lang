@@ -477,6 +477,9 @@ trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
             r
         end
       end
+    (** returns a value of type RR32 **)
+    narrow(self): RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Narrow")
 end
 
 trait AnyIntegral extends { RR64 } end
