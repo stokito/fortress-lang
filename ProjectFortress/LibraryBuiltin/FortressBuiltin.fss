@@ -27,6 +27,141 @@ end
 object FloatLiteral extends RR64
 end
 
+value object RR32 extends RR64
+    getter zero(): Number = narrow(0.0)
+    getter one(): Number = narrow(1.0)
+
+    (** returns true if the value is an IEEE NaN **)
+    getter isNaN(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$isNaN")
+    (** returns true if the value is an IEEE infinity **)
+    getter isInfinite(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$isInfinite")
+    (** returns true if the value is a valid number (not NaN) **)
+    getter isNumber(): Boolean = NOT self.isNaN()
+    (** returns true if the value is finite **)
+    getter isFinite(): Boolean = NOT (self.isInfinite() OR self.isNaN())
+    (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
+    getter check(): Maybe[\RR32\] =
+        if self.isFinite() then Just[\RR32\](self) else Nothing[\RR32\] end
+    (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
+    getter check_star(): Maybe[\RR32\] =
+        if self.isNaN() then Nothing[\RR32\] else Just[\RR32\](self) end
+    (** obtain the raw bits of the IEEE floating-point representation of this value. **)
+    getter rawBits():ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$RawBits")
+    (** next higher IEEE float **)
+    getter nextUp():RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$NextUp")
+    (** next lower IEEE float **)
+    getter nextDown():RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$NextDown")
+
+    opr |self| : Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Abs")
+    opr =(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Eq")
+    opr =/=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$NEq")
+    opr <(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Less")
+    opr <=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$LessEq")
+    opr >(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Greater")
+    opr >=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$GreaterEq")
+    opr CMP(self, b:Number):Comparison =
+        if self<b then LessThan
+        elif self>b then GreaterThan
+        elif self=b then EqualTo
+        else Unordered
+        end
+    (** In case of NaN, %MIN% and %MAX% return a NaN, otherwise it respects the
+        total order. **)
+    opr MIN(self, b:Number):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Min")
+    opr MAX(self, b:Number):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Max")
+
+    opr -(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Negate")
+    opr +(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Add")
+    opr -(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Sub")
+    opr DOT(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Mul")
+    opr TIMES(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Mul")
+    opr juxtaposition
+         (self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Mul")
+    opr /(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Div")
+    opr SQRT(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Sqrt")
+    opr PLUS_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$AddUp")
+    opr MINUS_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SubUp")
+    opr DOT_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$MulUp")
+    opr SLASH_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$DivUp")
+    opr SQRT_UP(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SqrtUp")
+    opr PLUS_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$AddDown")
+    opr MINUS_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SubDown")
+    opr DOT_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$MulDown")
+    opr SLASH_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$DivDown")
+    opr SQRT_DOWN(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SqrtDown")
+    opr ^(self, b:RR32):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Pow")
+    (** Shouldn't need this extra declaration. **)
+    opr ^(self, b:ZZ64):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Pow")
+    floor(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Floor")
+    opr |\self/| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$IFloor")
+    ceiling(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Ceiling")
+    opr |/self\| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$ICeiling")
+    truncate(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Truncate")
+
+    (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
+        Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
+        that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
+    opr MINNUM(self, b:RR32):RR32 = do
+        r = self MIN b
+        if r.isNaN() then
+            if self.isNumber() then self
+            elif b.isNumber() then b
+            else r end
+        else
+            r
+        end
+      end
+    opr MAXNUM(self, b:RR32):RR32 = do
+        r = self MAX b
+        if r.isNaN() then
+            if self.isNumber() then self
+            elif b.isNumber() then b
+            else r end
+        else
+            r
+        end
+      end
+end
+
 value object ZZ32 extends { StandardTotalOrder[\ZZ32\], ZZ64 }
     getter zero(): ZZ32 = 0
     getter one(): ZZ32 = 1
