@@ -98,6 +98,7 @@ import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
@@ -133,32 +134,35 @@ import edu.rice.cs.plt.tuple.Pair;
 public class ExprDisambiguator extends NodeUpdateVisitor {
 
 	private NameEnv _env;
-	private Set<IdOrOpOrAnonymousName> _onDemandImports;
+	//private Set<IdOrOpOrAnonymousName> _onDemandImports;
 	private List<StaticError> _errors;
 	private Option<Id> _innerMostLabel;
 
-	public ExprDisambiguator(NameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
+	public ExprDisambiguator(NameEnv env, //Set<IdOrOpOrAnonymousName> onDemandImports,
 			List<StaticError> errors) {
 		_env = env;
-		_onDemandImports = onDemandImports;
+		//_onDemandImports = onDemandImports;
 		_errors = errors;
 		_innerMostLabel = Option.<Id>none();
 	}
 
-	private ExprDisambiguator(NameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports,
+	private ExprDisambiguator(NameEnv env, //Set<IdOrOpOrAnonymousName> onDemandImports,
 			List<StaticError> errors, Option<Id> innerMostLabel) {
-		this(env, onDemandImports, errors);
+		this(env, //onDemandImports, 
+				errors);
 		_innerMostLabel = innerMostLabel;
 	}
 
 	private ExprDisambiguator extendWithVars(Set<Id> vars) {
 		NameEnv newEnv = new LocalVarEnv(_env, vars);
-		return new ExprDisambiguator(newEnv, _onDemandImports, _errors, this._innerMostLabel);
+		return new ExprDisambiguator(newEnv, //_onDemandImports, 
+				_errors, this._innerMostLabel);
 	}
 	
 	private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames){
 		NameEnv newEnv = new LocalFnEnv(_env, CollectUtil.makeSet(IterUtil.relax(definedNames)));
-		return new ExprDisambiguator(newEnv, _onDemandImports, _errors, this._innerMostLabel);
+		return new ExprDisambiguator(newEnv, //_onDemandImports, 
+				_errors, this._innerMostLabel);
 	}
 
 	private ExprDisambiguator extendWithSelf(Span span) {
@@ -181,7 +185,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		Option<Expr> rhsResult = recurOnOptionOfExpr(that.getRhs());
 		Set<Id> definedNames = extractDefinedVarNames(lhsResult);
 		NameEnv newEnv = new LocalVarEnv(_env, definedNames);
-		ExprDisambiguator v = new ExprDisambiguator(newEnv, _onDemandImports, _errors);
+		ExprDisambiguator v = new ExprDisambiguator(newEnv, //_onDemandImports,
+				_errors);
 		List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
 		return forLocalVarDeclOnly(that, bodyResult, lhsResult, rhsResult);
 	}
@@ -305,17 +310,27 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				if( isSetterOrGetter(that.getMods()) )
 					accessors.add(that.getName());
 				
-				return Collections.singleton(that.getName());
+				if( FortressUtil.isFunctionalMethod(that.getParams()) ) {
+					// don't add functional methods! they go at the top level...
+					return Collections.emptySet();
+				}
+				else {
+					return Collections.singleton(that.getName());
+				}
 			}
 
 			@Override
 			public Set<IdOrOpOrAnonymousName> forFnDef(FnDef that) {
 				if( isSetterOrGetter(that.getMods()) )
 					accessors.add(that.getName());
-				
-				return Collections.singleton(that.getName());
+				if( FortressUtil.isFunctionalMethod(that.getParams()) ) {
+					// don't add functional methods! they go at the top level...
+					return Collections.emptySet();
+				}
+				else {
+					return Collections.singleton(that.getName());
+				}
 			}
-		
 		};
 		List<Set<Id>> vars_ = var_finder.recurOnListOfDecl(decls);
 		List<Set<IdOrOpOrAnonymousName>> fns_ = fn_finder.recurOnListOfDecl(decls);
@@ -900,7 +915,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 			if (vars.isEmpty() && fns.isEmpty()) {
 				vars = _env.onDemandVariableNames(name);
 				fns = _env.onDemandFunctionNames(name);
-				_onDemandImports.add(name);
+				//_onDemandImports.add(name);
 			}
 
 			if (vars.size() == 1 && fns.isEmpty()) {
@@ -961,7 +976,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		Set<Id> objs = _env.explicitTypeConsNames(obj_name);
 		if( objs.isEmpty() ) {
 			objs = _env.onDemandTypeConsNames(obj_name);
-			_onDemandImports.add(obj_name);
+			//_onDemandImports.add(obj_name);
 		}
 
 		if( objs.isEmpty() ) {
@@ -986,7 +1001,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		Set<Id> fns = _env.explicitFunctionNames(fn_name);
 		if( fns.isEmpty() ) {
 			fns = _env.onDemandFunctionNames(fn_name);
-			_onDemandImports.add(fn_name);
+			//_onDemandImports.add(fn_name);
 		}
 
 		if( fns.isEmpty() ) {
@@ -994,7 +1009,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 			Set<Id> types = _env.explicitTypeConsNames(fn_name);
 			if( types.isEmpty() ) {
 				types = _env.onDemandTypeConsNames(fn_name);
-				_onDemandImports.add(fn_name);
+				//_onDemandImports.add(fn_name);
 			}
 			if( !types.isEmpty() ) {
 				// create _RewriteObjectRef
@@ -1020,7 +1035,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		Set<OpName> ops = _env.explicitFunctionNames(entity);
 		if (ops.isEmpty()) {
 			ops = _env.onDemandFunctionNames(entity);
-			_onDemandImports.add(entity);
+			//_onDemandImports.add(entity);
 		}
 
 		if (ops.isEmpty()) {
@@ -1033,7 +1048,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	@Override public Node forLabel(Label that) {
 		Id newName = (Id) that.getName().accept(this);
 		ExprDisambiguator dis = new ExprDisambiguator(_env,
-				_onDemandImports, _errors,
+				//_onDemandImports, 
+				_errors,
 				Option.wrap(that.getName()));
 		Block newBody = (Block) that.getBody().accept(dis);
 		return super.forLabelOnly(that, newName, newBody);
