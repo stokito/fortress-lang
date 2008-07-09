@@ -48,28 +48,28 @@ import edu.rice.cs.plt.iter.IterUtil;
  * </li>
  */
 public class StaticChecker {
-    
-    /** 
-     * This field is a temporary switch used for testing. 
-     * When typecheck is true, the TypeChecker is called during static checking. 
+
+    /**
+     * This field is a temporary switch used for testing.
+     * When typecheck is true, the TypeChecker is called during static checking.
      * It's false by default to allow the static checker to be used at the command
      * line before the type checker is fully functional.
      * StaticTest sets typecheck to true before running type checking tests.
      */
     public static boolean typecheck = ProjectProperties.getBoolean("fortress.test.typecheck", false);
-    
-    
+
+
     public static class ApiResult extends StaticPhaseResult {
         private Map<APIName, ApiIndex> _apis;
-        public ApiResult(Iterable<? extends StaticError> errors, Map<APIName, ApiIndex> apis) { 
-            super(errors); 
+        public ApiResult(Iterable<? extends StaticError> errors, Map<APIName, ApiIndex> apis) {
+            super(errors);
             _apis = apis;
         }
         public Map<APIName, ApiIndex> apis() { return _apis; }
     }
-    
+
     /**
-     * Check the given apis. To support circular references, the apis should appear 
+     * Check the given apis. To support circular references, the apis should appear
      * in the given environment.
      */
     public static ApiResult checkApis(Map<APIName, ApiIndex> apis,
@@ -77,65 +77,73 @@ public class StaticChecker {
         // TODO: implement
         return new ApiResult(IterUtil.<StaticError>empty(), apis);
     }
-    
-    
+
+
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
+        private final List<APIName> _failedComponents;
         public ComponentResult(Map<APIName, ComponentIndex> components,
+                               List<APIName> failedComponents,
                                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
+            _failedComponents = failedComponents;
         }
         public Map<APIName, ComponentIndex> components() { return _components; }
+        public List<APIName> failed() { return _failedComponents; }
     }
-    
+
     /** Statically check the given components. */
     public static ComponentResult
         checkComponents(Map<APIName, ComponentIndex> components,
-                        GlobalEnvironment env) 
+                        GlobalEnvironment env)
     {
         HashSet<Component> checkedComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
-        
+        List<APIName> failedComponents = new ArrayList<APIName>();
+
         for (APIName componentName : components.keySet()) {
             TypeCheckerResult checked = checkComponent(components.get(componentName), env);
             checkedComponents.add((Component)checked.ast());
+            if (!checked.isSuccessful())
+                failedComponents.add(componentName);
             errors = IterUtil.compose(checked.errors(), errors);
         }
         return new ComponentResult
-            (IndexBuilder.buildComponents(checkedComponents, 
+            (IndexBuilder.buildComponents(checkedComponents,
                                           System.currentTimeMillis()).
-                 components(),
-                                   errors);
+             components(),
+             failedComponents,
+             errors);
     }
-    
-    public static TypeCheckerResult checkComponent(ComponentIndex component, 
-                                                   GlobalEnvironment env) 
+
+    public static TypeCheckerResult checkComponent(ComponentIndex component,
+                                                   GlobalEnvironment env)
     {
         if (typecheck) {
             TypeEnv typeEnv = TypeEnv.make(component);
-            
+
             // Add all top-level function names to the component-level environment.
             typeEnv = typeEnv.extendWithFunctions(component.functions());
-            
+
             // Iterate over top-level variables, adding each to the component-level environment.
             typeEnv = typeEnv.extend(component.variables());
-            
+
             // Add all top-level object names declared in the component-level environment.
             typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
-            
+
             Node component_ast = component.ast();
-            
+
             // Replace implicit types with explicit ones.
             component_ast = component_ast.accept(new InferenceVarInserter());
             // Is it a problem that component's ast doesn't match the one we are typechecking?
-            TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env), 
+            TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env),
                                                       StaticParamEnv.make(),
                                                       typeEnv,
                                                       component);
-           
+
             TypeCheckerResult result = component_ast.accept(typeChecker);
-            
+
             // We need to make sure type inference succeeded.
             if( !result.getNodeConstraints().isSatisfiable() ) {
             	// Oh no! Type inference failed. Our error message will suck.
@@ -146,12 +154,12 @@ public class StaticChecker {
             else{
             	InferenceVarReplacer rep = new InferenceVarReplacer(result.getMap());
             	Node replaced = result.ast().accept(rep);
-            	
+
             	return TypeCheckerResult.replaceAST(result, replaced);
             }
         } else {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
         }
     }
-    
+
 }

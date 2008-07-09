@@ -615,6 +615,15 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
+    public void deleteComponent(APIName name) {
+        ComponentGraphNode graphNode = new ComponentGraphNode(name);
+        if ( ! graph.contains(graphNode) ){
+            throw new RuntimeException("No such component " + name);
+        } else {
+            cache.deleteComponent(name);
+        }
+    }
+
     public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException {
         link = true;
         addRootComponents();

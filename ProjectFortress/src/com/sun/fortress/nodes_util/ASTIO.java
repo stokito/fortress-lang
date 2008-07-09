@@ -54,6 +54,21 @@ public class ASTIO {
         finally { fout.close(); }
     }
 
+    public static void deleteJavaAst(String fileName) throws IOException {
+        try {
+            File target = new File(fileName);
+            if (!target.exists()) {
+                System.err.println("File " + fileName + "not found!");
+                return;
+            }
+            if (!target.delete())
+                System.err.println("Failed to delete " + fileName);
+        } catch (SecurityException e) {
+            System.err.println("Unable to delete " + fileName + "("
+                               + e.getMessage() + ")");
+        }
+    }
+
     /**
      * Convenience method for calling parseToJavaAst with a default BufferedReader.
      */
