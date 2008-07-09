@@ -346,8 +346,9 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	    <available file="${library}/FortressAst.fss" />
 	    <uptodate srcfile="${astgen.src}/Fortress.ast"
 		    targetfile="${library}/FortressAst.fss" />
-            <uptodate srcfile="${basedir}/src/com/sun/fortress/astgen/FortressAstGenerator.java"
-                    targetfile="${library}/FortressAst.fsi" />
+            <uptodate targetfile="${library}/FortressAst.fsi">
+	          <srcfiles dir="${basedir}/src/com/sun/fortress/astgen/" includes="**/*.java"/>
+            </uptodate>
           </and>
         </condition>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
