@@ -15,16 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXEqualityTesting
+component ExternalConstructor
+  import File.{...}
   export Executable
+  
 
-  foo(a:ZZ32,b:ZZ32,c:ZZ32):() = do
-    (a = b)
-    (b = c)
-    (c = a)
-    ()
-  end
+  (* Constructors from other APIs still work. 
+     Earlier we had a problem where their Ids would
+     not be fully qualified. *)
+
+  foo(file_name:String):FileReadStream = FileReadStream(file_name)
 
   run(args:String...):() = ()
-
 end

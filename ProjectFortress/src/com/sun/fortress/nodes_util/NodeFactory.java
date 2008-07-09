@@ -525,6 +525,10 @@ public class NodeFactory {
 				name.getText());
 	}
 
+	public static Id makeId(Option<APIName> api, Id name) {
+		return new Id(name.getSpan(), api, name.getText());
+	}
+	
 	public static Id makeId(Span span, APIName api, String name) {
 		return new Id(span, Option.some(api), name);
 	}

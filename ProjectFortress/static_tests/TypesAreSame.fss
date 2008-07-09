@@ -15,16 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXEqualityTesting
+component TypesAreSame
   export Executable
 
-  foo(a:ZZ32,b:ZZ32,c:ZZ32):() = do
-    (a = b)
-    (b = c)
-    (c = a)
-    ()
+  (* Check that self's type, which is fully qualified,
+     matches the declared type which is not. *)
+
+  object BigObject
+    getABigObject() : BigObject = self
   end
 
   run(args:String...):() = ()
-
 end

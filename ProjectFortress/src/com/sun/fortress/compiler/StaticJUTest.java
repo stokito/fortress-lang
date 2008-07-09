@@ -30,26 +30,8 @@ public class StaticJUTest extends TestCaseWrapper {
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/";
     private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList();
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
-        /* "XXXMultipleRefErrors.fss",
-        "GenericFunctionCall.fss",
-        "CrossOverloaded.fss",
-        "SimpleObject.fss",
-        "MutualLetFn.fss",
-        "DXXChainTest1.fss",
-        "PlusEq.fss",
-        "CaseExpr.fss",
-        "DXXMutualSeparateLetFn.fss",
-        "XXXMultipleRefErrors.fss", */
         // This test the accumulator which is not desugared yet
-        "Sum.fss",
         "DXXGeneratorTuple.fss"
-        //These are broken until the constraint solver is fixed
-        //"TupleAssignment.fss",
-        //"GeneratorTest.fss",
-        //"MethodInvocationStaticInfer1.fss",
-        //"MethodInvocationStaticInfer2.fss",
-        //"While.fss",
-        //"PlusEq.fss" // Regression after library change: See ticket #143
     );
 
     public static TestSuite suite() {
