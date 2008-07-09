@@ -1829,6 +1829,9 @@ println(a:Any):()
 print():()
 println():()
 
+forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\]
+forDigit(x:ZZ32, radixString:String): Maybe[\Char\]
+
 (** opr // appends a single newline separator. **)
 opr (x:Any)// : String
 

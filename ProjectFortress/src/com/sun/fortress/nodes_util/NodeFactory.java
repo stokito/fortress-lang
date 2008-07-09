@@ -1113,16 +1113,21 @@ public class NodeFactory {
 		return new StringLiteralExpr(s);
 	}
 
-	public static CharLiteralExpr makeCharLiteralExpr(char c) {
-		return new CharLiteralExpr(""+c);
-	}
+        /*
+         *  Right now this doesn't do the right thing if char is outside 
+         *  of range (i.e. more than 16 bits).   This should get fixed when 
+         *  the Fortress String handles character with more than 16 bits. 
+         */
+        public static CharLiteralExpr makeCharLiteralExpr(int c) {
+                return new CharLiteralExpr(""+ (char)c);
+        }
 
-	public static VoidLiteralExpr makeVoidLiteralExpr() {
-		return new VoidLiteralExpr();
+        public static VoidLiteralExpr makeVoidLiteralExpr() {
+	        return new VoidLiteralExpr();
 	}
 
 	public static Import makeImportStar(APIName api, List<IdOrOpOrAnonymousName> excepts) {
-		return new ImportStar(api, excepts);
+         	return new ImportStar(api, excepts);
 	}
 
 	public static Expr makeFnRef(FnRef original, int lexicalNestedness) {

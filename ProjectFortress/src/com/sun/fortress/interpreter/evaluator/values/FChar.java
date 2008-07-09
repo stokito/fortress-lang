@@ -21,10 +21,9 @@ import com.sun.fortress.nodes_util.Unprinter;
 public class FChar extends NativeConstructor.FNativeObject {
     private static volatile NativeConstructor con;
 
-    // For now Fortress chars are equivalent to Java chars.
-    // We will eventually need to expand the definition to include the unicode
-    // characters which require more than 16 bits.
-    private final char val;
+    // Fortress chars are not equivalent to Java chars.
+    // Fortress supports 21-bit Unicode, so we use int to represent char instead of just Java char.
+    private final int val;
 
     public static final FChar ZERO = new FChar(0);
 
@@ -95,14 +94,9 @@ public class FChar extends NativeConstructor.FNativeObject {
         new FChar(252),   new FChar(253),   new FChar(254),   new FChar(255)
     };
 
-    FChar(char x) {
-        super(null);
-        val = x;
-    }
-
     FChar(int x) {
         super(null);
-        val = (char)x;
+        val = x;
     }
 
     static public FChar make(int x) {
@@ -124,12 +118,15 @@ public class FChar extends NativeConstructor.FNativeObject {
         return FChar.con;
     }
 
-    public char getChar() {
+    public int getChar() {
         return val;
     }
 
+    /*
+     * This needs to get fixed; right now val is an int type, but the String.valueOf only handles 16-bit chars 
+     */
     public String getString() {
-        return String.valueOf(val);
+        return String.valueOf((char) val);
     }
 
     public String toString() {

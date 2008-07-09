@@ -114,6 +114,7 @@ public final class DottedMethodApplication extends Fcn {
                          errorMsg("Cannot find definition for method ",prettyName,
                                   " given receiver ",receiver));
         } else if (!(cl instanceof Method && cl instanceof Fcn)) {
+        	cl.toString();
             return error(x, selfEnv,
                          errorMsg("Unexpected method value ",cl.toString(),
                                   " when invoking method ",prettyName,

@@ -305,16 +305,101 @@ object Boolean
         end
 end
 
+myJavaDigit(x:Char, radix:ZZ32): ZZ32 = javaDigit(x, radix)
+
 object Char extends { StandardTotalOrder[\Char\] }
     getter toString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
-    getter ord(): ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Ord")
-    opr |self| : ZZ32 = self.ord()
+    getter codePoint(): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$CodePoint")
+    opr |self| : ZZ32 = self.codePoint()
     opr =(self, other:Char): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Eq")
     opr <(self, other:Char): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessThan")
+
+    javaDigit(self, radix:ZZ32): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$JavaDigit")
+
+    digit(self, radix:ZZ32): Maybe[\ZZ32\] = do
+        (* radix 12 is a special case whose behavior deviates from 
+           Character.digit in Java, so we handle it differently here. *)
+        if(radix = 12) then
+            if(self = 'X' OR self = 'x') then 
+                Just[\ZZ32\](10)
+            elif(self = 'E' OR self = 'e') then
+                Just[\ZZ32\](11)
+            else 
+                Nothing[\ZZ32\]
+            end
+        else       
+            x:ZZ32 = myJavaDigit(self, radix)
+            if(x = -1 OR (NOT(2 <= radix <= 16))) then
+                Nothing[\ZZ32\]
+            else
+                Just[\ZZ32\](x)
+            end
+        end
+    end
+
+    getDirectionality(self): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GetDirectionality")
+    getNumericValue(self): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GetNumericValue")
+    getType(self): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GetType")
+    isDefined(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsDefined")
+    isDigit(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsDigit")
+    isFortressIdentifierPart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsFortressIdentifierPart")
+    isFortressIdentifierStart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsFortressIdentifierStart")
+    isHighSurrogate(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsHighSurrogate")
+    isIdentifierIgnorable(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsIdentifierIgnorable")
+    isISOControl(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsISOControl")
+    isJavaIdentifierPart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsJavaIdentifierPart")
+    isJavaIdentifierStart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsJavaIdentifierStart")
+    isLetter(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLetter")
+    isLetterOrDigit(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLetterOrDigit")
+    isLowerCase(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLowerCase")
+    isLowSurrogate(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLowSurrogate")
+    isMirrored(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsMirrored")
+    isSpaceChar(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsSpaceChar")
+    isSupplementaryCodePoint(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsSupplementaryCodePoint")
+    isSurrogatePair(self, low:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsSurrogatePair")
+    isTitleCase(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsTitleCase")
+    isUnicodeIdentifierPart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsUnicodeIdentifierPart")
+    isUnicodeIdentifierStart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsUnicodeIdentifierStart")
+    isUpperCase(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsUpperCase")
+    isValidCodePoint(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsValidCodePoint")
+    isWhitespace(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsWhitespace")
+    toLowerCase(self): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToLowerCase")
+    toTitleCase(self): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToTitleCase")
+    toUpperCase(self): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToUpperCase")
 end
 
 object String
