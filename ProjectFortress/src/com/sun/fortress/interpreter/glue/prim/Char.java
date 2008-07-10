@@ -92,6 +92,7 @@ public class Char extends NativeConstructor {
         }
     }
     
+    /* Operators for object Char */ 
     public static final class Eq extends sC2B {
         protected boolean f(int x, int y) {
             return x == y;
@@ -103,6 +104,61 @@ public class Char extends NativeConstructor {
             return x < y;
         }
     }
+    
+    public static final class SimEq extends sC2B {
+        protected boolean f(int x, int y) {
+            int lowerX = Character.toLowerCase(x);
+            int lowerY = Character.toLowerCase(y);
+            if(lowerX == lowerY) return true;
+            return false;
+        }
+    }
+ 
+    public static final class NotSimEq extends sC2B {
+        protected boolean f(int x, int y) {
+            int lowerX = Character.toLowerCase(x);
+            int lowerY = Character.toLowerCase(y);
+            if(lowerX != lowerY) return true;
+            return false;
+        }
+    }
+ 
+    public static final class LessNotSim extends sC2B {
+        protected boolean f(int x, int y) {
+            int lowerX = Character.toLowerCase(x);
+            int lowerY = Character.toLowerCase(y);
+            if(lowerX < lowerY) return true;
+            return false;
+        }
+    }
+    
+    public static final class LessSim extends sC2B {
+        protected boolean f(int x, int y) {
+            int lowerX = Character.toLowerCase(x);
+            int lowerY = Character.toLowerCase(y);
+            if(lowerX <= lowerY) return true;
+            return false;
+        }
+    }
+        
+    public static final class GreaterNotSim extends sC2B {
+        protected boolean f(int x, int y) {
+            int lowerX = Character.toLowerCase(x);
+            int lowerY = Character.toLowerCase(y);
+            if(lowerX > lowerY) return true;
+            return false;
+        }
+    }
+
+    public static final class GreaterSim extends sC2B {
+        protected boolean f(int x, int y) {
+            int lowerX = Character.toLowerCase(x);
+            int lowerY = Character.toLowerCase(y);
+            if(lowerX >= lowerY) return true;
+            return false;
+        }
+    }
+    
 
     public static final class CodePoint extends s2I {
         protected int f(int self) { return self; }
@@ -117,11 +173,6 @@ public class Char extends NativeConstructor {
             return FString.make(((FChar)self).toString());
         }
     }
-    
-    /* Returns the numeric value of the specified character (Unicode code point) in the specified radix. 
-    public static final class Digit extends sI2I {
-       protected int f(int x, int radix) { return Character.digit(x, radix); }
-    } */
 
     /* Returns the Unicode directionality property for the given character (Unicode code point). */
     public static final class GetDirectionality extends s2I {

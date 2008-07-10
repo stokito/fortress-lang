@@ -127,6 +127,12 @@ object Char extends { StandardTotalOrder[\Char\] }
     (** Ordering resepects %codePoint%. **)
     opr =(self, other:Char): Boolean
     opr <(self, other:Char): Boolean
+    opr SIMEQ(self, other:Char): Boolean
+    opr NSIMEQ(self, other:Char): Boolean
+    opr LNSIM(self, other:Char): Boolean
+    opr LESSSIM(self, other:Char): Boolean
+    opr GNSIM(self, other:Char): Boolean
+    opr GTRSIM(self, other:Char): Boolean
 
     (* The following methods have the same behavior as the methods in Java
        Character class, except for methods digit and forDigit.  These two 

@@ -318,6 +318,19 @@ object Char extends { StandardTotalOrder[\Char\] }
     opr <(self, other:Char): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessThan")
 
+    opr SIMEQ(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$SimEq")
+    opr NSIMEQ(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$NotSimEq")
+    opr LNSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessNotSim")
+    opr LESSSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessSim")
+    opr GNSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GreaterNotSim")
+    opr GTRSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GreaterSim")
+
     javaDigit(self, radix:ZZ32): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$JavaDigit")
 
