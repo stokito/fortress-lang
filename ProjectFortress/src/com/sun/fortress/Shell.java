@@ -56,9 +56,9 @@ import com.sun.fortress.useful.Debug;
 
 public final class Shell {
     static boolean test;
-            
-    /* These numbers have no importance, so dont worry about the order or even
-     * their value( but they must be unique )
+
+    /* These numbers have no importance, so don't worry about the order or even
+     * their value ( but they must be unique ).
      * If you feel like changing this to an enum at any point that is fine.
      */
     private static final int PHASE_TOPLEVEL = 0;
@@ -141,6 +141,27 @@ public final class Shell {
          "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
          "   -debug # : sets debugging to the specified level, where # is a number.\n"+
          "\n"+
+         "fortress disambiguate [-out file] [-debug [#]] somefile.fs{i,s}\n"+
+         "  Disambiguates a file.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "   -out file : dumps the abstract syntax tree to a file.\n"+
+         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
+         "\n"+
+         "fortress desugar [-out file] [-debug [#]] somefile.fs{i,s}\n"+
+         "  Desugars a file.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "   -out file : dumps the abstract syntax tree to a file.\n"+
+         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
+         "\n"+
+         "fortress grammar [-out file] [-debug [#]] somefile.fs{i,s}\n"+
+         "  Rewrites syntax grammars in a file.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "   -out file : dumps the abstract syntax tree to a file.\n"+
+         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
+         "\n"+
          "fortress typecheck [-out file] [-debug [#]] somefile.fs{i,s}\n"+
          "  Typechecks a file. If type checking succeeds no message will be printed.\n"+
          "   -out file : dumps the processed abstract syntax tree to a file.\n"+
@@ -180,7 +201,7 @@ public final class Shell {
                 setPhase( PHASE_GRAMMAR );
                 compile(args, Option.<String>none());
             } else if (what.equals("typecheck")) {
-                /* TODO: remove the netx line once type checking is permanently turned on */
+                /* TODO: remove the next line once type checking is permanently turned on */
                 turnOnTypeChecking();
                 setPhase( PHASE_TYPECHECK );
                 compile(args, Option.<String>none());
@@ -344,24 +365,10 @@ public final class Shell {
     private static Iterable<? extends StaticError> compile(Path path, String file, Option<String> out) {
         GraphRepository bcr = specificRepository( path, defaultRepository );
 
-        // Debug.setDebug( 2 );
-
         Debug.debug( 2, "Compiling file " + file );
         APIName name = cuName(file);
         try {
             if ( isApi(file) ) {
-                /*
-                AnalyzeResult result = bcr.getApi(name);
-
-                Map<APIName, ApiIndex> parsedApis = bcr.parsedApis();
-                GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis);
-                Iterable<? extends StaticError> errors =
-                    analyze(bcr, result.apis(), result.components(), knownApis);
-                if ( errors.iterator().hasNext() ){
-                    throw new MultipleStaticError(errors);
-                }
-                Api a = (Api) result.apis().get(name).ast();
-                */
                 Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
@@ -504,10 +511,13 @@ public final class Shell {
     }
 
     public static AnalyzeResult disambiguate(FortressRepository repository,
-                                        GlobalEnvironment env,
-                                        Iterable<Api> apis,
-                                        Iterable<Component> components,
-                                        long lastModified) throws StaticError {
+                                             GlobalEnvironment env,
+                                             Iterable<Api> apis,
+                                             Iterable<Component> components,
+                                             long lastModified) throws StaticError {
+        // Build ApiIndices before disambiguating to allow circular references.
+        // An IndexBuilder.ApiResult contains a map of strings (names) to
+        // ApiIndices.
         IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(apis, lastModified);
         if (!rawApiIR.isSuccessful()) {
             throw new MultipleStaticError(rawApiIR.errors());
@@ -529,13 +539,17 @@ public final class Shell {
         GlobalEnvironment rawApiEnv =
             new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
                                                             rawApiIR.apis()));
+
+        // Rewrite all API ASTs so they include only fully qualified names, relying
+        // on the rawApiEnv constructed in the previous step. Note that, after this
+        // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
         Disambiguator.ApiResult apiDR =
             Disambiguator.disambiguateApis(apis, rawApiEnv, repository.apis());
-
-        if ( ! apiDR.isSuccessful() ){
-            throw new MultipleStaticError( apiDR.errors() );
+        if (!apiDR.isSuccessful()) {
+            throw new MultipleStaticError(apiDR.errors());
         }
 
+        // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR =
             IndexBuilder.buildApis(apiDR.apis(), lastModified);
         if (!apiIR.isSuccessful()) {
@@ -553,19 +567,22 @@ public final class Shell {
         if (!componentDR.isSuccessful()) {
             throw new MultipleStaticError(componentDR.errors());
         }
-        
+
+        // Rebuild ComponentIndices.
         IndexBuilder.ComponentResult componentsDone =
             IndexBuilder.buildComponents(componentDR.components(), lastModified);
+        if (!componentsDone.isSuccessful()) {
+            throw new MultipleStaticError(componentsDone.errors());
+        }
 
         return new AnalyzeResult(apiIR.apis(), componentsDone.components(), IterUtil.<StaticError>empty());
     }
-    
+
     public static AnalyzeResult rewriteGrammar(FortressRepository repository,
-                                        GlobalEnvironment env,
-                                        Iterable<Api> apis,
-                                        Iterable<Component> components,
-                                        long lastModified) throws StaticError {
-        
+                                               GlobalEnvironment env,
+                                               Iterable<Api> apis,
+                                               Iterable<Component> components,
+                                               long lastModified) throws StaticError {
         IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
         IndexBuilder.ComponentResult componentsDone = IndexBuilder.buildComponents(components, lastModified);
         GlobalEnvironment apiEnv =
@@ -577,19 +594,22 @@ public final class Shell {
         }
 
         IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(), lastModified);
-        
+        if (!apiDone.isSuccessful()) {
+            throw new MultipleStaticError(apiDone.errors());
+        }
+
         return new AnalyzeResult(apiDone.apis(), componentsDone.components(), IterUtil.<StaticError>empty());
     }
-    
+
     public static AnalyzeResult typecheck(FortressRepository _repository,
-                                        GlobalEnvironment env,
-                                        Iterable<Api> apis,
-                                        Iterable<Component> components,
-                                        long lastModified) throws StaticError {
+                                          GlobalEnvironment env,
+                                          Iterable<Api> apis,
+                                          Iterable<Component> components,
+                                          long lastModified) throws StaticError {
         IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
         IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                            apiIndex.apis()));
+                                                                                   apiIndex.apis()));
 
         StaticChecker.ApiResult apiSR = StaticChecker.checkApis( apiIndex.apis(), apiEnv );
 
@@ -607,7 +627,7 @@ public final class Shell {
         return new AnalyzeResult(apiSR.apis(), componentSR.components(), IterUtil.<StaticError>empty());
 
     }
-    
+
     public static AnalyzeResult desugar(FortressRepository _repository,
                                         GlobalEnvironment env,
                                         Iterable<Api> apis,
@@ -616,29 +636,26 @@ public final class Shell {
         IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
         IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                            apiIndex.apis()));
+                                                                                   apiIndex.apis()));
 
         Desugarer.ApiResult apiDSR = Desugarer.desugarApis(apiIndex.apis(), apiEnv);
 
         if ( ! apiDSR.isSuccessful() ){
             throw new MultipleStaticError(apiDSR.errors());
         }
-        
-        // IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiDSR.apis(), lastModified);
 
         return new AnalyzeResult(apiDSR.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
     }
 
     public static AnalyzeResult topLevelEnvironment(FortressRepository _repository,
-                                        GlobalEnvironment env,
-                                        Iterable<Api> apis,
-                                        Iterable<Component> components,
-                                        long lastModified) throws StaticError {
-        
+                                                    GlobalEnvironment env,
+                                                    Iterable<Api> apis,
+                                                    Iterable<Component> components,
+                                                    long lastModified) throws StaticError {
         IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
         IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                            apiIndex.apis()));
+                                                                                   apiIndex.apis()));
 
         TopLevelEnvGen.CompilationUnitResult apiGR =
             TopLevelEnvGen.generateApiEnvs(apiIndex.apis(), apiEnv);
@@ -654,7 +671,7 @@ public final class Shell {
         if ( !componentGR.isSuccessful() ){
             throw new MultipleStaticError(componentGR.errors());
         }
-        
+
         return new AnalyzeResult(apiIndex.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
     }
 
@@ -724,7 +741,7 @@ public final class Shell {
                 return typecheck(repository, env, apis, components, lastModified);
             }
         }
-        
+
         class DesugarPhase extends Phase {
             public DesugarPhase( Phase parent ){
                 super(parent);
@@ -735,7 +752,7 @@ public final class Shell {
                 return desugar(repository, env, apis, components, lastModified);
             }
         }
-        
+
         class TopLevelPhase extends Phase {
             public TopLevelPhase( Phase parent ){
                 super(parent);
@@ -782,164 +799,5 @@ public final class Shell {
                                         final Iterable<Component> components,
                                         final long lastModified) throws StaticError {
         return getPhase(repository, env, apis, components, lastModified, currentPhase).run();
-    }
-
-    public static AnalyzeResult analyze1(FortressRepository _repository,
-                                        GlobalEnvironment env,
-                                        Iterable<Api> apis,
-                                        Iterable<Component> components,
-                                        long lastModified) {
-        /* Preparation for disambiguation **********************************************
-         */
-        // Build ApiIndices before disambiguating to allow circular references.
-        // An IndexBuilder.ApiResult contains a map of strings (names) to
-        // ApiIndices.
-        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(apis, lastModified);
-        if (!rawApiIR.isSuccessful()) { return new AnalyzeResult(rawApiIR.errors()); }
-
-        // Build ComponentIndices before disambiguating to allow circular references.
-        // An IndexBuilder.ComponentResult contains a map of strings (names) to
-        // ComponentIndices.
-        IndexBuilder.ComponentResult rawComponentIR =
-            IndexBuilder.buildComponents(components, lastModified);
-
-        if (!rawComponentIR.isSuccessful()) { return new AnalyzeResult(rawComponentIR.errors()); }
-
-        // Build a new GlobalEnvironment consisting of all APIs in a global
-        // repository combined with all APIs that have been processed in the previous
-        // step.  For now, we are implementing pure static linking, so there is
-        // no global repository.
-        GlobalEnvironment rawApiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                            rawApiIR.apis()));
-
-        /* Disambiguation **************************************************************
-         */
-        // Rewrite all API ASTs so they include only fully qualified names, relying
-        // on the rawApiEnv constructed in the previous step. Note that, after this
-        // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
-        Disambiguator.ApiResult apiDR =
-            Disambiguator.disambiguateApis(apis, rawApiEnv, _repository.apis());
-        if (!apiDR.isSuccessful()) { return new AnalyzeResult(apiDR.errors()); }
-
-        // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR =
-            IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
-        if (!apiIR.isSuccessful()) { return new AnalyzeResult(apiIR.errors()); }
-
-        // Rebuild GlobalEnvironment.
-        GlobalEnvironment apiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                            apiIR.apis()));
-
-        Disambiguator.ComponentResult componentDR =
-            Disambiguator.disambiguateComponents(components, apiEnv,
-                                                 rawComponentIR.components());
-        if (!componentDR.isSuccessful()) { return new AnalyzeResult(componentDR.errors()); }
-
-        // Rebuild ComponentIndices.
-        IndexBuilder.ComponentResult componentIR =
-            IndexBuilder.buildComponents(componentDR.components(),
-                                         System.currentTimeMillis());
-        if (!componentIR.isSuccessful()) { return new AnalyzeResult(componentIR.errors()); }
-
-        /* Grammar rewriting ***********************************************************
-         */
-        // Rewrite grammars, see GrammarRewriter for more details.
-        GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(apiIR.apis(), apiEnv);
-        if (!apiID.isSuccessful()) { return new AnalyzeResult(apiID.errors()); }
-
-        // Rebuild ApiIndices.
-        apiIR = IndexBuilder.buildApis(apiID.apis(), System.currentTimeMillis());
-        if (!apiIR.isSuccessful()) { return new AnalyzeResult(apiIR.errors()); }
-
-        /* Repository updates **********************************************************
-         */
-        // Analyzed result is stored in the _repository object.
-        // In an implementation with pure static linking, we would have to write
-        // this code back out to a file.
-        // In an implementation with fortresses,
-        // we would write this code into the resident fortress.
-        for (Map.Entry<APIName, ApiIndex> newApi : apiIR.apis().entrySet()) {
-            if ( compiledApi( newApi.getKey(), apis ) ){
-                Debug.debug( 2, "Analyzed api " + newApi.getKey() );
-                _repository.addApi(newApi.getKey(), newApi.getValue());
-            }
-        }
-
-        for (Map.Entry<APIName, ComponentIndex> newComponent :componentIR.components().entrySet()) {
-            _repository.addComponent(newComponent.getKey(), newComponent.getValue());
-        }
-
-        return new AnalyzeResult(apiIR.apis(), componentIR.components(), IterUtil.<StaticError>empty());
-    }
-
-    public static Iterable<? extends StaticError> analyze2(FortressRepository _repository,
-                                                          Map<APIName, ApiIndex> apis,
-                                                          Map<APIName, ComponentIndex> components,
-                                                          GlobalEnvironment env) {
-
-        /* Preparation for type checking ***********************************************
-         */
-        // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR =
-            new ApiResult(apis, IterUtil.<StaticError>empty());
-        // Rebuild ComponentIndices.
-        IndexBuilder.ComponentResult componentIR =
-            new ComponentResult(components, IterUtil.<StaticError>empty());
-        // Rebuild GlobalEnvironment.
-        GlobalEnvironment apiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                            apiIR.apis()));
-
-        /* Type checking ***************************************************************
-         */
-        // Do all type checking and other static checks on APIs.
-        StaticChecker.ApiResult apiSR =
-            StaticChecker.checkApis(apiIR.apis(), apiEnv);
-        if (!apiSR.isSuccessful()) { return apiSR.errors(); }
-
-        StaticChecker.ComponentResult componentSR =
-            StaticChecker.checkComponents(componentIR.components(), env);
-        if (!componentSR.isSuccessful()) {
-            for (APIName failed : componentSR.failed()) {
-                _repository.deleteComponent(failed);
-            }
-            return componentSR.errors();
-        }
-
-        /* Desugaring ******************************************************************
-         */
-        Desugarer.ApiResult apiDSR =
-            Desugarer.desugarApis(apiSR.apis(), apiEnv);
-
-        /* Preparation for code generation *********************************************
-         */
-        // Generate top-level byte code environments for apis
-        TopLevelEnvGen.CompilationUnitResult apiGR =
-            TopLevelEnvGen.generateApiEnvs(apiDSR.apis(), apiEnv);
-        if(!apiGR.isSuccessful()) { return apiGR.errors(); }
-
-        // Generate top-level byte code environments for components
-        TopLevelEnvGen.CompilationUnitResult componentGR =
-            TopLevelEnvGen.generateComponentEnvs(componentSR.components(), env);
-        if(!componentGR.isSuccessful()) { return componentGR.errors(); }
-
-        /* Code generation *************************************************************
-         */
-        // Additional optimization phases can be inserted here
-
-        // Debug.debug( 2, "Done with analyzing apis " + apis + ", components " + components );
-
-        return IterUtil.empty();
-    }
-
-    private static boolean compiledApi( APIName name, Iterable<Api> apis ){
-        for ( Api api : apis ){
-            if ( api.getName().equals(name) ){
-                return true;
-            }
-        }
-        return false;
     }
 }

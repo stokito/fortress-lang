@@ -615,7 +615,7 @@ public class Driver {
            public String toString() {
                return  a + "/" + c + "->" + importer.name();
            }
-           
+
            final boolean[] noisy = new boolean[1];
 
            final Set<String> added = new HashSet<String>();
@@ -1112,7 +1112,7 @@ public class Driver {
         }
     }
 
-    public static Component readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
+    private static Component readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
 
         String name  = key;
         APIName apiname = NodeFactory.makeAPIName(name);
@@ -1124,7 +1124,7 @@ public class Driver {
     }
 
 
-    public static Api readTreeOrSourceApi(String key, String basename, FortressRepository p) throws IOException {
+    private static Api readTreeOrSourceApi(String key, String basename, FortressRepository p) throws IOException {
         String name  = key;
         APIName apiname = NodeFactory.makeAPIName(name);
         ApiIndex ci = p.getApi(apiname);
