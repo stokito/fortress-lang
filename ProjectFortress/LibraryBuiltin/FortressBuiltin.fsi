@@ -133,7 +133,7 @@ object Char extends { StandardTotalOrder[\Char\] }
        particular methods deviate from Java Character class when it gets 
        argument radix = 12.  For radix 12, the digits are "0123456789xe" 
        instead of "0123456789ab". *)
-    javaDigit(self, radix:ZZ32): ZZ32
+    (* javaDigit(self, radix:ZZ32): ZZ32 *)
     digit(self, radix:ZZ32): Maybe[\ZZ32\] 
     getDirectionality(self): ZZ32
     getNumericValue(self): ZZ32
