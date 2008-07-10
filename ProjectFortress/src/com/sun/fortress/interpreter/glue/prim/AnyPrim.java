@@ -68,7 +68,7 @@ public static boolean sequiv(FValue x, FValue y) {
     //     List<FValue> xt = ((FTuple)x).getVals();
     //     List<FValue> yt = ((FTuple)y).getVals();
     //     if (xt.size()!=yt.size()) return false;
-    //     Iterator<FValue> xi = xt.iterator();
+
     //     Iterator<FValue> yi = yt.iterator();
     //     while (xi.hasNext()) {
     //         if (!sequiv(xi.next(), yi.next())) return false;

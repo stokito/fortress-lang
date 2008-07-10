@@ -217,7 +217,7 @@ end
 value object Long extends ZZ64
 end
 
-object IntLiteral extends Integral[\IntLiteral\]
+object IntLiteral extends {Integral[\IntLiteral\],ZZ}
     getter zero(): IntLiteral =
         1934791870947204798109283471902037419 - 1934791870947204798109283471902037419
     getter one(): IntLiteral = zero() + 1
@@ -271,6 +271,10 @@ object IntLiteral extends Integral[\IntLiteral\]
     opr ^(self, b:ZZ64):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
 end
+
+value object BigNum extends ZZ
+end
+
 
 object Boolean
         extends { Condition[\()\], StandardTotalOrder[\Boolean\] }
