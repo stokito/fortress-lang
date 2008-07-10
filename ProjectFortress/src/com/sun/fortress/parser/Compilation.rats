@@ -87,7 +87,7 @@ private CompilationUnit CompilationUnit =
 
 /* Component ::=
      (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
-     (w Decls w ;?)? w end
+     (w Decls w ;?)? w end ((s component)? s APIName)?
  */
 private Component Component =
      <ErrorProduction1>
@@ -104,16 +104,22 @@ private Component Component =
      }
    / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w
      a4:Exports w semicolon? a5:(w yyValue:Decls w semicolon?)? w end
-     { if (a3 == null) a3 = Collections.<Import>emptyList();
+     a6:((s component)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2)))
+           yyValue = syntaxError(span, "A component declaration of " + a2 +
+                                 " has the different name " + a6 + " at the end.");
+       if (a3 == null) a3 = Collections.<Import>emptyList();
        if (a5 == null) a5 = Collections.<Decl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
        if (a1 == null)
            yyValue = new Component(span, a2, a3, a4, a5);
        else
            yyValue = new Component(span, true, a2, a3, a4, a5);
      };
 
-/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
+/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
+           ((s api)? s APIName)?
+ */
 private Api Api =
      <ErrorProduction1>
      native w api w APIName (w Imports w semicolon?)?
@@ -123,9 +129,13 @@ private Api Api =
      }
    / api w a1:APIName a2:(w yyValue:Imports w semicolon?)?
      a3:(w yyValue:AbsDecls w semicolon?)? w end
-     { if (a2 == null) a2 = Collections.<Import>emptyList();
+     a4:((s api)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a4 != null && !NodeUtil.nameString(a4).equals(NodeUtil.nameString(a1)))
+           yyValue = syntaxError(span, "An API declaration of " + a1 +
+                                 " has the different name " + a4 + " at the end.");
+       if (a2 == null) a2 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
        yyValue = new Api(span, a1, a2, a3);
      };
 

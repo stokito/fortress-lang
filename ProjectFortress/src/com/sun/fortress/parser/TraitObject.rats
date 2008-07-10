@@ -34,16 +34,21 @@ import Symbol;
 import Spacing;
 
 /* TraitDecl ::=
-     TraitMods? TraitHeaderFront TraitClauses (w GoInATrait)? w end
+     TraitMods? TraitHeaderFront TraitClauses (w GoInATrait)? w end ((s trait)? s Id)?
  */
 TraitDecl TraitDecl =
      a1:TraitMods? a2:TraitHeaderFront a3:TraitClauses a4:(w GoInATrait)? w end
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     a5:((s trait)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a5 != null && !a2.getName().getText().equals(a5.getText()))
+           yyValue = syntaxError(span, "A trait declaration of " + a2.getName() +
+                                 " has the different name " + a5 + " at the end.");
+       if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue =
-        new TraitDecl(createSpan(yyStart,yyCount), a1, a2.getName(),
-                      a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
-                      a3.getExcludes(), a3.getComprises(), a4);
+         new TraitDecl(span, a1, a2.getName(),
+                       a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
+                       a3.getExcludes(), a3.getComprises(), a4);
      };
 
 /* TraitHeaderFront ::= trait w Id (w StaticParams)? (w ExtendsWhere)? */
@@ -155,14 +160,21 @@ private Decl GoesBackInATrait =
      MdDecl
    / PropertyDecl ;
 
-/* ObjectDecl ::= ObjectMods? ObjectHeader (w GoInAnObject)? w end */
-ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w end
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+/* ObjectDecl ::= ObjectMods? ObjectHeader (w GoInAnObject)? w end ((s object)? s Id)?
+ */
+ObjectDecl ObjectDecl =
+     a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w end
+     a4:((s object)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a4 != null && !a2.getName().getText().equals(a4.getText()))
+           yyValue = syntaxError(span, "An object declaration of " + a2.getName() +
+                                 " has the different name " + a4 + " at the end.");
+       if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Contract contract = fhc.getContractClause().unwrap(FortressUtil.emptyContract());
        yyValue = new ObjectDecl
-           (createSpan(yyStart,yyCount), a1, a2.getName(),
+           (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
             a2.getParams(), fhc.getThrowsClause(), contract, a3);
      };
@@ -327,14 +339,19 @@ private Decl GoesBackInAnObject =
 
 /* AbsTraitDecl ::=
      AbsTraitMods? TraitHeaderFront AbsTraitClauses (w AbsGoInATrait)? w end
+     ((s trait)? s Id)?
  */
 AbsTraitDecl AbsTraitDecl =
      a1:AbsTraitMods? a2:TraitHeaderFront a3:AbsTraitClauses
-     a4:(w AbsGoInATrait)? w end
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     a4:(w AbsGoInATrait)? w end a5:((s trait)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a5 != null && !a2.getName().getText().equals(a5.getText()))
+           yyValue = syntaxError(span, "A trait declaration of " + a2.getName() +
+                                 " has the different name " + a5 + " at the end.");
+       if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a4 == null) a4 = Collections.<AbsDecl>emptyList();
        yyValue = new AbsTraitDecl
-           (createSpan(yyStart,yyCount), a1, a2.getName(),
+           (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
             a3.getExcludes(), a3.getComprises(), a4);
      };
@@ -433,15 +450,22 @@ private AbsDecl AbsGoesBackInATrait =
      AbsMdDecl
    / PropertyDecl ;
 
-/* AbsObjectDecl ::= AbsObjectMods? ObjectHeader (w AbsGoInAnObject)? w end */
+/* AbsObjectDecl ::= AbsObjectMods? ObjectHeader (w AbsGoInAnObject)? w end
+                     ((s object)? s Id)?
+ */
 AbsObjectDecl AbsObjectDecl =
      a1:AbsObjectMods? a2:ObjectHeader a3:(w AbsGoInAnObject)? w end
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     a4:((s object)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a4 != null && !a2.getName().getText().equals(a4.getText()))
+           yyValue = syntaxError(span, "An object declaration of " + a2.getName() +
+                                 " has the different name " + a4 + " at the end.");
+       if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Contract contract = fhc.getContractClause().unwrap(FortressUtil.emptyContract());
        yyValue = new AbsObjectDecl
-           (createSpan(yyStart,yyCount), a1, a2.getName(),
+           (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
             a2.getParams(), fhc.getThrowsClause(), contract, a3);
      };
