@@ -90,7 +90,7 @@ public class NodeUtil {
         for (Param p : params) {
             if (p instanceof VarargsParam) return true;
         }
-        return false;
+        return (params.size() > 2);
     }
 
     public static boolean isTransient(Param p) {
