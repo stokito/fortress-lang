@@ -532,8 +532,12 @@ public final class Shell {
         Disambiguator.ApiResult apiDR =
             Disambiguator.disambiguateApis(apis, rawApiEnv, repository.apis());
 
+        if ( ! apiDR.isSuccessful() ){
+            throw new MultipleStaticError( apiDR.errors() );
+        }
+
         IndexBuilder.ApiResult apiIR =
-            IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
+            IndexBuilder.buildApis(apiDR.apis(), lastModified);
         if (!apiIR.isSuccessful()) {
             throw new MultipleStaticError(apiIR.errors());
         }
@@ -571,8 +575,8 @@ public final class Shell {
         if (!apiID.isSuccessful()) {
             throw new MultipleStaticError(apiID.errors());
         }
-        
-        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(), System.currentTimeMillis());
+
+        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(), lastModified);
         
         return new AnalyzeResult(apiDone.apis(), componentsDone.components(), IterUtil.<StaticError>empty());
     }
