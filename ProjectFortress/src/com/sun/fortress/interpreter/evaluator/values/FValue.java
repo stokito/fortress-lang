@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.io.BufferedWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +56,8 @@ public abstract class FValue {
     public FValue getValue() { return this; }
 
     public int getInt() { throw new InterpreterBug("getInt not implemented for "  + getClass().getSimpleName());}
+    public BigInteger getBigInteger() { throw new InterpreterBug("getBigInteger not implemented for "  + 
+																 getClass().getSimpleName());}
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}
     public float getRR32() { throw new InterpreterBug("getRR32 not implemented for "  + getClass().getSimpleName());}

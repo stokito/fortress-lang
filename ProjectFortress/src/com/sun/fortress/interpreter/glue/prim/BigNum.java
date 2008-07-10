@@ -20,7 +20,6 @@ package com.sun.fortress.interpreter.glue.prim;
 import java.math.BigInteger;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FBigNum;
@@ -35,94 +34,90 @@ import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.GenericWithParams;
 
-/**
- * Functions from IntLiteral.
- */
-public class IntLiteral extends NativeConstructor {
 
-public IntLiteral(Environment env, FTypeObject selfType, GenericWithParams def) {
+public class BigNum extends NativeConstructor {
+
+public BigNum(Environment env, FTypeObject selfType, GenericWithParams def) {
     super(env, selfType, def);
 }
 
 protected FNativeObject makeNativeObject(List<FValue> args,
                                          NativeConstructor con) {
-    FIntLiteral.setConstructor(con);
-    return FIntLiteral.ZERO;
+    FBigNum.setConstructor(con);
+    return FBigNum.ZERO;
 }
 
 private static BigInteger toB(FValue x) {
-	if (x instanceof FBigNum) {
-		return x.getBigInteger();
-	} else if (x instanceof FIntLiteral) {
+    if (x instanceof FBigNum) {
+        return ((FBigNum)x).getBigInteger();
+    } else if (x instanceof FIntLiteral) {
         return ((FIntLiteral)x).getLit();
     } else {
         return BigInteger.valueOf(x.getLong());
     }
 }
 
-public static abstract class K2K extends NativeMeth0 {
+public static abstract class Z2Z extends NativeMeth0 {
     protected abstract BigInteger f(BigInteger x);
     protected final FValue act(FObject x) {
-        return FIntLiteral.make(f(toB(x)));
+        return FBigNum.make(f(toB(x)));
     }
 }
-public static abstract class KK2K extends NativeMeth1 {
+public static abstract class ZZ2Z extends NativeMeth1 {
     protected abstract BigInteger f(BigInteger x, BigInteger y);
     protected final FValue act(FObject x, FValue y) {
-		if (y instanceof FBigNum)
-            return FBigNum.make(f(toB(x),toB(y)));
-        else return FIntLiteral.make(f(toB(x),toB(y)));
+        return FBigNum.make(f(toB(x),toB(y)));
     }
 }
-public static abstract class KK2B extends NativeMeth1 {
+public static abstract class ZZ2B extends NativeMeth1 {
     protected abstract boolean f(BigInteger x, BigInteger y);
     protected final FValue act(FObject x, FValue y) {
         return FBool.make(f(toB(x),toB(y)));
     }
 }
-public static abstract class KK2I extends NativeMeth1 {
+public static abstract class ZZ2I extends NativeMeth1 {
     protected abstract int f(BigInteger x, BigInteger y);
     protected final FValue act(FObject x, FValue y) {
         return FInt.make(f(toB(x),toB(y)));
     }
 }
-public static abstract class KL2K extends NativeMeth1 {
+public static abstract class ZL2Z extends NativeMeth1 {
     protected abstract BigInteger f(BigInteger x, long y);
     protected final FValue act(FObject x, FValue y) {
-        return FIntLiteral.make(f(toB(x),y.getLong()));
+        return FBigNum.make(f(toB(x),y.getLong()));
     }
 }
-public static abstract class KL2N extends NativeMeth1 {
+public static abstract class ZL2N extends NativeMeth1 {
     protected abstract FValue f(BigInteger x, long y);
     protected final FValue act(FObject x, FValue y) {
         return f(toB(x),y.getLong());
     }
 }
 
-public static final class Negate extends K2K {
+public static final class Negate extends Z2Z {
     protected BigInteger f(BigInteger x) { return x.negate(); }
 }
-public static final class Add extends KK2K {
+public static final class Add extends ZZ2Z {
     protected BigInteger f(BigInteger x, BigInteger y) { return x.add(y); }
 }
-public static final class Sub extends KK2K {
+public static final class Sub extends ZZ2Z {
     protected BigInteger f(BigInteger x, BigInteger y) { return x.subtract(y); }
 }
-public static final class Mul extends KK2K {
+public static final class Mul extends ZZ2Z {
     protected BigInteger f(BigInteger x, BigInteger y) { return x.multiply(y); }
 }
-public static final class Div extends KK2K {
+public static final class Div extends ZZ2Z {
     protected BigInteger f(BigInteger x, BigInteger y) { return x.divide(y); }
 }
-public static final class Rem extends KK2K {
+public static final class Rem extends ZZ2Z {
     protected BigInteger f(BigInteger x, BigInteger y) { return x.remainder(y); }
 }
-public static final class Gcd extends KK2K {
+public static final class Gcd extends ZZ2Z {
     protected BigInteger f(BigInteger u, BigInteger v) {
         return u.gcd(v);
     }
 }
-public static final class Lcm extends KK2K {
+public static final class Lcm extends ZZ2Z {
     protected BigInteger f(BigInteger u, BigInteger v) {
         BigInteger g = u.gcd(v);
         /* Divide smaller by g, then multiply.  Quick whiteboard
@@ -134,12 +129,12 @@ public static final class Lcm extends KK2K {
         return (u.divide(g).multiply(v));
     }
 }
-public static final class Choose extends KK2K {
+public static final class Choose extends ZZ2Z {
     protected BigInteger f(BigInteger u, BigInteger v) {
         return choose(u,v);
     }
 }
-public static final class Mod extends KK2K {
+public static final class Mod extends ZZ2Z {
     protected BigInteger f(BigInteger u, BigInteger v) {
         if (v.compareTo(BigInteger.ZERO) < 0) {
             return u.negate().mod(v.negate()).negate();
@@ -148,46 +143,46 @@ public static final class Mod extends KK2K {
         }
     }
 }
-public static final class BitAnd extends KK2K {
+public static final class BitAnd extends ZZ2Z {
     protected BigInteger f(BigInteger u, BigInteger v) {
         return u.and(v);
     }
 }
-public static final class BitOr extends KK2K {
+public static final class BitOr extends ZZ2Z {
     protected BigInteger f(BigInteger u, BigInteger v) {
         return u.or(v);
     }
 }
-public static final class BitXor extends KK2K {
+public static final class BitXor extends ZZ2Z {
     protected BigInteger f(BigInteger u, BigInteger v) {
         return u.xor(v);
     }
 }
-public static final class LShift extends KL2K {
+public static final class LShift extends ZL2Z {
     protected BigInteger f(BigInteger u, long v) {
         return u.shiftLeft((int)v);
     }
 }
-public static final class RShift extends KL2K {
+public static final class RShift extends ZL2Z {
     protected BigInteger f(BigInteger u, long v) {
         return u.shiftRight((int)v);
     }
 }
-public static final class BitNot extends K2K {
+public static final class BitNot extends Z2Z {
     protected BigInteger f(BigInteger x) { return x.not(); }
 }
-public static final class Eq extends KK2B {
+public static final class Eq extends ZZ2B {
     protected boolean f(BigInteger x, BigInteger y) { return x.equals(y); }
 }
-public static final class Cmp extends KK2I {
+public static final class Cmp extends ZZ2I {
     protected int f(BigInteger x, BigInteger y) { return x.compareTo(y); }
 }
-public static final class Pow extends KL2N {
+public static final class Pow extends ZL2N {
     protected FValue f(BigInteger u, long v) {
         if (v < 0) {
             return FFloat.make(1.0 / u.pow((int)-v).doubleValue());
         } else {
-            return FIntLiteral.make(u.pow((int)v));
+            return FBigNum.make(u.pow((int)v));
         }
     }
 }

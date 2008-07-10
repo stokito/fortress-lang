@@ -17,11 +17,13 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.interpreter.evaluator.values.FBigNum;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
@@ -63,10 +65,16 @@ static private abstract class L2L extends NativeMeth0 {
         return FLong.make(f(x.getLong()));
     }
 }
-static private abstract class L2Z extends NativeMeth0 {
+static private abstract class L2I extends NativeMeth0 {
     protected abstract int f(long x);
     protected final FValue act(FObject x) {
         return FInt.make(f(x.getLong()));
+    }
+}
+static private abstract class L2Z extends NativeMeth0 {
+    protected abstract BigInteger f(long x);
+    protected final FValue act(FObject x) {
+        return FBigNum.make(f(x.getLong()));
     }
 }
 static private abstract class LL2L extends NativeMeth1 {
@@ -160,8 +168,12 @@ public static final class Pow extends NativeMeth1 {
         }
     }
 }
-public static final class FromLong extends L2Z {
+public static final class FromLong extends L2I {
     protected int f(long x) { return ZZ32.rc(x); }
+}
+
+public static final class ToBigNum extends L2Z {
+    protected BigInteger f(long x) { return BigInteger.valueOf(x); }
 }
 
 public static final class NanoTime extends NativeFn0 {

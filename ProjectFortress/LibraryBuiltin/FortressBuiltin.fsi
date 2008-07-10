@@ -83,7 +83,7 @@ end
 value object Long extends ZZ64
 end
 
-object IntLiteral extends Integral[\IntLiteral\]
+object IntLiteral extends {Integral[\IntLiteral\],ZZ}
     opr =(self, b: IntLiteral):Boolean
     opr <(self, other:IntLiteral): Boolean
     opr <=(self, other:IntLiteral): Boolean
@@ -110,6 +110,8 @@ object IntLiteral extends Integral[\IntLiteral\]
     opr BITNOT(self): IntLiteral
     opr ^(self, b:ZZ64):RR64
 end
+
+object BigNum extends ZZ end
 
 object Boolean
     extends { Condition[\()\], StandardTotalOrder[\Boolean\] }
