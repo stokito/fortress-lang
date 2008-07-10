@@ -142,8 +142,9 @@ public class NodeUtil {
     }
 
     public static String nameString(APIName n) {
-        Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
-        return IterUtil.toString(ns, "", ".", "");
+        return n.getText();
+//        Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
+//      return IterUtil.toString(ns, "", ".", "");
     }
 
     public static String dirString(APIName n) {

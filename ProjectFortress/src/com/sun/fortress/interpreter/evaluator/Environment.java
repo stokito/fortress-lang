@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.HasAt;
@@ -79,6 +80,8 @@ public interface Environment  {
 
     /* Type names take the form ID or Api.ID */
     public abstract FType getType(Id d);
+    
+    public abstract FType getType(NamedType q);
 
     public abstract FType getType(String str);
 
@@ -181,7 +184,6 @@ public interface Environment  {
 
     /**
      * Put a value in the top-most scope.
-     * Return true if successful, false if already defined.
      * @param str
      * @param f2
      */

@@ -25,7 +25,7 @@ import com.sun.fortress.useful.BASet.BASnode;
 public final class BATreeNode<T, U> implements Map.Entry<T, U> {
 
         public String toString() {
-            return toStringBuffer(new StringBuffer()).toString();
+            return recursiveToStringLines();
         }
 
         public StringBuffer toStringBuffer(StringBuffer b) {

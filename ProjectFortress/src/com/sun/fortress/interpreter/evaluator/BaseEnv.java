@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.VarRef;
@@ -312,6 +313,17 @@ abstract public class BaseEnv implements Environment {
         return (Closure) getValue("run");
     }
 
+    final public  FType getType(NamedType q)  {
+        FType x = getTypeNull(q.getName());
+        if (x == null)
+            {
+                // System.err.println(this.toString());
+                return error(errorMsg("Missing type ", q));
+            }
+        else
+            return x;
+    }
+    
     final public  FType getType(Id q)  {
         FType x = getTypeNull(q);
         if (x == null)

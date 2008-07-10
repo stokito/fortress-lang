@@ -1156,6 +1156,7 @@ public class NodeFactory {
 		return new VarRef(old.getSpan(), old.isParenthesized(), old.getVar(), depth);
 	}
 
+
 	public static Expr makeFnRef(Span span, Id name,
 			List<StaticArg> staticArgs) {
 		List<Id> ids = new LinkedList<Id>();
@@ -1201,6 +1202,15 @@ public class NodeFactory {
 		return new ChainExpr(new Span(lhs.getSpan(), rhs.getSpan()), lhs, links);
 	}
 
+	public static VarType makeVarType(VarType original, int lexicalNestedness) {
+	    return new VarType(original.getSpan(), original.isParenthesized(), original.getName(), lexicalNestedness);
+	}
+
+	public static TraitType makeTraitType(TraitType original, int lexicalNestedness) {
+	    return new TraitType(original.getSpan(), original.isParenthesized(), original.getName(), lexicalNestedness, original.getArgs());
+
+	}
+	
 	public static Import makeImportStar(String apiName) {
 		return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
 	}
@@ -1214,5 +1224,9 @@ public class NodeFactory {
 		Type returnType = new TraitType(typeName , staticArgs);
 		return new FnDef(fnName, params, Option.some(returnType), expression);
 	}
+
+
+
+
 
 }

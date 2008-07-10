@@ -53,6 +53,20 @@ public class ComponentWrapper {
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
 
+    public void reset() {
+        ownNonFunctionNames = null;
+        ownNames = null;
+        ownTypeNames = null;
+        excludedImportNames = null;
+        importedNames = null;
+        HashMap<String, ComponentWrapper> exports = this.exports;
+        this.exports = null;
+        if (exports != null)
+            for (ComponentWrapper cw : exports.values()) {
+                cw.reset();
+            }
+    }
+    
     Visitor2<String, Object> nameCollector = new Visitor2<String, Object>() {
 
         @Override

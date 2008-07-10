@@ -48,8 +48,10 @@ import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.AbsExternalSyntax;
@@ -301,7 +303,7 @@ public class Driver {
             imp.reportErrors();
         }
 
-        importers = null;
+        
 
         for (ComponentWrapper cw : components) {
             cw.initTypes();
@@ -312,11 +314,28 @@ public class Driver {
         for (ComponentWrapper cw : components) {
             cw.initFuncs();
         }
+        
         for (ComponentWrapper cw : components) {
             finishAllFunctionalMethods(cw.getEnvironment());
         }
 
+       /*
+         * Special case -- finish (perhaps redundantly) any overloads that result
+         * only from imports (with no function definition in the importing
+         * component).  Lack of a function definition means that BuildEnvironments
+         * does not do the finish step.  See bug #147.  
+         */
+        for (Importer imp : importers) {
+            imp.finishOverloads();
+        }
+        
+        importers = null;
+        
         for (ComponentWrapper cw : components) {
+            cw.reset();
+        }
+        
+         for (ComponentWrapper cw : components) {
             cw.initVars();
         }
 
@@ -575,6 +594,7 @@ public class Driver {
 
     static abstract class Importer {
         abstract boolean runImports();
+        abstract public void finishOverloads();
         abstract void reportErrors();
     }
 
@@ -610,7 +630,17 @@ public class Driver {
         final Set<String> tnames = new HashSet<String>();
 
         collectImportedValueAndTypeNames(fromApi, vnames, tnames);
-
+        
+        Set<String> actually_used = importer.desugarer.topLevelUses;
+        
+        // HACK, types referenced from native code, I think.
+        actually_used.add("Any");
+        actually_used.add("__immutableFactory1");
+        
+        // vnames.retainAll(actually_used);
+        // tnames.retainAll(actually_used);
+        
+        
        final Importer imp = new Importer() {
            public String toString() {
                return  a + "/" + c + "->" + importer.name();
@@ -619,6 +649,13 @@ public class Driver {
            final boolean[] noisy = new boolean[1];
 
            final Set<String> added = new HashSet<String>();
+           final Set<String> overloaded = new HashSet<String>();
+           final public void finishOverloads() {
+               for (String s: overloaded) {
+                   OverloadedFunction fv = (OverloadedFunction) into_e.getValue(s);
+                   fv.finishInitializing();
+               }
+           }
         @Override
         synchronized void reportErrors() {
             noisy[0] = true;
@@ -713,7 +750,14 @@ public class Driver {
                         }
                     }
                     if (do_import) {
-                        into_e.putValue(s, NI.cnnf(from_e.getValueRaw(s)));
+                        FValue fv = NI.cnnf(from_e.getValueRaw(s));
+                        into_e.putValue(s, fv);
+                        FValue fv2 = into_e.getValueRaw(s);
+                        if ( 
+                            fv2 instanceof OverloadedFunction) {
+                         // hack, leave this empty temporarily.
+                          //  overloaded.add(s);
+                        }
                         added.add(s);
                     } else {
                         notImport(s, o, a, c);
