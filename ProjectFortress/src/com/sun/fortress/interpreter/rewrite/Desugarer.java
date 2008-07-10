@@ -161,15 +161,23 @@ public class Desugarer extends Rewrite {
             objectNestedness = objectNestingDepth;
             lexicalNestedness = lexicalNestingDepth;
         }
+        
         /** May assume {@code original} has a non-zero length. */
         Expr replacement(VarRef original) {
             return NodeFactory.makeVarRef(original, lexicalNestedness);
         }
+        
         Expr replacement(FnRef original) {
             return NodeFactory.makeFnRef(original, lexicalNestedness);
         }
         Expr replacement(OpRef original) {
             return NodeFactory.makeOpRef(original, lexicalNestedness);
+        }
+        VarType replacement(VarType original) {
+             return NodeFactory.makeVarType(original, lexicalNestedness);
+        }
+        TraitType replacement(TraitType original) {
+            return NodeFactory.makeTraitType(original, lexicalNestedness);
         }
         public String toString() { return "Thing@"+objectNestedness+"/"+lexicalNestedness; }
     }
@@ -203,6 +211,7 @@ public class Desugarer extends Rewrite {
             super();
             if (_transient) isTransient = true;
         }
+        @Override
         Expr replacement(VarRef original) {
             if (isTransient) {
                 return original;
@@ -237,13 +246,18 @@ public class Desugarer extends Rewrite {
     }
 
 
-    private static class IsAnArrowName extends NodeAbstractVisitor<Boolean> {
+    private static class ArrowOrFunctional {};
+    private final static ArrowOrFunctional NEITHER = new ArrowOrFunctional();
+    private final static ArrowOrFunctional ARROW = new ArrowOrFunctional();
+    private final static ArrowOrFunctional FUNCTIONAL = new ArrowOrFunctional();
+    
+    private static class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
 
         /* (non-Javadoc)
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forLValueBind(com.sun.fortress.nodes.LValueBind)
          */
         @Override
-        public Boolean forLValueBind(LValueBind that) {
+        public ArrowOrFunctional forLValueBind(LValueBind that) {
             return optionTypeIsArrow(that.getType());
         }
 
@@ -269,27 +283,27 @@ public class Desugarer extends Rewrite {
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forAbsFnDecl(com.sun.fortress.nodes.AbsFnDecl)
          */
         @Override
-        public Boolean forAbsFnDecl(AbsFnDecl that) {
+        public ArrowOrFunctional forAbsFnDecl(AbsFnDecl that) {
             // Return "is a self method"
-            return NodeUtil.selfParameterIndex(that) >= 0;
+            return NodeUtil.selfParameterIndex(that) >= 0  ? FUNCTIONAL : NEITHER;
         }
 
         /* (non-Javadoc)
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forFnDef(com.sun.fortress.nodes.FnDef)
          */
         @Override
-        public Boolean forFnDef(FnDef that) {
+        public ArrowOrFunctional forFnDef(FnDef that) {
          // Return "is a self method"
-            return NodeUtil.selfParameterIndex(that) >= 0;
+            return NodeUtil.selfParameterIndex(that) >= 0 ? FUNCTIONAL : NEITHER;
         }
 
         /* (non-Javadoc)
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forTestDecl(com.sun.fortress.nodes.TestDecl)
          */
         @Override
-        public Boolean forTestDecl(TestDecl that) {
+        public ArrowOrFunctional forTestDecl(TestDecl that) {
             // FALSE
-            return Boolean.FALSE;
+            return NEITHER;
         }
 
 
@@ -298,7 +312,7 @@ public class Desugarer extends Rewrite {
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forNormalParam(com.sun.fortress.nodes.NormalParam)
          */
         @Override
-        public Boolean forNormalParam(NormalParam that) {
+        public ArrowOrFunctional forNormalParam(NormalParam that) {
             return optionTypeIsArrow(that.getType());
         }
 
@@ -306,12 +320,12 @@ public class Desugarer extends Rewrite {
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forVarargsParam(com.sun.fortress.nodes.VarargsParam)
          */
         @Override
-        public Boolean forVarargsParam(VarargsParam that) {
-            return Boolean.FALSE;
+        public ArrowOrFunctional forVarargsParam(VarargsParam that) {
+            return NEITHER;
         }
 
-        private Boolean optionTypeIsArrow(Option<Type> ot) {
-            return ot.unwrap(null) instanceof ArrowType;
+        private ArrowOrFunctional optionTypeIsArrow(Option<Type> ot) {
+            return ot.unwrap(null) instanceof ArrowType ? ARROW : NEITHER;
         }
 
     }
@@ -341,7 +355,13 @@ public class Desugarer extends Rewrite {
      */
     private BATree<String, StaticParam> visibleGenericParameters;
     private BATree<String, StaticParam> usedGenericParameters;
+    public BASet<String> topLevelUses;
+    public BASet<String> functionals;
 
+    protected void noteUse(Thing t, String s) {
+        if (t.lexicalNestedness == 0 || functionals.contains(s))
+            topLevelUses.add(s);
+    }
     /**
      * All the object exprs (this may generalize to nested functions as well)
      * need to have their gensym'd types and constructors registered at the
@@ -352,18 +372,25 @@ public class Desugarer extends Rewrite {
 
     Desugarer(BATree<String, Thing> initial,
               BATree<String, StaticParam> initialGenericScope,
-              BASet<String> initialArrows) {
+              BASet<String> initialArrows,
+              BASet<String> initialTopLevelUses,
+              BASet<String> initialFunctionals) {
         rewrites = initial;
         arrows = initialArrows;
         visibleGenericParameters = initialGenericScope;
         usedGenericParameters = new BATree<String, StaticParam>(StringComparer.V);
+        topLevelUses = initialTopLevelUses;
+        functionals = initialFunctionals;
         // packages = new BASet<String>(StringComparer.V);
     }
 
     public Desugarer(boolean isLibrary) {
         this(new BATree<String, Thing>(StringComparer.V),
              new BATree<String, StaticParam>(StringComparer.V),
-             new BASet<String>(StringComparer.V));
+             new BASet<String>(StringComparer.V),
+             new BASet<String>(StringComparer.V),
+             new BASet<String>(StringComparer.V)
+             );
         this.isLibrary = isLibrary;
     }
 
@@ -448,6 +475,7 @@ public class Desugarer extends Rewrite {
         if (t == null) {
             return vre;
         } else {
+            noteUse(t,s);
             return t.replacement(vre);
         }
 
@@ -458,10 +486,33 @@ public class Desugarer extends Rewrite {
         if (t == null) {
             return vre;
         } else {
+            noteUse(t,s);
             return t.replacement(vre);
         }
 
     }
+    
+   NamedType newType(VarType nt, String s) {
+        
+        Thing t = rewrites.get(s);
+        if (t == null) {
+            return nt;
+        } else {
+            noteUse(t,s);
+            return t.replacement(nt);
+        }
+    }
+   
+   NamedType newType(TraitType nt, String s) {
+       
+       Thing t = rewrites.get(s);
+       if (t == null) {
+           return nt;
+       } else {
+           noteUse(t,s);
+           return t.replacement(nt);
+       }
+   }
 
 //    Iterable<Id> newName(Iterable<Id> ids, String s) {
 //        Thing t = e.get(s);
@@ -646,9 +697,24 @@ public class Desugarer extends Rewrite {
                     return update;
                 } else if (node instanceof OpExpr) {
                     node = cleanupOpExpr((OpExpr)node);
+                    
                 } else if (node instanceof _RewriteFnRef) {
 
                     _RewriteFnRef fr = (_RewriteFnRef) node;
+
+                } else if (node instanceof VarType) {
+                    VarType vre = (VarType) node;
+                    String s = NodeUtil.nameString(vre.getName());
+                    StaticParam tp = visibleGenericParameters.get(s);
+                    if (tp != null) {
+                        usedGenericParameters.put(s, tp);
+                    }
+                    node = newType(vre, s);
+
+                } else if (node instanceof TraitType) {
+                    TraitType vre = (TraitType) node;
+                    String s = NodeUtil.nameString(vre.getName());
+                    node = newType(vre, s);
 
                 } else if (node instanceof TightJuxt&& looksLikeMethodInvocation((Juxt) node)) {
                     return translateJuxtOfDotted((Juxt) node);
@@ -672,14 +738,6 @@ public class Desugarer extends Rewrite {
                         Id newId = new Id(id.getSpan(), "_$" + id.getSpan());
                         return NodeFactory.makeLValue(lvb, newId);
                     }
-                } else if (node instanceof VarType) {
-                    VarType vre = (VarType) node;
-                    String s = NodeUtil.nameString(vre.getName());
-                    StaticParam tp = visibleGenericParameters.get(s);
-                    if (tp != null) {
-                        usedGenericParameters.put(s, tp);
-                    }
-
                 } else if (node instanceof FieldRef) {
                     atTopLevelInsideTraitOrObject = false;
                     // Believe that any field selection is already
@@ -901,9 +959,10 @@ public class Desugarer extends Rewrite {
                     return visitLoop(ge.getSpan(), ge.getGens(), ge.getExpr());
                 } else if (node instanceof Accumulator) {
                     Accumulator ac = (Accumulator)node;
-                    return visitAccumulator(ac.getSpan(), ac.getGens(),
+                    node =  visitAccumulator(ac.getSpan(), ac.getGens(),
                                             ac.getOpr(), ac.getBody(),
                                             ac.getStaticArgs());
+                    return node;
                 } else if (node instanceof Spawn) {
                     return translateSpawn((Spawn)node);
                 } else if (node instanceof Typecase) {
@@ -1457,9 +1516,12 @@ public class Desugarer extends Rewrite {
             for (Param d : params.unwrap()) {
                 String s = d.getName().getText();
                 rewrites_put(s, new Member(NodeUtil.isTransient(d)));
-                if (d.accept(isAnArrowName))
+                ArrowOrFunctional aof = d.accept(isAnArrowName);
+                if (aof != NEITHER) {
                     arrows.add(s);
-                else
+                    if (aof == FUNCTIONAL)
+                        functionals.add(s);
+                } else
                     arrows.remove(s);
             }
     }
@@ -1541,12 +1603,16 @@ public class Desugarer extends Rewrite {
                             for (AbsDeclOrDecl dd : tdod.getDecls()) {
                                 String sdd = dd.stringName();
                                 if (dd instanceof VarDecl) {
-                                    visited.add(tdod);
+                                    //visited.add(tdod);
                                 } else if (dd instanceof AbsVarDecl) {
-                                    visited.add(tdod);
+                                    //visited.add(tdod);
                                 } else {
-                                    if (dd.accept(isAnArrowName)) {
+                                    ArrowOrFunctional aof = dd.accept(isAnArrowName);
+                                    
+                                    if (aof != NEITHER) {
                                         arrow_names.add(sdd);
+                                        if (aof == FUNCTIONAL)
+                                            functionals.add(sdd);
                                     } else {
                                         not_arrow_names.add(sdd);
                                     }

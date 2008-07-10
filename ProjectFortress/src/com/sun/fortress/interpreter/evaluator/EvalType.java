@@ -370,7 +370,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forVarType(VarType i) {
         try {
-            FType result = env.getType(i.getName());
+            FType result = env.getType(i);
             return result;
         } catch (FortressException p) {
             throw p.setContext(i,env);
@@ -503,7 +503,13 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forTraitType(TraitType x) {
-       FType ft1 = forId(x.getName());
+        FType ft1;
+        try {
+            ft1 = env.getType(x);
+        } catch (FortressException p) {
+            throw p.setContext(x,env);
+        }
+              
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
@@ -512,8 +518,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             // to an FTypeGeneric. After disambiguation, all trait type references are
             // TraitTypes (possibly with zero arguments). EricAllen 11/5/2007
             return ft1;
-//            return error(x, env, errorMsg("Expected generic type, got ", ft1,
-//                                          " instead"));
         }
     }
 
