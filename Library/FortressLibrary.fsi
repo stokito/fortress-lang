@@ -350,7 +350,7 @@ end
 trait AnyIntegral extends { RR64 } end
 
 trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], AnyIntegral }
-        comprises { ZZ64, IntLiteral }
+        comprises { ZZ, IntLiteral }
     getter zero(): I
     getter one(): I
 
@@ -375,8 +375,12 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr ^(self, b:ZZ64):RR64
 end
 
-trait ZZ64 extends { Integral[\ZZ64\] } comprises { Long, ZZ32 }
+trait ZZ64 extends { Integral[\ZZ64\], ZZ } comprises { Long, ZZ32 }
     narrow(self):ZZ32
+    big(self):ZZ
+end
+
+trait ZZ extends { Integral[\ZZ\] } comprises { BigNum, ZZ64}
 end
 
 (************************************************************

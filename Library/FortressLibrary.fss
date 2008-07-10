@@ -485,7 +485,7 @@ end
 trait AnyIntegral extends { RR64 } end
 
 trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], AnyIntegral }
-        comprises { ZZ64, IntLiteral }
+        comprises { ZZ, IntLiteral }
     getter zero(): I
     getter one(): I
 
@@ -510,7 +510,7 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr ^(self, b:ZZ64):RR64
 end
 
-trait ZZ64 extends { Integral[\ZZ64\] } comprises { Long, ZZ32 }
+trait ZZ64 extends { Integral[\ZZ64\],ZZ } comprises { Long, ZZ32 }
     getter zero(): ZZ64 = widen(0)
     getter one(): ZZ64 = widen(1)
 
@@ -561,6 +561,63 @@ trait ZZ64 extends { Integral[\ZZ64\] } comprises { Long, ZZ32 }
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
     narrow(self):ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$FromLong")
+    big(self):ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToBigNum")
+end
+
+trait ZZ extends Integral[\ZZ\]
+    getter zero(): ZZ =
+        1934791870947204798109283471902037419 - 1934791870947204798109283471902037419
+    getter one(): ZZ = zero() + 1
+    opr |self| : ZZ32 = if self>=0 then self else -self end
+    opr =(self, b: ZZ):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Eq")
+    opr <(self, other:ZZ): Boolean = self.cmp(other) < 0
+    opr <=(self, other:ZZ): Boolean = self.cmp(other) <= 0
+    opr >(self, other:ZZ): Boolean = self.cmp(other) > 0
+    opr >=(self, other:ZZ): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other:ZZ): TotalComparison = self.cmp(other) CMP 0
+    cmp(b:ZZ): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Cmp")
+
+    opr -(self): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Negate")
+    opr +(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Add")
+    opr -(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Sub")
+    opr DOT(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mul")
+    opr juxtaposition(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mul")
+    opr TIMES(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mul")
+    opr DIV(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Div")
+    opr REM(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Rem")
+    opr MOD(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mod")
+    opr GCD(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Gcd")
+    opr LCM(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Lcm")
+    opr CHOOSE(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Choose")
+    opr BITAND(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitAnd")
+    opr BITOR(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitOr")
+    opr BITXOR(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitXor")
+    opr LSHIFT(self, b:ZZ64): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$LShift")
+    opr RSHIFT(self, b:ZZ64): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$RShift")
+    opr BITNOT(self): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitNot")
+    opr ^(self, b:ZZ64):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Pow")
 end
 
 (************************************************************
