@@ -208,7 +208,7 @@ FnHeaderFront OpHeaderFront =
            op = NodeFactory.makeOpInfix(op);
        } else { // error
            op = syntaxError(op.getSpan(),
-                            "Operator fix is invalid in its declaration.");
+                            "Operator fixity is invalid in its declaration.");
        }
        if (a2 == null) yyValue = new FnHeaderFront(op, a3);
        else            yyValue = new FnHeaderFront(op, a2, a3);
