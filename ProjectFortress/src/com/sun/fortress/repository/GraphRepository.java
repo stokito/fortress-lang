@@ -136,44 +136,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Debug.debug( 2, "Get API for " + name);
         refreshGraph();
         return node.getApi().unwrap();
-        /*
-        Shell.AnalyzeResult result = refreshGraph();
-        Shell shell = new Shell(this);
-        Map<APIName, ApiIndex> parsedApis = parsedApis();
-        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis);
-        Iterable<? extends StaticError> errors = Shell.analyze(shell.getRepository(), result.apis(), result.components(), knownApis);
-        if ( errors.iterator().hasNext() ){
-            throw new MultipleStaticError(errors);
-        }
-        return node.getApi().unwrap();
-        */
-        //        throw StaticError.make("Use getMyApi, instead", name);
     }
-
-    /*
-    public Shell.AnalyzeResult getMyApi(APIName name) throws FileNotFoundException, IOException, StaticError {
-        ApiGraphNode node = addApiGraph(name);
-        Debug.debug( 2, "Get API for " + name);
-        return refreshGraph();
-    }
-    */
 
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
         ComponentGraphNode node = addComponentGraph(name);
         Debug.debug( 2, "Get component for " + name );
         refreshGraph();
         return node.getComponent().unwrap();
-        /*
-        Shell.AnalyzeResult result = refreshGraph();
-        Shell shell = new Shell(this);
-        Map<APIName, ApiIndex> parsedApis = parsedApis();
-        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis);
-        Iterable<? extends StaticError> errors = Shell.analyze(shell.getRepository(), result.apis(), result.components(), knownApis);
-        if ( errors.iterator().hasNext() ){
-            throw new MultipleStaticError(errors);
-        }
-        return node.getComponent().unwrap();
-        */
     }
 
     /* add an API node to the graph and return the node. if the API exists in the
@@ -596,10 +565,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Debug.debug( 1, "Parsing " + component + " at " + now );
 
         Shell shell = new Shell(this);
-        /* fort.analyze will call repository.add() with the parsed component,
-         * where that repository is 'this'. After that add the component node
-         * in the graph will contain something and can be unwrap()'d at the end.
-         */
         Shell.AnalyzeResult result =
             Shell.analyze(shell.getRepository(),
                           knownApis, new ArrayList<Api>(), components, now );
