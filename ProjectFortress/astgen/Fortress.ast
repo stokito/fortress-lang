@@ -1108,7 +1108,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * Primary ::= self
                      * e.g.) length
                      */
-                    VarRef(Id var, int lexicalDepth=-1) implements Lhs;
+                    VarRef(Id var, int lexicalDepth=-2147483648) implements Lhs;
                     /**
                      * A reference to a singleton object. Created at typechecking or disambiguation-time.
                      * Necessary because object references are initially parsed as FnRefs.
@@ -1146,7 +1146,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * named functional in functional applications
                      */
                     abstract FunctionalRef(List<StaticArg> staticArgs
-                                             = Collections.<StaticArg>emptyList(), int lexicalDepth=-1);
+                                             = Collections.<StaticArg>emptyList(), int lexicalDepth=-2147483648);
                         /**
                          * expression with static instantiations
                          * list of ids allows cross-API overloading
@@ -1355,7 +1355,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                 /**
                  * named type
                  */
-                abstract NamedType(Id name, int lexicalDepth=-1);
+                abstract NamedType(Id name, int lexicalDepth=-2147483648);
                     /**
                      * a type variable
                      * TraitType ::= QualifiedName
