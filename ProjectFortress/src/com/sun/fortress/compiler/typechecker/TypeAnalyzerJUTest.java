@@ -57,14 +57,14 @@ public class TypeAnalyzerJUTest extends TestCase {
     private static ConstraintFormula sub(TypeAnalyzer ta, Type s, Type t) {
         return ta.subtype(s, t);
     }
-    
+
     private static Type norm(TypeAnalyzer ta, String t) {
         return ta.normalize(parseType(t));
     }
-    
+
     public void testNormalize() {
         debug.logStart(); try {
-        
+
         TypeAnalyzer t = makeAnalyzer(trait("A"),
                                       trait("B", "A"),
                                       trait("C", "B"),
@@ -72,12 +72,12 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("E"),
                                       trait("F"),
                                       trait("G"));
-        
+
         assertEquals(type("A"), norm(t, "A"));
         assertEquals(type("Any"), norm(t, "Any"));
         assertEquals(type("Bottom"), norm(t, "Bottom"));
         assertEquals(type("()"), norm(t, "()"));
-        
+
         assertEquals(type("(A,B)"), norm(t, "(A,B)"));
         assertEquals(type("Bottom"), norm(t, "(A,Bottom)"));
         assertEquals(type("(A,Any)"), norm(t, "(A,Any)"));
@@ -88,14 +88,14 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(type("&{(C,C,C),(C,C,D),(C,D,C),(C,D,D),(D,C,C),(D,C,D),(D,D,C),(D,D,D)}"),
                      norm(t, "(C&D, C&D, C&D)"));
         assertEquals(type("|{(C,E)&(C,F), (D,E)&(D,F)}"), norm(t, "(C|D,E&F)"));
-        
+
         assertEquals(type("(A,B...)"), norm(t, "(A,B...)"));
         assertEquals(type("A"), norm(t, "(A,Bottom...)"));
         assertEquals(type("(A,Any...)"), norm(t, "(A,Any...)"));
         assertEquals(type("|{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, |{E,F,G}...)"));
         assertEquals(type("&{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, &{E,F,G}...)"));
         assertEquals(type("|{(C,E...)&(C,F...), (D,E...)&(D,F...)}"), norm(t, "(C|D,E&F...)"));
-        
+
         assertEquals(type("A->Any"), norm(t, "A->Any"));
         assertEquals(type("Any->A"), norm(t, "Any->A"));
         assertEquals(type("A->Bottom"), norm(t, "A->Bottom"));
@@ -117,21 +117,21 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(type("(C&D, foo=E&F, bar=G)->A"), norm(t, "(C&D, foo=E&F, bar=G)->A"));
         assertEquals(type("&{(C,foo=E,bar=G)->A,(C,foo=F,bar=G)->A,(D,foo=E,bar=G)->A,(D,foo=F,bar=G)->A}"),
                           norm(t, "(C|D, foo=E|F, bar=G)->A"));
-        
+
         assertEquals(type("Any"), norm(t, "&{}"));
         assertEquals(type("()"), norm(t, "&{()}"));
         assertEquals(type("B"), norm(t, "A&B"));
         assertEquals(type("&{C,D}"), norm(t, "&{A,B,C,D}"));
         assertEquals(type("&{E,C,D}"), norm(t, "(A&E)&(C&(D&E))"));
         assertEquals(type("|{C&E,C&F,C&G,D&E,D&F,D&G}"), norm(t, "(C|D)&(E|F|G)"));
-        
+
         assertEquals(type("Bottom"), norm(t, "|{}"));
         assertEquals(type("()"), norm(t, "|{()}"));
         assertEquals(type("A"), norm(t, "A|B"));
         assertEquals(type("A"), norm(t, "|{A,B,C,D}"));
         assertEquals(type("|{A,E}"), norm(t, "(A|E)|(C|(D|E))"));
         assertEquals(type("(C&D)|(&{E,F,G})"), norm(t, "(C&D)|(E&F&G)"));
-        
+
         } finally { debug.logEnd(); }
     }
 
@@ -297,7 +297,7 @@ public class TypeAnalyzerJUTest extends TestCase {
 
         } finally { debug.logEnd(); }
     }
-    
+
     public void testTupleSubtyping() {
         debug.logStart(); try {
 
@@ -315,12 +315,7 @@ public class TypeAnalyzerJUTest extends TestCase {
 
         } finally { debug.logEnd(); }
     }
-    
-    public void testUnionAndIntersection(){
-    	TypeAnalyzer t=makeAnalyzer(trait("A"));
-    	assertEquals(false,sub(t,"(Bottom, Bottom)|A","(Any,Any)&A"));
-    }
-    
+
     public void testVarargSubtyping() {
         debug.logStart(); try {
 
@@ -365,7 +360,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(TRUE, sub(t, "Any", "(Any...)"));
         assertEquals(TRUE, sub(t, "Bottom", "(Any...)"));
         assertEquals(TRUE, sub(t, "(A, A...)", "(Any...)"));
-        
+
         assertEquals(TRUE, sub(t, "(B...)", "(A...)"));
         assertEquals(FALSE, sub(t, "(A...)", "(B...)"));
 
@@ -481,7 +476,7 @@ public class TypeAnalyzerJUTest extends TestCase {
                                     CollectUtil.<IdOrOpOrAnonymousName, Method>emptyRelation(),
                                     CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }
-    
+
     /** Shortcut for parseType */
     public static Type type(String s) { return parseType(s); }
 
@@ -510,7 +505,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     private static Type parseType(String s) {
         s = s.trim();
         int opIndex;
-        
+
         opIndex = findAtTop(s, "->");
         if (opIndex >= 0) {
             s = s + " "; // recognize a trailing "io"
@@ -521,7 +516,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             Effect e = parseEffect(s.substring(effectStart));
             return new ArrowType(d, r, e);
         }
-        
+
         opIndex = findAtTop(s, "|");
         if (opIndex == 0) {
             return new UnionType(parseTypeList(s, "|{", "}"));
@@ -531,7 +526,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             Type right = parseType(s.substring(opIndex+1));
             return NodeFactory.makeUnionType(left, right);
         }
-        
+
         opIndex = findAtTop(s, "&");
         if (opIndex == 0) {
             return new IntersectionType(parseTypeList(s, "&{", "}"));
@@ -541,7 +536,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             Type right = parseType(s.substring(opIndex+1));
             return NodeFactory.makeIntersectionType(left, right);
         }
-        
+
         if (s.startsWith("(")) {
             boolean varargs = s.endsWith("...)");
             if (varargs) { s = s.substring(0, s.length()-4) + ")"; }
@@ -551,28 +546,28 @@ public class TypeAnalyzerJUTest extends TestCase {
             else if (ts.size() == 1) { return ts.get(0); }
             else { return new TupleType(ts); }
         }
-        
+
         if (s.length() == 0 |
             TextUtil.containsAny(s, '(', ')', '{', '}', ',', '-', '>', '&', '|') |
             s.contains("...")) {
             throw new IllegalArgumentException("Malformed name: \"" + s + "\"");
         }
-        
+
         if (s.equals("Any")) { return ANY; }
-        
+
         if (s.equals("Bottom")) { return BOTTOM; }
-        
+
         if (s.startsWith("#")) {
             return new _InferenceVarType(s);
         }
-        
+
         if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {
             return NodeFactory.makeVarType(s);
         }
-        
+
         return NodeFactory.makeTraitType(s);
     }
-    
+
     private static Domain parseDomain(String s) {
         s = s.trim();
         // check whether this is entirely enclosed in parens
@@ -601,16 +596,16 @@ public class TypeAnalyzerJUTest extends TestCase {
             return new Domain(Collections.singletonList(parseType(s)));
         }
     }
-    
+
     private static Effect parseEffect(String s) {
         if (s.length() == 0) { return new Effect(); }
-        
+
         boolean io = false;
         s = s.trim();
         if (s.equals("io")) { return new Effect(true); }
         else if (s.startsWith("io ")) { io = true; s = s.substring(3).trim(); }
         else if (s.endsWith(" io")) { io = true; s = s.substring(0, s.length()-3).trim(); }
-        
+
         if (!s.startsWith("throws ")) {
             throw new IllegalArgumentException("Unrecognized effect: \"" + s + "\"");
         }
@@ -628,17 +623,17 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
         return new Effect(Option.some(ts), io);
     }
-    
+
     private static List<Type> parseTypeList(String s, String leftDelim, String rightDelim) {
         return parseTypeList(splitList(s, leftDelim, rightDelim));
     }
-    
+
     private static List<Type> parseTypeList(List<String> ss) {
         List<Type> ts = new LinkedList<Type>();
         for (String elt : ss) { ts.add(parseType(elt)); }
         return ts;
     }
-    
+
     /**
      * Get the index of a non-parenthesized instance of the given substring, or -1
      * if it is not found.
@@ -661,13 +656,13 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
         return -1;
     }
-    
+
     private static List<String> splitList(String s, String leftDelim, String rightDelim) {
         if (!s.startsWith(leftDelim) || !s.endsWith(rightDelim)) {
             throw new IllegalArgumentException("Bad list: \"" + s + "\"");
         }
         s = s.substring(leftDelim.length(), s.length()-rightDelim.length());
-        
+
         List<String> elts = new LinkedList<String>();
         int depth = 0;
         int eltStart = 0;
@@ -689,7 +684,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
         return elts;
     }
-    
+
 
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */
     public static TypeAnalyzer makeAnalyzer(TraitIndex... traits) {
