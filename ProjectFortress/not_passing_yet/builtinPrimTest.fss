@@ -1,3 +1,20 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
 component builtinPrimTest
 export Executable
 
@@ -8,15 +25,15 @@ object MyChar(val:Char)
         x:ZZ32 = myJavaDigit(self, radix)
         if(x = -1) then
              Nothing[\ZZ32\]
-        else 
+        else
              Just[\ZZ32\](x)
         end
     end
 end
 
-run(args:String...):() = do 
+run(args:String...):() = do
     c = MyChar('5')
-    myDigit(c, 10) 
+    myDigit(c, 10)
 end
 
 end
