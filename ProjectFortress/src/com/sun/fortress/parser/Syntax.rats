@@ -269,7 +269,6 @@ SyntaxSymbol BaseSymbol =
 SyntaxSymbol GroupSymbol =
       "{" w syms:SyntaxSymbolsX w "}"
       {
-        com.sun.fortress.useful.Debug.debug( 1, "Matched a group: " + syms );
         yyValue = new GroupSymbol(createSpan(yyStart, yyCount), syms);
       };
 
@@ -278,7 +277,7 @@ SyntaxSymbol Breakline = a1:breakline
 
 SyntaxSymbol Symbol =
       a1:Item hash
-      { com.sun.fortress.useful.Debug.debug( 1, "[parser] Create whitespace symbol for " + a1 ); yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
+      { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
      / yyValue:Item;
 
 /*
