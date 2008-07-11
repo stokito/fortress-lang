@@ -786,25 +786,25 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
 
     private String extractVar(Id id){
         if (this.syntaxDeclEnv.isRepeat(id)) {
-            Debug.debug( Debug.Type.SYNTAX, 4, String.format("%s is a repeat symbol", id.getText() ) );
+            Debug.debug( Debug.Type.SYNTAX, 4, id.getText(), " is a repeat symbol" );
             return "(OpExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
         }
         if (this.syntaxDeclEnv.isOption(id)) {
-            Debug.debug( Debug.Type.SYNTAX, 4, String.format("%s is an optional symbol", id.getText() ) );
+            Debug.debug( Debug.Type.SYNTAX, 4, id.getText(), " is an optional symbol" );
             return "(Expr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
         }
         if (this.syntaxDeclEnv.isCharacterClass(id)) {
-            Debug.debug( Debug.Type.SYNTAX, 4, String.format("%s is a character class", id.getText() ) );
+            Debug.debug( Debug.Type.SYNTAX, 4, id.getText(), " is a character class" );
             return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
         }
         if (this.syntaxDeclEnv.isAnyChar(id)) {
-            Debug.debug( Debug.Type.SYNTAX, 4, String.format("%s is an any char", id.getText() ) );
+            Debug.debug( Debug.Type.SYNTAX, 4, id.getText(), " is an any char" );
             return "(StringLiteralExpr)"+ActionCreater.BOUND_VARIABLES+".get(\""+id.getText()+"\")";
         }
         if (this.syntaxDeclEnv.isNonterminal(id)) {
             Type type = syntaxDeclEnv.getType(id);
             String stype = new FortressTypeToJavaType().analyze(type);
-            Debug.debug( Debug.Type.SYNTAX, 4, String.format("%s is a non-terminal of type %s", id.getText(), stype ) );
+            Debug.debug( Debug.Type.SYNTAX, 4, id.getText(), " is a non-terminal of type ", stype );
             return String.format("(%s) %s.get(\"%s\")", stype, ActionCreater.BOUND_VARIABLES, id.getText() );
         }
         NI.nyi();
@@ -821,7 +821,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         // or a template variable?
         Id id = t.getId();
         if (!t.getTemplateParams().isEmpty()) {
-            Debug.debug(Debug.Type.SYNTAX, "The gap has parameters: "+t.getTemplateParams() );
+            Debug.debug(Debug.Type.SYNTAX, "The gap has parameters: ", t.getTemplateParams() );
             return parameterizedGap(t);
         }
         if (this.syntaxDeclEnv.contains(id)) {

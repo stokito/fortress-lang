@@ -136,9 +136,13 @@ public final class Debug {
     /* Print the debugging string iff the debugging type is on 
      * and no specific debugging level is set when fortress is run. 
      */
-    public static void debug(Type type, String s) {
+    public static void debug(Type type, Object... msgs) {
         if ( type.isOn() && Debug.level == MAX_LEVEL ) {
-            debugPS.println( String.format( "[%s] %s", type.toString(), s ) );
+        	String msgToPrint = "[" + type.toString() + "] ";
+        	for(Object s : msgs) {
+        		msgToPrint += s.toString();
+        	}
+            debugPS.println( msgToPrint );
         }
     }
 
@@ -146,9 +150,13 @@ public final class Debug {
      * and if the level argument is smaller than the debugging level 
      * set when fortress is run.
      */
-    public static void debug(Type type, int level, String s) {
+    public static void debug(Type type, int level, Object... msgs) {
         if ( type.isOn() && level <= Debug.level ) {
-            debugPS.println( String.format( "[%s] %s", type.toString(), s ) );
+           	String msgToPrint = "[" + type.toString() + "] ";
+        	for(Object s : msgs) {
+        		msgToPrint += s.toString();
+        	}
+            debugPS.println( msgToPrint );
         }
     }
 

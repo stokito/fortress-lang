@@ -57,10 +57,12 @@ public class FileBasedMacroCompiler implements MacroCompiler {
         ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
         if (!mrr.isSuccessful()) { return new Result(mrr.errors()); }
 
-        Debug.debug( Debug.Type.SYNTAX, 3, GrammarEnv.getDump() );
-
-        for (Module m: mrr.modules()) {
-            Debug.debug( Debug.Type.SYNTAX, 3, m.toString() );
+        if( Debug.isOnFor(3, Debug.Type.SYNTAX) ) {
+            Debug.debug( Debug.Type.SYNTAX, 3, GrammarEnv.getDump() );
+            
+            for (Module m: mrr.modules()) {
+                Debug.debug( Debug.Type.SYNTAX, 3, m );
+            }
         }
 
         /*

@@ -20,14 +20,9 @@ package com.sun.fortress.syntax_abstractions.util;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import com.sun.fortress.interpreter.evaluator.values.Method;
-import com.sun.fortress.interpreter.glue.prim.PrimImmutableArray;
 import com.sun.fortress.interpreter.glue.prim.PrimImmutableArray.PrimImmutableArrayObject;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Contract;
@@ -38,9 +33,7 @@ import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Op;
@@ -57,8 +50,6 @@ import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.Debug;
@@ -84,7 +75,7 @@ public class FortressObjectASTVisitor<T> {
         if (null == value) {
             throw new RuntimeException("Unexpected value was null");
         }
-        Debug.debug( Debug.Type.SYNTAX, 2, "Val: "+value.getClass());
+        Debug.debug( Debug.Type.SYNTAX, 2, "Val: ", value.getClass());
         if (value instanceof FString) {
             return (T) ((FString) value).getString();
         }
