@@ -336,7 +336,7 @@ public final class Shell {
     private static Iterable<? extends StaticError> compile(Path path, String file, Option<String> out) {
         GraphRepository bcr = specificRepository( path, defaultRepository );
 
-        Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file " + file );
+        Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
         APIName name = cuName(file);
         try {
             if ( isApi(file) ) {

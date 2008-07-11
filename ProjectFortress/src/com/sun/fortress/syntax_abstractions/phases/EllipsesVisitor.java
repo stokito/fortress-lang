@@ -48,7 +48,7 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forTemplateGapExpr(TemplateGapExpr that) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Replace " + that.getId() + " with " + env.getValue( that.getId() ) );
+        Debug.debug( Debug.Type.SYNTAX, 2, "Replace ", that.getId(), " with ", env.getValue( that.getId() ) );
         return (Node) env.getValue( that.getId() );
     }
     
@@ -128,7 +128,7 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
         if ( controllable( env, that ) ){
             List<Expr> nodes = new ArrayList<Expr>();
             for ( EllipsesEnvironment newEnv : decompose( env, freeVariables( that.getExpr() ) ) ){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env " + newEnv );
+                Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env ", newEnv );
                 nodes.add( (Expr) that.getExpr().accept( new EllipsesVisitor( newEnv ) ) );
             }
             return nodes;

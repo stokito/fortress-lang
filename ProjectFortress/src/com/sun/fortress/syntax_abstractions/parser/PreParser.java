@@ -104,20 +104,20 @@ public class PreParser {
                comp.accept( new NodeDepthFirstVisitor_void(){
                    @Override
                    public void forImportedNamesDoFirst(ImportedNames that) {
-                       Debug.debug( Debug.Type.SYNTAX, 2, "Add import api " + that.getApi() );
+                       Debug.debug( Debug.Type.SYNTAX, 2, "Add import api ", that.getApi() );
                        all.add( that.getApi() );
                    }
 
                    @Override
                    public void forExport(Export that){
-                       Debug.debug( Debug.Type.SYNTAX, 2, "Add export api " + that.getApis() );
+                       Debug.debug( Debug.Type.SYNTAX, 2, "Add export api ", that.getApis() );
                        all.addAll( that.getApis() );
                    }
 
                    @Override
                    public void forImportApi(ImportApi that){
                        for ( AliasedAPIName api : that.getApis() ){
-                           Debug.debug( Debug.Type.SYNTAX, 2, "Add aliased api " + api.getApi() );
+                           Debug.debug( Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApi() );
                            all.add( api.getApi() );
                        }
                    }
@@ -188,7 +188,7 @@ public class PreParser {
 		    }
 		    
 			if (!result.isEmpty()) {
-			    Debug.debug(Debug.Type.SYNTAX, "Component: "+c.getName()+" imports grammars...");
+			    Debug.debug(Debug.Type.SYNTAX, "Component: ", c.getName(), " imports grammars...");
 			}
 		}
 
