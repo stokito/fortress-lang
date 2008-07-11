@@ -29,6 +29,7 @@ export Format
  *
  * Possible vars:
  *  d - format as integer. keys = w, ww, i, r, n, nn
+ *  f - format as a floating point number. keys = w, ww, i, r, n, nn
  *  e - format in scientific notation. keys = w, ww
  *  b - format as a boolean( true/false ). keys = 
  *  m - format for Maybe types, only print object if a Just is given. keys =
@@ -43,6 +44,8 @@ export Format
  *  n=num - number of chars to skip before placing a delimiter. default delimiter is ','  
  *  nn='char' - delimiter to use
  *  r=num - radix of number
+ *
+ * See tests/formatTest.fss for some examples.
  *)
 
 padHelper(string:String,c:Char,size:ZZ32):String =
@@ -203,7 +206,7 @@ object Parameters(widthLeft:Maybe[\ZZ32\],
 end
 
 (* available characters *)
-(* acfghijkloqtuvwyz *)
+(* acghijkloqtuvwyz *)
 
 parseParameters(string:String):Parameters = do
     var current:String := string
@@ -267,9 +270,9 @@ end
 
 getWidth(params,arg) = do
     if width <- params.widthLeft then
-        padLeft(arg,params.pad, width)
+        padLeft(arg "",params.pad, width)
     elif width <- params.widthRight then
-        padRight(arg,params.pad, width)
+        padRight(arg "",params.pad, width)
     else
         arg
     end
@@ -291,6 +294,18 @@ compileD(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\
         (fn () => getWidth(params,
                   getDelimiter(params,
                   radix(params.radix,
+                  getArg(params,args,allArgs)))))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+end
+
+compileF(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        getPlain(x) = x + 0.0
+        (fn () => getWidth(params,
+                  getDelimiter(params,
+                  getPlain(
                   getArg(params,args,allArgs)))))
     end
     params = parseParameters(front)
@@ -358,6 +373,7 @@ compileSpecifier(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]
         'm' => compileM(start,string,allArgs,args)
         'e' => compileE(start,string,allArgs,args)
         'x' => compileX(start,string,allArgs,args)
+        'f' => compileF(start,string,allArgs,args)
         '%' => compile(string,allArgs,args).addLeft((fn () => "%"))
         else => throw FormatException("unknown format specifier")
         
@@ -373,7 +389,7 @@ compilePercent(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] =
         else
             ""
         end
-        chars = "dsbmex%"
+        chars = "dsbmexf%"
         var count:ZZ32 := 0
         stuff = label out
             var in_string:Boolean := false
