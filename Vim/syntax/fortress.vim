@@ -29,7 +29,7 @@ syn keyword  fortressType  extends abstract comprises
 syn keyword  fortressType  grammar component
 syn keyword  fortressType  Any Boolean String self
 syn keyword  fortressType  Char
-syn keyword  fortressType  ZZ32 ZZ64 RR32 RR64
+syn keyword  fortressType  ZZ32 ZZ64 RR32 RR64 ZZ
 
 syn keyword  fortressOperator println
 
