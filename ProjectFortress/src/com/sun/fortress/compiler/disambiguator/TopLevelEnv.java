@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.disambiguator;
 
 import java.util.*;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -267,19 +268,31 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<Id> explicitFunctionNames(Id name) {
-        // TODO: imports
+    	Set<Id> result = Collections.emptySet();
+    	
+    	// Add fns from this component
         if (_current.functions().containsFirst(name)) {
-            return Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
+            result = CollectUtil.union(result, Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name)));
         }
-        else { return Collections.emptySet(); }
+        
+        // Also add imports
+        result = CollectUtil.union(result, this.onDemandFunctionNames(name));
+
+        return result;
     }
 
     public Set<OpName> explicitFunctionNames(OpName name) {
-        // TODO: imports
-        if (_current.functions().containsFirst(name)) {
-            return Collections.singleton(name);
+    	Set<OpName> result = Collections.emptySet();
+    	
+    	// Add ops in this component
+        if( _current.functions().containsFirst(name)) {
+          result = CollectUtil.union(result, Collections.singleton(name));
         }
-        else { return Collections.emptySet(); }
+        
+        // Also add imports
+        result = CollectUtil.union(result, this.onDemandFunctionNames(name));
+        
+        return result;
     }
 
     @Override

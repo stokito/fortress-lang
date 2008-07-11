@@ -135,6 +135,11 @@ public class TypeAnalyzerJUTest extends TestCase {
         } finally { debug.logEnd(); }
     }
 
+    public void testUnionAndIntersection() { 
+    	TypeAnalyzer t=makeAnalyzer(trait("A")); 
+     	assertEquals(FALSE, sub(t,"(Bottom, Bottom)|A","(Any,Any)&A"));
+    }
+    
     public void testBasicTraitSubtyping() {
         debug.logStart(); try {
 

@@ -2,7 +2,7 @@
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
-a
+
     U.S. Government Rights - Commercial software.
     Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
@@ -15,22 +15,8 @@ a
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ObjectExpr
-  export Executable
+api ApiDisambiguation
 
-  trait BetterThanZZ32 
-    opr +(self, other:BetterThanZZ32):BetterThanZZ32
-  end
+  thisIsWrong(z:ZZZZZZZZ32):()
 
-  foo() : () = do
-    var o : BetterThanZZ32
-    
-    o := (object extends { BetterThanZZ32 } 
-            foo() : BetterThanZZ32 = self + self
-          end)
-
-    o := o + o
-  end
-
-  run(args:String...):() = ()
 end

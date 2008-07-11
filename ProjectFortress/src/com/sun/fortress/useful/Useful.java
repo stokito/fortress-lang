@@ -38,12 +38,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import edu.rice.cs.plt.collect.ImmutableRelation;
+import edu.rice.cs.plt.collect.IndexedRelation;
+import edu.rice.cs.plt.collect.Relation;
 
 /*
  * Created on Feb 3, 2006
@@ -355,6 +360,18 @@ public class Useful {
       return result;
     }
 
+    /**
+     * Returns an immutable {@code Relation} with the same contents as the given
+     * {@code Map}.
+     */
+    public static <K,V> Relation<K,V> relation(Map<? extends K, ? extends V> map) {
+    	IndexedRelation<K,V> result = new IndexedRelation<K,V>();
+    	for( Map.Entry<? extends K, ? extends V> entry : map.entrySet() ) {
+    		result.add(entry.getKey(), entry.getValue());
+    	}
+    	return new ImmutableRelation<K,V>(result);
+    }
+    
     public static <T> Set<T> set() {
         return Collections.emptySet();
       }

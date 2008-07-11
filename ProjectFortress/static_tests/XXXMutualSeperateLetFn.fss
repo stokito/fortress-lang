@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXMutualSeparateLetFn
+component XXXMutualSeperateLetFn
 export Executable
 
 (* Tests that mutually recursive, *nonconsecutive* local function definitions

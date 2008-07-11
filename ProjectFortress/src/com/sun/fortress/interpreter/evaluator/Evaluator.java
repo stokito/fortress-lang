@@ -17,14 +17,15 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Stack;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Option;
+import java.util.concurrent.Callable;
 
 import com.sun.fortress.exceptions.FortressError;
 import com.sun.fortress.exceptions.FortressException;
@@ -32,15 +33,13 @@ import com.sun.fortress.exceptions.LabelException;
 import com.sun.fortress.exceptions.NamedLabelException;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
-import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
@@ -49,7 +48,6 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FChar;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
@@ -58,108 +56,95 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
 import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
 import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
-import com.sun.fortress.interpreter.evaluator.values.MethodInstance;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Selectable;
-import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractFieldRef;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
+import com.sun.fortress.nodes.ArgExpr;
+import com.sun.fortress.nodes.ArrayComprehension;
+import com.sun.fortress.nodes.ArrayComprehensionClause;
+import com.sun.fortress.nodes.ArrayElement;
+import com.sun.fortress.nodes.ArrayElements;
+import com.sun.fortress.nodes.ArrayExpr;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.AtomicExpr;
-import com.sun.fortress.nodes.KeywordExpr;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.CaseClause;
 import com.sun.fortress.nodes.CaseExpr;
-import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.Catch;
+import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
+import com.sun.fortress.nodes.ExponentiationMI;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.Link;
-import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.FnExpr;
+import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.GeneratorClause;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteralExpr;
-import com.sun.fortress.nodes.Lhs;
+import com.sun.fortress.nodes.KeywordExpr;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetExpr;
-import com.sun.fortress.nodes.LetFn;
+import com.sun.fortress.nodes.Lhs;
+import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LooseJuxt;
-import com.sun.fortress.nodes.ArrayExpr;
-import com.sun.fortress.nodes.ArrayElement;
-import com.sun.fortress.nodes.ArrayElements;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.MathItem;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.ExprMI;
-import com.sun.fortress.nodes.ParenthesisDelimitedMI;
-import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
-import com.sun.fortress.nodes.NonExprMI;
-import com.sun.fortress.nodes.ExponentiationMI;
-import com.sun.fortress.nodes.SubscriptingMI;
+import com.sun.fortress.nodes.MathPrimary;
+import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.Name;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes._RewriteFieldRef;
-import com.sun.fortress.nodes._RewriteFnRef;
-import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NonExprMI;
+import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.ArrayComprehension;
-import com.sun.fortress.nodes.ArrayComprehensionClause;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.ParenthesisDelimitedMI;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.SubscriptingMI;
 import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
-import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypecaseClause;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
-import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
+import com.sun.fortress.nodes._RewriteFieldRef;
+import com.sun.fortress.nodes._RewriteFnRef;
+import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectRef;
-import com.sun.fortress.interpreter.evaluator._WrappedFValue;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -169,11 +154,8 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
-import java.util.concurrent.Callable;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 public class Evaluator extends EvaluatorBase<FValue> {
      boolean debug = false;
@@ -1046,7 +1028,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
-    /** Assumes {@code x.getOps()} is a list of length 1.  At the
+    
+
+	// This method is not necessary in the long run. These nodes will
+    // be removed by the static end. For now, since we are not
+    // correctly rebuilding the AST in all cases, some are getting
+    // through. Just create an OpExpr that is multifix, since that's
+    // what the op fixity was before. Talk to me if you think I am
+    // dumb. Nels
+    @Override
+	public FValue forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
+    	return this.forOpExpr(new OpExpr(that.getSpan(), that.isParenthesized(), that.getMultifix_op(), that.getArgs()));
+	}
+
+	/** Assumes {@code x.getOps()} is a list of length 1.  At the
      * moment it appears that this is true for every OpExpr node that
      * is ever created. */
     public FValue forOpExpr(OpExpr x) {

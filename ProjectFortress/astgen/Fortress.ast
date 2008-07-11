@@ -1230,6 +1230,20 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                          */
                         OpExpr(OpRef op,
                                List<Expr> args = Collections.<Expr>emptyList());
+                        
+                        /**
+                         * If an expression uses and operator, and that operator
+                         * looks at parse-time like a multifix operator, it
+                         * an AmbigMultifixOpExpr node is created, because it is
+                         * unclear until typechecking and overloading resolution
+                         * whether it should be one multifix application or several
+                         * infix applications. 
+                         *
+                         * e.g.) 3+4+5+6
+                         */
+                        AmbiguousMultifixOpExpr(OpRef infix_op, OpRef multifix_op,
+                                                List<Expr> args = Collections.<Expr>emptyList());       
+                        
                         /**
                          * chain expression
                          * Certain infix mathematical operators that are

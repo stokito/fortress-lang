@@ -2,7 +2,7 @@
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
-a
+
     U.S. Government Rights - Commercial software.
     Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
@@ -15,22 +15,27 @@ a
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ObjectExpr
+component Multifix
   export Executable
+  
+  trait Foo end
+  trait Gnar end
 
-  trait BetterThanZZ32 
-    opr +(self, other:BetterThanZZ32):BetterThanZZ32
-  end
+  opr +(a:Foo, b:Foo):Foo = a
+  opr +(a:Foo, b:Gnar):Gnar = b
 
-  foo() : () = do
-    var o : BetterThanZZ32
-    
-    o := (object extends { BetterThanZZ32 } 
-            foo() : BetterThanZZ32 = self + self
-          end)
+  opr +(a:Foo, b:Foo, c:Foo, d:Foo, e:Foo...):String = "Surprise!"
 
-    o := o + o
-  end
+  (* We should be able to call multi-fix operators. *)
+  foo(f:Foo) : String = f+f+f+f
+
+  (* But if no function taking the same number of arguments
+     exists, we use the binary operation. *)
+  bar(f:Foo) : Foo = f+f+f
+
+  (* Also we use the binary operator if types are incompatible.
+     So overloading should be taken into account *)
+  quux(a:Foo,b:Gnar) : Gnar = a+a+a+b
 
   run(args:String...):() = ()
 end

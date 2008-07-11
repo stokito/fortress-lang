@@ -1224,9 +1224,4 @@ public class NodeFactory {
 		Type returnType = new TraitType(typeName , staticArgs);
 		return new FnDef(fnName, params, Option.some(returnType), expression);
 	}
-
-
-
-
-
 }

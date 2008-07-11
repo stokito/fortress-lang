@@ -19,12 +19,13 @@ component DXXChainTest2
   export Executable
   
   trait Foo 
-   opr = (self, x:Foo): ZZ32
+    (* This test will begin to fail if there is ever a < defined for Any,Any *)
+    opr < (self, x:Foo): ZZ32
   end
   
   foo(a:Foo, b:Foo, c:Foo, d:Foo) : Boolean = do
-    ignore(a = b = c = d)
-    (a = b)
+    ignore(a < b < c < d)
+    (a < b)
   end
 
   run(args:String...):() = ()
