@@ -59,7 +59,7 @@ tuple[\T\](x:T):T
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C
 
-fail(s:String)
+fail[\T\](s:String):T
 
 (************************************************************
 * \subsection*{Control over locality and location}
