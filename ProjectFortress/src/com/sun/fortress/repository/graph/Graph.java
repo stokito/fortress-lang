@@ -52,10 +52,12 @@ public class Graph<GNode extends GraphNode>{
 		}
 	}
 
-	public void dump(){
+	public String getDebugString(){
+		String retString = "";
 		for ( Map.Entry<GNode,List<GNode>> entry : edges.entrySet() ){
-			System.out.println( entry.getKey() + " -> " + entry.getValue() );
+			retString += entry.getKey() + " -> " + entry.getValue() + "\n";
 		}
+		return retString;
 	}
 
 	/* helper method for dumpSorted */

@@ -28,7 +28,6 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 
-import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.exceptions.StaticError;
@@ -41,8 +40,6 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
-import com.sun.fortress.compiler.IndexBuilder.ApiResult;
-import com.sun.fortress.compiler.IndexBuilder.ComponentResult;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -107,13 +104,13 @@ public final class Shell {
     /* Helper method to print usage message.*/
     private static void printUsageMessage() {
         System.err.println("Usage:");
-        System.err.println(" compile [-out file] [-debug [#]] somefile.fs{s,i}");
-        System.err.println(" [run] [-test] [-debug [#]] somefile.fss arg...");
-        System.err.println(" parse [-out file] [-debug [#]] somefile.fs{s,i}...");
-        System.err.println(" disambiguate [-out file] [-debug [#]] somefile.fs{s,i}...");
-        System.err.println(" desugar [-out file] [-debug [#]] somefile.fs{s,i}...");
-        System.err.println(" grammar [-out file] [-debug [#]] somefile.fs{s,i}...");
-        System.err.println(" typecheck [-out file] [-debug [#]] somefile.fs{s,i}...");
+        System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" [run] [-test] [-debug [type]* [#]] somefile.fss arg...");
+        System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" desugar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" grammar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" typecheck [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" help");
     }
 
@@ -121,52 +118,47 @@ public final class Shell {
         System.err.println
         ("Invoked as script: fortress args\n"+
          "Invoked by java: java ... com.sun.fortress.Shell args\n"+
-         "fortress compile [-out file] [-debug [#]] somefile.fs{s,i}\n"+
-         "  Compile somefile. If compilation succeeds no message will be printed.\n"+
-         "   -out file : dumps the processed abstract syntax tree to a file.\n" +
-         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
-         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
          "\n"+
-         "fortress [run] [-test] [-debug [#]] somefile.fss arg ...\n"+
+         "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
+         "  Compile somefile. If compilation succeeds no message will be printed.\n"+
+         "\n"+
+         "fortress [run] [-test] [-debug [type]* [#]] somefile.fss arg ...\n"+
          "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
          "  run method of somefile.fss.\n"+
-         "   -test : first runs test functions associated with the program.\n"+
-         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
-         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
          "\n"+
-         "fortress parse [-out file] [-debug [#]] somefile.fs{i,s}\n"+
+         "fortress parse [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "   -out file : dumps the abstract syntax tree to a file.\n"+
-         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
-         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
-         "\n"+
-         "fortress disambiguate [-out file] [-debug [#]] somefile.fs{i,s}\n"+
+         "\n"+ 
+         "fortress disambiguate [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Disambiguates a file.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "   -out file : dumps the abstract syntax tree to a file.\n"+
-         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
-         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
          "\n"+
          "fortress desugar [-out file] [-debug [#]] somefile.fs{i,s}\n"+
          "  Desugars a file.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "   -out file : dumps the abstract syntax tree to a file.\n"+
-         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
-         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
          "\n"+
          "fortress grammar [-out file] [-debug [#]] somefile.fs{i,s}\n"+
          "  Rewrites syntax grammars in a file.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "   -out file : dumps the abstract syntax tree to a file.\n"+
-         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
-         "   -debug # : sets debugging to the specified level, where # is a number.\n"+
          "\n"+
          "fortress typecheck [-out file] [-debug [#]] somefile.fs{i,s}\n"+
          "  Typechecks a file. If type checking succeeds no message will be printed.\n"+
+         "\n"+
+         "More details on each flag:\n"+
          "   -out file : dumps the processed abstract syntax tree to a file.\n"+
-         "   -debug : enables debugging to the maximum level and prints java stack traces.\n"+
-         "   -debug # : sets debugging to the specified level, where # is a number.\n"
+         "   -test : first runs test functions associated with the program.\n"+
+         "   -debug : enables debugging to the maximum level (99) for all \n"+ 
+         "            debugging types and prints java stack traces.\n"+
+         "   -debug # : sets debugging to the specified level, where # is a number, \n"+
+         "            and sets all debugging types on.\n"+ 
+         "   -debug types : sets debugging types to the specified types with \n"+
+         "            the maximum debugging level. \n" +
+         "   -debug types # : sets debugging to the specified level, where # is a number, \n"+ 
+         "            and the debugging types to the specified types. \n" +
+         "   The acceptable debugging types are:\n"+ 
+         "            " + Debug.typeStrings() + "\n"+ 
+         "\n"
         );
     }
 
@@ -236,13 +228,7 @@ public final class Shell {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-                Debug.setDebug( 99 );
-                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
-                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
-                    rest = rest.subList( 1, rest.size() );
-                } else {
-                    ProjectProperties.debug = true;
-                }
+                rest = Debug.parseOptions(rest);
             }
             if (s.equals("-out") && ! rest.isEmpty() ){
                 out = Option.<String>some(rest.get(0));
@@ -277,15 +263,6 @@ public final class Shell {
         }
     }
 
-    private static boolean isInteger( String s ){
-        try{
-            int i = Integer.valueOf(s);
-            return i == i;
-        } catch ( NumberFormatException n ){
-            return false;
-        }
-    }
-
     private static boolean isApi(String file){
         return file.endsWith(ProjectProperties.API_SOURCE_SUFFIX);
     }
@@ -316,17 +293,11 @@ public final class Shell {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-                Debug.setDebug( 99 );
-                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
-                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
-                    rest = rest.subList( 1, rest.size() );
-                } else {
-                    ProjectProperties.debug = true;
-                }
+            	rest = Debug.parseOptions(rest);
             }
             if (s.equals("-out") && ! rest.isEmpty() ){
                 out = Option.<String>some(rest.get(0));
-                rest = rest.subList(1, rest.size());
+                rest = rest.subList( 1, rest.size() );
             }
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
             compile(rest, out);
@@ -365,7 +336,7 @@ public final class Shell {
     private static Iterable<? extends StaticError> compile(Path path, String file, Option<String> out) {
         GraphRepository bcr = specificRepository( path, defaultRepository );
 
-        Debug.debug( 2, "Compiling file " + file );
+        Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file " + file );
         APIName name = cuName(file);
         try {
             if ( isApi(file) ) {
@@ -383,7 +354,7 @@ public final class Shell {
         } catch (ProgramError pe) {
             Iterable<? extends StaticError> se = pe.getStaticErrors();
             if (se == null) {
-                return IterUtil.singleton(new WrappedException(pe, ProjectProperties.debug));
+                return IterUtil.singleton(new WrappedException(pe, Debug.isOnMax()));
             }
             else {
                 return se;
@@ -395,7 +366,7 @@ public final class Shell {
         } catch ( IOException e ){
             throw new WrappedException(e);
         } catch (StaticError ex) {
-             return IterUtil.singleton(new WrappedException(ex, ProjectProperties.debug));
+             return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
         }
 
         if (bcr.verbose())
@@ -417,16 +388,13 @@ public final class Shell {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-                Debug.setDebug( 99 );
-                if ( ! rest.isEmpty() && isInteger( rest.get( 0 ) ) ){
-                    Debug.setDebug( Integer.valueOf( rest.get( 0 ) ) );
-                    rest = rest.subList( 1, rest.size() );
-                } else {
-                    ProjectProperties.debug = true;
-                }
+            	rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-test")) test = true;
+            if (s.equals("-test")) {
+            	test = true;
+            }
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            
             run(rest);
         } else {
             run(s, rest);
@@ -462,7 +430,7 @@ public final class Shell {
                     throw (RuntimeException) th;
                 if (th instanceof Error)
                     throw (Error) th;
-                throw new WrappedException(th, ProjectProperties.debug);
+                throw new WrappedException(th, Debug.isOnMax());
             }
 
             for (StaticError error: errors) {
@@ -471,7 +439,7 @@ public final class Shell {
             // If there are no errors, all components will have been written to disk by the CacheBasedRepository.
         } catch ( StaticError e ){
             System.err.println(e);
-            if ( ProjectProperties.debug ){
+            if ( Debug.isOnMax() ){
                 e.printStackTrace();
             }
         } catch (RepositoryError e) {
@@ -479,7 +447,7 @@ public final class Shell {
         } catch (FortressException e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
-            if (ProjectProperties.debug) {
+            if (Debug.isOnMax()) {
                 e.printStackTrace();
             } else {
                 System.err.println("Turn on -debug for Java-level error dump.");
@@ -713,7 +681,7 @@ public final class Shell {
             }
 
             public AnalyzeResult run() throws StaticError {
-                Debug.debug( 1, "Start phase Empty" );
+                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase Empty" );
                 IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
                 IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
                 return new AnalyzeResult(apiIndex.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
@@ -726,7 +694,7 @@ public final class Shell {
             }
 
             public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
-                Debug.debug( 1, "Start phase Disambiguate" );
+                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase Disambiguate" );
                 return disambiguate(repository, env, apis, components, lastModified);
             }
         }
@@ -737,7 +705,7 @@ public final class Shell {
             }
 
             public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
-                Debug.debug( 1, "Start phase TypeCheck" );
+                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase TypeCheck" );
                 return typecheck(repository, env, apis, components, lastModified);
             }
         }
@@ -748,7 +716,7 @@ public final class Shell {
             }
 
             public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
-                Debug.debug( 1, "Start phase Desugar" );
+                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase Desugar" );
                 return desugar(repository, env, apis, components, lastModified);
             }
         }
@@ -759,7 +727,7 @@ public final class Shell {
             }
 
             public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
-                Debug.debug( 1, "Start phase TopLevelEnvironment" );
+                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase TopLevelEnvironment" );
                 return topLevelEnvironment(repository, env, apis, components, lastModified);
             }
         }
@@ -770,7 +738,7 @@ public final class Shell {
             }
 
             public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
-                Debug.debug( 1, "Start phase GrammarPhase" );
+                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase GrammarPhase" );
                 return rewriteGrammar(repository, env, apis, components, lastModified);
             }
         }
@@ -800,4 +768,6 @@ public final class Shell {
                                         final long lastModified) throws StaticError {
         return getPhase(repository, env, apis, components, lastModified, currentPhase).run();
     }
+
+
 }

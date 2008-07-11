@@ -22,7 +22,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
+import com.sun.fortress.useful.Debug;
 
 public class JavaC {
 
@@ -35,17 +35,15 @@ public class JavaC {
 	static final String nl = "\n";
 	
 	public static int compile(String sourceDir, String destinationDir, String filename) {
-		if (ProjectProperties.debug)
-		    System.err.println("compiling a temporary parser...");
+		Debug.debug(Debug.Type.SYNTAX, "compiling a temporary parser...");
 		String classpath = sourceDir+":"+getFortressThirdPartyDependencyJars()+":"+getFortressBuildDir();
 		String[] args = {"-nowarn", "-cp", classpath , "-d", destinationDir, filename};
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		int compilationResult = com.sun.tools.javac.Main.compile(args, pw);
 		String errors = sw.getBuffer().toString();
-		if (ProjectProperties.debug) {
-		    System.err.println("done: "+compilationResult);
-		}
+		Debug.debug( Debug.Type.SYNTAX, ("done: "+compilationResult) );
+		
 		if (!errors.equals("")) {
 			System.err.println(errors);
 		}

@@ -26,24 +26,19 @@ import java.util.List;
 import java.util.Map;
 
 import xtc.parser.Action;
-import xtc.parser.ParseError;
 
 import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes_util.ASTIO;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.ArrayType;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Indices;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.PrefixedSymbol;
@@ -58,9 +53,8 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -106,7 +100,7 @@ public class ActionCreater {
             String serializedComponent = ac.writeJavaAST(component);
             code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
 
-            if (ProjectProperties.debug) {
+            if (Debug.isOnMaxFor(Debug.Type.SYNTAX)) {
                 addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
             }
             addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
@@ -121,7 +115,7 @@ public class ActionCreater {
                 addCodeLine(s, code, indents);
             }
 
-            if (ProjectProperties.debug) {
+            if (Debug.isOnMaxFor(Debug.Type.SYNTAX)) {
                 addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
             }
             addCodeLine("yyValue = "+yyValue+";", code, indents);
