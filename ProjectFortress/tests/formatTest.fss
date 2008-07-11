@@ -204,6 +204,18 @@ run(args:String...) = do
     catch e
         Exception => fail("Test failed for 'hello 5bf9'. " e)
     end
+
+    try
+        tst(format("hello %f", 1), "hello 1.0")
+    catch e
+        Exception => fail("Test failed for 'hello 1.0'. " e)
+    end
+
+    try
+        tst(format("hello %ww=4&p=0f", 1), "hello 1.00")
+    catch e
+        Exception => fail("Test failed for 'hello 1.00'. " e)
+    end
 end
 
 end
