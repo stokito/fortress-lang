@@ -41,6 +41,7 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
 
     private EllipsesEnvironment env;
 
+
     public EllipsesVisitor( EllipsesEnvironment env ){
         this.env = env;
     }
@@ -132,7 +133,7 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
             }
             return nodes;
         } else {
-            throw new RuntimeException( "Invalid ellipses expression" );
+            throw new RuntimeException( "Invalid ellipses expression: " + that );
         }
     }
     
