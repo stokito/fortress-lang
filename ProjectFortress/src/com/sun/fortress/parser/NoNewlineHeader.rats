@@ -48,7 +48,8 @@ private List<TraitTypeWhere> TraitTypeWhereList =
 private TraitTypeWhere TraitTypeWhere =
      a1:TraitType a2:(w Where)?
      { if (a2 == null) a2 = FortressUtil.emptyWhereClause();
-       yyValue = new TraitTypeWhere(a1, a2);
+       yyValue = new TraitTypeWhere(createSpan(yyStart,yyCount),
+                                    a1, a2);
      };
 
 /* Extends ::= extends w TraitTypes */
@@ -95,12 +96,16 @@ WhereClause Where =
      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
      a2:(w void:opencurly w WhereConstraintList w void:closecurly)?
      { if (a2 == null)
-         yyValue = new WhereClause(a1, Collections.<WhereConstraint>emptyList());
+         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+                                   a1, Collections.<WhereConstraint>emptyList());
        else
-         yyValue = new WhereClause(a1, a2);
+         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+                                   a1, a2);
      }
    / where w opencurly w a1:WhereConstraintList w closecurly
-     { yyValue = new WhereClause(Collections.<WhereBinding>emptyList(), a1); };
+     { yyValue = new WhereClause(createSpan(yyStart,yyCount),
+                                 Collections.<WhereBinding>emptyList(), a1);
+     };
 
 /* WhereBindingList ::= WhereBinding (w , w WhereBinding)* */
 List<WhereBinding> WhereBindingList =

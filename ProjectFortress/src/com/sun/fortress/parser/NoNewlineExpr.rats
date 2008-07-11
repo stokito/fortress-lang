@@ -87,7 +87,8 @@ constant inline Action<Expr> NoNewlineEllipsis =
      DoubleStar
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new _EllipsesExpr(base);
+               return new _EllipsesExpr(createSpan(yyStart,yyCount),
+                                        base);
            }};
      };
 
