@@ -32,13 +32,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import xtc.parser.Module;
-import xtc.tree.Attribute;
 
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.useful.Debug;
 
 public class RatsParserGenerator {
 
@@ -84,7 +83,7 @@ public class RatsParserGenerator {
         try {
             parser = parserLoader.findClass("com.sun.fortress.parser."+freshFortressName);
         } catch (ClassNotFoundException e) {
-            errors.add(new WrappedException(e, ProjectProperties.debug));
+            errors.add(new WrappedException(e, Debug.isOnMax()));
         }
         return new RatsParserGenerator().new Result(parser, errors);
     }

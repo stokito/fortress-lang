@@ -72,7 +72,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
     public Expr dispatch(Object value, Option<Type> option) {
         // It is either the result of a optional
         if (option.isSome()) {
-            Debug.debug(1,"Dispatch on " + value + " and " + option.unwrap() );
+            Debug.debug( Debug.Type.SYNTAX, 1,"Dispatch on " + value + " and " + option.unwrap() );
             if (option.unwrap() instanceof TraitType) {
                 TraitType it = (TraitType) option.unwrap();
                 if (it.getName().equals(NodeFactory.makeId("FortressLibrary","Maybe"))) {
@@ -147,7 +147,7 @@ public class JavaASTToFortressAST extends NodeDepthFirstVisitor<Expr> {
         boolean first = true;
         for (Object o: value) {
             Node n = (Node) o;
-            Debug.debug( 1, "Node: "+n.getClass());
+            Debug.debug( Debug.Type.SYNTAX, 1, "Node: "+n.getClass());
             JavaASTToFortressAST jaTofss = new JavaASTToFortressAST(n.getSpan());
             Expr e = n.accept(jaTofss);
             if (first) {

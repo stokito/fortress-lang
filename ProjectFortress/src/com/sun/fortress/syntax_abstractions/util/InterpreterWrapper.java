@@ -128,7 +128,7 @@ public class InterpreterWrapper {
         c.getDecls().clear();
         c.getDecls().addAll(decls);
 
-        Debug.debug( 2, "Imports for transformation component: " + c.getImports() );
+        Debug.debug( Debug.Type.SYNTAX, 2, "Imports for transformation component: " + c.getImports() );
 
         //  try {
         //   System.err.println(writeJavaAST(c));
@@ -137,7 +137,7 @@ public class InterpreterWrapper {
         //   e1.printStackTrace();
         //  }
         try {
-            Debug.debug( 1, "Running interpreter...");
+            Debug.debug( Debug.Type.SYNTAX, 1, "Running interpreter...");
 
             return new Result(runFunction(c), errors);
         } catch (FortressException e) {
@@ -167,7 +167,7 @@ public class InterpreterWrapper {
                 VarDecl vd = (VarDecl) d;
                 if (vd.getLhs().size() == 1) {
                     LValueBind vb = vd.getLhs().get(0);
-                    Debug.debug( 2, "[interpreter wrapper] Get variable for " + vb.getName() + " to type " + vb.getType() );
+                    Debug.debug( Debug.Type.SYNTAX, 2, "[interpreter wrapper] Get variable for " + vb.getName() + " to type " + vb.getType() );
                     Object o = boundVariables.get(vb.getName().getText());
                     Expr n = new JavaASTToFortressAST(span).dispatch(o, vb.getType());
                     newDecls.add(new VarDecl(vd.getLhs(), n));
@@ -203,7 +203,7 @@ public class InterpreterWrapper {
         if (evTask.causedException()) {
             throw evTask.taskException();
         }
-        Debug.debug( 2, "EvTask: "+evTask.result() );
+        Debug.debug( Debug.Type.SYNTAX, 2, "EvTask: "+evTask.result() );
         return evTask.result();
     }
 

@@ -289,7 +289,6 @@ public class ProjectProperties {
 
     // public static boolean noStaticAnalysis = ! getBoolean("fortress.static.analysis", true);
 
-	public static boolean debug = false;
     public static boolean noPreparse = false;
 
 

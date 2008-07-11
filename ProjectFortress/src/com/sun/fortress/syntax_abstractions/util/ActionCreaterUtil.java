@@ -65,7 +65,7 @@ public class ActionCreaterUtil {
             VariableCollector.Depth depth = pair.getValue();
             String var = sym.getId().unwrap().getText();
             if ( isTemplate ){
-                Debug.debug( 1, String.format("Depth for %s is %s", sym, depth ) );
+                Debug.debug( Debug.Type.SYNTAX, 1, String.format("Depth for %s is %s", sym, depth ) );
                 final String astNode = SyntaxAbstractionUtil.getJavaType(syntaxDeclEnv, sym.getId().unwrap());
                 class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                     String source;

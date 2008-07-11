@@ -84,7 +84,7 @@ public class FortressObjectASTVisitor<T> {
         if (null == value) {
             throw new RuntimeException("Unexpected value was null");
         }
-        Debug.debug( 2, "Val: "+value.getClass());
+        Debug.debug( Debug.Type.SYNTAX, 2, "Val: "+value.getClass());
         if (value instanceof FString) {
             return (T) ((FString) value).getString();
         }

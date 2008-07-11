@@ -259,7 +259,7 @@ public class SyntaxAbstractionUtil {
         BaseType type = GrammarEnv.getType(syntaxDeclEnv, id);
         String stype = new FortressTypeToJavaType().analyze(type);
         String s = SyntaxAbstractionUtil.cutPackage(stype);
-        Debug.debug( 4, "Found " + s );
+        Debug.debug( Debug.Type.SYNTAX, 4, "Found " + s );
         return s;
     }
 
