@@ -44,9 +44,9 @@ option setOfString(FORTRESS_KEYWORDS);
           }
         };
 */
-        String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
-        String idstart = UnicodeIdStart / [_] ;
-        String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
+transient String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
+transient String idstart = UnicodeIdStart / [_] ;
+transient String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
 private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
 
 Id Id =

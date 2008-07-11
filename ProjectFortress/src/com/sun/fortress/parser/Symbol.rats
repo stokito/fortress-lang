@@ -55,27 +55,27 @@ Enclosing EncloserPair =
      };
 
 transient void bar = &("|" wr GeneratorClauseList closingComprehension) "|";
-private transient void closingComprehension =
+transient private void closingComprehension =
      w closecurly
    / w closeangle
    / br ArrayComprehensionClause
    / w closesquare
    ;
-private transient String sd = [*.]? ;
-private String bars = "|" (sd "|")* ;
-private String slashes = "/" (sd "/")*
+transient private String sd = [*.]? ;
+transient private String bars = "|" (sd "|")* ;
+transient private String slashes = "/" (sd "/")*
                        / "\\" (sd "\\")* ;
-private String lesses = "<" (sd "<")*;
-private String greaters = ">" (sd ">")*;
+transient private String lesses = "<" (sd "<")*;
+transient private String greaters = ">" (sd ">")*;
 
-private String encloser = !(bar) bars !([*.>/\\] / "->") ;
+transient private String encloser = !(bar) bars !([*.>/\\] / "->") ;
 
-private String leftEncloser =
+transient private String leftEncloser =
      leftEncloserMulti &{PrecedenceMap.ONLY.isLeft(yyValue)}
    / c:_ &{c != '|' && PrecedenceMap.ONLY.isLeft(""+c)} { yyValue = ""+c; }
    ;
 
-private String leftEncloserMulti =
+transient private String leftEncloserMulti =
      "(." ("/"+ / "\\"+)
    / "[/\\/\\/" / "[/\\/"
    / "[" (sd slashes)
@@ -86,12 +86,12 @@ private String leftEncloserMulti =
    / "((.>" / "(.<"
    ;
 
-private String rightEncloser =
+transient private String rightEncloser =
       rightEncloserMulti &{ PrecedenceMap.ONLY.isRight(yyValue) }
    / c:_ &{c != '|' && PrecedenceMap.ONLY.isRight(""+c)} { yyValue = ""+c; }
    ;
 
-private String rightEncloserMulti =
+transient private String rightEncloserMulti =
      "/"+ ".)"
    / "\\"+ ".)"
    / slashes sd (greaters / bars / [\]}])
@@ -102,7 +102,7 @@ private String rightEncloserMulti =
    / "/\\/\\/]" / "/\\/]"
    ;
 
-private String exponentOp =
+transient private String exponentOp =
      "^T"
    / a1:"^" a2:(encloser / op) { yyValue = a1+a2; };
 
@@ -122,7 +122,7 @@ Op Op =
      a1:(condOp / op !(equalsOp) / compOp)
      { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
 
-private String compOp =
+transient private String compOp =
      "==="
    / "=/="
    / "<="
@@ -157,7 +157,7 @@ private String multiOp =
    / !(rightEncloserMulti) "//"
    ;
 
-private String singleOp =
+transient private String singleOp =
      !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
      a1:_ !("*") &{ PrecedenceMap.ONLY.isOperator("" + a1) }
      { yyValue = "" + a1; } ;
@@ -178,36 +178,36 @@ String doublerightarrow = "=>" &(w BlockElems w match);
 /* The operator "BY" should not be used with ExtentRange. */
 String crossOp = "BY":OpName &(w ExtentRange);
 
-String leftarrow = "<-";
+transient String leftarrow = "<-";
 
-String caret = "^" !("T");
-String colonequals = ":=";
-String equals = "=" (!op);
-String equalsOp = "=":singleOp;
-String semicolon = ";";
-String one = "1";
+transient String caret = "^" !("T");
+transient String colonequals = ":=";
+transient String equals = "=" (!op);
+transient String equalsOp = "=":singleOp;
+transient String semicolon = ";";
+transient String one = "1";
 
-String colon = ":" (!op);
-String colonOp = ":":singleOp;
-String closecurly = "}";
-String opencurly = "{":leftEncloser;
-String closesquare = "]";
-String opensquare = !(opendoublesquare) "[":leftEncloser;
-String ellipses = "...";
+transient String colon = ":" (!op);
+transient String colonOp = ":":singleOp;
+transient String closecurly = "}";
+transient String opencurly = "{":leftEncloser;
+transient String closesquare = "]";
+transient String opensquare = !(opendoublesquare) "[":leftEncloser;
+transient String ellipses = "...";
 
-String lessthanequal    = "<=":op / "LE":op;
-String lessthan         = "<":op  / "LT":op;
-String greaterthanequal = ">=":op / "GE":op;
-String greaterthan      = ">":op  / "GT":op;
+transient String lessthanequal    = "<=":op / "LE":op;
+transient String lessthan         = "<":op  / "LT":op;
+transient String greaterthanequal = ">=":op / "GE":op;
+transient String greaterthan      = ">":op  / "GT":op;
 
-String NOT     = "NOT":op;
-String OR      = "OR":op;
-String AND     = "AND":op;
-String IMPLIES = "->":op / "IMPLIES":op;
+transient String NOT     = "NOT":op;
+transient String OR      = "OR":op;
+transient String AND     = "AND":op;
+transient String IMPLIES = "->":op / "IMPLIES":op;
 
-String DOT = "DOT":OpName;
-String slash = "/":singleOp;
-String rightarrow = "->";
+transient String DOT = "DOT":OpName;
+transient String slash = "/":singleOp;
+transient String rightarrow = "->";
 
 transient void closeangle = "|>";
 transient void closedoublesquare = "\\]";
@@ -228,19 +228,19 @@ transient void comma = ",";
 transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */
-Option<OpRef> AssignOp =
+transient Option<OpRef> AssignOp =
      colonequals   { yyValue = Option.none(); }
    / a1:CompoundOp { yyValue = Option.some(a1); };
 
-Op SUM = "SUM"
+transient Op SUM = "SUM"
      { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount), "BIG +"); };
-Op PROD = "PROD"
+transient Op PROD = "PROD"
      { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
                                        "BIG juxtaposition");
      };
 
 /* Accumulator ::= SUM | PROD | BIG w (Encloser | Op) */
-Op Accumulator =
+transient Op Accumulator =
      SUM
    / PROD
    / void:BIG w a1:(Encloser / Op)
