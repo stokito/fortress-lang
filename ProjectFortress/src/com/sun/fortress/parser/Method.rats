@@ -200,12 +200,16 @@ private WhereClause CoercionWhere =
      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
      a2:(w void:opencurly w CoercionWhereConstraintList w void:closecurly)?
      { if (a2 == null)
-         yyValue = new WhereClause(a1, Collections.<WhereConstraint>emptyList());
+         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+                                   a1, Collections.<WhereConstraint>emptyList());
        else
-         yyValue = new WhereClause(a1, a2);
+         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+                                   a1, a2);
      }
    / where w opencurly w a1:CoercionWhereConstraintList w closecurly
-     { yyValue = new WhereClause(Collections.<WhereBinding>emptyList(), a1); };
+     { yyValue = new WhereClause(createSpan(yyStart,yyCount),
+                                 Collections.<WhereBinding>emptyList(), a1);
+     };
 
 /* CoercionWhereConstraintList ::=
      CoercionWhereConstraint (w , w CoercionWhereConstraint)*

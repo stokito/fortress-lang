@@ -103,7 +103,7 @@ private NonterminalHeader NonterminalHeader =
         mod:(NonTermMod w)? name:Id params:(w NonterminalArguments)? staticParams:(w StaticParams)? type:(void:colon Type)? whereClauses:(w Where)?
         { if (mod == null) mod = Option.none();
           if (params == null) params = new LinkedList<NonterminalParameter>();
-          if (staticParams == null) staticParams = FortressUtil.emptyStaticParams();          
+          if (staticParams == null) staticParams = FortressUtil.emptyStaticParams();
           Option<Type> type1 = Option.<Type>none();
           if (type != null) type1 = Option.some(type);
           if (whereClauses == null) whereClauses = FortressUtil.emptyWhereClause();
@@ -124,7 +124,8 @@ private List<NonterminalParameter> DeclList =
 
 private NonterminalParameter Decl =
         a1:Id colon a2:TraitType
-        { yyValue = new NonterminalParameter(a1,a2); };
+        { yyValue = new NonterminalParameter(createSpan(yyStart,yyCount),
+                                             a1,a2); };
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDef SyntaxDef =
@@ -222,7 +223,7 @@ SyntaxSymbol SymbolMod =
 	}
       }
     / yyValue:Single;
-      
+
 SyntaxSymbol Single =
     yyValue:GroupSymbol
     / s:BaseSymbol
@@ -240,7 +241,7 @@ SyntaxSymbol BaseSymbol =
         if (null != type) type1 = Option.some(type);
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
-      
+
           yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(), prefix, type1, tmp));
         }
         else {
