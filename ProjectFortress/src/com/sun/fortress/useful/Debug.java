@@ -139,7 +139,7 @@ public final class Debug {
      */
     public static void debug(Type type, String s) {
         if ( type.isOn() && Debug.level == MAX_LEVEL ) {
-            debugPS.println( s );
+            debugPS.println( String.format( "[%s] %s", type.toString(), s ) );
         }
     }
 
@@ -149,7 +149,7 @@ public final class Debug {
      */
     public static void debug(Type type, int level, String s) {
         if ( type.isOn() && level <= Debug.level ) {
-            debugPS.println( s );
+            debugPS.println( String.format( "[%s] %s", type.toString(), s ) );
         }
     }
 
