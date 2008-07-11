@@ -698,6 +698,12 @@ public class Desugarer extends Rewrite {
                 } else if (node instanceof OpExpr) {
                     node = cleanupOpExpr((OpExpr)node);
                     
+                } else if (node instanceof AmbiguousMultifixOpExpr ) {
+                	// NEB: This code is temporary. Very soon the static end will
+                	// remove these nodes and they should never appear at this
+                	// phase of execution. However, now we simply create an OpExpr.
+                	AmbiguousMultifixOpExpr op = (AmbiguousMultifixOpExpr)node;
+                	node = cleanupOpExpr(new OpExpr(op.getSpan(), op.isParenthesized(), op.getMultifix_op(), op.getArgs()));
                 } else if (node instanceof _RewriteFnRef) {
 
                     _RewriteFnRef fr = (_RewriteFnRef) node;

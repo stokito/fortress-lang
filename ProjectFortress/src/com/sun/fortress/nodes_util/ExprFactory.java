@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Accumulator;
+import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
 import com.sun.fortress.nodes.AnonymousFnName;
 import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.ArrayComprehension;
@@ -37,13 +38,13 @@ import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.AtomicExpr;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.CaseExpr;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
-import com.sun.fortress.nodes._EllipsesExpr;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.ExponentiationMI;
@@ -75,9 +76,9 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
@@ -90,11 +91,11 @@ import com.sun.fortress.nodes.TemplateGapDelimitedExpr;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.TemplateGapFloatLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapFnExpr;
-import com.sun.fortress.nodes.TemplateGapName;
 import com.sun.fortress.nodes.TemplateGapId;
 import com.sun.fortress.nodes.TemplateGapIntLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapLooseJuxt;
+import com.sun.fortress.nodes.TemplateGapName;
 import com.sun.fortress.nodes.TemplateGapNumberLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapPrimary;
 import com.sun.fortress.nodes.TemplateGapSimpleExpr;
@@ -102,7 +103,6 @@ import com.sun.fortress.nodes.TemplateGapStringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapVoidLiteralExpr;
 import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
 import com.sun.fortress.nodes.TupleExpr;
@@ -111,14 +111,12 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
+import com.sun.fortress.nodes._EllipsesExpr;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.parser_util.FortressUtil;
-import com.sun.fortress.parser_util.precedence_resolver.ASTUtil;
-
 import com.sun.fortress.useful.BATree;
-import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -765,7 +763,13 @@ public class ExprFactory {
         public Expr forOpExpr(OpExpr e) {
             return new OpExpr(e.getSpan(), true, e.getOp(), e.getArgs());
         }
-        public Expr forArrayElement(ArrayElement e) {
+        @Override
+		public Expr forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
+        	return new AmbiguousMultifixOpExpr(that.getSpan(), true, 
+        			                           that.getInfix_op(), that.getMultifix_op(), 
+        			                           that.getArgs());
+		}
+		public Expr forArrayElement(ArrayElement e) {
             return new ArrayElement(e.getSpan(), true, e.getElement());
         }
         public Expr forArrayElements(ArrayElements e) {

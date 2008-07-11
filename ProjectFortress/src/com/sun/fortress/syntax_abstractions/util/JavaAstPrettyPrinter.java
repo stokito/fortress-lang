@@ -23,10 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Accumulator;
+import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
 import com.sun.fortress.nodes.AnonymousFnName;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
@@ -75,6 +75,7 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
@@ -733,8 +734,23 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         this.code.add("Option<List<"+type+">> "+rVarName +" = " +rhs+";");
         return rVarName;
     }
-
+    
     @Override
+	public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that,
+			String infix_op_result, String multifix_op_result,
+			List<String> args_result) {
+        if (that instanceof TemplateGap) {
+            return handleTemplateGap( (TemplateGap) that);
+        }
+        String rVarName = FreshName.getFreshName("opExpr");
+        String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
+        String argsVarName = FreshName.getFreshName("ls");
+        this.code.addAll(mkList(args_result, argsVarName, "Expr"));
+        this.code.add( String.format("AmbiguousMultifixOpExpr %s = new AmbiguousMultifixOpExpr(%s, %b, %s, %s, %s);", rVarName, sVarName, that.isParenthesized(), infix_op_result, multifix_op_result, argsVarName) );
+        return rVarName;
+	}
+
+	@Override
     public String forOpExprOnly(OpExpr that, String in_op_result, List<String> args_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);

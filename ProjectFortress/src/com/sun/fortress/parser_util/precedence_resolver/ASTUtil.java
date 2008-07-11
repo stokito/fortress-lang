@@ -20,32 +20,30 @@
  */
 package com.sun.fortress.parser_util.precedence_resolver;
 
-import java.lang.reflect.Array;
-import java.util.List;
-import java.util.Collections;
-import edu.rice.cs.plt.tuple.Option;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
-import com.sun.fortress.nodes.APIName;
+import java.lang.reflect.Array;
+import java.util.Collections;
+import java.util.List;
+
+import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;
 import com.sun.fortress.useful.Fn;
-import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
-
-import static com.sun.fortress.exceptions.ProgramError.error;
 
 // From Fortress/interpreter/ast/ast_utils.ml
 public class ASTUtil {
@@ -79,16 +77,22 @@ public class ASTUtil {
     // let multifix (span : span) (op : op) (args : expr list) : expr =
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
-        Op opr;
-        if (args.size() > 2)
-            opr = NodeFactory.makeOpMultifix(op);
-        else if (args.size() == 2)
-            opr = NodeFactory.makeOpInfix(op);
-        else
-            opr = error(op, "Operator fixity is invalid in its application.");
-        OpRef ref = new OpRef(op.getSpan(), opr,
-                              Collections.<OpName>singletonList(opr));
-        return new OpExpr(span, false, ref, args);
+        Op infix_op_ = NodeFactory.makeOpInfix(op);
+        OpRef infix_op = new OpRef(op.getSpan(), infix_op_,  Collections.<OpName>singletonList(infix_op_)); 
+        
+        Op multifix_op_ = NodeFactory.makeOpMultifix(op);
+        OpRef multifix_op = new OpRef(op.getSpan(), multifix_op_,  Collections.<OpName>singletonList(multifix_op_));
+        
+        if (args.size() > 2) {
+        	return new AmbiguousMultifixOpExpr(span, false, infix_op, multifix_op, args);
+        } 
+        else if (args.size() == 2) {
+        	return new OpExpr(span, false, infix_op, args);
+              
+        }
+        else {
+        	return error(op, "Operator fixity is invalid in its application.");
+        }
     }
 
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =

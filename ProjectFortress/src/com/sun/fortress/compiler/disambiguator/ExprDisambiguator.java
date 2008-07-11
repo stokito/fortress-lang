@@ -72,6 +72,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
@@ -134,35 +135,28 @@ import edu.rice.cs.plt.tuple.Pair;
 public class ExprDisambiguator extends NodeUpdateVisitor {
 
 	private NameEnv _env;
-	//private Set<IdOrOpOrAnonymousName> _onDemandImports;
 	private List<StaticError> _errors;
 	private Option<Id> _innerMostLabel;
 
-	public ExprDisambiguator(NameEnv env, //Set<IdOrOpOrAnonymousName> onDemandImports,
-			List<StaticError> errors) {
+	public ExprDisambiguator(NameEnv env, List<StaticError> errors) {
 		_env = env;
-		//_onDemandImports = onDemandImports;
 		_errors = errors;
 		_innerMostLabel = Option.<Id>none();
 	}
 
-	private ExprDisambiguator(NameEnv env, //Set<IdOrOpOrAnonymousName> onDemandImports,
-			List<StaticError> errors, Option<Id> innerMostLabel) {
-		this(env, //onDemandImports, 
-				errors);
+	private ExprDisambiguator(NameEnv env, List<StaticError> errors, Option<Id> innerMostLabel) {
+		this(env, errors);
 		_innerMostLabel = innerMostLabel;
 	}
 
 	private ExprDisambiguator extendWithVars(Set<Id> vars) {
 		NameEnv newEnv = new LocalVarEnv(_env, vars);
-		return new ExprDisambiguator(newEnv, //_onDemandImports, 
-				_errors, this._innerMostLabel);
+		return new ExprDisambiguator(newEnv, _errors, this._innerMostLabel);
 	}
 	
 	private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames){
 		NameEnv newEnv = new LocalFnEnv(_env, CollectUtil.makeSet(IterUtil.relax(definedNames)));
-		return new ExprDisambiguator(newEnv, //_onDemandImports, 
-				_errors, this._innerMostLabel);
+		return new ExprDisambiguator(newEnv, _errors, this._innerMostLabel);
 	}
 
 	private ExprDisambiguator extendWithSelf(Span span) {
@@ -185,8 +179,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		Option<Expr> rhsResult = recurOnOptionOfExpr(that.getRhs());
 		Set<Id> definedNames = extractDefinedVarNames(lhsResult);
 		NameEnv newEnv = new LocalVarEnv(_env, definedNames);
-		ExprDisambiguator v = new ExprDisambiguator(newEnv, //_onDemandImports,
-				_errors);
+		ExprDisambiguator v = new ExprDisambiguator(newEnv, _errors);
 		List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
 		return forLocalVarDeclOnly(that, bodyResult, lhsResult, rhsResult);
 	}
@@ -915,7 +908,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 			if (vars.isEmpty() && fns.isEmpty()) {
 				vars = _env.onDemandVariableNames(name);
 				fns = _env.onDemandFunctionNames(name);
-				//_onDemandImports.add(name);
 			}
 
 			if (vars.size() == 1 && fns.isEmpty()) {
@@ -976,7 +968,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		Set<Id> objs = _env.explicitTypeConsNames(obj_name);
 		if( objs.isEmpty() ) {
 			objs = _env.onDemandTypeConsNames(obj_name);
-			//_onDemandImports.add(obj_name);
 		}
 
 		if( objs.isEmpty() ) {
@@ -1001,7 +992,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 		Set<Id> fns = _env.explicitFunctionNames(fn_name);
 		if( fns.isEmpty() ) {
 			fns = _env.onDemandFunctionNames(fn_name);
-			//_onDemandImports.add(fn_name);
 		}
 
 		if( fns.isEmpty() ) {
@@ -1009,7 +999,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 			Set<Id> types = _env.explicitTypeConsNames(fn_name);
 			if( types.isEmpty() ) {
 				types = _env.onDemandTypeConsNames(fn_name);
-				//_onDemandImports.add(fn_name);
 			}
 			if( !types.isEmpty() ) {
 				// create _RewriteObjectRef
@@ -1028,28 +1017,41 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				CollectUtil.makeList(fns), that.getStaticArgs());
 	}
 
-	// Note how this method does not delegate to
-	// forOp().
-	@Override public Node forOpRef(OpRef that) {
+	/**
+	 * Disambiguates an OpRef, but instead of reporting an error if it cannot be
+	 * disambiguated, it returns NONE, which other methods can then used to decide
+	 * if they want to report an error.
+	 */
+	private Option<Node> opRefHelper(OpRef that) {
 		OpName entity = IterUtil.first(that.getOps());
 		Set<OpName> ops = _env.explicitFunctionNames(entity);
 		if (ops.isEmpty()) {
 			ops = _env.onDemandFunctionNames(entity);
-			//_onDemandImports.add(entity);
 		}
 
 		if (ops.isEmpty()) {
-			return new OpRef(that.getSpan(),that.isParenthesized(),entity,that.getOps(),that.getStaticArgs());
+			return Option.none();
 		}
 
-		return new OpRef(that.getSpan(),that.isParenthesized(),entity,CollectUtil.makeList(ops),that.getStaticArgs());
+		OpRef result = new OpRef(that.getSpan(),that.isParenthesized(),entity,CollectUtil.makeList(ops),that.getStaticArgs());
+		return Option.<Node>some(result);
+	}
+	
+	@Override public Node forOpRef(OpRef that) {
+		Option<Node> result_ = opRefHelper(that);
+
+		if ( result_.isNone() ) {
+			// Make sure to populate the 'originalName' field.
+			return new OpRef(that.getSpan(),that.isParenthesized(),IterUtil.first(that.getOps()), that.getOps(),that.getStaticArgs());
+		}
+		else {
+			return result_.unwrap();
+		}
 	}
 
 	@Override public Node forLabel(Label that) {
 		Id newName = (Id) that.getName().accept(this);
-		ExprDisambiguator dis = new ExprDisambiguator(_env,
-				//_onDemandImports, 
-				_errors,
+		ExprDisambiguator dis = new ExprDisambiguator(_env, _errors,
 				Option.wrap(that.getName()));
 		Block newBody = (Block) that.getBody().accept(dis);
 		return super.forLabelOnly(that, newName, newBody);
