@@ -3058,7 +3058,8 @@ trait CompleteRange[\T\]
         end
 
     opr =(self, other:CompleteRange[\T\]): Boolean =
-        isBounded()=other.isBounded() AND lower()=other.lower() AND |self| = |other|
+        isBounded()=other.isBounded() AND lower()=other.lower() AND
+        extent() = other.extent()
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             CompleteRange[\T\] =>
@@ -3104,11 +3105,7 @@ rangeIndexFailure[\T\](r:CompleteRange[\T\],i:T): () =
 
 (** ParRanges and SeqRanges, the simplest and most basic of all
     generators.  They generate |self| numbers, incrementing by 1,
-    starting with lower() (that's the canonical ordering).  Note that
-    |self| may be negative, in which case the range represents a
-    partial range that only generates elements when provided with a
-    negative increment (by writing range:(-increment)).  These ranges
-    generate 0 elements if an attempt is made to enumerate them. *)
+    starting with lower() (that's the canonical ordering). *)
 trait ScalarRange[\N extends Integral[\N\], bool bounded\]
         extends { FullRange[\N, bounded\] }
         comprises { ParRange[\N, bounded\], SeqRange[\N, bounded\] }
@@ -3117,7 +3114,7 @@ trait ScalarRange[\N extends Integral[\N\], bool bounded\]
     getter size():ZZ32 = |self|
     widenUpper(): ScalarRange[\N,false\] = lower()#(extent()+1)
     widenLower(): ScalarRange[\N,false\] = (lower()-1)#(extent()+1)
-    opr |self| : ZZ32 = narrow(extent())
+    opr |self| : ZZ32 = narrow(0 MAX extent())
     opr[i:N]: N =
         if 0 <= i < extent() then
             i + lower()
@@ -3126,7 +3123,7 @@ trait ScalarRange[\N extends Integral[\N\], bool bounded\]
         end
     opr IN(a:N, self): Boolean = do
         t = a - lower()
-        0 <= t < |self|
+        0 <= t < extent()
       end
 end
 
@@ -3257,7 +3254,7 @@ object Tuple2Range[\N extends Integral[\N\], M extends Integral[\M\], bool bound
             fn (n:N,m:M):((N,M),(N,M)) => ((n,m),(n+l1,m+l2)))
     widenUpper(): Tuple2Range[\N,M,true\] = Tuple2Range[\N,M,true\](l1,l2,x1+1,x2+1)
     widenLower(): Tuple2Range[\N,M,true\] = Tuple2Range[\N,M,true\](l1-1,l2-1,x1+1,x2+1)
-    opr |self| : ZZ32 = narrow(x1) narrow(x2)
+    opr |self| : ZZ32 = narrow((0 MAX x1) (0 MAX x2))
     opr[i:(N,M)]: (N,M) = do
         (i1,i2) = i
         if 0 <= i1 < x1 AND 0 <= i2 < x2 then
@@ -3305,7 +3302,7 @@ object Tuple3Range[\N1 extends Integral[\N1\], N2 extends Integral[\N2\], N3 ext
         Tuple3Range[\N1,N2,N3,true\](l1,l2,l3,x1+1,x2+1,x3+1)
     widenLower(): Tuple3Range[\N1,N2,N3,true\] =
         Tuple3Range[\N1,N2,N3,true\](l1-1,l2-1,l3-1,x1+1,x2+1,x3+1)
-    opr |self| : (N1,N2,N3) = narrow(x1) narrow(x2) narrow(x3)
+    opr |self| : (N1,N2,N3) = narrow((0 MAX x1) (0 MAX x2) (0 MAX x3))
     opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
         (i1,i2,i3) = i
         if 0 <= i1 < x1 AND 0 <= i2 < x2 AND 0 <= i3 < x3 then

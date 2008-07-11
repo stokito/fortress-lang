@@ -837,9 +837,8 @@ public class  OverloadedFunction extends Fcn
             // Non-generic, old code.
             if (oargs != null &&
                 argsMatchTypes(oargs,  sfn.getDomain()) &&
-                        (best == -1 ||
-                         best == i ||
-                         FTypeTuple.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
+                (best == -1 ||
+                 FTypeTuple.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
                 best = i;
                 best_sfn = sfn;
             }
