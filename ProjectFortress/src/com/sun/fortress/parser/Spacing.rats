@@ -63,21 +63,6 @@ private String NoNewlineComment =
      Comment &{ !(yyValue.contains("\r\n") || yyValue.contains("\r")
                || yyValue.contains("\n")) };
 
-private String wValue =
-   a1s:Whitespace*
-   { yyValue = "";
-     for (String s : (List<String>)a1s.list()) {
-       yyValue += s;
-     }
-   };
-private String wrValue =
-   a1s:Whitespace+
-   { yyValue = "";
-     for (String s : (List<String>)a1s.list()) {
-       yyValue += s;
-     }
-   };
-
 transient void w  = void:Whitespace*; // whitespace optional
 transient void wr = void:Whitespace+; // whitespace required
 
