@@ -27,14 +27,14 @@ module com.sun.fortress.parser.Spacing(Symbol);
 import Symbol;
 
 transient void EndOfFile  = !_ ;
-private String Whitespace =
+transient private String Whitespace =
      Space
    / <ErrorProduction> "\t"
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Tab characters are not allowed in Fortress programs except in comments.");
      }
    / Newline ;
-private String Space      =
+transient private String Space      =
      " "
    / "\f"
    / <ErrorProduction> "\t"
@@ -42,8 +42,8 @@ private String Space      =
                              "Tab characters are not allowed in Fortress programs except in comments.");
      }
    / NoNewlineComment ;
-private String Newline    = "\r\n" / "\r" / "\n" / NewlineComment ;
-private String Comment    =
+transient private String Newline    = "\r\n" / "\r" / "\n" / NewlineComment ;
+transient private String Comment    =
      a1:"(*" a2:CommentContents a3:"*)" { yyValue = a1 + a2 + a3; };
 
 private String CommentContents =
@@ -88,7 +88,7 @@ transient void nl = s void:Newline w ; // required newline in whitespace
 transient void br = nl / s ";" w;      // line break
 
 /* RectSeparator ::= (w ;)+ w / nl / sr */
-Integer RectSeparator =
+transient Integer RectSeparator =
      a1s:(w semicolon)+ w { yyValue = a1s.size() + 1; }
    / nl                   { yyValue = 2; }
    / sr                   { yyValue = 1; };

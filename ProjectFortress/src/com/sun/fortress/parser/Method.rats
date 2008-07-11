@@ -126,7 +126,7 @@ FnAbsDeclOrDecl GetterSetterDef =
      };
 
 /* GetterSetterMod ::= getter w | setter w */
-private Modifier GetterSetterMod =
+transient private Modifier GetterSetterMod =
      a1:getter w { yyValue = new ModifierGetter(createSpan(yyStart,yyCount));}
    / a1:setter w { yyValue = new ModifierSetter(createSpan(yyStart,yyCount));};
 
