@@ -179,6 +179,10 @@ public class NodeFactory {
 				t.getName(), args);
 	}
 
+	public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type, WhereClause in_where) {
+		return new TraitTypeWhere(new Span(in_type.getSpan(), in_where.getSpan()), in_type, in_where);
+	}
+	
 	public static _InferenceVarType make_InferenceVarType() {
 		return new _InferenceVarType(new Object());
 	}

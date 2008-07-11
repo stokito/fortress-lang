@@ -15,39 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ArrayElements
+component DXXCantExtendObject3
   export Executable
-
-  trait FakeTrait end
-  object FakerTrait extends { FakeTrait } end
-
-  foo() : () = do
-
-    var a:Array2[\IntLiteral,0,3,0,3\]
-    a := [1 2 3; 4 5 6; 7 8 9]
   
-    var b:Array2[\IntLiteral,0,2,0,2\]
-    b := [ 3 4
-           5 6 ]
-    b := [ 3 4;
-           5 6 ]
-    b := [ 3 4
-         ; 5 6 ]
-    b := [3 4; 5 6]
+  (* Neither traits nor objects should be allowed to
+     extend objects. *) 
 
-    var c:Array3[\IntLiteral,0,3,0,3,0,3\]
-    c := [ 1 0 0 
-           0 1 0 
-           0 0 1;;  0 1 0 
-                    1 0 1 
-                    0 1 0;; 1 0 1 
-                            0 1 0 
-                            1 0 1]
+  object DontExtendMe end
 
-    var d:Array1[\FakeTrait,0,2\]
-    d := [[\FakeTrait,0,2\] FakerTrait FakerTrait ]
-
-  end
+  foo() : () =
+    ignore( object extends DontExtendMe end )
 
   run(args:String...):() = ()
 end

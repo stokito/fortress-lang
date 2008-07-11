@@ -41,6 +41,7 @@ import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
+import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
@@ -620,7 +621,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      return newChecker.extend(Collections.singletonList(NodeFactory.makeLValue("self", self_type)));
     }
 
-    public TypeCheckerResult forObjectDecl(ObjectDecl that) {
+    public TypeCheckerResult forObjectDecl(final ObjectDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
         TypeCheckerResult nameResult = that.getName().accept(this);
         TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
@@ -631,6 +632,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
 
+        // Verify that no extends clauses try to extend an object.
+        extendsClauseResult =
+        	TypeCheckerResult.compose(that, subtypeChecker, extendsClauseResult,
+        			TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(
+        					IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
+        						public TypeCheckerResult value(TraitTypeWhere arg0) {
+        							return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
+        						}}))));
+        
         // Check field declarations.
         TypeCheckerResult fieldsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
@@ -671,51 +681,79 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 
     @Override
- public TypeCheckerResult forObjectExpr(ObjectExpr that) {
-        /**
-         * object expression
-         * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
-         * e.g.)  object extends {List}
-         *          cons(x) = Cons(x, self)
-         *          append (xs) = xs
-         *        end
-         */
-        TypeCheckerResult extendsClause_result = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+    public TypeCheckerResult forObjectExpr(final ObjectExpr that) {
+    	TypeCheckerResult extendsClause_result = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
 
-        // Check field declarations.
-        TypeCheckerResult fields_result = new TypeCheckerResult(that);
-        TypeChecker new_checker = this;
-        for( Decl decl : that.getDecls() ) {
-         if( decl instanceof VarDecl ) {
-                VarDecl _decl = (VarDecl)decl;
-                fields_result = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(new_checker), fields_result);
-                new_checker = new_checker.extend(_decl.getLhs());
-         }
-        }
+        // Verify that no extends clauses try to extend an object.
+        extendsClause_result =
+        	TypeCheckerResult.compose(that, subtypeChecker, extendsClause_result,
+        			TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(
+        					IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
+        						public TypeCheckerResult value(TraitTypeWhere arg0) {
+        							return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
+        						}}))));
+    	
+    	// Check field declarations.
+    	TypeCheckerResult fields_result = new TypeCheckerResult(that);
+    	TypeChecker new_checker = this;
+    	for( Decl decl : that.getDecls() ) {
+    		if( decl instanceof VarDecl ) {
+    			VarDecl _decl = (VarDecl)decl;
+    			fields_result = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(new_checker), fields_result);
+    			new_checker = new_checker.extend(_decl.getLhs());
+    		}
+    	}
 
-        Type obj_type = TypesUtil.getObjectExprType(that);
+    	Type obj_type = TypesUtil.getObjectExprType(that);
 
-        // Extend checker with self
-        new_checker = new_checker.extend(Collections.singletonList(NodeFactory.makeLValue("self",
-          obj_type)));
+    	// Extend checker with self
+    	new_checker = new_checker.extend(Collections.singletonList(NodeFactory.makeLValue("self",
+    			obj_type)));
 
-        TypeCheckerResult methods_result = new TypeCheckerResult(that);
-        for (Decl decl: that.getDecls()) {
-            if (decl instanceof FnDecl) {
-                methods_result = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(new_checker), methods_result);
-            }
-        }
+    	TypeCheckerResult methods_result = new TypeCheckerResult(that);
+    	for (Decl decl: that.getDecls()) {
+    		if (decl instanceof FnDecl) {
+    			methods_result = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(new_checker), methods_result);
+    		}
+    	}
 
-     return TypeCheckerResult.compose(that, obj_type, subtypeChecker, extendsClause_result, methods_result, fields_result);
+    	return TypeCheckerResult.compose(that, obj_type, subtypeChecker, extendsClause_result, methods_result, fields_result);
+    }
 
- }
-
- public TypeCheckerResult forTraitDecl(TraitDecl that) {
+    /**
+     * Return a failing TypecheckerResult with error message if the given type {@code t} is
+     * not a trait.
+     */
+    private TypeCheckerResult assertTrait(BaseType t, Node ast, String msg, Node error_loc) {
+    	TypeCheckerResult err_result = new TypeCheckerResult(ast, TypeError.make(msg, error_loc));
+    	
+    	if( !(t instanceof TraitType) )
+    		return err_result;
+    	
+    	Option<TypeConsIndex> type_cons_ = this.table.typeCons(((TraitType)t).getName());
+    	if( type_cons_.isSome() && type_cons_.unwrap() instanceof ProperTraitIndex ) {
+    		return new TypeCheckerResult(ast);
+    	}
+    	else {
+    		return err_result;
+    	}
+    }
+    
+    public TypeCheckerResult forTraitDecl(final TraitDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
         TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
         TypeCheckerResult whereResult = that.getWhere().accept(this);
         TypeCheckerResult excludesResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfBaseType(that.getExcludes()));
 
+        // Verify that no extends clauses try to extend an object.
+        extendsClauseResult =
+        	TypeCheckerResult.compose(that, subtypeChecker, extendsClauseResult,
+        			TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(
+        					IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
+        						public TypeCheckerResult value(TraitTypeWhere arg0) {
+        							return assertTrait(arg0.getType(), that, "Traits can only extend traits.", arg0);
+        						}}))));
+        
         TypeCheckerResult comprisesResult = new TypeCheckerResult(that);
         Option<List<BaseType>> comprises = that.getComprises();
         if (comprises.isSome()) {
@@ -738,7 +776,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         // Check method declarations.
-
         Option<TypeConsIndex> ind = table.typeCons(that.getName());
         if(ind.isNone()){
          bug(that.getName()+"is not in table");
