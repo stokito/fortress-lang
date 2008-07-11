@@ -82,7 +82,7 @@ object __Proxy[\T extends (* U *) Any\]
   getter toString() = "__Proxy object, should not be user-visible."
 end
 
-fail(s:String) = do
+fail[\T\](s:String):T = do
    println("FAIL: " s)
    (* throwError(s) *)
    throw FailCalled(s)
