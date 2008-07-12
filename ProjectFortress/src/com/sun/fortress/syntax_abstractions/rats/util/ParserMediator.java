@@ -37,8 +37,8 @@ public class ParserMediator {
 
 	/**
 	 * Instantiate a new instance of the given parserClass which must be a subtype of xtc.parser.ParserBase.
-	 * The instantiated parser object is stored in a field and returned; 
-	 * If anything goes wrong an exception is thrown. 
+	 * The instantiated parser object is stored in a field and returned;
+	 * If anything goes wrong an exception is thrown.
 	 * @param parserClass
 	 * @param reader
 	 * @param filename
@@ -50,25 +50,22 @@ public class ParserMediator {
 	 * @throws SecurityException
 	 * @throws NoSuchMethodException
 	 */
-	public static ParserBase getParser(APIName api_name, 
-                                           Class<?> parserClass, 
-                                           BufferedReader reader, 
+	public static ParserBase getParser(APIName api_name,
+                                           Class<?> parserClass,
+                                           BufferedReader reader,
                                            String filename)
-		throws IllegalArgumentException, InstantiationException, 
-                       IllegalAccessException, InvocationTargetException, 
+		throws IllegalArgumentException, InstantiationException,
+                       IllegalAccessException, InvocationTargetException,
                        SecurityException, NoSuchMethodException {
 
-		Constructor<?> constructor = 
+		Constructor<?> constructor =
                     parserClass.getConstructor(Reader.class, String.class);
-                Method setExpectedNameMethod = 
-                    parserClass.getMethod("setExpectedName", APIName.class);
 		parser = (ParserBase) constructor.newInstance(reader, filename);
-                setExpectedNameMethod.invoke(parser, api_name);
 		return parser;
 	}
 
 	/**
-	 * Call the method pFile(0) on the current parser object created using instantiate. 
+	 * Call the method pFile(0) on the current parser object created using instantiate.
 	 * @return The xtc.parser.Result object returned by the call to pFile(0).
 	 * @throws IllegalArgumentException
 	 * @throws SecurityException
@@ -94,15 +91,15 @@ public class ParserMediator {
 	 * Looks up the given method in the current parser object using reflection using the supplied argument types.
 	 * The method is invoked with the supplied arguments.
 	 * If no method exists with the given name and argument types, an exception is thrown.
-	 * If the arguments are not consistent with the declared types then an exception is thrown. 
+	 * If the arguments are not consistent with the declared types then an exception is thrown.
 	 * @param methodName
 	 * @param types
 	 * @param args
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws IllegalArgumentException 
-	 * @throws NoSuchMethodException 
-	 * @throws SecurityException 
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
 	 */
 	private static Object invokeMethod(String methodName, Class[] types, Object args) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
 		Method pFile = parser.getClass().getMethod(methodName, types);

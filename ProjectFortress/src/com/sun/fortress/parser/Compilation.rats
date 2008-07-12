@@ -36,16 +36,13 @@ import Spacing;
 public CompilationUnit File =
      w yyValue:CompilationUnit w EndOfFile
      { Span span = createSpan(yyStart,yyCount);
-       Option<APIName> expectedName = this.getExpectedName();
-       if (expectedName.isSome()) {
-           APIName filename = expectedName.unwrap();
-           String filenamestring = filename.toString().replace('/','.');
-           filenamestring = filenamestring.replace('\\','.');
-           String filereadstring = yyValue.getName().toString();
-           if (!filenamestring.endsWith(filereadstring))
-               yyValue = syntaxError(createSpan(yyStart,yyCount),
-                                     "Component/API names must match their enclosing file names, from name="+ filename+", from contents="+yyValue.getName());
-       }
+       String filename = span.getBegin().getFileName();
+       String cuname = yyValue.getName().toString();
+       if (!Shell.checkCompilationUnitName(filename,
+                                           cuname))
+           yyValue = syntaxError(span,
+                                 "Component/API names must match their enclosing file names, from name="
+                                 + filename+", from contents="+cuname);
      }
    / <ErrorProduction1>
      w Exports w semicolon? w Imports w semicolon?

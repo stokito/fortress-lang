@@ -44,6 +44,7 @@ import com.sun.fortress.parser_util.*;
 import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.Empty;
 import com.sun.fortress.useful.Cons;
+import com.sun.fortress.Shell;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -57,38 +58,6 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 }
 
 body {
-
-    /*
-     * Set expectedName when parsing a file that should contain
-     * exactly one API or Component, and set it to the expected name
-     * of the API/Component (usually based on the file name).
-     * If expectedName is none (the default), then no name check is
-     * performed.
-     */
-    protected Option<APIName> expectedName = Option.<APIName>none();
-    public Option<APIName> getExpectedName() {
-        return expectedName;
-    }
-    public void setExpectedName(Option<APIName> expectedName) {
-        if (expectedName == null) {
-            throw new IllegalArgumentException("expected name must not be null");
-        }
-        this.expectedName = expectedName;
-    }
-    public void setExpectedName(APIName expectedName) {
-        setExpectedName(Option.wrap(expectedName));
-    }
-    /*
-    public void setExpectedName(String name) {
-        if (api_name == null) {
-            setExpectedName(Option.<APIName>none());
-        } else {
-            APIName api_name = NodeFactory.makeAPIName(name);
-            setExpectedName(Option.<APIName>some(api_name));
-        }
-    }
-    */
-
    Span createSpan(int start, int end) {
         Column s = column(start);
         Column e = column(end-1);

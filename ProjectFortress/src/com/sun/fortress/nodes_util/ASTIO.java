@@ -75,24 +75,15 @@ public class ASTIO {
     public static Option<CompilationUnit> parseToJavaAst(APIName api_name,
                                                          String reportedFileName)
         throws IOException {
-        BufferedReader r = Useful.utf8BufferedFileReader(reportedFileName);
-        try { return parseToJavaAst(api_name, reportedFileName, r); }
-        finally { r.close(); }
-    }
-
-    public static Option<CompilationUnit> parseToJavaAst (APIName api_name,
-                                                          String reportedFileName,
-                                                          BufferedReader in)
-        throws IOException {
+        BufferedReader in = Useful.utf8BufferedFileReader(reportedFileName);
         try {
-            CompilationUnit cu = Parser.parseFile(api_name, in, reportedFileName);
+            CompilationUnit cu = Parser.parseFile(api_name, new File(reportedFileName));
             return Option.<CompilationUnit>some(cu);
         } catch (ParserError pe) {
             System.err.println("  " + pe.toString());
             return Option.<CompilationUnit>none();
-        }
+        } finally { in.close(); }
     }
-
 
    /**
      * @param reportedFileName
