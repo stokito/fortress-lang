@@ -38,7 +38,6 @@ import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.repository.CacheBasedRepository;
-import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
 public final class StaticTestSuite extends TestSuite {

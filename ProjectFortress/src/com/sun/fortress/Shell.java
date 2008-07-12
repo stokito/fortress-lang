@@ -24,6 +24,7 @@ import com.sun.fortress.repository.ProjectProperties;
 import java.io.*;
 import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
@@ -44,6 +45,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
@@ -129,7 +131,7 @@ public final class Shell {
          "fortress parse [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "\n"+ 
+         "\n"+
          "fortress disambiguate [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Disambiguates a file.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
@@ -148,16 +150,16 @@ public final class Shell {
          "More details on each flag:\n"+
          "   -out file : dumps the processed abstract syntax tree to a file.\n"+
          "   -test : first runs test functions associated with the program.\n"+
-         "   -debug : enables debugging to the maximum level (99) for all \n"+ 
+         "   -debug : enables debugging to the maximum level (99) for all \n"+
          "            debugging types and prints java stack traces.\n"+
          "   -debug # : sets debugging to the specified level, where # is a number, \n"+
-         "            and sets all debugging types on.\n"+ 
+         "            and sets all debugging types on.\n"+
          "   -debug types : sets debugging types to the specified types with \n"+
          "            the maximum debugging level. \n" +
-         "   -debug types # : sets debugging to the specified level, where # is a number, \n"+ 
+         "   -debug types # : sets debugging to the specified level, where # is a number, \n"+
          "            and the debugging types to the specified types. \n" +
-         "   The acceptable debugging types are:\n"+ 
-         "            " + Debug.typeStrings() + "\n"+ 
+         "   The acceptable debugging types are:\n"+
+         "            " + Debug.typeStrings() + "\n"+
          "\n"
         );
     }
@@ -279,6 +281,14 @@ public final class Shell {
         return NodeFactory.makeAPIName(file);
     }
 
+    public static boolean checkCompilationUnitName(String filename,
+                                                   String cuname) {
+        String file = filename.substring( 0, filename.lastIndexOf(".") );
+        file = file.replace('/','.');
+        file = file.replace('\\','.');
+        return file.endsWith(cuname);
+    }
+
     /**
      * Compile a file.
      * If you want a dump then give -out somefile.
@@ -304,16 +314,6 @@ public final class Shell {
         } else {
             try {
                 Path path = ProjectProperties.SOURCE_PATH;
-
-                /* Questions 1)
-                   1) Not for parse
-                   2) What if there are multiple "/"s
-                */
-                if (s.contains("/")) {
-                    String head = s.substring(0, s.lastIndexOf("/"));
-                    s = s.substring(s.lastIndexOf("/")+1, s.length());
-                    path = path.prepend(head);
-                }
                 Iterable<? extends StaticError> errors = compile(path, s, out );
                 if ( errors.iterator().hasNext() ){
                     for (StaticError error: errors) {
@@ -394,7 +394,7 @@ public final class Shell {
             	test = true;
             }
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
-            
+
             run(rest);
         } else {
             run(s, rest);
@@ -405,13 +405,6 @@ public final class Shell {
         throws UserError, Throwable {
         try {
             Path path = ProjectProperties.SOURCE_PATH;
-
-            if (fileName.contains("/")) {
-                String head = fileName.substring(0, fileName.lastIndexOf("/"));
-                fileName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
-                path = path.prepend(head);
-            }
-
             APIName componentName = cuName(fileName);
             GraphRepository bcr = specificRepository( path, defaultRepository );
             Iterable<? extends StaticError> errors = IterUtil.empty();

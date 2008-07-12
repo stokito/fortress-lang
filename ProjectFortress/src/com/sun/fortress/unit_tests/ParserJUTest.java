@@ -17,8 +17,10 @@
 
 package com.sun.fortress.unit_tests;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -27,7 +29,9 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.TestCaseWrapper;
+import com.sun.fortress.useful.Useful;
 import com.sun.fortress.compiler.Parser;
+import com.sun.fortress.exceptions.StaticError;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -116,7 +120,7 @@ public class ParserJUTest extends TestCaseWrapper {
 
             private void assertParserFails(File f) throws IOException {
                 try {
-                    Parser.Result result = Parser.parse(f);
+                    Parser.Result result = parseFile(f);
                     assertFalse("Source " + f + " was compiled without parser errors",
                                 result.isSuccessful());
                 } catch (Throwable e) {
@@ -124,9 +128,28 @@ public class ParserJUTest extends TestCaseWrapper {
             }
 
             private void assertParserSucceeds(File f) throws IOException {
-                Parser.Result result = Parser.parse(f);
+                Parser.Result result = parseFile(f);
                 assertFalse("Source " + f + " was compiled with parser errors",
                             !result.isSuccessful());
+            }
+
+            private Parser.Result parseFile(File f) {
+                try {
+                    return new Parser.Result(Parser.parseFile(null, f),
+                                             f.lastModified());
+                }
+                catch (StaticError se) {
+                    return new Parser.Result(se);
+                }
+                catch (FileNotFoundException e) {
+                    return new Parser.Result(StaticError.make("Cannot find file " + f.getName(),
+                                                              f.toString()));
+                }
+                catch (IOException e) {
+                    String desc = "Unable to read file";
+                    if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
+                    return new Parser.Result(StaticError.make(desc, f.toString()));
+                }
             }
         }
     }

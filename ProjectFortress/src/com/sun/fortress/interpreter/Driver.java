@@ -97,7 +97,6 @@ import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
@@ -303,7 +302,7 @@ public class Driver {
             imp.reportErrors();
         }
 
-        
+
 
         for (ComponentWrapper cw : components) {
             cw.initTypes();
@@ -314,7 +313,7 @@ public class Driver {
         for (ComponentWrapper cw : components) {
             cw.initFuncs();
         }
-        
+
         for (ComponentWrapper cw : components) {
             finishAllFunctionalMethods(cw.getEnvironment());
         }
@@ -323,18 +322,18 @@ public class Driver {
          * Special case -- finish (perhaps redundantly) any overloads that result
          * only from imports (with no function definition in the importing
          * component).  Lack of a function definition means that BuildEnvironments
-         * does not do the finish step.  See bug #147.  
+         * does not do the finish step.  See bug #147.
          */
         for (Importer imp : importers) {
             imp.finishOverloads();
         }
-        
+
         importers = null;
-        
+
         for (ComponentWrapper cw : components) {
             cw.reset();
         }
-        
+
          for (ComponentWrapper cw : components) {
             cw.initVars();
         }
@@ -630,17 +629,17 @@ public class Driver {
         final Set<String> tnames = new HashSet<String>();
 
         collectImportedValueAndTypeNames(fromApi, vnames, tnames);
-        
+
         Set<String> actually_used = importer.desugarer.topLevelUses;
-        
+
         // HACK, types referenced from native code, I think.
         actually_used.add("Any");
         actually_used.add("__immutableFactory1");
-        
+
         // vnames.retainAll(actually_used);
         // tnames.retainAll(actually_used);
-        
-        
+
+
        final Importer imp = new Importer() {
            public String toString() {
                return  a + "/" + c + "->" + importer.name();
@@ -753,7 +752,7 @@ public class Driver {
                         FValue fv = NI.cnnf(from_e.getValueRaw(s));
                         into_e.putValue(s, fv);
                         FValue fv2 = into_e.getValueRaw(s);
-                        if ( 
+                        if (
                             fv2 instanceof OverloadedFunction) {
                          // hack, leave this empty temporarily.
                           //  overloaded.add(s);

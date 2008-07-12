@@ -137,6 +137,7 @@ import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.Empty;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.Shell;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -155,7 +156,7 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 body {
 
-    /* 
+    /*
      * Set expectedName when parsing a file that should contain
      * exactly one API or Component, and set it to the expected name
      * of the API/Component (usually based on the file name).

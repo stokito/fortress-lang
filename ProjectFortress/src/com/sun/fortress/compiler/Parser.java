@@ -42,7 +42,6 @@ import xtc.parser.ParseError;
 import com.sun.fortress.parser.Fortress; // Shadows Fortress in this package
 import com.sun.fortress.parser.preparser.PreFortress;
 
-import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Api;
@@ -69,11 +68,6 @@ public class Parser {
         private final Iterable<Component> _components;
         private long _lastModified;
 
-        public Result() {
-            _apis = IterUtil.empty();
-            _components = IterUtil.empty();
-        }
-
         public Result(CompilationUnit cu, long lastModified) {
             if (cu instanceof Api) {
                 _apis = IterUtil.singleton((Api)cu);
@@ -93,13 +87,6 @@ public class Parser {
             _components = IterUtil.empty();
         }
 
-        public Result(Result r1, Result r2) {
-            super(r1, r2);
-            _apis = IterUtil.compose(r1._apis, r2._apis);
-            _components = IterUtil.compose(r1._components, r2._components);
-            _lastModified = Math.max(r1.lastModified(), r2.lastModified());
-        }
-
         public Result(Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = IterUtil.empty();
@@ -109,103 +96,6 @@ public class Parser {
         public Iterable<Api> apis() { return _apis; }
         public Iterable<Component> components() { return _components; }
         public long lastModified() { return _lastModified; }
-    }
-
-
-    /**
-     * Parse the given files and any additional files that are expected to contain
-     * referenced APIs.
-     */
-    public static Result parse(Iterable<? extends File> files,
-                               final GlobalEnvironment env) {
-        // box allows mutation of a final var
-        final Box<Result> result = new SimpleBox<Result>(new Result());
-
-        Set<File> fileSet = new HashSet<File>();
-        for (File f : files) { fileSet.add(canonicalRepresentation(f)); }
-
-        Lambda<File, Set<File>> parseAndGetDepends = new Lambda<File, Set<File>>() {
-            public Set<File> value(File f) {
-                Result r = parse(f);
-                result.set(new Result(result.value(), r));
-                if (r.isSuccessful()) {
-                    Set<File> newFiles = new HashSet<File>();
-                    for (CompilationUnit cu :
-                             IterUtil.compose(r.apis(), r.components())) {
-                        newFiles.addAll(extractNewDependencies(cu, env));
-                    }
-                    return newFiles;
-                }
-                else { return Collections.emptySet(); }
-            }
-        };
-
-        // parses all dependency files
-        CollectUtil.graphClosure(fileSet, parseAndGetDepends);
-        return result.value();
-    }
-
-    /** Parses a single file. */
-    public static Result parse(File f) {
-        try {
-            BufferedReader in = Useful.utf8BufferedFileReader(f);
-            return parse(f.toString(), f.lastModified(), in);
-        }
-        catch (FileNotFoundException e) {
-            return new Result(StaticError.make("Cannot find file " + f.getName(),
-                                               f.toString()));
-        }
-        catch (IOException e) {
-            String desc = "Unable to read file";
-            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-            return new Result(StaticError.make(desc, f.toString()));
-        }
-    }
-
-    /** Parses a BufferedReader object, given some descriptive information. */
-    public static Result parse(String filename, long modificationDate, 
-                               BufferedReader in) throws IOException {
-        try {
-            return new Result(parseFile(null, in, filename), modificationDate);
-        } catch (StaticError se) {
-            return new Result(se);
-        } finally {
-            in.close();
-        }
-    }
-
-
-    /**
-     * Get all files potentially containing APIs imported by cu that aren't
-     * currently in fortress.
-     */
-    private static Set<File> extractNewDependencies(CompilationUnit cu,
-                                                    GlobalEnvironment env) {
-        Set<APIName> importedApis = new LinkedHashSet<APIName>();
-        for (Import i : cu.getImports()) {
-            if (i instanceof ImportApi) {
-                for (AliasedAPIName apiAlias : ((ImportApi) i).getApis()) {
-                    importedApis.add(apiAlias.getApi());
-                }
-            }
-            else { // i instanceof ImportedNames
-                importedApis.add(((ImportedNames) i).getApi());
-            }
-        }
-
-        Set<File> result = new HashSet<File>();
-        for (APIName n : importedApis) {
-            if (!env.definesApi(n)) {
-                File f = canonicalRepresentation(fileForApiName(n));
-                if (IOUtil.attemptExists(f)) { result.add(f); }
-            }
-        }
-        return result;
-    }
-
-    /** Get the filename in which the given API should be defined. */
-    private static File fileForApiName(APIName api) {
-        return new File(NodeUtil.nameString(api) + ".fsi");
     }
 
     /**
@@ -246,31 +136,22 @@ public class Parser {
         // Also throws StaticError, ParserError
         BufferedReader in = Useful.utf8BufferedFileReader(file);
         try {
-            return parseFile(api_name, in, file.getCanonicalPath());
+            String filename = file.getCanonicalPath();
+            Fortress parser = new Fortress(in, filename);
+            xtc.parser.Result parseResult = parser.pFile(0);
+            return checkResultCU(parseResult, parser, filename);
         } finally {
             in.close();
         }
     }
 
     /**
-     * Parses a file as a compilation unit. Validates the parse by calling
-     * checkResultCU (see description of exceptions there).
-     */
-    public static CompilationUnit parseFile(APIName api_name, Reader in, String filename)
-        throws IOException {
-        // Also throws StaticError, ParserError
-        Fortress parser = makeParser(api_name, in, filename);
-        xtc.parser.Result parseResult = parser.pFile(0);
-        return checkResultCU(parseResult, parser, filename);
-    }
-
-    /** 
-     * Checks that a xtc.parser.Result is contains a CompilationUnit, 
+     * Checks that a xtc.parser.Result is contains a CompilationUnit,
      * and checks the filename for the appropriate suffix.
      * Throws a ParserError (note, subtype of StaticError) if the parse fails.
-     * Throws a StaticError if the filename has the wrong suffix. 
+     * Throws a StaticError if the filename has the wrong suffix.
      */
-    public static CompilationUnit checkResultCU(xtc.parser.Result parseResult, 
+    public static CompilationUnit checkResultCU(xtc.parser.Result parseResult,
                                          ParserBase parser,
                                          String filename) {
         if (parseResult.hasValue()) {
@@ -297,16 +178,6 @@ public class Parser {
         } else {
             throw new ParserError((ParseError) parseResult, parser);
         }
-    }
-
-    private static Fortress makeParser(Reader in, String filename) {
-        return new Fortress(in, filename);
-    }
-
-    private static Fortress makeParser(APIName api_name, Reader in, String filename) {
-        Fortress p = makeParser(in, filename);
-        p.setExpectedName(api_name);
-        return p;
     }
 
     // Pre-parser
@@ -360,7 +231,6 @@ public class Parser {
 
     private static PreFortress makePreparser(APIName api_name, Reader in, String filename) {
         PreFortress p = makePreparser(in, filename);
-        p.setExpectedName(api_name);
         return p;
     }
 
