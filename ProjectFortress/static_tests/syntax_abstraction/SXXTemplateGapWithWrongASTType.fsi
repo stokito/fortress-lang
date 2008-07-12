@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api TemplateGapWithWrongASTType
+api SXXTemplateGapWithWrongASTType
 
   import FortressAst.{...}
   import FortressSyntax.{...}
