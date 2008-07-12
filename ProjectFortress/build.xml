@@ -22,6 +22,8 @@
         The Fortress interpreter, implemented in Java.
     </description>
 
+    <!-- test -->
+
 <!-- Set global properties for this build. -->
  <property name="packagePrefix" value="com/sun/fortress"/>
  <property name="package.prefix" value="com.sun.fortress"/>
