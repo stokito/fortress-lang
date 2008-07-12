@@ -15,12 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SXXTemplateGapWithWrongASTTypeUse
-
-  import SXXTemplateGapWithWrongASTType.{...}
-
-  export Executable
-
-  run(args:String...) = print (hello world)
-
+component TemplateGapWithWrongASTType
+  export TemplateGapWithWrongASTType
 end
