@@ -15,6 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TemplateGapWithWrongASTType
-  export TemplateGapWithWrongASTType
+component SXXTemplateGapWithWrongASTType
+  export SXXTemplateGapWithWrongASTType
 end
