@@ -24,17 +24,21 @@ import sys, re, os, optparse
 # The relative path to the file containing node definitions.
 FORTRESS_AST_PATH = './Fortress.ast'
 
-def node_definition(names):
+def node_definition(names, options):
     """Return the given node's full definition, or None if it could not be found."""
+    
     # Make the names unique.
-    names = set(names)
+    names = set([name.replace('*', '[a-zA-Z]*') for name in names])
+    must_find = [name for name in names if name.isalpha()]
     
     # Keep a history of lines so we can backtrack to get comments.
     lines = []
     index = 0
     
     # Regex to check for node definitions.
-    regex = re.compile(r"^(\s+)(?:abstract )?(%s)\(" % '|'.join(names), re.I)
+    regex_flags = 0
+    if options.I: regex_flags |= re.I
+    regex = re.compile(r"^(\s+)(?:abstract )?(%s)\(" % '|'.join(names), regex_flags)
     match = None
     
     # Index of the line that starts a definition.
@@ -68,15 +72,17 @@ def node_definition(names):
                 read_from = start_comment
                 
             # Yield and reset for next node.
-            yield "".join(s[num_spaces-2:] for s in lines[read_from:])
+            yield ("".join(s[num_spaces-2:] for s in lines[read_from:]), True)
             start_def = None
-            names.remove(name)
+            
+            # Remove it from the list of names to find.
+            if name in must_find: must_find.remove(name)
         
         index += 1
     
     # Yield the ones not found.
-    for name in names:
-        yield "error: Node %s was not found in %s.\n" % (name, FORTRESS_AST_PATH) 
+    for name in must_find:
+        yield ("error: Node %s was not found in %s." % (name, FORTRESS_AST_PATH), False)
 
 
 if __name__ == '__main__':
@@ -84,13 +90,21 @@ if __name__ == '__main__':
     os.chdir(os.path.dirname(sys.argv[0]))
     
     # Setup the options parser and help text.
-    usage = "usage: %prog node [...]"
+    usage = "usage: %prog [options] node [...]"
     description = "Prints the definition and comments for each of the given nodes."
     optparser = optparse.OptionParser(usage=usage, description=description)
+    optparser.add_option("-i",
+                         action="store_true", dest="I", default=False,
+                         help="case insensitive search")
     (options, args) = optparser.parse_args()
-    if not args: optparser.print_help()
+    if not args:
+        optparser.print_help()
+        sys.exit()
     
     # Print the definition for each node given.
     print ""
-    for definition in node_definition(args):
+    count = 0
+    for definition, found in node_definition(args, options):
         print definition
+        if found: count += 1
+    print "notice: found %d match%s" % (count, count != 1 and 'es' or '')  
