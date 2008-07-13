@@ -91,7 +91,8 @@ if __name__ == '__main__':
     
     # Setup the options parser and help text.
     usage = "usage: %prog [options] node [...]"
-    description = "Prints the definition and comments for each of the given nodes."
+    description = "Prints the definition and comments for each of the given nodes. Each node is " \
+                  "a simple string. Asterisk (*) may be used as a wildcard, e.g. *Id* *Name Trait*"
     optparser = optparse.OptionParser(usage=usage, description=description)
     optparser.add_option("-i",
                          action="store_true", dest="I", default=False,
