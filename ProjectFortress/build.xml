@@ -136,7 +136,7 @@ checkParserUptodate, clean, cleanCache, compile, compileCommon, compileCommonLin
 compileLint, doc, grammarCoverage, help, init, interpreter-jar, makeAST, operatorsGen,
 fortressparser, preparser, parser, reportNotPassing, systemProperties,
 test, testAll, testDemos, testSystem,
-testNotPassing, testOnly, testCruiseControl interpreter"/>
+testOnly, testCruiseControl"/>
         <echo message="If you are building Fortress, you want ant compile or ant test."/>
     </target>
 
@@ -297,7 +297,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 
 	   <target name="DumpProperties"
 	     description="Dump properties as seen by a Java program.">
-            <java classname="${package.prefix}.interpreter.drivers.DumpProperties"
+            <java classname="${package.prefix}.repository.DumpProperties"
 		      fork="true">
             	<sysproperty key="DEBUG" value="true"/>
 	            <classpath>
@@ -950,15 +950,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 
     </target>
 
-    <target name="interpreter" depends="compile">
-        <echo message="fortressArgs: ${fortressArgs}"/>
-        <java fork="yes" classname="com.sun.fortress.interpreter.drivers.fs">
-            <classpath refid="compile.classpath"/>
-            <arg line="${fortressArgs}"/>
-        </java>
-    </target>
-
-
   <target name="jar"
 	  depends="compile"
 	  description="Package up a Fortress distribution as a self-extracting jar.">
@@ -1053,12 +1044,4 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
 	includes="**/*"
 	/>
   </target>
-
-    <target name="testNPY" description="Graphically run all tests that are not yet expected to pass">
-        <java classname="junit.swingui.TestRunner" fork="true" maxmemory="320m" spawn="yes">
-            <classpath refid="compile.classpath"/>
-            <arg value="com.sun.fortress.interpreter.drivers.NotPassingYet"/>
-        </java>
-    </target>
-
 </project>
