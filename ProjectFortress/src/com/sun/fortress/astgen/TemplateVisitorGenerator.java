@@ -41,6 +41,9 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
     @Override
     protected void generateVisitor(NodeType root) {
+        // only defined for the "Node" class
+        if (!root.name().equals("Node")) { return; }
+        
         String visitorName = "TemplateUpdateVisitor";
         String extendedVisitorName = root.name() + "UpdateVisitor";
         TabPrintWriter writer = options.createJavaSourceInOutDir(visitorName);

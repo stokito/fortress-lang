@@ -688,7 +688,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * expression
          */
-        abstract Expr(boolean parenthesized = false);
+        root abstract Expr(boolean parenthesized = false);
 
             /**
              * Repeated expression in a macro
@@ -1305,7 +1305,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * type
          */
-        abstract Type(ignoreForEquals boolean parenthesized = false)
+        root abstract Type(ignoreForEquals boolean parenthesized = false)
                      implements TypeOrDomain;
             /**
              * dimension expression (not really a type, but here for
@@ -1507,7 +1507,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * static argument
          */
-        abstract StaticArg();
+        root abstract StaticArg();
             /**
              * type used as static argument
              * StaticArg ::= Type
