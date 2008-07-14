@@ -27,8 +27,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import com.sun.fortress.exceptions.InterpreterBug;
 
 /**
  * A _WrappedFValue permits the interpreter to incorporate intermediate
@@ -69,12 +68,25 @@ public class _WrappedFValue extends DelimitedExpr {
             RetType result = (RetType)(((Evaluator)visitor).for_WrappedFValue(this));
             return result;
         } else {
-            return (RetType)bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
+            return InterpreterBug.<RetType>bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
+                                               visitor.getClass().getName() + " does not support visiting values of type " +
+                                               getClass().getName());
         }
     }
-    public void accept(NodeVisitor_void visitor) {
-        bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
+    public <RetType> RetType accept(ExprVisitor<RetType> visitor) {
+        return InterpreterBug.<RetType>bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
+                                           visitor.getClass().getName() + " does not support visiting values of type " +
+                                           getClass().getName());
     }
+    public void accept(NodeVisitor_void visitor) {
+        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() +
+                           " does not support visiting values of type " + getClass().getName());
+    }
+    public void accept(ExprVisitor_void visitor) {
+        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() +
+                           " does not support visiting values of type " + getClass().getName());
+    }
+
 
     /**
      * Implementation of toString that uses
