@@ -110,6 +110,11 @@ public class TopLevelEnvGen {
         public Map<APIName, Pair<String, byte[]>> generatedEnvs() { return _compUnits; }
     }
 
+    public static String mangleClassIdentifier(String identifier) {
+        String mangledString = identifier.replaceAll("\\.", "\\$");  
+        return mangledString;         
+    }
+    
     /**
      * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
      * Dangerous characters are the union of all characters forbidden
@@ -161,7 +166,7 @@ public class TopLevelEnvGen {
             className = className + API_ENV_SUFFIX;
 
             try {
-                className = mangleIdentifier(className);  // Need to mangle the name if it contains "."
+                className = mangleClassIdentifier(className);  // Need to mangle the name if it contains "."
                 byte[] envClass = generateForCompilationUnit(className, apis.get(apiName), env);
                 compiledApis.put(apiName, new Pair<String,byte[]>(className, envClass));
             } catch(StaticError staticError) {
@@ -189,7 +194,7 @@ public class TopLevelEnvGen {
         for(APIName componentName : components.keySet()) {
             String className = NodeUtil.nameString(componentName);
             className = className + COMPONENT_ENV_SUFFIX;
-            className = mangleIdentifier(className);  // Need to mangle the name if it contains "."
+            className = mangleClassIdentifier(className);  // Need to mangle the name if it contains "."
             try {
                 byte[] envClass = generateForCompilationUnit(className,
                                                              components.get(componentName), env);
@@ -723,7 +728,8 @@ public class TopLevelEnvGen {
             errors.add(new WrappedException(e));
         } finally {
             try {
-                outStream.close();
+            	if (outStream != null)
+            		outStream.close();
             } catch(IOException e) {
                 errors.add(new WrappedException(e));
             }
