@@ -314,6 +314,11 @@ public final class Shell {
         } else {
             try {
                 Path path = ProjectProperties.SOURCE_PATH;
+                if (s.contains("/")) {
+                    String head = s.substring(0, s.lastIndexOf("/"));
+                    s = s.substring(s.lastIndexOf("/")+1, s.length());
+                    path = path.prepend(head);
+                }
                 Iterable<? extends StaticError> errors = compile(path, s, out );
                 if ( errors.iterator().hasNext() ){
                     for (StaticError error: errors) {
@@ -405,6 +410,11 @@ public final class Shell {
         throws UserError, Throwable {
         try {
             Path path = ProjectProperties.SOURCE_PATH;
+            if (fileName.contains("/")) {
+                String head = fileName.substring(0, fileName.lastIndexOf("/"));
+                fileName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
+                path = path.prepend(head);
+            }
             APIName componentName = cuName(fileName);
             GraphRepository bcr = specificRepository( path, defaultRepository );
             Iterable<? extends StaticError> errors = IterUtil.empty();
