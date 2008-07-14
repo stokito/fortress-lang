@@ -218,7 +218,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	else {
     		className = fortressFileName + TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
     	}
-    	className = TopLevelEnvGen.mangleIdentifier(className);
+    	className = TopLevelEnvGen.mangleClassIdentifier(className);
     	
         SimpleClassLoader classLoader = new SimpleClassLoader();
         File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR +
@@ -230,7 +230,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
             fail("Expected to read " + classfile.length() + " bytes but read " + read + " bytes instead.");
         }
 
-        Class generatedClass = classLoader.defineClass(className, bytecode);
+        Class<?> generatedClass = classLoader.defineClass(className, bytecode);
         BaseEnv envObject = (BaseEnv) generatedClass.newInstance();
         
         return(envObject);
