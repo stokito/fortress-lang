@@ -388,10 +388,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     	return TypeCheckerResult.compose(that, arr, this.subtypeChecker, all_results);
     }
 
-    /** Ignore unsupported nodes for now. */
-    /*public TypeCheckerResult defaultCase(Node that) {
-        return new TypeCheckerResult(that, Types.VOID, IterUtil.<TypeError>empty());
-    }*/
+    public TypeCheckerResult defaultCase(Node that) {
+        return bug("There is no case in the typechecker for " + that.getClass() + " nodes. This is a bug.");
+    }
 
     public TypeCheckerResult forFnDef(FnDef that) {
         TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
