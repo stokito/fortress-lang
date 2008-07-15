@@ -36,14 +36,18 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
         _staticParams = staticParams;
     }
 
-    @Override public boolean hasTypeParam(Id name) {
-        for (StaticParam typeVar : _staticParams) {
-            if (typeVar instanceof IdStaticParam &&
-                ((IdStaticParam)typeVar).getName().equals(name)) {
-                return true;
-            }
-        }
-        return super.hasTypeParam(name);
+    public Option<StaticParam> hasTypeParam(IdOrOpName name) {
+    	for (StaticParam typeVar : _staticParams) {
+    		if (typeVar instanceof IdStaticParam &&
+    				((IdStaticParam)typeVar).getName().equals(name)) {
+    			return Option.some(typeVar);
+    		}
+    		if(typeVar instanceof OpParam && ((OpParam)typeVar).getName().equals(name)){
+    			return Option.some(typeVar);
+    		}
+    	}
+
+    	return super.hasTypeParam(name);
     }
 
     @Override

@@ -389,7 +389,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult defaultCase(Node that) {
-        return bug("There is no case in the typechecker for " + that.getClass() + " nodes. This is a bug.");
+        return new TypeCheckerResult(that);
     }
 
     public TypeCheckerResult forFnDef(FnDef that) {
@@ -3443,4 +3443,5 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 // helper method handles the last two rules
 	 return juxtaposeMathPrimary(that);
  }
+ 
 }

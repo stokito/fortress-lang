@@ -48,13 +48,13 @@ public class TypeInferenceJUTest extends TestCase {
     							upperBound(i2,i1,t.new SubtypeHistory()),t.new SubtypeHistory());
     	assertEquals(t1.isSatisfiable(),true);
     	
-//    	t = makeAnalyzer(trait("A"),trait("B"),trait("C"),trait("D","C"));
-//    	ConstraintFormula t2 =  upperBound(i1,type("A"),t.new SubtypeHistory()).and(lowerBound(i1,type("A"),t.new SubtypeHistory()),t.new SubtypeHistory());
-//    	ConstraintFormula t3 =  t2.and(upperBound(i2,type("B"),t.new SubtypeHistory()).and(lowerBound(i2,type("B"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
-//    	ConstraintFormula t4 =  t3.and(upperBound(i3,type("C"),t.new SubtypeHistory()).and(lowerBound(i3,type("C"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
-//    	ConstraintFormula t5 =  t4.and(upperBound(i4,type("D"),t.new SubtypeHistory()).and(lowerBound(i4,type("D"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
-//    	ConstraintFormula t6 = t5.and(t.subtype(NodeFactory.makeIntersectionType(i1, i4),NodeFactory.makeUnionType(i2, i3)),t.new SubtypeHistory());
-//    	assertEquals(t6.isSatisfiable(),true);
+    	t = makeAnalyzer(trait("A"),trait("B"),trait("C"),trait("D","C"));
+    	ConstraintFormula t2 =  upperBound(i1,type("A"),t.new SubtypeHistory()).and(lowerBound(i1,type("A"),t.new SubtypeHistory()),t.new SubtypeHistory());
+    	ConstraintFormula t3 =  t2.and(upperBound(i2,type("B"),t.new SubtypeHistory()).and(lowerBound(i2,type("B"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
+    	ConstraintFormula t4 =  t3.and(upperBound(i3,type("C"),t.new SubtypeHistory()).and(lowerBound(i3,type("C"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
+    	ConstraintFormula t5 =  t4.and(upperBound(i4,type("D"),t.new SubtypeHistory()).and(lowerBound(i4,type("D"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
+    	ConstraintFormula t6 = t5.and(t.subtype(NodeFactory.makeIntersectionType(i1, i4),NodeFactory.makeUnionType(i2, i3)),t.new SubtypeHistory());
+    	assertEquals(t6.isSatisfiable(),true);
     	} finally { debug.logEnd(); }
     }
 }
