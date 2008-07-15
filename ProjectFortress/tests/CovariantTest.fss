@@ -20,11 +20,11 @@ import List.{...}
 export Executable
 
 run(args:String...):() = do
-    samples : List[\ZZ32\] = <|0,1,2,7,11|>
+    samples : List[\ZZ32\] = <|0 asif ZZ32,1,2,7,11|>
     body(x:ZZ32): Number =
         if x MOD 2 = 0 then x else 1.0 x end
 
-    samples1 : List[\ZZ32\] = <| x | x <- samples |>
+    samples1 : List[\ZZ32\] = <|[\ZZ32\] x | x <- samples |>
     list1 : List[\ZZ32\] = list(samples1)
     for (i,j) <- list1.zip[\ZZ32\](samples) do
         assert(i,j,"Not the same in ", list1, " and ", samples)

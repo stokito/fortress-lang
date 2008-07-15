@@ -162,65 +162,15 @@ value object RR32 extends RR64
       end
 end
 
-value object ZZ32 extends { StandardTotalOrder[\ZZ32\], ZZ64 }
-    getter zero(): ZZ32 = 0
-    getter one(): ZZ32 = 1
-
-    opr |self| : ZZ32 = if self>=0 then self else -self end
-    opr =(self, b:ZZ32):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Eq")
-    opr <(self, b:ZZ32):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Less")
-
-    opr -(self):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Negate")
-    opr +(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Add")
-    opr -(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Sub")
-    opr DOT(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
-    opr juxtaposition(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mul")
-    opr DIV(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Div")
-    opr REM(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Rem")
-    opr MOD(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Mod")
-    opr GCD(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Gcd")
-    opr LCM(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Lcm")
-    opr CHOOSE(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Choose")
-    opr BITAND(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitAnd")
-    opr BITOR(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitOr")
-    opr BITXOR(self,b:ZZ32):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitXor")
-    opr LSHIFT(self,b:ZZ64):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$LShift")
-    opr RSHIFT(self,b:ZZ64):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$RShift")
-    opr BITNOT(self):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$BitNot")
-    opr ^(self, b:ZZ64):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Pow")
-    widen(self):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$ToLong")
-    partitionL(self):ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$Partition")
+value object Int extends ZZ32
 end
 
 value object Long extends ZZ64
 end
 
-object IntLiteral extends {Integral[\IntLiteral\],ZZ}
-    getter zero(): IntLiteral =
-        1934791870947204798109283471902037419 - 1934791870947204798109283471902037419
-    getter one(): IntLiteral = zero() + 1
+object IntLiteral extends ZZ32
+    getter zero(): IntLiteral = big(0)
+    getter one(): IntLiteral = big(1)
     opr |self| : ZZ32 = if self>=0 then self else -self end
     opr =(self, b: IntLiteral):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Eq")
@@ -231,6 +181,10 @@ object IntLiteral extends {Integral[\IntLiteral\],ZZ}
     opr CMP(self, other:IntLiteral): TotalComparison = self.cmp(other) CMP 0
     cmp(b:IntLiteral): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Cmp")
+
+(*
+Do not enable these until coercion is implemented; doing so will
+cause all our arithmetic to occur on IntLiterals.
 
     opr -(self): IntLiteral =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
@@ -270,6 +224,7 @@ object IntLiteral extends {Integral[\IntLiteral\],ZZ}
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitNot")
     opr ^(self, b:ZZ64):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
+*)
 end
 
 value object BigNum extends ZZ

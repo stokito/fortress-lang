@@ -208,10 +208,12 @@ emptyPairing[\K,V\](): Pairing[\K,V\] = EmptyP[\K,V\]
 singletonPairing[\K,V\](k:K, v:V): Pairing[\K,V\] =
     emptyPairing[\K,V\]().singleton(k,v)
 
-pairing[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\] =
+pairing[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\] = do
+    e = emptyPairing[\K,V\]()
     g.generate[\Heap[\K,V\]\](
-        hm[\K,V\](emptyPairing[\K,V\]()),
-        fn (k:K, v:V): Pairing[\K,V\] => singletonPairing(k,v))
+        hm[\K,V\](e),
+        fn (k:K, v:V): Pairing[\K,V\] => e.singleton(k,v))
+  end
 
 (************************************************************
  * Not actually lazy pairing heaps; these are actuallly more
@@ -288,10 +290,12 @@ emptyLazy[\K,V\](): LazyPairing[\K,V\] = EmptyLP[\K,V\]
 singletonLazy[\K,V\](k:K, v:V): LazyPairing[\K,V\] =
     emptyLazy[\K,V\]().singleton(k,v)
 
-lazy[\K,V\](g:Generator[\(K,V)\]): Heap[\K,V\] =
+lazy[\K,V\](g:Generator[\(K,V)\]): Heap[\K,V\] = do
+    e : Heap[\K,V\] = emptyLazy[\K,V\]()
     g.generate[\Heap[\K,V\]\](
-        hm[\K,V\](emptyLazy[\K,V\]()),
-        fn (k:K, v:V): LazyPairing[\K,V\] => singletonLazy(k,v))
+        hm[\K,V\](e),
+        fn (k:K, v:V): LazyPairing[\K,V\] => e.singleton(k,v))
+  end
 
 (************************************************************
  * And the winner is...

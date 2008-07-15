@@ -37,9 +37,9 @@ import com.sun.fortress.nodes.GenericWithParams;
 /**
  * Functions from ZZ32.
  */
-public class ZZ32 extends NativeConstructor {
+public class Int extends NativeConstructor {
 
-public ZZ32(Environment env, FTypeObject selfType, GenericWithParams def) {
+public Int(Environment env, FTypeObject selfType, GenericWithParams def) {
     super(env,selfType,def);
 }
 

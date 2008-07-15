@@ -25,7 +25,7 @@ opr BIG STAR[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
 run(args:String...):() = do
     body(x:ZZ32): RR64 = if x MOD 2 = 0 then x else 1.0 x end
 
-    p8 : List[\ZZ32\] = <| x + y | x <- 1#10, y<-1#x |>
+    p8 : List[\ZZ32\] = <|[\ZZ32\] x + y | x <- 1#10, y<-1#x |>
     println(p8)
     assert(SUM p8, 605, "SUM p8")
 

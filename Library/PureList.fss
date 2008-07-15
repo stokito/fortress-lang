@@ -68,7 +68,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     drop(n:ZZ32): List[\E\]
     opr [n:ZZ32]: E
     opr [n:Range[\ZZ32\]]: List[\E\] = do
-        r = (0 # |self|)[n]
+        r = ((0 asif ZZ32) # |self|)[n]
         drop(r.lower()).take(r.extent())
       end
     (** %l.split(n)% is equivalent to %(l.take(n),l.drop(n))%.  Note in

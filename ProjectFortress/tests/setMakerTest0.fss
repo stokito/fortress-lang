@@ -93,13 +93,13 @@ run(args:String...):()=do
    i:ZZ32 = 1 + 2 + 3 + 4
    a1:ZZ32[4] = [ 1 2 3 4 ]
    a2:ZZ32[4] = [ 2 3 4 5 ]
-   s2:Set[\ZZ32\] = { 1, 2, 3, 4, i }
+   s2:Set[\ZZ32\] = { 1 asif ZZ32, 2, 3, 4, i }
    println("i=" i)
 
    ip:ZZ32 = <| a1, a2 |>
    println("ip=" ip);
 
-   s1:Set[\ZZ32\] = { 1, 2, 3, 4 } (* Now succeeds *)
+   s1:Set[\ZZ32\] = { 1 asif ZZ32, 2, 3, 4 } (* Now succeeds *)
 
 
 end

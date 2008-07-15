@@ -37,10 +37,10 @@ public class FBigNum extends NativeConstructor.FNativeObject
     }
 
     public static FValue make(BigInteger v) {
-		return new FBigNum(v);
-	}
+        return new FBigNum(v);
+    }
 
-    public String getString() { return value.toString(); } 
+    public String getString() { return value.toString(); }
 
     public String toString() { return value.toString() + ":ZZ"; }
 
@@ -55,8 +55,8 @@ public class FBigNum extends NativeConstructor.FNativeObject
     public BigInteger getBigInteger() { return value; }
 
     public double getFloat() {
-	    return value.doubleValue(); 
-	}
+        return value.doubleValue();
+    }
 
     public boolean seqv(FValue v) {
         if (!(v instanceof NativeConstructor.FNativeObject)) return false;
