@@ -28,6 +28,7 @@ import java.util.Map;
 import xtc.parser.Action;
 
 import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
+import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.StaticError;
@@ -64,6 +65,7 @@ public class ActionCreater {
     protected static final String PACKAGE = "com.sun.fortress.syntax_abstractions.util";
     private static final String FORTRESS_AST = "FortressAst";
     private static final String FORTRESS_AST_UTIL = "FortressAstUtil";
+    private static int indent = 3;
 
     public class Result extends StaticPhaseResult {
         private Action action;
@@ -89,6 +91,7 @@ public class ActionCreater {
         ActionCreater ac = new ActionCreater();
         Collection<StaticError> errors = new LinkedList<StaticError>();
 
+        String transformer = FreshName.getFreshName(String.format("%sTransformer", alternativeName));
         String returnType = new FortressTypeToJavaType().analyze(type);
 
         List<Integer> indents = new LinkedList<Integer>();
@@ -110,6 +113,11 @@ public class ActionCreater {
             AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
             String yyValue = n.accept(jpp);
+            
+            addCodeLine( String.format("class %s implements com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer<%s> {", transformer, returnType), code, indents );
+            moreIndent();
+            addCodeLine( String.format("public %s invoke(){", returnType), code, indents );
+            moreIndent();
 
             for (String s: jpp.getCode()) {
                 addCodeLine(s, code, indents);
@@ -118,15 +126,33 @@ public class ActionCreater {
             if (Debug.isOnMaxFor(Debug.Type.SYNTAX)) {
                 addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
             }
-            addCodeLine("yyValue = "+yyValue+";", code, indents);
+            // addCodeLine("yyValue = "+yyValue+";", code, indents);
+            addCodeLine("return "+yyValue+";", code, indents);
+            lessIndent();
+            addCodeLine("}", code, indents );
+            lessIndent();
+            addCodeLine("}", code, indents );
+
+            addCodeLine( String.format( "yyValue = _Transformer%s(new %s());", returnType, transformer ), code, indents );
         }
         Action a = new Action(code, indents);
         return ac.new Result(a, errors);
     }
 
+    private static void moreIndent(){
+        indent += 1;
+    }
+
+    private static void lessIndent(){
+        indent -= 1;
+        if ( indent < 1 ){
+            indent = 1;
+        }
+    }
+
     private static void addCodeLine(String s, List<String> code,
             List<Integer> indents) {
-        indents.add(3);
+        indents.add(indent);
         code.add(s);
     }
 

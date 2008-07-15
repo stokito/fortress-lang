@@ -82,6 +82,7 @@ import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
+import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Debug;
 
@@ -164,7 +165,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         }
         return sequence;
     }
-
+         
     private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type, MemberEnv memberEnv) {
         List<Element> elms = new LinkedList<Element>();
         // Translate the symbols
@@ -174,7 +175,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         String newName = FreshName.getFreshName(name).toUpperCase();
         ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformation(), type, memberEnv.getSyntaxDeclEnv(syntaxDef).unwrap(), syntaxDef.accept(new VariableCollector()) );
         if (!acr.isSuccessful()) { new Result(acr.errors()); }  /* FIXME: suspicious */
+
         elms.add(acr.action());
+
         return new Sequence(new SequenceName(newName), elms);
     }
 
