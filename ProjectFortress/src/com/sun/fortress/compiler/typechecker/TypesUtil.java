@@ -400,7 +400,8 @@ public class TypesUtil {
        public Option<Type> for_RewriteGenericArrowType(
          _RewriteGenericArrowType that) {
         if( StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams()) ) {
-         Type new_type = (Type)that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
+         _RewriteGenericArrowType temp = (_RewriteGenericArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
+         Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),temp.getDomain(),temp.getRange(), temp.getEffect());
          return Option.some(new_type);
         }
         else {

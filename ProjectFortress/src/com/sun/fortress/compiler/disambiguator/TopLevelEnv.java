@@ -233,9 +233,10 @@ public class TopLevelEnv extends NameEnv {
             return Option.none();
         }
     }
-
-    public boolean hasTypeParam(Id name) {
-        return false;
+    
+    @Override
+    public Option<StaticParam> hasTypeParam(IdOrOpName name) {
+        return Option.none();
     }
 
     @Override

@@ -23,6 +23,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -37,7 +39,7 @@ public abstract class TypeNameEnv {
     public abstract Option<APIName> apiName(APIName name);
 
     /** Determine whether a type parameter with the given name is defined. */
-    public abstract boolean hasTypeParam(Id name);
+    public abstract Option<StaticParam> hasTypeParam(IdOrOpName name);
 
     /**
      * Produce the set of unaliased qualified names corresponding to the given
