@@ -45,12 +45,7 @@ Expr VoidLiteralExpr +=
      VoidLiteralExprGap
    / <FIRST> ...;
 
-FloatLiteralExpr FloatLiteralExpr += 
-     NumberLiteralExprGap
-   / FloatLiteralExprGap
-   / <FIRST> ...;
-
-IntLiteralExpr IntLiteralExpr += 
+IntLiteralExpr IntLiteralExpr +=
      NumberLiteralExprGap
    / IntLiteralExprGap
    / <FIRST> ...;
@@ -59,7 +54,6 @@ CharLiteralExpr CharLiteralExpr +=
      CharLiteralExprGap
    / <FIRST> ...;
 
-StringLiteralExpr StringLiteralExpr += 
+StringLiteralExpr StringLiteralExpr +=
      StringLiteralExprGap
    / <FIRST> ... ;
-

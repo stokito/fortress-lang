@@ -410,8 +410,8 @@ constant Expr MathPrimary =
    | Comprehension
    | LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
    | ParenthesisDelimited
-   | VarOrFnRef
    | LiteralExpr
+   | VarOrFnRef
    | self
  */
 Expr PrimaryFront =
@@ -430,8 +430,8 @@ Expr PrimaryFront =
        else            yyValue = ASTUtil.enclosing(span, a1, a2, a3, a4);
      }
    / ParenthesisDelimited
-   / VarOrFnRef
    / LiteralExpr
+   / VarOrFnRef
    / a1:self
      { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); }
    ;
@@ -561,8 +561,8 @@ constant inline Action<Expr> FieldSelectionSelector =
      Subscripting
    | Exponentiation
    | ParenthesisDelimited
-   | VarOrFnRef
    | LiteralExpr
+   | VarOrFnRef
    | self
  */
 MathItem MathItem =
@@ -570,9 +570,9 @@ MathItem MathItem =
    / Exponentiation
    / a1:ParenthesisDelimited
      { yyValue = new ParenthesisDelimitedMI(a1.getSpan(), a1); }
-   / a1:VarOrFnRef
-     { yyValue = new NonParenthesisDelimitedMI(a1.getSpan(), a1); }
    / a1:LiteralExpr
+     { yyValue = new NonParenthesisDelimitedMI(a1.getSpan(), a1); }
+   / a1:VarOrFnRef
      { yyValue = new NonParenthesisDelimitedMI(a1.getSpan(), a1); }
    / a1:self
      { Span span = createSpan(yyStart,yyCount);
@@ -641,15 +641,15 @@ ExponentiationMI Exponentiation =
      { yyValue = new ExponentiationMI(a1.getSpan(), ExprFactory.makeOpRef(a1), Option.<Expr>none()); };
 
 /* Exponent ::=
-     Id
-   | ParenthesisDelimited
+     ParenthesisDelimited
    | LiteralExpr
+   | Id
    | self
  */
 Expr Exponent =
-     a1:Id { yyValue = ExprFactory.makeVarRef(a1); }
-   / ParenthesisDelimited
+     ParenthesisDelimited
    / LiteralExpr
+   / a1:Id { yyValue = ExprFactory.makeVarRef(a1); }
    / a1:self
      { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
