@@ -19,22 +19,34 @@ component ArrayListLong
 import List.{...}
 export Executable
 
-assertStr(a:ZZ32, b:ZZ32, s:String, l: List[\ZZ32\]) =
+assertStr[\T\](a:ZZ32, b:ZZ32, s:String, l: List[\T\]) =
   if a=/=b then
     fail(a "=/=" b ": " s l.toString())
   end
 
-assertStr(a:Boolean, s:String, l: List[\ZZ32\]) =
+assertStr[\T\](a:Boolean, s:String, l: List[\T\]) =
   if NOT a then
     fail("Failed assertion: " s l.toString())
   end
 
-assertStr(a:Boolean, s:String, l: List[\ZZ32\], r: List[\ZZ32\]) =
+assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
   if NOT a then
     fail("Failed assertion: " s l.toString() " and " r.toString())
   end
 
-chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
+chkApp(tl: List[\ZZ32\], t : List[\Any\]) = do
+    assert("Hello" IN t, true, "missing Hello from ", t)
+    assert(l IN t, true, "missing ",l," from ",t), l <- tl
+  end
+
+chkPop[\T\](l:List[\T\],fro:ZZ32,sz:ZZ32,by:ZZ32): () =
+  typecase l of
+    List[\ZZ32\] => chkPopZ(l,fro,sz,by)
+    else =>
+      assertStr(sz = 0 AND: |l| = 0," special case for empty comprehension",l)
+  end
+
+chkPopZ(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
   assertStr(sz,|l|," size mismatch in ",l)
   n : ZZ32 := fro
   for e <- seq(l) do
@@ -44,9 +56,9 @@ chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
   assertStr(n, fro + sz by," size mismatch in ",l)
 end
 
-chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPop(l,fro,sz,1)
+chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPopZ(l,fro,sz,1)
 
-chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPop(l,0,sz,1)
+chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPopZ(l,0,sz,1)
 
 chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
   ll : List[\ZZ32\] := l
@@ -70,24 +82,44 @@ end
 run(args:String...):() = do
   start = nanoTime()
   (* Cause mild stress *)
-  testLens : List[\ZZ32\] = <|0,1,2,3,7,10,25,75,175,900|>
+  testLens : List[\ZZ32\] = <|0 asif ZZ32,1,2,3,7,10,25,75,175,900|>
   assert(1198, SUM testLens, "sum wrong")
   for i <- seq(testLens) do
       print( // i ":")
       li = list(0#i)
       chkPop(li,i)
       chkExtract(li,i)
+      print(".")
+      assert(li,li,"Lists unequal")
+      assert(li CMP li,EqualTo,"Lists CMP unequal")
+      chkPop(li[#],i)
+      chkPop(li.addRight(i),i+1)
+      chkPop(li.addLeft(-1),-1,i+1)
       (ll,lr) = li.split()
+      print(".")
       lii = ll || lr
       chkPop(lii,i)
+      print(".")
       fli = li.filter(fn x => x REM 2 = 0)
+      print(".")
       chkPop(fli,0,(i+1) DIV 2,2)
+      print(".")
+      flii = <|[\ZZ32\] x+3 | x <- li, x REM 2 = 0 |>
+      print(".")
+      chkPop(flii,3,(i+1) DIV 2,2)
       print(".")
       mli = li.map[\ZZ32\](fn (x):ZZ32 => x + 17)
       chkPop(mli,17,i)
       print(".")
-      cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|2 x, 2 x + 1|>)
+      assertStr(i=0 OR: li < mli," NOT < ",mli)
+      print(".")
+      cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|2 x asif ZZ32, 2 x + 1|>)
+      print(".")
       chkPop(cmli,2 i)
+      print(".")
+      cmlii = <|[\ZZ32\] e+3 | x <- li, e <- <|2 x, 2 x + 1|> |>
+      print(".")
+      chkPop(cmlii,3,2 i,1)
       print(".")
       ivli = li.ivmap[\ZZ32\](fn (x,y) => x+y)
       chkPop(ivli,0,i,2)
@@ -109,14 +141,23 @@ run(args:String...):() = do
           (l2,r2) = (li[0#j],li[j#(i-j)])
           chkPop(l2,j)
           chkPop(r2,j,i-j)
+          (l3,r3) = (li[#j],li[j#])
+          chkPop(l3,j)
+          chkPop(r3,j,i-j)
+          (l4,r4) = (li[:(j-1)],li[j:])
+          chkPop(l4,j)
+          chkPop(r4,j,i-j)
       end
       for j <- testLens do
           print(".")
           lj = list(i#j)
           chkPop(li || lj, i+j)
+          print(".")
           gz = li.zip[\ZZ32\](lj)
           assert(|gz|,|li| MIN |lj|, "zip size wrong")
           assertStr(BIG AND [(x,y)<-gz] x+i=y,"zip mismatch ",li,lj)
+          print(".")
+          assertStr(j=0 OR: li < lj, " NOT < ", lj)
       end
   end
   finish = nanoTime()
