@@ -127,7 +127,7 @@ object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
       end
 end
 
-chunkedSparseArray[\T\](n:ZZ32,t:T): Array[\T,ZZ32\] = csa(reflect(n),t)
+chunkedSparseArray[\T\](n:ZZ32,t:T): Array[\T,ZZ32\] = csa(reflect(n),t asif T)
 
 csa[\T, nat n\](_:N[\n\], t:T): Array[\T,ZZ32\] = ChunkedSparseArray[\T,n\](t)
 
