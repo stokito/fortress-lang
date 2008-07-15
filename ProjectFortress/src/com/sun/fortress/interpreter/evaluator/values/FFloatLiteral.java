@@ -43,48 +43,6 @@ public class FFloatLiteral extends NativeConstructor.FNativeObject {
         }
     }
 
-    // The parser already checked that c is valid in radix denomBase
-    private int c2i(char c, int denomBase) {
-        if (Character.isLetter(c))
-            return Character.digit(c, denomBase);
-        else {
-            switch(c) {
-                case 'A':
-                case 'a': {
-                    return 10;
-                }
-                case 'B':
-                case 'b': {
-                    return 11;
-                }
-                case 'C':
-                case 'c': {
-                    return 12;
-                }
-                case 'D':
-                case 'd': {
-                    return 13;
-                }
-                case 'E':
-                case 'e': {
-                    if (denomBase == 12) return 11;
-                    else return 14;
-                }
-                case 'F':
-                case 'f': {
-                    return 15;
-                }
-                case 'X':
-                case 'x': {
-                    return 10;
-                }
-                default: {
-                    return -1;
-                }
-            }
-        }
-    }
-
     public String getString() { return value; } // TODO Sam left this undone, not sure if intentional
 
     public double getFloat() { return Double.valueOf(value); }
