@@ -56,7 +56,7 @@ public class ActionCreaterUtil {
             boolean isTemplate, Map<PrefixedSymbol,VariableCollector.Depth> variables) {
         final List<String> code = new LinkedList<String>();
         indents.add(3);
-        code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
+        code.add("final Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
         final List<String> listCode = new LinkedList<String>();
         final List<Integer> listIndents = new LinkedList<Integer>();
 
