@@ -16,19 +16,17 @@ a
  ******************************************************************************)
 
 component ObjectExpr
-  export Executable
+ export Executable
 
-  trait BetterThanZZ32 
+  trait BetterThanZZ32
     opr +(self, other:BetterThanZZ32):BetterThanZZ32
   end
-
   foo() : () = do
     var o : BetterThanZZ32
-    
-    o := (object extends { BetterThanZZ32 } 
+
+    o := (object extends { BetterThanZZ32 }
             foo() : BetterThanZZ32 = self + self
           end)
-
     o := o + o
   end
 

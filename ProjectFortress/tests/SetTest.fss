@@ -39,8 +39,8 @@ cmp(a:Set[\ZZ32\], b:Set[\ZZ32\], c:Comparison): () = do
 run(args:String...):() = do
     a: Set[\ZZ32\] = set[\ZZ32\]()
     b: Set[\ZZ32\] = set(1#10)
-    c: Set[\ZZ32\] = { 1 1, 2, 4, 5, 6, 7, 8, 9, 10, 3 }
-    d: Set[\ZZ32\] = { e | i <- 1#5, e <- {2 i, 2 i - 1} }
+    c: Set[\ZZ32\] = { 1, 2, 4, 5, 6, 7, 8, 9, 10, 3 }
+    d: Set[\ZZ32\] = {[\ZZ32\] e | i <- 1#5, e <- {2 i, 2 i - 1} }
     e: Set[\ZZ32\] = { 7, 9, 2, 3, 4, 6, 1 1, 8, 5, 10, 9, 8, 7 }
     f: Set[\ZZ32\] = set(6#10)
 

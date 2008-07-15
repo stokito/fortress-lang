@@ -82,11 +82,11 @@ end
 run(args:String...):() = do
   start = nanoTime()
   (* The sizes which turned up bugs *)
-  testLens : List[\ZZ32\] = <|0,1,2,7,10|>
+  testLens : List[\ZZ32\] = <|0 asif ZZ32,1,2,7,10|>
   assert(20,SUM testLens,"sum wrong")
   for i <- seq(testLens) do
       print( // i ":")
-      li = list(0#i)
+      li = list[\ZZ32\](0#i)
       print(li)
       chkPop(li,i)
       chkExtract(li,i)
@@ -116,11 +116,11 @@ run(args:String...):() = do
       print(".")
       assertStr(i=0 OR: li < mli," NOT < ",mli)
       print(".")
-      cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|2 x, 2 x + 1|>)
+      cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|(2 x) asif ZZ32, 2 x + 1|>)
       print(".")
       chkPop(cmli,2 i)
       print(".")
-      cmlii = <| e+3 | x <- li, e <- <|2 x, 2 x + 1|> |>
+      cmlii = <|[\ZZ32\] e+3 | x <- li, e <- <|2 x, 2 x + 1|> |>
       print(".")
       chkPop(cmlii,3,2 i,1)
       print(".")

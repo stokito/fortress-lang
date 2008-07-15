@@ -60,7 +60,7 @@ end
 
 run(args:String...):() = do
     u = ((37 + 5) = 14)
-    c : List[\ZZ32\] = <| 1,2,3,4,5,6 |>
+    c : List[\ZZ32\] = <| 1 asif ZZ32,2,3,4,5,6 |>
     println(c.gen())
   end
 

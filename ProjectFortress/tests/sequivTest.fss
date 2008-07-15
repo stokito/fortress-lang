@@ -36,7 +36,7 @@ run(args:String...) = do
     b : RR64 = 45.0
     c : RR64 = 5.0 + 40.0
     d : ZZ64 = 1934137491234745 - 1934137491234700
-    e : IntLiteral = 19341374912347452347629872905790283423598124792143168
+    e : ZZ = 19341374912347452347629872905790283423598124792143168
     f : RR64 = b + e
     g : RR64[3] = [ 0.0 1.0 3.14 ]
     h : ZZ32 -> ZZ32 = identity[\ZZ32\]
@@ -82,7 +82,7 @@ run(args:String...) = do
     nequiv(d,h)
     nequiv(d,i)
     nequiv(d,j)
-    equiv(e,f)
+    equiv(e+0.0,f)
     nequiv(e,g)
     nequiv(e,h)
     nequiv(e,i)

@@ -50,40 +50,13 @@ value object RR32 extends RR64
     opr MAXNUM(self, b:RR32):RR32
 end
 
-value object ZZ32 extends ZZ64
-    getter zero(): Number
-    getter one(): Number
-
-    opr |self| : ZZ32
-    opr =(self, b:ZZ32):Boolean
-    opr <(self, b:ZZ32):Boolean
-
-    opr -(self):ZZ32
-    opr +(self,b:ZZ32):ZZ32
-    opr -(self,b:ZZ32):ZZ32
-    opr DOT(self,b:ZZ32):ZZ32
-    opr juxtaposition(self,b:ZZ32):ZZ32
-    opr DIV(self,b:ZZ32):ZZ32
-    opr REM(self,b:ZZ32):ZZ32
-    opr MOD(self,b:ZZ32):ZZ32
-    opr GCD(self,b:ZZ32):ZZ32
-    opr LCM(self,b:ZZ32):ZZ32
-    opr CHOOSE(self,b:ZZ32):ZZ32
-    opr BITAND(self,b:ZZ32):ZZ32
-    opr BITOR(self,b:ZZ32):ZZ32
-    opr BITXOR(self,b:ZZ32):ZZ32
-    opr LSHIFT(self,b:ZZ64):ZZ32
-    opr RSHIFT(self,b:ZZ64):ZZ32
-    opr BITNOT(self):ZZ32
-    opr ^(self, b:ZZ64):RR64
-    widen(self):ZZ64
-    partitionL(self):ZZ32
+value object Int extends ZZ32
 end
 
 value object Long extends ZZ64
 end
 
-object IntLiteral extends {Integral[\IntLiteral\],ZZ}
+object IntLiteral extends { ZZ32 }
     opr =(self, b: IntLiteral):Boolean
     opr <(self, other:IntLiteral): Boolean
     opr <=(self, other:IntLiteral): Boolean
@@ -91,6 +64,9 @@ object IntLiteral extends {Integral[\IntLiteral\],ZZ}
     opr >=(self, other:IntLiteral): Boolean
     opr CMP(self, other:IntLiteral): TotalComparison
 
+(*
+Do not enable these until coercion is implemented; doing so will
+cause all our arithmetic to occur on IntLiterals.
     opr -(self): IntLiteral
     opr +(self, b: IntLiteral): IntLiteral
     opr -(self, b: IntLiteral): IntLiteral
@@ -109,6 +85,7 @@ object IntLiteral extends {Integral[\IntLiteral\],ZZ}
     opr RSHIFT(self, b:ZZ64): IntLiteral
     opr BITNOT(self): IntLiteral
     opr ^(self, b:ZZ64):RR64
+*)
 end
 
 object BigNum extends ZZ end

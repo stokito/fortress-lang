@@ -51,7 +51,7 @@ public class FIntLiteral extends NativeConstructor.FNativeObject
     public static FValue make(BigInteger v) {
         if (v.compareTo(INT_MAX)>0) {
             if (v.compareTo(LONG_MAX)>0) {
-                return new FIntLiteral(v);
+                return FBigNum.make(v);
             } else {
                 return FLong.make(v.longValue());
             }
@@ -66,7 +66,7 @@ public class FIntLiteral extends NativeConstructor.FNativeObject
         }
     }
 
-    public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
+    public String getString() { return (value.toString()+":IntLiteral"); }
 
     public int getInt() {
         throw new ProgramError(errorMsg("Value ", value,

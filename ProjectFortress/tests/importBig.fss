@@ -20,10 +20,10 @@ import List.{ opr BIG <| |>, singleton, List, Concat }
 export Executable
 
 run(args:String...) = do
-  a: List[\ZZ32\] := singleton(3)
-  b: List[\ZZ32\] := singleton(5)
+  a: List[\ZZ32\] := singleton[\ZZ32\](3)
+  b: List[\ZZ32\] := singleton[\ZZ32\](5)
   a := Concat[\ZZ32\].join(a, b)
-  a := <| 10 i | i <- a |>
+  a := <|[\ZZ32\] 10 i | i <- a |>
   println a
 end
 

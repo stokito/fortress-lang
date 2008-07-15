@@ -375,7 +375,66 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr ^(self, b:ZZ64):RR64
 end
 
-trait ZZ64 extends { Integral[\ZZ64\], ZZ } comprises { Long, ZZ32 }
+trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
+    getter zero(): ZZ32
+    getter one(): ZZ32
+
+    opr |self| : ZZ32
+    opr =(self, b:ZZ32):Boolean
+    opr <(self, b:ZZ32):Boolean
+
+    opr -(self):ZZ32
+    opr +(self,b:ZZ32):ZZ32
+    opr -(self,b:ZZ32):ZZ32
+    opr DOT(self,b:ZZ32):ZZ32
+    opr juxtaposition(self,b:ZZ32):ZZ32
+    opr DIV(self,b:ZZ32):ZZ32
+    opr REM(self,b:ZZ32):ZZ32
+    opr MOD(self,b:ZZ32):ZZ32
+    opr GCD(self,b:ZZ32):ZZ32
+    opr LCM(self,b:ZZ32):ZZ32
+    opr CHOOSE(self,b:ZZ32):ZZ32
+    opr BITAND(self,b:ZZ32):ZZ32
+    opr BITOR(self,b:ZZ32):ZZ32
+    opr BITXOR(self,b:ZZ32):ZZ32
+    opr LSHIFT(self,b:ZZ64):ZZ32
+    opr RSHIFT(self,b:ZZ64):ZZ32
+    opr BITNOT(self):ZZ32
+    widen(self):ZZ64
+    partitionL(self):ZZ32
+end
+
+trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
+    getter zero(): ZZ64
+    getter one(): ZZ64
+
+    opr |x:ZZ64| : ZZ64
+
+    opr =(self, b:ZZ64):Boolean
+    opr <(self, b:ZZ64):Boolean
+    opr >(self, b:ZZ64):Boolean
+    opr >=(self, b:ZZ64):Boolean
+    opr <=(self, b:ZZ64):Boolean
+    opr CMP(self, b:ZZ64): TotalComparison
+
+    opr -(self):ZZ64
+    opr +(self,b:ZZ64):ZZ64
+    opr -(self,b:ZZ64):ZZ64
+    opr DOT(self,b:ZZ64):ZZ64
+    opr TIMES(self,b:ZZ64):ZZ64
+    opr juxtaposition(self,b:ZZ64):ZZ64
+    opr DIV(self,b:ZZ64):ZZ64
+    opr REM(self,b:ZZ64):ZZ64
+    opr MOD(self,b:ZZ64):ZZ64
+    opr GCD(self,b:ZZ64):ZZ64
+    opr LCM(self,b:ZZ64):ZZ64
+    opr CHOOSE(self,b:ZZ64):ZZ64
+    opr BITAND(self,b:ZZ64):ZZ64
+    opr BITOR(self,b:ZZ64):ZZ64
+    opr BITXOR(self,b:ZZ64):ZZ64
+    opr LSHIFT(self,b:ZZ64):ZZ64
+    opr RSHIFT(self,b:ZZ64):ZZ64
+    opr BITNOT(self):ZZ64
     narrow(self):ZZ32
     big(self):ZZ
 end
@@ -1786,10 +1845,25 @@ opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), hi:(I,J,K)): FullRange[\(I,J,K),true\]
 
 (** Factories for incomplete ranges. **)
+opr (x:I)#[\I extends AnyIntegral\] : LowerRange[\I\]
+opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LowerRange[\(I,J)\]
+opr (x:I,y:J,z:K)#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
+         LowerRange[\(I,J,K)\]
+opr (x:I):[\I\] : LowerRange[\I\]
+opr #[\I extends AnyIntegral\](x:I) : ExtentRange[\I\]
+opr #[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : ExtentRange[\(I,J)\]
+opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
+         ExtentRange[\(I,J,K)\]
+opr :[\I extends AnyIntegral\](x:I) : UpperRange[\I\]
+opr :[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : UpperRange[\(I,J)\]
+opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
+         UpperRange[\(I,J,K)\]
+(*
 opr (x:T)#[\T\] : LowerRange[\T\]
 opr (x:T):[\T\] : LowerRange[\T\]
 opr #[\T\](x:T) : ExtentRange[\T\]
 opr :[\T\](x:T) : UpperRange[\T\]
+*)
 
 opr #(): OpenRange[\Any\]
 opr :(): OpenRange[\Any\]

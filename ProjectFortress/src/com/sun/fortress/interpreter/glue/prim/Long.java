@@ -104,23 +104,23 @@ public static final class Rem extends LL2L {
 }
 public static final class Gcd extends LL2L {
     protected long f(long u, long v) {
-        return ZZ32.gcd(u,v);
+        return Int.gcd(u,v);
     }
 }
 public static final class Lcm extends LL2L {
     protected long f(long u, long v) {
-        long g = ZZ32.gcd(u,v);
+        long g = Int.gcd(u,v);
         return (u/g)*v;
     }
 }
 public static final class Choose extends LL2L {
     protected long f(long u, long v) {
-        return ZZ32.choose(u,v);
+        return Int.choose(u,v);
     }
 }
 public static final class Mod extends LL2L {
     protected long f(long u, long v) {
-        return ZZ32.mod(u,v);
+        return Int.mod(u,v);
     }
 }
 public static final class BitAnd extends LL2L {
@@ -162,14 +162,14 @@ public static final class Pow extends NativeMeth1 {
         long base = x.getLong();
         long exp = y.getLong();
         if (exp < 0) {
-            return FFloat.make(1.0 / (double)ZZ32.pow(base,-exp));
+            return FFloat.make(1.0 / (double)Int.pow(base,-exp));
         } else {
-            return FLong.make(ZZ32.pow(base,exp));
+            return FLong.make(Int.pow(base,exp));
         }
     }
 }
 public static final class FromLong extends L2I {
-    protected int f(long x) { return ZZ32.rc(x); }
+    protected int f(long x) { return Int.rc(x); }
 }
 
 public static final class ToBigNum extends L2Z {

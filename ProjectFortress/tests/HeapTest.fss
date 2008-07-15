@@ -112,7 +112,7 @@ testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
                 g:Generator[\(ZZ32,ZZ32)\]):() = do
     slgs = s lg s
     startTime = nanoTime()
-    h = c(g)
+    h : Heap[\ZZ32,ZZ32\] = c(g)
     build = nanoTime()
     checkFull(h,s)
     consume=nanoTime()
@@ -124,7 +124,7 @@ testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
   end
 
 run(args:String...):() = do
-    samples : List[\ZZ32\] = <|0,1,2,7,11|>
+    samples : List[\ZZ32\] = <|0 asif ZZ32,1,2,7,11|>
     print("n\tn lg n")
     timeHdr("lbuild")
     timeHdr("lconsume")

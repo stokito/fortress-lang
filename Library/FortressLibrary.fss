@@ -510,7 +510,61 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr ^(self, b:ZZ64):RR64
 end
 
-trait ZZ64 extends { Integral[\ZZ64\],ZZ } comprises { Long, ZZ32 }
+trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
+    getter zero(): ZZ32 = 0
+    getter one(): ZZ32 = 1
+
+    opr |self| : ZZ32 = if self>=0 then self else -self end
+    opr =(self, b:ZZ32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Eq")
+    opr <(self, b:ZZ32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Less")
+
+    opr -(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
+    opr +(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
+    opr -(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
+    opr DOT(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr TIMES(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr juxtaposition(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr DIV(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Div")
+    opr REM(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Rem")
+    opr MOD(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mod")
+    opr GCD(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Gcd")
+    opr LCM(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Lcm")
+    opr CHOOSE(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Choose")
+    opr BITAND(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitAnd")
+    opr BITOR(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitOr")
+    opr BITXOR(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitXor")
+    opr LSHIFT(self,b:ZZ64):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LShift")
+    opr RSHIFT(self,b:ZZ64):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RShift")
+    opr BITNOT(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitNot")
+    opr ^(self, b:ZZ64):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow")
+    widen(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ToLong")
+    partitionL(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Partition")
+end
+
+trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
     getter zero(): ZZ64 = widen(0)
     getter one(): ZZ64 = widen(1)
 
@@ -520,6 +574,15 @@ trait ZZ64 extends { Integral[\ZZ64\],ZZ } comprises { Long, ZZ32 }
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
     opr <(self, b:ZZ64):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
+    (* Argh!  Due to method ambiguities with ZZ, these definitions must be given
+       explicitly here. *)
+    opr >(self, b:ZZ64):Boolean = b < self
+    opr >=(self, b:ZZ64):Boolean = NOT (self < b)
+    opr <=(self, b:ZZ64):Boolean = NOT (b < self)
+    opr CMP(self, b:ZZ64): TotalComparison =
+        if self < b then LessThan
+        elif b < self then GreaterThan
+        else EqualTo end
 
     opr -(self):ZZ64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
@@ -566,6 +629,7 @@ trait ZZ64 extends { Integral[\ZZ64\],ZZ } comprises { Long, ZZ32 }
 end
 
 trait ZZ extends Integral[\ZZ\]
+        comprises { BigNum, ZZ64 }
     getter zero(): ZZ =
         1934791870947204798109283471902037419 - 1934791870947204798109283471902037419
     getter one(): ZZ = zero() + 1
@@ -3319,39 +3383,101 @@ object Tuple3Range[\N1 extends Integral[\N1\], N2 extends Integral[\N2\], N3 ext
         l1=r.l1 AND l2=r.l2 AND x1=r.x1 AND x2=r.x2 AND l3=r.l3 AND x3=r.x3
 end
 
+(** Helpers for # to get the type instantiation "right".  We pass in bogus ZZ32's to
+    ensure that the result type is at least ZZ32. **)
+sizedRange[\I extends AnyIntegral\](_:I,lo:I,ex:I): ParRange[\I,false\] = ParRange[\I,false\](lo,ex)
+sized2Range[\I extends AnyIntegral, J extends AnyIntegral\]
+           (_:I,_:J,l1:I,l2:J,ex1:I,ex2:J): Tuple2Range[\I,J,false\] =
+    Tuple2Range[\I,J,false\](l1,l2,ex1,ex2)
+sized3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+     (_:I,_:J,_:K,l1:I,l2:J,l3:K,ex1:I,ex2:J,ex3:K): Tuple3Range[\I,J,K,false\] =
+    Tuple3Range[\I,J,K,false\](l1,l2,l3,ex1,ex2,ex3)
+
 (** The # and : operators serve as factories for parallel ranges. **)
-opr #[\I extends AnyIntegral\](lo:I, ex:I): ParRange[\I,false\] = ParRange[\I,false\](lo,ex)
+opr #[\I extends AnyIntegral\](lo:I, ex:I): ParRange[\I,false\] = sizedRange(0 asif ZZ32,lo,ex)
 (*
 opr #(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] = ParRange[\ZZ32,false\](lo,ex)
 *)
 opr #[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), ex:(I,J)): Tuple2Range[\I,J,false\] =
-    do (l1,l2)=lo; (x1,x2)=ex; Tuple2Range[\I,J,false\](l1,l2,x1,x2) end
+    do (l1,l2)=lo; (x1,x2)=ex; sized2Range(0 asif ZZ32,0 asif ZZ32,l1,l2,x1,x2) end
 opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), ex:(I,J,K)): Tuple3Range[\I,J,K,false\] =
-    do (l1,l2,l3)=lo; (x1,x2,x3)=ex; Tuple3Range[\I,J,K,false\](l1,l2,l3,x1,x2,x3) end
+    do (l1,l2,l3)=lo; (x1,x2,x3)=ex
+       sized3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32,l1,l2,l3,x1,x2,x3)
+    end
+
+(** Helpers for : to get the type instantiation "right".  We pass in bogus ZZ32's to
+    ensure that the result type is at least ZZ32.  **)
+boundedRange[\I extends AnyIntegral\](_:I,lo:I,ex:I): ParRange[\I,true\] = ParRange[\I,true\](lo,ex)
+bounded2Range[\I extends AnyIntegral, J extends AnyIntegral\]
+           (_:I,_:J,l1:I,l2:J,ex1:I,ex2:J): Tuple2Range[\I,J,true\] =
+    Tuple2Range[\I,J,true\](l1,l2,ex1,ex2)
+bounded3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+     (_:I,_:J,_:K,l1:I,l2:J,l3:K,ex1:I,ex2:J,ex3:K): Tuple3Range[\I,J,K,true\] =
+    Tuple3Range[\I,J,K,true\](l1,l2,l3,ex1,ex2,ex3)
 
 opr :[\I extends AnyIntegral\](lo:I, hi:I): ParRange[\I,true\] =
-        ParRange[\I,true\](lo,hi-lo+1)
+        boundedRange(0 asif ZZ32,lo,hi-lo+1)
 (*
 opr :(lo:IntLiteral, hi:IntLiteral): ParRange[\ZZ32,true\] =
         ParRange[\ZZ32,true\](lo,hi-lo+1)
 *)
 opr :[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), hi:(I,J)): Tuple2Range[\I,J,true\] =
-    do (l1,l2)=lo; (h1,h2)=hi; Tuple2Range[\I,J,true\](l1,l2,h1-l1+1,h2-l2+1) end
+    do (l1,l2)=lo; (h1,h2)=hi; bounded2Range(0 asif ZZ32,0 asif ZZ32,l1,l2,h1-l1+1,h2-l2+1) end
 opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), hi:(I,J,K)): Tuple3Range[\I,J,K,true\] = do
     (l1,l2,l3)=lo; (h1,h2,h3)=hi
-    Tuple3Range[\I,J,K,true\](l1,l2,l3,h1-l1+1,h2-l2+1,h3-l3+1)
+    bounded3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32,l1,l2,l3,h1-l1+1,h2-l2+1,h3-l3+1)
   end
 
-(** Factories for incomplete ranges **)
-opr (x:T)#[\T\] : LowerRange[\T\] = LowerRange[\T\](x)
-opr (x:T):[\T\] : LowerRange[\T\] = LowerRange[\T\](x)
-opr #[\T\](x:T) : ExtentRange[\T\] = ExtentRange[\T\](x)
-opr :[\T\](x:T) : UpperRange[\T\] = UpperRange[\T\](x)
+lowerRange[\I extends AnyIntegral\](_:I,x:I):LowerRange[\I\] = LowerRange[\I\](x)
+lower2Range[\I extends AnyIntegral, J extends AnyIntegral\](_:I,_:J,x:I,y:J):
+    LowerRange[\(I,J)\] = LowerRange[\(I,J)\](x,y)
+lower3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+           (_:I,_:J,_:K,x:I,y:J,z:K): LowerRange[\(I,J,K)\] =
+    LowerRange[\(I,J,K)\](x,y,z)
 
+extentRange[\I extends AnyIntegral\](_:I,x:I):ExtentRange[\I\] = ExtentRange[\I\](x)
+extent2Range[\I extends AnyIntegral, J extends AnyIntegral\](_:I,_:J,x:I,y:J):
+    ExtentRange[\(I,J)\] = ExtentRange[\(I,J)\](x,y)
+extent3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+            (_:I,_:J,_:K,x:I,y:J,z:K): ExtentRange[\(I,J,K)\] =
+    ExtentRange[\(I,J,K)\](x,y,z)
+
+upperRange[\I extends AnyIntegral\](_:I,x:I):UpperRange[\I\] = UpperRange[\I\](x)
+upper2Range[\I extends AnyIntegral, J extends AnyIntegral\](_:I,_:J,x:I,y:J):
+    UpperRange[\(I,J)\] = UpperRange[\(I,J)\](x,y)
+upper3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+           (_:I,_:J,_:K,x:I,y:J,z:K): UpperRange[\(I,J,K)\] =
+    UpperRange[\(I,J,K)\](x,y,z)
+
+(** Factories for incomplete ranges **)
+opr (x:I)#[\I extends AnyIntegral\] : LowerRange[\I\] = lowerRange(0 asif ZZ32, x)
+opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LowerRange[\(I,J)\] =
+    lower2Range(0 asif ZZ32,0 asif ZZ32, x,y)
+opr (x:I,y:J,z:K)#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
+         LowerRange[\(I,J,K)\] = lower3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z)
+opr (x:I):[\I\] : LowerRange[\I\] = x#
+opr #[\I extends AnyIntegral\](x:I) : ExtentRange[\I\] = extentRange(0 asif ZZ32, x)
+opr #[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : ExtentRange[\(I,J)\] =
+    do (x,y) = xy; extent2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
+opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
+         ExtentRange[\(I,J,K)\] =
+    do (x,y,z) = xyz; extent3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
+opr :[\I extends AnyIntegral\](x:I) : UpperRange[\I\] = upperRange(0 asif ZZ32, x)
+opr :[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : UpperRange[\(I,J)\] =
+    do (x,y) = xy; upper2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
+opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
+         UpperRange[\(I,J,K)\] =
+    do (x,y,z) = xyz; upper3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
+(*
+opr (x:I)#[\I\] : LowerRange[\I\] = LowerRange[\I\](x)
+opr (x:I):[\I\] : LowerRange[\I\] = LowerRange[\I\](x)
+opr #[\I\](x:I) : ExtentRange[\I\] = ExtentRange[\I\](x)
+opr :[\I\](x:I) : UpperRange[\I\] = UpperRange[\I\](x)
+*)
 opr #() : OpenRange[\Any\] = OpenRange[\Any\]
 opr :() : OpenRange[\Any\] = OpenRange[\Any\]
 
