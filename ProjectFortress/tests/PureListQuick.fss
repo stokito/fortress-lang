@@ -105,18 +105,16 @@ run(args:String...):() = do
       print(".")
       chkPop(fli,0,(i+1) DIV 2,2)
       print(".")
-(* Boolean guards currently broken
-      flii = <| x+3 | x <- li, x REM 2 = 0 |>
+      flii = <|[\ZZ32\] x+3 | x <- li, x REM 2 = 0 |>
       print(".")
       chkPop(flii,3,(i+1) DIV 2,2)
       print(".")
-*)
       mli = li.map[\ZZ32\](fn (x):ZZ32 => x + 17)
       chkPop(mli,17,i)
       print(".")
       assertStr(i=0 OR: li < mli," NOT < ",mli)
       print(".")
-      cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|(2 x) asif ZZ32, 2 x + 1|>)
+      cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|2 x asif ZZ32, 2 x + 1|>)
       print(".")
       chkPop(cmli,2 i)
       print(".")
