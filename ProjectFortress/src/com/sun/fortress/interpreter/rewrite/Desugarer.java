@@ -246,10 +246,18 @@ public class Desugarer extends Rewrite {
     }
 
 
-    private static class ArrowOrFunctional {};
-    private final static ArrowOrFunctional NEITHER = new ArrowOrFunctional();
-    private final static ArrowOrFunctional ARROW = new ArrowOrFunctional();
-    private final static ArrowOrFunctional FUNCTIONAL = new ArrowOrFunctional();
+    private static class ArrowOrFunctional {
+        public String toString() {
+            return s;
+        }
+        ArrowOrFunctional(String s) {
+            this.s = s;
+        }
+        private final String s;
+    };
+    private final static ArrowOrFunctional NEITHER = new ArrowOrFunctional("NEITHER");
+    private final static ArrowOrFunctional ARROW = new ArrowOrFunctional("ARROW");
+    private final static ArrowOrFunctional FUNCTIONAL = new ArrowOrFunctional("FUNCTIONAL");
     
     private static class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
 
@@ -1507,9 +1515,27 @@ public class Desugarer extends Rewrite {
      * @param defs
      */
     private void defsToMembers(List<? extends AbsDeclOrDecl> defs) {
-        for (AbsDeclOrDecl d : defs) {
-            for (String s: NodeUtil.stringNames(d))
-            rewrites_put(s, new Member());
+        for (AbsDeclOrDecl dd : defs) {
+
+            if (dd instanceof VarDecl) {
+                //visited.add(tdod);
+            } else if (dd instanceof AbsVarDecl) {
+                //visited.add(tdod);
+            } else {
+                String sdd = dd.stringName();
+                ArrowOrFunctional aof = dd.accept(isAnArrowName);
+
+                if (aof != NEITHER) {
+
+                    arrows.add(sdd);
+                    if (aof == FUNCTIONAL)
+                        functionals.add(sdd);
+                } else {
+                    arrows.remove(sdd);
+                }
+            }
+            for (String s: NodeUtil.stringNames(dd))
+                rewrites_put(s, new Member());
         }
 
     }
