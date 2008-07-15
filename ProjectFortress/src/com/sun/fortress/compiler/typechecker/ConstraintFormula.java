@@ -308,13 +308,17 @@ public abstract class ConstraintFormula {
 			if( c.equals(FALSE) ) {
 				return this;
 			}
-			if( c instanceof ConjunctiveFormula){
-				return new DisjunctiveFormula(Useful.list(this,(ConjunctiveFormula)c));
-			}
-			if(c instanceof DisjunctiveFormula){
-				c.or(this, history);
-			}
-			return InterpreterBug.bug("can't or a solved formula");
+			
+			// TEMPORARY BUG FIX
+			return this;
+			
+//			if( c instanceof ConjunctiveFormula){
+//				return new DisjunctiveFormula(Useful.list(this,(ConjunctiveFormula)c));
+//			}
+//			if(c instanceof DisjunctiveFormula){
+//				c.or(this, history);
+//			}
+//			return InterpreterBug.bug("can't or a solved formula");
 		}
 		
 		private ConstraintFormula replaceAndRemove(final _InferenceVarType new_ivar, final List<_InferenceVarType> to_remove) {
@@ -621,19 +625,23 @@ public abstract class ConstraintFormula {
 			if(c.isTrue()){
 				return c;
 			}
-			if(c instanceof ConjunctiveFormula){
-				final ConjunctiveFormula cf = (ConjunctiveFormula)c;
-				List<ConjunctiveFormula> temp = new ArrayList<ConjunctiveFormula>(conjuncts);
-				temp.add(cf);
-				return new DisjunctiveFormula(temp);
-			}
-			if(c instanceof DisjunctiveFormula){
-				final DisjunctiveFormula df = (DisjunctiveFormula) c;
-				List<ConjunctiveFormula> temp = new ArrayList<ConjunctiveFormula>(conjuncts);
-				temp.addAll(df.conjuncts);
-				return new DisjunctiveFormula(temp);
-			}
-			return InterpreterBug.bug("Can't and with a Solved Constraint");
+			
+			// TEMPORARY BUG FIX
+			return this;
+			
+//			if(c instanceof ConjunctiveFormula){
+//				final ConjunctiveFormula cf = (ConjunctiveFormula)c;
+//				List<ConjunctiveFormula> temp = new ArrayList<ConjunctiveFormula>(conjuncts);
+//				temp.add(cf);
+//				return new DisjunctiveFormula(temp);
+//			}
+//			if(c instanceof DisjunctiveFormula){
+//				final DisjunctiveFormula df = (DisjunctiveFormula) c;
+//				List<ConjunctiveFormula> temp = new ArrayList<ConjunctiveFormula>(conjuncts);
+//				temp.addAll(df.conjuncts);
+//				return new DisjunctiveFormula(temp);
+//			}
+//			return InterpreterBug.bug("Can't and with a Solved Constraint");
 		}
 
 		@Override
