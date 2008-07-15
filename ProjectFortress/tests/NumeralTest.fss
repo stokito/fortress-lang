@@ -1,0 +1,73 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component NumeralTest
+import Set.{...}
+import Constants.{ pi }
+export Executable
+
+digits = {"" "0","1","2","3","4","5","6","7","8","9"}
+
+isDigit(s: String) = s IN digits
+
+oneStr2int(s: String, radix: ZZ32) = do
+  r = digits.indexOf(s)
+  if r IN digits.bounds() then r
+  elif s = " " then 0
+  elif s = "X" OR s = "x" then 10
+  elif s = "A" OR s = "a" then 10
+  elif s = "B" OR s = "b" then 11
+  elif s = "C" OR s = "c" then 12
+  elif s = "D" OR s = "d" then 13
+  elif s = "E" OR s = "e"
+  then if radix = 12
+       then 11
+       else 14
+       end
+  elif s = "F" OR s = "f" then 15
+  else fail("Invalid digit: " s)
+  end
+end
+
+toDecimal(number: String, radix: ZZ32) = do
+  ls = |number|
+  SUM [i<-1#ls] radix^(ls-i) oneStr2int(number[(i-1)#1], radix)
+end
+
+run(args:String...) = do
+  assert(17, f_SIXTEEN + 2)
+  assert(7fff_16, toDecimal("7fff", 16))
+  assert(0fff_SIXTEEN, toDecimal("fff", 16))
+  assert(10101101_2, toDecimal("10101101", 2))
+  assert(XE_12, toDecimal("XE", 12))
+  assert(3.14159265, 3.14159265)
+  assert(3.14159265 + 2, 5.14159265)
+  assert(DEAD.BEEF_16, DEAD.BEEF_SIXTEEN)
+  assert(DEAD.BEEF_16 + 1, 57006.745834350586)
+
+(* Rightly rejected:
+  wrong1 = 0.a
+  wrong2 = 0x6A35
+  wrong3 = FF_EIGHT
+  wrong4 = 12.52.23
+  wrong5 = 57_50
+  wrong6 = PI_FIFTEEN
+  wrong7 = dead.BEEF_16
+ *)
+end
+
+end

@@ -68,19 +68,85 @@ Expr VoidLiteralExpr =
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
 
 NumberLiteralExpr NumericLiteralExpr =
-     FloatLiteralExpr
-   / IntLiteralExpr ;
+    a1:NumericWord a2s:RestNumericWord+ "_" a3:RadixSpecifier &{ NodeUtil.validNumericLiteral(a1, a2s.list(), a3) }
+    { String numeral = a1;
+      for (String numericWord: a2s.list()) {
+          numeral += numericWord;
+      }
+      yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
+                                                 numeral+"_"+NodeUtil.radix2Number(a3));
+    }
+  / a1:NumericWord a2s:RestNumericWord+ &{ NodeUtil.validNumericLiteral(a1, a2s.size()) }
+    { String numeral = a1;
+      for (String numericWord: a2s.list()) {
+          numeral += numericWord;
+      }
+      yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount), numeral);
+    }
+  / FloatLiteralExpr
+  / IntLiteralExpr ;
+
+private transient String RestNumericWord =
+    a1:NumericSeparator a2:NumericWord { yyValue = a1+a2; };
 
 transient FloatLiteralExpr FloatLiteralExpr =
-     <FIRST> a1:DigitString dot a2:DigitString
-     { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
-                                                  a1 + "." + a2); };
+    <FIRST> a1:DigitString dot a2:DigitString
+    { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
+                                                 a1 + "." + a2); };
 
 transient IntLiteralExpr IntLiteralExpr =
-     <FIRST> a1:DigitString
-     { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount),
-                                                a1);
-     };
+    <FIRST> a1:NumericWord "_" a2:RadixSpecifier &{ NodeUtil.validNumericLiteral(a1, a2) }
+    { Span span = createSpan(yyStart,yyCount);
+      yyValue = ExprFactory.makeIntLiteralExpr(span, a1+"_"+NodeUtil.radix2Number(a2));
+    }
+  / a1:NumericWord &{ NodeUtil.validNumericLiteral(a1) }
+    { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount), a1); }
+  / a1:DigitString
+    { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount),
+                                               a1);
+    };
+
+private transient String NumericWord = [0-9a-zA-Z]+ ;
+
+private transient String NumericSeparator = "." ;
+
+private transient String RadixSpecifier =
+     RadixDigits
+   / RadixNames ;
+
+private transient String RadixDigits =
+     "16"
+   / "15"
+   / "14"
+   / "13"
+   / "12"
+   / "11"
+   / "10"
+   / "9"
+   / "8"
+   / "7"
+   / "6"
+   / "5"
+   / "4"
+   / "3"
+   / "2" ;
+
+private transient String RadixNames =
+     "SIXTEEN"
+   / "FIFTEEN"
+   / "FOURTEEN"
+   / "THIRTEEN"
+   / "TWELVE"
+   / "ELEVEN"
+   / "TEN"
+   / "NINE"
+   / "EIGHT"
+   / "SEVEN"
+   / "SIX"
+   / "FIVE"
+   / "FOUR"
+   / "THREE"
+   / "TWO" ;
 
 private transient String DigitString = [0-9]+;
 
