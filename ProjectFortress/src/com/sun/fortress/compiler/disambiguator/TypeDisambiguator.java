@@ -478,13 +478,15 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forGrammarDefOnly(GrammarDef that, Id name_result,
-            List<Id> extends_result, List<GrammarMemberDecl> members_result) {
+            List<Id> extends_result, 
+            List<GrammarMemberDecl> members_result,
+            List<TransformerDecl> transformers) {
 
         Pair<List<Id>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
 
         Id name = handleGrammarName(name_result);
 
-        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),members_result);
+        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(), name, p.first(), members_result, transformers);
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
         Option<GrammarIndex> grammar = this._env.grammarIndex(name);

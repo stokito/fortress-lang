@@ -65,6 +65,7 @@ import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.PreFixity;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TemplateGap;
+import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TupleExpr;
@@ -85,7 +86,7 @@ import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
+public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> {
 
     private List<String> code;
     private SyntaxDeclEnv syntaxDeclEnv;
@@ -813,13 +814,18 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     private String normalGap(TemplateGap t){
-        return extractVar(t.getId());
+        return extractVar(t.getGapId());
     }
 
+    @Override
+    public String defaultTemplateGapCase(TemplateGap t) {
+        return handleTemplateGap(t);
+    }
+    
     private String handleTemplateGap(TemplateGap t) {
         // Is the template t an instance of a template application
         // or a template variable?
-        Id id = t.getId();
+        Id id = t.getGapId();
         if (!t.getTemplateParams().isEmpty()) {
             Debug.debug(Debug.Type.SYNTAX, "The gap has parameters: ", t.getTemplateParams() );
             return parameterizedGap(t);
@@ -838,7 +844,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
     }
 
     private String parameterizedGap(TemplateGap t){
-        Id id = t.getId();
+        Id id = t.getGapId();
 
         if (this.syntaxDeclEnv.getMemberEnv().isParameter(id) ||
             this.syntaxDeclEnv.isAnyChar(id) ||
@@ -892,7 +898,7 @@ public class JavaAstPrettyPrinter extends NodeDepthFirstVisitor<String> {
         code.add("  @Override");
         code.add("  public Node for"+className +"("+className+" that) {");
         code.add("    Node n = null;");
-        code.add("    String id = that.getId().getText();");
+        code.add("    String id = that.getGapId().getText();");
         //        this.code.add("    System.err.println(\"Looking up: \"+id);");
         code.add("    if (null != (n = "+paramEnv+".get(id))) {");
         //        this.code.add("      System.err.println(\"Subs\");");

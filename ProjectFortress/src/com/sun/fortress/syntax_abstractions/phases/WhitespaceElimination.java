@@ -52,7 +52,7 @@ public class WhitespaceElimination extends NodeUpdateVisitor {
                     Debug.debug( Debug.Type.SYNTAX, 1, "[whitespace] Throwing out symbol ", symbol );
                 }
             }
-            return new SyntaxDef(that.getSpan(),ls, that.getTransformation());
+            return new SyntaxDef(that.getSpan(),ls, that.getTransformer());
         }
 
 }

@@ -43,9 +43,9 @@ import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.TransformationDecl;
-import com.sun.fortress.nodes.TransformationExpressionDef;
-import com.sun.fortress.nodes.TransformationTemplateDef;
+import com.sun.fortress.nodes.TransformerDecl;
+import com.sun.fortress.nodes.TransformerDef;
+import com.sun.fortress.nodes.TransformerExpressionDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TraitType;
@@ -81,7 +81,7 @@ public class ActionCreater {
     private static final Id ANY = new Id("Any");
 
     public static Result create(String alternativeName,
-            TransformationDecl transformation,
+            TransformerDecl transformation,
             BaseType type,
             SyntaxDeclEnv syntaxDeclEnv,
             Map<PrefixedSymbol,VariableCollector.Depth> variables
@@ -93,9 +93,9 @@ public class ActionCreater {
 
         List<Integer> indents = new LinkedList<Integer>();
         List<String> code = new LinkedList<String>();
-        if (transformation instanceof TransformationExpressionDef) {
+        if (transformation instanceof TransformerExpressionDef) {
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false, variables );
-            Expr e = ((TransformationExpressionDef) transformation).getTransformation();
+            Expr e = ((TransformerExpressionDef) transformation).getTransformer();
             Component component = ac.makeComponent(e, syntaxDeclEnv, variables);
             String serializedComponent = ac.writeJavaAST(component);
             code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
@@ -105,9 +105,9 @@ public class ActionCreater {
             }
             addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
         }
-        else if (transformation instanceof TransformationTemplateDef) {
+        else if (transformation instanceof TransformerDef) {
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
-            AbstractNode n = ((TransformationTemplateDef) transformation).getTransformation();
+            AbstractNode n = ((TransformerDef) transformation).getTransformer();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
             String yyValue = n.accept(jpp);
 
