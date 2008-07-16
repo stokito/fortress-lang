@@ -1097,7 +1097,7 @@ public class NodeFactory {
 		});
 	}
 
-	public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformationDecl transformation) {
+	public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformerDecl transformation) {
 		return new SyntaxDef(s, syntaxSymbols, transformation);
 	}
 

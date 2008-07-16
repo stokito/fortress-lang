@@ -95,6 +95,7 @@ public abstract class BatchTask extends Task {
                         int exitValue = execute.execute();
 			if ( exitValue != 0 ){
 				System.err.print(errors.toString(0));
+                                failures = true;
 			}
                     } catch ( IOException e ){
                         failures = true;

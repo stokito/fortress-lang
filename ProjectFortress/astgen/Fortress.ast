@@ -31,11 +31,22 @@ allowNulls no;
 generateToString no;
 generateEquals yes;
 generateSerializers yes;
+generateRecursiveVisitors no;
 customClassPath ../build;
-customGenerator com.sun.fortress.astgen.FortressAstGenerator;
+customGenerator com.sun.fortress.astgen.DepthFirstVisitorGenerator;
+customGenerator com.sun.fortress.astgen.TemplateDepthFirstVisitorGenerator;
+
+customGenerator com.sun.fortress.astgen.DepthFirstVoidVisitorGenerator;
+customGenerator com.sun.fortress.astgen.TemplateDepthFirstVoidVisitorGenerator;
+
+customGenerator com.sun.fortress.astgen.UpdateVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
+
+customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
 customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
-// customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
+customGenerator com.sun.fortress.astgen.SingleSpanConstructorGenerator;
+
+customGenerator com.sun.fortress.astgen.FortressAstGenerator;
 
 package com.sun.fortress.nodes;
 import java.math.BigInteger;
@@ -93,7 +104,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * templates
      */
-    interface TemplateGap(Id id, List<Id> templateParams);
+    interface TemplateGap(Id gapId, List<Id> templateParams);
 
     interface _SyntaxTransformation(com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformer);
 
@@ -513,7 +524,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * grammar definition in grammar declarations
              */
-            GrammarDef(List<GrammarMemberDecl> members);
+            GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers);
         /**
          * grammar member (nonterminal or terminal) declaration
          * Names and params must be unqualified.
@@ -567,23 +578,23 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * syntax definition in syntax declarations
              */
             SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
-                      TransformationDecl transformation);
+                      TransformerDecl transformer);
         /**
           * Transformation declaration
           */
-        abstract TransformationDecl() implements AbsDecl;
+        abstract TransformerDecl() implements AbsDecl;
             /**
-             * pre template definition in template declarations
+             * transformer definition in transformer declarations
              */
-            TransformationPreTemplateDef(String productionName, String transformation);
+            TransformerDef(AbstractNode transformer);
             /**
-             * template definition in template declarations
+             * transformer expression definition in transformer declarations
              */
-            TransformationTemplateDef(AbstractNode transformation);
+            TransformerExpressionDef(Expr transformer);
             /**
-             * template definition in template declarations
+             * pre transformer definition in transformer declarations
              */
-            TransformationExpressionDef(Expr transformation);
+            PreTransformerDef(String productionName, String transformer);
         /**
           * syntax symbol
           */
@@ -701,7 +712,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * Template gap for expressions
              */
-            TemplateGapExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//            TemplateGapExpr(Id id, List<Id> templateParams) implements TemplateGap;
             /**
              * expression annotated with a type
              */
@@ -739,7 +750,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                 /**
                  * Template gap for expressions
                  */
-                TemplateGapDelimitedExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                TemplateGapDelimitedExpr(Id id, List<Id> templateParams) implements TemplateGap;
                 /**
                  * sequence of block elements implicitly enclosed by do/end
                  * BlockElems ::= BlockElem+
@@ -972,7 +983,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                 /**
                  * Template gap for FnExpr
                  */
-                TemplateGapFnExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                TemplateGapFnExpr(Id id, List<Id> templateParams) implements TemplateGap;
             /**
              * expression used in block expressions
              * BlockElem ::= LocalVarFnDecl
@@ -1020,7 +1031,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                 /**
                  * Template gap for simple expressions
                  */
-                TemplateGapSimpleExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                TemplateGapSimpleExpr(Id id, List<Id> templateParams) implements TemplateGap;
                 /**
                  * subscripting expression
                  * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
@@ -1038,7 +1049,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                     /**
                      * Template gap for primary expressions
                      */
-                    TemplateGapPrimary(Id id, List<Id> templateParams) implements TemplateGap;
+//                    TemplateGapPrimary(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * literal
                      * Primary ::= LiteralExpr
@@ -1047,7 +1058,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                         /**
                          * Template gap for literal expressiont
                          */
-                        TemplateGapLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                        TemplateGapLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * number literal
                          */
@@ -1055,7 +1066,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                             /**
                              * Template gap for number literals
                              */
-                            TemplateGapNumberLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                            TemplateGapNumberLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                             /**
                              * float literal
                              * e.g.) 3.5
@@ -1067,7 +1078,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                 /**
                                  * Template gap for float literals
                                  */
-                                TemplateGapFloatLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                                TemplateGapFloatLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                             /**
                              * int literal
                              * e.g.) 7
@@ -1077,7 +1088,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                 /**
                                  * Template gap for int literals
                                  */
-                                TemplateGapIntLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                                TemplateGapIntLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * char literal
                          * e.g.) 'c'
@@ -1086,7 +1097,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                             /**
                              * Template gap for char literals
                              */
-                            TemplateGapCharLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                            TemplateGapCharLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * string literal
                          * e.g.) "string"
@@ -1095,7 +1106,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                             /**
                              * Template gap for string literals
                              */
-                            TemplateGapStringLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                            TemplateGapStringLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * void literal
                          * e.g.) ()
@@ -1104,7 +1115,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                             /**
                              * Template gap for void literals
                              */
-                            TemplateGapVoidLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
+//                            TemplateGapVoidLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * variable reference
                      * VarOrFnRef ::= Id
@@ -1205,7 +1216,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                 /**
                                  * Template gap for expressions
                                  */
-                                TemplateGapLooseJuxt(Id id, List<Id> templateParams) implements TemplateGap;
+//                                TemplateGapLooseJuxt(Id id, List<Id> templateParams) implements TemplateGap;
                            /**
                              * juxtaposition without intervening whitespace
                              * e.g.) f(3+5)
@@ -1996,7 +2007,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * Template gap for names
              */
-            TemplateGapName(Id id, List<Id> templateParams) implements TemplateGap;
+//            TemplateGapName(Id id, List<Id> templateParams) implements TemplateGap;
             /**
              * unstructured sequence of ids naming an API or component
              * Names in the list must be unqualified.
@@ -2026,7 +2037,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                         /**
                          * Template gap for expressions
                          */
-                        TemplateGapId(Id id, List<Id> templateParams) implements TemplateGap;
+//                        TemplateGapId(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * operator name
                      */
@@ -2242,9 +2253,5 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * e.g.) < 5
          */
         Link(OpRef op, Expr expr);
-
-/*
-_SyntaxTransformationExpr(com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformer ) extends Expr;
-*/
 
     end;

@@ -309,12 +309,18 @@ public abstract class ConstraintFormula {
 				return this;
 			}
 			if( c instanceof ConjunctiveFormula){
-				return new DisjunctiveFormula(Useful.list(this,(ConjunctiveFormula)c));
+				if(c.equals(this)){
+					return this;
+				}
+				else{
+					return new DisjunctiveFormula(Useful.set(this,(ConjunctiveFormula)c));
+				}
 			}
 			if(c instanceof DisjunctiveFormula){
 				c.or(this, history);
 			}
 			return InterpreterBug.bug("can't or a solved formula");
+			
 		}
 		
 		private ConstraintFormula replaceAndRemove(final _InferenceVarType new_ivar, final List<_InferenceVarType> to_remove) {
@@ -529,23 +535,68 @@ public abstract class ConstraintFormula {
 			StringBuffer result = new StringBuffer();
 			Set<_InferenceVarType> all_ivars = CollectUtil.union(ivarUpperBounds.keySet(), 
                                                                  ivarLowerBounds.keySet());
+			result.append("{");
+			int i=0;
 			for( _InferenceVarType ivar : all_ivars ) {
 				String lbound = ivarLowerBounds.containsKey(ivar) ? ivarLowerBounds.get(ivar).toString() : Collections.emptySet().toString();
-				String ubound = ivarUpperBounds.containsKey(ivar) ? ivarUpperBounds.get(ivar).toString() : Collections.emptySet().toString();
-				result.append(lbound + " <: " + ivar + " <: " + ubound + ", ");
+				String ubound = ivarUpperBounds.containsKey(ivar) ? ivarUpperBounds.get(ivar ).toString() : Collections.emptySet().toString();
+				result.append(lbound + " <: " + ivar + " <: " + ubound);
+				if(i<all_ivars.size()-1){
+					result.append(", ");
+				}
+				i++;
 			}
-			return result.toString();
-		}
-    }
+			result.append("}");
+ 			return result.toString();
 
+		}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime
+				* result
+				+ ((ivarLowerBounds == null) ? 0 : ivarLowerBounds
+						.hashCode());
+		result = prime
+				* result
+				+ ((ivarUpperBounds == null) ? 0 : ivarUpperBounds
+						.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final ConjunctiveFormula other = (ConjunctiveFormula) obj;
+		if (ivarLowerBounds == null) {
+			if (other.ivarLowerBounds != null)
+				return false;
+		} else if (!ivarLowerBounds.equals(other.ivarLowerBounds))
+			return false;
+		if (ivarUpperBounds == null) {
+			if (other.ivarUpperBounds != null)
+				return false;
+		} else if (!ivarUpperBounds.equals(other.ivarUpperBounds))
+			return false;
+		return true;
+	}
+ }
+    
     public static class DisjunctiveFormula extends ConstraintFormula {
     	
-    	private List<ConjunctiveFormula> conjuncts;
+    	private Set<ConjunctiveFormula> conjuncts;
     	
-		DisjunctiveFormula(List<ConjunctiveFormula> _conjuncts){
+		DisjunctiveFormula(Set<ConjunctiveFormula> _conjuncts){
 			if(_conjuncts.isEmpty())
 				InterpreterBug.bug("Empty conjunct");
-			conjuncts=Collections.unmodifiableList(_conjuncts);
+			conjuncts=Collections.unmodifiableSet(_conjuncts);
 		}
     	
 		/*
@@ -571,8 +622,7 @@ public abstract class ConstraintFormula {
 			}
 			if(c instanceof ConjunctiveFormula){
 				final ConjunctiveFormula cf = (ConjunctiveFormula)c;
-				return new DisjunctiveFormula(CollectUtil.makeList(IterUtil.map(conjuncts, new Lambda<ConjunctiveFormula,ConjunctiveFormula>(){
-
+				return new DisjunctiveFormula(CollectUtil.makeSet(IterUtil.map(conjuncts, new Lambda<ConjunctiveFormula,ConjunctiveFormula>(){
 					public ConjunctiveFormula value(ConjunctiveFormula arg0) {
 						return arg0.merge(cf, history);
 					}
@@ -581,8 +631,8 @@ public abstract class ConstraintFormula {
 			}
 			if(c instanceof DisjunctiveFormula){
 				final DisjunctiveFormula df = (DisjunctiveFormula) c;
-				return new DisjunctiveFormula(CollectUtil.makeList(IterUtil.collapse(IterUtil.map(conjuncts,new Lambda<ConjunctiveFormula, List<ConjunctiveFormula>>(){
-					public List<ConjunctiveFormula> value(
+				return new DisjunctiveFormula(CollectUtil.makeSet(IterUtil.collapse(IterUtil.map(conjuncts,new Lambda<ConjunctiveFormula, Set<ConjunctiveFormula>>(){
+					public Set<ConjunctiveFormula> value(
 							ConjunctiveFormula arg0) {
 						return ((DisjunctiveFormula)(df.and(arg0,history))).conjuncts;
 					}	
@@ -594,8 +644,7 @@ public abstract class ConstraintFormula {
 
 		@Override
 		public ConstraintFormula applySubstitution(final Lambda<Type, Type> sigma) {
-			return new DisjunctiveFormula(CollectUtil.makeList(IterUtil.map(conjuncts, new Lambda<ConjunctiveFormula,ConjunctiveFormula>(){
-
+			return new DisjunctiveFormula(CollectUtil.makeSet(IterUtil.map(conjuncts, new Lambda<ConjunctiveFormula,ConjunctiveFormula>(){
 				public ConjunctiveFormula value(ConjunctiveFormula arg0) {
 					return arg0.applySubstitution(sigma);
 				}
@@ -621,19 +670,21 @@ public abstract class ConstraintFormula {
 			if(c.isTrue()){
 				return c;
 			}
+			
 			if(c instanceof ConjunctiveFormula){
 				final ConjunctiveFormula cf = (ConjunctiveFormula)c;
-				List<ConjunctiveFormula> temp = new ArrayList<ConjunctiveFormula>(conjuncts);
+				Set<ConjunctiveFormula> temp = new HashSet<ConjunctiveFormula>(conjuncts);
 				temp.add(cf);
 				return new DisjunctiveFormula(temp);
 			}
 			if(c instanceof DisjunctiveFormula){
 				final DisjunctiveFormula df = (DisjunctiveFormula) c;
-				List<ConjunctiveFormula> temp = new ArrayList<ConjunctiveFormula>(conjuncts);
+				Set<ConjunctiveFormula> temp = new HashSet<ConjunctiveFormula>(conjuncts);
 				temp.addAll(df.conjuncts);
 				return new DisjunctiveFormula(temp);
 			}
 			return InterpreterBug.bug("Can't and with a Solved Constraint");
+
 		}
 
 		@Override
@@ -646,6 +697,45 @@ public abstract class ConstraintFormula {
 			return this.solve().getMap();
 		}
 		
+		@Override
+		public String toString() {
+			StringBuffer result = new StringBuffer();
+			int i=0;
+			for(ConjunctiveFormula form : this.conjuncts){
+				result.append(form.toString());
+				if(i<this.conjuncts.size()-1){
+					result.append(" OR ");
+				}
+				i++;
+			}
+			return result.toString();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((conjuncts == null) ? 0 : conjuncts.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			final DisjunctiveFormula other = (DisjunctiveFormula) obj;
+			if (conjuncts == null) {
+				if (other.conjuncts != null)
+					return false;
+			} else if (!conjuncts.equals(other.conjuncts))
+				return false;
+			return true;
+		}
 
     	
     }

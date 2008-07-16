@@ -48,8 +48,8 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forTemplateGapExpr(TemplateGapExpr that) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Replace ", that.getId(), " with ", env.getValue( that.getId() ) );
-        return (Node) env.getValue( that.getId() );
+        Debug.debug( Debug.Type.SYNTAX, 2, "Replace ", that.getGapId(), " with ", env.getValue( that.getGapId() ) );
+        return (Node) env.getValue( that.getGapId() );
     }
     
     @Override
@@ -108,7 +108,7 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
         node.accept( new NodeDepthFirstVisitor_void(){
             @Override
             public void forTemplateGapExpr( TemplateGapExpr gap ){
-                vars.add( gap.getId() );
+                vars.add( gap.getGapId() );
             }
         });
 

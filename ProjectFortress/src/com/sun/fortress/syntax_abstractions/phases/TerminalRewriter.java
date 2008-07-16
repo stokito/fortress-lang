@@ -40,7 +40,8 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TransformationTemplateDef;
+import com.sun.fortress.nodes.TransformerDecl;
+import com.sun.fortress.nodes.TransformerDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes._TerminalDef;
@@ -75,10 +76,11 @@ public class TerminalRewriter extends NodeUpdateVisitor {
     @Override
     public Node forGrammarDefOnly(GrammarDef that, Id name_result,
             List<Id> extends_result,
-            List<GrammarMemberDecl> members_result) {
+            List<GrammarMemberDecl> members_result,
+            List<TransformerDecl> transformers) {
         members_result.addAll(this._terminalDefs);
         return super.forGrammarDefOnly(that, name_result, extends_result,
-                members_result);
+                members_result, transformers);
     }
 
     @Override
@@ -134,7 +136,7 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         Expr transformationExpression = NodeFactory.makeStringLiteralExpr(that.getSpan(), token);
 
         // Add the terminal definition to the collection of new terminal definitions
-        SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, new TransformationTemplateDef(transformationExpression));
+        SyntaxDef syntaxDef = new SyntaxDef(syntaxSymbols, new TransformerDef(transformationExpression));
         Option<ModifierPrivate> mods = Option.none();
         List<StaticParam> st = new LinkedList<StaticParam>();
         Type t = NodeFactory.makeTraitType(NodeFactory.makeId("FortressLibrary", "String"));

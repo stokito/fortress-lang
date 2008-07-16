@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -81,8 +82,8 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> nonterminal_result) {
-        return new GrammarDef(that.getSpan(), name_result, extends_result, nonterminal_result);
+    public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> nonterminal_result, List<TransformerDecl> transformers) {
+        return new GrammarDef(that.getSpan(), name_result, extends_result, nonterminal_result, transformers);
     }
 
     @Override

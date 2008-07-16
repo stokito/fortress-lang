@@ -19,6 +19,7 @@ package com.sun.fortress.nodes_util;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.TemplateGap;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -79,40 +80,40 @@ abstract public class NodeReflection {
         return constructorMapZero.get(class_name);
     }
 
-        /**
-         * Makes a new node given a span and string name or class of the node to
-         * be created.  At least one of s and c must be non-null; if both are
-         * non-null, s is used.  THE NODE RETURNED BY THIS METHOD IS IMPROPERLY
-         * INITIALIZED; IT WILL HAVE null FINAL FIELDS, WHICH MUST BE FIXED
-         * USING REFLECTION.
-         *
-         * This method preferentially uses the zero-arg constructor, if one is
-         * found, otherwise it use the one-span-arg constructor and assigns the
-         * field.  This is intended to ease the transition to the
-         * ASTgen-generated nodes.
-         *
-         * @param s
-         * @param c
-         * @param span
-         * @return
-         * @throws InvocationTargetException
-         * @throws IllegalAccessException
-         * @throws InstantiationException
-         * @throws IllegalArgumentException
-         */
+    /**
+     * Makes a new node given a span and string name or class of the node to
+     * be created.  At least one of s and c must be non-null; if both are
+     * non-null, s is used.  THE NODE RETURNED BY THIS METHOD IS IMPROPERLY
+     * INITIALIZED; IT WILL HAVE null FINAL FIELDS, WHICH MUST BE FIXED
+     * USING REFLECTION.
+     *
+     * This method preferentially uses the zero-arg constructor, if one is
+     * found, otherwise it use the one-span-arg constructor and assigns the
+     * field.  This is intended to ease the transition to the
+     * ASTgen-generated nodes.
+     *
+     * @param s
+     * @param c
+     * @param span
+     * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws IllegalArgumentException
+     */
     protected AbstractNode makeNodeFromSpan(String s, Class c, Span span) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-      // try {
-            Constructor con = s != null ? constructorZeroFor(s) : constructorZeroFor(c);
-            if (con != null) {
-                AbstractNode node = (AbstractNode) con.newInstance(args0);
-                spanField.set(node, span);
-                return node;
-            }
-            con = s != null ? constructorFor(s) : constructorFor(c);
-            Object[] args = new Object[1];
-            args[0] = span;
-            return (AbstractNode) con.newInstance(args);
+        // try {
+        Constructor con = s != null ? constructorZeroFor(s) : constructorZeroFor(c);
+        if (con != null) {
+            AbstractNode node = (AbstractNode) con.newInstance(args0);
+            spanField.set(node, span);
+            return node;
         }
+        con = s != null ? constructorFor(s) : constructorFor(c);
+        Object[] args = new Object[1];
+        args[0] = span;
+        return (AbstractNode) con.newInstance(args);
+    }
 
 
     protected Constructor constructorFor(Class cls) {
@@ -196,7 +197,7 @@ abstract public class NodeReflection {
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
                 bug("Error reading node type " + class_name
-                    + ", missing constructor (Span)");
+                        + ", missing constructor (Span)");
             } catch (NoSuchFieldException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -206,28 +207,48 @@ abstract public class NodeReflection {
     }
 
     protected static Field[] getPrintableFields(Class cl)
-            throws SecurityException, NoSuchFieldException {
+    throws SecurityException, NoSuchFieldException {
         Field[] fields;
         ArrayList<Field> fal = new ArrayList<Field>();
         Class icl = cl;
-        while (icl != AbstractNode.class && icl != Object.class) {
-            fields = icl.getDeclaredFields();
-            for (int i = 0; i < fields.length; i++) {
-                if ((fields[i].getModifiers() &
-                     (java.lang.reflect.Modifier.STATIC |
-                      java.lang.reflect.Modifier.TRANSIENT)) == 0) {
-                        // && (fields[i].getModifiers() & java.lang.reflect.Modifier.PRIVATE) == 0
-                    Field f = fields[i];
-                    f.setAccessible(true);
-                    fal.add(f);
-                }
+        // Is it an ordinary AbstractNode, or a Template Gap?
+        boolean isTemplate = isTemplateGap(icl);
+        if (!isTemplate) {
+            while (icl != AbstractNode.class && icl != Object.class) {
+                fields = icl.getDeclaredFields();
+                handleFields(fields, fal);
+                icl = icl.getSuperclass();
             }
-            icl = icl.getSuperclass();
+        }
+        else {
+            fields = cl.getDeclaredFields();
+            handleFields(fields, fal);
         }
         Field[] ifields = new Field[fal.size()];
         ifields = fal.toArray(ifields);
         Arrays.sort(ifields, fieldComparator);
         return ifields;
+    }
+
+    private static boolean isTemplateGap(Class<?> icl) {
+        boolean isTemplate = false;
+        for (Class<?> c : icl.getInterfaces()) {
+            isTemplate = c.equals(TemplateGap.class);
+        }
+        return isTemplate;
+    }
+
+    private static void handleFields(Field[] fields, ArrayList<Field> fal) {
+        for (int i = 0; i < fields.length; i++) {
+            if ((fields[i].getModifiers() &
+                    (java.lang.reflect.Modifier.STATIC |
+                            java.lang.reflect.Modifier.TRANSIENT)) == 0) {
+                // && (fields[i].getModifiers() & java.lang.reflect.Modifier.PRIVATE) == 0
+                Field f = fields[i];
+                f.setAccessible(true);
+                fal.add(f);
+            }
+        }
     }
 
     protected static Comparator<Field> fieldComparator = new Comparator<Field>() {

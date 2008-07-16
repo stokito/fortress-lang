@@ -323,7 +323,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         }
 
         else {
-            if (_env.hasTypeParam(n)) { return variableHandler.value(); }
+            if (_env.hasTypeParam(n).isSome()) { return variableHandler.value(); }
             else {
                 Set<Id> typeConses = _env.explicitTypeConsNames(n);
                 if (typeConses.isEmpty()) {
@@ -478,13 +478,15 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forGrammarDefOnly(GrammarDef that, Id name_result,
-            List<Id> extends_result, List<GrammarMemberDecl> members_result) {
+            List<Id> extends_result, 
+            List<GrammarMemberDecl> members_result,
+            List<TransformerDecl> transformers) {
 
         Pair<List<Id>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
 
         Id name = handleGrammarName(name_result);
 
-        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),members_result);
+        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(), name, p.first(), members_result, transformers);
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
         Option<GrammarIndex> grammar = this._env.grammarIndex(name);
@@ -569,4 +571,58 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             t ,
             (WhereClause) that.getWhereClause().accept(v));
     }
+    
+    /**
+     * All Args are parsed as TypeArgs
+     */
+	@Override
+	public Node forTypeArgOnly(final TypeArg arg, final Type t) {
+		if(arg.getType() instanceof VarType){
+			Id name = ((VarType)arg.getType()).getName();
+			Option<StaticParam> param=this._env.hasTypeParam(name);
+			if(param.isSome()){
+				NodeAbstractVisitor<StaticArg> v =new NodeAbstractVisitor<StaticArg>(){
+
+					@Override
+					public StaticArg forBoolParam(BoolParam that) {
+						return new BoolArg(arg.getSpan(), new BoolRef(arg.getSpan(),that.getName()));
+					}
+
+					@Override
+					public StaticArg forDimParam(DimParam that) {
+						return new DimArg(arg.getSpan(), new DimRef(arg.getSpan(),that.getName()));
+					}
+
+					@Override
+					public StaticArg forIntParam(IntParam that) {
+						return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(),that.getName()));
+					}
+
+					@Override
+					public StaticArg forNatParam(NatParam that) {
+						return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(),that.getName()));
+					}
+
+					@Override
+					public StaticArg forOpParam(OpParam that) {
+						return new OpArg(arg.getSpan(), that.getName());
+					}
+
+					@Override
+					public StaticArg forTypeParam(TypeParam that) {
+						return new TypeArg(arg.getSpan(),t);
+					}
+
+					@Override
+					public StaticArg forUnitParam(UnitParam that) {
+						return new UnitArg(arg.getSpan(), new UnitRef(arg.getSpan(),that.getName()));
+					}
+
+				};
+				return param.unwrap().accept(v); 
+			}	
+		}
+		return new TypeArg(arg.getSpan(),t);
+	}
+    
 }

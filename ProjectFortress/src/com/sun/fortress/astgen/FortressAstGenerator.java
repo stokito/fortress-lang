@@ -17,28 +17,34 @@
 
 package com.sun.fortress.astgen;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Comparator;
-import java.util.Collections;
-
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import edu.rice.cs.astgen.Types;
-import edu.rice.cs.astgen.Types.*;
-import edu.rice.cs.astgen.NodeInterface;
-import edu.rice.cs.astgen.NodeClass;
-import edu.rice.cs.astgen.NodeType;
-import edu.rice.cs.astgen.CodeGenerator;
-import edu.rice.cs.astgen.TabPrintWriter;
-import edu.rice.cs.astgen.Field;
 import edu.rice.cs.astgen.ASTModel;
+import edu.rice.cs.astgen.CodeGenerator;
+import edu.rice.cs.astgen.Field;
+import edu.rice.cs.astgen.NodeClass;
+import edu.rice.cs.astgen.NodeInterface;
+import edu.rice.cs.astgen.NodeType;
+import edu.rice.cs.astgen.TabPrintWriter;
+import edu.rice.cs.astgen.Types.ClassName;
+import edu.rice.cs.astgen.Types.OptionClassName;
+import edu.rice.cs.astgen.Types.PrimitiveArrayName;
+import edu.rice.cs.astgen.Types.PrimitiveName;
+import edu.rice.cs.astgen.Types.ReferenceArrayName;
+import edu.rice.cs.astgen.Types.SequenceClassName;
+import edu.rice.cs.astgen.Types.TupleClassName;
+import edu.rice.cs.astgen.Types.TypeName;
+import edu.rice.cs.astgen.Types.TypeNameVisitor;
 
 /* Generates FortressAst.fsi and FortressAst.fss, fortress representations
  * of the fortress ast( Fortress.ast )

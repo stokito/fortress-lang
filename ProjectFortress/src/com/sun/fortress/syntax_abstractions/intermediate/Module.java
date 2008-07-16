@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
@@ -117,7 +118,7 @@ public abstract class Module implements Analyzable<Module> {
         final Set<String> keywords = new HashSet<String>();
         for (NonterminalIndex<? extends GrammarMemberDecl> m: this.declaredMembers) {
             if (m.ast().isSome()) {
-                m.ast().unwrap().accept(new NodeDepthFirstVisitor_void(){
+                m.ast().unwrap().accept(new TemplateNodeDepthFirstVisitor_void(){
                     @Override
                     public void forKeywordSymbol(KeywordSymbol that) {
                         keywords.add(that.getToken());

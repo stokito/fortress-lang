@@ -74,6 +74,7 @@ import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.NumberLiteralExpr;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
@@ -123,6 +124,8 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
+
+import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteralExpr constructor without parenthesized or val */
@@ -198,7 +201,6 @@ public class ExprFactory {
                 else {
                     intPart = BigInteger.ZERO;
                 }
-
                 digits = s.substring(dotLoc + 1, underLoc);
 
                 // TODO Getting the rounding and overflow dead right is hard.
@@ -323,15 +325,15 @@ public class ExprFactory {
     public static OpRef makeInfixEq(){
      return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("=")));
     }
-    
+
     public static OpRef makeInfixIn(){
      return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
     }
-    
+
     public static OpRef makeOpRef(OpName op) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op));
     }
-    
+
     public static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op), staticArgs);
     }
@@ -367,11 +369,11 @@ public class ExprFactory {
     public static OpExpr makeOpExpr(OpRef op, Expr e_1, Expr e_2) {
      return new OpExpr(new Span(e_1.getSpan(), e_2.getSpan()), false, op, Useful.list(e_1, e_2));
     }
-    
+
     public static OpExpr makeOpExpr(Expr e,OpRef op) {
      return new OpExpr(new Span(e.getSpan(),op.getSpan()),false,op,Useful.list(e));
     }
-    
+
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
         List<Id> names = Collections.singletonList(name);
         return new FnRef(span, false, name, names, sargs);
@@ -434,7 +436,7 @@ public class ExprFactory {
     public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
         return new TightJuxt(span, false, Useful.list(first, second));
     }
-    
+
     public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs, Boolean isParenthesized, OpRef infixJuxt, OpRef multiJuxt){
      return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,exprs);
     }
@@ -642,7 +644,7 @@ public class ExprFactory {
     public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
      return new _RewriteFnApp(new Span(e_1.getSpan(), e_2.getSpan()), e_1, e_2);
     }
-    
+
     public static Expr makeInParentheses(Expr expr) {
         return expr.accept(new NodeAbstractVisitor<Expr>() {
             @Override
@@ -765,8 +767,8 @@ public class ExprFactory {
         }
         @Override
 		public Expr forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
-        	return new AmbiguousMultifixOpExpr(that.getSpan(), true, 
-        			                           that.getInfix_op(), that.getMultifix_op(), 
+        	return new AmbiguousMultifixOpExpr(that.getSpan(), true,
+        			                           that.getInfix_op(), that.getMultifix_op(),
         			                           that.getArgs());
 		}
 		public Expr forArrayElement(ArrayElement e) {
@@ -834,7 +836,7 @@ public class ExprFactory {
                     e.getStaticArgs());
         }
         public Expr forTemplateGapExpr(TemplateGapExpr e) {
-            return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getTemplateParams());
+            return new TemplateGapExpr(e.getSpan(), e.getGapId(), e.getTemplateParams());
         }
         public Expr defaultCase(Node x) {
             return bug(x, "makeInParentheses: " + x.getClass() +
@@ -843,10 +845,10 @@ public class ExprFactory {
         });
     }
 
-    /** 
+    /**
      * Expected to be called on an OpRef that refers to an Op, not an Enclosing.
      * Creates an OpExpr where every Op in OpRef, including original name, is
-     * made into an infix operator. 
+     * made into an infix operator.
      */
     private static Expr makeInfixOpExpr(Span s, Expr lhs, OpRef op, Expr rhs) {
      List<OpName> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
@@ -862,11 +864,11 @@ public class ExprFactory {
       return bug("Can't make an infix operator out of an enclosing operator.");
      else
       new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
-     
+
      OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
      return ExprFactory.makeOpExpr(new_op, lhs, rhs);
     }
-    
+
     private static Expr makePostfixOpExpr(Span s, Expr e, OpRef op) {
      List<OpName> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
    public Op value(OpName arg0) {
@@ -881,11 +883,11 @@ public class ExprFactory {
       return bug("Can't make an postfix operator out of an enclosing operator.");
      else
       new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
-     
+
      OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
-     return ExprFactory.makeOpExpr(e, new_op); 
+     return ExprFactory.makeOpExpr(e, new_op);
     }
-    
+
     public static Expr simplifyMathPrimary(Span span, Expr front, MathItem mi) {
         if (mi instanceof ExprMI) {
             Expr expr = ((ExprMI)mi).getExpr();
@@ -942,7 +944,7 @@ public class ExprFactory {
 
     public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
         Expr body = new VarRef(id);
-        return new TemplateGapFnExpr(s, false, id, new LinkedList<Param>(), body, id, params);
+        return new TemplateGapFnExpr(s, id, params);
     }
 
     public static TemplateGapLooseJuxt makeTemplateGapLooseJuxt(Span s, Id id, List<Id> params) {
@@ -954,31 +956,31 @@ public class ExprFactory {
     }
 
     public static TemplateGapId makeTemplateGapId(Span s, Id id, List<Id> params) {
-        return new TemplateGapId(s, "IdGap:"+id.getText(), id, params);
+        return new TemplateGapId(s, id, params);
     }
 
     public static TemplateGapLiteralExpr makeTemplateGapLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapLiteralExpr(s, "0", id, params);
+        return new TemplateGapLiteralExpr(s, id, params);
     }
 
     public static TemplateGapNumberLiteralExpr makeTemplateGapNumberLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapNumberLiteralExpr(s, "0", id, params);
+        return new TemplateGapNumberLiteralExpr(s, id, params);
     }
 
     public static TemplateGapFloatLiteralExpr makeTemplateGapFloatLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapFloatLiteralExpr(s, "0", BigInteger.valueOf(0), BigInteger.valueOf(0), 0, 0, id, params);
+        return new TemplateGapFloatLiteralExpr(s, id, params);
     }
 
     public static TemplateGapIntLiteralExpr makeTemplateGapIntLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapIntLiteralExpr(s, "0", BigInteger.valueOf(0), id, params);
+        return new TemplateGapIntLiteralExpr(s, id, params);
     }
 
     public static TemplateGapCharLiteralExpr makeTemplateGapCharLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapCharLiteralExpr(s, "", 0, id, params);
+        return new TemplateGapCharLiteralExpr(s, id, params);
     }
 
     public static TemplateGapStringLiteralExpr makeTemplateGapStringLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapStringLiteralExpr(s, "gap:"+id.getText(), id, params);
+        return new TemplateGapStringLiteralExpr(s, id, params);
     }
 
     public static TemplateGapVoidLiteralExpr makeTemplateGapVoidLiteralExpr(Span s, Id id, List<Id> params) {
@@ -988,7 +990,7 @@ public class ExprFactory {
     public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj, List<StaticArg> static_args) {
     	return new _RewriteObjectRef(in_obj.getSpan(), parenthesized, in_obj, static_args);
     }
-    
+
     //Span in_span, boolean in_parenthesized, Id in_obj, List<StaticArg> in_staticArgs
 	public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj) {
 		return make_RewriteObjectRef(parenthesized, in_obj, Collections.<StaticArg>emptyList());
