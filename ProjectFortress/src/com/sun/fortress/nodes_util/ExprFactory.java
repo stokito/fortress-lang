@@ -836,7 +836,7 @@ public class ExprFactory {
                     e.getStaticArgs());
         }
         public Expr forTemplateGapExpr(TemplateGapExpr e) {
-            return new TemplateGapExpr(e.getSpan(), true, e.getId(), e.getTemplateParams());
+            return new TemplateGapExpr(e.getSpan(), e.getGapId(), e.getTemplateParams());
         }
         public Expr defaultCase(Node x) {
             return bug(x, "makeInParentheses: " + x.getClass() +
@@ -944,7 +944,7 @@ public class ExprFactory {
 
     public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
         Expr body = new VarRef(id);
-        return new TemplateGapFnExpr(s, false, id, new LinkedList<Param>(), body, id, params);
+        return new TemplateGapFnExpr(s, id, params);
     }
 
     public static TemplateGapLooseJuxt makeTemplateGapLooseJuxt(Span s, Id id, List<Id> params) {
@@ -956,31 +956,31 @@ public class ExprFactory {
     }
 
     public static TemplateGapId makeTemplateGapId(Span s, Id id, List<Id> params) {
-        return new TemplateGapId(s, "IdGap:"+id.getText(), id, params);
+        return new TemplateGapId(s, id, params);
     }
 
     public static TemplateGapLiteralExpr makeTemplateGapLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapLiteralExpr(s, "0", id, params);
+        return new TemplateGapLiteralExpr(s, id, params);
     }
 
     public static TemplateGapNumberLiteralExpr makeTemplateGapNumberLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapNumberLiteralExpr(s, "0", id, params);
+        return new TemplateGapNumberLiteralExpr(s, id, params);
     }
 
     public static TemplateGapFloatLiteralExpr makeTemplateGapFloatLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapFloatLiteralExpr(s, "0", BigInteger.valueOf(0), BigInteger.valueOf(0), 0, 0, id, params);
+        return new TemplateGapFloatLiteralExpr(s, id, params);
     }
 
     public static TemplateGapIntLiteralExpr makeTemplateGapIntLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapIntLiteralExpr(s, "0", BigInteger.valueOf(0), id, params);
+        return new TemplateGapIntLiteralExpr(s, id, params);
     }
 
     public static TemplateGapCharLiteralExpr makeTemplateGapCharLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapCharLiteralExpr(s, "", 0, id, params);
+        return new TemplateGapCharLiteralExpr(s, id, params);
     }
 
     public static TemplateGapStringLiteralExpr makeTemplateGapStringLiteralExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapStringLiteralExpr(s, "gap:"+id.getText(), id, params);
+        return new TemplateGapStringLiteralExpr(s, id, params);
     }
 
     public static TemplateGapVoidLiteralExpr makeTemplateGapVoidLiteralExpr(Span s, Id id, List<Id> params) {

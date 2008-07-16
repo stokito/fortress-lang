@@ -22,7 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.rice.cs.astgen.ASTModel;
-import edu.rice.cs.astgen.NodeClass;
+import edu.rice.cs.astgen.CodeGenerator;
 import edu.rice.cs.astgen.Field;
 import edu.rice.cs.astgen.NodeInterface;
 import edu.rice.cs.astgen.NodeType;
@@ -45,7 +45,6 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         if (!root.name().equals("Node")) { return; }
         
         String visitorName = "TemplateUpdateVisitor";
-        String extendedVisitorName = root.name() + "UpdateVisitor";
         TabPrintWriter writer = options.createJavaSourceInOutDir(visitorName);
 
         // Class header
@@ -65,28 +64,55 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine(" */");
         writer.startLine("public abstract class " + visitorName);
 
-        writer.print(" extends " + extendedVisitorName);
+        if (options.usePLT) {
+            writer.print(" extends " + root.name() + "VisitorLambda<" + root.name() + ">");
+          }
+          else {
+            writer.print(" implements " + root.name() + "Visitor<" + root.name() + ">");
+          }
 
         writer.print(" {");
         writer.indent();
         writer.println();
 
+        
+        writer.startLine("/* Methods to handle a node after recursion. */");
+        for (NodeType t : ast.descendents(root)) {
+          if (!t.isAbstract()) {
+            writer.println();
+            outputForCaseOnly(t, writer, root);
+          }
+//          if (t instanceof NodeClass) {
+//              outputTemplateForCaseOnly(t, writer, root);
+//          }
+        }
+        writer.println();
+
         writer.startLine("/** Methods to recur on each child. */");
         for (NodeType t : ast.descendents(root)) {
-            if (!t.isAbstract()) {
-                writer.println();
-                outputVisitMethod(t, writer, root);
-            }
+          if (!t.isAbstract()) {
+            writer.println();
+            outputVisitMethod(t, writer, root);
+          }
+//          if (t instanceof NodeClass) {
+//              outputTemplateVisitMethod(t, writer, root);
+//          }
         }
-
+        
         NodeType templateGapInterface = null;
         for (NodeInterface ni: ast.interfaces()) {
             if (ni.name().equals("TemplateGap")) {
                 templateGapInterface = ni;
             }
         }
-        outputForCaseOnly(templateGapInterface, writer, root);        
+        outputForTemplateGapOnly(templateGapInterface, writer, root);        
 
+        writer.println();
+        outputRecurMethod(writer, root, root.name());
+        
+        // Output helpers
+        for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
+        
         writer.unindent();
         writer.startLine("}");
         writer.println();
@@ -104,7 +130,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
                 isTemplateGap = true;
             }                
         }
-        
+
         if (isTemplateGap) {
             List<String> recurVals = new LinkedList<String>();
             for (Field f : t.fields()) {
@@ -137,48 +163,131 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine("}");
         writer.println();
     }
-    
-    protected void outputForCaseOnly(NodeType t, TabPrintWriter writer, NodeType root) {
+
+    protected void outputTemplateVisitMethod(NodeType t, TabPrintWriter writer, NodeType root) {
+        outputTemplateForCaseHeader(t, writer, root.name());
+        writer.indent();
+
+        List<String> recurVals = new LinkedList<String>();
+        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
+            Option<String> recur = recurExpression(f.type(), "that." + f.getGetterName() + "()", root, true);
+            if (recur.isSome()) {
+                String recurName = f.name() + "_result";
+                writer.startLine(f.type().name() + " " + recurName + " = " + recur.unwrap() + ";");
+                recurVals.add(recurName);
+            }
+        }   
+        writer.startLine("return forTemplateGap"+t.name()+"Only(that");
+        for (String recurVal : recurVals) { writer.print(", " + recurVal); }
+        writer.print(");");
+
+        writer.unindent();
+        writer.startLine("}");
+        writer.println();
+    }
+
+    protected void outputTemplateForCaseHeader(NodeType t, TabPrintWriter writer, String retType) {
+        outputTemplateForCaseHeader(t.name(), writer, retType, "", IterUtil.<String>empty());
+    }
+
+    protected void outputTemplateForCaseHeader(String name, TabPrintWriter writer, String retType,
+            String suff, Iterable<String> extraParams) {
+        writer.startLine("public ");
+        writer.print(retType);
+        writer.print(" ");
+        writer.print(visitorTemplateMethodName(name));
+        writer.print(suff + "("); // Only(
+        writer.print("TemplateGap" + name + " that");
+        for (String p : extraParams) { writer.print(", " + p); }
+        writer.print(") {");
+    }
+
+    protected String visitorTemplateMethodName(String name) {
+        if (name.length() == 0) {
+            return options.visitorMethodPrefix + "TemplateGap";
+        }
+        return options.visitorMethodPrefix + "TemplateGap" + upperCaseFirst(name);
+    }
+
+    protected void outputTemplateForCaseOnly(NodeType t, TabPrintWriter writer, NodeType root) {
         // only called for concrete cases; must not delegate
         List<String> params = new LinkedList<String>(); // "type name" strings
         List<String> getters = new LinkedList<String>(); // expressions
         List<String> paramRefs = new LinkedList<String>(); // variable names or null
-        for (Field f : t.allFields(ast)) {
-          getters.add("that." + f.getGetterName() + "()");
-          if (canRecurOn(f.type(), root)) {
-            String paramName = f.name() + "_result";
-            params.add(f.type().name() + " " + paramName);
-            paramRefs.add(paramName);
-          }
-          else { paramRefs.add(null); }
+        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
+            getters.add("that." + f.getGetterName() + "()");
+            if (canRecurOn(f.type(), root)) {
+                String paramName = f.name() + "_result";
+                params.add(f.type().name() + " " + paramName);
+                paramRefs.add(paramName);
+            }
+            else { paramRefs.add(null); }
         }
-        outputForCaseHeader(t, writer, root.name(), "Only", params);
+        outputTemplateForCaseHeader(t.name(), writer, root.name(), "Only", params);
         writer.indent();
+        writer.startLine("Node template = forTemplateGapOnly(that");
+        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
+            if (canRecurOn(f.type(), root)) {
+                writer.print(", " + f.name()+"_result");
+            }
+        }
+        writer.print(");");
+
+        writer.startLine("if (!template.equals(that)) return template;");
+
         if (params.isEmpty()) { writer.startLine("return that;"); }
         else {
-          writer.startLine("if (");
-          boolean first = true;
-          for (Pair<String, String> getterAndRef : IterUtil.zip(getters, paramRefs)) {
-            if (getterAndRef.second() != null) {
-              if (first) { first = false; }
-              else { writer.print(" && "); }
-              writer.print(getterAndRef.first() + " == " + getterAndRef.second());
+            writer.startLine("if (");
+            boolean first = true;
+            for (Pair<String, String> getterAndRef : IterUtil.zip(getters, paramRefs)) {
+                if (getterAndRef.second() != null) {
+                    if (first) { first = false; }
+                    else { writer.print(" && "); }
+                    writer.print(getterAndRef.first() + " == " + getterAndRef.second());
+                }
             }
-          }
-          writer.print(") return that;");
-          
-          writer.startLine("else return that;"); // new " + t.name() + "(");
-//          first = true;
-//          for (Pair<String, String> getterAndRef : IterUtil.zip(getters, paramRefs)) {
-//            if (first) { first = false; }
-//            else { writer.print(", "); }
-//            if (getterAndRef.second() == null) { writer.print(getterAndRef.first()); }
-//            else { writer.print(getterAndRef.second()); }
-//          }
-//          writer.print(");");
+            writer.print(") return that;");
+
+            writer.startLine("else return new TemplateGap" + t.name() + "(");
+            first = true;
+            for (Pair<String, String> getterAndRef : IterUtil.zip(getters, paramRefs)) {
+                if (first) { first = false; }
+                else { writer.print(", "); }
+                if (getterAndRef.second() == null) { writer.print(getterAndRef.first()); }
+                else { writer.print(getterAndRef.second()); }
+            }
+            writer.print(");");
         }
         writer.unindent();
         writer.startLine("}");
-      }
+    }
+
+    protected void outputForTemplateGapOnly(NodeType t, TabPrintWriter writer, NodeType root) {
+        // only called for concrete cases; must not delegate
+        List<String> params = new LinkedList<String>(); // "type name" strings
+        List<String> getters = new LinkedList<String>(); // expressions
+        List<String> paramRefs = new LinkedList<String>(); // variable names or null
+        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
+            getters.add("that." + f.getGetterName() + "()");
+            if (canRecurOn(f.type(), root)) {
+                String paramName = f.name() + "_result";
+                params.add(f.type().name() + " " + paramName);
+                paramRefs.add(paramName);
+            }
+            else { paramRefs.add(null); }
+        }
+        outputTemplateForCaseHeader("", writer, root.name(), "Only", params);
+        writer.indent();
+        writer.startLine("return that;");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
+    @Override
+    public Iterable<Class<? extends CodeGenerator>> dependencies() {
+        List<Class<? extends CodeGenerator>> deps = new LinkedList<Class<? extends CodeGenerator>>();
+        deps.add(TemplateGapNodeCreator.class);
+        return deps;
+    }
 
 }

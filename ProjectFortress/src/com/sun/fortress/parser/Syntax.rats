@@ -58,7 +58,7 @@ public GrammarDecl GrammarDef =
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
        else { ids.addAll(a2); }
-       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list()); };
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>()); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
 List<Id> GrammarExtends = extends w QualifiedNames ;
@@ -129,31 +129,31 @@ private NonterminalParameter Decl =
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDef SyntaxDef =
-       a1s:SyntaxSymbols w a2:TransformationExpr
+       a1s:SyntaxSymbols w a2:TransformerExpr
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
-     / a1s:SyntaxSymbols w a2:TransformationTemplate
+     / a1s:SyntaxSymbols w a2:PreTransformer
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 SyntaxDef SyntaxDefOr =
-       void:bar w a1s:SyntaxSymbols w a2:TransformationExpr
+       void:bar w a1s:SyntaxSymbols w a2:TransformerExpr
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
-     / void:bar w a1s:SyntaxSymbols w a2:TransformationTemplate
+     / void:bar w a1s:SyntaxSymbols w a2:PreTransformer
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 /* TransformationExpr ::= do BlockElems end */
-TransformationExpressionDef TransformationExpr =
+TransformerExpressionDef TransformerExpr =
      do a3:(w BlockElems) w end
      { Span span = createSpan(yyStart, yyCount);
        if (a3 == null) a3 = FortressUtil.doBlock(span);
        Do d = new Do(span, false,
                         FortressUtil.mkList(new DoFront(span, Option.<Expr>none(), false, a3)));
-       yyValue = new TransformationExpressionDef(createSpan(yyStart,yyCount), d);
+       yyValue = new TransformerExpressionDef(createSpan(yyStart,yyCount), d);
      };
 
 /* TransformationTemplate ::= <[ Expr ]> */
-TransformationPreTemplateDef TransformationTemplate =
+PreTransformerDef PreTransformer =
      leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
-     { yyValue = new TransformationPreTemplateDef(createSpan(yyStart,yyCount), "Expr", a1); };
+     { yyValue = new PreTransformerDef(createSpan(yyStart,yyCount), "Expr", a1); };
 
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 

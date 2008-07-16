@@ -56,10 +56,10 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.NonterminalParameter;
+import com.sun.fortress.nodes.PreTransformerDef;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.TransformationPreTemplateDef;
-import com.sun.fortress.nodes.TransformationTemplateDef;
+import com.sun.fortress.nodes.TransformerDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarType;
@@ -168,12 +168,12 @@ public class TemplateParser extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forTransformationPreTemplateDefOnly(TransformationPreTemplateDef that) {
+	public Node forPreTransformerDefOnly(PreTransformerDef that) {
 		TemplateVarRewriter tvs = new TemplateVarRewriter();
 		Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
 		vs.putAll(this.vars);
 		vs.putAll(this.varsToNonterminalType);
-		String p = tvs.rewriteVars(vs, that.getTransformation());
+		String p = tvs.rewriteVars(vs, that.getTransformer());
 		Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
 		return res.unwrap(that);
 	}
@@ -237,7 +237,7 @@ public class TemplateParser extends NodeUpdateVisitor {
 				Object cu = ((SemanticValue) parseResult).value;
 				if (cu instanceof AbstractNode) {
 //				    System.err.println("RESULT: "+writeJavaAST(makeComponent((Expr) cu)));
-					return Option.<Node>some(new TransformationTemplateDef(span, (AbstractNode) cu));
+					return Option.<Node>some(new TransformerDef(span, (AbstractNode) cu));
 				} 
 				throw new RuntimeException("Unexpected parse result: " + cu);
 			} 
