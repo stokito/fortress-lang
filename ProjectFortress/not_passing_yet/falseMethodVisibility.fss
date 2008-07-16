@@ -1,0 +1,34 @@
+component falseMethodVisibility 
+export Executable
+
+trait T 
+    b():X
+end
+
+trait X 
+end
+
+object A extends T
+    b():X = object extends X
+        foo():ZZ32 = 5
+    end
+end    
+
+object B extends T
+    b():X = object extends X
+        bar():String = "bar"
+    end
+end    
+
+getT(i:ZZ32):T = do
+    if(i = 0) then A
+    else B
+    end
+end
+
+run(args:String...):() = do 
+    o:T = getT(0)     
+    println o.b().foo()
+end
+
+end
