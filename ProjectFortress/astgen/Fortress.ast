@@ -34,6 +34,7 @@ generateSerializers yes;
 customClassPath ../build;
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
+customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
 // customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
 
 package com.sun.fortress.nodes;
@@ -93,6 +94,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * templates
      */
     interface TemplateGap(Id id, List<Id> templateParams);
+
+    interface _SyntaxTransformation(com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformer);
 
     /**
      * intersections of interface types
@@ -2239,5 +2242,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * e.g.) < 5
          */
         Link(OpRef op, Expr expr);
+
+/*
+_SyntaxTransformationExpr(com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformer ) extends Expr;
+*/
 
     end;
