@@ -752,13 +752,16 @@ public final class Shell {
             }
         };
 
+        /* Phases are listed in the order they occur, top to bottom. If new phases are added please
+         * respect this ordering. This is simply to make it easy to look at.
+         */
         switch (phase){
-            case PHASE_TOPLEVEL : return new TopLevelPhase(nextPhase.value(PHASE_DESUGAR));
-            case PHASE_DESUGAR : return new DesugarPhase(nextPhase.value(PHASE_TYPECHECK));
-            case PHASE_TYPECHECK : return new TypecheckPhase(nextPhase.value(PHASE_GRAMMAR));
-            case PHASE_GRAMMAR : return new GrammarPhase(nextPhase.value(PHASE_DISAMBIGUATE));
-            case PHASE_DISAMBIGUATE : return new DisambiguatePhase(nextPhase.value(PHASE_EMPTY));
             case PHASE_EMPTY : return new EmptyPhase();
+            case PHASE_DISAMBIGUATE : return new DisambiguatePhase(nextPhase.value(PHASE_EMPTY));
+            case PHASE_GRAMMAR : return new GrammarPhase(nextPhase.value(PHASE_DISAMBIGUATE));
+            case PHASE_TYPECHECK : return new TypecheckPhase(nextPhase.value(PHASE_GRAMMAR));
+            case PHASE_DESUGAR : return new DesugarPhase(nextPhase.value(PHASE_TYPECHECK));
+            case PHASE_TOPLEVEL : return new TopLevelPhase(nextPhase.value(PHASE_DESUGAR));
             default : throw new RuntimeException( "Invalid phase number: " + phase );
         }
     }
