@@ -137,8 +137,8 @@ api FortressSyntax
     NonterminalDef : GrammarMemberDecl
     SyntaxDef : SyntaxDef
     SyntaxDefOr : SyntaxDef
-    TransformationExpression : TransformationExpressionDef
-    TransformationTemplate : TransformationPreTemplateDef
+    TransformationExpression : TransformerExpressionDef
+    TransformationTemplate : PreTransformerDef
   end
 
   grammar Type
