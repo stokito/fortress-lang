@@ -33,17 +33,20 @@ generateEquals yes;
 generateSerializers yes;
 generateRecursiveVisitors no;
 customClassPath ../build;
+
+/* order matters here */
 customGenerator com.sun.fortress.astgen.DepthFirstVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateDepthFirstVisitorGenerator;
 
 customGenerator com.sun.fortress.astgen.DepthFirstVoidVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateDepthFirstVoidVisitorGenerator;
 
+customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
+customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
+
 customGenerator com.sun.fortress.astgen.UpdateVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
 
-customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
-customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
 customGenerator com.sun.fortress.astgen.SingleSpanConstructorGenerator;
 
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
