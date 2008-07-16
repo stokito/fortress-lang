@@ -109,7 +109,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      */
     interface TemplateGap(Id gapId, List<Id> templateParams);
 
-    interface _SyntaxTransformation(com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformer);
+    interface _SyntaxTransformation(com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformation);
 
     /**
      * intersections of interface types
