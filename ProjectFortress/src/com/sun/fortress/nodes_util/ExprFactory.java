@@ -87,6 +87,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptingMI;
+import com.sun.fortress.nodes._SyntaxTransformationExpr;
 import com.sun.fortress.nodes.TemplateGapCharLiteralExpr;
 import com.sun.fortress.nodes.TemplateGapDelimitedExpr;
 import com.sun.fortress.nodes.TemplateGapExpr;
@@ -838,6 +839,11 @@ public class ExprFactory {
         public Expr forTemplateGapExpr(TemplateGapExpr e) {
             return new TemplateGapExpr(e.getSpan(), e.getGapId(), e.getTemplateParams());
         }
+
+        public Expr for_SyntaxTransformationExpr(_SyntaxTransformationExpr e){
+            return e;
+        }
+
         public Expr defaultCase(Node x) {
             return bug(x, "makeInParentheses: " + x.getClass() +
                     " is not a subtype of Expr.");

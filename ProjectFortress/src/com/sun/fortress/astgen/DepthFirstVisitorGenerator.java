@@ -61,7 +61,7 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         // Write out forCASEOnly methods
         writer.startLine("/* Methods to handle a node after recursion. */");
         for (NodeType t : ast.descendents(root)) {
-            if (!(t instanceof TemplateGapClass)) {
+            if (!(t instanceof TemplateGapClass) && !(t instanceof TransformationNode)) {
                 outputForCaseOnly(t, writer, root);
             }
         }
@@ -74,8 +74,9 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
             if (!t.isAbstract()) {
                 if (t instanceof TemplateGapClass) {
                     outputVisitTemplateMethod(t, writer, root);
-                }
-                else {
+                } else if ( t instanceof TransformationNode ){
+                    outputVisitTransformationMethod(t, writer, root );
+                } else {
                     outputVisitMethod(t, writer, root);
                 }
             }
@@ -102,6 +103,15 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         outputForCaseHeader(t, writer, "RetType", "");
         writer.indent();
         writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        writer.unindent();
+        writer.startLine("}");
+        writer.println();
+    }
+
+    protected void outputVisitTransformationMethod(NodeType t, TabPrintWriter writer, NodeType root) {
+        outputForCaseHeader(t, writer, "RetType", "");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(\"Do not visit _SyntaxTranformation nodes\");" );
         writer.unindent();
         writer.startLine("}");
         writer.println();

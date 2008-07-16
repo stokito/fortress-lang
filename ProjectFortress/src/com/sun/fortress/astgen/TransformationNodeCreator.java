@@ -35,6 +35,16 @@ import edu.rice.cs.plt.tuple.Pair;
 
 public class TransformationNodeCreator extends CodeGenerator implements Runnable {
 
+    // public static List<Field> FIELDS;
+
+    static{
+        /*
+        List<Field> fields = new ArrayList<Field>();
+        TypeName transformType = Types.parse( "com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer", ast );
+        fields.add( new Field( transformType, "transformation", Option.<String>none(), false, true, true ) );
+        */
+    }
+
     public TransformationNodeCreator(ASTModel ast) {
         super(ast);
     }
@@ -47,7 +57,7 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
     public void run() {
         List<Pair<NodeType, NodeType>> all = new LinkedList<Pair<NodeType, NodeType>>();
         for ( NodeType n : ast.classes() ){
-            NodeType child = createNode(n);
+            NodeType child = new TransformationNode((NodeClass) n,ast);
             all.add( new Pair<NodeType,NodeType>( child, n ) );
         }
         for (Pair<NodeType, NodeType> p: all) {
@@ -55,14 +65,13 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
         }
     }
 
+    /*
     private NodeType createNode( NodeType parent ){
-        List<Field> fields = new ArrayList<Field>();
-        TypeName transformType = Types.parse( "com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer", ast );
-        fields.add( new Field( transformType, "transformation", Option.<String>none(), false, true, true ) );
         List<TypeName> interfaces = new ArrayList<TypeName>();
         interfaces.add( Types.parse("_SyntaxTransformation", ast ) );
-        return new NodeClass( "_SyntaxTransformation" + parent.name(), false, fields, Types.parse( parent.name(), ast ), interfaces );
+        return new NodeClass( "_SyntaxTransformation" + parent.name(), false, FIELDS, Types.parse( parent.name(), ast ), interfaces );
     }
+    */
 
     @Override
     public void generateAdditionalCode() {
@@ -70,7 +79,6 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
 
     @Override
     public void generateClassMembers(TabPrintWriter arg0, NodeClass arg1) {
-        
     }
 
     @Override

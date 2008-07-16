@@ -57,12 +57,14 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
         TypeName templateGapName = Types.parse("TemplateGap", ast);
         List<Pair<NodeType, NodeType>> templateGaps = new LinkedList<Pair<NodeType, NodeType>>();
         for (NodeClass nodeClass: ast.classes()) {
-            List<TypeName> interfaces = new LinkedList<TypeName>();
-            interfaces.add(templateGapName);
-            List<Field> fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
-            TypeName superName = Types.parse(nodeClass.name(), ast);
-            NodeType templateGap = new TemplateGapClass("TemplateGap"+nodeClass.name(), fields, superName, interfaces);
-            templateGaps.add(new Pair<NodeType, NodeType>(templateGap, nodeClass));
+            if ( nodeClass.getClass() == NodeClass.class ){
+                List<TypeName> interfaces = new LinkedList<TypeName>();
+                interfaces.add(templateGapName);
+                List<Field> fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
+                TypeName superName = Types.parse(nodeClass.name(), ast);
+                NodeType templateGap = new TemplateGapClass("TemplateGap"+nodeClass.name(), fields, superName, interfaces);
+                templateGaps.add(new Pair<NodeType, NodeType>(templateGap, nodeClass));
+            }
         }
         for (Pair<NodeType, NodeType> p: templateGaps) {
             ast.addType(p.first(), false, p.second());
