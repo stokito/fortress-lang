@@ -22,38 +22,31 @@
 
 package com.sun.fortress.syntax_abstractions.parser;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes_util.NodeFactory;
-
-import edu.rice.cs.plt.iter.IterUtil;
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
 
 /**
  *
  */
-public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
+public class ImportedApiCollector extends TemplateNodeDepthFirstVisitor_void {
 
     private boolean isTopLevel;
     private GlobalEnvironment env;

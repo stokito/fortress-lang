@@ -48,7 +48,7 @@ public class EllipsesJUTest extends TestCase {
     }
 
     private TemplateGapExpr mkTemplate( String id ){
-        return new TemplateGapExpr( NodeFactory.makeId( id ), new ArrayList<Id>() );
+        return new TemplateGapExpr(new Span(), NodeFactory.makeId( id ), new ArrayList<Id>() );
     }
 
     public void testBasic1(){

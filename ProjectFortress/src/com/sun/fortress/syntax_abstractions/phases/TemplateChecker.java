@@ -154,19 +154,19 @@ public class TemplateChecker extends TemplateUpdateVisitor {
     public Node forTemplateGapOnly(TemplateGap that, Id id_result, List<Id> params_result) {
 //        System.err.println("handling: "+that.getId());
                
-        if ((this.currentSyntaxDeclEnv.isCharacterClass(that.getId()) ||
-             this.currentSyntaxDeclEnv.isAnyChar(that.getId()) ||
-             this.currentSyntaxDeclEnv.getMemberEnv().isParameter(that.getId())) 
+        if ((this.currentSyntaxDeclEnv.isCharacterClass(that.getGapId()) ||
+             this.currentSyntaxDeclEnv.isAnyChar(that.getGapId()) ||
+             this.currentSyntaxDeclEnv.getMemberEnv().isParameter(that.getGapId())) 
              &&
              !that.getTemplateParams().isEmpty()) {
-            String error = String.format("%s is not applicable",that.getId().toString());
+            String error = String.format("%s is not applicable",that.getGapId().toString());
             this.errors.add(StaticError.make(error, that));
             return that;
         }
 
         if (!that.getTemplateParams().isEmpty()) {
             String errorMsg = "The nonterminal %1s is not applicable for the arguments (%2s), expected (%3s)";
-            MemberEnv memberEnv = GrammarEnv.getMemberEnv(this.currentSyntaxDeclEnv.getNonterminalName(that.getId())); 
+            MemberEnv memberEnv = GrammarEnv.getMemberEnv(this.currentSyntaxDeclEnv.getNonterminalName(that.getGapId())); 
             List<Id> formalParams = memberEnv.getParameters();
             List<Id> actualParams = that.getTemplateParams();
 
@@ -174,7 +174,7 @@ public class TemplateChecker extends TemplateUpdateVisitor {
             if (formalParams.size() != actualParams.size()) {
                 String formals = getFormalParametersList(memberEnv, formalParams);
                 String actuals = getActualParametersList(actualParams);
-                String error = String.format(errorMsg, that.getId(), actuals, formals);
+                String error = String.format(errorMsg, that.getGapId(), actuals, formals);
                 this.errors.add(StaticError.make(error, that));
             }
 
@@ -205,13 +205,13 @@ public class TemplateChecker extends TemplateUpdateVisitor {
                 }
             }
             if (isError) {
-                String error = " "+String.format(errorMsg, that.getId().toString(), actuals, formals);
+                String error = " "+String.format(errorMsg, that.getGapId().toString(), actuals, formals);
                 this.errors.add(StaticError.make(error, that));
             }
         }
         
-        if (!this.patternVariablesAndArguments.containsKey(that.getId())) {
-            throw new RuntimeException("Unknown pattern variable: "+that.getId());
+        if (!this.patternVariablesAndArguments.containsKey(that.getGapId())) {
+            throw new RuntimeException("Unknown pattern variable: "+that.getGapId());
         }
 
 //        Id freshName = this.patternVariables.get(gap.getId());

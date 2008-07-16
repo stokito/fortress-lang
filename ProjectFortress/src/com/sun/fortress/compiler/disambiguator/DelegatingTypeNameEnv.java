@@ -21,8 +21,10 @@ import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpName;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class DelegatingTypeNameEnv extends TypeNameEnv {
@@ -36,7 +38,7 @@ public abstract class DelegatingTypeNameEnv extends TypeNameEnv {
         return _parent.apiName(name);
     }
 
-    public boolean hasTypeParam(Id name) {
+    public Option<StaticParam> hasTypeParam(IdOrOpName name) {
         return _parent.hasTypeParam(name);
     }
 

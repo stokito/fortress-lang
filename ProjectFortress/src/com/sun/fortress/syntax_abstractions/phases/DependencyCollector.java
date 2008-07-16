@@ -17,28 +17,21 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;
-import com.sun.fortress.nodes.NonterminalHeader;
-import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
-import com.sun.fortress.useful.Debug;
-
-import edu.rice.cs.plt.tuple.Option;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /*
  * Collect the names of nonterminals referred from the alternatives of any
  * nonterminal declaration it is applied to.
  */
-public class DependencyCollector extends NodeDepthFirstVisitor_void {
+public class DependencyCollector extends TemplateNodeDepthFirstVisitor_void {
 
     private Set<Id> result;
 

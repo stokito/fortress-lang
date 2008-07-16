@@ -225,8 +225,7 @@ end
     way. **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
         extends { StandardPartialOrder[\Self\], StandardMin[\Self\], StandardMax[\Self\] }
-    opr CMP(self, other:Self): Comparison
-    opr >=(self, other:Self): Boolean
+    opr CMP(self, other:Self): TotalComparison
 end
 
 (************************************************************

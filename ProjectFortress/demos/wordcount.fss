@@ -88,7 +88,7 @@ processFile(name:String):() = do
         BIG UNIONSUM [l<-rs.lines()] getWords(l)
     rs.close()
     var invDatabase:Map[\ZZ32,List[\String\]\] =
-        BIG UNIONUNION [(x,y) <-database] { y |-> <| x.toString() |> asif List[\String\] }
+        BIG UNIONUNION [(x,y) <-database] makeInv(x.toString(),y)
     try
         for i <- seq(1#100) do
             (c:ZZ32,m:List[\String\]) = invDatabase.maximum().get()

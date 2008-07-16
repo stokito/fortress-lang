@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import java.math.BigInteger;
 
 public class FFloatLiteral extends NativeConstructor.FNativeObject {
     private final String value;
@@ -26,6 +27,20 @@ public class FFloatLiteral extends NativeConstructor.FNativeObject {
     public FFloatLiteral(String s) {
         super(null);
         value = s;
+    }
+
+    public FFloatLiteral(String s,
+                         BigInteger intPart,
+                         BigInteger numerator,
+                         int denomBase,
+                         int denomPower) {
+        super(null);
+        if (denomBase == 10) value = s;
+        else {
+            double val = intPart.doubleValue() +
+                         (numerator.doubleValue() / Math.pow(denomBase, denomPower));
+            value = "" + val;
+        }
     }
 
     public String getString() { return value; } // TODO Sam left this undone, not sure if intentional

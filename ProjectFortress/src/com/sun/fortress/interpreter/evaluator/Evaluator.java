@@ -1028,7 +1028,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
-    
+
 
 	// This method is not necessary in the long run. These nodes will
     // be removed by the static end. For now, since we are not
@@ -1646,7 +1646,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forFloatLiteralExpr(FloatLiteralExpr x) {
-        return new FFloatLiteral(x.getText());
+        return new FFloatLiteral(x.getText(), x.getIntPart(),
+                                 x.getNumerator(),
+                                 x.getDenomBase(),
+                                 x.getDenomPower());
     }
 
     public FValue forIntLiteralExpr(IntLiteralExpr x) {
