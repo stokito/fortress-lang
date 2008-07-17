@@ -317,7 +317,7 @@ public abstract class ConstraintFormula {
 				}
 			}
 			if(c instanceof DisjunctiveFormula){
-				c.or(this, history);
+				return c.or(this, history);
 			}
 			return InterpreterBug.bug("can't or a solved formula");
 			

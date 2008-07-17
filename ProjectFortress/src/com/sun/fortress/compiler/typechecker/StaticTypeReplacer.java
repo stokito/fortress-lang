@@ -123,6 +123,8 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 
     // ----------- VISITOR METHODS ---------------
 
+    
+    
     @Override
     public Node forVarType(VarType that) {
         return updateNode(that, that.getName());
@@ -155,10 +157,10 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return updateNode(that, that.getName());
     }
 
-    @Override
-    public Node forVarRef(VarRef that) {
-        return updateNode(that, that.getVar());
-    }
+//    @Override
+//    public Node forVarRef(VarRef that) {
+//        return updateNode(that, that.getVar());
+//    }
 
     /**
      * Do the static arguments and parameters "match" in the limited sense that there

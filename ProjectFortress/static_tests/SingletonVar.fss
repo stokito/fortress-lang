@@ -23,8 +23,6 @@ component SingletonVar
   end
   
   bar[\ nat n \](): W[\n\] = W[\n\]
-  
-
   foo[\nat n\]() : N[\n\] = N[\n\]
 
   run(args:String...):() = ()
