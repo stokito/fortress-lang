@@ -118,7 +118,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
 		return new TypeChecker(table,
 				staticParamEnv.extend(newStaticParams, whereClause),
-				typeEnv.extend(newParams),
+				typeEnv.extend(newParams).extendWithStaticParams(newStaticParams),
 				compilationUnit,
 				subtypeChecker.extend(newStaticParams, whereClause),
 				labelExitTypes);
@@ -127,7 +127,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
 		return new TypeChecker(table,
 				staticParamEnv.extend(newStaticParams, whereClause),
-				typeEnv.extendWithParams(newParams),
+				typeEnv.extendWithParams(newParams).extendWithStaticParams(newStaticParams),
 				compilationUnit,
 				subtypeChecker.extend(newStaticParams, whereClause),
 				labelExitTypes);
@@ -136,7 +136,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
 		return new TypeChecker(table,
 				staticParamEnv.extend(newStaticParams, whereClause),
-				typeEnv,
+				typeEnv.extendWithStaticParams(newStaticParams),
 				compilationUnit,
 				subtypeChecker.extend(newStaticParams, whereClause),
 				labelExitTypes);
