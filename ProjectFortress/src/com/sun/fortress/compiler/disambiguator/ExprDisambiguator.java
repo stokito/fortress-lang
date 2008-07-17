@@ -905,10 +905,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 			Set<Id> vars = _env.explicitVariableNames(name);
 			Set<Id> fns = _env.explicitFunctionNames(name);
 			Set<Id> objs = _env.explicitTypeConsNames(name);
-			if (vars.isEmpty() && fns.isEmpty()) {
+			/* if (vars.isEmpty() && fns.isEmpty()) {
 				vars = _env.onDemandVariableNames(name);
 				fns = _env.onDemandFunctionNames(name);
-			}
+			} */
 
 			if (vars.size() == 1 && fns.isEmpty()) {
 				Id newName = IterUtil.first(vars);

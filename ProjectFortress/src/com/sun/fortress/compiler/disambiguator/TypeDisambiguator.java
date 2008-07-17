@@ -335,11 +335,12 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     error("Undefined type: " + NodeUtil.nameString(n), n);
                     return that;
                 }
-                if (typeConses.size() > 1) {
-                    error("Type name may refer to: " + NodeUtil.namesString(typeConses),
-                            n);
-                    return that;
-                }
+                // FIXME UNCOMMENT THIS
+//                if (typeConses.size() > 1) {
+//                    error("Type name may refer to: " + NodeUtil.namesString(typeConses),
+//                            n);
+//                    return that;
+//                }
                 Id qname = IterUtil.first(typeConses);
                 Type result = typeConsHandler.value(qname);
 
@@ -489,13 +490,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(), name, p.first(), members_result, transformers);
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
-        Option<GrammarIndex> grammar = this._env.grammarIndex(name);
-        if (grammar.isSome()) {
-            GrammarIndex g = grammar.unwrap();
-            g.setAst(disambiguatedGrammar);
-            g.setExtended(p.second());
-            g.setAst(disambiguatedGrammar);
-        }
 
         if (!newErrs.isEmpty()) {
             this._errors.addAll(newErrs);

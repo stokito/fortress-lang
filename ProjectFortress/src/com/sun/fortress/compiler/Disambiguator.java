@@ -18,6 +18,8 @@
 package com.sun.fortress.compiler;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +33,27 @@ import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
 import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AliasedAPIName;
+import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.ImportNames;
+import com.sun.fortress.nodes.ImportStar;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 
 import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.collect.FilteredRelation;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Predicate;
+import edu.rice.cs.plt.lambda.Predicate2;
 
 /**
  * Eliminates ambiguities in an AST that can be resolved solely by knowing what
@@ -65,7 +81,11 @@ import edu.rice.cs.plt.collect.CollectUtil;
  * treated as static errors.
  */
 public class Disambiguator {
-    /**
+    private static final String FORTRESS_LIBRARY_NAME = "FortressLibrary";
+	private static final String ANY_TYPE_API_NAME = "AnyType";
+	private static final String FORTRESS_BUILTIN_NAME = "FortressBuiltin";
+
+	/**
      * Disambiguate the names of nonterminals.
      */
     private static List<Api> disambiguateGrammarMembers(Iterable<Api> apis,
@@ -99,6 +119,182 @@ public class Disambiguator {
         public Iterable<Api> apis() { return _apis; }
     }
 
+    private static  Map<APIName, ApiIndex> filterApis(Map<APIName,ApiIndex> apis, Component comp) {
+    	return filterApis(Collections.unmodifiableMap(apis), comp.getImports());
+    }
+    
+    private static Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
+    	return filterApis(Collections.unmodifiableMap(apis), api.getImports());
+    }
+    
+    private static <K, T> Map<K,T> filterMap(Map<K,T> map, Set<? super K> set, 
+    		Predicate<K> pred) {
+    	
+    	Map<K,T> result = new HashMap<K,T>();
+    	for( Map.Entry<K, T> entry : map.entrySet() ) {
+    		if( pred.contains(entry.getKey()) ) {
+    			result.put(entry.getKey(), entry.getValue());
+    		}
+    	}
+    	return result;
+    }
+    
+    private static <K, T> Map<K,T> removeHelper(Map<K,T> map, final Set<? super K> set) {
+    	Predicate<K> pred = new Predicate<K>() {
+			public boolean contains(K arg1) {
+				return !set.contains(arg1);
+			}};
+    	
+    	return filterMap(map, set, pred);
+    }
+    
+    private static ApiIndex remove(ApiIndex index,
+			final Set<IdOrOpOrAnonymousName> exceptions_) {
+    	
+    	Predicate2<IdOrOpOrAnonymousName,Function> pred = new Predicate2<IdOrOpOrAnonymousName,Function>(){
+
+			public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
+				return !exceptions_.contains(arg0);
+			}
+    		
+    	};
+    	
+		return new ApiIndex((Api)index.ast(),
+							removeHelper(index.variables(), exceptions_),
+				            new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
+				            removeHelper(index.typeConses(), exceptions_),
+				            removeHelper(index.dimensions(), exceptions_),
+				            removeHelper(index.units(), exceptions_),
+				            index.grammars(),
+				            index.modifiedDate());
+	}
+   	
+    private static <K, T> Map<K,T> keepHelper(Map<K,T> map, final Set<? super K> set) {
+    	Predicate<K> pred = new Predicate<K>() {
+			public boolean contains(K arg1) {
+				return set.contains(arg1);
+			}};
+    	
+    	return filterMap(map, set, pred);
+    }
+    
+	private static ApiIndex keep(ApiIndex index,
+			final Set<IdOrOpOrAnonymousName> allowed_) {
+		
+	 	Predicate2<IdOrOpOrAnonymousName,Function> pred = new Predicate2<IdOrOpOrAnonymousName,Function>(){
+
+			public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
+				return allowed_.contains(arg0);
+			}
+    		
+    	};
+		
+		return new ApiIndex((Api)index.ast(),
+				keepHelper(index.variables(), allowed_),
+				new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
+	            keepHelper(index.typeConses(), allowed_),
+	            keepHelper(index.dimensions(), allowed_),
+	            keepHelper(index.units(), allowed_),
+	            index.grammars(),
+	            index.modifiedDate());
+	}
+   	
+    /**
+     * Filter out whole apis or parts of apis based on the imports of a component or
+     * api. FortressBuiltin and AnyType are always imported, and FortressLibrary is only 
+     * imported implicitly if it is not imported explicitly.
+     */
+    private static Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports) { 
+    	final Map<APIName, Set<IdOrOpOrAnonymousName>> exceptions = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
+    	final Map<APIName, Set<IdOrOpOrAnonymousName>> allowed = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
+    	
+    	NodeDepthFirstVisitor<Boolean> import_visitor = new NodeDepthFirstVisitor<Boolean>(){
+    		// Do nothing for template-related imports
+			@Override public Boolean defaultCase(Node that) {return false;}
+
+			@Override
+			public Boolean forImportApi(ImportApi that) {
+				Boolean implib = true;
+				for( AliasedAPIName api : that.getApis() ) {
+					APIName name = api.getApi();
+					if(name.getText().equals(FORTRESS_LIBRARY_NAME))
+						implib=false;
+					if( !exceptions.containsKey(name) )
+						exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>());
+				}
+				return implib;
+			}
+
+			@Override
+			public Boolean forImportNames(ImportNames that) {
+				APIName name = that.getApi();
+				
+				// TODO Handle these aliased names more thoroughly
+				List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(), 
+				new Lambda<AliasedSimpleName,IdOrOpOrAnonymousName>(){
+					public IdOrOpOrAnonymousName value(
+							AliasedSimpleName arg0) {
+						return arg0.getName();
+					}}));
+				
+				if( allowed.containsKey(name) )
+					allowed.get(name).addAll(names);
+				else
+					allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
+				return !name.getText().equals(FORTRESS_LIBRARY_NAME);
+			}
+
+			@Override
+			public Boolean forImportStar(ImportStar that) {
+				APIName name = that.getApi();
+				if( exceptions.containsKey(name) )
+					exceptions.get(name).addAll(that.getExcept());
+				else
+					exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>(that.getExcept()));
+				return !name.getText().equals(FORTRESS_LIBRARY_NAME);
+			}
+    	};
+    	
+    	// Visit each import, populating the exceptions and allowed maps
+    	Iterable<Boolean> temp=IterUtil.map(imports, import_visitor);
+    	boolean importlibrary = true;
+    	for(Boolean t : temp){
+    		importlibrary&=t;
+    	}
+    	
+    	// Created filters for ApiIndex in apis
+    	Map<APIName, ApiIndex> result = new HashMap<APIName, ApiIndex>();
+    	for( Map.Entry<APIName, ApiIndex> api : apis.entrySet() ) {
+    		// TODO: Report an error on conflicting import statements
+    		APIName name = api.getKey();
+    		ApiIndex index = api.getValue();
+    		
+    		
+    		if( exceptions.containsKey(name) ) {
+    			Set<IdOrOpOrAnonymousName> exceptions_ = exceptions.get(name);
+    			result.put(name, remove(index, exceptions_));
+    		}
+    		else if( allowed.containsKey(name) ) {
+    			Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
+    			result.put(name, keep(index, allowed_));
+    		}
+    		else if( name.getText().equals(FORTRESS_BUILTIN_NAME) ) {
+    			// Fortress builtin is always implicitly imported
+    			result.put(name, index);
+    		}
+    		else if( name.getText().equals(ANY_TYPE_API_NAME) ) {
+    			// For now, AnyType is always implicitly imported.
+    			result.put(name, index);
+    		}
+    		else if( name.getText().equals(FORTRESS_LIBRARY_NAME) && 
+    				 importlibrary ) {
+    			// Fortress Library is import implicitly if nothing else is imported
+    			result.put(name, index);
+    		}
+    	}
+    	return result;
+    }
+    
     /**
      * Disambiguate the given apis. To support circular references,
      * the apis should appear in the given environment.
@@ -108,15 +304,21 @@ public class Disambiguator {
      */
     public static ApiResult disambiguateApis(Iterable<Api> apis_to_disambiguate,
             GlobalEnvironment globalEnv, Map<APIName, ApiIndex> repository_apis) {
-        
+          	
+    	repository_apis = Collections.unmodifiableMap(repository_apis);
+    	
         List<StaticError> errors = new ArrayList<StaticError>();
         
         // First, loop through apis disambiguating types.
         List<Api> new_apis = new ArrayList<Api>();
         for( Api api : apis_to_disambiguate ) {
         	 ApiIndex index = globalEnv.api(api.getName());
-             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+        	 
+        	 Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), api);
+             GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
+        	 NameEnv env = new TopLevelEnv(filtered_global_env, index, errors);
+        	 
+        	 Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
              
              SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
              Api spd_result = (Api)api.accept(self_disambig);
@@ -146,21 +348,22 @@ public class Disambiguator {
         List<Api> results = new ArrayList<Api>();
         for( Api api : new_apis ) {
         	ApiIndex index = new_global_env.api(api.getName());
-        	NameEnv env = new TopLevelEnv(new_global_env, index, errors);
-        	//Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+        	
+       	 	Map<APIName,ApiIndex> filtered = filterApis(new_global_env.apis(), api);
+       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
+        	NameEnv env = new TopLevelEnv(filtered_global_env, index, errors);
         	
         	List<StaticError> newErrs = new ArrayList<StaticError>();
         	ExprDisambiguator ed = 
-                new ExprDisambiguator(env, //onDemandImports, 
-                		newErrs);
+                new ExprDisambiguator(env, newErrs);
             Api edResult = (Api) api.accept(ed);
             if (newErrs.isEmpty())
             	results.add(edResult);
             else 
             	errors.addAll(newErrs);
         }
-     
-        results = disambiguateGrammarMembers(results, errors, globalEnv);
+
+        results = disambiguateGrammarMembers(results, errors, new_global_env);
         return new ApiResult(results, errors);
     }
 
@@ -191,7 +394,11 @@ public class Disambiguator {
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
-            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
+            
+            // Filter env based on what this component imports
+       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
+       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
+            NameEnv env = new TopLevelEnv(filtered_global_env, index, errors);
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
 
             SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
@@ -217,8 +424,11 @@ public class Disambiguator {
         	if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
-        	NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-            //Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+        	
+        	// Filter evn based on what this component imports
+       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
+       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
+        	NameEnv env = new TopLevelEnv(filtered_global_env, index, errors);
             
             List<StaticError> newErrs = new ArrayList<StaticError>();
             ExprDisambiguator ed = 
