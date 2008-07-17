@@ -57,6 +57,11 @@ public abstract class TypeEnv {
         // Iterate over top-level variables, adding each to the component-level environment.
         typeEnv = typeEnv.extend(cu.variables());
 
+        //Iterate over top level types, adding each to component-level environment
+        
+        typeEnv = typeEnv.extendWithTypeConses(cu.typeConses());
+        
+        
         return typeEnv;
     }
 
