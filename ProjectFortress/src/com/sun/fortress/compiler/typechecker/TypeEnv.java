@@ -341,6 +341,11 @@ public abstract class TypeEnv {
         else { return new ParamTypeEnv(params, this); }
     }
 
+    public final TypeEnv extendWithStaticParams(List<StaticParam> params) {
+    	if( params.size() == 0 ) {return this; }
+    	else { return new StaticParamTypeEnv(params,this); }
+    }
+    
     public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
         if (typeConses.isEmpty()) {
             return this;
