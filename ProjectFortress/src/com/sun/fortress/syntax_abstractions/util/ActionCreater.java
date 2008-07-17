@@ -133,7 +133,7 @@ public class ActionCreater {
             lessIndent();
             addCodeLine("}", code, indents );
 
-            addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(new Span(), new %s());", returnType, transformer ), code, indents );
+            addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), new %s());", returnType, transformer ), code, indents );
         }
         Action a = new Action(code, indents);
         return ac.new Result(a, errors);

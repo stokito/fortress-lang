@@ -44,12 +44,16 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
 import com.sun.fortress.syntax_abstractions.MacroCompiler;
+import com.sun.fortress.syntax_abstractions.phases.Transform;
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.io.IOUtil;
 
@@ -96,14 +100,17 @@ public class FortressParser {
         MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
         if (!tr.isSuccessful()) { return new Result(tr.errors()); }
         Class<?> temporaryParserClass = tr.getParserClass(); 
+        Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
 
         BufferedReader in = null; 
         try {
             in = Useful.utf8BufferedFileReader(f);
             ParserBase p =
                 ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
-            CompilationUnit cu =
-                Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
+            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
+            dump(original, "original-" + f.getName());
+            CompilationUnit cu = (CompilationUnit) Transform.transform(original);
+            dump(cu, "dump-" + f.getName());
             return new Result(cu, f.lastModified());
         } catch (Exception e) {
             String desc =
@@ -169,6 +176,14 @@ public class FortressParser {
         // different files; if absolute file can't be determined, assume they are
         // distinct.
         return IOUtil.canonicalCase(IOUtil.attemptAbsoluteFile(f));
+    }
+
+    private static void dump( Node node, String name ){
+        try{
+            ASTIO.writeJavaAst( (CompilationUnit) node, name );
+        } catch ( IOException e ){
+            e.printStackTrace();
+        }
     }
 
 }
