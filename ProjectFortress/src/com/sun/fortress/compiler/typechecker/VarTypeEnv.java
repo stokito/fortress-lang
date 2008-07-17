@@ -25,13 +25,19 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.index.DeclaredVariable;
+import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.ParamVariable;
 import com.sun.fortress.compiler.index.SingletonVariable;
+import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._RewriteGenericArrowType;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -65,9 +71,8 @@ class VarTypeEnv extends TypeEnv {
             } else if (result instanceof SingletonVariable) {
                 SingletonVariable _result = (SingletonVariable)result;
                 Id declaringTrait = _result.declaringTrait();
-
                 return some(new BindingLookup(makeLValue(_var, declaringTrait)));
-                //return some(new BindingLookup(_var, parent.type(declaringTrait)));
+
             } else { // result instanceof ParamVariable
                 ParamVariable _result = (ParamVariable)result;
                 Param param = _result.ast();
