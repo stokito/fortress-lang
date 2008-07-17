@@ -57,14 +57,6 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
         return this.members;
     }
 
-    public void setAst(GrammarDef g) {
-        this.ast = Option.wrap(g);
-    }
-    
-    public void setMembers(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
-        this.members = members;
-    }
-
     public void setExtended(Collection<GrammarIndex> gs) {
         this.extendedGrammars = gs;
     }
