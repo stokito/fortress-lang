@@ -544,66 +544,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return new TypeCheckerResult(that);
 	 }
 
-//	 private TypeCheckerResult forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName that) {
-//	 Option<APIName> apiName = that.getApi();
-//	 if (apiName.isSome()) {
-//	 APIName api = apiName.unwrap();
-//	 TypeEnv apiTypeEnv;
-//	 if (compilationUnit.ast().getName().equals(api)) {
-//	 apiTypeEnv = typeEnv;
-//	 } else {
-//	 apiTypeEnv = TypeEnv.make(table.compilationUnit(api));
-//	 }
-
-//	 Option<Type> type = apiTypeEnv.type(that);
-//	 if (type.isSome()) {
-//	 Type _type = type.unwrap();
-//	 if (_type instanceof NamedType) { // Do we need to qualify?
-//	 NamedType _namedType = (NamedType)_type;
-
-//	 // Type was declared in that API, so it's not qualified;
-//	 // prepend it with the API.
-//	 if (_namedType.getName().getApi().isNone()) {
-//	 _type = NodeFactory.makeNamedType(api, (NamedType) type.unwrap());
-//	 }
-//	 }
-//	 return new TypeCheckerResult(that, _type);
-//	 } else {
-//	 // Operators are never qualified in source code, so if 'that' is qualified and not
-//	 // found, it must be a Id, not a OpName.
-//	 StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
-//	 that);
-//	 return new TypeCheckerResult(that, error);
-//	 }
-//	 }
-//	 Option<Type> type = typeEnv.type(that);
-//	 if (type.isSome()) {
-//	 Type _type = type.unwrap();
-//	 if (_type instanceof LabelType) { // then name must be an Id
-//	 return new TypeCheckerResult(that, makeLabelNameError((Id)that));
-//	 } else {
-//	 return new TypeCheckerResult(that, _type);
-//	 }
-//	 } else {
-//	 StaticError error;
-//	 if (that instanceof Id) {
-//	 error = TypeError.make(errorMsg("Variable '", that, "' not found."),
-//	 that);
-//	 } else if (that instanceof Op) {
-//	 error = TypeError.make(errorMsg("Operator '", OprUtil.decorateOperator((Op)that),
-//	 "' not found."),
-//	 that);
-//	 } else { // must be Enclosing
-//	 error = TypeError.make(errorMsg("Enclosing operator '", (Enclosing)that, "' not found."),
-//	 that);
-//	 }
-//	 return new TypeCheckerResult(that, error);
-//	 }
-//	 }
-
-
-
-
 
 	 public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
 		 Option<Type> varType = var_result.type();
