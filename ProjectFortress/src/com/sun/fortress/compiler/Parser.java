@@ -222,7 +222,36 @@ public class Parser {
         // Also throws StaticError, ParserError
         PreFortress parser = makePreparser(api_name, in, filename);
         xtc.parser.Result parseResult = parser.pFile(0);
-        return checkResultCU(parseResult, parser, filename);
+        try {
+            return checkPreparseResultCU(parseResult, parser, filename);
+        } catch (StaticError se) {
+            return parseFile(api_name, new File(filename));
+        }
+    }
+
+    private static CompilationUnit checkPreparseResultCU(xtc.parser.Result preparseResult,
+                                                         ParserBase preparser,
+                                                         String filename) {
+        if (preparseResult.hasValue()) {
+            Object cu = ((SemanticValue) preparseResult).value;
+            if (cu instanceof Api) {
+                if (filename.endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
+                    return (Api)cu;
+                } else {
+                    throw StaticError.make("Syntax error", (Api)cu);
+                }
+            } else if (cu instanceof Component) {
+                if (filename.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX)) {
+                    return (Component)cu;
+                } else {
+                    throw StaticError.make("Syntax error", (Component)cu);
+                }
+            } else {
+                throw new RuntimeException("Unexpected parse result: " + cu);
+            }
+        } else {
+            throw new ParserError((ParseError) preparseResult, preparser);
+        }
     }
 
     private static PreFortress makePreparser(Reader in, String filename) {
