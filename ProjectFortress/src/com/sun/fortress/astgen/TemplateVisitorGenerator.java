@@ -19,6 +19,7 @@ package com.sun.fortress.astgen;
 
 
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.rice.cs.astgen.ASTModel;
@@ -80,7 +81,11 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         for (NodeType t : ast.descendents(root)) {
           if (!t.isAbstract()) {
             writer.println();
-            outputForCaseOnly(t, writer, root);
+            if ( t instanceof TransformationNode ){
+                outputForTransformationCaseOnly( (TransformationNode) t, writer, root );
+            } else {
+                outputForCaseOnly(t, writer, root);
+            }
           }
 //          if (t instanceof NodeClass) {
 //              outputTemplateForCaseOnly(t, writer, root);
@@ -109,6 +114,9 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
         writer.println();
         outputRecurMethod(writer, root, root.name());
+        writer.println();
+
+        outputTransformationDefaultCase(writer, root);
         
         // Output helpers
         for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
@@ -117,6 +125,23 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine("}");
         writer.println();
         writer.close();
+    }
+                
+    protected void outputForTransformationCaseOnly( TransformationNode node, TabPrintWriter writer, NodeType root ){
+        List<String> params = new ArrayList<String>();
+        outputForCaseHeader(node, writer, root.name(), "Only", params);
+        writer.indent();
+        writer.startLine("return defaultTransformationNodeCase(that);");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
+    protected void outputTransformationDefaultCase( TabPrintWriter writer, NodeType root ){
+        writer.startLine(String.format("public %s defaultTransformationNodeCase( _SyntaxTransformation s ){", root.name() ));
+        writer.indent();
+        writer.startLine("return s;");
+        writer.unindent();
+        writer.startLine( "}" );
     }
 
     @Override
