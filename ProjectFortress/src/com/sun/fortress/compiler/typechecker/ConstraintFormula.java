@@ -22,7 +22,6 @@ import static com.sun.fortress.compiler.Types.BOTTOM;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,53 +32,17 @@ import java.util.Set;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.ArrayType;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseDim;
-import com.sun.fortress.nodes.Block;
-import com.sun.fortress.nodes.BottomType;
-import com.sun.fortress.nodes.DimExpr;
-import com.sun.fortress.nodes.DimRef;
-import com.sun.fortress.nodes.Domain;
-import com.sun.fortress.nodes.Effect;
-import com.sun.fortress.nodes.ExponentDim;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.FixedPointType;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Indices;
-import com.sun.fortress.nodes.IntExpr;
-import com.sun.fortress.nodes.IntersectionType;
-import com.sun.fortress.nodes.Label;
-import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpDim;
-import com.sun.fortress.nodes.ProductDim;
-import com.sun.fortress.nodes.QuotientDim;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TaggedDimType;
-import com.sun.fortress.nodes.TaggedUnitType;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.VarargTupleType;
-import com.sun.fortress.nodes.VoidType;
-import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes._InferenceVarType;
-import com.sun.fortress.nodes._RewriteGenericArrowType;
-import com.sun.fortress.nodes._RewriteGenericSingletonType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.NI;
+
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -173,12 +136,6 @@ public abstract class ConstraintFormula {
 
     		this.ivarLowerBounds = newlowers;
     		this.ivarUpperBounds = newuppers;
-    		history = h;
-    	}
-    	
-    	public ConjunctiveFormula(SubtypeHistory h) {
-    		ivarUpperBounds = new MultiMap<_InferenceVarType,Type>();
-    		ivarLowerBounds = new MultiMap<_InferenceVarType,Type>();
     		history = h;
     	}
     	
@@ -306,10 +263,10 @@ public abstract class ConstraintFormula {
 			if( c.equals(TRUE) ) {
 				return TRUE;
 			}
-			if( c.equals(FALSE) ) {
+			else if( c.equals(FALSE) ) {
 				return this;
 			}
-			if( c instanceof ConjunctiveFormula){
+			else if( c instanceof ConjunctiveFormula){
 				if(c.equals(this)){
 					return this;
 				}
@@ -317,11 +274,12 @@ public abstract class ConstraintFormula {
 					return new DisjunctiveFormula(Useful.set(this,(ConjunctiveFormula)c));
 				}
 			}
-			if(c instanceof DisjunctiveFormula){
+			else if(c instanceof DisjunctiveFormula){
 				return c.or(this, history);
 			}
-			return InterpreterBug.bug("can't or a solved formula");
-			
+			else {
+				return InterpreterBug.bug("Unexpected type, " + c.getClass());
+			}
 		}
 		
 		private ConstraintFormula replaceAndRemove(final _InferenceVarType new_ivar, final List<_InferenceVarType> to_remove) {
@@ -359,9 +317,14 @@ public abstract class ConstraintFormula {
 			
 			// "Remove redundant constraints"
 			// For now we will just remove #1 <: #1
-			new_uppers.get(new_ivar).remove(new_ivar);
-			new_lowers.get(new_ivar).remove(new_ivar);
-			return new ConjunctiveFormula(new_uppers, new_lowers, this.history);
+			new_uppers.removeItem(new_ivar, new_ivar);
+			new_lowers.removeItem(new_ivar, new_ivar);
+			
+			// No remaining constraints means that the entire constraint was vaccuously true.
+			return 
+				(new_uppers.isEmpty() && new_lowers.isEmpty()) ?
+						TRUE :
+						new ConjunctiveFormula(new_uppers, new_lowers, this.history);
 		}
 		
 		// Returns a solved constraint formula, solved by doing the steps in 20.2 of spec1 beta
@@ -428,8 +391,6 @@ public abstract class ConstraintFormula {
 						}});
 			
 			// 4-3'
-			// TODO: check to see if invariant is being violated by not using the new bounds from
-			// above here where we use ivarLowerbounds.
 			Map<_InferenceVarType,Type> glbs = solveHelper(ivars, newlowers,
 					new Lambda<Set<Type>,Type>(){
 						public Type value(Set<Type> arg0) {
