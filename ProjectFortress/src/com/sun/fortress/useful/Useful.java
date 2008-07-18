@@ -103,7 +103,7 @@ public class Useful {
             String right) {
         return listInDelimiters(left, l, right, ",");
     }
- 
+
     /**
      * Returns a string containing String.valueOf each element of l,
      * separated by sep, all surrounded by left and right delimiters.
@@ -186,11 +186,11 @@ public class Useful {
     /**
      * Returns a string containing String.valueOf each element of l,
      * separated by ".".
-     * 
+     *
      * dottedList(["cat", "dog"]) = "cat.dog"
      * dottedList(["cat"]) = "cat"
      * dottedList([]) = ""
-     * 
+     *
      * @param <T>
      * @param l
      * @return
@@ -243,9 +243,9 @@ public class Useful {
 
         /**
          * Returns the set of lists
-         * 
+         *
          *  { e = l.add(i) | l IN s1, i IN s2 }
-         * 
+         *
          * @param <T>
          * @param s1
          * @param s2
@@ -267,9 +267,9 @@ public class Useful {
 
     /**
      * Returns the set of lists
-     * 
+     *
      *  { e = product.apply(i,j) | i IN s1, j IN s2 }
-     * 
+     *
      * @param <T>
      * @param s1
      * @param s2
@@ -286,14 +286,14 @@ public class Useful {
 
         /**
          * Returns the set {e = verb.apply(i) | i IN s}
-         * 
+         *
          * @param <T>
          * @param <U>
          * @param s
          * @param verb
          * @return
          */
-    
+
     public static <T, U> Set<U> applyToAll(Set<T> s, Fn<T, U> verb) {
         HashSet<U> result = new HashSet<U>();
         for (T i : s)
@@ -304,7 +304,7 @@ public class Useful {
 
     /**
      * Returns the LIST [ e = verb.apply(i) | i IN s ]
-     * 
+     *
      * @param <T>
      * @param <U>
      * @param s
@@ -322,7 +322,7 @@ public class Useful {
 
     /**
      * Returns the LIST result APPEND [ e = verb.apply(i) | i IN s ]
-     * 
+     *
      * @param <T>
      * @param <U>
      * @param s
@@ -335,10 +335,10 @@ public class Useful {
         return result;
 
     }
-   
+
    /**
     * Returns the SET result UNION { e = verb.apply(i) | i IN s }
-    * 
+    *
     * @param <T>
     * @param <U>
     * @param s
@@ -350,7 +350,7 @@ public class Useful {
             result.add(verb.apply(i));
         return result;
     }
-   
+
     public static <T> Set<T> set(Iterable<T> xs) {
       HashSet<T> result = new HashSet<T>();
 
@@ -371,7 +371,7 @@ public class Useful {
     	}
     	return new ImmutableRelation<K,V>(result);
     }
-    
+
     public static <T> Set<T> set() {
         return Collections.emptySet();
       }
@@ -417,6 +417,17 @@ public class Useful {
         return result;
     }
 
+    public static <T> Set<T> union(Collection<T> x1, Collection<T> x2, Collection<T> x3, Collection<T> x4, Collection<T> x5, Collection<T> x6) {
+        HashSet<T> result = new HashSet<T>();
+        result.addAll(x1);
+        result.addAll(x2);
+        result.addAll(x3);
+        result.addAll(x4);
+        result.addAll(x5);
+        result.addAll(x6);
+        return result;
+    }
+
     public static <T> Set<T> union(Collection<T> x1, Collection<T> x2, Collection<T> x3) {
         HashSet<T> result = new HashSet<T>();
         result.addAll(x1);
@@ -431,7 +442,7 @@ public class Useful {
         result.addAll(x2);
         return result;
     }
-    
+
     public static <T> Set<T> difference(Collection<T> x1, Collection<T> x2) {
         HashSet<T> result = new HashSet<T>();
         result.addAll(x1);
@@ -462,7 +473,7 @@ public class Useful {
 
     /**
      * Returns the LIST [ e = verb.apply(i) != null | i IN s ]
-     * 
+     *
      * @param <T>
      * @param <U>
      * @param s
@@ -479,17 +490,17 @@ public class Useful {
         }
         return result;
     }
- 
+
     /**
      * Returns the LIST [ e = verb.apply(i) != false | i IN s ]
-     * 
+     *
      * @param <T>
      * @param <U>
      * @param s
      * @param verb
      * @return
      */
-   
+
    public static <T> List<T> filter( final Iterable<? extends T> l, final Fn<T,Boolean> f){
        return filteredList(l, new Fn<T,T>(){
            public T apply( T t ){
@@ -517,10 +528,10 @@ public class Useful {
            }
        });
    }
-    
+
    /**
     * Returns the ORDERED (by c) SET { e = f.apply(i) != null | i IN l }
-    * 
+    *
     * @param <T>
     * @param <U>
     * @param s
@@ -537,8 +548,8 @@ public class Useful {
         }
         return result;
     }
-    
-    
+
+
     public static <T> List<T> list(T x1, T x2, T x3, T x4) {
         ArrayList<T> result = new ArrayList<T>(4);
         result.add(x1);
@@ -818,7 +829,7 @@ public class Useful {
     static public BufferedReader bufferedStringReader(String s) {
         return new BufferedReader(new StringReader(s));
     }
-    
+
     /**
      * Returns a BufferedWriter for the file named s, with encoding assumed to be UTF-8.
      * @throws FileNotFoundException
@@ -845,7 +856,7 @@ public class Useful {
     }
 
     static public boolean olderThanOrMissing(String resultFile, long inputFileDate) {
-        File res = new File(resultFile);        
+        File res = new File(resultFile);
         return olderThanOrMissing(res, inputFileDate);
     }
 
@@ -873,32 +884,32 @@ public class Useful {
      * Perform variable replacement on e, where variable references match the
      * pattern "[$][{][-A-Za-z0-9_.]+[}]" and the variable name referenced is
      * contained between the curly braces.  For example, "My home is ${HOME}".
-     * 
+     *
      * The replacement value for the variable is obtained by consulting first
      * the system properties, then the environment.
-     * 
+     *
      * @param e
      * @return
      */
     public static String substituteVars(String e) {
        return substituteVars(e, envVar, INTRO_LEN, OUTRO_LEN);
     }
- 
+
     /**
      * Perform variable replacement on e, where variable references match the
      * pattern "[$][{][-A-Za-z0-9_.]+[}]" and the variable name referenced is
      * contained between the curly braces.  For example, "My home is ${HOME}".
-     * 
+     *
      * The replacement value for the variable is obtained by consulting the
      * supplied StringMap.
-     * 
+     *
      * @param e
      * @return
      */
     public static String substituteVars(String e, StringMap map) {
        return substituteVars(e, envVar, INTRO_LEN, OUTRO_LEN, map);
     }
- 
+
     public static String substituteVarsCompletely(String e, StringMap map, int limit) {
         String initial_e = e;
         String old_e = e;
@@ -915,14 +926,14 @@ public class Useful {
      }
 
    public static StringMap sysMap = new StringMap.ComposedMaps(new StringMap.FromSysProps(), new StringMap.FromEnv());
-    
+
     public static String substituteVars(String e,
             Pattern varPat,
             int intro_len,
             int outro_len) {
        return substituteVars(e, varPat, intro_len, outro_len, sysMap);
     }
-    
+
     public static String substituteVars(String e,
             Pattern varPat,
             int intro_len,
@@ -952,5 +963,5 @@ public class Useful {
         return e;
     }
 
-    
+
 }
