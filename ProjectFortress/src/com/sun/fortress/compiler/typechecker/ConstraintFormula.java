@@ -86,6 +86,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.ConsList;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.lambda.Runnable1;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -622,21 +623,39 @@ public abstract class ConstraintFormula {
 			}
 			if(c instanceof ConjunctiveFormula){
 				final ConjunctiveFormula cf = (ConjunctiveFormula)c;
-				return new DisjunctiveFormula(CollectUtil.makeSet(IterUtil.map(conjuncts, new Lambda<ConjunctiveFormula,ConjunctiveFormula>(){
+				Set<ConjunctiveFormula> temp = CollectUtil.makeSet(IterUtil.filter(IterUtil.map(conjuncts, new Lambda<ConjunctiveFormula,ConjunctiveFormula>(){
 					public ConjunctiveFormula value(ConjunctiveFormula arg0) {
 						return arg0.merge(cf, history);
 					}
 					
-				})));
+				}),new Predicate<ConjunctiveFormula>(){
+
+					public boolean contains(ConjunctiveFormula arg0) {
+						return arg0.isSatisfiable();
+					}
+					
+				}));
+				if(temp.isEmpty())
+					return FALSE;
+				return new DisjunctiveFormula(temp);
 			}
 			if(c instanceof DisjunctiveFormula){
 				final DisjunctiveFormula df = (DisjunctiveFormula) c;
-				return new DisjunctiveFormula(CollectUtil.makeSet(IterUtil.collapse(IterUtil.map(conjuncts,new Lambda<ConjunctiveFormula, Set<ConjunctiveFormula>>(){
+				Set<ConjunctiveFormula> temp= CollectUtil.makeSet(IterUtil.collapse(IterUtil.map(conjuncts,new Lambda<ConjunctiveFormula, Set<ConjunctiveFormula>>(){
 					public Set<ConjunctiveFormula> value(
 							ConjunctiveFormula arg0) {
-						return ((DisjunctiveFormula)(df.and(arg0,history))).conjuncts;
+						ConstraintFormula and=df.and(arg0,history);
+						if(and instanceof DisjunctiveFormula){
+							return ((DisjunctiveFormula)and).conjuncts;
+						}
+						else{
+							return Collections.emptySet();
+						}
 					}	
-				}))));
+				})));
+				if(temp.isEmpty())
+					return FALSE;
+				return new DisjunctiveFormula(temp);
 			}
 			return InterpreterBug.bug("Can't and with a Solved Constraint");
 		}
@@ -670,7 +689,6 @@ public abstract class ConstraintFormula {
 			if(c.isTrue()){
 				return c;
 			}
-			
 			if(c instanceof ConjunctiveFormula){
 				final ConjunctiveFormula cf = (ConjunctiveFormula)c;
 				Set<ConjunctiveFormula> temp = new HashSet<ConjunctiveFormula>(conjuncts);

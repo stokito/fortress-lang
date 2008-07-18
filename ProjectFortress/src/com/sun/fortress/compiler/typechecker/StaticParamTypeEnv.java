@@ -68,10 +68,8 @@ public class StaticParamTypeEnv extends TypeEnv {
         	if(name.equals(no_api_var) || name.equals(var) ){
 	        	Option<Type> type_ = typeOfStaticParam(param);
 	        	
-	        	if( type_.isNone() )
-	        		return NI.nyi("We don't yet know what to do with op params");
-	        	
-	        	return Option.some(new BindingLookup(var,type_.unwrap()));
+	        	if( type_.isSome() )
+	        		return Option.some(new BindingLookup(var,type_.unwrap()));
         	}
         }
         return parent.binding(_var);
