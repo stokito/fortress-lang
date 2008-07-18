@@ -141,6 +141,11 @@ Expr DelimitedExpr =
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "In a typecase expression, 'do' is used incorrectly.  Use 'of' instead.");
      }
+   / <ErrorProduction4>
+     typecase w self w of w TypecaseClauses (br CaseElse)? w end
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "In a typecase expression, 'self' is used incorrectly.  Use a binding such as 'x = self' instead.");
+     }
    / <TRY> try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
      { Option<Catch> catch_ = Option.wrap(a2);
