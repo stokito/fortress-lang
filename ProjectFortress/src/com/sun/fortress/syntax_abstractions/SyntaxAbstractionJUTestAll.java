@@ -40,6 +40,7 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         "XXXSyntaxGrammarImportsUse.fss",
         "SyntaxRepetition.fss",
         "SyntaxRepetitionUse.fss",
+        "SyntaxGrammarImportsUse.fss",
         "ImportApiEmptyApiWhichImportsNonEmptyApiUse.fss",
         "UsingJavaIdentifiersAsPatternVariablesUse.fss",
         "UsingJavaIdentifiersAsPatternVariables.fss");
