@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.astgen;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -10,17 +27,17 @@ import edu.rice.cs.astgen.TabPrintWriter;
 import edu.rice.cs.astgen.Types.*;
 
 /**
- * Produce a single argument constructor which takes a Span, and instantiates 
+ * Produce a single argument constructor which takes a Span, and instantiates
  * each field to null, leaving clients to manually instantiate each field correctly.
  */
 public class SingleSpanConstructorGenerator extends CodeGenerator {
 
   public SingleSpanConstructorGenerator(ASTModel ast) { super(ast); }
-  
+
   public Iterable<Class<? extends CodeGenerator>> dependencies() { return IterUtil.empty(); }
 
   public void generateInterfaceMembers(TabPrintWriter writer, NodeInterface i) {}
-  
+
   public void generateClassMembers(TabPrintWriter writer, NodeClass c) {
     boolean hasSingleSpanConstructor = true;
     boolean allDefaults = true;
@@ -30,7 +47,7 @@ public class SingleSpanConstructorGenerator extends CodeGenerator {
     }
 
     hasSingleSpanConstructor |= allDefaults;
-    
+
     if (!hasSingleSpanConstructor) {
       writer.startLine("/**");
       writer.startLine(" * Single Span constructor, for template gap access.  Clients are ");
@@ -54,7 +71,7 @@ public class SingleSpanConstructorGenerator extends CodeGenerator {
       writer.println();
     }
   }
-  
+
   public void generateAdditionalCode() {}
-  
+
 }
