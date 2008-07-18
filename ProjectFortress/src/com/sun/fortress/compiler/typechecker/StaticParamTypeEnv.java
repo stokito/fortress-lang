@@ -34,7 +34,6 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
 

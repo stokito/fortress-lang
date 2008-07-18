@@ -413,6 +413,7 @@ public class FortressAstGenerator extends CodeGenerator {
 
     private void generateComponent(){
         generateFile( "FortressAst.fss", "component FortressAst\nimport List.{...}\nexport FortressAst", false );
+        //generateFile( "FortressAst.fss", "component FortressAst\nimport List.{...}\nimport FortressLibrary.{...} except ExtentRange\nexport FortressAst", false );
     }
 
     public void generateAdditionalCode(){
