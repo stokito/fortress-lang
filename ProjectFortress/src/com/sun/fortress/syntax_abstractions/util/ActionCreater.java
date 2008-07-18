@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.TransformerDef;
+import com.sun.fortress.nodes.SimpleTransformerDef;
 import com.sun.fortress.nodes.TransformerExpressionDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.StaticArg;
@@ -61,7 +62,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ActionCreater {
 
-    protected static final String BOUND_VARIABLES = "boundVariables";
+    public static final String BOUND_VARIABLES = "boundVariables";
     protected static final String PACKAGE = "com.sun.fortress.syntax_abstractions.util";
     private static final String FORTRESS_AST = "FortressAst";
     private static final String FORTRESS_AST_UTIL = "FortressAstUtil";
@@ -88,6 +89,61 @@ public class ActionCreater {
             SyntaxDeclEnv syntaxDeclEnv,
             Map<PrefixedSymbol,VariableCollector.Depth> variables
             ) {
+
+        Debug.debug( Debug.Type.SYNTAX, 2, "Create action for alternative " + alternativeName );
+        ActionCreater ac = new ActionCreater();
+        Collection<StaticError> errors = new LinkedList<StaticError>();
+
+        // String transformer = FreshName.getFreshName(String.format("%sTransformer", alternativeName));
+        String returnType = new FortressTypeToJavaType().analyze(type);
+
+        List<Integer> indents = new LinkedList<Integer>();
+        List<String> code = new LinkedList<String>();
+        /* TransformerExpressionDef is going away */
+        if (transformation instanceof TransformerExpressionDef) {
+            /*
+            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false, variables );
+            Expr e = ((TransformerExpressionDef) transformation).getTransformer();
+            Component component = ac.makeComponent(e, syntaxDeclEnv, variables);
+            String serializedComponent = ac.writeJavaAST(component);
+            code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
+
+            if (Debug.isOnMaxFor(Debug.Type.SYNTAX)) {
+                addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
+            }
+            addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
+            */
+        }
+        else if (transformation instanceof TransformerDef) {
+            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
+            /*
+            AbstractNode n = ((TransformerDef) transformation).getTransformer();
+            JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
+            String yyValue = n.accept(jpp);
+            */
+            // addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), new %s(%s));", returnType, transformer, BOUND_VARIABLES ), code, indents );
+            addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s);", returnType, ((TransformerDef) transformation).getTransformer(), BOUND_VARIABLES ), code, indents );
+        } else if ( transformation instanceof SimpleTransformerDef ){
+            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
+            AbstractNode n = ((SimpleTransformerDef) transformation).getNode();
+            JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
+            String yyValue = n.accept(jpp);
+            for (String s: jpp.getCode()) {
+                addCodeLine(s, code, indents);
+            }
+            addCodeLine( String.format( "yyValue = %s;", yyValue ), code, indents );
+        }
+        Action a = new Action(code, indents);
+        return ac.new Result(a, errors);
+    }
+
+    /*
+    public static Result create1(String alternativeName,
+            TransformerDecl transformation,
+            BaseType type,
+            SyntaxDeclEnv syntaxDeclEnv,
+            Map<PrefixedSymbol,VariableCollector.Depth> variables
+            ) {
         ActionCreater ac = new ActionCreater();
         Collection<StaticError> errors = new LinkedList<StaticError>();
 
@@ -96,6 +152,7 @@ public class ActionCreater {
 
         List<Integer> indents = new LinkedList<Integer>();
         List<String> code = new LinkedList<String>();
+        / * TransformerExpressionDef is going away * /
         if (transformation instanceof TransformerExpressionDef) {
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false, variables );
             Expr e = ((TransformerExpressionDef) transformation).getTransformer();
@@ -116,6 +173,13 @@ public class ActionCreater {
             
             addCodeLine( String.format("class %s implements com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer<%s> {", transformer, returnType), code, indents );
             moreIndent();
+            addCodeLine( String.format("private Map<String,Object> %s;", BOUND_VARIABLES), code, indents );
+            addCodeLine( String.format("public %s( Map<String,Object> variables ){", transformer), code, indents );
+            moreIndent();
+            addCodeLine( String.format("this.%s = variables;", BOUND_VARIABLES), code, indents );
+            lessIndent();
+            addCodeLine( "}", code, indents );
+            addCodeLine("", code, indents );
             addCodeLine( String.format("public %s invoke(){", returnType), code, indents );
             moreIndent();
 
@@ -133,11 +197,12 @@ public class ActionCreater {
             lessIndent();
             addCodeLine("}", code, indents );
 
-            addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), new %s());", returnType, transformer ), code, indents );
+            addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), new %s(%s));", returnType, transformer, BOUND_VARIABLES ), code, indents );
         }
         Action a = new Action(code, indents);
         return ac.new Result(a, errors);
     }
+    */
 
     private static void moreIndent(){
         indent += 1;

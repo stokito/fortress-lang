@@ -30,8 +30,14 @@ public class Transform {
     public static Node transform( Node node ){
         return node.accept( new TemplateUpdateVisitor(){
             @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
-                Debug.debug( Debug.Type.SYNTAX, 1, "Run transformation on " + that + " is " + that.getTransformation().invoke() );
-                return that.getTransformation().invoke().accept( this );
+                /*
+                Debug.debug( Debug.Type.SYNTAX, 1, "Run transformation on " + that + " is " + that.getSyntaxTransformer().invoke() );
+                return that.getSyntaxTransformer().invoke().accept( this );
+                */
+                Debug.debug( Debug.Type.SYNTAX, 1, "Run transformation " + that.getSyntaxTransformer() );
+                SyntaxTransformer transformer = SyntaxTransformerManager.getTransformer( that.getSyntaxTransformer() );
+                Debug.debug( Debug.Type.SYNTAX, 1, "Transformation is " + transformer );
+                return transformer.invoke( that.getVariables() ).accept( this );
                 // run this recursively??
                 // return that.invoke().accept( this );
             }

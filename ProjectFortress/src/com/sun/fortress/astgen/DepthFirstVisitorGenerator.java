@@ -84,6 +84,7 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
 
         writer.println();
         outputRecurMethod(writer, root, "RetType");
+        writer.println();
 
         // Output helpers, if necessary
         for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
@@ -99,10 +100,26 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         writer.close();
     }
 
+    @Override
+    protected void outputDefaultCaseMethod(TabPrintWriter writer, NodeType root) {
+        super.outputDefaultCaseMethod(writer, root);
+        writer.println();
+        outputDefaultTemplateMethod(writer, root);
+    }
+
+    protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root ){
+        writer.startLine("public RetType defaultTemplateGap(TemplateGap t){");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
     protected void outputVisitTemplateMethod(NodeType t, TabPrintWriter writer, NodeType root) {
         outputForCaseHeader(t, writer, "RetType", "");
         writer.indent();
-        writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        // writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        writer.startLine("return defaultTemplateGap(that);");
         writer.unindent();
         writer.startLine("}");
         writer.println();

@@ -35,6 +35,9 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class TransformationNode extends NodeClass {
 
+    /* the field that corresponds to the name of the transformer function. */
+    private final String fieldTransformer = "syntaxTransformer";
+
     public TransformationNode( NodeClass parent, ASTModel ast ){
         super( "_SyntaxTransformation" + parent.name(), false, fields(ast), Types.parse(parent.name(), ast), Collections.singletonList(Types.parse("_SyntaxTransformation",ast)) );
     }
@@ -110,8 +113,13 @@ public class TransformationNode extends NodeClass {
         writer.close();
     }
 
+    private String getter( String s ){
+        return "get" + s.substring(0,1).toUpperCase() + s.substring(1);
+    }
+
     private void writeGetters(TabPrintWriter writer, String name) {
-        writer.startLine("final public com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer getTransformation() { return _transformation; }");
+        writer.startLine(String.format("final public String %s(){ return _%s; }", getter(fieldTransformer), fieldTransformer ) );
+        writer.startLine("final public java.util.Map getVariables(){ return _variables; }" );
         writer.println();
     }
 
@@ -141,14 +149,16 @@ public class TransformationNode extends NodeClass {
 
     private void writeFields(TabPrintWriter writer) {
         // writer.startLine("private final Span _span;");
-        writer.startLine("private final com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer _transformation;");
+        writer.startLine(String.format("private final String _%s;", fieldTransformer));
+        writer.startLine("private final java.util.Map<String,Object> _variables;");
     }
 
     private void writeConstructor(TabPrintWriter writer, String className) {
-        writer.startLine("public " + className+"(Span span, com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformation) {");
+        writer.startLine(String.format("public %s(Span span, String %s, java.util.Map<String,Object> variables) {", className, fieldTransformer));
         writer.indent();
         writer.startLine("super(span);");
-        writer.startLine("this._transformation = transformation;");
+        writer.startLine(String.format("this._%s = %s;", fieldTransformer, fieldTransformer));
+        writer.startLine("this._variables = variables;");
         writer.unindent();
         writer.startLine("}");
     }
@@ -157,7 +167,8 @@ public class TransformationNode extends NodeClass {
         writer.startLine("public " + className+"() {");
         writer.indent();
         writer.startLine("super(new Span());");
-        writer.startLine("this._transformation = null;");
+        writer.startLine(String.format("this._%s = null;", fieldTransformer));
+        writer.startLine("this._variables = null;");
         writer.unindent();
         writer.startLine("}");
     }
@@ -194,7 +205,7 @@ public class TransformationNode extends NodeClass {
         writer.startLine("public int generateHashCode() {");
         writer.indent();
         writer.startLine("int code = getClass().hashCode();");
-        writer.startLine("code ^= getTransformation().hashCode();");
+        // writer.startLine("code ^= getTransformation().hashCode();");
         writer.startLine("return code;");
         writer.unindent();
         writer.startLine("}");

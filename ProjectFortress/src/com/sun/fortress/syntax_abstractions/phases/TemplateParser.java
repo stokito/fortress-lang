@@ -168,13 +168,14 @@ public class TemplateParser extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forPreTransformerDefOnly(PreTransformerDef that) {
+	public Node forTransformerDefOnly(TransformerDef that) {
 		TemplateVarRewriter tvs = new TemplateVarRewriter();
 		Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
 		vs.putAll(this.vars);
 		vs.putAll(this.varsToNonterminalType);
-		String p = tvs.rewriteVars(vs, that.getTransformer());
-		Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
+		String p = tvs.rewriteVars(vs, that.getDef());
+		// Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
+		Option<Node> res = parseTemplate(that.getSpan(), p, "Expr");
 		return res.unwrap(that);
 	}
 
@@ -221,9 +222,11 @@ public class TemplateParser extends NodeUpdateVisitor {
 	}
 
 	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
+            /*
 		BufferedReader in = Useful.bufferedStringReader(transformation.trim());
 		com.sun.fortress.parser.templateparser.TemplateParser parser =
                     new com.sun.fortress.parser.templateparser.TemplateParser(in, span.getBegin().getFileName());
+
                 parser.setExpectedName(Option.<APIName>none());
 		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
 		if ( ! parse.isSome() ){
@@ -248,6 +251,8 @@ public class TemplateParser extends NodeUpdateVisitor {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		}
+                */
+            throw new RuntimeException("Can't parse templates");
 	}
 	
     private Component makeComponent(Expr expression) {

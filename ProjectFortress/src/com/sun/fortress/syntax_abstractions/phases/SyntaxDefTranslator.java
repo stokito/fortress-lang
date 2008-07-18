@@ -167,6 +167,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
     }
          
     private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type, MemberEnv memberEnv) {
+        Debug.debug( Debug.Type.SYNTAX, 2, "Create alternative for " + name );
         List<Element> elms = new LinkedList<Element>();
         // Translate the symbols
         for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
@@ -174,6 +175,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         }
         String newName = FreshName.getFreshName(name).toUpperCase();
         ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformer(), type, memberEnv.getSyntaxDeclEnv(syntaxDef).unwrap(), syntaxDef.accept(new VariableCollector()) );
+
         if (!acr.isSuccessful()) { new Result(acr.errors()); }  /* FIXME: suspicious */
 
         elms.add(acr.action());
@@ -286,7 +288,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that, 
                     Option<List<Element>> id_result, Option<List<Element>> type_result,
                     List<Element> symbol_result) {
-                Debug.debug( Debug.Type.SYNTAX, 2, "Prefixed symbol has ", symbol_result.size() );
+                Debug.debug( Debug.Type.SYNTAX, 3, "Prefixed symbol has ", symbol_result.size() );
                 if (symbol_result.size() == 1) {
                     Element e = symbol_result.get(0);
                     assert(that.getId().isSome());

@@ -56,7 +56,7 @@ public class ActionCreaterUtil {
             boolean isTemplate, Map<PrefixedSymbol,VariableCollector.Depth> variables) {
         final List<String> code = new LinkedList<String>();
         indents.add(3);
-        code.add("final Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
+        code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
         final List<String> listCode = new LinkedList<String>();
         final List<Integer> listIndents = new LinkedList<Integer>();
 
@@ -65,7 +65,7 @@ public class ActionCreaterUtil {
             VariableCollector.Depth depth = pair.getValue();
             String var = sym.getId().unwrap().getText();
             if ( isTemplate ){
-                Debug.debug( Debug.Type.SYNTAX, 1, "Depth for ", sym, " is ", depth );
+                Debug.debug( Debug.Type.SYNTAX, 3, "Depth for ", sym, " is ", depth );
                 final String astNode = SyntaxAbstractionUtil.getJavaType(syntaxDeclEnv, sym.getId().unwrap());
                 class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                     String source;
