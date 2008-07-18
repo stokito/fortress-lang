@@ -47,6 +47,7 @@ import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.FilteredRelation;
@@ -124,7 +125,11 @@ public class Disambiguator {
     }
     
     private static Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
-    	return filterApis(Collections.unmodifiableMap(apis), api.getImports());
+    	// Insert 'this' api as an implicit import. This kind of strange, but the grammars
+    	// need them at a minimum.
+    	Import this_api_import = new ImportStar(api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
+    	return filterApis(Collections.unmodifiableMap(apis), 
+    			Useful.concat(Collections.singletonList(this_api_import), api.getImports()));
     }
     
     private static <K, T> Map<K,T> filterMap(Map<K,T> map, Set<? super K> set, 
