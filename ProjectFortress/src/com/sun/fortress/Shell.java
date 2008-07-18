@@ -256,6 +256,15 @@ public final class Shell {
                     System.err.println( "Error while writing " + out.unwrap() );
                 }
             }
+        } catch (ProgramError e) {
+            System.err.println(e.getMessage());
+            e.printInterpreterStackTrace(System.err);
+            if (Debug.isOnMax()) {
+                e.printStackTrace();
+            } else {
+                System.err.println("Turn on -debug for Java-level error dump.");
+            }
+            System.exit(1);
         } catch ( FileNotFoundException f ){
             System.err.println( file + " not found" );
         } catch ( IOException ie ){
