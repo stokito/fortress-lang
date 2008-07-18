@@ -107,7 +107,7 @@ public class FortressParser {
             in = Useful.utf8BufferedFileReader(f);
             ParserBase p =
                 ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
-            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
+            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(p), p, f.getName());
             dump(original, "original-" + f.getName());
             CompilationUnit cu = (CompilationUnit) Transform.transform(original);
             dump(cu, "dump-" + f.getName());

@@ -109,7 +109,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      */
     interface TemplateGap(Id gapId, List<Id> templateParams);
 
-    interface _SyntaxTransformation(com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer transformation);
+    interface _SyntaxTransformation(String syntaxTransformer, java.util.Map<String,Object> variables);
 
     /**
      * intersections of interface types
@@ -589,7 +589,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * transformer definition in transformer declarations
              */
-            TransformerDef(AbstractNode transformer);
+            TransformerDef(String transformer, String def);
+
+            /**
+	     * For terminal nodes that are just a string literal
+	     */
+            SimpleTransformerDef(AbstractNode node);
+
             /**
              * transformer expression definition in transformer declarations
              */

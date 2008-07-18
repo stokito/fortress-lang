@@ -25,6 +25,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import java.lang.reflect.Method;
+
+import java.io.BufferedReader;
+
+import xtc.parser.ParserBase;
+import xtc.parser.SemanticValue;
+import xtc.parser.ParseError;
+
+import com.sun.fortress.exceptions.ParserError;
+import com.sun.fortress.exceptions.MultipleStaticError;
+
+import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
+
+import com.sun.fortress.syntax_abstractions.parser.ImportedApiCollector;
+
+import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
+import com.sun.fortress.syntax_abstractions.MacroCompiler;
+import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
+
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.StaticPhaseResult;
@@ -35,6 +54,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
@@ -45,6 +65,7 @@ import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.TransformerDef;
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -52,6 +73,9 @@ import com.sun.fortress.syntax_abstractions.GrammarIndexInitializer;
 import com.sun.fortress.syntax_abstractions.MacroCompiler.Result;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
+import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -89,7 +113,8 @@ public class GrammarRewriter {
         List<StaticError> errors = new LinkedList<StaticError>();
         Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
         apis.addAll(map.values());
-        apis.addAll(env.apis().values());
+        /* why is adding all the env apis necessary? it does redudant work */
+        // apis.addAll(env.apis().values());
         errors.addAll(initializeGrammarIndexExtensions(apis));
 
         List<Api> results = new ArrayList<Api>();
@@ -130,10 +155,75 @@ public class GrammarRewriter {
         for (ApiIndex api: apiIR.apis().values()) { 
             initGrammarEnv(api.grammars().values());
         }
-               
+
+        List<Api> i2 = new ArrayList<Api>();
+        for (ApiIndex api: apiIR.apis().values()){
+            if ( containsGrammar( env, (Api)api.ast()) ){
+                Debug.debug( Debug.Type.SYNTAX, 1, "Create parser for " + api.ast().getName() );
+                RewriteTransformerNames collector = new RewriteTransformerNames();
+                final Api transformed = (Api) api.ast().accept( collector );
+                i2.add( transformed );
+            } else {
+                i2.add( (Api) api.ast() );
+            }
+        }
+
+        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(i2, System.currentTimeMillis() );
+        for ( ApiIndex api : apiN.apis().values() ){
+                // List<String> names = collector.getNames();
+                // Debug.debug( Debug.Type.SYNTAX, 1, "Syntax transformers for " + api.ast().getName() + ": " + names );
+
+            final Api raw = (Api) api.ast();
+            if ( containsGrammar( env, raw) ){
+                final Class<?> parserClass = createParser( api, env );
+                final SyntaxTransformerCreater creater = new SyntaxTransformerCreater();
+                api.ast().accept( new NodeDepthFirstVisitor_void(){
+                    @Override public void forNonterminalDef(NonterminalDef that) {
+                        BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
+                        String name = that.getHeader().getName().getText();
+                        MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                        visitSyntaxDefs(that.getSyntaxDefs(), name, type, memberEnv);
+                    }
+
+                    @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
+                        BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
+                        String name = that.getHeader().getName().getText();
+                        MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
+                        visitSyntaxDefs(that.getSyntaxDefs(), name, type, memberEnv);
+                    }
+
+                    private void visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs, String name, BaseType type, MemberEnv memberEnv) {
+                        for (SyntaxDef syntaxDef: syntaxDefs) {
+                            visitSyntaxDef(syntaxDef, name, type, memberEnv);
+                        }
+                    }
+
+                    private void visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type, MemberEnv memberEnv) {
+                        TransformerDef transformer = (TransformerDef) syntaxDef.getTransformer();
+                        Debug.debug( Debug.Type.SYNTAX, 1, "Create function for " + transformer.getTransformer() );
+                        SyntaxTransformerManager.addTransformer( transformer.getTransformer(), createTransformer( creater, raw.getName(), parserClass, transformer.getDef(), new SyntaxDeclEnv(syntaxDef, memberEnv) ) );
+                    }
+                });
+
+                rs.add( raw );
+            } else {
+                rs.add( (Api) api.ast() );
+            }
+        }
+        
+        /*
+        for (ApiIndex api: apiIR.apis().values()) {
+            rs.add( (Api) api.ast() );
+        }
+        */
+
+        /*
         for (ApiIndex api: apiIR.apis().values()) {
             // 7) Parse content of pretemplates and replace pretemplate 
             // with a real template
+
+            //  Api transfomerApi = TransformerParser.parseTemplates(api.ast());
+
             TemplateParser.Result tpr = TemplateParser.parseTemplates((Api)api.ast());
             for (StaticError se: tpr.errors()) { errors.add(se); };
             if (!tpr.isSuccessful()) { return new ApiResult(rs, errors); }
@@ -146,8 +236,104 @@ public class GrammarRewriter {
             if (!tcr.isSuccessful()) { return new ApiResult(rs, errors); }
             rs.add(tcr.api());
         }
+        */
 
         return new ApiResult(rs, errors);
+    }
+
+    /* TODO: implement this */
+    private static boolean containsGrammar( GlobalEnvironment env, Api api ){
+        ImportedApiCollector collector = new ImportedApiCollector(env);
+        collector.collectApis(api);
+        return ! collector.getGrammars().isEmpty();
+    }
+
+    private static Option<Method> lookupExpression(Class parser, String production){
+        try{
+            /* This is a Rats! specific naming convention. Move it
+             * elsewhere?
+             */
+            String fullName = production;
+            // String fullName = "pExprOnly";
+            Method found = parser.getDeclaredMethod(fullName, int.class);
+
+            /* method is private by default so we have to make
+             * it accessible
+             */
+            if ( found != null ){
+                found.setAccessible(true);
+                return Option.wrap(found);
+            }
+            return Option.none();
+        } catch (NoSuchMethodException e){
+            throw new RuntimeException(e);
+        } catch (SecurityException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Object invokeMethod( Object obj, String name ){
+        Option<Method> method = lookupExpression( obj.getClass(), name );
+        if ( ! method.isSome() ){
+            throw new RuntimeException( "Could not find method " + name + " in " + obj.getClass().getName() );
+        } else {
+            try{
+                return (xtc.parser.Result) method.unwrap().invoke(obj, 0);
+            } catch (IllegalAccessException e){
+                throw new RuntimeException(e);
+            } catch (java.lang.reflect.InvocationTargetException e){
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static SyntaxTransformer createTransformer( SyntaxTransformerCreater creater, APIName apiName, Class<?> parserClass, String def, SyntaxDeclEnv env ){
+        try{
+            BufferedReader in = Useful.bufferedStringReader(def);
+            ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
+            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, "pExpression$Expr" );
+            // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
+            if ( result.hasValue() ){
+                Object node = ((SemanticValue) result).value;
+                return creater.create( (Node) node, env );
+            } else {
+                throw new ParserError((ParseError) result, parser);
+            }
+        } catch ( Exception e ){
+            throw new RuntimeException( "Could not create transformer for '" + def + "'", e );
+        }
+    }
+
+    private static Class<?> createParser( ApiIndex api, GlobalEnvironment env ){
+        // Compile the syntax abstractions and create a temporary parser
+        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
+        ImportedApiCollector collector = new ImportedApiCollector(env);
+        collector.collectApis((Api)api.ast());
+        Collection<GrammarIndex> grammars = collector.getGrammars();
+        for ( GrammarIndex g : api.grammars().values() ){
+            g.isToplevel(true);
+        }
+        grammars.addAll( api.grammars().values() );
+        MacroCompiler.Result tr = macroCompiler.compile(grammars, env);
+        // if (!tr.isSuccessful()) { return new Result(tr.errors()); }
+        if ( ! tr.isSuccessful() ){
+            throw new MultipleStaticError( tr.errors() );
+        }
+
+        Class<?> temporaryParserClass = tr.getParserClass(); 
+        Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
+        return temporaryParserClass;
+
+        /*
+        BufferedReader in = null; 
+        try {
+            in = Useful.utf8BufferedFileReader(f);
+            ParserBase p =
+                ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
+            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
+        } catch ( IOException e ){
+        }
+        */
     }
     
     private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {

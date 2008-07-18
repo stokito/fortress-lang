@@ -17,9 +17,23 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.AbstractNode;
+import java.util.Map;
+import java.util.HashMap;
 
-public interface SyntaxTransformer<T extends Node> {
-    public T invoke( java.util.Map<String,Object> variables );
+public class SyntaxTransformerManager {
+
+    private static SyntaxTransformerManager manager = new SyntaxTransformerManager();
+
+    private Map<String,SyntaxTransformer> transformers;
+    private SyntaxTransformerManager(){
+        this.transformers = new HashMap<String,SyntaxTransformer>();
+    }
+
+    public static void addTransformer( String name, SyntaxTransformer transformer ){
+        manager.transformers.put( name, transformer );
+    }
+
+    public static SyntaxTransformer getTransformer( String name ){
+        return manager.transformers.get( name );
+    }
 }

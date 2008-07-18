@@ -141,25 +141,25 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         for ( SyntaxSymbol symbol : that.getSymbols() ){
             c.putAll( symbol.accept(this) );
         }
-        Debug.debug( Debug.Type.SYNTAX, 1, "Bound symbols for group: ", c );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Bound symbols for group: ", c );
         return c;
     }
 
     @Override
     public Map<PrefixedSymbol,Depth> forRepeatSymbol(RepeatSymbol that) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Repeat symbol ", that.getSymbol() );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Repeat symbol ", that.getSymbol() );
         return that.getSymbol().accept(new VariableCollector(addStar(depth)));
     }
 
     @Override
     public Map<PrefixedSymbol,Depth> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Repeat One or more symbol ", that.getSymbol() );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Repeat One or more symbol ", that.getSymbol() );
         return that.getSymbol().accept(new VariableCollector(addPlus(depth)));
     }
 
     @Override
     public Map<PrefixedSymbol,Depth> forOptionalSymbol(OptionalSymbol that) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Optional ", that.getSymbol() );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Optional ", that.getSymbol() );
         return that.getSymbol().accept(new VariableCollector(addOptional(depth)));
     }
 

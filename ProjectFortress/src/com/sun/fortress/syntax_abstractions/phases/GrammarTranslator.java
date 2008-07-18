@@ -34,6 +34,7 @@ import xtc.parser.Production;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.useful.Debug;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
@@ -72,6 +73,7 @@ public class GrammarTranslator {
 			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {	
 
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
+                    Debug.debug( Debug.Type.SYNTAX, 1, String.format( "Translating module %s '%s'", module.getClass().getName(), module.getName() ) );
                     // System.out.println( String.format( "Translating module %s '%s'", module.getClass().getName(), module.getName() ) );
 			if (module instanceof FortressModule) {
 				ratsModules.add(makeFortressModule((FortressModule) module));
@@ -103,7 +105,7 @@ public class GrammarTranslator {
 		}
 		m.parameters = new ModuleList(params);
 
-        List<ModuleDependency> mds = new LinkedList<ModuleDependency>();
+                List<ModuleDependency> mds = new LinkedList<ModuleDependency>();
 		mds.addAll(m.dependencies);
 		for (ModuleDependency md: module.getDependencies()) {
 		    if (!mds.contains(md)) {

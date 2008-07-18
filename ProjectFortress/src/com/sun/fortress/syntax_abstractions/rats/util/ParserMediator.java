@@ -30,7 +30,7 @@ import xtc.parser.Result;
 
 public class ParserMediator {
 
-	private static ParserBase parser;
+	// private static ParserBase parser;
 
 	public ParserMediator() {
 	}
@@ -60,8 +60,9 @@ public class ParserMediator {
 
 		Constructor<?> constructor =
                     parserClass.getConstructor(Reader.class, String.class);
-		parser = (ParserBase) constructor.newInstance(reader, filename);
-		return parser;
+                return (ParserBase) constructor.newInstance(reader, filename);
+		// parser = (ParserBase) constructor.newInstance(reader, filename);
+		// return parser;
 	}
 
 	/**
@@ -73,18 +74,25 @@ public class ParserMediator {
 	 * @throws InvocationTargetException
 	 * @throws NoSuchMethodException
 	 */
-	public static Result parse() throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public static Result parse( ParserBase parser ) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		String methodName = "pFile";
 		Class[] types = new Class[] {int.class};
 		Object args = 0;
-		return (Result) invokeMethod(methodName, types, args);
+		return (Result) invokeMethod(parser, methodName, types, args);
 	}
 
-	public static String getLocation(int index) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        public static Result parse( ParserBase parser, String method ) throws IllegalAccessException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		String methodName = "p" + method;
+		Class[] types = new Class[] {int.class};
+		Object args = 0;
+		return (Result) invokeMethod(parser, methodName, types, args);
+        }
+
+	public static String getLocation(ParserBase parser, int index) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		String methodName = "location";
 		Class[] types = new Class[] {int.class};
 		Object args = index;
-		return invokeMethod(methodName, types, args).toString();
+		return invokeMethod(parser, methodName, types, args).toString();
 	}
 
 	/**
@@ -101,7 +109,7 @@ public class ParserMediator {
 	 * @throws NoSuchMethodException
 	 * @throws SecurityException
 	 */
-	private static Object invokeMethod(String methodName, Class[] types, Object args) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
+	private static Object invokeMethod(ParserBase parser, String methodName, Class[] types, Object args) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
 		Method pFile = parser.getClass().getMethod(methodName, types);
 		Object o = pFile.invoke(parser, args);
 		return o;
