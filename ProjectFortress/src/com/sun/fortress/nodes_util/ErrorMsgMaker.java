@@ -138,7 +138,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                 ;//+ "@" + NodeUtil.getAt(node.getFnName());
     }
 
-
     public String forId(Id node) {
         return NodeUtil.nameString(node);
     }
@@ -193,6 +192,38 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forVarRef(VarRef node) {
         return NodeUtil.nameString(node.getVar());
+    }
+
+    public String for_RewriteObjectRef(_RewriteObjectRef node) {
+        List<StaticArg> sargs = node.getStaticArgs();
+        return forId(node.getObj()) +
+               (sargs.size() > 0 ? Useful.listInOxfords(sargs) : "");
+    }
+
+    public String forFieldRef(FieldRef node) {
+        return node.getObj().accept(this) + "." + forId(node.getField());
+    }
+
+    public String for_RewriteFieldRef(FieldRef node) {
+        return node.getObj().accept(this) + "." + forName(node.getField());
+    }
+
+    public String forFnRef(FnRef node) {
+        List<StaticArg> sargs = node.getStaticArgs();
+        return forId(node.getOriginalName()) +
+               (sargs.size() > 0 ? Useful.listInOxfords(sargs) : "");
+    }
+
+    public String for_RewriteFnRef(_RewriteFnRef node) {
+        List<StaticArg> sargs = node.getStaticArgs();
+        return node.getFn().accept(this) +
+               (sargs.size() > 0 ? Useful.listInOxfords(sargs) : "");
+    }
+
+    public String forOpRef(OpRef node) {
+        List<StaticArg> sargs = node.getStaticArgs();
+        return forName(node.getOriginalName()) +
+               (sargs.size() > 0 ? Useful.listInOxfords(sargs) : "");
     }
 
     public String forIntLiteralExpr(IntLiteralExpr node) {
