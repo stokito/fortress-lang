@@ -27,7 +27,15 @@ public class FInt extends NativeConstructor.FNativeObject implements HasIntValue
     }
 
     public int getInt() {return val;}
+    public int getNN32() {
+        // TODO Throw an error on out-of-range conversion?
+        return (int) val;
+    }
     public long getLong() {return (long)val;}
+    public long getNN64() {
+        // TODO Throw an error on out-of-range conversion?
+        return (long) val;
+    }
     public double getFloat() { return (double) val;}
     public String getString() {return Integer.toString(val);}
     public String toString() {

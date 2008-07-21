@@ -38,6 +38,8 @@ value object RR32 extends RR64
     getter check_star(): Maybe[\RR32\]
     (** obtain the raw bits of the IEEE floating-point representation of this value. **)
     getter rawBits():ZZ32
+    (** obtain the sign bit of the IEEE floating-point representation of this value. **)
+    getter signBit():ZZ32
     (** next higher IEEE float **)
     getter nextUp():RR32
     (** next lower IEEE float **)
@@ -54,6 +56,37 @@ value object Int extends ZZ32
 end
 
 value object Long extends ZZ64
+end
+
+value object NN32 extends { StandardTotalOrder[\NN32\], NN64 }
+    opr |self| : NN32
+    opr =(self, b:NN32):Boolean
+    opr <(self, b:NN32):Boolean
+    opr -(self):NN32
+    opr +(self,b:NN32):NN32
+    opr -(self,b:NN32):NN32
+    opr DOT(self,b:NN32):NN32
+    opr TIMES(self,b:NN32):NN32
+    opr juxtaposition(self,b:NN32):NN32
+    opr DIV(self,b:NN32):NN32
+    opr REM(self,b:NN32):NN32
+    opr MOD(self,b:NN32):NN32
+    opr GCD(self,b:NN32):NN32
+    opr LCM(self,b:NN32):NN32
+    opr CHOOSE(self,b:NN32):NN32
+    opr BITAND(self,b:NN32):NN32
+    opr BITOR(self,b:NN32):NN32
+    opr BITXOR(self,b:NN32):NN32
+    opr LSHIFT(self,b:AnyIntegral):NN32
+    opr RSHIFT(self,b:AnyIntegral):NN32
+    opr BITNOT(self):NN32
+    opr ^(self, b:AnyIntegral):RR64
+    widen(self):NN64
+    partitionL(self):NN32
+    signed(self):ZZ32
+end
+
+value object UnsignedLong extends NN64
 end
 
 object IntLiteral extends { ZZ32 }
@@ -81,10 +114,10 @@ cause all our arithmetic to occur on IntLiterals.
     opr BITAND(self, b: IntLiteral): IntLiteral
     opr BITOR(self, b: IntLiteral): IntLiteral
     opr BITXOR(self, b: IntLiteral): IntLiteral
-    opr LSHIFT(self, b:ZZ64): IntLiteral
-    opr RSHIFT(self, b:ZZ64): IntLiteral
+    opr LSHIFT(self, b:AnyIntegral): IntLiteral
+    opr RSHIFT(self, b:AnyIntegral): IntLiteral
     opr BITNOT(self): IntLiteral
-    opr ^(self, b:ZZ64):RR64
+    opr ^(self, b:AnyIntegral):RR64
 *)
 end
 
@@ -99,7 +132,7 @@ object Char extends { StandardTotalOrder[\Char\] }
         It is always the case that %c = char(c.codePoint())% for %c : Char%. **)
     getter codePoint(): ZZ32
 
-    (** |c| means the same as %c.chr()%; it's unclear if this is
+    (** |c| means the same as %c.ord()%; it's unclear if this is
         actually a good idea, and we solicit feedback on the subject. **)
     opr |self| : ZZ32
 

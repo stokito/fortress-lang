@@ -52,8 +52,10 @@ run(args:String...) = do
     tst(digitSeparator("123456789.5678912345",3,",",'.'),"123,456,789.567,891,234,5")
     tst(digitSeparator("-123456789.5678912345",3,",",'.'),"-123,456,789.567,891,234,5")
     tst(scientific(0),"0.000000e+00")
+(*
     tst(scientific(1),"1.000000e+00")
     tst(scientific(-1),"-1.000000e+00")
+*)
     tst(scientific(1.0),"1.000000e+00")
     tst(scientific(10.0),"1.000000e+01")
     tst(scientific(2835.235235),"2.835235e+03")

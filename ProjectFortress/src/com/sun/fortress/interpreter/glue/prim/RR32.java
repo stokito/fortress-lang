@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.FRR32;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
@@ -72,6 +73,12 @@ static private abstract class F2I extends NativeMeth0 {
     protected abstract int f(float x);
     protected final FValue act(FObject x) {
         return FInt.make(f(x.getRR32()));
+    }
+}
+static private abstract class F2S extends NativeMeth0 {
+    protected abstract java.lang.String f(float x);
+    protected final FValue act(FObject x) {
+        return FString.make(f(x.getRR32()));
     }
 }
 static private abstract class FF2B extends NativeMeth1 {
@@ -134,6 +141,30 @@ public static final class DivDown extends FF2F {
 }
 public static final class SqrtDown extends F2F {
     protected float f(float x) { return DirectedRounding.sqrtDown(x); }
+}
+public static final class AddUpNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.addUpNoNaN(x,y); }
+}
+public static final class SubUpNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.subtractUpNoNaN(x,y); }
+}
+public static final class MulUpNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.multiplyUpNoNaN(x,y); }
+}
+public static final class DivUpNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.divideUpNoNaN(x,y); }
+}
+public static final class AddDownNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.addDownNoNaN(x,y); }
+}
+public static final class SubDownNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.subtractDownNoNaN(x,y);}
+}
+public static final class MulDownNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.multiplyDownNoNaN(x,y);}
+}
+public static final class DivDownNoNaN extends FF2F {
+    protected float f(float x, float y) { return DirectedRounding.divideDownNoNaN(x,y); }
 }
 public static final class Eq extends FF2B {
     protected boolean f(float x, float y) { return x==y; }
@@ -205,6 +236,9 @@ public static final class isInfinite extends F2B {
 
 public static final class isNaN extends F2B {
     protected boolean f(float x) { return java.lang.Float.isNaN(x); }
+}
+public static final class ToString extends F2S {
+    protected java.lang.String f(float x) { return java.lang.Float.toString(x); }
 }
 
 }

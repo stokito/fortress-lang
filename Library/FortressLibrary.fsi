@@ -300,6 +300,14 @@ trait Number
     opr DOT_DOWN(self,b:Number):RR64
     opr SLASH_DOWN(self,b:Number):RR64
     opr SQRT_DOWN(self):RR64
+    opr IEEE_PLUS_UP(self,b:Number):RR64
+    opr IEEE_MINUS_UP(self,b:Number):RR64
+    opr IEEE_DOT_UP(self,b:Number):RR64
+    opr IEEE_PLUS_DOWN(self,b:Number):RR64
+    opr IEEE_MINUS_DOWN(self,b:Number):RR64
+    opr IEEE_DOT_DOWN(self,b:Number):RR64
+    opr IEEE_SLASH_DOWN(self,b:Number):RR64
+    opr IEEE_SLASH_UP(self,b:Number):RR64
     opr |a:RR64| : RR64
     opr ^(self, b:RR64):RR64
     sin(self):RR64
@@ -333,6 +341,8 @@ trait RR64 extends Number comprises { RR32, Float, AnyIntegral, FloatLiteral }
     getter check_star(): Maybe[\RR64\]
     (** obtain the raw bits of the IEEE floating-point representation of this value. **)
     getter rawBits():ZZ64
+    (** obtain the sign bit of the IEEE floating-point representation of this value. **)
+    getter signBit():ZZ32
     (** next higher IEEE float **)
     getter nextUp():RR64
     (** next lower IEEE float **)
@@ -346,13 +356,48 @@ trait RR64 extends Number comprises { RR32, Float, AnyIntegral, FloatLiteral }
     narrow(self): RR32
 end
 
-trait AnyIntegral extends { RR64 } end
+
+trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
+    getter isNaN(): Boolean
+    getter isInfinite(): Boolean
+    getter isNumber(): Boolean
+    getter isFinite(): Boolean
+    numerator(self): ZZ
+    denominator(self): ZZ  (* Ideally would be NN *)
+    opr |self| : QQ
+    opr =(self, other:QQ):Boolean
+    opr =/=(self, other:QQ):Boolean
+    opr <(self, other:QQ):Boolean
+    opr <=(self, other:QQ):Boolean
+    opr >(self, other:QQ):Boolean
+    opr >=(self, other:QQ):Boolean
+    (** In case of 0/0, %MIN% and %MAX% return 0/0, otherwise it respects the total order. **)
+    opr MIN(self, other:QQ):QQ
+    opr MAX(self, other:QQ):QQ
+    opr -(self):QQ
+    opr +(self,other:QQ):QQ
+    opr -(self,other:QQ):QQ
+    opr DOT(self,other:QQ):QQ
+    opr TIMES(self,other:QQ):QQ
+    opr juxtaposition (self,other:QQ):QQ
+    opr /(self,other:QQ):QQ
+    opr ^(self, other:ZZ64):QQ
+    floor(self):ZZ
+    opr |\self/| : ZZ
+    ceiling(self):ZZ
+    opr |/self\| : ZZ
+    truncate(self): ZZ
+    round(self): ZZ
+    opr MINNUM(self, other:QQ):QQ
+    opr MAXNUM(self, other:QQ):QQ
+end
+
+trait AnyIntegral extends { QQ } end
 
 trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], AnyIntegral }
         comprises { ZZ, IntLiteral }
     getter zero(): I
     getter one(): I
-
     opr -(self):I
     opr +(self,b:I):I
     opr -(self,b:I):I
@@ -368,10 +413,38 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr BITAND(self,b:I):I
     opr BITOR(self,b:I):I
     opr BITXOR(self,b:I):I
-    opr LSHIFT(self,b:ZZ64):I
-    opr RSHIFT(self,b:ZZ64):I
+    opr LSHIFT(self,b:AnyIntegral):I
+    opr RSHIFT(self,b:AnyIntegral):I
     opr BITNOT(self):I
-    opr ^(self, b:ZZ64):RR64
+    opr ^(self, b:AnyIntegral):RR64
+    unsigned(self):NN64
+end
+
+trait NN64 extends { ZZ, Integral[\NN64\] } comprises { UnsignedLong, NN32 }
+    opr |self| : NN64
+    opr =(self, b:NN64):Boolean
+    opr <(self, b:NN64):Boolean
+    opr -(self):NN64
+    opr +(self,b:NN64):NN64
+    opr -(self,b:NN64):NN64
+    opr DOT(self,b:NN64):NN64
+    opr TIMES(self,b:NN64):NN64
+    opr juxtaposition(self,b:NN64):NN64
+    opr DIV(self,b:NN64):NN64
+    opr REM(self,b:NN64):NN64
+    opr MOD(self,b:NN64):NN64
+    opr GCD(self,b:NN64):NN64
+    opr LCM(self,b:NN64):NN64
+    opr CHOOSE(self,b:NN64):NN64
+    opr BITAND(self,b:NN64):NN64
+    opr BITOR(self,b:NN64):NN64
+    opr BITXOR(self,b:NN64):NN64
+    opr LSHIFT(self,b:AnyIntegral):NN64
+    opr RSHIFT(self,b:AnyIntegral):NN64
+    opr BITNOT(self):NN64
+    opr ^(self, b:AnyIntegral):RR64
+    narrow(self):NN32
+    signed(self):NN64
 end
 
 trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
@@ -401,6 +474,7 @@ trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
     opr BITNOT(self):ZZ32
     widen(self):ZZ64
     partitionL(self):ZZ32
+    unsigned(self):NN32
 end
 
 trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
@@ -439,6 +513,8 @@ trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
 end
 
 trait ZZ extends { Integral[\ZZ\] } comprises { BigNum, ZZ64}
+    opr /(self,other:ZZ):QQ
+    numerator(self): ZZ
 end
 
 (************************************************************
@@ -1229,8 +1305,10 @@ trait Array1[\T, nat b0, nat s0\]
     ivmap[\R\](f:(ZZ32,T)->R): Array1[\R,b0,s0\]
 end
 
+trait AnyVector end
+
 trait Vector[\T extends Number, nat s0\]
-        extends { Array1[\T,0,s0\], AdditiveGroup[\Vector[\T,s0\]\] }
+        extends { AnyVector, Array1[\T,0,s0\], AdditiveGroup[\Vector[\T,s0\]\] }
         excludes { AnyMultiplicativeRing }
     opr +(self, v:Vector[\T,s0\]): Vector[\T,s0\]
     opr -(self, v:Vector[\T,s0\]): Vector[\T,s0\]
@@ -1344,8 +1422,10 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   freeze():ImmutableArray[\T,(ZZ32,ZZ32)\]
 end
 
+trait AnyMatrix end
+
 trait Matrix[\T extends Number, nat s0, nat s1\]
-        extends { Array2[\T, 0, s0, 0, s1\], AdditiveGroup[\Matrix[\T,s0,s1\]\] }
+        extends { AnyMatrix, Array2[\T, 0, s0, 0, s1\], AdditiveGroup[\Matrix[\T,s0,s1\]\] }
         excludes { AnyMultiplicativeRing }
     opr +(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
     opr -(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
@@ -1926,6 +2006,7 @@ throwError(a:String):()
 
 opr SEQV(a:Any, b:Any):Boolean
 
+opr XOR(a:Boolean, b:Boolean):Boolean
 opr  OR(a:Boolean, b:Boolean):Boolean
 opr AND(a:Boolean, b:Boolean):Boolean
 opr  OR(a:Boolean, b:()->Boolean):Boolean

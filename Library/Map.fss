@@ -17,7 +17,7 @@
 
 component Map
 import List.{...}
-import Set.{Set}
+import Set.{Set, set}
 export Map
 
 weight:ZZ32 = 4
