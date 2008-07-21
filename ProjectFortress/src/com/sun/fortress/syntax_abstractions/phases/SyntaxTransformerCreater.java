@@ -76,7 +76,7 @@ public class SyntaxTransformerCreater {
             writer.close();
             int compileResult = JavaC.compile(dir, dir, file.getCanonicalPath() );
             if (compileResult != 0) {
-                throw new RuntimeException("A compiler error occured while compiling a temporary parser");
+                throw new RuntimeException("A compiler error occured while compiling a temporary parser: " + compileResult );
             }
 
             Debug.debug( Debug.Type.SYNTAX, 2, "Created transformer " + className + " in " + dir );
