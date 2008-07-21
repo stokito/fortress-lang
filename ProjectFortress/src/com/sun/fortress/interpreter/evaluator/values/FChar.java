@@ -123,14 +123,14 @@ public class FChar extends NativeConstructor.FNativeObject {
     }
 
     /*
-     * This needs to get fixed; right now val is an int type, but the String.valueOf only handles 16-bit chars 
+     * This needs to get fixed; right now val is an int type, but the String.valueOf only handles 16-bit chars
      */
     public String getString() {
         return String.valueOf((char) val);
     }
 
     public String toString() {
-        return "'" + Unprinter.enQuote(getString()) + "'";
+        return getString();
     }
 
     public boolean seqv(FValue v) {

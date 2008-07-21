@@ -19,9 +19,9 @@ component intDivisionTest
 export Executable
 
 run(args:String...) = do
-  if (3/2) NE 1.5 then 1/0; () end
-  if (5 DIV 2) NE 2 then 1/0; () end
-  if ((-5) DIV 2) NE 2 then 1/0; () end
+  assert(3/2, 6/4)
+  assert(5 DIV 2, 2)
+  assert((-5) DIV 2, -2)
 end
 
 end
