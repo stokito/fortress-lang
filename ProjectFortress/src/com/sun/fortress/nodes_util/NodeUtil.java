@@ -447,8 +447,7 @@ public class NodeUtil {
                 else sawLowerCase = true;
             }
             if (radixNumber == 12) {
-                if (!validDigitOrLetterIn12(c)
-		    && c != '.' && c != '\'' && c != '\u202F') {
+                if (!validDigitOrLetterIn12(c) && c != '.') {
 		    return false;
 		}
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
@@ -473,8 +472,7 @@ public class NodeUtil {
                denotes a value greater than or equal to the
                numeral's radix.
             */
-            else if (!validDigitOrLetter(c, radixNumber) &&
-		     c != '.' && c != '\'' && c != '\u202F') {
+            else if (!validDigitOrLetter(c, radixNumber) && c != '.') {
                 return false;
 	    }
         }
