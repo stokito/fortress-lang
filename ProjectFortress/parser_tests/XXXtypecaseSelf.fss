@@ -15,35 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component illegalShadowing
+component XXXtypecaseSelf
 export Executable
 
-trait T
-  getI():ZZ32
-  setI(newI:ZZ32):ZZ32
-end
-
-object A(i:ZZ32) extends T
-    getI():ZZ32 = i
-    setI(newI:ZZ32):ZZ32 = i (* don't actually set it *)
-
-    b():T = object extends T
-                getI():ZZ32 = i
-                setI(newI:ZZ32):ZZ32 = do
-                    i = newI
-                    i
-                end
-            end
-end
-
-
-run(args:String...):()=do
-  a:A = A(1)
-  b:T = a.b()
-  println("a.getI() = " a.getI())
-  println("b.getI() = " b.getI())
-  println("b.setI(3) = " b.setI(3))
-  println("a.getI() = " a.getI())
+run(args:String...) = do
+  x = |args|
+  typecase self of
+    ZZ32 => println x
+    else => println (x " is not ZZ32.")
+  end
 end
 
 end

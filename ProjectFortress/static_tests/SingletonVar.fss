@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,25 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ImportLocalCollision
-import TestImports1.{...}
-export Executable
+component SingletonVar
+  import NatReflect.{...}
+  export Executable
 
-trait U
-  s():String = "s from ImportLocalCollision.U"
-end
+  object W[\ nat n \]
+  end
+  
+  bar[\ nat n \](): W[\n\] = W[\n\]
+  foo[\nat n\]() : N[\n\] = N[\n\]
 
-object V extends U
-end
-
-object W extends T
-  myname():String = "ImportLocalCollision.W"
-end
-
-run(args:String...):()=do
-  println V.s()
-  println W.s()
-  println W.t()
-end
-
+  run(args:String...):() = ()
 end
