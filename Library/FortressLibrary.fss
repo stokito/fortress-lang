@@ -19,7 +19,7 @@ component FortressLibrary
 import NativeArray.{...}
 import NatReflect.{...}
 
-export Executable
+export FortressLibrary
 
 (** The following function is actually recognized as a special piece
     of built-in magic by the Fortress interpreter.  The javaClass

@@ -719,10 +719,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             _EllipsesExpr(Expr expr);
 
             /**
-             * Template gap for expressions
-             */
-//            TemplateGapExpr(Id id, List<Id> templateParams) implements TemplateGap;
-            /**
              * expression annotated with a type
              */
             abstract TypeAnnotatedExpr(Expr expr, Type type);
@@ -756,10 +752,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * Expr ::= DelimitedExpr
              */
             abstract DelimitedExpr();
-                /**
-                 * Template gap for expressions
-                 */
-//                TemplateGapDelimitedExpr(Id id, List<Id> templateParams) implements TemplateGap;
                 /**
                  * sequence of block elements implicitly enclosed by do/end
                  * BlockElems ::= BlockElem+
@@ -989,10 +981,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                        = Option.<List<BaseType>>none(),
                    Expr body)
                   implements Applicable;
-                /**
-                 * Template gap for FnExpr
-                 */
-//                TemplateGapFnExpr(Id id, List<Id> templateParams) implements TemplateGap;
             /**
              * expression used in block expressions
              * BlockElem ::= LocalVarFnDecl
@@ -1038,10 +1026,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             abstract SimpleExpr();
                 /**
-                 * Template gap for simple expressions
-                 */
-//                TemplateGapSimpleExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                /**
                  * subscripting expression
                  * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
                  * e.g.) a[i]
@@ -1056,26 +1040,14 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                  */
                 abstract Primary();
                     /**
-                     * Template gap for primary expressions
-                     */
-//                    TemplateGapPrimary(Id id, List<Id> templateParams) implements TemplateGap;
-                    /**
                      * literal
                      * Primary ::= LiteralExpr
                      */
                     abstract LiteralExpr(String text);
                         /**
-                         * Template gap for literal expressiont
-                         */
-//                        TemplateGapLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
-                        /**
                          * number literal
                          */
                         abstract NumberLiteralExpr();
-                            /**
-                             * Template gap for number literals
-                             */
-//                            TemplateGapNumberLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                             /**
                              * float literal
                              * e.g.) 3.5
@@ -1084,47 +1056,27 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                              BigInteger intPart,
                                              BigInteger numerator, int denomBase,
                                              int denomPower);
-                                /**
-                                 * Template gap for float literals
-                                 */
-//                                TemplateGapFloatLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                             /**
                              * int literal
                              * e.g.) 7
                              */
                             IntLiteralExpr(String text = in_val.toString(),
                                            BigInteger val);
-                                /**
-                                 * Template gap for int literals
-                                 */
-//                                TemplateGapIntLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * char literal
                          * e.g.) 'c'
                          */
                         CharLiteralExpr(int val = in_text.charAt(0));
-                            /**
-                             * Template gap for char literals
-                             */
-//                            TemplateGapCharLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * string literal
                          * e.g.) "string"
                          */
                         StringLiteralExpr();
-                            /**
-                             * Template gap for string literals
-                             */
-//                            TemplateGapStringLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                         /**
                          * void literal
                          * e.g.) ()
                          */
                         VoidLiteralExpr(String text = "");
-                            /**
-                             * Template gap for void literals
-                             */
-//                            TemplateGapVoidLiteralExpr(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * variable reference
                      * VarOrFnRef ::= Id
@@ -1187,7 +1139,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                          */
                         _RewriteFnRef(Expr fn,
                                       List<StaticArg> staticArgs
-                                  = Collections.<StaticArg>emptyList());
+                                          = Collections.<StaticArg>emptyList());
                         /**
                          * operator name with (inferred) static instantiations
                          * list of operators allows cross-API overloading
@@ -1222,10 +1174,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                              * e.g.) 3 5
                              */
                             LooseJuxt();
-                                /**
-                                 * Template gap for expressions
-                                 */
-//                                TemplateGapLooseJuxt(Id id, List<Id> templateParams) implements TemplateGap;
                            /**
                              * juxtaposition without intervening whitespace
                              * e.g.) f(3+5)
@@ -1253,20 +1201,20 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                          */
                         OpExpr(OpRef op,
                                List<Expr> args = Collections.<Expr>emptyList());
-                        
+
                         /**
                          * If an expression uses and operator, and that operator
                          * looks at parse-time like a multifix operator, it
                          * an AmbigMultifixOpExpr node is created, because it is
                          * unclear until typechecking and overloading resolution
                          * whether it should be one multifix application or several
-                         * infix applications. 
+                         * infix applications.
                          *
                          * e.g.) 3+4+5+6
                          */
                         AmbiguousMultifixOpExpr(OpRef infix_op, OpRef multifix_op,
-                                                List<Expr> args = Collections.<Expr>emptyList());       
-                        
+                                                List<Expr> args = Collections.<Expr>emptyList());
+
                         /**
                          * chain expression
                          * Certain infix mathematical operators that are
@@ -2014,10 +1962,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          */
         abstract Name();
             /**
-             * Template gap for names
-             */
-//            TemplateGapName(Id id, List<Id> templateParams) implements TemplateGap;
-            /**
              * unstructured sequence of ids naming an API or component
              * Names in the list must be unqualified.
              * APIName ::= Id(.Id)*
@@ -2043,10 +1987,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * e.g.) hashCode
                      */
                     Id(String text);
-                        /**
-                         * Template gap for expressions
-                         */
-//                        TemplateGapId(Id id, List<Id> templateParams) implements TemplateGap;
                     /**
                      * operator name
                      */

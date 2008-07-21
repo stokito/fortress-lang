@@ -506,6 +506,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 }
             });
         GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
+        
+        // Can we exclude non-imported pieces of the api here?
+        
+        
         List<Component> components = new ArrayList<Component>();
         Shell shell = new Shell(this);
         Shell.AnalyzeResult result =

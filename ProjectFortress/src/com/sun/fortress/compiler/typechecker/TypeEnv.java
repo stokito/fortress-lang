@@ -57,6 +57,11 @@ public abstract class TypeEnv {
         // Iterate over top-level variables, adding each to the component-level environment.
         typeEnv = typeEnv.extend(cu.variables());
 
+        //Iterate over top level types, adding each to component-level environment
+        
+        typeEnv = typeEnv.extendWithTypeConses(cu.typeConses());
+        
+        
         return typeEnv;
     }
 
@@ -336,6 +341,11 @@ public abstract class TypeEnv {
         else { return new ParamTypeEnv(params, this); }
     }
 
+    public final TypeEnv extendWithStaticParams(List<StaticParam> params) {
+    	if( params.size() == 0 ) {return this; }
+    	else { return new StaticParamTypeEnv(params,this); }
+    }
+    
     public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
         if (typeConses.isEmpty()) {
             return this;

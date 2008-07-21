@@ -408,11 +408,12 @@ public class FortressAstGenerator extends CodeGenerator {
     }
 
     private void generateApi(){
-        generateFile( "FortressAst.fsi", "api FortressAst\nimport List.{...}", true );
+        generateFile( "FortressAst.fsi", "api FortressAst\nimport List.{...}\nimport FortressLibrary.{...} except ExtentRange", true );
     }
 
     private void generateComponent(){
         generateFile( "FortressAst.fss", "component FortressAst\nimport List.{...}\nexport FortressAst", false );
+        //generateFile( "FortressAst.fss", "component FortressAst\nimport List.{...}\nimport FortressLibrary.{...} except ExtentRange\nexport FortressAst", false );
     }
 
     public void generateAdditionalCode(){

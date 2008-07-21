@@ -275,19 +275,21 @@ addGames(fin: FileReadStream, fout: FileWriteStream) =
       (player1, line) := readWord line
       (player2, line) := readWord line
       if player2 = "false" OR: player2 = "true" (* exists a new player *)
-      then player1Old = player2
+      then player1Old = stringToBoolean(player2)
            var player2Old: String
            (player2   , line) := readWord line
            (player2Old, line) := readWord line
+           player2Old' = stringToBoolean(player2Old)
            if line = "" (* a singles game *)
-           then addGame(fout, player1, player1Old, player2, player2Old)
+           then addGame(fout, player1, player1Old, player2, player2Old')
            else var (player3, player3Old, player4, player4Old): String...
                     (player3   , line) := readWord line
                     (player3Old, line) := readWord line
                     (player4   , line) := readWord line
                     (player4Old, line) := readWord line
-                addGame(fout, player1, player1Old, player2, player2Old,
-                              player3, player3Old, player4, player4Old)
+                addGame(fout, player1, player1Old, player2, player2Old',
+                              player3, stringToBoolean(player3Old),
+                              player4, stringToBoolean(player4Old))
            end
       else if line = "" (* a singles game *)
            then addGame(fout, player1, player2)
@@ -299,6 +301,14 @@ addGames(fin: FileReadStream, fout: FileWriteStream) =
       end
       line := fin.readLine()
     end
+  end
+
+stringToBoolean(str: String) =
+  if str = "true"
+  then true
+  elif str = "false"
+  then false
+  else throw FailCalled(str)
   end
 
 (* Add a new player; if this player is an old member then begins with oldPoints

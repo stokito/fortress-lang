@@ -102,7 +102,7 @@ public class NonterminalEnv {
         if (optApi.isSome())
             api = optApi.unwrap();
         else
-            api = bug("NonterminalEnv.constructNonterminalApi is failed!");
+            api = bug("NonterminalEnv.constructNonterminalApi is failed! " + grammarName + " was unqualified.");
         List<Id> ls = new LinkedList<Id>();
         ls.addAll(api.getIds());
         ls.add(NodeFactory.makeId(grammarName.getSpan(), grammarName.getText()));

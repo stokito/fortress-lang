@@ -15,35 +15,36 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component illegalShadowing
+component XXXStaticParamTest
 export Executable
 
-trait T
-  getI():ZZ32
-  setI(newI:ZZ32):ZZ32
+trait T[\S\]
+  getS():S
+  setS(newS:S):S
 end
 
-object A(i:ZZ32) extends T
-    getI():ZZ32 = i
-    setI(newI:ZZ32):ZZ32 = i (* don't actually set it *)
+object A[\S\](var s:S) extends T[\S\]
+    getS():S = s
+    setS(newS:S):S = s (* don't actually set it *)
 
-    b():T = object extends T
-                getI():ZZ32 = i
-                setI(newI:ZZ32):ZZ32 = do
-                    i = newI
-                    i
+    b():T[\S\] = object extends T[\S\]
+                getS():S = s
+                setS(newS:S):S = do
+                    s := newS
+                    s
                 end
             end
 end
 
 
 run(args:String...):()=do
-  a:A = A(1)
-  b:T = a.b()
-  println("a.getI() = " a.getI())
-  println("b.getI() = " b.getI())
-  println("b.setI(3) = " b.setI(3))
-  println("a.getI() = " a.getI())
+  a:A[\ZZ32\] = A[\ZZ32\](1)
+  b:T[\ZZ32\] = a.b()
+  println("a.getS() = " a.getS())
+  println("a.setS(3) = " a.setS(3))
+  println("b.getS() = " b.getS())
+  println("b.setS(3) = " b.setS(3))
+  println("a.getS() again = " a.getS())
 end
 
 end

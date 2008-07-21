@@ -15,35 +15,21 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component illegalShadowing
+component rangeOperators
 export Executable
 
-trait T
-  getI():ZZ32
-  setI(newI:ZZ32):ZZ32
-end
+opr #(a:String, b: String) = "(" a "#" b ")"
+opr :(a: String, b: String) = "(" a ":" b ")"
+opr ::(a:String, b: String) = "(" a "::" b ")"
+run(args:String...) = do
+  assert("infix":"test"::"mine", "((infix:test)::mine)")
+  assert("infix"::"test":"mine", "(infix::(test:mine))")
 
-object A(i:ZZ32) extends T
-    getI():ZZ32 = i
-    setI(newI:ZZ32):ZZ32 = i (* don't actually set it *)
+  assert("infix"#"test"::"mine", "((infix#test)::mine)")
+  assert("infix"::"test"#"mine", "(infix::(test#mine))")
 
-    b():T = object extends T
-                getI():ZZ32 = i
-                setI(newI:ZZ32):ZZ32 = do
-                    i = newI
-                    i
-                end
-            end
-end
-
-
-run(args:String...):()=do
-  a:A = A(1)
-  b:T = a.b()
-  println("a.getI() = " a.getI())
-  println("b.getI() = " b.getI())
-  println("b.setI(3) = " b.setI(3))
-  println("a.getI() = " a.getI())
+  assert("infix"#"test":"mine", "((infix#test):mine)")
+  assert("infix":"test"#"mine", "(infix:(test#mine))")
 end
 
 end

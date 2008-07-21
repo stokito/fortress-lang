@@ -17,34 +17,73 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Collections;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Pair;
-import edu.rice.cs.plt.collect.ConsList;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.Thunk;
-import edu.rice.cs.plt.lambda.LambdaUtil;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.Types;
-import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbsFnDecl;
+import com.sun.fortress.nodes.AbsObjectDecl;
+import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BoolArg;
+import com.sun.fortress.nodes.BoolParam;
+import com.sun.fortress.nodes.BoolRef;
+import com.sun.fortress.nodes.Contract;
+import com.sun.fortress.nodes.DimArg;
+import com.sun.fortress.nodes.DimParam;
+import com.sun.fortress.nodes.DimRef;
+import com.sun.fortress.nodes.Domain;
+import com.sun.fortress.nodes.Effect;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.IntArg;
+import com.sun.fortress.nodes.IntParam;
+import com.sun.fortress.nodes.IntRef;
+import com.sun.fortress.nodes.NatParam;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.OpArg;
+import com.sun.fortress.nodes.OpParam;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TransformerDecl;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TypeParam;
+import com.sun.fortress.nodes.UnitArg;
+import com.sun.fortress.nodes.UnitParam;
+import com.sun.fortress.nodes.UnitRef;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
+
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.LambdaUtil;
+import edu.rice.cs.plt.lambda.Thunk;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 /**
  * <p>Eliminates ambiguities in types:
@@ -335,11 +374,12 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     error("Undefined type: " + NodeUtil.nameString(n), n);
                     return that;
                 }
-                if (typeConses.size() > 1) {
-                    error("Type name may refer to: " + NodeUtil.namesString(typeConses),
-                            n);
-                    return that;
-                }
+// FIXME: We want this line to be inserted.
+//                if (typeConses.size() > 1) {
+//                    error("Type name may refer to: " + NodeUtil.namesString(typeConses),
+//                            n);
+//                    return that;
+//                }
                 Id qname = IterUtil.first(typeConses);
                 Type result = typeConsHandler.value(qname);
 
@@ -489,13 +529,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(), name, p.first(), members_result, transformers);
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
-        Option<GrammarIndex> grammar = this._env.grammarIndex(name);
-        if (grammar.isSome()) {
-            GrammarIndex g = grammar.unwrap();
-            g.setAst(disambiguatedGrammar);
-            g.setExtended(p.second());
-            g.setAst(disambiguatedGrammar);
-        }
 
         if (!newErrs.isEmpty()) {
             this._errors.addAll(newErrs);

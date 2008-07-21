@@ -15,35 +15,32 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component illegalShadowing
+component XXXShadowTest1
 export Executable
 
 trait T
-  getI():ZZ32
-  setI(newI:ZZ32):ZZ32
+    foo(): String = "Foo in trait T"
+    callFoo(): String = "callFoo in trait T"
 end
 
-object A(i:ZZ32) extends T
-    getI():ZZ32 = i
-    setI(newI:ZZ32):ZZ32 = i (* don't actually set it *)
+trait Bar extends T
+    foo(): String = "Foo in trait Bar"
+    callFoo(): String = "callFoo in trait Bar"
 
-    b():T = object extends T
-                getI():ZZ32 = i
-                setI(newI:ZZ32):ZZ32 = do
-                    i = newI
-                    i
-                end
+    m():T = object extends T
+                callFoo(): String = foo()
             end
+end
+
+object A() extends Bar
 end
 
 
 run(args:String...):()=do
-  a:A = A(1)
-  b:T = a.b()
-  println("a.getI() = " a.getI())
-  println("b.getI() = " b.getI())
-  println("b.setI(3) = " b.setI(3))
-  println("a.getI() = " a.getI())
+  a:A = A()
+  x:T = a.m()
+
+  println("x.callFoo returns: " x.callFoo())
 end
 
 end

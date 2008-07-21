@@ -250,22 +250,28 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<Id> explicitTypeConsNames(Id name) {
-        // TODO: imports
-        if (_current.typeConses().containsKey(name) ||
-            _current.dimensions().containsKey(name) ||
-            _current.units().containsKey(name)) {
-            return Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
-        }
-        else { return Collections.emptySet(); }
+    	Set<Id> result = Collections.emptySet();
+    	if (_current.typeConses().containsKey(name) ||
+    			_current.dimensions().containsKey(name) ||
+    			_current.units().containsKey(name)) {
+
+    		result  = Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
+    	}
+
+    	result = CollectUtil.union(result, this.onDemandTypeConsNames(name));
+    	return result;
     }
 
-    public Set<Id> explicitVariableNames(Id name) {
-        // TODO: imports
-        if (_current.variables().containsKey(name) ||
-            _current.units().containsKey(name)) {
-            return Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
-        }
-        else { return Collections.emptySet(); }
+    public Set<Id> explicitVariableNames(Id name) {  	
+    	Set<Id> result = Collections.emptySet();
+    	if (_current.variables().containsKey(name) ||
+    			_current.units().containsKey(name)) {
+
+    		result = Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
+    	}
+
+    	result = CollectUtil.union(result, this.onDemandVariableNames(name));
+    	return result;
     }
 
     public Set<Id> explicitFunctionNames(Id name) {
