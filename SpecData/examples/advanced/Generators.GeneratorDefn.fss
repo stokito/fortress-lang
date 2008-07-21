@@ -50,7 +50,7 @@ f() = <| 2x | x <- BlockedRange(1,10,3) |>
 run(args:String...) = do
     x = f()
     println(x)
-    assert(x,<|2,4,6,8,10,12 asif ZZ64,14,16,18,20|>,"Unexpected list")
+    assert(x,<|2,4,6,8,10,12,14,16,18,20|>,"Unexpected list")
   end
 
 end
