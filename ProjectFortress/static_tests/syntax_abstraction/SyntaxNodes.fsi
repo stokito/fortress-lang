@@ -26,7 +26,7 @@ api SyntaxNodes
 
         Thing :Expr:=
           a <[ 1 ]>
-        | b <[ 1 + 1 ]>
+        | b <[ (b-a-d a) + 1 ]>
         | c <[ "hello" ]>
         | d <[ if 2 > 1 then
                 1
