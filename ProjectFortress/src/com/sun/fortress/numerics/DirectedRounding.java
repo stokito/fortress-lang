@@ -364,4 +364,118 @@ public final class DirectedRounding {
     }
    }
 
+  public static float addUpNoNaN(float x, float y) {
+      float r = addUp(x, y);
+      return addNoNaNfixup(x, y, r, Float.POSITIVE_INFINITY);
+  }
+
+  public static float addDownNoNaN(float x, float y) {
+      float r = addDown(x, y);
+      return addNoNaNfixup(x, y, r, Float.NEGATIVE_INFINITY);
+  }
+
+  static float addNoNaNfixup(float x, float y, float r, float alt) {
+      if (Float.isNaN(r)) {
+	  if (Float.isNaN(x) || Float.isNaN(y)) return r;
+	  else return alt;
+      }
+      else return r;
+  }
+
+  public static float subtractUpNoNaN(float x, float y) {
+      return addUpNoNaN(x, -y);
+  }
+
+  public static float subtractDownNoNaN(float x, float y) {
+      return addUpNoNaN(x, -y);
+  }
+
+  public static float multiplyUpNoNaN(float x, float y) {
+      float r = multiplyUp(x, y);
+      return multdivNoNaNfixup(x, y, r, -(float)0.0, Float.POSITIVE_INFINITY);
+  }
+
+  public static float multiplyDownNoNaN(float x, float y) {
+      float r = multiplyDown(x, y);
+      return multdivNoNaNfixup(x, y, r, Float.NEGATIVE_INFINITY, (float)0.0);
+  }
+
+  public static float divideUpNoNaN(float x, float y) {
+      float r = divideUp(x, y);
+      return multdivNoNaNfixup(x, y, r, -(float)0.0, Float.POSITIVE_INFINITY);
+  }
+
+  public static float divideDownNoNaN(float x, float y) {
+      float r = divideDown(x, y);
+      return multdivNoNaNfixup(x, y, r, Float.NEGATIVE_INFINITY, (float)0.0);
+  }
+
+  static float multdivNoNaNfixup(float x, float y, float r, float neg, float pos) {
+      if (Float.isNaN(r)) {
+	  if (Float.isNaN(x) || Float.isNaN(y)) return r;
+	  int xbits = Float.floatToRawIntBits(x);
+	  int ybits = Float.floatToRawIntBits(y);
+	  if ((xbits ^ ybits) < 0) return neg;
+	  else return pos;
+      }
+      else return r;
+  }
+
+  public static double addUpNoNaN(double x, double y) {
+      double r = addUp(x, y);
+      return addNoNaNfixup(x, y, r, Double.POSITIVE_INFINITY);
+  }
+
+  public static double addDownNoNaN(double x, double y) {
+      double r = addDown(x, y);
+      return addNoNaNfixup(x, y, r, Double.NEGATIVE_INFINITY);
+  }
+
+  static double addNoNaNfixup(double x, double y, double r, double alt) {
+      if (Double.isNaN(r)) {
+	  if (Double.isNaN(x) || Double.isNaN(y)) return r;
+	  else return alt;
+      }
+      else return r;
+  }
+
+  public static double subtractUpNoNaN(double x, double y) {
+      return addUpNoNaN(x, -y);
+  }
+
+  public static double subtractDownNoNaN(double x, double y) {
+      return addUpNoNaN(x, -y);
+  }
+
+  public static double multiplyUpNoNaN(double x, double y) {
+      double r = multiplyUp(x, y);
+      return multdivNoNaNfixup(x, y, r, -0.0, Double.POSITIVE_INFINITY);
+  }
+
+  public static double multiplyDownNoNaN(double x, double y) {
+      double r = multiplyDown(x, y);
+      return multdivNoNaNfixup(x, y, r, Double.NEGATIVE_INFINITY, 0.0);
+  }
+
+  public static double divideUpNoNaN(double x, double y) {
+      double r = divideUp(x, y);
+      return multdivNoNaNfixup(x, y, r, -0.0, Double.POSITIVE_INFINITY);
+  }
+
+  public static double divideDownNoNaN(double x, double y) {
+      double r = divideDown(x, y);
+      return multdivNoNaNfixup(x, y, r, Double.NEGATIVE_INFINITY, 0.0);
+  }
+
+  static double multdivNoNaNfixup(double x, double y, double r, double neg, double pos) {
+      if (Double.isNaN(r)) {
+	  if (Double.isNaN(x) || Double.isNaN(y)) return r;
+	  long xbits = Double.doubleToRawLongBits(x);
+	  long ybits = Double.doubleToRawLongBits(y);
+	  if ((xbits ^ ybits) < 0) return neg;
+	  else return pos;
+      }
+      else return r;
+  }
+
 }

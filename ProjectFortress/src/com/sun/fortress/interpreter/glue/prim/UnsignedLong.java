@@ -17,17 +17,17 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-import java.math.BigInteger;
 import java.util.List;
 
+import com.naturalbridge.misc.Unsigned;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.FBigNum;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
+import com.sun.fortress.interpreter.evaluator.values.FNN32;
 import com.sun.fortress.interpreter.evaluator.values.FNN64;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
@@ -40,199 +40,172 @@ import com.sun.fortress.nodes.GenericWithParams;
 
 
 /**
- * Functions from ZZ64.
+ * Functions from NN64.
  */
-public class Long extends NativeConstructor {
+public class UnsignedLong extends NativeConstructor {
 
-public Long(Environment env, FTypeObject selfType, GenericWithParams def) {
+public UnsignedLong(Environment env, FTypeObject selfType, GenericWithParams def) {
     super(env, selfType, def);
 }
 
 protected FNativeObject makeNativeObject(List<FValue> args,
                                          NativeConstructor con) {
-    FLong.setConstructor(this);
-    return FLong.ZERO;
+    FNN64.setConstructor(this);
+    return FNN64.ZERO;
 }
 
-static private abstract class LL2B extends NativeMeth1 {
+static private abstract class UU2B extends NativeMeth1 {
     protected abstract boolean f(long x, long y);
     protected final FValue act(FObject x, FValue y) {
-        return FBool.make(f(x.getLong(),y.getLong()));
-    }
-}
-static private abstract class L2L extends NativeMeth0 {
-    protected abstract long f(long x);
-    protected final FValue act(FObject x) {
-        return FLong.make(f(x.getLong()));
+        return FBool.make(f(x.getNN64(),y.getNN64()));
     }
 }
 
-static private abstract class L2U extends NativeMeth0 {
+static private abstract class U2U extends NativeMeth0 {
     protected abstract long f(long x);
     protected final FValue act(FObject x) {
-        return FNN64.make(f(x.getLong()));
+        return FNN64.make(f(x.getNN64()));
     }
 }
-
-static private abstract class L2I extends NativeMeth0 {
+static private abstract class U2L extends NativeMeth0 {
+    protected abstract long f(long x);
+    protected final FValue act(FObject x) {
+        return FLong.make(f(x.getNN64()));
+    }
+}
+static private abstract class U2N extends NativeMeth0 {
     protected abstract int f(long x);
     protected final FValue act(FObject x) {
-        return FInt.make(f(x.getLong()));
+        return FNN32.make(f(x.getNN64()));
     }
 }
-static private abstract class L2Z extends NativeMeth0 {
-    protected abstract BigInteger f(long x);
-    protected final FValue act(FObject x) {
-        return FBigNum.make(f(x.getLong()));
-    }
-}
-static private abstract class L2S extends NativeMeth0 {
+static private abstract class U2S extends NativeMeth0 {
     protected abstract java.lang.String f(long x);
     protected final FValue act(FObject x) {
-        return FString.make(f(x.getLong()));
+        return FString.make(f(x.getNN64()));
     }
 }
-static private abstract class LL2L extends NativeMeth1 {
+static private abstract class UU2U extends NativeMeth1 {
     protected abstract long f(long x, long y);
     protected final FValue act(FObject x, FValue y) {
-        return FLong.make(f(x.getLong(),y.getLong()));
+        return FNN64.make(f(x.getNN64(),y.getNN64()));
     }
 }
 
-public static final class Negate extends L2L {
-    protected long f(long x) { return -x; }
+public static final class Negate extends U2U {
+    protected long f(long x) { return Unsigned.subtract(0,x); }
 }
-public static final class Add extends LL2L {
-    protected long f(long x, long y) { return x + y; }
+public static final class Add extends UU2U {
+    protected long f(long x, long y) { return Unsigned.add(x,y); }
 }
-public static final class Sub extends LL2L {
-    protected long f(long x, long y) { return x - y; }
+public static final class Sub extends UU2U {
+    protected long f(long x, long y) { return Unsigned.subtract(x,y); }
 }
-public static final class Mul extends LL2L {
-    protected long f(long x, long y) { return x * y; }
+public static final class Mul extends UU2U {
+    protected long f(long x, long y) { return Unsigned.multiplyToLong(x,y); }
 }
-public static final class Div extends LL2L {
-    protected long f(long x, long y) { return x / y; }
+public static final class Div extends UU2U {
+    protected long f(long x, long y) { return Unsigned.divide(x,y); }
 }
-public static final class Rem extends LL2L {
-    protected long f(long x, long y) { return x % y; }
+public static final class Rem extends UU2U {
+    protected long f(long x, long y) { return Unsigned.remainder(x,y); }
 }
-public static final class Gcd extends LL2L {
+public static final class Gcd extends UU2U {
     protected long f(long u, long v) {
-        return Int.gcd(u,v);
+        return gcd(u,v);
     }
 }
-public static final class Lcm extends LL2L {
+public static final class Lcm extends UU2U {
     protected long f(long u, long v) {
-        long g = Int.gcd(u,v);
-        return (u/g)*v;
+        long g = gcd(u,v);
+        return Unsigned.multiplyToLong(Unsigned.divide(u,g),v);
     }
 }
-public static final class Choose extends LL2L {
+public static final class Choose extends UU2U {
     protected long f(long u, long v) {
-        return Int.choose(u,v);
+        return choose(u,v);
     }
 }
-public static final class Mod extends LL2L {
+public static final class Mod extends UU2U {
     protected long f(long u, long v) {
-        return Int.mod(u,v);
+	/* MOD and REM are the same for natural numbers. */
+        return Unsigned.remainder(u,v);
     }
 }
-public static final class BitAnd extends LL2L {
+public static final class BitAnd extends UU2U {
     protected long f(long u, long v) {
         return u & v;
     }
 }
-public static final class BitOr extends LL2L {
+public static final class BitOr extends UU2U {
     protected long f(long u, long v) {
         return u | v;
     }
 }
-public static final class BitXor extends LL2L {
+public static final class BitXor extends UU2U {
     protected long f(long u, long v) {
         return u ^ v;
     }
 }
-public static final class LShift extends LL2L {
+public static final class LShift extends UU2U {
     protected long f(long u, long v) {
         return ((v&~63)==0)?(u << (int)v):0;
     }
 }
-public static final class RShift extends LL2L {
+public static final class RShift extends UU2U {
     protected long f(long u, long v) {
-        return ((v&~63)==0)?(u >> (int)v):(u>>63);
+        return ((v&~63)==0)?(u >>> (int)v):0;
     }
 }
-public static final class BitNot extends L2L {
+public static final class BitNot extends U2U {
     protected long f(long x) { return ~x; }
 }
-public static final class Eq extends LL2B {
+public static final class Eq extends UU2B {
     protected boolean f(long x, long y) { return x==y; }
 }
-public static final class Less extends LL2B {
-    protected boolean f(long x, long y) { return x<y; }
+public static final class Less extends UU2B {
+    protected boolean f(long x, long y) { return Unsigned.lessThan(x,y); }
 }
-public static final class Partition extends L2L {
+public static final class Partition extends U2U {
     protected long f(long u) {
-        long m = (u-1) >> 1;
-        m |= m >> 1;
-        m |= m >> 2;
-        m |= m >> 4;
-        m |= m >> 8;
-        m |= m >> 16;
-        m |= m >> 32;
+        long m = (u-1) >>> 1;
+        m |= m >>> 1;
+        m |= m >>> 2;
+        m |= m >>> 4;
+        m |= m >>> 8;
+        m |= m >>> 16;
+        m |= m >>> 32;
         return m+1;
     }
 }
 public static final class Pow extends NativeMeth1 {
     protected FValue act(FObject x, FValue y) {
-        long base = x.getLong();
+        long base = x.getNN64();
         long exp = y.getLong();
         if (exp < 0) {
-            return FFloat.make(1.0 / (double)Int.pow(base,-exp));
+            return FFloat.make(1.0 / (double)pow(base,-exp));
         } else {
-            return FLong.make(Int.pow(base,exp));
+            return FNN64.make(pow(base,exp));
         }
     }
 }
-
-public static final class ToUnsignedLong extends L2U {
+public static final class ToLong extends U2L {
     protected long f(long x) { return x; }
 }
-public static final class FromLong extends L2I {
-    protected int f(long x) { return Int.rc(x); }
+public static final class FromLong extends U2N {
+    protected int f(long x) { return (int)(x); }
 }
-
-public static final class ToBigNum extends L2Z {
-    protected BigInteger f(long x) { return BigInteger.valueOf(x); }
-}
-
-public static final class ToString extends L2S {
-    protected java.lang.String f(long x) { return java.lang.Long.toString(x); }
-}
-
-public static final class NanoTime extends NativeFn0 {
-    protected FValue act() {
-        long res = System.nanoTime();
-        return FLong.make(res);
-    }
+public static final class ToString extends U2S {
+    protected java.lang.String f(long x) { return Unsigned.toString(x); }
 }
 
 public static long gcd(long u, long v) {
     /* Thank you, Wikipedia. */
     /* But is this faster than just dividing on a modern
      * architecture? -Jan */
+    if (u == 0) return v;
+    if (v == 0) return u;
     long k = 0;
-    if (u <= 0) {
-        if (u == 0)
-            return v;
-        u = -u;
-    }
-    if (v <= 0) {
-        if (v == 0)
-            return u;
-        v = -v;
-    }
     long uv = u|v;
     for (;(uv & 1) == 0; uv>>>=1) { /* While both u and v are even */
         k++;  /* Store their common power of 2 */
@@ -244,7 +217,7 @@ public static long gcd(long u, long v) {
     for (;(v & 1)==0; v >>>= 1) {} /* Divide v by 2 until odd. */
     while (true) {
         /* u and v are both odd */
-        if (u >= v) {
+        if (Unsigned.greaterThanOrEqual(u,v)) {
             u = (u - v) >>> 1;
             if (u == 0) return (v<<k);
             for (;(u & 1)==0; u >>>= 1) {} /* Divide u by 2 until odd. */
@@ -257,7 +230,7 @@ public static long gcd(long u, long v) {
 }
 
 public static long choose(long n, long k) {
-    if (k > n/2) k = n - k;
+    if (Unsigned.greaterThan(k,Unsigned.divide(n,2))) k = Unsigned.subtract(n,k);
     if (k == 0) return 1;
     if (k == 1) return n;
     // k <= n/2
@@ -268,28 +241,12 @@ public static long choose(long n, long k) {
     // Proof: when we divide by k, we've multiplied by k consecutive integers,
     // at least one of which will be a multiple of k.
     long accum = 1;
-    for (long j= 1; j <= k; j++) {
+    for (long j = 1; j <= k; j++) {
         long m = n-k+j;
-        accum = accum * m;
-        accum = accum / j;
+        accum = Unsigned.multiplyToLong(accum,m);
+        accum = Unsigned.divide(accum,j);
     }
     return accum;
-}
-
-public static long mod(long xi, long yi) {
-    long ri = xi % yi;
-    if (ri == 0)
-        return 0;
-
-    if (yi > 0) {
-        if (xi >= 0)
-            return ri;
-        return ri + yi;
-    } else {
-        if (xi >= 0)
-            return ri + yi;
-        return ri;
-    }
 }
 
 public static long pow(long x, long y) {

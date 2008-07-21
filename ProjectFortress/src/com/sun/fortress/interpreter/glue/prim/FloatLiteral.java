@@ -23,8 +23,11 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.nodes.GenericWithParams;
 
 public class FloatLiteral extends NativeConstructor {
@@ -37,6 +40,16 @@ protected FNativeObject makeNativeObject(List<FValue> args,
                                          NativeConstructor con) {
     FFloatLiteral.setConstructor(this);
     return FFloatLiteral.ZERO;
+}
+
+static private abstract class Rlit2S extends NativeMeth0 {
+    protected abstract java.lang.String f(java.lang.String x);
+    protected final FValue act(FObject x) {
+        return FString.make(f(x.getString()));
+    }
+}
+public static final class ToString extends Rlit2S {
+    protected java.lang.String f(java.lang.String x) { return x; }
 }
 
 }

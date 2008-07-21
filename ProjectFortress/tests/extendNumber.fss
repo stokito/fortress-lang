@@ -21,6 +21,7 @@ export Executable
 (* We ought to be able to extend the builtin type Number. *)
 
 object Infinity extends Number
+  getter toString(): String = "Infinity"
 end
 
 run(args:String...):() = ()

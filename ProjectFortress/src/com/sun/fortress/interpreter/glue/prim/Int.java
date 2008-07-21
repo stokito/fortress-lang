@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
@@ -66,6 +67,12 @@ static private abstract class Z2L extends NativeMeth0 {
     protected abstract long f(int x);
     protected final FValue act(FObject x) {
         return FLong.make(f(x.getInt()));
+    }
+}
+static private abstract class Z2S extends NativeMeth0 {
+    protected abstract java.lang.String f(int x);
+    protected final FValue act(FObject x) {
+        return FString.make(f(x.getInt()));
     }
 }
 static private abstract class ZZ2Z extends NativeMeth1 {
@@ -178,6 +185,9 @@ public static final class Pow extends NativeMeth1 {
 }
 public static final class ToLong extends Z2L {
     protected long f(int x) { return (long)x; }
+}
+public static final class ToString extends Z2S {
+    protected java.lang.String f(int x) { return Integer.toString(x); }
 }
 
 public static int rc(long i) {

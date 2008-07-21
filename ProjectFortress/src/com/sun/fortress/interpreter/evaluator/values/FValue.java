@@ -59,6 +59,8 @@ public abstract class FValue {
     public BigInteger getBigInteger() { throw new InterpreterBug("getBigInteger not implemented for "  + 
 																 getClass().getSimpleName());}
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
+    public int getNN32() { throw new InterpreterBug("getNN32 not implemented for "  + getClass().getSimpleName());}
+    public long getNN64() { throw new InterpreterBug("getNN64 not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}
     public float getRR32() { throw new InterpreterBug("getRR32 not implemented for "  + getClass().getSimpleName());}
     public int getChar() { throw new InterpreterBug("getChar not implemented for "  + getClass().getSimpleName());}

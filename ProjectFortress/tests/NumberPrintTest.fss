@@ -1,0 +1,69 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component NumberPrintTest
+export Executable
+
+run(args: String...) = do
+  assert("" 3.1415926535897932384000000000001, "3.1415926535897932384000000000001")
+  assert("" 43, "43")
+  assert("" 12367125, "12367125")
+  assert("" 78236427658757685, "78236427658757685")
+  assert("" 385693956345693465345394569345734589, "385693956345693465345394569345734589")
+  assert("" (-43), "-43")
+  assert("" (-12367125), "-12367125")
+  zep = big(1)
+  println (-zep)
+  foo = 78236427658757685
+  bar = -foo
+  println foo
+  println bar
+  yelp(x: Number) =
+    typecase x of
+      IntLiteral => println "IntLiteral"
+      BigNum => println "BigNum"
+      ZZ32 => println "ZZ32"
+      ZZ64 => println "ZZ64"
+      NN32 => println "NN32"
+      UnsignedLong => println "UnsignedLong"
+      NN64 => println "NN64"
+      ZZ => println "ZZ"
+    end
+  yelp foo
+  yelp bar
+  assert("" (-78236427658757685), "-78236427658757685")
+  assert("" (-385693956345693465345394569345734589), "-385693956345693465345394569345734589")
+  assert("" (0 + 43), "43")
+  assert("" (0 + 12367125), "12367125")
+  assert("" (0 + 78236427658757685), "78236427658757685")
+  assert("" (0 + 385693956345693465345394569345734589), "385693956345693465345394569345734589")
+  assert("" (0 + -43), "-43")
+  assert("" (0 + -12367125), "-12367125")
+  assert("" (0 + -78236427658757685), "-78236427658757685")
+  assert("" (0 + -385693956345693465345394569345734589), "-385693956345693465345394569345734589")
+  assert("" widen(1), "1")
+  assert("" unsigned(1), "1")
+  assert("" widen(unsigned(43)), "43")
+  assert("" unsigned(widen(43)), "43")
+  assert("" (unsigned(1) LSHIFT 31), "2147483648")
+  assert("" (3.0 + 5.0), "8.0")
+  assert("" (narrow(3.0) + narrow(14.0)), "17.0")
+  assert("" 2/3, "2/3")
+  assert("" 4/6, "2/3")
+end
+
+end

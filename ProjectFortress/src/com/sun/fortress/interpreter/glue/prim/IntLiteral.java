@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
@@ -64,6 +65,12 @@ public static abstract class K2K extends NativeMeth0 {
     protected abstract BigInteger f(BigInteger x);
     protected final FValue act(FObject x) {
         return FIntLiteral.make(f(toB(x)));
+    }
+}
+public static abstract class K2S extends NativeMeth0 {
+    protected abstract java.lang.String f(BigInteger x);
+    protected final FValue act(FObject x) {
+        return FString.make(f(toB(x)));
     }
 }
 public static abstract class KK2K extends NativeMeth1 {
@@ -181,6 +188,9 @@ public static final class Eq extends KK2B {
 }
 public static final class Cmp extends KK2I {
     protected int f(BigInteger x, BigInteger y) { return x.compareTo(y); }
+}
+public static final class ToString extends K2S {
+    protected java.lang.String f(BigInteger x) { return x.toString(); }
 }
 public static final class Pow extends KL2N {
     protected FValue f(BigInteger u, long v) {

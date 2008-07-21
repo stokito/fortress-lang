@@ -447,7 +447,10 @@ public class NodeUtil {
                 else sawLowerCase = true;
             }
             if (radixNumber == 12) {
-                if (!validDigitOrLetterIn12(c) && c != '.') return false;
+                if (!validDigitOrLetterIn12(c)
+		    && c != '.' && c != '\'' && c != '\u202F') {
+		    return false;
+		}
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
                     /* It is a static error if a numeral
                        has radix 12 and contains at least one
@@ -470,8 +473,10 @@ public class NodeUtil {
                denotes a value greater than or equal to the
                numeral's radix.
             */
-            else if (!validDigitOrLetter(c, radixNumber) && c != '.')
+            else if (!validDigitOrLetter(c, radixNumber) &&
+		     c != '.' && c != '\'' && c != '\u202F') {
                 return false;
+	    }
         }
         return true;
     }

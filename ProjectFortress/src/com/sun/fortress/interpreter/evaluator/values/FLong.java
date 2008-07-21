@@ -30,11 +30,19 @@ public class FLong extends NativeConstructor.FNativeObject implements HasIntValu
         // TODO Throw an error on out-of-range conversion?
         return (int) val;
     }
+    public int getNN32() {
+        // TODO Throw an error on out-of-range conversion?
+        return (int) val;
+    }
     public long getLong() {return (long)val;}
+    public long getNN64() {
+        // TODO Throw an error on out-of-range conversion?
+        return (long) val;
+    }
     public double getFloat() { return (double) val;}
     public String getString() {return Long.toString(val);}
     public String toString() {
-        return val + ":ZZ64";
+        return val + ": ZZ64";
     }
     public boolean seqv(FValue v) {
         if (!(v instanceof NativeConstructor.FNativeObject)) return false;

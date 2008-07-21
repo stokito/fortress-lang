@@ -49,6 +49,12 @@ public class FAsIf extends FConstructedValue {
     public long getLong() {
         return fvalue.getLong();
     }
+    public int getNN32() {
+        return fvalue.getNN32();
+    }
+    public long getNN64() {
+        return fvalue.getNN64();
+    }
     public double getFloat() {
         return fvalue.getFloat();
     }
