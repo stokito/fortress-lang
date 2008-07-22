@@ -530,7 +530,7 @@ testOnly, testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=test-tmp" />
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
