@@ -19,29 +19,39 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 
 import java.io.IOException;
 
+
 import com.sun.fortress.interpreter.evaluator.Evaluator;
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
 
 public class TupleTask extends BaseTask {
     Evaluator eval;
-
     Expr expr;
-
     FValue res;
 
     public TupleTask(Expr ex, Evaluator ev) {
+		super(FortressTaskRunner.getTask());
         expr = ex;
         eval = ev;
     }
 
     public void compute() {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        runner.setCurrentTask(this);
-        res = new Evaluator(eval, expr).eval(expr);
-        /* Null out fields so they are not retained by GC after termination. */
-        eval = null;
-        expr = null;
+		FortressTaskRunner.setCurrentTask(this);
+		try {
+			Environment inner = eval.e.extendAt(expr);
+			Evaluator e = new Evaluator(inner);
+			res = expr.accept(e);
+		} catch (NullPointerException e) {
+			throw e;
+		} catch (Exception e) {
+			causedException = true;
+			err = e;
+		} finally {
+			/* Null out fields so they are not retained by GC after termination. */
+			eval = null;
+			expr = null;
+		}
     }
 
     public void print() {
@@ -49,6 +59,10 @@ public class TupleTask extends BaseTask {
                            "\n\t Expr = " + expr +
                            "\n\t Res = " + res +
                            "\n\t Thread = " + Thread.currentThread());
+    }
+
+    public String toString() {
+		return "[TupleTask" + name() +  ":" + taskState() + "]" ;
     }
 
     public FValue getRes() { return res;}

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
@@ -36,23 +35,25 @@ import jsr166y.forkjoin.*;
 public class SpawnTask extends BaseTask {
 
     SingleFcn fcn;
-
     Evaluator eval;
-
-    FValue val;
+    private volatile FValue val;
+	private volatile Boolean resultIsReady;
 
     public void compute() {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        runner.setCurrentTask(this);
+		FortressTaskRunner.setCurrentTask(this);
         List<FValue> args = new ArrayList<FValue>();
-        HasAt loc = new HasAt.FromString("FRED");
+        HasAt loc = new HasAt.FromString("SpawnTask");
         Environment e = eval.e;
         val = fcn.apply(args, loc, e);
+		resultIsReady = true;
     }
 
     public SpawnTask(SingleFcn sf, Evaluator e) {
+		super();
         fcn = sf;
         eval = e;
+		resultIsReady = false;
+		taskState = new TaskState();
     }
 
     public void print() {
@@ -61,12 +62,16 @@ public class SpawnTask extends BaseTask {
                            " val = " + val);
     }
 
+    private Boolean ready() { return resultIsReady;}
+
     public FValue result() {
-        while (!isDone());
+        while (!resultIsReady);
         return val;
     }
 
     public void waitForResult() {
-        while (!isDone());
-    }
+		int i = 0;
+        while (!resultIsReady) ;
+	}
 }
+ 

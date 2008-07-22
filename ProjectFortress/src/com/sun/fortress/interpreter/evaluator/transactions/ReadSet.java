@@ -18,15 +18,39 @@
 package com.sun.fortress.interpreter.evaluator.transactions;
 import com.sun.fortress.exceptions.transactions.PanicException;
 
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import java.util.AbstractSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ReadSet extends AbstractSet<Transaction> {
   private CopyOnWriteArrayList<Transaction> elements;
+  private Boolean sealed;
 
   public ReadSet() {
+      sealed = false;
       elements = new CopyOnWriteArrayList<Transaction>();
   }
+
+
+  public ReadSet(ReadSet r) {
+      sealed = false;
+      elements = new CopyOnWriteArrayList<Transaction>();
+      // There is a race here.  If I'm trying to copy from r and r is modified
+      // out from underneath me, I get a NoSuchElementException, so I'm writing
+      // my own add function.
+      myAdd(r);
+  }
+
+  private void myAdd(ReadSet r) {
+      for (Transaction t : elements)
+	  if (t.isActive())
+	      elements.add(t);
+  }
+
+  public String toString() {
+	  return "sealed = " + sealed + " elements = " + elements;
+  }
+      
 
   /**
    * Initialize one object from another.
@@ -36,6 +60,10 @@ public class ReadSet extends AbstractSet<Transaction> {
       elements.addAll(aSet.elements);
   }
 
+  public void seal() {
+      sealed = true;
+  }
+
   /**
    * Add a new transaction to the set.
    * @param t Transaction to add.
@@ -43,11 +71,13 @@ public class ReadSet extends AbstractSet<Transaction> {
    */
   public boolean add(Transaction t) {
       cleanup();
-      boolean res = elements.contains(t);
-      if (!res) {
-	  elements.add(t);
+      if (sealed) {
+		  FortressTaskRunner.debugPrintln("add of " + t + " to readset " + toString() + " failed because readset was sealed");
+		  return false;
+      } else {
+		  elements.addIfAbsent(t);
+		  return true;
       }
-      return res;
   }
 
   public void cleanup() {

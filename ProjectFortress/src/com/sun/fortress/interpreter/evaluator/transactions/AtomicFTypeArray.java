@@ -51,8 +51,11 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
     public AtomicFTypeArray(NativeConstructor con, int capacity) {
         super(con);
         this.con     = con;
-        array        = new AtomicReferenceArray<FValue>(capacity);
-        trans        = new AtomicReferenceArray<TransactorRecord>(capacity);
+
+		array        = new AtomicReferenceArray<FValue>(capacity);
+		trans        = new AtomicReferenceArray<TransactorRecord>(capacity);
+		FortressTaskRunner.debugPrintln("AtomicFTypeArray con = " + con + " capacity = " + capacity);
+
     }
 
     public NativeConstructor getConstructor() {
@@ -229,27 +232,26 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
 
     private Transaction checkMyValidity() {
         Transaction t = FortressTaskRunner.getTransaction();
-        if (t==null) return Transaction.COMMITTED_TRANS;
-        if (t.isActive()) return t;
-        throw new AbortedException();
+        if (t==null || t.isActive()) return t;
+        throw new AbortedException(t);
     }
 
-    private boolean writerCompleted(WriteRecord writeRec, Transaction writer, int i) {
-        if (writer!=null) {
-            switch (writer.getStatus()) {
-            case ACTIVE:
-                return false;
-            case ABORTED:
-                restore(writeRec,i);
-                return true;
-            case COMMITTED:
-                return true;
-            default:
-                throw new PanicException(FORMAT, writer.getStatus());
-            }
-        }
-        return false;
-    }
+    private boolean writerCompleted(WriteRecord writeRec, Transaction writer, int i) {return false;}
+//         if (writer!=null) {
+//             switch (writer.getStatus()) {
+//             case ACTIVE:
+//                 return false;
+//             case ABORTED:
+//                 restore(writeRec,i);
+//                 return true;
+//             case COMMITTED:
+//                 return true;
+//             default:
+//                 throw new PanicException(FORMAT, writer.getStatus());
+//             }
+//         }
+//         return false;
+//     }
 
     private void restore(WriteRecord writeRec, int i) {
         synchronized(writeRec) {

@@ -301,21 +301,29 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             lhs.accept(new ALHSEvaluator(this, rhs));
         }
+
         return FVoid.V;
     }
 
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr expr = x.getExpr();
         final Evaluator current = new Evaluator(this);
-        FValue res = FortressTaskRunner.doIt (
-            new Callable<FValue>() {
-                public FValue call() {
-                    Evaluator ev = new Evaluator(current.e.extendAt(expr));
-                    return expr.accept(ev);
-                }
-            }
-        );
-        return res;
+		FValue res = FVoid.V;
+		try {
+			res = FortressTaskRunner.doIt (
+										   new Callable<FValue>() {
+											   public FValue call() {
+												   Evaluator ev = new Evaluator(current.e.extendAt(expr));
+												   return expr.accept(ev);
+											   }
+										   }
+										   );
+		} catch (RuntimeException re) {
+			throw re;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return res;
     }
 
     public FValue forTryAtomicExpr(TryAtomicExpr x) {
@@ -323,9 +331,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         final Evaluator current = new Evaluator(this);
         FValue res = FVoid.V;
         // Inside a transaction tryAtomic is a noop
-        if (BaseTask.inATransaction()) {
+		// Why is this?  It seems inconsistent with the rest of our transaction story.  chf
+        if (FortressTaskRunner.inATransaction()) {
             Evaluator ev = new Evaluator(current.e.extendAt(expr));
-            return expr.accept(current);
+            return expr.accept(ev);
         }
         try {
             res = FortressTaskRunner.doItOnce(
@@ -336,12 +345,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         return res1;
                     }
                 }
-            );
+											  );
         } catch (AbortedException ae) {
             FObject f = (FObject) e.getValue(WellKnownNames.tryatomicFailureException);
             FortressError f_exc = new FortressError(f);
             throw f_exc;
-        }
+        } catch (Exception e) {
+			throw new RuntimeException(e);
+		}
         return res;
     }
 
@@ -380,10 +391,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
        if (locs.size()>0) {
            List<FValue> regions = evalExprListParallel(locs);
        }
-       FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-       BaseTask currentTask = runner.getCurrentTask();
+       BaseTask currentTask = FortressTaskRunner.getTask();
        TupleTask.forkJoin(tasks);
-       runner.setCurrentTask(currentTask);
+       FortressTaskRunner.setCurrentTask(currentTask);
+
        for (int i = 0; i < s; i++) {
            if (tasks[i].causedException()) {
                Throwable t = tasks[i].taskException();
@@ -462,24 +473,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Added some special-case code to avoid explosion of TupleTasks.
         int sz = exprs.size();
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
+				
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
-     /* If we are already in a transaction, don't evaluate in parallel */
-        } else if (BaseTask.inATransaction()) {
-            for (Expr exp : exprs) {
-                resList.add(exp.accept(this));
-            }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;
             for (Expr e : exprs) {
                 tasks[count++] = new TupleTask(e, this);
             }
-            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-            BaseTask currentTask = runner.getCurrentTask();
-            TupleTask.forkJoin(tasks);
-            runner.setCurrentTask(currentTask);
-
+			BaseTask currentTask = FortressTaskRunner.getTask();
+			TupleTask.forkJoin(tasks);
+			FortressTaskRunner.setCurrentTask(currentTask);
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {
                     Throwable t = tasks[i].taskException();
@@ -490,7 +495,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     } else {
                         error(exprs.get(i), errorMsg("Wrapped Exception",t));
                     }
-                }
+				}
                 resList.add(tasks[i].getRes());
             }
         }
@@ -1540,7 +1545,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                   FortressError f_exc = new FortressError(x,e,f);
                   throw f_exc;
                 }
-            }
+			}
             // Nothing has handled or excluded exc; re-throw!
             throw exc;
         } finally {
@@ -1608,7 +1613,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = e.getValueNull(x);
         if (res == null) {
             Iterable<Id> names = NodeUtil.getIds(x.getVar());
-            error(x, e, errorMsg("undefined variable ", names));
+            error(x, e, errorMsg(Thread.currentThread().getName() + " undefined variable ", names));
         }
         return res;
     }

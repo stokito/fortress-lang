@@ -22,9 +22,8 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.transactions.AtomicFTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
@@ -44,7 +43,7 @@ public class PrimitiveArray extends NativeConstructor {
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
-        return new AtomicFTypeArray(con,s0);
+        return new AtomicArray(con,s0);
     }
 
     @Override
@@ -53,18 +52,18 @@ public class PrimitiveArray extends NativeConstructor {
     }
 
     private static abstract class vi2O extends NativeMeth1 {
-        protected abstract FValue f(AtomicFTypeArray v, int i);
+        protected abstract FValue f(AtomicArray v, int i);
         public FValue act(FObject self, FValue ii) {
-            AtomicFTypeArray v = (AtomicFTypeArray) self;
+			AtomicArray v = (AtomicArray) self;
             int i = ii.getInt();
             return f(v,i);
         }
     }
 
     private static abstract class vio2V extends NativeMeth2 {
-        protected abstract void f(AtomicFTypeArray v, int i, FValue x);
+        protected abstract void f(AtomicArray v, int i, FValue x);
         public FValue act(FObject self, FValue ii, FValue x) {
-            AtomicFTypeArray v = (AtomicFTypeArray) self;
+			AtomicArray v = (AtomicArray) self;
             int i = ii.getInt();
             f(v,i,x);
             return FVoid.V;
@@ -72,17 +71,17 @@ public class PrimitiveArray extends NativeConstructor {
     }
 
     private static abstract class vio2B extends NativeMeth2 {
-        protected abstract boolean f(AtomicFTypeArray v, int i, FValue x);
+        protected abstract boolean f(AtomicArray v, int i, FValue x);
         public FValue act(FObject self, FValue ii, FValue x) {
-            AtomicFTypeArray v = (AtomicFTypeArray) self;
+			AtomicArray v = (AtomicArray) self;
             int i = ii.getInt();
             return FBool.make(f(v,i,x));
         }
     }
 
     public static final class get extends vi2O {
-        protected FValue f(AtomicFTypeArray v, int i) {
-            FValue r = v.get(i);
+        protected FValue f(AtomicArray v, int i) {
+            FValue r = (FValue) v.get(i);
             if (r==null) {
                 error(errorMsg("Access to uninitialized element ",
                                i, " of array ", v));
@@ -92,13 +91,13 @@ public class PrimitiveArray extends NativeConstructor {
     }
 
     public static final class put extends vio2V {
-        protected void f(AtomicFTypeArray v, int i, FValue x) {
+        protected void f(AtomicArray v, int i, FValue x) {
             v.set(i,x);
         }
     }
 
     public static final class init0 extends vio2B {
-        protected boolean f(AtomicFTypeArray v, int i, FValue x) {
+        protected boolean f(AtomicArray v, int i, FValue x) {
             return v.init(i,x);
         }
     }

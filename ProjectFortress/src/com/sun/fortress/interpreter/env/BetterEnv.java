@@ -256,6 +256,15 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
 
     }
 
+    public String toString() {
+		StringBuffer sb = new StringBuffer();
+		try {
+			dump(sb);
+		} catch (java.io.IOException e) {
+		}
+		return sb.toString();
+	}
+
     public Boolean getBoolNull(String str) {
         Boolean v = get(bool_env, str);
         return v;

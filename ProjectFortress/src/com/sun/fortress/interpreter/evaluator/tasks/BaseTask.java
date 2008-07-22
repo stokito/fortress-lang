@@ -20,23 +20,44 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 import java.io.IOException;
 
 import jsr166y.forkjoin.*;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.GracefulException;
 import com.sun.fortress.exceptions.transactions.PanicException;
 
 import java.util.concurrent.Callable;
-import com.sun.fortress.interpreter.evaluator.tasks.ThreadState;
+import com.sun.fortress.interpreter.evaluator.tasks.TaskState;
 
 public abstract class BaseTask extends RecursiveAction {
     Throwable err = null;
     boolean causedException = false;
-    ThreadState threadState = null;
-    final BaseTask parent;
+    TaskState taskState = null;
+    final private int depth;
+    final private BaseTask parent;
+    private static AtomicInteger counter = new AtomicInteger();
+    private int count;
+    String name;
 
-    public BaseTask() {
-        parent = getCurrentTask();
+    public BaseTask(BaseTask p) {
+        parent = p;
+		taskState = new TaskState(p.taskState());
+		depth = p.depth() + 1;
+		count = counter.getAndIncrement();
+		name =  p.name() + "." + count;
     }
+
+    public int depth() { return depth;}
+    public int count() { return count;}
+    public String name() {return name;}
+
+    // For primordial evaluator task
+    public BaseTask() {
+		parent = null;
+		depth = 0;
+		name = "0";
+	}
+	    
+    public BaseTask parent() { return parent;}
 
     public void recordException(Throwable t) {
         causedException = true;
@@ -46,54 +67,21 @@ public abstract class BaseTask extends RecursiveAction {
     public boolean causedException() {return causedException;}
     public Throwable taskException() {return err;}
 
-    public static BaseTask getCurrentTask() {
-        /* This may get called before we've started our FortressTaskGroup so in
-           that case we have no current task and need to return null */
-        Thread t = Thread.currentThread();
-        BaseTask result = null;
-        if (t instanceof FortressTaskRunner) {
-            FortressTaskRunner taskrunner = (FortressTaskRunner) t;
-            result = (BaseTask) taskrunner.getCurrentTask();
-        }
-        return result;
-    }
-
-    public static void setCurrentTask(BaseTask task) {
-        FortressTaskRunner taskrunner = (FortressTaskRunner) Thread.currentThread();
-        taskrunner.setCurrentTask(task);
-    }
-
     public abstract void print();
 
     public static void printTaskTrace() {
-        BaseTask currentTask = getCurrentTask();
-        while (currentTask != null) {
-            currentTask.print();
-            currentTask = currentTask.parent;
+        BaseTask task = FortressTaskRunner.getTask();
+        while (task != null) {
+            task.print();
+            task = task.parent();
         }
     }
 
-    public ThreadState threadState() {
-        // invariant: getCurrentTask() == this
-        // we initialize lazily because this is pretty expensive;
-        // don't pay for the transactions unless we actually use them.
-        if (threadState==null) {
-            threadState = new ThreadState();
-        }
-        return threadState;
+    // Jan made this lazy.  Revisit it FIXME 
+    public TaskState taskState() { return taskState; }
+
+    public String toString() {
+		return "[BaseTask" + name() + ":" + taskState() + "]" ;
     }
 
-    public static boolean inATransaction() {
-        BaseTask task = getCurrentTask();
-        ThreadState t = task.threadState;
-        if (t == null) return false;
-        return (t.inATransaction());
-    }
-
-    public static ThreadState getThreadState() {
-        BaseTask task = getCurrentTask();
-        if (task == null)
-            throw new RuntimeException("Not in a task!");
-        return task.threadState();
-    }
 }

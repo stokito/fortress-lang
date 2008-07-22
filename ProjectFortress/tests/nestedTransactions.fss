@@ -18,9 +18,27 @@
 component nestedTransactions
 
 export Executable
+
+
+test0():() = do
+    var count : ZZ32 = 0
+    atomic do 
+        for i <- 1 # 5 do
+            atomic do
+                for j <- 1 # 5 do
+                    atomic do
+                       count := count + 1
+                    end
+                end
+           end
+        end
+   end
+   assert(count,    25, "test0 failed")
+end
+
 test1():()=do
     var count : ZZ32 = 0
-    for i<-1#300 do
+    for i<-1#10 do
         atomic do
             count += 1
         end
@@ -43,42 +61,54 @@ test1():()=do
             count += 1
         end
     end
-    assert(count,2100,"test1 failed")
+    assert(count,70,"test1 failed")
 end
 
 test2()=do
-    var count     : ZZ32 = 0
-    var successes : ZZ32 = 0
-    var failures  : ZZ32 = 0
-    for i<-1#300 do
-        atomic do
-            count += 1
-            try
-                tryatomic do successes += 1 end
-            catch e
-            TryAtomicFailure => atomic do failures+= 1 end
-            end
-        end
+  var count     : ZZ32 = 0
+  var successes : ZZ32 = 0
+  var failures  : ZZ32 = 0
+  for i<-1#100 do
+    atomic do
+      count += 1
+      try
+         tryatomic do successes += 1 end
+      catch e
+          TryAtomicFailure => atomic do failures+= 1 end
+      end
     end
-    assert(count, successes, "TryAtomic should be flattened to a noop")
+  end
+  assert(count, successes, "TryAtomic should be flattened to a noop")
 end
 
 test3()=do
     var count :ZZ32 = 0
     atomic do
-        for i<-0#10 atomic do
-            for j<-0#10 atomic do
-                println("count = " count)
+        for i<-0#5 atomic do
+            for j<-0#5 atomic do
                 count += 1
             end
         end
     end
-    assert(count,100, "Nested transactions");
+    assert(count,25, "Nested transactions");
 end
 
 run(args:String...):()=do
+    println("Starting test0")
+    recordTime(6.0)
+    test0() 
+    printTime(6.0)
+    println("Starting test1")
+    recordTime(6.0)
     test1()
+    printTime(6.0)
+    println("Starting test2")
+    recordTime(6.0)
     test2()
-    test3()
+    printTime(6.0)
+    recordTime(6.0)
+    println("Starting test3")
+    test3()   
+    printTime(6.0)
 end
 end
