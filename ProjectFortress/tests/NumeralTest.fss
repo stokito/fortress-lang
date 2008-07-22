@@ -74,14 +74,12 @@ run(args:String...) = do
   assert(1000_15, 3375)
   assert(1000_16, 4096)
   assert(1xe_12, 275)
-(*
   assert(123'456'789, 123456789)
   assert(DEAD'BEEF_16, DEADBEEF_16)
   assert(DE'AD'BE'EF_16, DEADBEEF_16)
   assert(DE'AD'BE'EF_16, 1101'1110'1010'1101'1011'1110'1110'1111_2)
   assert(3.14159265358979, 3.141'592'653'589'79)
   assert(10101001010101110101101_2, 101'0100'1010'1011'1010'1101_2)
-*)
 
 (* Rightly rejected:
   wrong1 = 0.a
