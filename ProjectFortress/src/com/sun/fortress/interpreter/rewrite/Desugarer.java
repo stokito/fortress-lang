@@ -52,18 +52,23 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.MethodInvocation;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
@@ -162,6 +167,16 @@ public class Desugarer extends Rewrite {
             lexicalNestedness = lexicalNestingDepth;
         }
         
+        public boolean equals(Object o) {
+            if (o.getClass() == getClass()) {
+                Thing that = (Thing) o;
+                if (that.objectNestedness == this.objectNestedness &&
+                        that.lexicalNestedness == this.lexicalNestedness)
+                    return true;
+            }
+            return false;
+        }
+        
         /** May assume {@code original} has a non-zero length. */
         Expr replacement(VarRef original) {
             return NodeFactory.makeVarRef(original, lexicalNestedness);
@@ -186,6 +201,10 @@ public class Desugarer extends Rewrite {
         public String toString() { return "Local@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
+    private class FunctionalMethod extends Local {
+        public String toString() { return "FunctionalMethod@"+objectNestedness+"/"+lexicalNestedness; }
+    }
+
     /**
      * Traits need to identify their declaration, for purposes of figuring out
      * what names are in scope, though not necessarily what they mean.
@@ -195,6 +214,18 @@ public class Desugarer extends Rewrite {
         Map<String, Thing> env;
         Trait(TraitAbsDeclOrDecl dod, Map<String, Thing> env) { defOrDecl = dod; this.env = env; }
         public String toString() { return "Trait="+defOrDecl; }
+        
+        public boolean equals (Object o) {
+            if (super.equals(o)) {
+                Trait that = (Trait) o;
+                // Conservative definition for now.
+                // Full "equals" applied to "env" would probably not terminate
+                // because of cycles.
+                return (that.defOrDecl == this.defOrDecl &&
+                        that.env == this.env);
+            }
+            return false;
+        }
     }
 
 
@@ -260,6 +291,11 @@ public class Desugarer extends Rewrite {
     private final static ArrowOrFunctional FUNCTIONAL = new ArrowOrFunctional("FUNCTIONAL");
     
     private static class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
+
+        @Override
+        public ArrowOrFunctional defaultCase(Node that) {
+            return NEITHER;
+        }
 
         /* (non-Javadoc)
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forLValueBind(com.sun.fortress.nodes.LValueBind)
@@ -335,6 +371,8 @@ public class Desugarer extends Rewrite {
         private ArrowOrFunctional optionTypeIsArrow(Option<Type> ot) {
             return ot.unwrap(null) instanceof ArrowType ? ARROW : NEITHER;
         }
+        
+        
 
     }
 
@@ -369,6 +407,16 @@ public class Desugarer extends Rewrite {
     protected void noteUse(Thing t, String s) {
         if (t.lexicalNestedness == 0 || functionals.contains(s))
             topLevelUses.add(s);
+    }
+    /**
+     * Experimental -- when would this ever apply?
+     * @param s
+     */
+    protected void noteUse(String s, VarRef vre) {
+        if (functionals.contains(s))
+            topLevelUses.add(s);
+        else
+            System.err.println(s + " used at " + vre.at());
     }
     /**
      * All the object exprs (this may generalize to nested functions as well)
@@ -481,6 +529,7 @@ public class Desugarer extends Rewrite {
     Expr newName(VarRef vre, String s) {
         Thing t = rewrites.get(s);
         if (t == null) {
+            noteUse(s, vre);
             return vre;
         } else {
             noteUse(t,s);
@@ -498,6 +547,16 @@ public class Desugarer extends Rewrite {
             return t.replacement(vre);
         }
 
+    }
+    
+    Expr newName(_RewriteObjectRef vre, String s) {
+        Thing t = rewrites.get(s);
+        if (t == null) {
+            return vre;
+        } else {
+            noteUse(t,s);
+        }
+        return vre;
     }
     
    NamedType newType(VarType nt, String s) {
@@ -561,6 +620,7 @@ public class Desugarer extends Rewrite {
             Component com = (Component) tlnode;
             List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
+            functionalMethodsOfDefsToLocals(defs);
         } else if (tlnode instanceof Api) {
             // Iterate over definitions, collecting mapping from name
             // to node.
@@ -569,6 +629,7 @@ public class Desugarer extends Rewrite {
             Api com = (Api) tlnode;
             List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
+            functionalMethodsOfDefsToLocals(defs);
         }
 
     }
@@ -576,14 +637,14 @@ public class Desugarer extends Rewrite {
     public boolean injectAtTopLevel(String putName, String getName, Desugarer getFrom, Set<String>excluded) {
         Thing th = getFrom.rewrites.get(getName);
         Thing old = rewrites.get(putName);
-        /* Equal means no change */
-        if (old == th)
-            return false;
         /* Empty means do  add */
         if (old == null) {
             rewrites_put(putName, th);
             return true;
         }
+       /* Equal means no change */
+        if (old.equals(th))
+            return false;
         excluded.add(putName);
         rewrites.remove(putName);
 
@@ -699,8 +760,12 @@ public class Desugarer extends Rewrite {
                     return update;
                 } else if (node instanceof OpRef) {
                     OpRef vre = (OpRef) node;
-                    String s = vre.getOriginalName().toString();
-                    
+                    String s = NodeUtil.stringName(vre.getOriginalName());
+                    Expr update = newName(vre, s);
+                    return update;
+                } else if (node instanceof _RewriteObjectRef) {
+                    _RewriteObjectRef vre = (_RewriteObjectRef) node;
+                    String s = NodeUtil.stringName(vre.getObj());
                     Expr update = newName(vre, s);
                     return update;
                 } else if (node instanceof OpExpr) {
@@ -873,6 +938,11 @@ public class Desugarer extends Rewrite {
                     List<Param> params = fndef.getParams();
                     paramsToLocals(params);
 
+                } else if (node instanceof Catch) {
+                    String s = ((Catch) node).getName().stringName();
+                    lexicalNestingDepth++;
+                    rewrites_put(s, new Local());
+                    
                 } else if (node instanceof LocalVarDecl) {
                     atTopLevelInsideTraitOrObject = false;
                     lexicalNestingDepth++;
@@ -978,11 +1048,15 @@ public class Desugarer extends Rewrite {
                                             ac.getStaticArgs());
                     return node;
                 } else if (node instanceof Spawn) {
-                    return translateSpawn((Spawn)node);
+                    node = translateSpawn((Spawn)node);
                 } else if (node instanceof Typecase) {
                     Typecase tc = (Typecase) node;
                     List<Id> lid = tc.getBindIds();
                     Option<Expr> oe = tc.getBindExpr();
+                    // Not quite right because this will remove them from arrows,
+                    // but perhaps they ARE arrows, depending on the typecase.
+                    IdsToLocals(lid);
+                    
                     if (oe.isNone()) {
                         node = ExprFactory.makeTypecase(tc, lid, (Expr) tupleForIdList(lid));
                     }
@@ -1016,7 +1090,7 @@ public class Desugarer extends Rewrite {
 
     }
 
-    public String gensym(String prefix) {
+   public String gensym(String prefix) {
         return prefix + "$" + (++tempCount);
     }
 
@@ -1427,6 +1501,37 @@ public class Desugarer extends Rewrite {
             }
         }
     }
+    
+    /**
+     * @param defs
+     */
+    private void functionalMethodsOfDefsToLocals(List<? extends AbsDeclOrDecl> defs) {
+        for (AbsDeclOrDecl d : defs) {
+            if (d instanceof TraitObjectAbsDeclOrDecl) {
+                TraitObjectAbsDeclOrDecl dod = (TraitObjectAbsDeclOrDecl) d;
+                List <? extends AbsDeclOrDecl> tdecls = dod.getDecls();
+                handlePossibleFM(tdecls);
+            } else {
+                // Thankfully, do nothing.
+            }
+        }
+    }
+
+    private void handlePossibleFM(List<? extends AbsDeclOrDecl> tdecls) {
+        for (AbsDeclOrDecl adod : tdecls) {
+            ArrowOrFunctional aof = adod.accept(isAnArrowName);
+                if (aof == FUNCTIONAL) {
+                    // Only certain things can be a functional method.
+                    FnAbsDeclOrDecl fadod = (FnAbsDeclOrDecl) adod;
+                    String s = fadod.getName().stringName();
+                    arrows.add(s);
+                    functionals.add(s);
+                    rewrites_put(s, new FunctionalMethod());
+                }
+           
+        }
+    }
+
 
     /**
      * @param params
@@ -1441,7 +1546,13 @@ public class Desugarer extends Rewrite {
             }
         }
     }
-
+    
+    private void IdsToLocals(List<Id> lid) {
+        for (Id d : lid) {
+            String s = d.getText();
+            rewrites_put(s, new Local());
+        }
+    }
     
     private NodeAbstractVisitor_void localVisitor = new  NodeAbstractVisitor_void() {
 
@@ -1528,8 +1639,9 @@ public class Desugarer extends Rewrite {
                 if (aof != NEITHER) {
 
                     arrows.add(sdd);
-                    if (aof == FUNCTIONAL)
+                    if (aof == FUNCTIONAL) {
                         functionals.add(sdd);
+                    }
                 } else {
                     arrows.remove(sdd);
                 }
@@ -1551,8 +1663,11 @@ public class Desugarer extends Rewrite {
                 ArrowOrFunctional aof = d.accept(isAnArrowName);
                 if (aof != NEITHER) {
                     arrows.add(s);
-                    if (aof == FUNCTIONAL)
+                    if (aof == FUNCTIONAL) {
                         functionals.add(s);
+                        throw new Error("Don't think this can happen");
+                        
+                    }
                 } else
                     arrows.remove(s);
             }
@@ -1643,8 +1758,10 @@ public class Desugarer extends Rewrite {
                                     
                                     if (aof != NEITHER) {
                                         arrow_names.add(sdd);
-                                        if (aof == FUNCTIONAL)
+                                        if (aof == FUNCTIONAL) {
                                             functionals.add(sdd);
+                                            rewrites_put(sdd, new FunctionalMethod());
+                                        }
                                     } else {
                                         not_arrow_names.add(sdd);
                                     }
@@ -1657,7 +1774,7 @@ public class Desugarer extends Rewrite {
                                                        visited);
                         }
                     } else if (th instanceof Object) {
-                        error(t, errorMsg("Attempt to extend object type ", s));
+                        error(t, errorMsg("Attempt to extend object type ", s, ", saw ", th));
                     }
                     else if (th==null) {
                         /* This was missing the "throw" for a long
@@ -1687,16 +1804,35 @@ public class Desugarer extends Rewrite {
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general
         // Recursive visits here
-        _RewriteFieldRef selfDotSomething = (_RewriteFieldRef) visit(first);
+        AbstractNode expr = visit(first);
         List<Expr> visitedArgs = visitList(exprs.subList(1, exprs.size()));
+        if (expr instanceof VarRef) {
+            VarRef vre = (VarRef) expr;
+            if (vre.getLexicalDepth() == -1) {
+                return new MethodInvocation(node.getSpan(),
+                        false,
+                        ExprFactory.makeVarRef(node.getSpan(), WellKnownNames.secretSelfName), // this will rewrite in the future.
+                        (Id) vre.getVar(),
+                        visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
+                        visitedArgs.size() == 1 ? visitedArgs.get(0) :
+                            new TupleExpr(visitedArgs));
+            }
+        } else  if (expr instanceof _RewriteFieldRef) {
+       
+            _RewriteFieldRef selfDotSomething = (_RewriteFieldRef) visit(first);
 
-        return new MethodInvocation(node.getSpan(),
-                                false,
-                                selfDotSomething.getObj(), // this will rewrite in the future.
-                                (Id) selfDotSomething.getField(),
-                                visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
-                                visitedArgs.size() == 1 ? visitedArgs.get(0) :
-                                    new TupleExpr(visitedArgs));
+            return new MethodInvocation(node.getSpan(),
+                                    false,
+                                    selfDotSomething.getObj(), // this will rewrite in the future.
+                                    (Id) selfDotSomething.getField(),
+                                    visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
+                                    visitedArgs.size() == 1 ? visitedArgs.get(0) :
+                                        new TupleExpr(visitedArgs));
+        }
+        
+        throw new Error("Not there yet."); 
+
+  
     }
 
     private AbstractNode translateJuxtOfDotted(MathPrimary node) {

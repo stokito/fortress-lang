@@ -1139,10 +1139,10 @@ public class NodeFactory {
 	}
 
 	public static Expr makeOpRef(OpRef original, int lexicalNestedness) {
-		return new OpRef(original.getSpan(), original.isParenthesized(), original.getLexicalDepth(), original.getOriginalName(), original.getOps(), original.getStaticArgs());
+            return new OpRef(original.getSpan(), original.isParenthesized(), original.getLexicalDepth(), original.getOriginalName(), original.getOps(), original.getStaticArgs());
 
-	}
-	public static FnRef makeFnRef(Span span, Id name) {
+    }
+    public static FnRef makeFnRef(Span span, Id name) {
 		List<Id> ids = new LinkedList<Id>();
 		ids.add(name);
 		return new FnRef(span, name, ids);

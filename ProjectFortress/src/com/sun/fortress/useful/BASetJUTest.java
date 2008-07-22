@@ -17,6 +17,7 @@
 
 package com.sun.fortress.useful;
 
+import java.util.Iterator;
 import java.util.Random;
 
 public class BASetJUTest extends TestCaseWrapper {
@@ -103,6 +104,33 @@ public class BASetJUTest extends TestCaseWrapper {
          "yak",
          "zebra"
     };
+    
+    public void testRemoveIterator() {
+        t.addArray(animals);
+        int all = t.size();
+        assertEquals(t.size(), animals.length);
+        int odds = 0;
+        BASet<String> o = new BASet<String> (String.CASE_INSENSITIVE_ORDER);
+        for (Iterator<String> i = t.iterator(); i.hasNext(); ) {
+            String s = i.next();
+            if (1 == (s.length() & 1)) {
+                odds++;
+                i.remove();
+                o.add(s);
+            }
+        }
+        assertEquals(t.size(), all - odds);
+        assertTrue(odds > 0);
+        
+        for (String s : o) {
+            assertEquals(s.length() & 1, 1);
+        }
+        
+        for (String s : t) {
+            assertEquals(s.length() & 1, 0);
+        }
+        
+    }
     
     public void testEmpty() {
         assertEquals(t.size(), 0);

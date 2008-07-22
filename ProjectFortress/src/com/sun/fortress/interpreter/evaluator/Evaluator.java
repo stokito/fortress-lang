@@ -644,12 +644,16 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FType> res = new ArrayList<FType>();
 
         if (exprOpt.isNone()) {
+            // HACK/BUG: Looks like problem looking up bind ID within an object context
+            // This might always be wrong, if we ever execute this.
+            // The missing lexical depth information is the problem.
             for (Id id : bindIds) {
                 FValue val = ExprFactory.makeVarRef(id).accept(ev);
                 /* Avoid shadow error when we bind the same var name */
                 ev.e.putValueRaw(id.getText(), val);
                 res.add(val.type());
             }
+            throw new Error("maybe this is never executed");
         } else { // exprOpt.isSome()
             expr = exprOpt.unwrap();
             if (bindIds.size() == 1) {
@@ -1610,7 +1614,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forVarRef(VarRef x) {
-        FValue res = e.getValueNull(x);
+        
+        FValue res = toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
             Iterable<Id> names = NodeUtil.getIds(x.getVar());
             error(x, e, errorMsg(Thread.currentThread().getName() + " undefined variable ", names));

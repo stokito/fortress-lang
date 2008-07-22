@@ -34,12 +34,14 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.GenericTypeInstance;
 import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionOrMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -92,6 +94,27 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         } catch (StackOverflowError soe) {
             return error(loc,e,errorMsg("Stack overflow on ",foo));
         }
+    }
+
+        /**
+         Retrieves the environment in which a name was defined,
+         if it was a surrounding object.  Currently accomplished
+         by chaining up the list of $self/$parent entries.
+         */
+
+    static Environment toContainingObjectEnv(Environment e,
+            int negative_object_depth) {
+        if (-negative_object_depth > 0) {
+            negative_object_depth = -1 - negative_object_depth;
+            FObject obj = (FObject) e.getValue(WellKnownNames.secretSelfName);
+            e = obj.getSelfEnv();
+            while (negative_object_depth > 0) {
+                negative_object_depth--;
+                obj = (FObject) e.getValue(WellKnownNames.secretParentName);
+                e = obj.getSelfEnv();
+            }
+        }
+        return e;
     }
 
     /**

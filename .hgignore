@@ -35,6 +35,8 @@ ProjectFortress/FortressLibrary.jst
 ProjectFortress/src/com/sun/fortress/parser_util/precedence_resolver/Operators.java
 ProjectFortress/src/com/sun/fortress/parser/preparser/PreFortress.java
 build/
+tmp/
+default_repository/caches/
 .fortress_cache/
 .fortress_cache_checked/
 .interpreter_cache

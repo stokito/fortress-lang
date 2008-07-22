@@ -26,7 +26,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
-    public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
+     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
 
     public static String errorMsg(Object... messages) {
         StringBuffer fullMessage = new StringBuffer();
@@ -60,6 +60,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             public String forSome(Node n) { return n.accept(ErrorMsgMaker.this); }
             public String forNone() { return ""; }
         });
+    }
+
+    public String forTraitObjectAbsDeclOrDecl(TraitObjectAbsDeclOrDecl node) {
+        return node.getClass().getSimpleName() + " " + node.getName() + " at " + node.getSpan().begin.at();
     }
 
     public String forAbstractNode(AbstractNode node) {
@@ -146,7 +150,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getText();
     }
 
-    public String forEnclosing(Enclosing node) {
+     public String forEnclosing(Enclosing node) {
         return node.getOpen().getText() + node.getClose().getText();
     }
 
@@ -352,5 +356,4 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             return sym.toString();
         }
     }
-
 }
