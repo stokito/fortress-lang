@@ -527,7 +527,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * grammar definition in grammar declarations
              */
-            GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers);
+            GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers, 
+                       boolean native = false);
         /**
          * grammar member (nonterminal or terminal) declaration
          * Names and params must be unqualified.

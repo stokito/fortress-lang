@@ -54,7 +54,13 @@ option setOfString(FORTRESS_SYNTAX_SPECIAL_SYMBOLS), setOfString(FORTRESS_SYNTAX
 
 /* GrammarDef ::= grammar w id w GrammarExtends? (br NonterminalDef)* w end */
 public GrammarDecl GrammarDef =
-     grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
+     native w grammar w a1:Id a3s:(br NonterminalDecl)* w end
+     { List<Id> extendedGrammars = Collections.<Id>emptyList();
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, extendedGrammars,
+                                a3s.list(),
+                                new LinkedList<TransformerDecl>(),
+                                /*native*/ true); }
+   / grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
        else { ids.addAll(a2); }
@@ -88,16 +94,20 @@ private GrammarMemberDecl NonterminalDef =
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
         yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); }
-    /  header:NonterminalHeader w void:colon w astType:TraitType
-      { Option<BaseType> astType1 = Option.none();
-        if (astType != null) astType1 = Option.some(astType);
-        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); }
-     / header:NonterminalHeader w void:bar w astType:TraitType
+    /  yyValue:NonterminalDecl
+    /  header:NonterminalHeader w void:bar w astType:TraitType
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
         yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); };
+
+/* Only nonterminal decls are allowed within native grammars */
+private GrammarMemberDecl NonterminalDecl =
+       header:NonterminalHeader w void:colon w astType:TraitType
+      { Option<BaseType> astType1 = Option.none();
+        if (astType != null) astType1 = Option.some(astType);
+        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); };
 
 private NonterminalHeader NonterminalHeader =
         mod:(NonTermMod w)? name:Id params:(w NonterminalArguments)? staticParams:(w StaticParams)? type:(void:colon Type)? whereClauses:(w Where)?
