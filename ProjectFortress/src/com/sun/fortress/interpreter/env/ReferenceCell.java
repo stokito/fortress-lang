@@ -101,7 +101,7 @@ public class ReferenceCell extends IndirectionCell {
     private synchronized void cleanup() {
         Transaction w = node.getWriter();
         FValue prev = node.getValue();
-        while (transactionIsNotActive(w)) {
+        while (w != null && transactionIsNotActive(w)) {
             if (transactionIsAbortedOrOrphaned(w))  
                 node = node.getOld();
             else if (transactionIsCommitted(w)) {
@@ -113,8 +113,9 @@ public class ReferenceCell extends IndirectionCell {
                 }
             }
             else throw new PanicException("Shouldn't get here");
-        
-            w = node.getWriter();
+			if (node != null) 
+				w = node.getWriter();
+			else w = null;
         }
     }
 
