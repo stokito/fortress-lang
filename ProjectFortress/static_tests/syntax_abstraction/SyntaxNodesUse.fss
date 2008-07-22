@@ -21,7 +21,7 @@ import SyntaxNodes.{...}
 export Executable
 
 run(args:String...) = do
-    println (b-a-d b)
+    println (b-a-d b 7)
     (*
     b-a-d b
     b-a-d c

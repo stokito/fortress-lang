@@ -44,6 +44,8 @@ import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
 import com.sun.fortress.syntax_abstractions.MacroCompiler;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 
+import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
+
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.StaticPhaseResult;
@@ -169,15 +171,33 @@ public class GrammarRewriter {
         }
 
         IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(i2, System.currentTimeMillis() );
-        for ( ApiIndex api : apiN.apis().values() ){
+        initializeGrammarIndexExtensions(apiN.apis().values());
+        for ( final ApiIndex api : apiN.apis().values() ){
                 // List<String> names = collector.getNames();
                 // Debug.debug( Debug.Type.SYNTAX, 1, "Syntax transformers for " + api.ast().getName() + ": " + names );
 
             final Api raw = (Api) api.ast();
             if ( containsGrammar( env, raw) ){
-                final Class<?> parserClass = createParser( api, env );
+                /* box parser class */
+                final Class<?>[] parser = new Class<?>[1];
+                parser[ 0 ] = null;
+                // final Class<?> parserClass = createParser( api.grammars().values().iterator().next() );
                 final SyntaxTransformerCreater creater = new SyntaxTransformerCreater();
-                api.ast().accept( new NodeDepthFirstVisitor_void(){
+                    api.ast().accept( new NodeDepthFirstVisitor_void(){
+
+                    private GrammarIndex findGrammar( GrammarDef grammar ){
+                        for ( GrammarIndex index : api.grammars().values() ){
+                            if ( index.getName().equals( grammar.getName() ) ){
+                                return index;
+                            }
+                        }
+                        throw new RuntimeException( "Could not find grammar for " + grammar.getName() );
+                    }
+
+                    @Override public void forGrammarDefDoFirst(GrammarDef that) {
+                        parser[ 0 ] = createParser( findGrammar(that) );
+                    }
+
                     @Override public void forNonterminalDef(NonterminalDef that) {
                         BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
                         String name = that.getHeader().getName().getText();
@@ -201,7 +221,7 @@ public class GrammarRewriter {
                     private void visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type, MemberEnv memberEnv) {
                         TransformerDef transformer = (TransformerDef) syntaxDef.getTransformer();
                         Debug.debug( Debug.Type.SYNTAX, 1, "Create function for " + transformer.getTransformer() );
-                        SyntaxTransformerManager.addTransformer( transformer.getTransformer(), createTransformer( creater, raw.getName(), parserClass, transformer.getDef(), new SyntaxDeclEnv(syntaxDef, memberEnv) ) );
+                        SyntaxTransformerManager.addTransformer( transformer.getTransformer(), createTransformer( creater, raw.getName(), parser[0], transformer.getDef(), new SyntaxDeclEnv(syntaxDef, memberEnv) ) );
                     }
                 });
 
@@ -304,6 +324,45 @@ public class GrammarRewriter {
         }
     }
 
+    private static Class<?> createParser( GrammarIndex grammar ){
+        // Compile the syntax abstractions and create a temporary parser
+        
+        Class<?> temporaryParserClass = ComposingMacroCompiler.compile( grammar );
+        return temporaryParserClass;
+
+        /*
+        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
+        ImportedApiCollector collector = new ImportedApiCollector(env);
+        collector.collectApis((Api)api.ast());
+        Collection<GrammarIndex> grammars = collector.getGrammars();
+        for ( GrammarIndex g : api.grammars().values() ){
+            g.isToplevel(true);
+        }
+        grammars.addAll( api.grammars().values() );
+        MacroCompiler.Result tr = macroCompiler.compile(grammars, env);
+        // if (!tr.isSuccessful()) { return new Result(tr.errors()); }
+        if ( ! tr.isSuccessful() ){
+            throw new MultipleStaticError( tr.errors() );
+        }
+
+        Class<?> temporaryParserClass = tr.getParserClass(); 
+        Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
+        return temporaryParserClass;
+        */
+
+        /*
+        BufferedReader in = null; 
+        try {
+            in = Useful.utf8BufferedFileReader(f);
+            ParserBase p =
+                ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
+            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
+        } catch ( IOException e ){
+        }
+        */
+    }
+
+    /*
     private static Class<?> createParser( ApiIndex api, GlobalEnvironment env ){
         // Compile the syntax abstractions and create a temporary parser
         MacroCompiler macroCompiler = new FileBasedMacroCompiler();
@@ -324,7 +383,7 @@ public class GrammarRewriter {
         Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
         return temporaryParserClass;
 
-        /*
+        / *
         BufferedReader in = null; 
         try {
             in = Useful.utf8BufferedFileReader(f);
@@ -333,8 +392,9 @@ public class GrammarRewriter {
             CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
         } catch ( IOException e ){
         }
-        */
+        * /
     }
+    */
     
     private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
         List<StaticError> errors = new LinkedList<StaticError>();
@@ -352,7 +412,10 @@ public class GrammarRewriter {
                     for (Id n: og.unwrap().getExtends()) {
                         ls.add(grammars.get(n.getText()));
                     }
+                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
                     e.getValue().setExtended(ls);
+                } else {
+                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " has no ast" );
                 }
             }
         }

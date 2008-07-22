@@ -26,13 +26,16 @@ api SyntaxNodes
 
         Thing :Expr:=
           a <[ 1 ]>
-        | b <[ (b-a-d a) + 1 ]>
+        | b q:Expr <[ (b-a-d e q 4) + 1 ]>
         | c <[ "hello" ]>
         | d <[ if 2 > 1 then
+                println "Hey, I'm in a macro!"
                 1
                 else
                 2
                 end ]>
+        | e q:Expr z:Expr <[ (b-a-d a q z) ]>
+                (*
         | e x:Decl <[ println x ]>
         | g {Thing} <[ 1 ]>
         | f {x:Thing y:Thing} {hi z:Thing} <[ x + y + z ]>
@@ -49,6 +52,7 @@ api SyntaxNodes
         | m9 {p:`+?} <[ 1 ]>
         | m10 {p:`+}? <[ 1 ]>
         | m11 {p:`+}* <[ 1 ]>
+        *)
 
         (*
         | f (x:Thing y:Thing) <[ 1 ]>
