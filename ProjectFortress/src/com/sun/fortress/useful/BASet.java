@@ -430,6 +430,12 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
          return new BASet<T>(root, comp);
     }
 
+    public void addArray(T[] ks) {
+        for (T k : ks) {
+            add(k);
+        }
+    }
+    
     public boolean add(T k) {
         return put(k);
     }
@@ -524,19 +530,25 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
     class Iter implements Iterator<T> {
         int i;
+        T last;
 
         public boolean hasNext() {
             return i < size();
         }
 
         public T next() {
-            if (hasNext())
-                return root.get(i++).key;
+            if (hasNext()) {
+                last = root.get(i++).key;
+                return last;
+            }
             return null;
         }
 
         public void remove() {
-            throw new Error("Applicative data structures cannot be changed!");
+            if (last != null) {
+                root = root.delete(last, comp);
+                i--;
+            }
         }
 
     }

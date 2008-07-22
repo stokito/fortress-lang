@@ -115,16 +115,25 @@ public class NodeUtil {
         new NodeAbstractVisitor<String>() {
 
         @Override public String forAPIName(APIName n) {
-            return nameString(n);
+            return n.getText();
             }
         @Override public String forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName n) {
             return nameString(n);
             }
-        public String forId(Id n) { return nameString(n); }
-        public String forOp(Op n) { return nameString(n); }
-        public String forEnclosing(Enclosing n) { return nameString(n); }
+        public String forId(Id n) {      
+            final String last = n.getText();
+            Option<APIName> odn = n.getApi();
+            return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
+        }
+        public String forOp(Op n) {
+            return OprUtil.fixityDecorator(n.getFixity(), n.getText());
+        }
+        public String forEnclosing(Enclosing n) { 
+            // Interior space is REQUIRED
+            return n.getOpen().getText() + " " + n.getClose().getText();
+        }
         public String forAnonymousFnName(AnonymousFnName n) {
-            return nameString(n);
+            return n.getSpan().toString();
         }
         public String forConstructorFnName(ConstructorFnName n) {
             // TODO Auto-generated method stub
@@ -164,6 +173,7 @@ public class NodeUtil {
     }
 
     public static String nameString(Enclosing n) {
+        // Interior space is REQUIRED
         return n.getOpen().getText() + " " + n.getClose().getText();
     }
     public static String nameString(AnonymousFnName n) {
@@ -216,33 +226,65 @@ public class NodeUtil {
 
     private final static NodeAbstractVisitor<String> stringNameVisitor =
         new NodeAbstractVisitor<String>() {
+        @Override
+            public String forId(Id that) {
+                return that.getText();
+            }
+            @Override
+            public String forOp(Op that) {
+               return OprUtil.fixityDecorator(that.getFixity(), that.getText());
+            }
+            @Override
+            public String forEnclosing(Enclosing that) {
+                String o = that.getOpen().accept(this);
+                String c = that.getClose().accept(this);
+                return o + " " + c;
+            }
+            @Override
         public String forDimDecl(DimDecl node) {
             return nameString(node.getDim());
         }
+            @Override
         public String forUnitDecl(UnitDecl node) {
             List<Id> ids = node.getUnits();
             if (ids.size() < 1)
                 return bug("Unit declarations should have a name.");
             else return nameString(ids.get(0));
         }
+            @Override
         public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
             return nameString(node.getName());
         }
+            @Override
         public String forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName node) {
             return nameString(node);
         }
+            @Override
         public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
             return node.getName().getText();
         }
+            @Override
         public String for_RewriteObjectExpr(_RewriteObjectExpr node) {
             return node.getGenSymName();
         }
+            @Override
         public String forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl node) {
             return node.getName().getText();
         }
+            @Override
         public String forTypeAlias(TypeAlias node) {
             return node.getName().getText();
         }
+            @Override
+        public String forOpRef(OpRef node) {
+            return node.getOriginalName().accept(this);
+        }
+            @Override
+        public String forVarRef(VarRef node) {
+            return node.getVar().accept(this);
+        }
+        
+            @Override
         public String defaultCase(Node node) {
             return node.getClass().getSimpleName();
         }

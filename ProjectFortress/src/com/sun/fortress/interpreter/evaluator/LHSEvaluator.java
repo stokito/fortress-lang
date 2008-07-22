@@ -134,6 +134,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     public Voidoid forVarRef(VarRef x) {
         String s = x.getVar().getText();
         Environment e = evaluator.e;
+        
+        e = EvaluatorBase.toContainingObjectEnv(e, x.getLexicalDepth());
+        
         FType ft = e.getVarTypeNull(s);
         if (ft != null) {
             // Check that variable can receive type

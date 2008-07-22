@@ -123,20 +123,6 @@ public class Driver {
 
     public static ArrayList<ComponentWrapper> components;
 
-    private static boolean injectLibraryTraits(List<ComponentWrapper> components,
-                                               ComponentWrapper lib) {
-        boolean change = false;
-        for (ComponentWrapper cw : components) {
-            for (String s : lib.desugarer.getTopLevelRewriteNames()) {
-                if (cw.isOwnName(s)) {
-                    continue;
-                }
-                change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
-            }
-        }
-        return change;
-    }
-
     private static void injectLibraryNames(List<Importer> importers,
                                            ComponentWrapper cw,
                                            ComponentWrapper lib,
@@ -145,7 +131,7 @@ public class Driver {
         if (cw != libcomp) {
             // System.err.println("Injecting names for comp "+libcomp.name()+" into comp "+cw.name());
             Importer imp =
-                importAllExcept(lib.getCompilationUnit(),
+                importAllExcept(lib,
                                 cw.getEnvironment(),
                                 lib.getEnvironment(), libcomp.getEnvironment(),
                                 Collections.<String> emptyList(),
@@ -241,6 +227,8 @@ public class Driver {
         }
 
         // Iterate to a fixed point, pushing trait info as far as necessary.
+        // This is not the same as pushing information into environments, which
+        // occurs below the call(s) to populateOne.
         boolean change = true;
         while (change) {
             change = false;
@@ -455,7 +443,7 @@ public class Driver {
                             },
                             new BASet<String>(StringComparer.V));// cw.ownNonFunctionNames.copy());
 
-                    Importer imp = importAllExcept(api_cw.getCompilationUnit(), e, api_e, from_e, except_names,
+                    Importer imp = importAllExcept(api_cw, e, api_e, from_e, except_names,
                                     from_apiname,
                                     NodeUtil.nameString(from_cw.getCompilationUnit().getName()),
                                     cw);
@@ -540,6 +528,13 @@ public class Driver {
                             change |= cw.desugarer.injectAtTopLevel(s, s, api_cw.desugarer, cw.excludedImportNames);
                         }
                     }
+                    for (String s : api_cw.desugarer.functionals) {
+                        if (! except_names.contains(s) &&
+                            //    !cw.isOwnName(s) &&
+                                !cw.excludedImportNames.contains(s)) {
+                            change |= cw.desugarer.injectAtTopLevel(s, s, api_cw.desugarer, cw.excludedImportNames);
+                        }
+                    }
                 }
             } else {
                 bug(errorMsg("NYI Import " + i));
@@ -547,6 +542,26 @@ public class Driver {
         }
 
 
+        return change;
+    }
+
+    private static boolean injectLibraryTraits(List<ComponentWrapper> components,
+            ComponentWrapper lib) {
+        boolean change = false;
+        for (ComponentWrapper cw : components) {
+            for (String s : lib.desugarer.getTopLevelRewriteNames()) {
+                if (cw.isOwnName(s)) {
+                    continue;
+                }
+                change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
+            }
+            for (String s : lib.desugarer.functionals) {
+//                if (cw.isOwnName(s)) {
+//                    continue;
+//                }
+                change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
+            }
+        }
         return change;
     }
 
@@ -616,7 +631,7 @@ public class Driver {
      *
      *
      */
-    private static Importer importAllExcept(final CompilationUnit fromApi,
+    private static Importer importAllExcept(final ComponentWrapper importee,
             final Environment into_e,
             final Environment api_e,
             final Environment from_e,
@@ -625,21 +640,36 @@ public class Driver {
             final String c,
             final ComponentWrapper importer) {
 
+        final CompilationUnit fromApi = importee.getCompilationUnit();
         final Set<String> vnames = new HashSet<String>();
         final Set<String> tnames = new HashSet<String>();
 
         collectImportedValueAndTypeNames(fromApi, vnames, tnames);
 
+        // HACK -- is this only true for the "builtins" interface?
+        if (importee.desugarer != null)
+            vnames.addAll(importee.desugarer.functionals);
+        
         Set<String> actually_used = importer.desugarer.topLevelUses;
 
         // HACK, types referenced from native code, I think.
         actually_used.add("Any");
         actually_used.add("__immutableFactory1");
-
-        // vnames.retainAll(actually_used);
+        actually_used.add("__builtinFactory1");
+        actually_used.add("__builtinFactory2");
+        actually_used.add("__builtinFactory3");
+        
+        Set<String> removed = Useful.difference(vnames, actually_used);
+         
+        vnames.retainAll(actually_used);
+        
+        // Skip filtering the type names, for now.
         // tnames.retainAll(actually_used);
-
-
+        
+        // Keep track of what remains, for debugging.
+        importer.topLevelUsesForDebugging.removeAll(vnames);
+        importer.topLevelUsesForDebugging.removeAll(tnames);     
+        
        final Importer imp = new Importer() {
            public String toString() {
                return  a + "/" + c + "->" + importer.name();
@@ -755,7 +785,7 @@ public class Driver {
                         if (
                             fv2 instanceof OverloadedFunction) {
                          // hack, leave this empty temporarily.
-                          //  overloaded.add(s);
+                          overloaded.add(s);
                         }
                         added.add(s);
                     } else {

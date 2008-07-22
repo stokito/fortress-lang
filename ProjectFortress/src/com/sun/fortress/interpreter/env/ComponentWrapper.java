@@ -48,6 +48,9 @@ public class ComponentWrapper {
     public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
 
+    // For debugging use/def annotation
+    public BASet<String> topLevelUsesForDebugging;
+    
     public Desugarer desugarer;
 
     int visitState;
@@ -183,7 +186,9 @@ public class ComponentWrapper {
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
         be.getEnvironment().visit(nameCollector);
         p = cu;
-
+        topLevelUsesForDebugging = desugarer.topLevelUses.copy();
+        topLevelUsesForDebugging.removeAll(ownNames);
+        
         for (ComponentWrapper api: exports.values()) {
             api.populateOne();
         }
