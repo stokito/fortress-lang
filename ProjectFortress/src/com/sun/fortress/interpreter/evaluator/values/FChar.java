@@ -130,7 +130,7 @@ public class FChar extends NativeConstructor.FNativeObject {
     }
 
     public String toString() {
-        return getString();
+        return "'" + Unprinter.enQuote(getString()) + "'";
     }
 
     public boolean seqv(FValue v) {
