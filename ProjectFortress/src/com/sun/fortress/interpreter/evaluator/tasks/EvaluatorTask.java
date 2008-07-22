@@ -24,7 +24,6 @@ import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class EvaluatorTask extends BaseTask {
@@ -43,6 +42,7 @@ public class EvaluatorTask extends BaseTask {
 
     public EvaluatorTask(FortressRepository fr, CompilationUnit prog,
                          boolean tests, String toRun, List<String> args_) {
+		super();
         p = prog;
         runTests = tests;
         args = args_;
@@ -55,19 +55,20 @@ public class EvaluatorTask extends BaseTask {
     }
 
     public void compute() {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        runner.setCurrentTask(this);
-        try {
-            theResult =  Driver.runProgramTask(p, runTests, args, functionToRun,
+		// The FortressTaskRunner isn't created yet when we first make our EvaluatorTask, so we need to initialize the thread state here.
+		taskState = new TaskState();
+		FortressTaskRunner.setCurrentTask(this);
+	
+		try {
+			theResult =  Driver.runProgramTask(p, runTests, args, functionToRun,
                                                fortressRepository);
-        }
-        catch (IOException e) {
-            causedException = true;
-            err = e;
-            //            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
+		} catch (IOException e) {
+			causedException = true;
+			err = e;
+			//            e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 
     public FValue result() {
         return theResult;

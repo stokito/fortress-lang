@@ -15,26 +15,21 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component abortTest
+component atomic4
+
 export Executable
 
 run(args:String...):()=do
-    iters : ZZ32 = 3000
-    successes : ZZ32 := 0
-    failures : ZZ32 := 0
-    for i <- 0#iters do
-        try
-            tryatomic do
-                successes+= 1
-                abort()
-            end
-        catch e
-            TryAtomicFailure => printThreadInfo("Caught TryAtomicFailure"); atomic do failures+= 1 end
+    var count : ZZ32 = 0
+    atomic do
+        for i <- 1#300 do
+             atomic do 
+                 count+= 1
+             end
         end
     end
-
-    assert(successes=0, "Abort failed")
-    assert(failures=iters,"Abort failed")
-
+    if count=/=300 then
+     println("FAIL: count = " count)
+   end
 end
 end

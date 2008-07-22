@@ -41,11 +41,11 @@ abstract class TransactorRecord {
         Transaction t = FortressTaskRunner.getTransaction();
 
         if (t==null) {
-            this.t = Transaction.COMMITTED_TRANS;
+            this.t = null;
         } else if (t.isActive()) {
             this.t = t;
         } else {
-            throw new AbortedException();
+            throw new AbortedException(t);
         }
     }
 

@@ -35,10 +35,10 @@ final class WriteRecord extends TransactorRecord {
     }
 
     public boolean mustRestore() {
-        return (t != null && t.getStatus()==Transaction.Status.ABORTED);
+        return (t != null && t.isActive());
     }
 
     public void restored() {
-        t = Transaction.COMMITTED_TRANS;
+        t = null;
     }
 }

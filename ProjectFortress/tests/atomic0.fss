@@ -15,23 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ********************************************************************************)
 
-component atomic2
-
+component atomic0
 export Executable
 
 run(args:String...):()=do
-   var count1 : ZZ32 = 0
-   var count2 : ZZ32 = 1000
-   var count3 : ZZ32 = 10000
-   var count4 : ZZ32 = 100000
-   for i <- 1#500 do
-      atomic do count1+= 1; count2+=2; count3+=3; count4+=4 end
-   end
-   if count1=/=500 OR count2=/=2000 OR count3=/=11500 OR count4=/=102000 then
-     println("FAIL: count1 = " count1)
-     println("FAIL: count2 = " count2)
-     println("FAIL: count3 = " count3)
-     println("FAIL: count4 = " count4)
+   var count : ZZ32 = 0
+   count := 1
+   count := count + 1
+   count := count + 1
+
+   if count=/=3 then
+     println("FAIL: count = " count)
    else 
    println("SUCCESS")
    end

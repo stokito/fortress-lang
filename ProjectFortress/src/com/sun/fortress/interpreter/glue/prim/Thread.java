@@ -28,7 +28,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
@@ -63,15 +63,15 @@ public class Thread extends NativeConstructor {
             super(con);
             this.con = con;
             // For Now we are limiting spawn to creating only 1 thread
-	    //	    int numThreads = Runtime.getRuntime().availableProcessors();
-	    //            String numThreadsString = System.getenv("FORTRESS_THREADS");
-
-	    //            if (numThreadsString != null)
-	    //                numThreads = Integer.parseInt(numThreadsString);
-	    int numThreads = 1;
-            group = new FortressTaskRunnerGroup(numThreads);
-            st = new SpawnTask(sf,new Evaluator(getSelfEnv()));
-            group.execute(st);
+			//	    int numThreads = Runtime.getRuntime().availableProcessors();
+			//            String numThreadsString = System.getenv("FORTRESS_THREADS");
+			
+			//            if (numThreadsString != null)
+			//                numThreads = Integer.parseInt(numThreadsString);
+			int numThreads = 1;
+			group = new FortressTaskRunnerGroup(numThreads);
+			st = new SpawnTask(sf,new Evaluator(getSelfEnv()));
+			group.execute(st);
         }
 
         public NativeConstructor getConstructor() { return con; }
@@ -118,7 +118,7 @@ public class Thread extends NativeConstructor {
 
     public static final class abort extends NativeFn0 {
         protected FValue act() {
-            Transaction current = BaseTask.getThreadState().transaction();
+            Transaction current = FortressTaskRunner.getTransaction();
             if (current != null)
                 current.abort();
             return FVoid.V;

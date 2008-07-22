@@ -18,11 +18,21 @@
 package com.sun.fortress.interpreter.evaluator.transactions;
 
 import com.sun.fortress.exceptions.transactions.PanicException;
+import com.sun.fortress.exceptions.transactions.OrphanedException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.interpreter.env.ReferenceCell;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Transaction.java
@@ -34,79 +44,107 @@ public class Transaction {
     /**
      * Possible transaction status
      **/
-    public enum Status {ABORTED, ACTIVE, COMMITTED};
+    private enum Status {ORPHANED, ABORTED, ACTIVE, COMMITTED};
 
-    /**
-     * Predefined committed transaction
-     */
-    public static Transaction COMMITTED_TRANS = new Transaction(Status.COMMITTED);
-    /**
-     * Predefined orted transaction
-     */
-    public static Transaction ABORTED_TRANS   = new Transaction(Status.ABORTED);
+    private static AtomicInteger counter = new AtomicInteger();
 
-    /**
-     * Is transaction waiting for another?
-     */
-    public boolean waiting = false;
+    private ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>> updates;
 
-    /** Number of times this transaction tried
-     */
-    public int attempts = 0;
-
-    /**
-     * Number of unique memory references so far.
-     */
-    public int memRefs = 0;
-
-    /**
-
-    /**
-    * Time in nanos when transaction started
-    */
-    public long startTime = 0;
-    /**
-     * Time in nanos when transaction committed or aborted
-     */
-    public long stopTime = 0;
+    private Transaction parent;
+    private List<Transaction> children;
 
     private long threadID;
+    private int count;
 
     /** Updater for status */
-    private AtomicReference<Status> myStatus;
-
+    private volatile AtomicReference<Status> myStatus;
     private ContentionManager manager;
+    private int nestingDepth;
 
     /**
      * Creates a new, active transaction.
      */
     public Transaction() {
-	myStatus = new AtomicReference(Status.ACTIVE);
-	long id = this.startTime = System.nanoTime();
-	manager = FortressTaskRunner.getContentionManager();
-	int numThreads = Runtime.getRuntime().availableProcessors();
-	String numThreadsString = System.getenv("FORTRESS_THREADS");
-	if (numThreadsString != null)
-	    numThreads = Integer.parseInt(numThreadsString);
-
-	threadID = Thread.currentThread().getId() % numThreads;
+		myStatus = new AtomicReference(Status.ACTIVE);
+		manager = FortressTaskRunner.getContentionManager();
+		int numThreads = Runtime.getRuntime().availableProcessors();
+		String numThreadsString = System.getenv("FORTRESS_THREADS");
+		if (numThreadsString != null)
+			numThreads = Integer.parseInt(numThreadsString);
+		threadID = Thread.currentThread().getId();
+		parent = null;
+		children = new ArrayList<Transaction>();
+		nestingDepth = 0;
+		count = counter.getAndIncrement();
+		updates = new ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>>();
     }
 
+    public Transaction(Transaction p) {
+		if (p.isActive()) {
+			myStatus = new AtomicReference(Status.ACTIVE);
+			manager = FortressTaskRunner.getContentionManager();
+			int numThreads = Runtime.getRuntime().availableProcessors();
+			String numThreadsString = System.getenv("FORTRESS_THREADS");
+			if (numThreadsString != null)
+				numThreads = Integer.parseInt(numThreadsString);
+			threadID = Thread.currentThread().getId();
+			if (p != null) {
+				p.addChild(this);
+			}
+			parent = p;
+			children = new ArrayList<Transaction>();
+			if (p != null)
+				nestingDepth = p.getNestingDepth() + 1;
+			else nestingDepth = 0;
+			count = counter.getAndIncrement();
+			updates = new ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>>();
+		} else {
+			myStatus = new AtomicReference(Status.ORPHANED);
+		}
+
+    }
+
+    public void addRead(ReferenceCell rc, FValue f) { 
+		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+		updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
+		ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
+		if (!m.containsKey(runner)) {
+			m.put(runner, "(read " + f + ")");
+		} else {
+			m.put(runner, m.get(runner) + "(read " + f + ")");
+		}
+	}
+
+    public void addWrite(ReferenceCell rc, FValue f) { 	
+		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+		updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
+		ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
+		if (!m.containsKey(runner)) {
+			m.put(runner, "( write " + f + ")");
+		} else {
+			String temp = m.get(runner) + "(write " + f + ")";
+			m.put(runner, temp);
+		}
+	}
+
+    public void mergeUpdates(String s, Transaction t, ReferenceCell rc) {
+		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+		updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner,String>());
+		ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
+		if (!m.containsKey(runner))
+			m.put(runner,  s  );
+		else
+			m.put(runner, m.get(runner) +  s );
+	}
+
+    public int getNestingDepth() { return nestingDepth;}
     public long getThreadId() { return threadID;}
-    /**
-     * Creates a new transaction with given status.
-     * @param myStatus active, committed, or aborted
-     */
-    private Transaction(Transaction.Status s) {
-	myStatus = new AtomicReference(s);
-	startTime = 0;
-    }
 
-    /**
-     * Access the transaction's current status.
+
+    /* Access the transaction's current status.
      * @return current transaction status
      */
-    public Status getStatus() {
+    private Status getStatus() {
 	return myStatus.get();
     }
 
@@ -135,17 +173,43 @@ public class Transaction {
     }
 
     /**
+     * Tests whether transaction is abandoned
+     * @return whether transaction is abandoned
+     */
+
+    public boolean isOrphaned() {
+	return getStatus() == Status.ORPHANED;
+    }
+
+    public List<Transaction> getChildren() { return children;}
+
+    public boolean addChild(Transaction c) { 
+	if (isActive()) {
+	    synchronized (children) {
+		children.add(c);
+	    }
+	    return true;
+	} else 
+	    return false;
+    }
+    
+    public Transaction getParent() { return parent;}
+
+    /**
      * Tests whether transaction is committed or active.
      * @return whether transaction is committed or active
      */
     public boolean validate() {
 	Status st = getStatus();
+	
 	switch (st) {
 	case COMMITTED:
 	    throw new PanicException("committed transaction still running");
 	case ACTIVE:
 	    return true;
 	case ABORTED:
+	    return false;
+	case ORPHANED:
 	    return false;
 	default:
 	    throw new PanicException("unexpected transaction state: " + getStatus());
@@ -157,21 +221,73 @@ public class Transaction {
      * @return whether transaction was committed
      */
     public boolean commit() {
-	if (myStatus.compareAndSet(Status.ACTIVE, Status.COMMITTED)) 
-		       return true;
-	else return false;
-    }
+	if (myStatus.compareAndSet(Status.ACTIVE, Status.COMMITTED)) {
+		if (parent == null) {
+			Enumeration<ReferenceCell> temp = updates.keys();
+			while (temp.hasMoreElements()) {
+				ReferenceCell key = temp.nextElement();
+				ConcurrentHashMap<FortressTaskRunner, String> ups = updates.get(key);
+				FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+				String mine = ups.get(runner);
+			}
+		} else {
+			Enumeration<ReferenceCell> temp = updates.keys();
+			while (temp.hasMoreElements()) {
+				ReferenceCell key = temp.nextElement();
+				ConcurrentHashMap<FortressTaskRunner, String> ups = updates.get(key);
+				FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+				String mine = ups.get(runner);				
+				parent.mergeUpdates(mine, this, key);
+			}
+		}
+	    return true;
+	}
+	return false;
+	}
 
     /**
      * Tries to abort transaction
      * @return whether transaction was aborted (not necessarily by this call)
      */
     public boolean abort() {
-	if (myStatus.compareAndSet(Status.ACTIVE, Status.ABORTED))
-		       return true;
-	else return false;
+	if (myStatus.compareAndSet(Status.ACTIVE, Status.ABORTED)) {
+	    synchronized(children ) {
+		for (Transaction child : getChildren())
+		    child.orphan();
+	    }
+		//		updates = null;
+	    return true;
+	} else {
+	    if (isActive())
+		throw new RuntimeException("Transaction " + this + " is active and didn't get aborted ?");
+	    return false;
+	}
     }
 
+    public boolean orphan() {
+	if (myStatus.compareAndSet(Status.ACTIVE, Status.ORPHANED)) {
+	    synchronized(children ) {
+		for (Transaction child : getChildren())
+		    child.orphan();
+	    }
+		//		updates = null;
+	    throw new OrphanedException(this, "I'm an orphan, so my kids are too");
+	} else if (myStatus.compareAndSet(Status.ABORTED, Status.ORPHANED)) {
+	    synchronized(children ) {
+		for (Transaction child : getChildren())
+		    child.orphan();
+	    }
+	    return false;
+	} else if (myStatus.compareAndSet(Status.COMMITTED, Status.ORPHANED)) {
+	    synchronized(children ) {
+		for (Transaction child : getChildren())
+		    child.orphan();
+	    }
+	    return false;
+	} else return false;
+    }
+	
+    
     /**
      * Returns a string representation of this transaction
      * @return the string representcodes[ation
@@ -179,13 +295,15 @@ public class Transaction {
     public String toString() {
 	switch (getStatus()) {
 	case COMMITTED:
-	    return "Transaction" + startTime + "[committed]";
+	    return "[T" + count + ":committed, p=" + getParent() + "=>" + getNestingDepth() + "]";
 	case ABORTED:
-	    return "Transaction" + startTime + "[aborted]";
+	    return "[T" + count + ":aborted,p=" + getParent() + "=>" + getNestingDepth() + "]";
 	case ACTIVE:
-	    return "Transaction" + startTime + "[active]";
+	    return "[T" + count + ":active,p=" + getParent() + "=>" + getNestingDepth() + "]";
+	case ORPHANED:
+	    return "[T" + count + ":orphaned ]";
 	default:
-	    return "Transaction" + startTime + "[???]";
+	    return "[T" + count + "[???]]";
 	}
     }
 
@@ -195,5 +313,16 @@ public class Transaction {
      */
     public ContentionManager getContentionManager() {
 	return manager;
+    }
+
+    public boolean isAncestorOf(Transaction t) {
+	Transaction current = t;
+	while (current != null && current != this) 
+	    current = current.getParent();
+	if (current == this) {
+	    return true; 
+	} else {
+	    return false;
+	}
     }
 }

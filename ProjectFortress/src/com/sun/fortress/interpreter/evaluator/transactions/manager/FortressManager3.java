@@ -30,13 +30,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Contention manager for Fortress should be called
  * the 800lb guerilla manager
  */
-public class FortressManager2 extends BaseManager {
+public class FortressManager3 extends BaseManager {
 
-    public FortressManager2() {
-    }
-
-    public void openSucceeded() {
-	super.openSucceeded();
+    public FortressManager3() {
     }
 
     // This is completely arbitrary.
@@ -45,48 +41,56 @@ public class FortressManager2 extends BaseManager {
 	sleep(factor);
     }
 
-    public void pickOne(Transaction me, Transaction other) {
-	int mine = (int) me.getThreadId();
-	int yours = (int) other.getThreadId();
+    public Transaction lowerNumbered(Transaction me, Transaction other) {
+	Transaction mine = me;
+	Transaction yours = other;
+
+	while (yours.getNestingDepth() < mine.getNestingDepth()) {
+	    mine = mine.getParent();
+	}
+
+	while (mine.getNestingDepth() < yours.getNestingDepth()) {
+	    yours = yours.getParent();
+	}
 	
-	if (mine < yours) {
-	    if (me.isActive()) {
-		FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and " + other + " by killing " + other);
-		if (!other.abort())
-		    // My competitor already committed.  We might want to be smarter later, but for now!
-		    me.abort();
+	int myId = (int) mine.getThreadId();
+	int yourId = (int) yours.getThreadId();
+
+	if (myId < yourId) 
+	    return other;
+	else return me;
+    }
+
+    public void pickOne(Transaction me, Transaction other) {
+	Transaction winner = lowerNumbered(me, other);
+	Transaction loser;
+	if (winner == me) 
+	    loser = other; 
+	else loser = me;
+
+	if (winner.isActive()) {
+	    if (!loser.abort()) {
+		// My competitor already committed.
+		winner.abort();
 	    }
-	} else if (mine > yours) {
-	    if (other.isActive()) {
-		FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and " + other + " by killing " + me);
-		me.abort();
-		sleepFactor(mine);
-	    }
-	} else  return;
+	}
     }
 
     public void pickOne(Transaction me, Collection<Transaction> others) {
-	int mine = (int) me.getThreadId();
-	int min = mine;
-	Transaction win = me;
 
+	Transaction winner = me;
 	for (Transaction t : others) {
 	    if (t.isActive()) {
-		int id = (int) t.getThreadId();
-		if (id < min) {
-		    min = id;
-		    win = t;
-		}
+		winner = lowerNumbered(winner, t);
 	    }
 	}
-	if (win == me) {
-	    FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and others by killing them");
+
+	if (winner == me) {
 	    // It's possible that one of my competitors already committed.  We might want to be smarter later, but for now!
 	    boolean ilose = false;
 	    
 	    for (Transaction t : others) {
 		if (t != me) {
-		    FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and others by killing them including " + t);
 		    t.abort();
 		    if (!t.isAborted())
 			ilose = true;
@@ -94,12 +98,8 @@ public class FortressManager2 extends BaseManager {
 	    }
 	    if (ilose) me.abort();
 	} else {
-	    FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and others by killing me ");
-	    for (Transaction t : others) {
-		FortressTaskRunner.debugPrintln("Others still active include " + t);
-	    }
+	    FortressTaskRunner.yield();
 	    me.abort();
-	    sleepFactor(mine);
 	}
     }
 
@@ -111,13 +111,5 @@ public class FortressManager2 extends BaseManager {
     public void resolveConflict(Transaction me, Collection<Transaction> others) {
 	if (me == null || !me.isActive()) return;
 	pickOne(me,others);
-    }
-
-    public void waitToRestart() {
-	int waitTime = 100000;
-	sleep(waitTime);
-    }
-
-    public void committed() {
     }
 }
