@@ -108,7 +108,15 @@ transient IntLiteralExpr IntLiteralExpr =
 
 private transient String NumericCharacter = [0-9a-zA-Z];
 private transient String NumericWord =
-    NumericCharacter+ (['] / NumericCharacter)*;
+    a1s:NumericCharacter+ a2s:("'" / NumericCharacter)* &{ NodeUtil.validNumericWord(a2s.list()) }
+    { yyValue = "";
+      for (String n: a1s.list()) {
+          yyValue += n;
+      }
+      for (String n: a2s.list()) {
+          yyValue += n;
+      }
+    };
 
 private transient String NumericSeparator = "." ;
 

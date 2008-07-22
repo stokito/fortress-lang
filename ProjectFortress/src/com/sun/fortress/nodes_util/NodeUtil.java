@@ -401,6 +401,13 @@ public class NodeUtil {
     }
 
     /* for String manipulation *********************************************/
+    public static boolean validNumericWord(List<String> rest) {
+        int size = rest.size();
+        if (size == 0) return true;
+        else return (!rest.get(size-1).endsWith("'") &&
+                     !rest.get(size-1).endsWith("\u202F"));
+    }
+
     public static boolean validNumericLiteral(String numeral) {
         if (numeral.length() <= 0 || !Character.isDigit(numeral.charAt(0)))
             return false;
