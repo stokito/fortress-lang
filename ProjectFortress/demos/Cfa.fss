@@ -52,7 +52,7 @@ fidToFunction(id: ZZ32) =
 init() = do
   atomic cfa_eqns := mapping[\ZZ32, Set[\ZZ32\]\]()
   atomic new_eqn  := true
-  atomic round    := 0
+  atomic iteration:= 0
   atomic fids   := mapping[\String, ZZ32\]()
   atomic fdecls := mapping[\ZZ32, FnDecl\]()
   atomic fexprs := mapping[\ZZ32, FnExpr\]()
@@ -161,14 +161,14 @@ update(id: ZZ32, s: Set[\ZZ32\]) = do
 end
 
 (* Build control flow equations in the cfa_eqns table. *************************)
-round: ZZ32 := 0
+iteration: ZZ32 := 0
 (* Build equations from the function declarations and the body expression.
    Repeat it until no new equation is generated.
  *)
 buildEquations(p: Program) = do
   while new_eqn do
-    atomic round += 1
-    if debug then println("(* buildEquations round: " round
+    atomic iteration += 1
+    if debug then println("(* buildEquations iteration: " iteration
                           " ****************)") end
     atomic new_eqn := false
     buildEquations(fd), fd <- p.decls
@@ -412,7 +412,7 @@ doit(p: Program) = do
   else println (indent result.toSource())//
   end
 
-  println "Control flow analysis result with " round " rounds:"
+  println "Control flow analysis result with " iteration " iterations:"
   println (indent "{")
   println (indent indent (fidToFunction(fid).toSource())), fid <- cfa_result
   println (indent "}")//
