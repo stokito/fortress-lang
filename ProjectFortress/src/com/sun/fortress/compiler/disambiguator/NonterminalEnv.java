@@ -31,10 +31,14 @@ import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -65,8 +69,48 @@ public class NonterminalEnv {
      * Initialize the mapping from nonterminal names to sets of qualified nonterminal names
      */
     private void initializeNonterminals() {
-        for (NonterminalIndex<? extends GrammarMemberDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
-            Option<? extends GrammarDecl> optGd = this.getGrammarIndex().ast();
+        for ( final NonterminalIndex<? extends GrammarMemberDecl> e : this.getGrammarIndex().getDeclaredNonterminals()) {
+
+            e.getAst().accept( new NodeDepthFirstVisitor_void(){
+                @Override public void forNonterminalDefOnly(NonterminalDef that) {
+                    Option<? extends GrammarDecl> optGd = NonterminalEnv.this.getGrammarIndex().ast();
+                    GrammarDecl currentGrammar;
+                    if (optGd.isSome()) {
+                        currentGrammar = optGd.unwrap();
+                    } else {
+                        currentGrammar = bug("NonterminalEnv.initializeNonterminals has failed!");
+                    }
+
+                    Span span = e.getName().getSpan();
+                    String key = e.getName().getText();
+                    APIName api = constructNonterminalApi(currentGrammar.getName());
+                    Id qname = NodeFactory.makeId(span, api, key);
+
+                    Debug.debug( Debug.Type.SYNTAX, 2, "Qualify " + key + " with name " + qname );
+                    if (nonterminals.containsKey(key)) {
+                        nonterminals.get(key).add(qname);
+                    } else {
+                        Set<Id> matches = new HashSet<Id>();
+                        matches.add(qname);
+                        nonterminals.put(key, matches);
+                    }
+                }
+            });
+        }
+    }
+    
+    /*
+    private void initializeNonterminals() {
+        initializeForGrammar(this.getGrammarIndex());
+        for ( GrammarIndex grammar : this.getGrammarIndex().getExtended() ){
+            initializeForGrammar(grammar);
+        }
+    }
+    */
+
+    private void initializeForGrammar( GrammarIndex grammar ) {
+        for (NonterminalIndex<? extends GrammarMemberDecl> e: grammar.getDeclaredNonterminals()) {
+            Option<? extends GrammarDecl> optGd = grammar.ast();
             GrammarDecl currentGrammar;
             if (optGd.isSome()) {
                 currentGrammar = optGd.unwrap();
@@ -79,6 +123,7 @@ public class NonterminalEnv {
             APIName api = constructNonterminalApi(currentGrammar.getName());
             Id qname = NodeFactory.makeId(span, api, key);
 
+            Debug.debug( Debug.Type.SYNTAX, 2, "Ambigious key " + key + " disambiguates to " + qname );
             if (nonterminals.containsKey(key)) {
                 nonterminals.get(key).add(qname);
             } else {
@@ -114,6 +159,7 @@ public class NonterminalEnv {
      * determine whether a nonterminal exists.  Assumes {@code name.getApi().isSome()}.
      */
     public boolean hasQualifiedNonterminal(Id name) {
+        Debug.debug( Debug.Type.SYNTAX, 3, "Find a qualified id for non-terminal " + name );
         Option<APIName> optApi = name.getApi();
         if (optApi.isNone())
             bug(name, "A qualified identifier is supposed to have an API name, but the api is not present");
@@ -169,8 +215,15 @@ public class NonterminalEnv {
      * @param an unqualified nonterminal name
      */
     public Set<Id> inheritedNonterminalNames(String name) {
+        Debug.debug( Debug.Type.SYNTAX, 3, "Is " + name + " inherited?" );
+        /*
         GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
         Set<Id> results = ga.getInherited(name, this.current);
+        */
+        Set<Id> results = new HashSet<Id>();
+        for ( GrammarIndex extend : this.getGrammarIndex().getExtended() ){
+            results.addAll( new NonterminalEnv( extend ).declaredNonterminalNames( name ) );
+        }
         return results;
     }
 

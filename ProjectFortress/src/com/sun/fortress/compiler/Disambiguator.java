@@ -18,12 +18,14 @@
 package com.sun.fortress.compiler;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collection;
 
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
@@ -32,6 +34,7 @@ import com.sun.fortress.compiler.disambiguator.SelfParamDisambiguator;
 import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
 import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.exceptions.StaticError;
@@ -39,8 +42,10 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
@@ -48,6 +53,7 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.FilteredRelation;
@@ -55,6 +61,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.lambda.Predicate2;
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * Eliminates ambiguities in an AST that can be resolved solely by knowing what
@@ -89,16 +96,16 @@ public class Disambiguator {
 	/**
      * Disambiguate the names of nonterminals.
      */
-    private static List<Api> disambiguateGrammarMembers(Iterable<Api> apis,
+    private static List<Api> disambiguateGrammarMembers(Collection<ApiIndex> apis,
             List<StaticError> errors,
             GlobalEnvironment globalEnv) {
         List<Api> results = new ArrayList<Api>();
-        for (Api api : apis) {
-            ApiIndex index = globalEnv.api(api.getName());
+        for (ApiIndex index : apis) {
+            // ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
             NonterminalDisambiguator pd = new NonterminalDisambiguator(env, globalEnv, newErrs);
-            Api pdResult = (Api) api.accept(pd);
+            Api pdResult = (Api) index.ast().accept(pd);
             results.add(pdResult);
             if (!newErrs.isEmpty()) { 
                 errors.addAll(newErrs); 
@@ -367,9 +374,40 @@ public class Disambiguator {
             else 
             	errors.addAll(newErrs);
         }
+        
+        IndexBuilder.ApiResult rebuilt_indx2 = IndexBuilder.buildApis(results, System.currentTimeMillis());
+        GlobalEnvironment new_global_env2 = new GlobalEnvironment.FromMap(CollectUtil.union(repository_apis,
+        		rebuilt_indx2.apis()));
 
-        results = disambiguateGrammarMembers(results, errors, new_global_env);
+        initializeGrammarIndexExtensions(rebuilt_indx2.apis().values());
+        results = disambiguateGrammarMembers(rebuilt_indx2.apis().values(), errors, new_global_env2);
         return new ApiResult(results, errors);
+    }
+
+    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+        List<StaticError> errors = new LinkedList<StaticError>();
+        Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
+        for (ApiIndex a2: apis) {
+            for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+                grammars.put(e.getKey(), e.getValue());
+            }
+        }
+        for (ApiIndex a1: apis) {
+            for (Map.Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
+                Option<GrammarDef> og = e.getValue().ast();
+                if (og.isSome()) {
+                    List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
+                    for (Id n: og.unwrap().getExtends()) {
+                        ls.add(grammars.get(n.getText()));
+                    }
+                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
+                    e.getValue().setExtended(ls);
+                } else {
+                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " has no ast" );
+                }
+            }
+        }
+        return errors;
     }
 
     /** Result of {@link #disambiguateComponents}. */

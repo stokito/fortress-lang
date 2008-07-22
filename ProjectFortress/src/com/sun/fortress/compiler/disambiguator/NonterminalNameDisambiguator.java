@@ -33,6 +33,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -95,62 +96,63 @@ public class NonterminalNameDisambiguator {
 	 * @param name
 	 * @return
 	 */
-	public Option<Id> handleNonterminalName(NonterminalEnv currentEnv, Id name) {
-		// If it is already fully qualified
-		if (name.getApi().isSome()) {
-			APIName originalApiGrammar = name.getApi().unwrap();
-			Option<APIName> realApiGrammarOpt = this.grammarName(originalApiGrammar);
-			// Check that the qualifying part is a real grammar
-			if (realApiGrammarOpt.isNone()) {
-				error("Undefined grammar: " + NodeUtil.nameString(originalApiGrammar) +" obtained from "+name, originalApiGrammar);
-				return Option.none();
-			}
-			APIName realApiGrammar = realApiGrammarOpt.unwrap();
-			Id newN;
-			if (originalApiGrammar == realApiGrammar) { newN = name; }
-			else { newN = NodeFactory.makeId(realApiGrammar, name); }
-//            System.err.println("newN: "+newN+" "+currentEnv.getGrammarIndex().getName());
-			if (!currentEnv.hasQualifiedNonterminal(newN)) {
-			     error("Undefined qualified nonterminal: " + NodeUtil.nameString(newN), newN);
-				 return Option.none();
-			}
-			return Option.some(newN);
-		}
-		else { // Unqualified name
-			String uqname = name.getText();
-            Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
-            // Is it defined in the current grammar?
-            if (1 == names.size()) {
-                Id qname = IterUtil.first(names);
-                return Option.some(qname);   
+        public Option<Id> handleNonterminalName(NonterminalEnv currentEnv, Id name) {
+            // If it is already fully qualified
+            if (name.getApi().isSome()) {
+                APIName originalApiGrammar = name.getApi().unwrap();
+                Option<APIName> realApiGrammarOpt = this.grammarName(originalApiGrammar);
+                // Check that the qualifying part is a real grammar
+                if (realApiGrammarOpt.isNone()) {
+                    error("Undefined grammar: " + NodeUtil.nameString(originalApiGrammar) +" obtained from "+name, originalApiGrammar);
+                    return Option.none();
+                }
+                APIName realApiGrammar = realApiGrammarOpt.unwrap();
+                Id newN;
+                if (originalApiGrammar == realApiGrammar) { newN = name; }
+                else { newN = NodeFactory.makeId(realApiGrammar, name); }
+                //            System.err.println("newN: "+newN+" "+currentEnv.getGrammarIndex().getName());
+                if (!currentEnv.hasQualifiedNonterminal(newN)) {
+                    error("Undefined qualified nonterminal: " + NodeUtil.nameString(newN), newN);
+                    return Option.none();
+                }
+                return Option.some(newN);
             }
-            // If the nonterminal is not defined in the current grammar then look
-            // among the inherited nonterminal names
-            if (names.isEmpty()) {
-                names = currentEnv.inheritedNonterminalNames(uqname);
+            else { // Unqualified name
+                String uqname = name.getText();
+                Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
+                // Is it defined in the current grammar?
+                if (1 == names.size()) {
+                    Id qname = IterUtil.first(names);
+                    return Option.some(qname);   
+                }
+                // If the nonterminal is not defined in the current grammar then look
+                // among the inherited nonterminal names
+                if (names.isEmpty()) {
+                    names = currentEnv.inheritedNonterminalNames(uqname);
 
-				// if not there it is undefined
-				if (names.isEmpty()) {
-					error("Undefined non-qualified nonterminal: " + uqname, name);
-					return Option.none();
-				}
+                    // if not there it is undefined
+                    if (names.isEmpty()) {
+                        error("Undefined non-qualified nonterminal: " + uqname, name);
+                        return Option.none();
+                    }
 
-				// If too many are found we are not sure which one is the right...
-				if (names.size() > 1) {
-					error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
-					return Option.none();
-				}
-//				// We need to repatriating the nonterminal to this grammar
-//				Id currentName = currentEnv.getGrammarIndex().getName();
-//                APIName currentApi = currentName.getApi().unwrap();
-//				Id qname = SyntaxAbstractionUtil.qualifyMemberName(currentApi, currentName.getText(), uqname);
-				return Option.some(IterUtil.first(names));
-			}
-            // names.size() > 1
-            error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
-            return Option.none();
-		}
-	}
+                    // If too many are found we are not sure which one is the right...
+                    if (names.size() > 1) {
+                        error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
+                        return Option.none();
+                    }
+                    //				// We need to repatriating the nonterminal to this grammar
+                    //				Id currentName = currentEnv.getGrammarIndex().getName();
+                    //                APIName currentApi = currentName.getApi().unwrap();
+                    //				Id qname = SyntaxAbstractionUtil.qualifyMemberName(currentApi, currentName.getText(), uqname);
+                    Debug.debug( Debug.Type.SYNTAX, 4, uqname + " is qualified as " + IterUtil.first(names) );
+                    return Option.some(IterUtil.first(names));
+                }
+                // names.size() > 1
+                error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
+                return Option.none();
+            }
+        }
 
 	/*
 	 *         else { // Unqualified name
