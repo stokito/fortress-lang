@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,7 +27,7 @@ public class PathJUTest extends TestCase {
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(PathJUTest.class);
     }
-    
+
     public void testCreate() {
         Path p = new Path(".:..");
     }
@@ -36,7 +36,7 @@ public class PathJUTest extends TestCase {
         Path p = new Path(".:..");
         try {
             File f = p.findFile(".");
-        
+
         } catch (FileNotFoundException e) {
             System.err.println(e);
         }
@@ -46,12 +46,12 @@ public class PathJUTest extends TestCase {
         Path p = new Path(".:..");
         try {
             File f = p.findFile("thisfileismissing");
-        
+
         } catch (FileNotFoundException e) {
             System.err.println(e);
         }
     }
-    
+
     public void testFound() {
         Path p = new Path(".:..");
         try {
@@ -68,7 +68,7 @@ public class PathJUTest extends TestCase {
             System.err.println(e);
         }
     }
-    
+
     public void testSubstitute() {
         String s1 = "nosub";
         String s2 = "${java.version}";
@@ -80,8 +80,8 @@ public class PathJUTest extends TestCase {
         System.err.println(Useful.substituteVars(s3));
         System.err.println(Useful.substituteVars(s4));
         System.err.println(Useful.substituteVars(s5));
-    
+
     }
-    
+
 
 }
