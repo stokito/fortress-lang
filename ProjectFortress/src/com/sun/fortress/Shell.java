@@ -24,7 +24,6 @@ import com.sun.fortress.repository.ProjectProperties;
 import java.io.*;
 import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
@@ -45,7 +44,6 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
@@ -60,7 +58,7 @@ public final class Shell {
      * their value ( but they must be unique ).
      * If you feel like changing this to an enum at any point that is fine.
      */
-    private static final int PHASE_TOPLEVEL = 0;
+    private static final int PHASE_CODEGEN = 0;
     private static final int PHASE_DESUGAR = 1;
     private static final int PHASE_TYPECHECK = 2;
     private static final int PHASE_GRAMMAR = 3;
@@ -68,7 +66,7 @@ public final class Shell {
     private static final int PHASE_EMPTY = 5;
 
     /* set this statically if you only want to run upto a certain phase */
-    private static int currentPhase = PHASE_TOPLEVEL;
+    private static int currentPhase = PHASE_CODEGEN;
 
     private final FortressRepository _repository;
     private static final CacheBasedRepository defaultRepository =
@@ -354,10 +352,12 @@ public final class Shell {
         APIName name = cuName(file);
         try {
             if ( isApi(file) ) {
+            	// FIXME: The following line is executed for its side effects
                 Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
             } else if (isComponent(file)) {
+            	// FIXME: The following line is executed for its side effects            	
                 Component c = (Component) bcr.getComponent(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getComponent(name).ast(), out.unwrap());
@@ -770,7 +770,7 @@ public final class Shell {
             case PHASE_GRAMMAR : return new GrammarPhase(nextPhase.value(PHASE_DISAMBIGUATE));
             case PHASE_TYPECHECK : return new TypecheckPhase(nextPhase.value(PHASE_GRAMMAR));
             case PHASE_DESUGAR : return new DesugarPhase(nextPhase.value(PHASE_TYPECHECK));
-            case PHASE_TOPLEVEL : return new TopLevelPhase(nextPhase.value(PHASE_DESUGAR));
+            case PHASE_CODEGEN : return new TopLevelPhase(nextPhase.value(PHASE_DESUGAR));
             default : throw new RuntimeException( "Invalid phase number: " + phase );
         }
     }
