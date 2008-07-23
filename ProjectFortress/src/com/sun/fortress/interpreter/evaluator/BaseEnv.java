@@ -77,8 +77,8 @@ abstract public class BaseEnv implements Environment {
     private String[] namesPut;
     private int namesPutCount;
 
-    private boolean blessed; /* until blessed, cannot be copied */
-    private boolean topLevel;    
+    private boolean blessed = false; /* until blessed, cannot be copied */
+    private boolean topLevel = false;    
     
     public boolean debug = false;
     public boolean verboseDump = false;    

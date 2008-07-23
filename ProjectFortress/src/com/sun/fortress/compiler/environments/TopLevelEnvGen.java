@@ -199,7 +199,7 @@ public class TopLevelEnvGen {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
         cw.visit(Opcodes.V1_5,
-            Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
+            Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
             className, null, Type.getType(WorseEnv.class).getInternalName(), null);
 
         // Implementing "static reflection" for the interpreter
@@ -292,16 +292,13 @@ public class TopLevelEnvGen {
     private static void writeMethodInit(ClassWriter cw, String className) {
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
-        Label l0 = new Label();
-        mv.visitLabel(l0);
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                 Type.getType(WorseEnv.class).getInternalName(), "<init>",
                 "()V");
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "setTopLevel", "()V");
         mv.visitInsn(Opcodes.RETURN);
-        Label l1 = new Label();
-        mv.visitLabel(l1);
-        mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
     }

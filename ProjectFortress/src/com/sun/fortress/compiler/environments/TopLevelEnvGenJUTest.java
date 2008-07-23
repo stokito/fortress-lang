@@ -26,6 +26,7 @@ import junit.framework.TestCase;
 import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.interpreter.env.WorseEnv;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
@@ -63,6 +64,12 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	fsiFiles[0] = "AsciiVal";
     	fsiFiles[1] = "a.b.NestedOne";
     	fsiFiles[2] = "a.b.c.d.NestedTwo";
+    }
+    
+    public void testConstructor() {
+    	WorseEnv worseEnv = new WorseEnv();
+    	assertFalse(worseEnv.isTopLevel());
+    	assertTrue(testCompiledEnv.isTopLevel());
     }
 
     public void testNameMangling() {
