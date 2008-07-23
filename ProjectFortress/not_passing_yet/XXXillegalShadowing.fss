@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component illegalShadowing
+component XXXillegalShadowing
 export Executable
 
 trait T
@@ -30,7 +30,7 @@ object A(var i:ZZ32) extends T
     b():T = object extends T
                 getI():ZZ32 = i
                 setI(newI:ZZ32):ZZ32 = do
-                    i := newI
+                    i = newI (* binding, not assignment, should be illegal *)
                     i
                 end
             end
