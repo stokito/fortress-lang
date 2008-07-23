@@ -23,14 +23,14 @@ trait T
   setI(newI:ZZ32):ZZ32
 end
 
-object A(i:ZZ32) extends T
+object A(var i:ZZ32) extends T
     getI():ZZ32 = i
     setI(newI:ZZ32):ZZ32 = i (* don't actually set it *)
 
     b():T = object extends T
                 getI():ZZ32 = i
                 setI(newI:ZZ32):ZZ32 = do
-                    i = newI
+                    i := newI
                     i
                 end
             end

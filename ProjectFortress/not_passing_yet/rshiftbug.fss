@@ -33,11 +33,16 @@ object OtherEmbedding extends TreeEmbedding
 end
 
 run(args:String...): () = do
-    _ = StandardEmbedding.parent(1) (* This is OK *)
+    a = StandardEmbedding.parent(4) (* This is OK *)
     println("That worked!")
     (* Both of these appear to be broken *)
-    _ = OtherEmbedding.parent(1)
-    _ = (StandardEmbedding asif TreeEmbedding).parent(1)
+    b = OtherEmbedding.parent(4)
+    c = (StandardEmbedding asif TreeEmbedding).parent(4)
+    
+    assert(a = 1, "StandardEmbedding")
+    assert(b = 2, "OtherEmbedding (default from TreeEmbedding)")
+    assert(c = 2, "StandardEmbedding asif TreeEmbedding")
+    
   end
 
 end
