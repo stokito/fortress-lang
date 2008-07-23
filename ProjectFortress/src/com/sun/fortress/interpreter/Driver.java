@@ -121,6 +121,14 @@ public class Driver {
     static public void runTests() {
     }
 
+    /**
+     * Native code sometimes needs access to the library component wrapper.
+     */
+    static ComponentWrapper libraryComponentWrapper = null;
+    public static Environment getFortressLibrary() {
+        return libraryComponentWrapper.getEnvironment();
+    }
+    
     public static ArrayList<ComponentWrapper> components;
 
     private static void injectLibraryNames(List<Importer> importers,
@@ -196,10 +204,9 @@ public class Driver {
         builtins.getEnvironment().installPrimitives();
 
         ComponentWrapper lib = null;
-        ComponentWrapper libcomp = null;
-
-        libcomp = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
-        lib = libcomp.getExportedCW(libraryName);
+ 
+        libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
+        lib = libraryComponentWrapper.getExportedCW(libraryName);
 
         ComponentWrapper nativescomp =
             ensureApiImplemented(fr, linker, pile,
@@ -269,8 +276,8 @@ public class Driver {
 
             if (cw != builtins) {
                 injectLibraryNames(importers,cw,builtins,builtins,builtinsName);
-                if (cw != libcomp)
-                    injectLibraryNames(importers,cw,lib,libcomp,libraryName);
+                if (cw != libraryComponentWrapper)
+                    injectLibraryNames(importers,cw,lib,libraryComponentWrapper,libraryName);
                 injectLibraryNames(importers,cw,natives,nativescomp,nativesName);
             }
 
@@ -653,11 +660,11 @@ public class Driver {
         Set<String> actually_used = importer.desugarer.topLevelUses;
 
         // HACK, types referenced from native code, I think.
-        actually_used.add("Any");
-        actually_used.add("__immutableFactory1");
-        actually_used.add("__builtinFactory1");
-        actually_used.add("__builtinFactory2");
-        actually_used.add("__builtinFactory3");
+//        actually_used.add("Any");
+//        actually_used.add("__immutableFactory1");
+//        actually_used.add("__builtinFactory1");
+//        actually_used.add("__builtinFactory2");
+//        actually_used.add("__builtinFactory3");
         
         Set<String> removed = Useful.difference(vnames, actually_used);
          
