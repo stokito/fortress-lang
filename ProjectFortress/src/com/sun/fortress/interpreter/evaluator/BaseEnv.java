@@ -56,7 +56,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
  * every environment must support.
  */
 
-abstract public class BaseEnv implements Environment {
+abstract public class BaseEnv implements Environment, Iterable<String> {
 
     public Environment getApi(APIName s) {
         // TODO Auto-generated method stub
@@ -602,4 +602,8 @@ abstract public class BaseEnv implements Environment {
         /* Should override in the generated top level environment */
     }
     
+    public Iterable<String> youngestFrame() {
+        return this;
+    }
+
 }
