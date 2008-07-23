@@ -40,7 +40,7 @@ header {
 body {
   static {
     add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
-        "AND",    "BACKSPACE",    "FORMFEED",    "do",    "NEWLINE",
+        "AND",    "BACKSPACE",    "FORMFEED",    "NEWLINE",
         "NOT",    "RETURN",    "TAB",    "SPACE",    "<\\["
     });
 
@@ -139,18 +139,27 @@ private NonterminalParameter Decl =
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDef SyntaxDef =
+     a1s:SyntaxSymbols w a2:PreTransformer
+     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+/*
        a1s:SyntaxSymbols w a2:TransformerExpr
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
      / a1s:SyntaxSymbols w a2:PreTransformer
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+       */
 
 SyntaxDef SyntaxDefOr =
+     void:bar w a1s:SyntaxSymbols w a2:PreTransformer
+     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+/*
        void:bar w a1s:SyntaxSymbols w a2:TransformerExpr
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
      / void:bar w a1s:SyntaxSymbols w a2:PreTransformer
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+*/
 
 /* TransformationExpr ::= do BlockElems end */
+/*
 TransformerExpressionDef TransformerExpr =
      do a3:(w BlockElems) w end
      { Span span = createSpan(yyStart, yyCount);
@@ -159,6 +168,7 @@ TransformerExpressionDef TransformerExpr =
                         FortressUtil.mkList(new DoFront(span, Option.<Expr>none(), false, a3)));
        yyValue = new TransformerExpressionDef(createSpan(yyStart,yyCount), d);
      };
+*/
 
 /* TransformationTemplate ::= <[ Expr ]> */
 PreTransformerDef PreTransformer =
@@ -168,7 +178,7 @@ PreTransformerDef PreTransformer =
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
 List<SyntaxSymbol> SyntaxSymbols =
-      a1:SyntaxSymbol a1s:Symbs* &(w (leftDelimiter / do))
+      a1:SyntaxSymbol a1s:Symbs* &(w (leftDelimiter))
       { List<SyntaxSymbol> ls = FortressUtil.mkList(a1);
         for(List<SyntaxSymbol> sl: a1s.list()) {
           ls.addAll(sl);
@@ -303,7 +313,7 @@ SyntaxSymbol Suffix =
     */
 
 SyntaxSymbol Item =
-      !(w (leftDelimiter / do)) s:ItemText
+      !(w (leftDelimiter)) s:ItemText
       { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
       { yyValue = new CharacterClassSymbol(createSpan(yyStart,yyCount), a1.list()); }
@@ -364,7 +374,7 @@ String EscapedSpecialSymbols =
 
 String SpecialSymbols =
       Tab / Formfeed / Return / Newline / Space
-    / Backspace / Not / And / leftDelimiter / do;
+    / Backspace / Not / And / leftDelimiter;
 
 transient String anyChar = "_";
 transient String bar = "|";
@@ -384,7 +394,6 @@ transient String rightDelimiter = "]>";
 
 transient String And = "AND";
 transient String Backspace = "BACKSPACE";      // backspace
-transient String do = "do";
 transient String Formfeed = "FORMFEED";      // form feed
 transient String Newline = "NEWLINE";      // break line
 transient String Not = "NOT";
