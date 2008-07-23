@@ -73,6 +73,33 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return null;
     }
 
+    public Environment extend() {
+        // TODO Auto-generated method stub
+        return null;    	
+    }
+    
+    public Environment extend(Environment additions) {
+        // TODO Auto-generated method stub
+        return null;   	
+    }
+
+    public Environment extendAt(HasAt x) {
+        // TODO Auto-generated method stub
+        return null;   	    	
+    }
+
+    public void visit(Visitor2<String, FType> vt,
+            Visitor2<String, Number> vn,
+            Visitor2<String, Number> vi,
+            Visitor2<String, FValue> vv,
+            Visitor2<String, Boolean> vb) {
+        // TODO Auto-generated method stub    	
+    }
+    
+    public void visit(Visitor2<String, Object> nameCollector) {
+        // TODO Auto-generated method stub    	
+    }
+
     /** Names noted for possible future overloading */
     private String[] namesPut;
     private int namesPutCount;

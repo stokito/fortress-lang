@@ -41,7 +41,7 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.interpreter.env.WorseEnv;
+import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Id;
@@ -196,7 +196,7 @@ public class TopLevelEnvGen {
 
         cw.visit(Opcodes.V1_5,
             Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
-            className, null, Type.getType(WorseEnv.class).getInternalName(), null);
+            className, null, Type.getType(BaseEnv.class).getInternalName(), null);
 
         // Implementing "static reflection" for the interpreter
         EnvSymbolNames symbolNames = new EnvSymbolNames();
@@ -290,7 +290,7 @@ public class TopLevelEnvGen {
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                Type.getType(WorseEnv.class).getInternalName(), "<init>",
+                Type.getType(BaseEnv.class).getInternalName(), "<init>",
                 "()V");
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "setTopLevel", "()V");
