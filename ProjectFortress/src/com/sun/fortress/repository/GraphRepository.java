@@ -41,7 +41,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.AnalyzeResult;
+import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;

@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress;
+package com.sun.fortress.compiler;
 
 import java.util.Iterator;
 import java.util.Map;
