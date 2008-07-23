@@ -32,7 +32,7 @@ import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
 
 
-public final class BetterEnv extends BaseEnv implements Iterable<String> 
+public final class BetterEnv extends BaseEnv
 {
 
     private BATreeNode<String, FType> type_env;
@@ -324,11 +324,6 @@ public final class BetterEnv extends BaseEnv implements Iterable<String>
         if (var_env == null)
             return;
         var_env = var_env.delete(s, comparator);
-    }
-
-    public Iterable<String> youngestFrame() {
-        // TODO Auto-generated method stub
-        return this;
     }
 
 }
