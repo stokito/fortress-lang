@@ -18,7 +18,6 @@
 package com.sun.fortress.repository;
 
 import java.io.File;
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -28,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Collection;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
@@ -38,14 +36,13 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
-import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.AnalyzeResult;
 import com.sun.fortress.Shell;
-import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
@@ -54,11 +51,8 @@ import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Debug;
 
-import xtc.parser.SemanticValue;
-import xtc.parser.ParseError;
 
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.repository.graph.Graph;
 import com.sun.fortress.repository.graph.ComponentGraphNode;
@@ -326,9 +320,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* reparse anything that is out of date */
-    private Shell.AnalyzeResult refreshGraph() throws FileNotFoundException, IOException, StaticError {
-        Shell.AnalyzeResult result =
-            new Shell.AnalyzeResult(IterUtil.<StaticError>empty());
+    private AnalyzeResult refreshGraph() throws FileNotFoundException, IOException, StaticError {
+        AnalyzeResult result =
+            new AnalyzeResult(IterUtil.<StaticError>empty());
         if ( needUpdate ){
             needUpdate = false;
             OutOfDateVisitor date = new OutOfDateVisitor();
@@ -475,7 +469,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return rest;
     }
 
-    private Shell.AnalyzeResult parseApis( List<ApiGraphNode> apis ){
+    private AnalyzeResult parseApis( List<ApiGraphNode> apis ){
         for ( ApiGraphNode node : apis ){
             /* yes, set the API to nothing so that it gets
              * reparsed no matter what
@@ -485,10 +479,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if ( apis.size() > 0 ){
             return parseApis();
         }
-        return new Shell.AnalyzeResult(IterUtil.<StaticError>empty());
+        return new AnalyzeResult(IterUtil.<StaticError>empty());
     }
 
-    private Shell.AnalyzeResult parseApis(){
+    private AnalyzeResult parseApis(){
         List<Api> unparsed = Useful.applyToAll(graph.filter(new Fn<GraphNode,Boolean>(){
                     @Override
                     public Boolean apply(GraphNode g){
@@ -512,7 +506,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         
         List<Component> components = new ArrayList<Component>();
         Shell shell = new Shell(this);
-        Shell.AnalyzeResult result =
+        AnalyzeResult result =
             Shell.analyze(shell.getRepository(),
                           knownApis, unparsed, components, System.currentTimeMillis() );
         if ( !result.isSuccessful() ){
@@ -561,7 +555,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* parse a single component. */
-    private Shell.AnalyzeResult parseComponent( Component component ) throws StaticError {
+    private AnalyzeResult parseComponent( Component component ) throws StaticError {
         GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
         List<Component> components = new ArrayList<Component>();
         components.add(component);
@@ -569,7 +563,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Debug.debug( Debug.Type.REPOSITORY, 1, "Parsing ", component, " at ", now );
 
         Shell shell = new Shell(this);
-        Shell.AnalyzeResult result =
+        AnalyzeResult result =
             Shell.analyze(shell.getRepository(),
                           knownApis, new ArrayList<Api>(), components, now );
         if ( !result.isSuccessful() ){
