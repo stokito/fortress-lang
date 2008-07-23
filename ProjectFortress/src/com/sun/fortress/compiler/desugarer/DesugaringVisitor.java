@@ -18,25 +18,18 @@
 package com.sun.fortress.compiler.desugarer;
 
 
-import com.sun.fortress.compiler.typechecker.*;
-
 import com.sun.fortress.compiler.Types;
-import com.sun.fortress.compiler.index.FunctionalMethod;
-import com.sun.fortress.compiler.index.Method;
-import com.sun.fortress.compiler.index.TraitIndex;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
+
 import edu.rice.cs.plt.tuple.Option;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.sun.fortress.exceptions.StaticError.errorMsg;
 
 public class DesugaringVisitor extends NodeUpdateVisitor {
     private boolean inTrait = false;
@@ -80,10 +73,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private static Option<List<Param>> mangleParams(Option<List<Param>> params) {
         return new NodeUpdateVisitor() {
             public Node forNormalParam(NormalParam that) {
-                return new NormalParam(that.getSpan(), that.getMods(), mangleName(that.getName()), that.getType());
+                return new NormalParam(that.getSpan(), that.getMods(), 
+                						mangleName(that.getName()), that.getType());
             }
             public Node forVarargsParam(VarargsParam that) {
-                return new VarargsParam(that.getSpan(), that.getMods(), mangleName(that.getName()),
+                return new VarargsParam(that.getSpan(), that.getMods(), 
+                						mangleName(that.getName()),
                                         that.getType());
             }
         }.recurOnOptionOfListOfParam(params);
@@ -108,18 +103,17 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private List<Decl> removeVarDecls(List<Decl> decls) {
+    	// System.err.println("decls.size() = " + decls.size());
         final List<Decl> result = new ArrayList<Decl>();
 
         for (Decl decl : decls) {
-            decl.accept(new NodeAbstractVisitor_void() {
-                public void forDecl(Decl that) {
-                    result.add(that);
-                }
-                public void forVarDecl(VarDecl that) {
-                    // skip it
-                }
-            });
+        	if (decl instanceof VarDecl) { 
+        		// skip it
+        	} else {
+        		result.add(decl);
+        	}
         }
+        // System.err.println("result.size() = " + result.size());
         return result;
     }
 
@@ -204,6 +198,17 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 //        if (that.getLhs() == lhs_result && that.getInit() == init_result) return that;
 //        else return new VarDecl(that.getSpan(), lhs_result, init_result);
 //    }
+    
+    /** 
+     * Be sure not to recur on VarRefs that might occur in that.getLHS().
+     * TODO: Rewrite assignments to single fields as getters.
+     */
+    public Node forAssignment(Assignment that) {
+        List<Lhs> lhs_result = recurOnListOfLhs(that.getLhs());
+        Option<OpRef> opr_result = recurOnOptionOfOpRef(that.getOpr());
+        Expr rhs_result = (Expr) that.getRhs().accept(this);
+        return forAssignmentOnly(that, lhs_result, opr_result, rhs_result);
+    }
 
     /*
      * Recur on VarRef to change to a mangled name if it's a field ref.
@@ -212,10 +217,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         // After disambiguation, the Id in a VarRef should have an empty API.
         assert(varResult.getApi().isNone());
 
-        if (fieldsInScope.contains(varResult)) { varResult = mangleName(varResult); }
-
-        return new VarRef(that.getSpan(), that.isParenthesized(),
-                          mangleName(varResult));
+        if (fieldsInScope.contains(varResult)) { 
+            return new VarRef(that.getSpan(), that.isParenthesized(),
+                    			mangleName(varResult));       	
+        } else {
+        	return that;
+        }
     }
 
     public Node forFieldRefOnly(FieldRef that, Expr obj_result, Id field_result) {
@@ -236,9 +243,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Contract contract_result = (Contract) that.getContract().accept(newVisitor);
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
-        decls_result.addAll(makeGetters(that.getParams(), that.getDecls()));
+        List<Decl> gettersAndDecls = makeGetters(that.getParams(), that.getDecls());
+        for (int i = decls_result.size() - 1; i >= 0; i--) { 
+        	gettersAndDecls.add(decls_result.get(i));
+        }
+        //gettersAndDecls.addAll(decls_result);
         return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-                                 where_result, params_result, throwsClause_result, contract_result, decls_result);
+                                 where_result, params_result, throwsClause_result, contract_result, gettersAndDecls);
     }
 
     public Node forTraitDecl(TraitDecl that) {
@@ -252,10 +263,16 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<BaseType> excludes_result = newVisitor.recurOnListOfBaseType(that.getExcludes());
         Option<List<BaseType>> comprises_result = newVisitor.recurOnOptionOfListOfBaseType(that.getComprises());
         List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
-
-        decls_result.addAll(makeGetters(Option.<List<Param>>none(), that.getDecls()));
+        // System.err.println("decls_result size = " + decls_result.size());
+        List<Decl> gettersAndDecls = makeGetters(Option.<List<Param>>none(), that.getDecls());
+        // System.err.println("before: gettersAndDecls size = " + gettersAndDecls.size());
+        for (int i = decls_result.size() - 1; i >= 0; i--) { 
+        	gettersAndDecls.add(decls_result.get(i));
+        }
+        // System.err.println("after: gettersAndDecls size = " + gettersAndDecls.size());
+        //gettersAndDecls.addAll(decls_result);
         return forTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
-                                where_result, excludes_result, comprises_result, decls_result);
+                                where_result, excludes_result, comprises_result, gettersAndDecls);
     }
 
 
