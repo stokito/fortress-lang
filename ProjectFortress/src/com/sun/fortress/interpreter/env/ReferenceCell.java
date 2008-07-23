@@ -115,7 +115,10 @@ public class ReferenceCell extends IndirectionCell {
             else throw new PanicException("Shouldn't get here");
 			if (node != null) 
 				w = node.getWriter();
-			else w = null;
+			else {
+				node = new ValueNode();
+				w = null;
+			}
         }
     }
 
