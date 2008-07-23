@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
@@ -218,7 +219,9 @@ public abstract class NonPrimitive extends Simple_fcn {
                 int[] natParams = new int[1];
                 natParams[0] = args.size() - i;
 
-                Simple_fcn f = Glue.instantiateGenericConstructor(env,
+                Environment wknInstantiationEnv = Driver.getFortressLibrary();
+                
+                Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv,
                         genericName, ((FTypeRest) paramType).getType(),
                         natParams, loc);
 

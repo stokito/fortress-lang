@@ -25,6 +25,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
@@ -209,6 +210,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 String aname = WellKnownNames.arrayTrait(rank);
                 if (Glue.extendsGenericTrait(outerType, aname)) {
                     bestGuess = Glue.typeFromGeneric(outerType, aname, WellKnownNames.arrayElementTypeName);
+                    
                     // Find and invoke the generic factory arrayK[\ T, size1, ..., sizeK \] ()
                     String genericName = WellKnownNames.arrayMaker(rank);
                     int[] natParams = (int[]) iuo_tuple.resultExtents().clone();
@@ -218,7 +220,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                         natParams[0] = natParams[1];
                         natParams[1] = t;
                     }
-                    Simple_fcn f = Glue.instantiateGenericConstructor(evaluator.e, genericName, bestGuess, natParams, x);
+                    Environment wknInstantiationEnv = Driver.getFortressLibrary();
+
+                    Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv, genericName, bestGuess, natParams, x);
                     // Now invoke f.
                     FValue theArray = f.apply(Collections.<FValue>emptyList(), x, evaluator.e);
                     // Do the copy.
