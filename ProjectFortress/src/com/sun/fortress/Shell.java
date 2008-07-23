@@ -627,11 +627,11 @@ public final class Shell {
         return new AnalyzeResult(apiDSR.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
     }
 
-    public static AnalyzeResult topLevelEnvironment(FortressRepository _repository,
-                                                    GlobalEnvironment env,
-                                                    Iterable<Api> apis,
-                                                    Iterable<Component> components,
-                                                    long lastModified) throws StaticError {
+    public static AnalyzeResult codeGeneration(FortressRepository _repository,
+    													GlobalEnvironment env,
+    													Iterable<Api> apis,
+    													Iterable<Component> components,
+    													long lastModified) throws StaticError {
         IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
         IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
@@ -733,14 +733,14 @@ public final class Shell {
             }
         }
 
-        class TopLevelPhase extends Phase {
-            public TopLevelPhase( Phase parent ){
+        class CodeGenerationPhase extends Phase {
+            public CodeGenerationPhase( Phase parent ){
                 super(parent);
             }
 
             public AnalyzeResult execute( Iterable<Api> apis, Iterable<Component> components ) throws StaticError {
                 Debug.debug( Debug.Type.FORTRESS, 1, "Start phase TopLevelEnvironment" );
-                return topLevelEnvironment(repository, env, apis, components, lastModified);
+                return codeGeneration(repository, env, apis, components, lastModified);
             }
         }
 
@@ -770,7 +770,7 @@ public final class Shell {
             case PHASE_GRAMMAR : return new GrammarPhase(nextPhase.value(PHASE_DISAMBIGUATE));
             case PHASE_TYPECHECK : return new TypecheckPhase(nextPhase.value(PHASE_GRAMMAR));
             case PHASE_DESUGAR : return new DesugarPhase(nextPhase.value(PHASE_TYPECHECK));
-            case PHASE_CODEGEN : return new TopLevelPhase(nextPhase.value(PHASE_DESUGAR));
+            case PHASE_CODEGEN : return new CodeGenerationPhase(nextPhase.value(PHASE_DESUGAR));
             default : throw new RuntimeException( "Invalid phase number: " + phase );
         }
     }
