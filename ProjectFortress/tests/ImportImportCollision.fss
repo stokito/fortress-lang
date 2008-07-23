@@ -32,9 +32,10 @@ object W extends T
 end
 
 run(args:String...):()=do
-  println V.s()
-  println W.s()
-  println W.t()
+  assert( V.s() = "s from ImportImportCollision.U", "V's s() comes from local U")
+  assert( W.s() = "s from TestImports2.S object ImportImportCollision.W", "W's s() comes from TestImport2.S")
+  assert( W.t() = "t from TestImports2.T ImportImportCollision.W", "W's t() comes from TestImport2.T")
+  println "All's well that ends well"
 end
 
 end
