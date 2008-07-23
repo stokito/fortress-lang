@@ -166,7 +166,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
-    /* TODO Implement */
     private List<Decl> mangleDecls(List<Decl> decls) {
         return new NodeUpdateVisitor() {
             public Node forVarDecl(VarDecl that) {
@@ -186,22 +185,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 return new AbsVarDecl(that.getSpan(), newLVals);
             }
         }.recurOnListOfDecl(decls);
-
     }
 
-    //    public Node forAbsVarDeclOnly(AbsVarDecl that, List<LValueBind> lhs_result) {
-//        if (that.getLhs() == lhs_result) return that;
-//        else return new AbsVarDecl(that.getSpan(), lhs_result);
-//    }
-//
-//    public Node forVarDeclOnly(VarDecl that, List<LValueBind> lhs_result, Expr init_result) {
-//        if (that.getLhs() == lhs_result && that.getInit() == init_result) return that;
-//        else return new VarDecl(that.getSpan(), lhs_result, init_result);
-//    }
-    
     /** 
-     * Be sure not to recur on VarRefs that might occur in that.getLHS().
-     * TODO: Rewrite assignments to single fields as getters.
+     * Be sure not to recur on VarRefs that might occur in that.getLhs().
+     * TODO: Rewrite assignments to single fields as setters.
      */
     public Node forAssignment(Assignment that) {
         List<Lhs> lhs_result = recurOnListOfLhs(that.getLhs());
@@ -218,8 +206,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         assert(varResult.getApi().isNone());
 
         if (fieldsInScope.contains(varResult)) { 
-            return new VarRef(that.getSpan(), that.isParenthesized(),
-                    			mangleName(varResult));       	
+            return new VarRef(that.getSpan(), 
+                              that.isParenthesized(),
+                    	      mangleName(varResult));       	
         } else {
         	return that;
         }
@@ -247,7 +236,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         for (int i = decls_result.size() - 1; i >= 0; i--) { 
         	gettersAndDecls.add(decls_result.get(i));
         }
-        //gettersAndDecls.addAll(decls_result);
+
         return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
                                  where_result, params_result, throwsClause_result, contract_result, gettersAndDecls);
     }
@@ -263,20 +252,24 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<BaseType> excludes_result = newVisitor.recurOnListOfBaseType(that.getExcludes());
         Option<List<BaseType>> comprises_result = newVisitor.recurOnOptionOfListOfBaseType(that.getComprises());
         List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
+
         // System.err.println("decls_result size = " + decls_result.size());
         List<Decl> gettersAndDecls = makeGetters(Option.<List<Param>>none(), that.getDecls());
+
         // System.err.println("before: gettersAndDecls size = " + gettersAndDecls.size());
         for (int i = decls_result.size() - 1; i >= 0; i--) { 
         	gettersAndDecls.add(decls_result.get(i));
         }
         // System.err.println("after: gettersAndDecls size = " + gettersAndDecls.size());
-        //gettersAndDecls.addAll(decls_result);
+
         return forTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
                                 where_result, excludes_result, comprises_result, gettersAndDecls);
     }
 
 
-    // Inherited methods copied from superclass as comments to help implement overrides.
+
+// Inherited methods copied from superclass as comments to help implement overrides.
+
 //    /* Methods to handle a node after recursion. */
 //    public Node forComponentOnly(Component that, APIName name_result, List<Import> imports_result, List<Export> exports_result, List<Decl> decls_result) {
 //        if (that.getName() == name_result && that.getImports() == imports_result && that.getExports() == exports_result && that.getDecls() == decls_result)

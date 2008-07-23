@@ -578,7 +578,13 @@ public final class Shell {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
-        return new AnalyzeResult(apiDSR.apis(), previousPhase.components(), IterUtil.<StaticError>empty());
+        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previousPhase.components(), apiEnv); 
+
+        if ( ! componentDSR.isSuccessful() ){
+            throw new MultipleStaticError(apiDSR.errors());
+        }
+
+        return new AnalyzeResult(apiDSR.apis(), componentDSR.components(), IterUtil.<StaticError>empty());
     }
 
     public static AnalyzeResult codeGeneration(FortressRepository _repository,
