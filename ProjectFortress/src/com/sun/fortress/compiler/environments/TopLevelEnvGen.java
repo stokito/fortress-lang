@@ -34,7 +34,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
@@ -122,8 +121,7 @@ public class TopLevelEnvGen {
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
      */
-    public static CompilationUnitResult generateApiEnvs(Map<APIName, ApiIndex> apis,
-                        GlobalEnvironment env) {
+    public static CompilationUnitResult generateApiEnvs(Map<APIName, ApiIndex> apis) {
 
         Map<APIName, Pair<String,byte[]>> compiledApis = new HashMap<APIName, Pair<String,byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
@@ -134,7 +132,7 @@ public class TopLevelEnvGen {
 
             try {
                 className = mangleClassIdentifier(className);  // Need to mangle the name if it contains "."
-                byte[] envClass = generateForCompilationUnit(className, apis.get(apiName), env);
+                byte[] envClass = generateForCompilationUnit(className, apis.get(apiName));
                 compiledApis.put(apiName, new Pair<String,byte[]>(className, envClass));
             } catch(StaticError staticError) {
                 errors.add(staticError);
@@ -152,8 +150,7 @@ public class TopLevelEnvGen {
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
      */
-    public static CompilationUnitResult generateComponentEnvs(Map<APIName, ComponentIndex> components,
-                        GlobalEnvironment env) {
+    public static CompilationUnitResult generateComponentEnvs(Map<APIName, ComponentIndex> components) {
 
         Map<APIName, Pair<String,byte[]>> compiledComponents = new HashMap<APIName, Pair<String,byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
@@ -164,7 +161,7 @@ public class TopLevelEnvGen {
             className = mangleClassIdentifier(className);  // Need to mangle the name if it contains "."
             try {
                 byte[] envClass = generateForCompilationUnit(className,
-                                                             components.get(componentName), env);
+                                                             components.get(componentName));
                 compiledComponents.put(componentName, new Pair<String,byte[]>(className,envClass));
             } catch(StaticError staticError) {
                 errors.add(staticError);
@@ -184,8 +181,7 @@ public class TopLevelEnvGen {
      * for that component.
      */
     private static byte[] generateForCompilationUnit(String className,
-                               CompilationUnitIndex compUnitIndex,
-                               GlobalEnvironment env) {
+                               CompilationUnitIndex compUnitIndex) {
 
         /*
          *  With new ClassWriter(ClassWriter.COMPUTE_FRAMES) everything is
