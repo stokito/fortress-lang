@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.TypeArg;
  */
 public class FortressTypeToJavaType {
 
-    public String analyze(Type t) {
+    public static String analyze(Type t) {
         return t.accept(new NodeDepthFirstVisitor<String>() {
 
             @Override

@@ -83,7 +83,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> nonterminal_result, List<TransformerDecl> transformers) {
-        return new GrammarDef(that.getSpan(), name_result, extends_result, nonterminal_result, transformers);
+        return new GrammarDef(that.getSpan(), name_result, extends_result, nonterminal_result, transformers, that.isNative());
     }
 
     @Override
