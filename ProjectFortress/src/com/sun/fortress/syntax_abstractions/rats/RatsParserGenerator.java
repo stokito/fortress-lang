@@ -41,23 +41,7 @@ import com.sun.fortress.useful.Debug;
 
 public class RatsParserGenerator {
 
-    public class Result extends StaticPhaseResult {
-        Class<?> parserClass;
-
-        public Result(Class<?> parserClass,
-                Iterable<? extends StaticError> errors) {
-            super(errors);
-            this.parserClass = parserClass;
-        }
-
-        public Class<?> parserClass() { return parserClass; }
-    }
-
-
-    public static Result generateParser(Collection<Module> modules) {
-        List<StaticError> errors = new LinkedList<StaticError>();
-        Class<?> parser = null;
-
+    public static Class<?> generateParser(Collection<Module> modules) {
         String grammarTempDir = RatsUtil.getTempDir();
         String destinationDir = grammarTempDir + RatsUtil.COMSUNFORTRESSPARSER;
         String freshFortressName = FreshName.getFreshName("Fortress");
@@ -81,11 +65,10 @@ public class RatsParserGenerator {
 
         ParserLoader parserLoader = new ParserLoader(grammarTempDir);
         try {
-            parser = parserLoader.findClass("com.sun.fortress.parser."+freshFortressName);
+            return parserLoader.findClass("com.sun.fortress.parser."+freshFortressName);
         } catch (ClassNotFoundException e) {
-            errors.add(new WrappedException(e, Debug.isOnMax()));
+            throw new WrappedException(e, Debug.isOnMax());
         }
-        return new RatsParserGenerator().new Result(parser, errors);
     }
 
     public static class ParserLoader extends ClassLoader {

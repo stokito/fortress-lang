@@ -25,44 +25,133 @@
 
 package com.sun.fortress.syntax_abstractions;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Iterator;
+
+import xtc.tree.Attribute;
+import xtc.tree.Comment;
+import xtc.parser.Action;
+import xtc.parser.Element;
+import xtc.parser.FullProduction;
+import xtc.parser.Module;
+import xtc.parser.ModuleDependency;
+import xtc.parser.ModuleImport;
+import xtc.parser.ModuleInstantiation;
+import xtc.parser.ModuleList;
+import xtc.parser.ModuleName;
+import xtc.parser.NonTerminal;
+import xtc.parser.OrderedChoice;
+import xtc.parser.Production;
+import xtc.parser.Sequence;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.intermediate.Module;
-import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
-import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
+import com.sun.fortress.syntax_abstractions.phases.ComposingSyntaxDefTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
+import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.BaseType;
+
+import edu.rice.cs.plt.tuple.Option;
+
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 public class ComposingMacroCompiler {
 
-    private ComposingMacroCompiler(){
+    private static final String FORTRESS = "com.sun.fortress.parser.Fortress";
+    private static final String USER_MODULE_NAME = "USER";
+
+    private ComposingMacroCompiler() {}
+
+    public static class PEG implements Iterable<String> {
+        Map<String, List<SyntaxDef>> entries = new HashMap<String,List<SyntaxDef>>();
+        Map<String, BaseType> typemap = new HashMap<String, BaseType>();
+        public PEG() { }
+
+        public List<SyntaxDef> create(String nt) {
+            if (entries.containsKey(nt)) {
+                throw new RuntimeException("PEG already has an entry for " + nt);
+            }
+            List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
+            entries.put(nt, defs);
+            return defs;
+        }
+        public List<SyntaxDef> get(String nt) {
+            if (!entries.containsKey(nt)) {
+                throw new RuntimeException("PEG has no entry for " + nt);
+            }
+            return entries.get(nt);
+        }
+        public Iterator<String> iterator() {
+            return entries.keySet().iterator();
+        }
+
+        public void putType(String nt, BaseType type) {
+            if (typemap.containsKey(nt)) {
+                throw new RuntimeException("PEG already has a type for " + nt);
+            }
+            typemap.put(nt, type);
+        }
+        public BaseType getType(String nt) {
+            if (!typemap.containsKey(nt)) {
+                throw new RuntimeException("PEG has no entry for " + nt);
+            }
+            return typemap.get(nt);
+        }
     }
 
-    public static Class<?> compile( GrammarIndex grammar ){
+    public static class Mangler {
+        Set<String> nativeNonterminals;
+        Mangler(Set<String> nativeNonterminals) {
+            this.nativeNonterminals = nativeNonterminals;
+        }
+        public String forDefinition(String name) {
+            return mangle(name);
+        }
+        public String forReference(String name) {
+            if (nativeNonterminals.contains(name)) {
+                // Remove everything before final dot
+                // (eg: Fortress.Expression.Expr => Expr)
+                return afterLastDot(name);
+            } else {
+                return mangle(name);
+            }
+        }
+        String mangle(String name) {
+            return "USER_" + name.replaceAll("_", "__").replace('.', '_');
+        }
+    }
 
-        Debug.debug( Debug.Type.SYNTAX, 2, "ComposingMacroCompiler: create parser for grammar " + grammar.getName() );
-    
+
+    public static Class<?> compile( GrammarIndex grammar ){
+        Debug.debug(Debug.Type.SYNTAX, 2, 
+                    "ComposingMacroCompiler: create parser for grammar " + grammar.getName() );
+
         Collection<GrammarIndex> imports = grammar.getExtended();
         Debug.debug( Debug.Type.SYNTAX, 2, "Imports: " + imports );
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions = computeDefinitions( grammar );
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions = computeExtensions( grammar );
+        Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions = 
+            computeDefinitions( grammar );
+        Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions = 
+            computeExtensions( grammar );
         return pegFor( collectImports( grammar ), imports, definitions, extensions );
     }
 
@@ -78,45 +167,13 @@ public class ComposingMacroCompiler {
         return all;
     }
 
-    private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeDefinitions( GrammarIndex grammar ){
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-
-        for ( NonterminalIndex<? extends GrammarMemberDecl> index : grammar.getDeclaredNonterminals() ){
-            if ( isDefinition( index ) ){
-                all.add( index );
-            }
-        }
-
-        return all;
-    }
-
-    private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeExtensions( GrammarIndex grammar ){
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-
-        for ( NonterminalIndex<? extends GrammarMemberDecl> index : grammar.getDeclaredNonterminals() ){
-            if ( isExtension( index ) ){
-                all.add( index );
-            }
-        }
-
-        return all;
-    }
-
-    private static boolean isDefinition( NonterminalIndex<? extends GrammarMemberDecl> index ){
-        return index.getAst() instanceof NonterminalDef ||
-               index.getAst() instanceof _TerminalDef;
-    }
-    
-    private static boolean isExtension( NonterminalIndex<? extends GrammarMemberDecl> index ){
-        return index.getAst() instanceof NonterminalExtensionDef;
-    }
 
     private static Class<?> pegFor( Collection<GrammarIndex> relevant,
                              Collection<GrammarIndex> imports,
                              Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions,
                              Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions ){
 
-        Map<String, List<SyntaxDef>> peg = new HashMap<String,List<SyntaxDef>>();
+        PEG peg = new PEG();
 
         pegForGrammarDefsOnly( peg, relevant );
         pegForDefs( peg, relevant, definitions );
@@ -127,68 +184,72 @@ public class ComposingMacroCompiler {
         Set<String> extendedNonterminals = importsExtensionDomain( imports );
         Set<String> extendedExplicit = computeExplicit(extensions);
         Set<String> extendedImplicit = setDifference(extendedNonterminals, extendedExplicit);
-        List<NonterminalIndex<? extends GrammarMemberDecl>> implicitExtensions = computeImplicitExtensions( extendedImplicit, imports );
+        List<NonterminalIndex<? extends GrammarMemberDecl>> implicitExtensions = 
+            computeImplicitExtensions( extendedImplicit, imports );
 
         for ( NonterminalIndex<? extends GrammarMemberDecl> e : implicitExtensions ){
             applyExtension( peg, e, relevant );
         }
 
-        if ( Debug.isOnFor( 2, Debug.Type.SYNTAX ) ){
-            Debug.debug( Debug.Type.SYNTAX, 2, "Extended nonterminals: " + extendedNonterminals );
-            Debug.debug( Debug.Type.SYNTAX, 2, "Extended explicit: " + extendedExplicit );
-            Debug.debug( Debug.Type.SYNTAX, 2, "Extended implicit: " + extendedImplicit );
-        }
+        Debug.debug( Debug.Type.SYNTAX, 2, "Extended nonterminals: " + extendedNonterminals );
+        Debug.debug( Debug.Type.SYNTAX, 2, "Extended explicit: " + extendedExplicit );
+        Debug.debug( Debug.Type.SYNTAX, 2, "Extended implicit: " + extendedImplicit );
 
-        /* create the parser from the peg and return its class */
-        return com.sun.fortress.parser.Fortress.class;
-        // return null;
-
-        /*
-pegFor relevant imports defs exts = peg
-where peg0 = pegForGrammarDefsOnly relevant
-peg1 = pegForDefs relevant defs
-peg = applyExtensions relevant (exts ++ implicitExts) (peg1 ++ peg0)
-extNTs = importsExtensionDomain imports
-explicitNTs = map nameof exts
-implicitNTs = extNTs \\ explicitNTs
-implicitExts = [implicitExtension nt imports | nt <- implicitNTs]
-*/
-    }
-
-    private static <T> Set<T> setDifference( Set<T> s1, Set<T> s2 ){
-        Set<T> all = new HashSet<T>( s1 );
-        all.removeAll( s2 );
-        return all;
-    }
-
-    private static Set<String> computeExplicit( Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions ){
-        Set<String> all = new HashSet<String>();
-
-        for ( NonterminalIndex<? extends GrammarMemberDecl> index : extensions ){
-            all.add( index.getName().toString() );
-        }
-
-        return all;
-    }
-
-    private static void applyExtension( Map<String, List<SyntaxDef>> peg, NonterminalIndex<? extends GrammarMemberDecl> extension, Collection<GrammarIndex> relevant ){
-        Debug.debug( Debug.Type.SYNTAX, 2, "Apply extensions to " + extension.getName() );
-        final List<SyntaxDef> defs = peg.get( extension.getName().toString() );
-        if ( defs == null ){
-            throw new RuntimeException( "Defs is null, this cannot happen" );
-        }
-
-        extension.getAst().accept( new NodeDepthFirstVisitor_void(){
-            @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
-                defs.addAll( 0, that.getSyntaxDefs() );
+        Set<String> nativeNonterminals = new HashSet<String>();
+        for ( GrammarIndex grammar : relevant ) {
+            GrammarDef grammarDef = grammar.ast().unwrap();
+            Debug.debug(Debug.Type.SYNTAX, 3, "Grammar " + grammarDef + " native?: " + grammarDef.isNative());
+            if (grammarDef.isNative()) {
+                // A native grammar can only contain nonterminal declarations
+                for (GrammarMemberDecl member : grammarDef.getMembers()) {
+                    NonterminalHeader header = member.getHeader();
+                    nativeNonterminals.add(header.getName().getText());
+                }
             }
+        }
 
+        Debug.debug( Debug.Type.SYNTAX, 2, "Native nonterminals: " + nativeNonterminals );
+
+        return makeParser(peg, nativeNonterminals);
+    }
+
+    private static void pegForGrammarDefsOnly( PEG peg, Collection<GrammarIndex> relevant ){
+        for ( GrammarIndex grammar : relevant ){
+            pegForDefs( peg, relevant, grammar.getDeclaredNonterminals() );
+        }
+    }
+
+    private static void pegForDefs( PEG peg, Collection<GrammarIndex> relevant, 
+                                    Collection<NonterminalIndex<? extends GrammarMemberDecl>> nonterminals ){
+
+        for ( NonterminalIndex<? extends GrammarMemberDecl> nonterminal : nonterminals ){
+            String nonterminalName = nonterminal.getName().toString();
+            List<SyntaxDef> defs = peg.create(nonterminalName);
+            Debug.debug( Debug.Type.SYNTAX, 2,
+                         "Add " + nonterminalName + " to peg definition" );
+            pegEntryForDef( defs, relevant, nonterminal );
+
+            Option<BaseType> type = nonterminal.getAst().getAstType();
+            if (type.isSome()) {
+                peg.putType(nonterminalName, type.unwrap());
+            } else {
+                throw new RuntimeException("No type for nonterminal " + nonterminal);
+            }
+        }
+        // pegForDefs grammars defs = map (pegEntryForDef grammars) defs
+    }
+
+    private static void pegEntryForDef( final List<SyntaxDef> defs, 
+                                        final Collection<GrammarIndex> relevant, 
+                                        NonterminalIndex<? extends GrammarMemberDecl> nonterminal ){
+        nonterminal.getAst().accept( new NodeDepthFirstVisitor_void(){
             @Override public void forNonterminalDef(NonterminalDef that){
-                defs.addAll( 0, that.getSyntaxDefs() );
+                for ( SyntaxDef def : that.getSyntaxDefs() ){
+                    resolveChoice( defs, relevant, def );
+                }
             }
-
             @Override public void for_TerminalDef(_TerminalDef that){
-                defs.add( 0, that.getSyntaxDef() );
+                resolveChoice( defs, relevant, that.getSyntaxDef() );
             }
         });
     }
@@ -235,46 +296,28 @@ implicitExts = [implicitExtension nt imports | nt <- implicitNTs]
         // GrammarC _ _ _ exts _) = (map nameof exts)
     }
 
-    private static void pegForGrammarDefsOnly( Map<String, List<SyntaxDef>> peg, Collection<GrammarIndex> relevant ){
-        for ( GrammarIndex grammar : relevant ){
-            pegForDefs( peg, relevant, grammar.getDeclaredNonterminals() );
-        }
-    }
-
-    private static void pegForDefs( Map<String, List<SyntaxDef>> peg, Collection<GrammarIndex> relevant, Collection<NonterminalIndex<? extends GrammarMemberDecl>> nonterminals ){
-
-        for ( NonterminalIndex<? extends GrammarMemberDecl> nonterminal : nonterminals ){
-            List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
-
-            /*
-            nonterminal.getAst().accept( new NodeDepthFirstVisitor_void(){
-                @Override public void forNon
-            });
-            */
-
-            Debug.debug( Debug.Type.SYNTAX, 2, "Add " + nonterminal.getName().toString() + " to peg definition" );
-            peg.put( nonterminal.getName().toString(), defs );
-            
-            pegEntryForDef( defs, relevant, nonterminal );
+    private static void applyExtension( PEG peg, 
+                                        NonterminalIndex<? extends GrammarMemberDecl> extension, 
+                                        Collection<GrammarIndex> relevant ){
+        Debug.debug( Debug.Type.SYNTAX, 2, "Apply extensions to " + extension.getName() );
+        final List<SyntaxDef> defs = peg.get( extension.getName().toString() );
+        if ( defs == null ){
+            throw new RuntimeException( "Defs is null, this cannot happen" );
         }
 
-        // pegForDefs grammars defs = map (pegEntryForDef grammars) defs
-    }
+        extension.getAst().accept( new NodeDepthFirstVisitor_void(){
+            @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
+                defs.addAll( 0, that.getSyntaxDefs() );
+            }
 
-    private static void pegEntryForDef( final List<SyntaxDef> defs, final Collection<GrammarIndex> relevant, NonterminalIndex<? extends GrammarMemberDecl> nonterminal ){
-
-        nonterminal.getAst().accept( new NodeDepthFirstVisitor_void(){
             @Override public void forNonterminalDef(NonterminalDef that){
-                for ( SyntaxDef def : that.getSyntaxDefs() ){
-                    resolveChoice( defs, relevant, def );
-                }
+                defs.addAll( 0, that.getSyntaxDefs() );
             }
 
             @Override public void for_TerminalDef(_TerminalDef that){
-                resolveChoice( defs, relevant, that.getSyntaxDef() );
+                defs.add( 0, that.getSyntaxDef() );
             }
         });
-
     }
 
     private static void resolveChoice( List<SyntaxDef> defs, Collection<GrammarIndex> relevant, SyntaxDef def ){
@@ -298,51 +341,231 @@ implicitExts = [implicitExtension nt imports | nt <- implicitNTs]
     }
     */
 
-    /*
-    public Result compile(Collection<GrammarIndex> grammarIndexs, GlobalEnvironment env) {
+    private static Class<?> makeParser(PEG peg, Set<String> nativeNonterminals) {
+        Mangler mangler = new Mangler(nativeNonterminals);
 
-        //	    for(GrammarIndex g: grammarIndexs) {
-        //	        System.err.println(g.getName() + ", "+ g.isToplevel());
-        //	    }
+        // Turn peg into a single new module
+        //   (mangle names to avoid conflict)
+        //   extensions of native nonterminals become simple definitions
+        //   For each reference to native nonterminal,
+        //     rewrite to base parser's nonterminal instead (do not mangle)
+        Module userModule = createUserModule();
+        for (String nt : peg) {
+            addEntry(userModule, mangler, peg, nt);
+        }
 
-        / *
-         * Initialize GrammarIndex
-         * /
-        GrammarIndexInitializer.Result giir = GrammarIndexInitializer.init(grammarIndexs); 
-        if (!giir.isSuccessful()) { return new Result(giir.errors()); }
-
-        / * 
-         * Resolve grammar extensions and extensions of nonterminal definitions.
-         * /
-        ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
-        if (!mrr.isSuccessful()) { return new Result(mrr.errors()); }
-
-        if( Debug.isOnFor(3, Debug.Type.SYNTAX) ) {
-            Debug.debug( Debug.Type.SYNTAX, 3, GrammarEnv.getDump() );
-            
-            for (Module m: mrr.modules()) {
-                Debug.debug( Debug.Type.SYNTAX, 3, m );
+        // For each extended native nonterminal,
+        //   add new module's production to top
+        String srcDir = RatsUtil.getParserPath();
+        Map<String, Module> baseModules = getBaseModules(srcDir);
+        for (String definedByPeg : peg) {
+            if (nativeNonterminals.contains(definedByPeg)) {
+                String moduleName = getRatsModuleName(definedByPeg);
+                String ntName = afterLastDot(definedByPeg);
+                String userExtensionsName = mangler.forReference(definedByPeg);
+                Module baseModule = baseModules.get(getRatsModuleName(definedByPeg));
+                for (Production p : baseModule.productions) {
+                    if (ntName.equals(p.name.name)) {
+                        Element indirection = new NonTerminal(userExtensionsName);
+                        Sequence indirectionSequence = new Sequence(indirection);
+                        p.choice.alternatives.add(0, indirectionSequence);
+                    }
+                }
             }
         }
 
-        / *
-         * Translate each grammar to a corresponding Rats! module
-         * /
-        GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
-        if (!gtr.isSuccessful()) { return new Result(gtr.errors()); }
+        // Add imports from every (ordinary) fortress module
+        // Add import from USER to every fortress module
+        Module mainModule = null;
+        ModuleName uname = new ModuleName("USERvar");
+        for (Module baseModule : baseModules.values()) {
+            if (!baseModule.name.name.equals(FORTRESS)) {
+                ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
+                List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
+                ups.add(bname);
+                userModule.parameters = new ModuleList(ups);
+                userModule.dependencies.add(new ModuleImport(bname));
+                List<ModuleName> bps = new LinkedList<ModuleName>();
+                if (baseModule.parameters != null)
+                    bps.addAll(baseModule.parameters.names);
+                bps.add(uname);
+                baseModule.parameters = new ModuleList(bps);
+                baseModule.dependencies.add(new ModuleImport(uname));
+            } else {
+                mainModule = baseModule;
+            }
+        }
+        // for each existing instantiation, add USER to the arguments
+        for (ModuleDependency dep : mainModule.dependencies) {
+            List<ModuleName> args = new LinkedList<ModuleName>();
+            if (dep.arguments != null) {
+                args.addAll(dep.arguments.names);
+            }
+            args.add(uname);
+            dep.arguments = new ModuleList(args);
+        }
+        // and add an instantiation with all the other modules
+        List<ModuleName> argslist = new LinkedList<ModuleName>();
+        for (Module baseModule : baseModules.values()) {
+            if (baseModule != mainModule) {
+                ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
+                argslist.add(bname);
+            }
+        }
+        ModuleList args = new ModuleList(argslist);
+        ModuleInstantiation inst = 
+            new ModuleInstantiation(new ModuleName(USER_MODULE_NAME), args, uname);
+        mainModule.dependencies.add(inst);
 
-        / *
-         * For each changed module write it to a file and run Rats! to 
-         * generate a temporary parser.
-         * /
-        RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules());
-        if (!rpgr.isSuccessful()) { return new Result(rpgr.errors()); }
-
-        / *
-         * Return the temporary parser
-         * /
-        return new Result(rpgr.parserClass());
+        // Generate parser
+        Collection<Module> modules = new LinkedList<Module>();
+        modules.addAll(baseModules.values());
+        modules.add(userModule);
+        return RatsParserGenerator.generateParser(modules);
     }
-    */
+
+    // Maps unqualified module names to modules
+    private static Map<String, Module> getBaseModules(String srcDir) {
+        Map<String, Module> map = new HashMap<String, Module>();
+        class RatsFilenameFilter implements FilenameFilter {
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".rats");
+            }		
+        }
+        File f = new File(srcDir);
+        for (String s: f.list(new RatsFilenameFilter())) {
+            String name = s.substring(0, s.length() - 5);
+            String filename = srcDir + File.separatorChar + s;
+            map.put(name, RatsUtil.getRatsModule(filename));
+        }
+        return map;
+    }
+
+    private static void addEntry(Module m, Mangler mangler, PEG peg, String nt) {
+        Debug.debug( Debug.Type.SYNTAX, 2, "Create alternative for " + nt );
+
+        String name = mangler.forDefinition(nt);
+        String javaType = FortressTypeToJavaType.analyze(peg.getType(nt));
+
+        ComposingSyntaxDefTranslator translator = 
+            new ComposingSyntaxDefTranslator(mangler, nt, javaType, peg.typemap);
+        List<Sequence> sequences = translator.visitSyntaxDefs(peg.get(nt));
+
+        List<Attribute> attributes = new LinkedList<Attribute>();
+        OrderedChoice choice = new OrderedChoice(sequences);
+        Production p = new FullProduction(attributes, javaType, new NonTerminal(name), choice);
+        m.productions.add(p);
+    }
+
+    private static Module createUserModule() {
+        // based on RatsUtil.makeExtendingRatsModule()
+        Module m = new Module();
+        m.name = new ModuleName(USER_MODULE_NAME);
+        m.productions = new LinkedList<Production>();
+        m.parameters = new ModuleList(new LinkedList<ModuleName>());
+        m.dependencies = new LinkedList<ModuleDependency>();
+        // FIXME: Add dependencies
+        m.documentation = createComment();
+        m.header = createHeader();
+        return m;
+    }
+
+    private static Action createHeader() {
+        List<String> imports = new LinkedList<String>();
+        List<Integer> indents = new LinkedList<Integer>();
+        indents.add(3);
+        imports.add("import java.util.Map;");
+        indents.add(3);
+        imports.add("import java.util.HashMap;");
+        Action a = new Action(imports, indents);
+        return a;
+    }
+
+    private static Comment createComment() {
+        List<String> lines = new LinkedList<String>();
+        lines.add("Module generated by the Fortress compiler on " + new Date());
+        return new Comment(Comment.Kind.SINGLE_LINE, lines);
+    }
+
+    private static String getRatsModuleName(String name) {
+        return afterLastDot(beforeLastDot(name));
+    }
+
+    private static String beforeLastDot(String name) {
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot >= 0) {
+            return name.substring(0, lastDot);
+        } else {
+            throw new RuntimeException("Saw unqualified nonterminal name: " + name);
+            // return name;
+        }
+    }
+
+    private static String afterLastDot(String name) {
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot >= 0) {
+            return name.substring(lastDot + 1);
+        } else {
+            throw new RuntimeException("Saw unqualified nonterminal name: " + name);
+            // return name;
+        }
+    }
+
+
+
+    // Utilities
+
+    private static <T> Set<T> setDifference( Set<T> s1, Set<T> s2 ){
+        Set<T> all = new HashSet<T>( s1 );
+        all.removeAll( s2 );
+        return all;
+    }
+
+    private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeDefinitions( GrammarIndex grammar ){
+        Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = 
+            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+
+        for ( NonterminalIndex<? extends GrammarMemberDecl> index :
+                  grammar.getDeclaredNonterminals() ){
+            if ( isDefinition( index ) ){
+                all.add( index );
+            }
+        }
+
+        return all;
+    }
+
+    private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeExtensions( GrammarIndex grammar ){
+        Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = 
+            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+
+        for ( NonterminalIndex<? extends GrammarMemberDecl> index : 
+                  grammar.getDeclaredNonterminals() ){
+            if ( isExtension( index ) ){
+                all.add( index );
+            }
+        }
+
+        return all;
+    }
+
+    private static boolean isDefinition( NonterminalIndex<? extends GrammarMemberDecl> index ){
+        return index.getAst() instanceof NonterminalDef ||
+               index.getAst() instanceof _TerminalDef;
+    }
+
+    private static boolean isExtension( NonterminalIndex<? extends GrammarMemberDecl> index ){
+        return index.getAst() instanceof NonterminalExtensionDef;
+    }
+
+    private static Set<String> computeExplicit( Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions ){
+        Set<String> all = new HashSet<String>();
+
+        for ( NonterminalIndex<? extends GrammarMemberDecl> index : extensions ){
+            all.add( index.getName().toString() );
+        }
+
+        return all;
+    }
 
 }

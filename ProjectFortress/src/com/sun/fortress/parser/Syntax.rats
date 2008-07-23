@@ -64,7 +64,7 @@ public GrammarDecl GrammarDef =
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
        else { ids.addAll(a2); }
-       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>()); };
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>(), false); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
 List<Id> GrammarExtends = extends w QualifiedNames ;
