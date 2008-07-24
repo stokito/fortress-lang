@@ -71,6 +71,8 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.BaseType;
 
+import com.sun.fortress.nodes_util.NodeUtil;
+
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
@@ -129,14 +131,13 @@ public class ComposingMacroCompiler {
         }
         public String forReference(String name) {
             if (nativeNonterminals.contains(name)) {
-                // Remove everything before final dot
-                // (eg: Fortress.Expression.Expr => Expr)
-                return afterLastDot(name);
+                // (eg: Fortress.Expression.Expr => Expression.Expr)
+                return getRatsModuleName(name) + "." + afterLastDot(name);
             } else {
                 return mangle(name);
             }
         }
-        String mangle(String name) {
+        public String mangle(String name) {
             return "USER_" + name.replaceAll("_", "__").replace('.', '_');
         }
     }
@@ -203,7 +204,7 @@ public class ComposingMacroCompiler {
                 // A native grammar can only contain nonterminal declarations
                 for (GrammarMemberDecl member : grammarDef.getMembers()) {
                     NonterminalHeader header = member.getHeader();
-                    nativeNonterminals.add(header.getName().getText());
+                    nativeNonterminals.add(NodeUtil.nameString(header.getName()));
                 }
             }
         }
@@ -359,17 +360,28 @@ public class ComposingMacroCompiler {
         String srcDir = RatsUtil.getParserPath();
         Map<String, Module> baseModules = getBaseModules(srcDir);
         for (String definedByPeg : peg) {
+            Debug.debug( Debug.Type.SYNTAX, 3,
+                         "Checking if " + definedByPeg + " is native");
             if (nativeNonterminals.contains(definedByPeg)) {
                 String moduleName = getRatsModuleName(definedByPeg);
                 String ntName = afterLastDot(definedByPeg);
-                String userExtensionsName = mangler.forReference(definedByPeg);
+                String userExtensionsName = mangler.mangle(definedByPeg);
                 Module baseModule = baseModules.get(getRatsModuleName(definedByPeg));
+                Debug.debug( Debug.Type.SYNTAX, 3,
+                             "Modify " + definedByPeg +
+                             "; ntName=" + ntName + 
+                             "; baseModule=" + getRatsModuleName(definedByPeg));
+                boolean found = false;
                 for (Production p : baseModule.productions) {
                     if (ntName.equals(p.name.name)) {
+                        found = true;
                         Element indirection = new NonTerminal(userExtensionsName);
                         Sequence indirectionSequence = new Sequence(indirection);
                         p.choice.alternatives.add(0, indirectionSequence);
                     }
+                }
+                if (!found) {
+                    throw new RuntimeException("Failed to modify " + definedByPeg);
                 }
             }
         }
@@ -379,7 +391,8 @@ public class ComposingMacroCompiler {
         Module mainModule = null;
         ModuleName uname = new ModuleName("USERvar");
         for (Module baseModule : baseModules.values()) {
-            if (!baseModule.name.name.equals(FORTRESS)) {
+            if (!baseModule.name.name.equals(FORTRESS) && 
+                !baseModule.name.name.equals("com.sun.fortress.parser.Compilation")) {
                 ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
                 ups.add(bname);
@@ -391,23 +404,26 @@ public class ComposingMacroCompiler {
                 bps.add(uname);
                 baseModule.parameters = new ModuleList(bps);
                 baseModule.dependencies.add(new ModuleImport(uname));
-            } else {
+            } else if (baseModule.name.name.equals(FORTRESS)) {
                 mainModule = baseModule;
             }
         }
         // for each existing instantiation, add USER to the arguments
         for (ModuleDependency dep : mainModule.dependencies) {
-            List<ModuleName> args = new LinkedList<ModuleName>();
-            if (dep.arguments != null) {
-                args.addAll(dep.arguments.names);
+            if (!dep.module.name.equals("com.sun.fortress.parser.Compilation")) {
+                List<ModuleName> args = new LinkedList<ModuleName>();
+                if (dep.arguments != null) {
+                    args.addAll(dep.arguments.names);
+                }
+                args.add(uname);
+                dep.arguments = new ModuleList(args);
             }
-            args.add(uname);
-            dep.arguments = new ModuleList(args);
         }
         // and add an instantiation with all the other modules
         List<ModuleName> argslist = new LinkedList<ModuleName>();
         for (Module baseModule : baseModules.values()) {
-            if (baseModule != mainModule) {
+            if (baseModule != mainModule &&
+                !baseModule.name.name.equals("com.sun.fortress.parser.Compilation")) {
                 ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 argslist.add(bname);
             }
