@@ -142,7 +142,7 @@ public class ReferenceCell extends IndirectionCell {
 
             if (w == null || w.isAncestorOf(me)) {
                 node = new ValueNode(f2, me, node);
-                me.addWrite(this, f2);
+                if (Transaction.debug) me.addWrite(this, f2);
             } else if (w.isActive()) {
                 throw new RuntimeException("How can writer be active after cleanup?");
             }
@@ -167,7 +167,7 @@ public class ReferenceCell extends IndirectionCell {
             return node.getValue();
         } else if (w == null || w.isAncestorOf(me)) {
             node.addReader();
-            me.addRead(this, node.getValue());
+            if (Transaction.debug) me.addRead(this, node.getValue());
             return node.getValue();
         } else if (w.isActive()) {      
             node.resolveWriteConflict();
