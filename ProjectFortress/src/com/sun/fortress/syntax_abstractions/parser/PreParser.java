@@ -153,6 +153,23 @@ public class PreParser {
                return removeExecutableApi(all);
            }
 
+           public static APIName apiName( APIName name, File f ) throws StaticError {
+               Parser.Result pr = parseFile(name, f);
+               if ( ! pr.isSuccessful() ){
+                   for ( StaticError e : pr.errors() ){
+                       throw e;
+                   }
+               }
+               List<APIName> all = new ArrayList<APIName>();
+               for ( Component comp : pr.components() ){
+                   return comp.getName();
+               }
+               for ( Api api : pr.apis() ){
+                   return api.getName();
+               }
+               throw StaticError.make( "No components or apis found?", "" );
+           }
+
            /* get a list of imported apis from a component/api */
 	public static List<APIName> getImportedApis(APIName name, File f) throws StaticError {
 		Parser.Result pr = parseFile(name, f);

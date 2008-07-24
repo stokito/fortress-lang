@@ -46,6 +46,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
+import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 
@@ -291,7 +292,9 @@ public final class Shell {
         String file = filename.substring( 0, filename.lastIndexOf(".") );
         file = file.replace('/','.');
         file = file.replace('\\','.');
-        return file.endsWith(cuname);
+        String regex = "(.*\\.)?" + cuname.replaceAll("\\.", "\\.") + "$";
+        Debug.debug( Debug.Type.REPOSITORY, 3, "Checking file name " + file + " vs cuname " + regex );
+        return file.matches( regex );
     }
 
     /**
@@ -318,13 +321,26 @@ public final class Shell {
             compile(rest, out);
         } else {
             try {
+                APIName name = trueApiName( s );
+                Path path = sourcePath( s, name );
+
+                /*
+                Debug.debug( Debug.Type.REPOSITORY, 2, "True api name is " + name );
+                Debug.debug( Debug.Type.REPOSITORY, 2, "Path is " + s );
                 Path path = ProjectProperties.SOURCE_PATH;
+                String source = new File( s ).getCanonicalPath().substring( 0, s.length() - (name.toString().length() + 4) );
+                path = path.prepend( source );
+                Debug.debug( Debug.Type.REPOSITORY, 2, "Source path is " + source );
+                Debug.debug( Debug.Type.REPOSITORY, 2, "Lookup path is " + path );
+                */
+                /*
                 if (s.contains("/")) {
                     String head = s.substring(0, s.lastIndexOf("/"));
                     s = s.substring(s.lastIndexOf("/")+1, s.length());
                     path = path.prepend(head);
                 }
-                Iterable<? extends StaticError> errors = compile(path, s, out );
+                */
+                Iterable<? extends StaticError> errors = compile(path, name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi"), out );
                 if ( errors.iterator().hasNext() ){
                     for (StaticError error: errors) {
                         System.err.println(error);
@@ -334,6 +350,10 @@ public final class Shell {
                 System.err.println(error);
             }
         }
+    }
+
+    private static APIName trueApiName( String path ) throws IOException {
+        return PreParser.apiName( NodeFactory.makeAPIName(path), new File(path).getCanonicalFile() );
     }
 
     /**
@@ -416,6 +436,7 @@ public final class Shell {
     private static void run(String fileName, List<String> args)
         throws UserError, Throwable {
         try {
+            /*
             Path path = ProjectProperties.SOURCE_PATH;
             if (fileName.contains("/")) {
                 String head = fileName.substring(0, fileName.lastIndexOf("/"));
@@ -423,11 +444,16 @@ public final class Shell {
                 path = path.prepend(head);
             }
             APIName componentName = cuName(fileName);
+            */
+
+            APIName name = trueApiName( fileName );
+            Path path = sourcePath(fileName, name);
+            
             GraphRepository bcr = specificRepository( path, defaultRepository );
             Iterable<? extends StaticError> errors = IterUtil.empty();
 
             try {
-                CompilationUnit cu = bcr.getLinkedComponent(componentName).ast();
+                CompilationUnit cu = bcr.getLinkedComponent(name).ast();
                 Driver.runProgram(bcr, cu, test, args);
             } catch (Throwable th) {
                 // TODO FIXME what is the proper treatment of errors/exceptions etc.?
@@ -464,6 +490,22 @@ public final class Shell {
             }
             System.exit(1);
         }
+    }
+
+    /* find the api name for a file and chop it off the source path.
+     * what remains from the source path is the directory that contains
+     * the file( including sub-directories )
+     */
+    private static Path sourcePath( String file, APIName name ) throws IOException {
+        Debug.debug( Debug.Type.REPOSITORY, 2, "True api name is " + name );
+        String fullPath = new File(file).getCanonicalPath();
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Path is " + fullPath );
+        Path path = ProjectProperties.SOURCE_PATH;
+        String source = fullPath.substring( 0, fullPath.length() - (name.toString().length() + 4) );
+        path = path.prepend( source );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Source path is " + source );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Lookup path is " + path );
+        return path;
     }
 
     public static AnalyzeResult disambiguate(FortressRepository repository,

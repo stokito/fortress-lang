@@ -51,8 +51,8 @@ import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Debug;
 
-
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
 import com.sun.fortress.repository.graph.Graph;
 import com.sun.fortress.repository.graph.ComponentGraphNode;
@@ -129,14 +129,22 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         ApiGraphNode node = addApiGraph(name);
         Debug.debug( Debug.Type.REPOSITORY, 2, "Get API for ", name);
         refreshGraph();
-        return node.getApi().unwrap();
+        try{
+            return node.getApi().unwrap();
+        } catch ( OptionUnwrapException o ){
+            throw StaticError.make( "Cannot find api " + name + " in the repository. This should not happen, please contact a developer.", "" );
+        }
     }
 
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
         ComponentGraphNode node = addComponentGraph(name);
         Debug.debug( Debug.Type.REPOSITORY, 2, "Get component for ", name );
         refreshGraph();
-        return node.getComponent().unwrap();
+        try{
+            return node.getComponent().unwrap();
+        } catch ( OptionUnwrapException o ){
+            throw StaticError.make( "Cannot find component " + name + " in the repository. This should not happen, please contact a developer.", "" );
+        }
     }
 
     /* add an API node to the graph and return the node. if the API exists in the
