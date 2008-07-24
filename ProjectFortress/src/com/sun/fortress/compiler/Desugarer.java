@@ -43,10 +43,7 @@ public class Desugarer {
 
     /**
      * This field is a temporary switch used for testing.
-     * When typecheck is true, the TypeChecker is called during static checking.
-     * It's false by default to allow the static checker to be used at the command
-     * line before the type checker is fully functional.
-     * CompilerTopLevelJUTests sets typecheck to true before running its tests.
+     * When desugar is true, the Desugarar is called during static checking.
      */
     public static boolean desugar = false;
 
@@ -96,15 +93,15 @@ public class Desugarer {
         return new ComponentResult
             (IndexBuilder.buildComponents(desugaredComponents,
                                           System.currentTimeMillis()).
-                 components(),
-                                   errors);
+                 components(), errors);
     }
 
     public static Component desugarComponent(ComponentIndex component,
                                                      GlobalEnvironment env)
     {
         if (desugar) {
-            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
+        	//            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
+        	ObjectExpressionVisitor desugaringVisitor = new ObjectExpressionVisitor();            
             return (Component)component.ast().accept(desugaringVisitor);
         } else {
             return (Component)component.ast();
