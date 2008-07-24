@@ -142,10 +142,10 @@ public class GrammarRewriter {
                 Api erResult = (Api) sdResult.accept(escapeRewriter);
 
                 // 5) Rewrite terminals to be declared using terminal definitions
-                TerminalRewriter terminalRewriter = new TerminalRewriter();
-                Api trResult = (Api) erResult.accept(terminalRewriter);
+                //TerminalRewriter terminalRewriter = new TerminalRewriter();
+                // Api trResult = (Api) erResult.accept(terminalRewriter);
 
-                results.add(trResult);
+                results.add(erResult);
             }
         }
         // Rebuild ApiIndices.
