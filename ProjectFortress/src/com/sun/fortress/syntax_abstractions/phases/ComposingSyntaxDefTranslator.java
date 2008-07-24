@@ -44,6 +44,7 @@ import xtc.parser.ParserAction;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
@@ -70,6 +71,7 @@ import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
+import com.sun.fortress.nodes.SimpleTransformerDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TabSymbol;
@@ -85,6 +87,7 @@ import com.sun.fortress.syntax_abstractions.environments.ComposingSyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
+import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Debug;
 
@@ -144,19 +147,20 @@ public class ComposingSyntaxDefTranslator {
                                    ((TransformerDef) transformation).getTransformer(), 
                                    BOUND_VARIABLES ));
             indents.add(3);
-        }
-        /*
-          else if ( transformation instanceof SimpleTransformerDef ){
+        } else if ( transformation instanceof SimpleTransformerDef ){
             createVariableBinding(code, indents, syntaxDeclEnv, variables);
             AbstractNode n = ((SimpleTransformerDef) transformation).getNode();
-            JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
+            // FIXME: hack: We know it's a StringLiteralExpr, so the env isn't needed
+            // should convert to new env
+            JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(null);
             String yyValue = n.accept(jpp);
             for (String s: jpp.getCode()) {
-                addCodeLine(s, code, indents);
+                code.add(s);
+                indents.add(3);
             }
-            addCodeLine( String.format( "yyValue = %s;", yyValue ), code, indents );
+            code.add(String.format( "yyValue = %s;", yyValue ));
+            indents.add(3);
         }
-        */
         return new Action(code, indents);
     }
 
@@ -527,7 +531,6 @@ public class ComposingSyntaxDefTranslator {
             // String ntOfVar = syntaxDeclEnv.getNonterminalOfVar(sym.getId().unwrap());
             // String typeOfVar = ntTypes.get(ntOfVar);
 
-            /*
             class DepthConvertVisitor implements VariableCollector.DepthVisitor<String> {
                 String source;
                 int indent;
@@ -548,7 +551,7 @@ public class ComposingSyntaxDefTranslator {
                 }
                 public String forListDepth(VariableCollector.Depth d) {
                     throw new RuntimeException("not supported now");
-                    / *
+                    /*
                     String fresh = FreshName.getFreshName("list");
                     String innerType = d.getParent().getType(astNode);
                     String iterator = FreshName.getFreshName("iter");
@@ -561,11 +564,11 @@ public class ComposingSyntaxDefTranslator {
                     indent -= 2;
                     addCodeLine( "}" );
                     return getFortressList(fresh, listCode, listIndents);
-                    * /
+                    */
                 }
                 public String forOptionDepth(VariableCollector.Depth d) {
                     throw new RuntimeException("not supported now");
-                    / *
+                    /*
                     String fresh = FreshName.getFreshName("option");
                     String innerType = d.getParent().getType("Object"); // FIXME
                     addCodeLine(String.format("Expr %s = null;", fresh));
@@ -577,7 +580,7 @@ public class ComposingSyntaxDefTranslator {
                     indent -= 2;
                     addCodeLine("}");
                     return fresh;
-                    * /
+                    */
                 }
                 private void addCodeLine(String line){
                     listIndents.add(indent);
@@ -585,10 +588,26 @@ public class ComposingSyntaxDefTranslator {
                 }
             };
             String resultVar = depth.accept(new DepthConvertVisitor(var, 3));
-            */
 
             indents.add(3);
-            code.add(String.format("%s.put(\"%s\",%s);", BOUND_VARIABLES, var, /*resultVar*/var));
+            code.add(String.format("%s.put(\"%s\",%s);", BOUND_VARIABLES, var, resultVar));
         }
     }
+
+    private static String getFortressCharacterClass(String id, List<String> code, List<Integer> indents) {
+        String name = FreshName.getFreshName("characterClass");
+        indents.add(3);
+        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id+");");
+        return name;
+    }
+
+    private static String getFortressAnyChar(String id, List<String> code,
+            List<Integer> indents) {
+        String name = FreshName.getFreshName("anyCharacter");
+        indents.add(3);
+        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id+");");
+        return name;
+    }
+
+
 }
