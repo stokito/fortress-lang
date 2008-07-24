@@ -70,7 +70,7 @@ end
     complexity, but return a %List% in cases (such as %map% and
     %filter%) where it will.  Indexing on lists operates from the
     left, and ordering is lexicographic reading from the left. *)
-trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
+trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
         excludes { Number, HasRank }
   (** %left% and %extractLeft% return the leftmost element in the list
       (and in the latter case, the remainder of the list without its
@@ -85,7 +85,7 @@ trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
       by the elements of %f% *)
   append(f:List[\E\]): List[\E\]
   (** the operator %||% performs the %append% operation *)
-  opr ||(self, other:List[\E\]): List[\E\]   
+  opr ||(self, other:List[\E\]): List[\E\]
   (** %addLeft% and %addRight% add an element to the left or right of
       the list, respectively *)
   addLeft(e:E):List[\E\]
