@@ -501,6 +501,10 @@ public final class Shell {
         String fullPath = new File(file).getCanonicalPath();
         Debug.debug( Debug.Type.REPOSITORY, 2, "Path is " + fullPath );
         Path path = ProjectProperties.SOURCE_PATH;
+        /* the path to the file is /absolute/path/a/b/c/foo.fss and the apiname is
+         * a.b.c.foo, so we need to take off the apiname plus four more characters,
+         * ".fss" or ".fsi"
+         */
         String source = fullPath.substring( 0, fullPath.length() - (name.toString().length() + 4) );
         path = path.prepend( source );
         Debug.debug( Debug.Type.REPOSITORY, 2, "Source path is " + source );
