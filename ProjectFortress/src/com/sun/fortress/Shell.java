@@ -355,7 +355,7 @@ public final class Shell {
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
             } else if (isComponent(file)) {
-            	// FIXME: The following line is executed for its side effects            	
+            	// FIXME: The following line is executed for its side effects
                 Component c = (Component) bcr.getComponent(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getComponent(name).ast(), out.unwrap());
@@ -524,7 +524,7 @@ public final class Shell {
         GlobalEnvironment apiEnv =
             new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
                                                             previousPhase.apis()));
-        
+
         GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(previousPhase.apis(), apiEnv);
         if (!apiID.isSuccessful()) {
             throw new MultipleStaticError(apiID.errors());
@@ -561,14 +561,12 @@ public final class Shell {
         }
 
         return new AnalyzeResult(apiSR.apis(), componentSR.components(), IterUtil.<StaticError>empty());
-
     }
 
     public static AnalyzeResult desugar(FortressRepository _repository,
                                         GlobalEnvironment env,
                                         AnalyzeResult previousPhase,
                                         long lastModified) throws StaticError {
-
     	GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
                                                                                    previousPhase.apis()));
 
@@ -578,20 +576,19 @@ public final class Shell {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
-        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previousPhase.components(), apiEnv); 
+        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previousPhase.components(), apiEnv);
 
         if ( ! componentDSR.isSuccessful() ){
-            throw new MultipleStaticError(apiDSR.errors());
+            throw new MultipleStaticError(componentDSR.errors());
         }
 
         return new AnalyzeResult(apiDSR.apis(), componentDSR.components(), IterUtil.<StaticError>empty());
     }
 
     public static AnalyzeResult codeGeneration(FortressRepository _repository,
-    													GlobalEnvironment env,
-    													AnalyzeResult previousPhase, 
-    													long lastModified) throws StaticError {
-
+                                               GlobalEnvironment env,
+                                               AnalyzeResult previousPhase,
+                                               long lastModified) throws StaticError {
         TopLevelEnvGen.CompilationUnitResult apiGR =
             TopLevelEnvGen.generateApiEnvs(previousPhase.apis());
 
