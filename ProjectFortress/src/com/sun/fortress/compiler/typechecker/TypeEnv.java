@@ -277,7 +277,7 @@ public abstract class TypeEnv {
 
     /**
      * Convenience method that takes a String and indicates whether the
-     * corresponding Id in this type environment.
+     * corresponding Id in this type environment is mutable or not.
      */
     public final Option<Boolean> mutable(String var) {
         return mutable(makeId(var));
