@@ -68,6 +68,7 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TransformerDef;
+import com.sun.fortress.nodes.TransformerNode;
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -81,6 +82,7 @@ import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
 /*
  * 1) Disambiguate item symbols and rewrite to either nonterminal,
@@ -177,8 +179,40 @@ public class GrammarRewriter {
                 // Debug.debug( Debug.Type.SYNTAX, 1, "Syntax transformers for " + api.ast().getName() + ": " + names );
 
             final Api raw = (Api) api.ast();
+
+            /* should this contain an instance of the class? */
+            final Option<Class<?>>[] parser = new Option[1];
+            parser[0] = Option.none();
+            rs.add( (Api) raw.accept( new NodeUpdateVisitor(){
+                private GrammarIndex findGrammar( GrammarDef grammar ){
+                    for ( GrammarIndex index : api.grammars().values() ){
+                        if ( index.getName().equals( grammar.getName() ) ){
+                            return index;
+                        }
+                    }
+                    throw new RuntimeException( "Could not find grammar for " + grammar.getName() );
+                }
+
+                @Override public Node forGrammarDef(GrammarDef that) {
+                    if ( ! that.isNative() ){
+                        parser[ 0 ] = Option.<Class<?>>some(createParser( findGrammar(that) ));
+                        return super.forGrammarDef(that);
+                    } else {
+                        return that;
+                    }
+                }
+
+                @Override public Node forTransformerDef(TransformerDef that) {
+                    try{
+                        return new TransformerNode(that.getTransformer(), parseTemplate( raw.getName(), that.getDef(), parser[ 0 ].unwrap() ) );
+                    } catch ( OptionUnwrapException e ){
+                        throw StaticError.make( "No parser created while rewriting api " + raw, "" );
+                    }
+                }
+            }));
+
+            /*
             if ( containsGrammar( env, raw) ){
-                /* box parser class */
                 final Class<?>[] parser = new Class<?>[1];
                 parser[ 0 ] = null;
                 // final Class<?> parserClass = createParser( api.grammars().values().iterator().next() );
@@ -229,6 +263,7 @@ public class GrammarRewriter {
             } else {
                 rs.add( (Api) api.ast() );
             }
+            */
         }
         
         /*
@@ -304,6 +339,24 @@ public class GrammarRewriter {
             } catch (java.lang.reflect.InvocationTargetException e){
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private static Node parseTemplate( APIName apiName, String stuff, Class<?> parserClass ){
+        try{
+            BufferedReader in = Useful.bufferedStringReader(stuff);
+            ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
+            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, "pExpression$Expr" );
+            // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
+            if ( result.hasValue() ){
+                Object node = ((SemanticValue) result).value;
+                Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '" + stuff + "' as node " + node );
+                return (Node) node;
+            } else {
+                throw new ParserError((ParseError) result, parser);
+            }
+        } catch ( Exception e ){
+            throw new RuntimeException( "Could not parse " + stuff, e );
         }
     }
 
