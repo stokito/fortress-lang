@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component nestedTransactions1
+
+export Executable
+
+test1():() = do
+    var count : ZZ32 = 0
+    atomic do 
+        for i <- 1 # 50 do
+            atomic do
+                for j <- 1 # 50 do
+                    atomic do
+                       count := count + 1
+                    end
+                end
+           end
+        end
+   end
+   assert(count,    2500, "test1 failed")
+end
+
+run(args:String...):()=do
+    println("Starting test")
+    recordTime(6.0)
+    test1() 
+    printTime(6.0)
+end
+end
