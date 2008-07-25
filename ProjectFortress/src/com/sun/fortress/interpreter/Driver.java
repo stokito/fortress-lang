@@ -167,7 +167,7 @@ public class Driver {
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
 
-        ComponentWrapper comp = new ComponentWrapper((Component) p);
+        ComponentWrapper comp = new ComponentWrapper((Component) p, linker);
 
         /*
          * This "linker" implements a one-to-one, same-name correspondence
@@ -200,7 +200,7 @@ public class Driver {
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
-        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr));
+        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr), linker);
         builtins.getEnvironment().installPrimitives();
 
         ComponentWrapper lib = null;
@@ -1088,8 +1088,8 @@ public class Driver {
 
             newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
 
-            ComponentWrapper apicw = new ComponentWrapper(newapi);
-            newwrapper = new ComponentWrapper(newcomp, apicw);
+            ComponentWrapper apicw = new ComponentWrapper(newapi, linker);
+            newwrapper = new ComponentWrapper(newcomp, apicw, linker);
             newwrapper.getExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);

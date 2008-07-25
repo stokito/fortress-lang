@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.StringHashComparer;
 import com.sun.fortress.useful.Visitor2;
 
 
@@ -40,11 +41,12 @@ public final class BetterEnv extends BaseEnv
     private BATreeNode<String, Number> int_env;
     private BATreeNode<String, FValue> var_env;
     private BATreeNode<String, Boolean> bool_env;
+    private BATreeNode<String, Environment> api_env;
 
     /** (Lexical) ancestor environment */
     BetterEnv parent;
 
-    private final static Comparator<String> comparator = StringComparer.V;
+    private final static Comparator<String> comparator = StringHashComparer.V;
 
     public void visit(Visitor2<String, FType> vt,
                       Visitor2<String, Number> vn,
@@ -70,6 +72,10 @@ public final class BetterEnv extends BaseEnv
 
     public static BetterEnv empty() {
         return new BetterEnv("Empty");
+    }
+
+    public static BetterEnv empty(String s) {
+        return new BetterEnv(s);
     }
 
     public static BetterEnv blessedEmpty() {
@@ -117,6 +123,7 @@ public final class BetterEnv extends BaseEnv
         int_env = existing.int_env;
         var_env = existing.var_env;
         bool_env = existing.bool_env;
+        api_env = existing.api_env;
         parent = existing;
     }
 
@@ -156,6 +163,7 @@ public final class BetterEnv extends BaseEnv
         int_env = augment(existing.int_env, additions.int_env);
         var_env = augment(existing.var_env, additions.var_env);
         bool_env = augment(existing.bool_env, additions.bool_env);
+        api_env = augment(existing.api_env, additions.api_env);
     }
 
    private static <Result> BATreeNode<String, Result> augment(
@@ -235,6 +243,7 @@ public final class BetterEnv extends BaseEnv
             dumpOne(a, int_env, "\nInts:\n  ");
             dumpOne(a, var_env, "\nVars:\n  ");
             dumpOne(a, bool_env, "\nBools:\n  ");
+            // Add api_env a little later.
             a.append("\n");
         } else if (parent != null) {
             parent.dump(a);
@@ -311,6 +320,15 @@ public final class BetterEnv extends BaseEnv
     }
     public void putValueRaw(String str, FValue f2) {
         var_env = put(var_env, str, f2);
+    }
+
+    public Environment getApiNull(String apiName) {
+        Environment e = get(api_env, apiName);
+        return e;
+    }
+    
+    public void putApi(String apiName, Environment env) {
+        api_env = put(api_env, apiName, env);
     }
 
 
