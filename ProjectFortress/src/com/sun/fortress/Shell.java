@@ -24,6 +24,7 @@ import com.sun.fortress.repository.ProjectProperties;
 import java.io.*;
 import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionUnwrapException;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
@@ -49,6 +50,8 @@ import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.tools.FortressAstToConcrete;
 
 public final class Shell {
     static boolean test;
@@ -106,6 +109,7 @@ public final class Shell {
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" [run] [-test] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" unparse [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
         System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" desugar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" grammar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
@@ -127,6 +131,10 @@ public final class Shell {
          "\n"+
          "fortress parse [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "\n"+
+         "fortress unparse [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
+         "  Convert a parsed file back to Fortress source code. The output will be dumped to stdout if -out is not given.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
          "fortress disambiguate [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
@@ -182,6 +190,8 @@ public final class Shell {
                 run(args);
             } else if ( what.equals("parse" ) ){
                 parse(args, Option.<String>none());
+            } else if ( what.equals("unparse" ) ){
+                unparse(args, Option.<String>none());
             } else if ( what.equals( "disambiguate" ) ){
                 setPhase( PHASE_DISAMBIGUATE );
                 compile(args, Option.<String>none());
@@ -220,7 +230,7 @@ public final class Shell {
     private static void parse(List<String> args, Option<String> out)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
-            throw new UserError("Need a file to compile");
+            throw new UserError("Need a file to parse");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
@@ -238,6 +248,56 @@ public final class Shell {
             parse( rest, out );
         } else {
             parse( s, out );
+        }
+    }
+
+    /**
+     * UnParse a file.
+     * If you want a dump then give -out somefile.
+     */
+    private static void unparse(List<String> args, Option<String> out)
+        throws UserError, InterruptedException, IOException {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to unparse");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                rest = Debug.parseOptions(rest);
+            }
+            if (s.equals("-out") && ! rest.isEmpty() ){
+                out = Option.<String>some(rest.get(0));
+                rest = rest.subList( 1, rest.size() );
+            }
+            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+
+            unparse( rest, out );
+        } else {
+            unparse( s, out );
+        }
+    }
+
+    private static void unparse( String file, Option<String> out ){
+        try{
+            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete() );
+            if ( out.isSome() ){
+                try{
+                    BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
+                    writer.write(code);
+                    writer.close();
+                    System.out.println( "Dumped code to " + out.unwrap() );
+                } catch ( IOException e ){
+                    System.err.println( "Error while writing " + out.unwrap() );
+                }
+            } else {
+                System.out.println( code );
+            }
+        } catch ( IOException i ){
+            i.printStackTrace();
+        } catch ( OptionUnwrapException o ){
+            o.printStackTrace();
         }
     }
 
