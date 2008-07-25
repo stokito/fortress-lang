@@ -60,6 +60,8 @@ class ObjectTypeEnv extends TypeEnv {
         if (!entries.containsKey(no_api_var)) { return parent.binding(var); }
         TypeConsIndex typeCons = entries.get(no_api_var);
         
+        // TODO: This seems wrong... If they were looking for an Object, but found some
+        // other kind of type, isn't there some way we could return a better error message?
         if (!(typeCons instanceof ObjectTraitIndex)) { return parent.binding(var); }
         ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
         

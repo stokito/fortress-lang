@@ -395,7 +395,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	}
 
 	// Make sure we don't infinitely explore supertraits that are acyclic
-	private class HierarchyHistory {
+	public static class HierarchyHistory {
 		final private Set<Type> explored;
 		
 		public HierarchyHistory() {	explored = Collections.emptySet();	}
@@ -415,7 +415,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	 * this method returns a list of method ids that the trait receives
 	 * through inheritance. The implementation of this method is somewhat
 	 * involved, since at this stage of compilation, not all types are
-	 * full formed. (In particular, types in extends clauses of types that
+	 * fully formed. (In particular, types in extends clauses of types that
 	 * are found in the GlobalEnvironment.)
 	 * @param extended_traits
 	 * @return

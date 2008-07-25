@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component InheritedMethod
+  export Executable
+  trait foo
+    doIt():String = "blah"
+  end
+  trait quux extends foo
+    niceness():String = doIt()
+  end
+
+  someFunction():foo = object extends foo
+                         helper():String = doIt()
+                         helper2():String = helper()
+                       end
+
+  object bar extends foo
+    otherThing():String = doIt()
+  end
+  run(args:String...):() = ignore(bar.doIt())
+end
