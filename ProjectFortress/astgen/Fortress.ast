@@ -1265,7 +1265,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * type
          */
         root abstract Type(ignoreForEquals boolean parenthesized = false)
-                     implements TypeOrDomain;
+                      implements TypeOrDomain;
             /**
              * dimension expression (not really a type, but here for
              * now because of the way the parser is defined)
