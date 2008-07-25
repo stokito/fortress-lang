@@ -66,28 +66,22 @@ public class Transaction {
     public Transaction() {
 		myStatus = new AtomicReference(Status.ACTIVE);
 		manager = FortressTaskRunner.getContentionManager();
-		int numThreads = Runtime.getRuntime().availableProcessors();
-		String numThreadsString = System.getenv("FORTRESS_THREADS");
-		if (numThreadsString != null)
-			numThreads = Integer.parseInt(numThreadsString);
 		threadID = Thread.currentThread().getId();
 		parent = null;
 		children = new ArrayList<Transaction>();
 		nestingDepth = 0;
-		count = counter.getAndIncrement();
-		if (debug)
+		if (debug) {
+			count = counter.getAndIncrement();
     		updates = new ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>>();
+		} else {
+			count = 0;
+		}
     }
 
     public Transaction(Transaction p) {
 		if (p.isActive()) {
 			myStatus = new AtomicReference(Status.ACTIVE);
 			manager = FortressTaskRunner.getContentionManager();
-			int numThreads = Runtime.getRuntime().availableProcessors();
-			String numThreadsString = System.getenv("FORTRESS_THREADS");
-			if (numThreadsString != null)
-				numThreads = Integer.parseInt(numThreadsString);
-			threadID = Thread.currentThread().getId();
 			if (p != null) {
 				p.addChild(this);
 			}
@@ -96,9 +90,12 @@ public class Transaction {
 			if (p != null)
 				nestingDepth = p.getNestingDepth() + 1;
 			else nestingDepth = 0;
-			count = counter.getAndIncrement();
-			if (debug)
+			if (debug) {
 				updates = new ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>>();
+				count = counter.getAndIncrement();
+			} else {
+				count = 0;
+			}
 		} else {
 			myStatus = new AtomicReference(Status.ORPHANED);
 		}
