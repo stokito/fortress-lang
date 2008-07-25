@@ -147,65 +147,65 @@ object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
       end
    end
 
-   balancedAdd(val:ZZ32,  left:Tree, right:Tree):Node = do
-      ln = |left|
-      rn = |right|
-      if ln + rn < getWeight() then Node(val, left, right)
+   balancedAdd(val:ZZ32,  l:Tree, r:Tree):Node = do
+      ln = |l|
+      rn = |r|
+      if ln + rn < getWeight() then Node(val, l, r)
       elif rn > getWeight() ln then do
-         rl = right.getRightChild().getLeftChild()
-         rr = right.getRightChild().getRightChild()
+         rl = r.getRightChild().getLeftChild()
+         rr = r.getRightChild().getRightChild()
          rln = |rl|
          rrn = |rr|
-         if rln < rrn then single_L(val, left, right) else double_L(val, left, right) end
+         if rln < rrn then single_L(val, l, r) else double_L(val, l, r) end
          end
       elif ln > getWeight() rn then do
-         ll = left.getLeftChild().getLeftChild()
-         lr = left.getLeftChild().getRightChild()
+         ll = l.getLeftChild().getLeftChild()
+         lr = l.getLeftChild().getRightChild()
          lln = |ll|
          lrn = |lr|
-         if (lrn < lln) then single_R(val, left, right) else double_R(val,left,right) end
+         if (lrn < lln) then single_R(val, l, r) else double_R(val,l,r) end
          end
-      else Node(val,left,right) end
+      else Node(val,l,r) end
    end
 
-   single_L(val:ZZ32,  left:Tree, right:Tree):Node = do
+   single_L(val:ZZ32,  l:Tree, r:Tree):Node = do
       a = val
-      x = left
-      b = right.getVal()
-      y = right.getLeftChild()
-      z = right.getRightChild()
+      x = l
+      b = r.getVal()
+      y = r.getLeftChild()
+      z = r.getRightChild()
       Node(b, Node(a, x, y), z)
    end
 
-   single_R(val:ZZ32,  left:Tree, right:Tree):Node = do
+   single_R(val:ZZ32,  l:Tree, r:Tree):Node = do
       b = val
-      a = right.getVal()
-      x = right.getLeftChild()
-      y = right.getRightChild()
-      z = left
+      a = r.getVal()
+      x = r.getLeftChild()
+      y = r.getRightChild()
+      z = l
       Node(a,x,Node(b,y,z))
       end
 
-   double_L(val:ZZ32,  left:Tree, right:Tree):Node = do
+   double_L(val:ZZ32,  l:Tree, r:Tree):Node = do
       a = val
-      x = left
-      c = right.getVal()
-      b = right.getLeftChild().getVal()
-      y1 = right.getLeftChild().getLeftChild()
-      y2 = right.getLeftChild().getRightChild()
-      z = right.getRightChild()
+      x = l
+      c = r.getVal()
+      b = r.getLeftChild().getVal()
+      y1 = r.getLeftChild().getLeftChild()
+      y2 = r.getLeftChild().getRightChild()
+      z = r.getRightChild()
       println("double_L " a " " b)
       Node(b, Node(a,x,y1),Node(c,y2,z))
       end
 
-   double_R(val:ZZ32,  left:Tree, right:Tree):Node = do
+   double_R(val:ZZ32,  l:Tree, r:Tree):Node = do
       c = val
-      a = left.getVal()
-      x = left.getLeftChild()
-      b = left.getRightChild().getVal()
-      y1 = left.getRightChild.getLeftChild()
-      y2 = left.getRightChild.getRightChild()
-      z = right
+      a = l.getVal()
+      x = l.getLeftChild()
+      b = l.getRightChild().getVal()
+      y1 = l.getRightChild.getLeftChild()
+      y2 = l.getRightChild.getRightChild()
+      z = r
       println("double_R " a " " b " " c)
       Node(b, Node(a, x,y1), Node(c,y2,z))
       end

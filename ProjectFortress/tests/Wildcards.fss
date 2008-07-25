@@ -23,8 +23,8 @@ _ = println "top-level variable test"
 
 object O(var mutable: ZZ32)
   x = do mutable := 3; 0 end
-  _ = println "TEST"
-  _ = mutable := 5
+  tmp1 = println "TEST"
+  tmp2 = mutable := 5
 end
 
 object P

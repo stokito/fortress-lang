@@ -29,7 +29,7 @@ public class SyntaxAbstractionJUTest extends TestSuite {
 
 	public static TestSuite suite() {
 		String[] files = new String[]{
-			"SyntaxTestUse.fss",
+                    // "SyntaxTestUse.fss", this case is not template-based. EricAllen 7/24/2008
 			"SyntaxTemplateVarsUse.fss",
 			"SyntaxNodesUse.fss",
 		};

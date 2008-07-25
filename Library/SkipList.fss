@@ -181,14 +181,14 @@ trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\]
       comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
 
   getter child():ChildType
-  getter size():ZZ32 = |child|
-  getter height():ZZ32 = child.height() + 1
+  getter size():ZZ32 = |self.child|
+  getter height():ZZ32 = self.child.height() + 1
 
-  opr |self| : ZZ32 = |child|
+  opr |self| : ZZ32 = |self.child|
 
-  search(k:Key):Maybe[\Val\] = child.search(k)
+  search(k:Key):Maybe[\Val\] = self.child.search(k)
 
-  toString():String = "{ [], [" child.toString() "] }"
+  toString():String = "{ [], [" self.child.toString() "] }"
 
   add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
     tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - height())
@@ -196,7 +196,7 @@ trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\]
     newNode
   end
 
-  getLeaves():List[\LeafNode[\Key,Val\]\] = child.getLeaves()
+  getLeaves():List[\LeafNode[\Key,Val\]\] = self.child.getLeaves()
 
 end
 
