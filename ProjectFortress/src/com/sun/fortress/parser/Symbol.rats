@@ -256,5 +256,3 @@ ArrayComprehensionClause ArrayComprehensionClause =
      { yyValue = new ArrayComprehensionClause(createSpan(yyStart,yyCount),
                                               a1.getA(), a1.getB(), a2);
      };
-
-transient void DoubleStar = "**";
