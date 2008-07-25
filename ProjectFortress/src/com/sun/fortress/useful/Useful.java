@@ -584,6 +584,13 @@ public class Useful {
         return Collections.emptyList();
       }
 
+    /**
+     * Calls {@ prepend}
+     */
+    public static <T> List<T> cons(T x, List<T> y) {
+    	return prepend(x,y);
+    }
+    
       public static <T> List<T> prepend(T x, List<T> y) {
         ArrayList<T> result = new ArrayList<T>(1 + y.size());
         result.add(x);
@@ -591,6 +598,8 @@ public class Useful {
         return result;
     }
 
+      
+      
     public static <T> List<T> removeIndex(int i, List<T> y) {
         int l = y.size();
         if (i == 0) return y.subList(1,l);
@@ -618,7 +627,15 @@ public class Useful {
         return result;
     }
 
-    public static <T> List<T> concat(Collection<T> x1, Collection<T>x2) {
+    /**
+     * This method can be used to get List<? extends T> from List<T>. This can be used for
+     * (somewhat naughty) purposes like casting Lists to lists that contain subtypes.
+     */
+    public static <T> List<? extends T> questionMarkList(List<? extends T> list) {
+    	return list;
+    }
+    
+    public static <T> List<T> concat(Collection<? extends T> x1, Collection<? extends T>x2) {
         ArrayList<T> result = new ArrayList<T>();
         result.addAll(x1);
         result.addAll(x2);

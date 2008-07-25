@@ -35,7 +35,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
@@ -55,13 +57,14 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.ConsList;
+import edu.rice.cs.plt.collect.EmptyRelation;
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.collect.UnionRelation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
@@ -263,35 +266,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 name);
 	 }
 
-//	 @Override
-//	 public TypeCheckerResult forAccumulator(Accumulator that) {
-
-//	 List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>();
-
-//	 TypeCheckerResult opr_result = that.getOpr().accept(this);
-//	 all_results.add(opr_result);
-
-//	 if( that.getGens().isEmpty() ) {
-//	 // generator clauses could be empty in which case expr must be a generator
-//	 // In this case, the domain of BIG OP must match the generator type of
-//	 //
-//	 }
-//	 else {
-//	 // otherwise, we must bind new bindings in typechecking expr
-//	 Pair<List<TypeCheckerResult>,List<LValueBind>> bindings =
-//	 this.recurOnListsOfGeneratorClauseBindings(that.getGens());
-//	 all_results.addAll(bindings.first());
-
-//	 // In this case, type of expr must match domain of BIG OP
-//	 TypeChecker extended = this.extend(bindings.second());
-//	 TypeCheckerResult expr_result = that.getBody().accept(extended);
-
-
-//	 }
-
-//	 return NI.nyi();
-//	 }
-
 	 @Override
 	 public TypeCheckerResult forFnExpr(FnExpr that) {
 
@@ -385,7 +359,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 
 		 ArrowType arr = NodeFactory.makeArrowType(new Span(), domain, return_type);
-		 return TypeCheckerResult.compose(that, arr, this.subtypeChecker, all_results);
+		 FnExpr new_node = new FnExpr(that.getSpan(),
+				                      that.isParenthesized(),
+				                      that.getName(),
+				                      that.getStaticParams(),
+				                      that.getParams(),
+				                      (Option<Type>)TypeCheckerResult.astFromResult(returnType_result),
+				                      that.getWhere(),
+				                      (Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClause_result),
+				                      (Expr)body_result.ast() );
+		 
+		 return TypeCheckerResult.compose(new_node, arr, this.subtypeChecker, all_results);
 	 }
 
 	 public TypeCheckerResult defaultCase(Node that) {
@@ -441,6 +425,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		 TypeCheckerResult initResult = init.accept(this);
 
+		 VarDecl new_node = new VarDecl(that.getSpan(), that.getLhs(), (Expr)initResult.ast());
+		 
 		 if (lhs.size() == 1) { // We have a single variable binding, not a tuple binding
 			 LValueBind var = lhs.get(0);
 			 Option<Type> varType = var.getType();
@@ -451,18 +437,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					 // System.err.println("initResult.ast(): " + initResult.ast());
 					 // The right hand side could not be typed, which must have resulted in a
 					 // signaled error. No need to signal another error.
-					 return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
-							 lhs,
-							 (Expr)initResult.ast()),
-							 subtypeChecker, initResult);
+					 return TypeCheckerResult.compose(new_node, subtypeChecker, initResult);
 				 }
 				 return checkSubtype(initResult.type().unwrap(),
 						 varType.unwrap(),
-						 that,
+						 new_node,
 						 errorMsg("Attempt to define variable ", var, " ",
 								 "with an expression of type ", initResult.type().unwrap()));
 			 } else { // Eventually, this case will involve type inference
-				 // System.err.println("varType.isNone()");
 				 return NI.nyi();
 			 }
 		 } else { // lhs.size() >= 2
@@ -471,14 +453,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 if (initResult.type().isNone()) {
 				 // The right hand side could not be typed, which must have resulted in a
 				 // signaled error. No need to signal another error.
-				 return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
-						 lhs,
-						 (Expr)initResult.ast()),
+				 return TypeCheckerResult.compose(new_node,
 						 subtypeChecker, initResult);
 			 }
 			 return checkSubtype(initResult.type().unwrap(),
 					 varType,
-					 that,
+					 new_node,
 					 errorMsg("Attempt to define variables ", lhs, " ",
 							 "with an expression of type ", initResult.type().unwrap()));
 		 }
@@ -547,10 +527,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	 public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
 		 Option<Type> varType = var_result.type();
+		 
+		 VarRef new_node = new VarRef(that.getSpan(), (Id)var_result.ast());
+		 
 		 if (varType.isSome()) {
-			 return TypeCheckerResult.compose(that, varType.unwrap(), subtypeChecker, var_result);
+			 return TypeCheckerResult.compose(new_node, varType.unwrap(), subtypeChecker, var_result);
 		 } else {
-			 return TypeCheckerResult.compose(that, subtypeChecker, var_result);
+			 return TypeCheckerResult.compose(new_node, subtypeChecker, var_result);
 		 }
 	 }
 
@@ -559,33 +542,32 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 TraitType self_type = NodeFactory.makeTraitType(qualified_type_name,TypeEnv.staticParamsToArgs(static_params));
 		 return newChecker.extend(Collections.singletonList(NodeFactory.makeLValue("self", self_type)));
 	 }
-
+	 
 	 public TypeCheckerResult forObjectDecl(final ObjectDecl that) {
-		 TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
+		 List<TypeCheckerResult> modsResult = recurOnListOfModifier(that.getMods());
 		 TypeCheckerResult nameResult = that.getName().accept(this);
-		 TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+		 List<TypeCheckerResult> extendsClauseResult = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 		 TypeCheckerResult whereResult = that.getWhere().accept(this);
-		 TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnOptionOfListOfParam(that.getParams()));
-		 TypeCheckerResult throwsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnOptionOfListOfBaseType(that.getThrowsClause()));
+		 Option<List<TypeCheckerResult>> paramsResult = recurOnOptionOfListOfParam(that.getParams());
+		 Option<List<TypeCheckerResult>> throwsClauseResult = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 
 		 TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
 		 TypeCheckerResult contractResult = that.getContract().accept(newChecker);
 
 		 // Verify that no extends clauses try to extend an object.
 		 extendsClauseResult =
-			 TypeCheckerResult.compose(that, subtypeChecker, extendsClauseResult,
-					 TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(
+			 Useful.concat(extendsClauseResult, CollectUtil.makeList(
 							 IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
 								 public TypeCheckerResult value(TraitTypeWhere arg0) {
 									 return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
-								 }}))));
+								 }})));
 
 		 // Check field declarations.
-		 TypeCheckerResult fieldsResult = new TypeCheckerResult(that);
+		 List<TypeCheckerResult> fieldsResult = new ArrayList<TypeCheckerResult>();
 		 for (Decl decl: that.getDecls()) {
 			 if (decl instanceof VarDecl) {
 				 VarDecl _decl = (VarDecl)decl;
-				 fieldsResult = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(newChecker), fieldsResult);
+				 fieldsResult.add(_decl.accept(newChecker));
 				 newChecker = newChecker.extend(_decl.getLhs());
 			 }
 		 }
@@ -597,7 +579,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 		 // Extend type checker with methods and functions that will now be in scope as regular functions
 		 TraitIndex thatIndex = (TraitIndex)ind.unwrap();
-		 newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
+		 Relation<IdOrOpOrAnonymousName,Method> methods = thatIndex.dottedMethods();
+		 methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(that.getExtendsClause()), methods);
+		 newChecker = newChecker.extendWithMethods(methods);
 		 newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
 
 		 // Extend checker with self, (could we ever be nested more deeply than Component/Object, so that api of cu would be wrong?) 
@@ -605,19 +589,42 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 newChecker = TypeChecker.addSelf(api, that.getName(),newChecker,thatIndex.staticParameters());
 
 
-		 TypeCheckerResult methodsResult = new TypeCheckerResult(that);
+		 List<TypeCheckerResult> methodsResult = new ArrayList<TypeCheckerResult>();
 		 for (Decl decl: that.getDecls()) {
 			 if (decl instanceof FnDecl) {
-				 methodsResult = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(newChecker), methodsResult);
+				 methodsResult.add(decl.accept(newChecker));
 			 }
 		 }
 
-		 return TypeCheckerResult.compose(that, subtypeChecker, modsResult, nameResult,
-				 extendsClauseResult, whereResult, paramsResult,
-				 throwsClauseResult, contractResult, fieldsResult, methodsResult);
+		 //ObjectDecl(Span in_span, List<Modifier> in_mods, Id in_name, List<StaticParam> in_staticParams, 
+		 // List<TraitTypeWhere> in_extendsClause, WhereClause in_where, Option<List<Param>> in_params, 
+		 // Option<List<BaseType>> in_throwsClause, Contract in_contract, List<Decl> in_decls)
+		 ObjectDecl new_node = new ObjectDecl(that.getSpan(), 
+				                             (List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
+				                             that.getName(),
+				                             that.getStaticParams(),
+				                             (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
+				                             (WhereClause)whereResult.ast(),
+				                             (Option<List<Param>>)TypeCheckerResult.astFromResults(paramsResult),
+				                             (Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClauseResult),
+				                             (Contract)contractResult.ast(),
+				                             (List<Decl>)Useful.questionMarkList(
+				                            		 Useful.concat(TypeCheckerResult.astFromResults(fieldsResult),
+				                            		               TypeCheckerResult.astFromResults(methodsResult))) );
+		 
+		 return TypeCheckerResult.compose(new_node, subtypeChecker, 
+				 TypeCheckerResult.compose(new_node, subtypeChecker, modsResult), 
+				 nameResult,
+				 TypeCheckerResult.compose(new_node, subtypeChecker, extendsClauseResult),
+				 whereResult,
+				 TypeCheckerResult.compose(new_node, subtypeChecker, paramsResult),
+				 TypeCheckerResult.compose(new_node, subtypeChecker, throwsClauseResult), 
+				 contractResult, 
+				 TypeCheckerResult.compose(new_node, subtypeChecker, fieldsResult), 
+				 TypeCheckerResult.compose(new_node, subtypeChecker, methodsResult));
 	 }
 
-
+	// **** REWRITING AST NODES... YOU ARE HERE.
 
 	 @Override
 	 public TypeCheckerResult forObjectExpr(final ObjectExpr that) {
@@ -631,10 +638,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 								 public TypeCheckerResult value(TraitTypeWhere arg0) {
 									 return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
 								 }}))));
-
+		 
 		 // Check field declarations.
-		 TypeCheckerResult fields_result = new TypeCheckerResult(that);
 		 TypeChecker new_checker = this;
+		 TypeCheckerResult fields_result = new TypeCheckerResult(that);
 		 for( Decl decl : that.getDecls() ) {
 			 if( decl instanceof VarDecl ) {
 				 VarDecl _decl = (VarDecl)decl;
@@ -643,6 +650,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 }
 		 }
 
+		 // Extend type checker with methods and functions that will now be in scope as regular functions
+		 ObjectTraitIndex obj_index = IndexBuilder.buildObjectExprIndex(that);
+		 Relation<IdOrOpOrAnonymousName,Method> methods = obj_index.dottedMethods();
+		 methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(that.getExtendsClause()), methods);
+		 new_checker = new_checker.extendWithMethods(methods);
+		 new_checker = new_checker.extendWithFunctions(obj_index.functionalMethods());
+		 
 		 Type obj_type = TypesUtil.getObjectExprType(that);
 
 		 // Extend checker with self
@@ -677,7 +691,60 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 return err_result;
 		 }
 	 }
+	 
+	 // Return all of the methods from super-traits
+	 private Relation<IdOrOpOrAnonymousName, Method> inheritedMethodsHelper(HierarchyHistory h,
+			 List<TraitTypeWhere> extended_traits) {
+		 Relation<IdOrOpOrAnonymousName, Method> methods = new IndexedRelation<IdOrOpOrAnonymousName, Method>(false);
+		 for( TraitTypeWhere trait_ : extended_traits ) {
 
+			 BaseType type_ = trait_.getType();
+
+			 if( h.hasExplored(type_) )
+				 continue;
+			 h = h.explore(type_);
+
+			 // Trait types or VarTypes can represent traits at this phase of compilation.
+			 Id trait_name;
+			 if( type_ instanceof TraitType ) {
+				 trait_name = ((TraitType)type_).getName();
+			 }
+			 else if( type_ instanceof VarType ) {
+				 trait_name = ((VarType)type_).getName();
+			 }
+			 else {
+				 // Probably ANY
+				 return EmptyRelation.make();
+			 }
+
+			 Option<TypeConsIndex> tci = this.table.typeCons(trait_name);
+			 if( tci.isSome() && tci.unwrap() instanceof TraitIndex ) {
+				 TraitIndex ti = (TraitIndex)tci.unwrap();
+				 // Add dotted methods
+				 methods.addAll(ti.dottedMethods());
+				 // Add getters
+				 methods.addAll(Useful.<IdOrOpOrAnonymousName,Method>relation(ti.getters()));
+				 // Add setters
+				 methods.addAll(Useful.<IdOrOpOrAnonymousName,Method>relation(ti.setters()));
+				 // For now we won't add functional methods. They are not received through inheritance.
+
+				 // Now recursively add methods from trait's extends clause
+				 methods.addAll(inheritedMethodsHelper(h, ti.extendsTypes()));
+			 }
+			 else {
+				 // Probably ANY
+				 return EmptyRelation.make();
+			 }
+
+
+		 }
+		 return methods;
+	 }
+	 
+	 private Relation<IdOrOpOrAnonymousName, Method> inheritedMethods(List<TraitTypeWhere> extended_traits) {
+		 return inheritedMethodsHelper(new HierarchyHistory(), extended_traits);
+	 }
+	 
 	 public TypeCheckerResult forTraitDecl(final TraitDecl that) {
 		 TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
 		 TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
@@ -722,7 +789,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		 // Extend type checker with methods and functions that will now be in scope
 		 TraitIndex thatIndex = (TraitIndex)ind.unwrap();
-		 newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
+		 Relation<IdOrOpOrAnonymousName,Method> methods = thatIndex.dottedMethods();
+		 methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(that.getExtendsClause()), methods);
+		 newChecker = newChecker.extendWithMethods(methods);
 		 newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
 
 		 // Extend checker with self, (could we ever be nested more deeply than Component/Object, so that api of cu would be wrong?) 
@@ -741,9 +810,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				 comprisesResult, fieldsResult, methodsResult);
 	 }
 
-
-
-	 public TypeCheckerResult forIfOnly(If that,
+	public TypeCheckerResult forIfOnly(If that,
 			 List<TypeCheckerResult> clauses_result,
 			 Option<TypeCheckerResult> elseClause_result) {
 
@@ -1015,18 +1082,25 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return forForOnly(that, pair.first(), body_result);
 	 }
 
-	 private Pair<List<TypeCheckerResult>, List<LValueBind>> recurOnListsOfGeneratorClauseBindings(List<GeneratorClause> gens){
-		 GeneratorClause gen = gens.get(0);
-		 Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(gen, false);
-		 if(gens.size()>1){
-			 TypeChecker extend = this.extend(pair.second());
-			 Pair<List<TypeCheckerResult>,List<LValueBind>> pair2 =extend.recurOnListsOfGeneratorClauseBindings(gens.subList(1, gens.size()-1));
-			 pair2.first().add(0,pair.first());
-			 pair2.second().addAll(0,pair.second());
-			 return pair2;
-		 } else
+	 // For each generator clause, check its body, then put its variables in scope for the next generator clause.
+	 // Finally, return all of the bindings so that they can be put in scope in some larger expression, like the
+	 // body of a for loop, for example.
+	 private Pair<List<TypeCheckerResult>, List<LValueBind>> recurOnListsOfGeneratorClauseBindings(List<GeneratorClause> gens) {
+		 if( gens.isEmpty() )
+			 return Pair.make(Collections.<TypeCheckerResult>emptyList(), Collections.<LValueBind>emptyList());
+		 else if( gens.size() == 1 ) {
+			 Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
 			 return Pair.make(Collections.singletonList(pair.first()), pair.second());
-
+		 }
+		 else {
+			 Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
+			 TypeChecker new_checker = this.extend(pair.second());
+			 // recur
+			 Pair<List<TypeCheckerResult>, List<LValueBind>> recur_result = 
+				 new_checker.recurOnListsOfGeneratorClauseBindings(CollectUtil.makeList(IterUtil.skipFirst(gens)));
+			 return Pair.make( Useful.cons(pair.first(), recur_result.first()), 
+					           Useful.concat(pair.second(), recur_result.second()));
+		 }
 	 }
 
 	 @Override

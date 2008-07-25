@@ -1,0 +1,25 @@
+component CrazyGenerators
+  export Executable
+
+  trait CHolder
+    getC():Maybe[\String\]
+  end
+
+  stupidMethodIShouldntNeed(s_1:String,s_2:String):()
+
+  foo():() = do
+  
+    for i <- (object extends CHolder
+                getC():Maybe[\String\] = Just[\String\]("Whoa")
+              end).getC(), j <- (object extends CHolder
+                                   getC():Maybe[\String\]=Just[\String\](i)
+                                 end).getC()
+    do
+       (* Enable the next line to see why we must pass constraints down. *)
+       (* ignore(i j) *)
+      stupidMethodIShouldntNeed(i,j)
+    end
+  end
+
+  run(args:String...):() = ()
+end
