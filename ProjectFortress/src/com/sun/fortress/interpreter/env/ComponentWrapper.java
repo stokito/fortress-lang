@@ -21,6 +21,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import java.util.HashMap;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
+import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -86,7 +87,7 @@ public class ComponentWrapper {
         }
     };
 
-    public ComponentWrapper(CompilationUnit comp) {
+    public ComponentWrapper(CompilationUnit comp, HashMap<String, ComponentWrapper> linker) {
         if (comp == null)
             throw new NullPointerException("Null compilation unit not allowed");
         p = comp;
@@ -98,12 +99,12 @@ public class ComponentWrapper {
             p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
             */
 
-        Environment e = BetterEnv.empty();
+        Environment e = BetterEnv.empty(comp.at());
         e.setTopLevel();
         if (comp instanceof Component) {
-            be = ((Component)comp).is_native() ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
+            be = ((Component)comp).is_native() ? new BuildNativeEnvironment(e, linker) : new BuildTopLevelEnvironments(e, linker);
         } else { // comp instanceof Api
-            be = new BuildEnvironments(e);
+            be = new BuildTopLevelEnvironments(e, linker);
         }
     }
 
@@ -112,8 +113,8 @@ public class ComponentWrapper {
      * @param comp
      * @param api
      */
-    public ComponentWrapper(Component comp, ComponentWrapper api) {
-        this(comp);
+    public ComponentWrapper(Component comp, ComponentWrapper api, HashMap<String, ComponentWrapper> linker) {
+        this(comp, linker);
 
         exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
@@ -166,10 +167,7 @@ public class ComponentWrapper {
 
     }
 
-     /**
-     *
-     */
-    public CompilationUnit populateOne() {
+     public CompilationUnit populateOne() {
         if (visitState != IMPORTED)
             return bug("Component wrapper in wrong visit state: " + visitState);
 
@@ -177,7 +175,7 @@ public class ComponentWrapper {
 
         CompilationUnit cu = p;
 
-        cu = (CompilationUnit) desugarer.visit(cu); // Rewrites p!
+        cu = (CompilationUnit) desugarer.visit(cu); // Rewrites cu!
                                       // Caches information in dis!
         be.visit(cu);
         // Reset the non-function names from the disambiguator.

@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +27,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
@@ -160,29 +162,29 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      private int pass = 1;
 
     public void resetPass() {
-        pass = 1;
+        setPass(1);
     }
 
     public void assertPass(int p) {
-        if (pass != p)
-            bug("Expected pass " + p + " got pass " + pass);
+        if (getPass() != p)
+            bug("Expected pass " + p + " got pass " + getPass());
     }
 
     public void secondPass() {
         assertPass(1);
-        pass = 2;
+        setPass(2);
         // An environment must be blessed before it can be cloned.
         bindInto.bless();
     }
 
     public void thirdPass() {
         assertPass(2);
-        pass = 3;
+        setPass(3);
     }
 
     public void fourthPass() {
         assertPass(3);
-        pass = 4;
+        setPass(4);
     }
 
     public void visit(CompilationUnit n) {
@@ -211,7 +213,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private BuildEnvironments(Environment within, int pass) {
         this.containing = within;
         this.bindInto = within;
-        this.pass = pass;
+        this.setPass(pass);
     }
 
     public Environment getEnvironment() {
@@ -230,118 +232,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         return null;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forApi(com.sun.fortress.interpreter.nodes.Api)
-     */
-    @Override
-    public Voidoid forApi(Api x) {
-        List<? extends AbsDeclOrDecl> decls = x.getDecls();
+ 
 
-        switch (pass) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: doDefs(this, decls);break;
-        }
-        return null;
 
-    }
-
-    class ForceTraitFinish extends NodeAbstractVisitor<Voidoid> {
-
-        /**
-         * Make the default behavior return null, no throw an exception.
-         */
-        public Voidoid defaultCase(Node x) {
-            return null;
-        }
-
-        /* (non-Javadoc)
-         * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
-         */
-        @Override
-        public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
-            List<StaticParam> staticParams = x.getStaticParams();
-            Id name = x.getName();
-
-            if (staticParams.isEmpty()) {
-                    FTypeTrait ftt =
-                        (FTypeTrait) containing.getType(NodeUtil.nameString(name));
-                    Environment interior = ftt.getWithin();
-                    ftt.getMembers();
-            }
-            return null;
-        }
-
-        /* (non-Javadoc)
-         * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.TraitDecl)
-         */
-        @Override
-        public Voidoid forTraitDecl(TraitDecl x) {
-            List<StaticParam> staticParams = x.getStaticParams();
-            Id name = x.getName();
-
-            if (staticParams.isEmpty()) {
-                    FTypeTrait ftt = (FTypeTrait) containing
-                            .getType(NodeUtil.nameString(name));
-                    Environment interior = ftt.getWithin();
-                    ftt.getMembers();
-            }
-            return null;
-        }
-
-        void visit(AbsDeclOrDecl def) {
-            def.accept(this);
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forComponent(com.sun.fortress.interpreter.nodes.Component)
-     */
-    @Override
-    public Voidoid forComponent(Component x) {
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
-        switch (pass) {
-        case 1: forComponent1(x); break;
-
-        case 2: doDefs(this, defs); {
-            ForceTraitFinish v = new ForceTraitFinish() ;
-            for (AbsDeclOrDecl def : defs) {
-                v.visit(def);
-            }
-        }
-        break;
-        case 3: doDefs(this, defs);break;
-        case 4: doDefs(this, defs);break;
-        }
-        return null;
-    }
-
-    public Voidoid forComponentDefs(Component x) {
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
-        doDefs(this, defs);
-        return null;
-    }
-
-    public Voidoid forComponent1(Component x) {
-        APIName name = x.getName();
-        // List<Import> imports = x.getImports();
-        // List<Export> exports = x.getExports();
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
-
-        SComponent comp = new SComponent(BetterEnv.primitive(x), x);
-        //containing.putComponent(name, comp);
-
-        forComponentDefs(x);
-
-        return null;
-    }
-
-    private static void doDefs(BuildEnvironments inner, List<? extends AbsDeclOrDecl> defs) {
+     protected static void doDefs(BuildEnvironments inner, List<? extends AbsDeclOrDecl> defs) {
         for (AbsDeclOrDecl def : defs) {
             def.accept(inner);
         }
@@ -491,7 +385,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forFnDef(FnDef x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1: forFnDef1(x); break;
         case 2: forFnDef2(x); break;
         case 3: forFnDef3(x); break;
@@ -621,7 +515,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forObjectDecl(ObjectDecl x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1: forObjectDecl1(x); break;
         case 2: forObjectDecl2(x); break;
         case 3: forObjectDecl3(x); break;
@@ -717,9 +611,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             List<? extends AbsDeclOrDecl> defs, boolean bogus) {
         // This is probably going away.
         Environment topLevel = containing;
-        if (pass == 1) {
+        if (getPass() == 1) {
             x.initializeFunctionalMethods();
-        } else if (pass == 3) {
+        } else if (getPass() == 3) {
             x.finishFunctionalMethods();
         }
 
@@ -830,7 +724,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forVarDecl(VarDecl x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1:
             forVarDecl1(x);
             break;
@@ -980,7 +874,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1: forAbsTraitDecl1(x); break;
         case 2: forAbsTraitDecl2(x); break;
         case 3: forAbsTraitDecl3(x); break;
@@ -1052,7 +946,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forTraitDecl(TraitDecl x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1: forTraitDecl1(x); break;
         case 2: forTraitDecl2(x); break;
         case 3: forTraitDecl3(x); break;
@@ -1324,7 +1218,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forAbsVarDecl(AbsVarDecl x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1: doAbsVarDecl(x); break;
         case 2:
         case 3:
@@ -1361,7 +1255,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forAbsFnDecl(AbsFnDecl x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1: forAbsFnDecl1(x); break;
         case 2: forAbsFnDecl2(x); break;
         case 3: forAbsFnDecl3(x); break;
@@ -1424,7 +1318,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forAbsObjectDecl(AbsObjectDecl x) {
-        switch (pass) {
+        switch (getPass()) {
         case 1: forAbsObjectDecl1(x); break;
         case 2: forAbsObjectDecl2(x); break;
         case 3: forAbsObjectDecl3(x); break;
@@ -1551,6 +1445,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     @Override
     public Voidoid forGrammarDef(GrammarDef that) {
         return null; // Do nothing
+    }
+
+    public void setPass(int pass) {
+        this.pass = pass;
+    }
+
+    public int getPass() {
+        return pass;
     }
 
 

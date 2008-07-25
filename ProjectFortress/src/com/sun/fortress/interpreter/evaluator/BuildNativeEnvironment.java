@@ -18,8 +18,10 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
 
+import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -44,10 +46,10 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
-public class BuildNativeEnvironment extends BuildEnvironments {
+public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
 
-    public BuildNativeEnvironment(Environment within) {
-        super(within);
+    public BuildNativeEnvironment(Environment within, HashMap<String, ComponentWrapper> linker) {
+        super(within, linker);
         // TODO Auto-generated constructor stub
     }
 
