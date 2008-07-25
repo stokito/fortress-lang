@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.compiler.desugarer;
 
 import java.util.Collections;
@@ -45,17 +62,17 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	private List<ObjectDecl> liftedObjectExprs;
 	private Component enclosingComponent;
 	private int uniqueId;
-	
+
 	public ObjectExpressionVisitor() {
 		uniqueId = 0;
 	}
-	
-	@Override 
-	public Node forComponentOnly(Component that, APIName name_result, 
-			                     List<Import> imports_result, List<Export> exports_result, 
+
+	@Override
+	public Node forComponentOnly(Component that, APIName name_result,
+			                     List<Import> imports_result, List<Export> exports_result,
 			                     List<Decl> decls_result) {
 		if(liftedObjectExprs != null) {
-			decls_result.addAll(liftedObjectExprs);			
+			decls_result.addAll(liftedObjectExprs);
 		}
 		return super.forComponentOnly(that, name_result, imports_result, exports_result, decls_result);
 	}
@@ -67,7 +84,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 		enclosingComponent = null;
 		return returnValue;
 	}
-	
+
 	@Override
     public Node forObjectExpr(ObjectExpr that) {
 		FreeNameCollection result = that.accept(new FreeNameCollector(that));
@@ -78,10 +95,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 			liftedObjectExprs = new LinkedList<ObjectDecl>();
 		}
 		liftedObjectExprs.add(lifted);
-		
+
         return super.forObjectExpr(that); // FIXME this is clearly wrong
     }
-	
+
 	private ObjectDecl liftObjectExpr(ObjectExpr target, FreeNameCollection freeNames) {
 		String name = getMangledName(target);
 		Span span = target.getSpan();
@@ -89,15 +106,15 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 		List<StaticParam> staticParams = getCapturedStaticParams(freeNames);
 		List<TraitTypeWhere> extendsClauses = target.getExtendsClause();
 		Option<List<Param>> params = getCapturedVars(freeNames);
-        List<Decl> decls = target.getDecls();   // FIXME: need to rewrite all decls w/ the freeNames. 
-		
+        List<Decl> decls = target.getDecls();   // FIXME: need to rewrite all decls w/ the freeNames.
+
 		ObjectDecl lifted = new ObjectDecl(span, id, staticParams, extendsClauses, params, decls);
-		
+
 		return lifted;
 	}
 
 	private Option<List<Param>> getCapturedVars(FreeNameCollection freeNames) {
-		// TODO: Fill this in - this is more complicated; 
+		// TODO: Fill this in - this is more complicated;
 		// need to figure out shadowed self via FnRef, FieldRef ... and so on
 		// need to box any var that's mutable
 		return Option.<List<Param>>none();
@@ -117,9 +134,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	private int nextUniqueId() {
 		return uniqueId++;
 	}
-	
+
 //	private ObjectDecl createLiftedObjectExpr(ObjectExpr that) {
-//	Span span = that.getSpan();		
+//	Span span = that.getSpan();
 //	Id newId = null;
 //	List<TraitTypeWhere> extendsClause = that.getExtendsClause();
 //	List<Param> newParameters = new LinkedList<Param>();
@@ -131,9 +148,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 //		APIName apiName = enclosingComponent.getName();
 //		Type newType = NodeFactory.makeTraitType(name);
 //		Param enclosed = new NormalParam(span, new Id(enclosedName), Option.some(newType));
-//		
-//	}		
-//	
+//
+//	}
+//
 //	if (enclosingComponent != null) {
 //		APIName apiName = enclosingComponent.getName();
 //        String apiNameString = NodeUtil.nameString(apiName);
@@ -141,32 +158,32 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 //        Debug.debug(Debug.Type.COMPILER, 1, newName);
 //        newId = new Id(newName);
 //	} else {
-//		
+//
 //	}
-//	
+//
 //	// Now ensure that all enclosed names are unique
 //	if (enclosingType != null) {
 //		enclosedCounter++;
-//	}		
-//	
+//	}
+//
 //	return null;
 //}
 
-	
+
 //	@Override
-//    public Node forTraitDecl(TraitDecl that) {    	
+//    public Node forTraitDecl(TraitDecl that) {
 //    	enclosingType = that;
 //    	Node returnValue = super.forTraitDecl(that);
-//    	enclosingType = null;    	
-//    	return returnValue;    	
+//    	enclosingType = null;
+//    	return returnValue;
 //    }
 //
 //	@Override
-//    public Node forObjectDecl(ObjectDecl that) {    	
+//    public Node forObjectDecl(ObjectDecl that) {
 //    	enclosingType = that;
 //    	Node returnValue = super.forObjectDecl(that);
-//    	enclosingType = null;    	
-//    	return returnValue;    	
+//    	enclosingType = null;
+//    	return returnValue;
 //    }
-	
+
 }
