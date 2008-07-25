@@ -22,14 +22,14 @@ component LexStr.Words
 export Executable
 
 object A'bc_123
-  def(x) = println x
+  def = println
 end
 
 phi456= 3
 
 run(args:String...) =
 (** EXAMPLE **)
-  A'bc_123.def(phi456)
+  A'bc_123.def phi456
 (** END EXAMPLE **)
 
 end

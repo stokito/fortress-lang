@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.compiler.desugarer;
 
 import java.util.List;
@@ -18,7 +35,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 
 	private FreeNameCollection result;
 	private ObjectExpr thisObjExpr;
-	
+
 	public FreeNameCollector(ObjectExpr topObjExpr) {
 		result = new FreeNameCollection();
 		thisObjExpr = topObjExpr;
@@ -27,38 +44,38 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	public FreeNameCollection getResult() {
 		return result;
 	}
-	
+
 	@Override
 	public FreeNameCollection defaultCase(Node that) {
 		return FreeNameCollection.EMPTY;
 	}
-	
+
 	@Override
     public FreeNameCollection forObjectExpr(ObjectExpr that) {
-		// TODO: if(thisObjExpr.equals(that) && thisObjExpr.getSpan().equals(that.getSpan())) 
+		// TODO: if(thisObjExpr.equals(that) && thisObjExpr.getSpan().equals(that.getSpan()))
 		// need to do something different if it's an ObjectExpr nested inside another ObjectExpr
 		// System.err.println("In FreeNameCollector, obj: " + that);
-		
+
         List<FreeNameCollection> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
         List<FreeNameCollection> decls_result = recurOnListOfDecl(that.getDecls());
-        
+
         for(FreeNameCollection c : extendsClause_result) {
         	result = result.composeResult(c);
         }
         for(FreeNameCollection c : decls_result) {
         	result = result.composeResult(c);
         }
-        
+
         // System.err.println("End of FreeNameCollector visit, returning obj: " + that);
         return result;
     }
-    
+
 	@Override
 	public FreeNameCollection forVarRef(VarRef that) {
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
 
@@ -67,7 +84,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
 
@@ -76,7 +93,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
 
@@ -85,7 +102,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
 
@@ -95,7 +112,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
 
@@ -104,28 +121,28 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
-	
+
 	@Override
 	public FreeNameCollection forBoolRef(BoolRef that) {
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
-		
+
 	@Override
 	public FreeNameCollection forVarType(VarType that) {
 		if(isDeclaredInObjExpr(that) || isDecalredInSuperType(that) || isDeclareInTopLevel(that)) {
 			return FreeNameCollection.EMPTY;
 		}
-		
+
 		return result.add(that);
 	}
-	
+
 	private boolean isDeclaredInObjExpr(Node that) {
 		// TODO Auto-generated method stub
 		return false;
