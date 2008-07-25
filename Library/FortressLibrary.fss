@@ -2993,7 +2993,7 @@ object NaiveSeqGenerator[\E\](g: Generator[\E\])
     getter toString():String = "naive seq(" g.toString() ")"
     opr |self| : ZZ32 = |g|
     generate[\R\](r: Reduction[\R\], m:E->R): R = do
-      rcompose(f:R->R, g:R->R): R->R = fn (x:R):R => g(f(x))
+      rcompose(f:R->R, f':R->R): R->R = fn (x:R):R => f'(f(x))
       id(x:R):R = x
       mp(x:E):R->R = fn (a:R):R => r.join(a,m(x))
       f : R -> R = g.mapReduce[\R->R\](mp,rcompose,id)

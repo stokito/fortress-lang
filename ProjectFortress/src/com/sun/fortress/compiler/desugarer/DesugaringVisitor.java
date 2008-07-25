@@ -57,6 +57,15 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
+    private boolean trans(Param param) {
+        for (Modifier mod : param.getMods()) {
+            if (mod instanceof ModifierTransient) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean hidden(LValueBind binding) {
         for (Modifier mod : binding.getMods()) {
             if (mod instanceof ModifierHidden) {
@@ -66,6 +75,42 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
+    private boolean trans(LValueBind binding) { 
+        for (Modifier mod : binding.getMods()) {
+            if (mod instanceof ModifierTransient) { 
+                return true; 
+            }
+        }
+        return false;
+    }
+
+    private boolean isGetter(FnAbsDeclOrDecl decl) {
+        for (Modifier mod : decl.getMods()) {
+            if (mod instanceof ModifierGetter) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+        
+    /**
+     * Takes an Id and a list of declarations and determines
+     * whether the list of declarations contains an explicit getter with a name equal 
+     * to the given Id.
+     */
+    private boolean hasExplicitGetter(Id name, List<Decl> decls) {
+        for (Decl decl: decls) {
+            if (decl instanceof FnAbsDeclOrDecl) {
+                FnAbsDeclOrDecl _decl = (FnAbsDeclOrDecl) decl;
+                if (_decl.getName().equals(name) && isGetter(_decl)) {
+                    return true; 
+                }
+            }
+        }
+        return false;
+    }
+        
     private static final Id mangleName(Id fieldName) {
         return new Id(fieldName.getSpan(), fieldName.getApi(), "$" + fieldName.getText());
     }
@@ -117,13 +162,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
-    private List<Decl> makeGetters(Option<List<Param>> params, List<Decl> decls) {
+    private List<Decl> makeGetters(Option<List<Param>> params, final List<Decl> decls) {
         final List<Decl> result = new ArrayList<Decl>();
         if (params.isSome()) {
             for (Param param : params.unwrap()) {
                 param.accept(new NodeAbstractVisitor_void() {
                     public void forNormalParam(NormalParam param) {
-                        if (! hidden(param)) {
+                        if (! hidden(param) && ! trans(param) && ! hasExplicitGetter(param.getName(), decls)) {
                             result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
                                                  new ArrayList<StaticParam>(),
                                                  new ArrayList<Param>(), param.getType(),
@@ -133,7 +178,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         }
                     }
                     public void forVarargsParam(VarargsParam param) {
-                        if (! hidden(param)) {
+                        if (! hidden(param) && ! trans(param) && ! hasExplicitGetter(param.getName(), decls)) {
                             result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
                                                  new ArrayList<StaticParam>(),
                                                  new ArrayList<Param>(),
@@ -150,7 +195,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             decl.accept(new NodeAbstractVisitor_void() {
                 public void forVarDecl(VarDecl decl) {
                     for (LValueBind binding : decl.getLhs()) {
-                        if (! hidden(binding)) {
+                        if (! hidden(binding) && ! trans(binding) && ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(new FnDef(binding.getSpan(), binding.getMods(), binding.getName(),
                                                  new ArrayList<StaticParam>(),
                                                  new ArrayList<Param>(),
@@ -188,11 +233,40 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     /** 
-     * Be sure not to recur on VarRefs that might occur in that.getLhs().
+     * Walk over a list of Lhs and recur on everything but FieldRefs.
+     * For FieldRefs, recur only on their receivers.
+     * In this way, we avoid turning them into MethodRefs.
+     */
+    private List<Lhs> mangleLhs(List<Lhs> elts) {
+        final List<Lhs> result = new ArrayList<Lhs>();
+
+        for (Lhs lhs : elts) {
+            lhs.accept(new NodeAbstractVisitor_void() {
+                    public void defaultCase(Node that) { 
+                        result.add((Lhs)that.accept(DesugaringVisitor.this));
+                    }
+                    public void forFieldRef(FieldRef that) {
+                        result.add((Lhs)new FieldRef(that.getSpan(), (Expr)that.getObj().accept(DesugaringVisitor.this), that.getField()));
+                    }
+                    public void for_RewriteFieldRef(_RewriteFieldRef that) {
+                        result.add((Lhs)new _RewriteFieldRef(that.getSpan(), (Expr)that.getObj().accept(DesugaringVisitor.this), that.getField()));
+                    }
+                });
+        }
+        return result;
+    }
+
+    /** 
+     * Be sure not to recur on FieldRefs that might occur in that.getLhs().
      * TODO: Rewrite assignments to single fields as setters.
      */
     public Node forAssignment(Assignment that) {
-        List<Lhs> lhs_result = recurOnListOfLhs(that.getLhs());
+        // To handle setters, we must process the lhs. For now, do not recur on lhs.
+        // Instead, walk over the Lhs and recur on everything but FieldRefs.
+        // For FieldRefs, recur only on their receivers.
+        // In this way, we avoid turning them into MethodRefs.
+        List<Lhs> lhs_result = mangleLhs(that.getLhs()); 
+
         Option<OpRef> opr_result = recurOnOptionOfOpRef(that.getOpr());
         Expr rhs_result = (Expr) that.getRhs().accept(this);
         return forAssignmentOnly(that, lhs_result, opr_result, rhs_result);
