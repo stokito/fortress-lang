@@ -34,6 +34,9 @@ public abstract class BaseTask extends RecursiveAction {
     TaskState taskState = null;
     final private int depth;
     final private BaseTask parent;
+
+	// Debugging
+	private static Boolean debug = false;
     private static AtomicInteger counter = new AtomicInteger();
     private int count;
     String name;
@@ -42,8 +45,13 @@ public abstract class BaseTask extends RecursiveAction {
         parent = p;
 		taskState = new TaskState(p.taskState());
 		depth = p.depth() + 1;
-		count = counter.getAndIncrement();
-		name =  p.name() + "." + count;
+		if (debug) {
+			count = counter.getAndIncrement();
+			name =  p.name() + "." + count;
+		} else {
+			name = "BaseTask";
+			count = 0;
+		}
     }
 
     public int depth() { return depth;}
@@ -54,6 +62,7 @@ public abstract class BaseTask extends RecursiveAction {
     public BaseTask() {
 		parent = null;
 		depth = 0;
+		count = 0;
 		name = "0";
 	}
 	    

@@ -242,6 +242,10 @@ public class Transaction {
 					}
 				}
 			}
+
+			synchronized(children) {
+				children = null;
+			}
 			return true;
 		}
 		return false;
@@ -256,7 +260,8 @@ public class Transaction {
 			synchronized(children ) {
 				for (Transaction child : getChildren())
 					child.orphan();
-			}
+				children = null;
+			} 
 			return true;
 		} else {
 			if (isActive())
@@ -270,6 +275,7 @@ public class Transaction {
 			synchronized(children ) {
 				for (Transaction child : getChildren())
 					child.orphan();
+				children = null;
 			}
 			throw new OrphanedException(this, "I'm an orphan, so my kids are too");
 		} else if (myStatus.compareAndSet(Status.ABORTED, Status.ORPHANED)) {
