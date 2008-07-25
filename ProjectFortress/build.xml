@@ -404,6 +404,25 @@ testOnly, testCruiseControl"/>
         </javac>
     </target>
 
+    <target name="blas">
+	    <javah class="com.sun.fortress.numerics.Blas"
+		   destdir="c"
+		   classpath="build"
+		    />
+	    <exec executable="gcc">
+		    <arg value="-fPIC" />
+		    <arg value="-Ic" />
+		    <arg value="-I${env.JAVA_HOME}/include" />
+		    <arg value="-I${env.JAVA_HOME}/include/linux" />
+		    <arg value="c/blas.c" />
+		    <arg value="-lcblas" />
+		    <arg value="-lblas" />
+		    <arg value="-shared" />
+		    <arg value="-o" />
+		    <arg value="libblas.so" />
+	    </exec>
+    </target>
+
     <target name="compileLint" depends="compileCommonLint, makeAST, parser, operatorsGen"
      description="Compile all interpreter code.">
         <depend srcdir="${src}"
@@ -632,6 +651,26 @@ testOnly, testCruiseControl"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
                     <include name="**/SystemJUTest.class"/>
+                </fileset>
+            </batchtest>
+      </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+    </target>
+
+    <target name="testblas" depends="compile,blas" description="Test blas">
+	    <junit printsummary="on"
+               haltonerror="off"
+               haltonfailure="off"
+               showoutput="yes"
+               fork="true"
+               maxmemory="${junitMem}"
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
+            <classpath refid="compile.classpath"/>
+            <formatter type="plain" usefile="true"/>
+            <batchtest fork="true" todir="${test.results}">
+                <fileset dir="${build}">
+                    <include name="**/BlasJxTest.class"/>
                 </fileset>
             </batchtest>
       </junit>
