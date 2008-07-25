@@ -593,8 +593,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             TransformerDef(String transformer, String def);
 
             /**
-	     * For terminal nodes that are just a string literal
-	     */
+             * Same as above but with the template( def ) parsed into a node
+             */
+            TransformerNode(String transformer, Node node);
+
+            /**
+             * For terminal nodes that are just a string literal
+             */
             SimpleTransformerDef(AbstractNode node);
 
             /**
