@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Export;
+import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.GenericDecl;
@@ -44,12 +45,15 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -87,17 +91,39 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
 	@Override
     public Node forObjectExpr(ObjectExpr that) {
-		FreeNameCollection result = that.accept(new FreeNameCollector(that));
-		FreeNameCollection.printDebug(result);
+		FreeNameCollection freeNames = that.accept(new FreeNameCollector(that));
+		FreeNameCollection.printDebug(freeNames);
 
-		ObjectDecl lifted = liftObjectExpr(that, result);
+		ObjectDecl lifted = liftObjectExpr(that, freeNames);  
 		if(liftedObjectExprs == null) {
 			liftedObjectExprs = new LinkedList<ObjectDecl>();
 		}
 		liftedObjectExprs.add(lifted);
 
-        return super.forObjectExpr(that); // FIXME this is clearly wrong
+		TightJuxt callToLifted = makeCallToLiftedObj(lifted, that, freeNames);
+		
+        return callToLifted;
     }
+
+	private TightJuxt makeCallToLiftedObj(ObjectDecl lifted, ObjectExpr objExpr, FreeNameCollection freeNames) {
+		Span span = objExpr.getSpan();
+		Id originalName = lifted.getName();
+		List<Id> fns = new LinkedList<Id>();
+		fns.add(originalName);
+		// TODO: Need to figure out what Static params are captured.
+		List<StaticArg> staticArgs = Collections.<StaticArg>emptyList(); 
+		
+		/* Now make the call to construct the lifted object */
+		/* Use default value for parenthesized */
+		FnRef fnRef = new FnRef(span, originalName, fns, staticArgs);
+		VoidLiteralExpr voidLit = new VoidLiteralExpr(span);  /* TODO: this is only if there is no param */
+		List<Expr> exprs = new LinkedList<Expr>();
+		exprs.add(fnRef);
+		exprs.add(voidLit);
+		TightJuxt callToConstructor = new TightJuxt(span, objExpr.isParenthesized(), exprs);
+		
+		return callToConstructor;
+	}
 
 	private ObjectDecl liftObjectExpr(ObjectExpr target, FreeNameCollection freeNames) {
 		String name = getMangledName(target);
@@ -108,6 +134,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 		Option<List<Param>> params = getCapturedVars(freeNames);
         List<Decl> decls = target.getDecls();   // FIXME: need to rewrite all decls w/ the freeNames.
 
+        /* Use default value for modifiers, where clauses, throw clauses, contract */
 		ObjectDecl lifted = new ObjectDecl(span, id, staticParams, extendsClauses, params, decls);
 
 		return lifted;
@@ -117,7 +144,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 		// TODO: Fill this in - this is more complicated;
 		// need to figure out shadowed self via FnRef, FieldRef ... and so on
 		// need to box any var that's mutable
-		return Option.<List<Param>>none();
+		return Option.<List<Param>>some(Collections.<Param>emptyList());
 	}
 
 	private List<StaticParam> getCapturedStaticParams(FreeNameCollection freeNames) {

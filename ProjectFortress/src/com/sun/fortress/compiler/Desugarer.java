@@ -42,10 +42,14 @@ import edu.rice.cs.plt.iter.IterUtil;
 public class Desugarer {
 
     /**
-     * This field is a temporary switch used for testing.
-     * When desugar is true, the Desugarar is called during static checking.
+     * These two fields are temporary switches used for testing.
+     * When getter_setter_desugar is true, the desugaring for getter and setter
+     * is called during static checking.  When the objExpr_desugar is true, 
+     * the closure conversion pass for object expressions is called.
+     * The closure conversion comes after the desugaring pass for getter / setter.
      */
-    public static boolean desugar = false;
+    public static boolean getter_setter_desugar = false;
+    public static boolean objExpr_desugar = false;
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
@@ -97,15 +101,17 @@ public class Desugarer {
     }
 
     public static Component desugarComponent(ComponentIndex component,
-                                                     GlobalEnvironment env)
-    {
-        if (desugar) {
-        	//            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
-        	ObjectExpressionVisitor desugaringVisitor = new ObjectExpressionVisitor();            
-            return (Component)component.ast().accept(desugaringVisitor);
-        } else {
-            return (Component)component.ast();
+                                             GlobalEnvironment env) {
+     	Component comp = (Component) component.ast();  	
+        if(getter_setter_desugar) {
+        	DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
+        	comp = (Component) comp.accept(desugaringVisitor);
+        } 
+        if(objExpr_desugar) {
+        	ObjectExpressionVisitor objExprVisitor = new ObjectExpressionVisitor();
+        	comp = (Component) comp.accept(objExprVisitor);
         }
+        return comp;
     }
 
 }
