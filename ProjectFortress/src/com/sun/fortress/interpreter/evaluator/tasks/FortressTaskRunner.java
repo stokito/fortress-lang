@@ -44,8 +44,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public BaseTask task() {return task;}
 
     public static BaseTask getTask() {
-	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-	return runner.task();
+		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+		return runner.task();
     }
 
     public static TaskState getTaskState() {
@@ -65,8 +65,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public void setTask(BaseTask t) {task = t;}
 
     public static void setCurrentTask(BaseTask task) {
-	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-	runner.setTask(task);
+		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+		runner.setTask(task);
     }
 
 
@@ -82,7 +82,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return whether the current transaction may commit successfully.
      */
     public static boolean validate() {
-	return getTaskState().validate();
+		return getTaskState().validate();
     }
 
     /**
@@ -151,8 +151,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return unique id
      */
     public static int getID() {
-	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-	return runner.hashCode();
+		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+		return runner.hashCode();
     }
 
 }
