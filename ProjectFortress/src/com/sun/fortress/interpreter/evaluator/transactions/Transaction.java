@@ -244,7 +244,7 @@ public class Transaction {
 			}
 
 			synchronized(children) {
-				children = null;
+				children = new ArrayList<Transaction>();
 			}
 			return true;
 		}
@@ -260,7 +260,7 @@ public class Transaction {
 			synchronized(children ) {
 				for (Transaction child : getChildren())
 					child.orphan();
-				children = null;
+				children = new ArrayList<Transaction>();
 			} 
 			return true;
 		} else {
@@ -275,7 +275,7 @@ public class Transaction {
 			synchronized(children ) {
 				for (Transaction child : getChildren())
 					child.orphan();
-				children = null;
+				children = new ArrayList<Transaction>();
 			}
 			throw new OrphanedException(this, "I'm an orphan, so my kids are too");
 		} else if (myStatus.compareAndSet(Status.ABORTED, Status.ORPHANED)) {
