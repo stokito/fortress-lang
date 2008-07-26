@@ -115,12 +115,77 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forApiOnly(Api that,
-//    @Override public String forImportStarOnly(ImportStar that,
-//    @Override public String forImportNamesOnly(ImportNames that,
-//    @Override public String forImportApiOnly(ImportApi that,
-//    @Override public String forAliasedSimpleNameOnly(AliasedSimpleName that,
-//    @Override public String forAliasedAPINameOnly(AliasedAPIName that,
+    @Override public String forApiOnly(Api that, String name_result,
+                                       List<String> imports_result,
+                                       List<String> decls_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( "api " ).append( name_result ).append( "\n" );
+        for ( String import_ : imports_result ){
+            s.append( import_ ).append( "\n" );
+        }
+        for ( String decl_ : decls_result ){
+            s.append( decl_ ).append( "\n" );
+        }
+        s.append( "end" );
+        return s.toString();
+    }
+
+    @Override public String forImportStarOnly(ImportStar that,
+                                              String api_result,
+                                              List<String> except_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( "import " ).append( api_result ).append( ".{...}" );
+        if ( ! except_result.isEmpty() ) {
+            s.append(inCurlyBraces(" except ", except_result));
+        }
+        return s.toString();
+    }
+
+    @Override public String forImportNamesOnly(ImportNames that,
+                                               String api_result,
+                                               List<String> aliasedNames_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( "import " ).append( api_result );
+        if ( aliasedNames_result.isEmpty() ) {
+            return bug(that, "Import statement should have at least one name.");
+        } else {
+            s.append(inCurlyBraces(".", aliasedNames_result));
+        }
+        return s.toString();
+    }
+
+    @Override public String forImportApiOnly(ImportApi that,
+                                             List<String> apis_result) {
+        StringBuilder s = new StringBuilder();
+        if ( apis_result.isEmpty() ) {
+            return bug(that, "Import statement should have at least one name.");
+        } else {
+            s.append(inCurlyBraces("import api ", apis_result));
+        }
+        return s.toString();
+    }
+
+    @Override public String forAliasedSimpleNameOnly(AliasedSimpleName that,
+                                                     String name_result,
+                                                     Option<String> alias_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( name_result );
+        if ( alias_result.isSome() ) {
+            s.append( " as " ).append(alias_result.unwrap());
+        }
+        return s.toString();
+    }
+
+    @Override public String forAliasedAPINameOnly(AliasedAPIName that,
+                                                  String api_result,
+                                                  Option<String> alias_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( api_result );
+        if ( alias_result.isSome() ) {
+            s.append( " as " ).append(alias_result.unwrap());
+        }
+        return s.toString();
+    }
 
     @Override public String forExportOnly(Export that, List<String> apis_result) {
         StringBuilder s = new StringBuilder();
@@ -494,13 +559,58 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "wrapped";
     }
 
-//    @Override public String forOpParamOnly( that,
-//    @Override public String forBoolParamOnly( that,
-//    @Override public String forDimParamOnly( that,
-//    @Override public String forIntParamOnly( that,
-//    @Override public String forNatParamOnly( that,
-//    @Override public String forTypeParamOnly( that,
-//    @Override public String forUnitParamOnly( that,
+    @Override public String forOpParamOnly(OpParam that,
+                                           String name_result) {
+        return "opr " + name_result;
+    }
+
+    @Override public String forBoolParamOnly(BoolParam that,
+                                             String name_result) {
+        return "bool " + name_result;
+    }
+
+    @Override public String forDimParamOnly(DimParam that,
+                                            String name_result) {
+        return "dim " + name_result;
+    }
+
+    @Override public String forIntParamOnly(IntParam that,
+                                            String name_result) {
+        return "int " + name_result;
+    }
+
+    @Override public String forNatParamOnly(NatParam that,
+                                            String name_result) {
+        return "nat " + name_result;
+    }
+
+    @Override public String forTypeParamOnly(TypeParam that,
+                                             String name_result,
+                                             List<String> extendsClause_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( name_result );
+        if ( ! extendsClause_result.isEmpty() ) {
+            s.append( inCurlyBraces("extends ", extendsClause_result) );
+        }
+        if ( that.isAbsorbs() ) {
+            s.append( " absorbs unit" );
+        }
+        return s.toString();
+    }
+
+    @Override public String forUnitParamOnly(UnitParam that,
+                                             String name_result,
+                                             Option<String> dim_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( "unit " ).append( name_result );
+        if ( dim_result.isSome() ) {
+            s.append( ": " ).append( dim_result.unwrap() );
+        }
+        if ( that.isAbsorbs() ) {
+            s.append( " absorbs unit" );
+        }
+        return s.toString();
+    }
 
     @Override public String forAPINameOnly(APIName that, List<String> ids_result) {
         StringBuilder s = new StringBuilder();
@@ -579,5 +689,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "";
     }
 
-//    @Override public String forLinkOnly( that,
+    @Override public String forLinkOnly(Link that,
+                                        String op_result,
+                                        String expr_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( " " ).append( op_result ).append( " " ).append( expr_result );
+        return s.toString();
+    }
 }
