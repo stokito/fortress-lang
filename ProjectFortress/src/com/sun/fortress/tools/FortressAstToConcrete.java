@@ -451,24 +451,147 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forWhereTypeOnly( that,
-//    @Override public String forWhereNatOnly( that,
-//    @Override public String forWhereIntOnly( that,
-//    @Override public String forWhereBoolOnly( that,
-//    @Override public String forWhereUnitOnly( that,
-//    @Override public String forWhereExtendsOnly( that,
-//    @Override public String forTypeAliasOnly( that,
-//    @Override public String forWhereCoercesOnly( that,
-//    @Override public String forWhereWidensOnly( that,
-//    @Override public String forWhereWidensCoercesOnly( that,
-//    @Override public String forWhereEqualsOnly( that,
-//    @Override public String forUnitConstraintOnly( that,
-//    @Override public String forLEConstraintOnly( that,
-//    @Override public String forLTConstraintOnly( that,
-//    @Override public String forGEConstraintOnly( that,
-//    @Override public String forGTConstraintOnly( that,
-//    @Override public String forIEConstraintOnly( that,
-//    @Override public String forBoolConstraintExprOnly( that,
+    @Override public String forWhereTypeOnly(WhereType that,
+                                             String name_result,
+                                             List<String> supers_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( name_result );
+        if ( ! supers_result.isEmpty() ) {
+            s.append( inCurlyBraces("extends ", supers_result) );
+        }
+        return s.toString();
+    }
+
+    @Override public String forWhereNatOnly(WhereNat that,
+                                            String name_result) {
+        return "nat " + name_result;
+    }
+
+    @Override public String forWhereIntOnly(WhereInt that,
+                                            String name_result) {
+        return "int " + name_result;
+    }
+
+    @Override public String forWhereBoolOnly(WhereBool that,
+                                             String name_result) {
+        return "bool " + name_result;
+    }
+
+    @Override public String forWhereUnitOnly(WhereUnit that,
+                                             String name_result) {
+        return "unit " + name_result;
+    }
+
+    @Override public String forWhereExtendsOnly(WhereExtends that,
+                                                String name_result,
+                                                List<String> supers_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( name_result );
+        if ( supers_result.isEmpty() ) {
+            return bug(that, "A type variable constraint declared in " +
+                       "a where clause should have its bound.");
+        } else {
+            s.append( inCurlyBraces("extends ", supers_result) );
+        }
+        return s.toString();
+    }
+
+    @Override public String forTypeAliasOnly(TypeAlias that,
+                                             String name_result,
+                                             List<String> staticParams_result,
+                                             String type_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( "type " ).append( name_result );
+        if ( ! staticParams_result.isEmpty() ) {
+            s.append ( inOxfordBrackets("", staticParams_result) );
+        }
+        s.append( " = " ).append( type_result );
+        return s.toString();
+    }
+
+    @Override public String forWhereCoercesOnly(WhereCoerces that,
+                                                String left_result,
+                                                String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " coerces " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forWhereWidensOnly(WhereWidens that,
+                                               String left_result,
+                                               String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " widens " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forWhereWidensCoercesOnly(WhereWidensCoerces that,
+                                                      String left_result,
+                                                      String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " widens or coerces " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forWhereEqualsOnly(WhereEquals that,
+                                               String left_result,
+                                               String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " = " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forUnitConstraintOnly(UnitConstraint that,
+                                                  String name_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( name_result ).append( " = dimensionless" );
+        return s.toString();
+    }
+
+    @Override public String forLEConstraintOnly(LEConstraint that,
+                                                String left_result,
+                                                String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " <= " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forLTConstraintOnly(LTConstraint that,
+                                                String left_result,
+                                                String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " < " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forGEConstraintOnly(GEConstraint that,
+                                                String left_result,
+                                                String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " >= " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forGTConstraintOnly(GTConstraint that,
+                                                String left_result,
+                                                String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " > " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forIEConstraintOnly(IEConstraint that,
+                                                String left_result,
+                                                String right_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( left_result ).append( " = " ).append( right_result );
+        return s.toString();
+    }
+
+    @Override public String forBoolConstraintExprOnly(BoolConstraintExpr that,
+                                                      String constraint_result) {
+        return constraint_result;
+    }
 
     @Override public String forContractOnly(Contract that,
                                             Option<List<String>> requires_result,
@@ -479,25 +602,34 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if (requires_result.isSome()) {
             List<String> requires = requires_result.unwrap();
             if ( ! requires.isEmpty() )
-                s.append( inCurlyBraces("requires ", requires) );
+                s.append( inCurlyBraces("requires ", requires) ).append( "\n" );
         }
 
         if (ensures_result.isSome()) {
             List<String> ensures = ensures_result.unwrap();
             if ( ! ensures.isEmpty() )
-                s.append( inCurlyBraces("ensures ", ensures) );
+                s.append( inCurlyBraces("ensures ", ensures) ).append( "\n" );
         }
 
         if (invariants_result.isSome()) {
             List<String> invariants = invariants_result.unwrap();
             if ( ! invariants.isEmpty() )
-                s.append( inCurlyBraces("invariant ", invariants) );
+                s.append( inCurlyBraces("invariant ", invariants) ).append( "\n" );
         }
 
         return s.toString();
     }
 
-//    @Override public String forEnsuresClauseOnly( that,
+    @Override public String forEnsuresClauseOnly(EnsuresClause that,
+                                                 String post_result,
+                                                 Option<String> pre_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( post_result );
+        if ( pre_result.isSome() ) {
+            s.append( " provided " ).append( pre_result );
+        }
+        return s.toString();
+    }
 
     @Override public String forModifierAbstractOnly(ModifierAbstract that) {
         return "abstract";
