@@ -59,7 +59,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( String elem : IterUtil.skipLast(list) ){
             s.append( elem ).append( ", " );
         }
-        s.append( IterUtil.last(list) );
+        if ( ! list.isEmpty() ){
+                s.append( IterUtil.last(list) );
+        }
         s.append( " \\]" );
         return s.toString();
     }
@@ -73,7 +75,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( String elem : IterUtil.skipLast(list) ){
             s.append( elem ).append( ", " );
         }
-        s.append( IterUtil.last(list) );
+        if ( ! list.isEmpty() ){
+                s.append( IterUtil.last(list) );
+        }
         s.append( ")" );
         return s.toString();
     }
@@ -198,13 +202,40 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forAbsTraitDeclOnly( that,
 //    @Override public String forTraitDeclOnly( that,
 //    @Override public String forAbsObjectDeclOnly( that,
-//    @Override public String forObjectDeclOnly( that,
 //    @Override public String forAbsVarDeclOnly( that,
 //    @Override public String forVarDeclOnly( that,
-//    @Override public String forLValueBindOnly( that,
 //    @Override public String forUnpastingBindOnly( that,
 //    @Override public String forUnpastingSplitOnly( that,
 //    @Override public String forAbsFnDeclOnly( that,
+
+    @Override public String forObjectDeclOnly(ObjectDecl that, List<String> mods_result, String name_result, List<String> staticParams_result, List<String> extendsClause_result, String where_result, Option<List<String>> params_result, Option<List<String>> throwsClause_result, String contract_result, List<String> decls_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( join(mods_result, " ") );
+        s.append( "object " ).append( name_result );
+        if ( params_result.isSome() ){
+            s.append( inParentheses(params_result.unwrap()) );
+        }
+        s.append( "\n" );
+        s.append( join(decls_result,"\n") );
+        s.append( "\nend" ).append( "\n" );
+
+        return s.toString();
+    }
+
+    @Override public String forLValueBindOnly(LValueBind that, String name_result, Option<String> type_result, List<String> mods_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( name_result );
+        if ( type_result.isSome() ){
+            s.append( ":" );
+            s.append( type_result.unwrap() );
+        }
+        s.append( " := " );
+        s.append( join(mods_result, " ") );
+
+        return s.toString();
+    }
 
     @Override public String forFnDefOnly(FnDef that,
                                          List<String> mods_result,
@@ -270,6 +301,16 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
+    @Override public String forTupleExprOnly(TupleExpr that, List<String> exprs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "(" );
+        s.append( join(exprs_result, ", ") );
+        s.append( ")" );
+
+        return s.toString();
+    }
+
 //    @Override public String forDimDeclOnly( that,
 //    @Override public String forUnitDeclOnly( that,
 //    @Override public String forTestDeclOnly( that,
@@ -277,16 +318,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forAsExprOnly( that,
 //    @Override public String forAsIfExprOnly( that,
 //    @Override public String forAssignmentOnly( that,
-//    @Override public String forBlockOnly( that,
 //    @Override public String forCaseExprOnly( that,
-//    @Override public String forDoOnly( that,
 //    @Override public String forForOnly( that,
-//    @Override public String forIfOnly( that,
 //    @Override public String forLabelOnly( that,
 //    @Override public String forObjectExprOnly( that,
 //    @Override public String for_RewriteObjectExprOnly( that,
 //    @Override public String forTryOnly( that,
-//    @Override public String forTupleExprOnly( that,
 //    @Override public String forArgExprOnly( that,
 //    @Override public String forTypecaseOnly( that,
 //    @Override public String forWhileOnly( that,
@@ -299,12 +336,57 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forTryAtomicExprOnly( that,
 //    @Override public String forFnExprOnly( that,
 //    @Override public String forLetFnOnly( that,
-//    @Override public String forLocalVarDeclOnly( that,
 //    @Override public String forGeneratedExprOnly( that,
 //    @Override public String forSubscriptExprOnly( that,
 //    @Override public String forFloatLiteralExprOnly( that,
-//    @Override public String forIntLiteralExprOnly( that,
 //    @Override public String forCharLiteralExprOnly( that,
+
+    @Override public String forBlockOnly(Block that, List<String> exprs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( join( exprs_result, "\n" ) );
+
+        return s.toString();
+    }
+
+    @Override public String forDoOnly(Do that, List<String> fronts_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "do" ).append( "\n" );
+        s.append( join(fronts_result, "\n") );
+        s.append( "end" );
+
+        return s.toString();
+    }
+
+    @Override public String forLocalVarDeclOnly(LocalVarDecl that, List<String> body_result, List<String> lhs_result, Option<String> rhs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( join(lhs_result,", ") );
+        if ( rhs_result.isSome() ){
+                s.append( rhs_result.unwrap() );
+        }
+        s.append("\n");
+        s.append( join( body_result, "\n" ) );
+
+        return s.toString();
+    }
+
+    @Override public String forIfOnly(If that, List<String> clauses_result, Option<String> elseClause_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "if " );
+        s.append( join( clauses_result, " " ) );
+        s.append( "else " );
+        s.append( elseClause_result );
+        s.append( "end" );
+
+        return s.toString();
+    }
+
+    @Override public String forIntLiteralExprOnly( IntLiteralExpr that ){
+        return that.getVal().toString();
+    }
 
     @Override public String forStringLiteralExprOnly(StringLiteralExpr that) {
         return "\"" + that.getText() + "\"";
@@ -369,11 +451,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
 //    @Override public String for_RewriteFnAppOnly( that,
-//    @Override public String forOpExprOnly( that,
 //    @Override public String forAmbiguousMultifixOpExprOnly( that,
-//    @Override public String forChainExprOnly( that,
 //    @Override public String forCoercionInvocationOnly( that,
-//    @Override public String forMethodInvocationOnly( that,
 //    @Override public String forMathPrimaryOnly( that,
 //    @Override public String forArrayElementOnly( that,
 //    @Override public String forArrayElementsOnly( that,
@@ -386,6 +465,34 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forOpDimOnly( that,
 //    @Override public String forAnyTypeOnly( that,
 //    @Override public String forBottomTypeOnly( that,
+
+    @Override public String forChainExprOnly(ChainExpr that, String first_result, List<String> links_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( first_result );
+        s.append( join(links_result, ", ") );
+
+        return s.toString();
+    }
+
+    @Override public String forOpExprOnly(OpExpr that, String op_result, List<String> args_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( op_result );
+        s.append( join(args_result, " ") );
+
+        return s.toString();
+    }
+
+    @Override public String forMethodInvocationOnly(MethodInvocation that, String obj_result, String method_result, List<String> staticArgs_result, String arg_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( obj_result ).append( "." ).append( method_result );
+        s.append( inOxfordBrackets("", staticArgs_result ) );
+        s.append( arg_result );
+
+        return s.toString();
+    }
 
     @Override public String forVarTypeOnly(VarType that, String name_result) {
         return name_result;
@@ -779,11 +886,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forCaseClauseOnly( that,
 //    @Override public String forCatchOnly( that,
 //    @Override public String forCatchClauseOnly( that,
-//    @Override public String forDoFrontOnly( that,
-//    @Override public String forIfClauseOnly( that,
 //    @Override public String forTypecaseClauseOnly( that,
 //    @Override public String forExtentRangeOnly( that,
-//    @Override public String forGeneratorClauseOnly( that,
 //    @Override public String forVarargsExprOnly( that,
 //    @Override public String forKeywordTypeOnly( that,
 //    @Override public String forTraitTypeWhereOnly( that,
@@ -792,6 +896,36 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forNonParenthesisDelimitedMIOnly( that,
 //    @Override public String forExponentiationMIOnly( that,
 //    @Override public String forSubscriptingMIOnly( that,
+
+    @Override public String forGeneratorClauseOnly(GeneratorClause that, List<String> bind_result, String init_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "generator clause" );
+        s.append( init_result );
+        s.append( join(bind_result, ", ") );
+
+        return s.toString();
+    }
+
+    @Override public String forDoFrontOnly(DoFront that, Option<String> loc_result, String expr_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( expr_result );
+
+        return s.toString();
+    }
+
+    @Override public String forIfClauseOnly(IfClause that, String test_result, String body_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "if " );
+        s.append( test_result );
+        s.append( "then\n" );
+        s.append( body_result ).append( "\n" );
+        s.append( "end" ).append( "\n" );
+
+        return s.toString();
+    }
 
     @Override public String forInFixityOnly(InFixity that) {
         return "";
