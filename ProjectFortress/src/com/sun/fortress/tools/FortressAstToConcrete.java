@@ -304,9 +304,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forTupleExprOnly(TupleExpr that, List<String> exprs_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "(" );
+        // s.append( "(" );
         s.append( join(exprs_result, ", ") );
-        s.append( ")" );
+        // s.append( ")" );
 
         return s.toString();
     }
@@ -375,11 +375,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forIfOnly(If that, List<String> clauses_result, Option<String> elseClause_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "if " );
         s.append( join( clauses_result, " " ) );
         s.append( "else " );
         s.append( elseClause_result );
-        s.append( "end" );
 
         return s.toString();
     }
@@ -478,8 +476,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forOpExprOnly(OpExpr that, String op_result, List<String> args_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( op_result );
-        s.append( join(args_result, " ") );
+        s.append( join(args_result, op_result) );
 
         return s.toString();
     }
@@ -488,7 +485,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( obj_result ).append( "." ).append( method_result );
-        s.append( inOxfordBrackets("", staticArgs_result ) );
+        if ( ! staticArgs_result.isEmpty() ){
+                s.append( inOxfordBrackets("", staticArgs_result ) );
+        }
         s.append( arg_result );
 
         return s.toString();
@@ -900,7 +899,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forGeneratorClauseOnly(GeneratorClause that, List<String> bind_result, String init_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "generator clause" );
         s.append( init_result );
         s.append( join(bind_result, ", ") );
 
@@ -919,10 +917,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( "if " );
-        s.append( test_result );
-        s.append( "then\n" );
+        s.append( "(" ).append( test_result ).append( ")" );
+        s.append( " then\n" );
         s.append( body_result ).append( "\n" );
-        s.append( "end" ).append( "\n" );
 
         return s.toString();
     }
