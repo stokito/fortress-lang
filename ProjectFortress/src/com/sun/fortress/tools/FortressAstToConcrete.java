@@ -317,9 +317,31 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forPropertyDeclOnly( that,
 //    @Override public String forAsExprOnly( that,
 //    @Override public String forAsIfExprOnly( that,
-//    @Override public String forAssignmentOnly( that,
+
+    @Override public String forAssignmentOnly(Assignment that, List<String> lhs_result, Option<String> opr_result, String rhs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( join(lhs_result, ", " ) );
+        s.append( rhs_result );
+        if ( opr_result.isSome() ){
+            s.append( opr_result.unwrap() );
+        }
+
+        return s.toString();
+    }
+
 //    @Override public String forCaseExprOnly( that,
-//    @Override public String forForOnly( that,
+
+    @Override public String forForOnly(For that, List<String> gens_result, String body_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "for " );
+        s.append( join(gens_result, ", ") );
+        s.append( body_result );
+
+        return s.toString();
+    }
+
 //    @Override public String forLabelOnly( that,
 //    @Override public String forObjectExprOnly( that,
 //    @Override public String for_RewriteObjectExprOnly( that,
@@ -329,7 +351,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forWhileOnly( that,
 //    @Override public String forAccumulatorOnly( that,
 //    @Override public String forArrayComprehensionOnly( that,
-//    @Override public String forAtomicExprOnly( that,
+
+    @Override public String forAtomicExprOnly(AtomicExpr that, String expr_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "atomic " ).append( expr_result );
+
+        return s.toString();
+    }
+
 //    @Override public String forExitOnly( that,
 //    @Override public String forSpawnOnly( that,
 //    @Override public String forThrowOnly( that,
@@ -402,7 +432,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String for_RewriteObjectRefOnly( that,
 //    @Override public String forFieldRefOnly( that,
 //    @Override public String for_RewriteFieldRefOnly( that,
-//    @Override public String forFnRefOnly( that,
+
+    @Override public String forFnRefOnly(FnRef that, String originalName_result, List<String> fns_result, List<String> staticArgs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( originalName_result );
+        s.append( inOxfordBrackets("", staticArgs_result) );
+        s.append( join(fns_result, " ") );
+
+        return s.toString();
+    }
+
 //    @Override public String for_RewriteFnRefOnly( that,
 
     /* TODO: BIG Op StaticArgs
@@ -519,7 +559,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forLabelTypeOnly( that,
 //    @Override public String forDomainOnly( that,
 //    @Override public String forEffectOnly( that,
-//    @Override public String forTypeArgOnly( that,
+
+    @Override public String forTypeArgOnly(TypeArg that, String type_result) {
+        return type_result;
+    }
+
 //    @Override public String forIntArgOnly( that,
 //    @Override public String forBoolArgOnly( that,
 //    @Override public String forOpArgOnly( that,
@@ -877,7 +921,19 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return that.getText();
     }
 
-//    @Override public String forEnclosingOnly( that,
+    @Override public String forEnclosingOnly(Enclosing that, Option<String> api_result, String open_result, String close_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "enclosing: " );
+        if ( api_result.isSome() ){
+            s.append( api_result.unwrap() );
+        }
+        s.append( open_result );
+        s.append( close_result );
+
+        return s.toString();
+    }
+
 //    @Override public String forAnonymousFnNameOnly( that,
 //    @Override public String forConstructorFnNameOnly( that,
 //    @Override public String forArrayComprehensionClauseOnly( that,
