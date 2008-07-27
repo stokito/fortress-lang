@@ -440,9 +440,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( ! staticParams_result.isEmpty() )
             s.append( inOxfordBrackets(staticParams_result) );
         s.append( inParentheses(inParentheses(params_result)) );
-        if (returnType_result.isSome())
+        if ( returnType_result.isSome() )
             s.append( ": " ).append( returnType_result.unwrap() );
-        if (throwsClause_result.isSome()) {
+        if ( throwsClause_result.isSome() ) {
             List<String> throws_ = throwsClause_result.unwrap();
             if ( ! throws_.isEmpty() )
                 s.append( inCurlyBraces("throws ", throws_) );
@@ -486,10 +486,77 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forDimDeclOnly( that,
-//    @Override public String forUnitDeclOnly( that,
-//    @Override public String forTestDeclOnly( that,
-//    @Override public String forPropertyDeclOnly( that,
+    @Override public String forDimDeclOnly(DimDecl that,
+                                           String dim_result,
+                                           Option<String> derived_result,
+                                           Option<String> default_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "dim " ).append( dim_result ).append( " " );
+        if ( derived_result.isSome() ) {
+            s.append( "= " ).append( derived_result.unwrap() );
+        }
+        if ( default_result.isSome() ) {
+            s.append( "default " ).append( default_result.unwrap() );
+        }
+
+        return s.toString();
+    }
+
+    @Override public String forUnitDeclOnly(UnitDecl that,
+                                            List<String> units_result,
+                                            Option<String> dim_result,
+                                            Option<String> def_result) {
+        StringBuilder s = new StringBuilder();
+
+        if ( that.isSi_unit() ) {
+            s.append( "SI_" );
+        }
+        s.append( "unit " );
+        s.append( join(units_result, " ") );
+        if ( dim_result.isSome() ) {
+            s.append( ": " ).append( dim_result.unwrap() );
+        }
+        if ( def_result.isSome() ) {
+            s.append( "= " ).append( def_result.unwrap() );
+        }
+
+        return s.toString();
+    }
+
+    @Override public String forTestDeclOnly(TestDecl that,
+                                            String name_result,
+                                            List<String> gens_result,
+                                            String expr_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "test " ).append( name_result).append( " [ " );
+        s.append( join(gens_result, ", ") );
+        s.append( " ] = " );
+        s.append( expr_result );
+
+        return s.toString();
+    }
+
+    @Override public String forPropertyDeclOnly(PropertyDecl that,
+                                                Option<String> name_result,
+                                                List<String> params_result,
+                                                String expr_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "property " );
+        if ( name_result.isSome() ) {
+            s.append( name_result.unwrap() ).append( " = " );
+        }
+        if ( ! params_result.isEmpty() ) {
+            s.append( "FORALL " );
+            s.append( inParentheses(params_result) );
+            s.append( " " );
+        }
+        s.append(expr_result);
+
+        return s.toString();
+    }
 
     @Override public String forAsExprOnly(AsExpr that,
                                           String expr_result,
@@ -595,10 +662,77 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forLabelOnly( that,
-//    @Override public String forObjectExprOnly( that,
-//    @Override public String for_RewriteObjectExprOnly( that,
-//    @Override public String forTryOnly( that,
+    @Override public String forLabelOnly(Label that,
+                                         String name_result,
+                                         String body_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "label " ).append( name_result ).append( " " );
+        s.append( body_result );
+        s.append( "\nend " ).append( name_result );
+
+        return  s.toString();
+    }
+
+
+    @Override public String forObjectExprOnly(ObjectExpr that,
+                                              List<String> extendsClause_result,
+                                              List<String> decls_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "object " );
+        if ( ! extendsClause_result.isEmpty() ) {
+            s.append( inCurlyBraces("extends ", extendsClause_result) );
+            s.append( "\n" );
+        }
+        s.append( join(decls_result, "\n") );
+        s.append( "\nend" );
+
+        return s.toString();
+    }
+
+
+    @Override public String for_RewriteObjectExprOnly(_RewriteObjectExpr that,
+                                                      List<String> extendsClause_result,
+                                                      List<String> decls_result,
+                                                      List<String> staticParams_result,
+                                                      List<String> staticArgs_result,
+                                                      Option<List<String>> params_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "object " );
+        if ( ! extendsClause_result.isEmpty() ) {
+            s.append( inCurlyBraces("extends ", extendsClause_result) );
+            s.append( "\n" );
+        }
+        s.append( join(decls_result, "\n") );
+        s.append( "\nend" );
+
+        return s.toString();
+    }
+
+    @Override public String forTryOnly(Try that,
+                                       String body_result,
+                                       Option<String> catchClause_result,
+                                       List<String> forbid_result,
+                                       Option<String> finallyClause_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "try " ).append( body_result ).append( "\n" );
+        if ( catchClause_result.isSome() ) {
+            s.append( catchClause_result.unwrap() ).append( "\n" );
+        }
+        if ( ! forbid_result.isEmpty() ) {
+            s.append( inCurlyBraces("forbid ", forbid_result) ).append( "\n" );
+        }
+        if ( finallyClause_result.isSome() ) {
+            s.append( "finally " );
+            s.append( finallyClause_result.unwrap() ).append( "\n" );
+        }
+        s.append("end");
+
+        return s.toString();
+    }
 
     @Override public String forTupleExprOnly(TupleExpr that,
                                              List<String> exprs_result) {
@@ -626,12 +760,72 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forExitOnly( that,
-//    @Override public String forSpawnOnly( that,
-//    @Override public String forThrowOnly( that,
-//    @Override public String forTryAtomicExprOnly( that,
-//    @Override public String forFnExprOnly( that,
-//    @Override public String forLetFnOnly( that,
+    @Override public String forExitOnly(Exit that,
+                                        Option<String> target_result,
+                                        Option<String> returnExpr_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "exit " );
+        if ( target_result.isSome() ) {
+            s.append( target_result ).append( " " );
+        }
+        if ( returnExpr_result.isSome() ) {
+            s.append( "with " ).append( returnExpr_result.unwrap() );
+        }
+
+        return s.toString();
+    }
+
+    @Override public String forSpawnOnly(Spawn that,
+                                         String body_result) {
+        return "spawn " + body_result;
+    }
+
+    @Override public String forThrowOnly(Throw that,
+                                         String expr_result) {
+        return "throw " + expr_result;
+    }
+
+    @Override public String forTryAtomicExprOnly(TryAtomicExpr that,
+                                                 String expr_result) {
+        return "tryatomic " + expr_result;
+    }
+
+    @Override public String forFnExprOnly(FnExpr that,
+                                          String name_result,
+                                          List<String> staticParams_result,
+                                          List<String> params_result,
+                                          Option<String> returnType_result,
+                                          String where_result,
+                                          Option<List<String>> throwsClause_result,
+                                          String body_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "fn " );
+        s.append( inParentheses(params_result) );
+        if ( returnType_result.isSome() ) {
+            s.append( ": " ).append( returnType_result.unwrap() );
+        }
+        if ( throwsClause_result.isSome() ) {
+            List<String> throws_ = throwsClause_result.unwrap();
+            if ( ! throws_.isEmpty() )
+                s.append( inCurlyBraces("throws ", throws_) );
+        }
+        s.append( " => ").append(body_result);
+
+        return s.toString();
+    }
+
+    @Override public String forLetFnOnly(LetFn that,
+                                         List<String> body_result,
+                                         List<String> fns_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( join( fns_result, "\n" ) );
+        s.append( join( body_result, "\n" ) );
+
+        return s.toString();
+    }
 
     @Override public String forLocalVarDeclOnly(LocalVarDecl that,
                                                 List<String> body_result,
