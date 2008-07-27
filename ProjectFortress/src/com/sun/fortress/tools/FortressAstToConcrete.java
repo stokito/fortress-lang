@@ -632,13 +632,18 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
 //    @Override public String forGeneratedExprOnly( that,
 //    @Override public String forSubscriptExprOnly( that,
-//    @Override public String forFloatLiteralExprOnly( that,
 
-    @Override public String forIntLiteralExprOnly(IntLiteralExpr that){
+    @Override public String forFloatLiteralExprOnly(FloatLiteralExpr that) {
+        return that.getText();
+    }
+
+    @Override public String forIntLiteralExprOnly(IntLiteralExpr that) {
         return that.getVal().toString();
     }
 
-//    @Override public String forCharLiteralExprOnly( that,
+    @Override public String forCharLiteralExprOnly(CharLiteralExpr that) {
+        return "'" + that.getText() + "'";
+    }
 
     @Override public String forStringLiteralExprOnly(StringLiteralExpr that) {
         return "\"" + that.getText() + "\"";
@@ -915,28 +920,126 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return type_result;
     }
 
-//    @Override public String forIntArgOnly( that,
-//    @Override public String forBoolArgOnly( that,
-//    @Override public String forOpArgOnly( that,
-//    @Override public String forDimArgOnly( that,
-//    @Override public String forUnitArgOnly( that,
-//    @Override public String forNumberConstraintOnly( that,
-//    @Override public String forIntRefOnly( that,
-//    @Override public String forSumConstraintOnly( that,
-//    @Override public String forMinusConstraintOnly( that,
-//    @Override public String forProductConstraintOnly( that,
-//    @Override public String forExponentConstraintOnly( that,
-//    @Override public String forBoolConstantOnly( that,
-//    @Override public String forBoolRefOnly( that,
-//    @Override public String forNotConstraintOnly( that,
-//    @Override public String forOrConstraintOnly( that,
-//    @Override public String forAndConstraintOnly( that,
-//    @Override public String forImpliesConstraintOnly( that,
-//    @Override public String forBEConstraintOnly( that,
-//    @Override public String forUnitRefOnly( that,
-//    @Override public String forProductUnitOnly( that,
-//    @Override public String forQuotientUnitOnly( that,
-//    @Override public String forExponentUnitOnly( that,
+    @Override public String forIntArgOnly(IntArg that,
+                                          String val_result) {
+        return val_result;
+    }
+
+    @Override public String forBoolArgOnly(BoolArg that,
+                                           String bool_result) {
+        return bool_result;
+    }
+
+    @Override public String forOpArgOnly(OpArg that,
+                                         String name_result) {
+        return name_result;
+    }
+
+    @Override public String forDimArgOnly(DimArg that,
+                                          String dim_result) {
+        return dim_result;
+    }
+
+    @Override public String forUnitArgOnly(UnitArg that,
+                                           String unit_result) {
+        return unit_result;
+    }
+
+    @Override public String forNumberConstraintOnly(NumberConstraint that,
+                                                    String val_result) {
+        return val_result;
+    }
+
+    @Override public String forIntRefOnly(IntRef that,
+                                          String name_result) {
+        return name_result;
+    }
+
+    @Override public String forSumConstraintOnly(SumConstraint that,
+                                                 String left_result,
+                                                 String right_result) {
+        return left_result + " + " + right_result;
+    }
+
+    @Override public String forMinusConstraintOnly(MinusConstraint that,
+                                                   String left_result,
+                                                   String right_result) {
+        return left_result + " - " + right_result;
+    }
+
+    @Override public String forProductConstraintOnly(ProductConstraint that,
+                                                     String left_result,
+                                                     String right_result) {
+        return left_result + " " + right_result;
+    }
+
+    @Override public String forExponentConstraintOnly(ExponentConstraint that,
+                                                      String left_result,
+                                                      String right_result) {
+        return left_result + "^" + right_result;
+    }
+
+    @Override public String forBoolConstantOnly(BoolConstant that) {
+        if ( that.isBool() ) return "true";
+        else return "false";
+    }
+
+    @Override public String forBoolRefOnly(BoolRef that,
+                                           String name_result) {
+        return name_result;
+    }
+
+    @Override public String forNotConstraintOnly(NotConstraint that,
+                                                 String bool_result) {
+        return "NOT " + bool_result;
+    }
+
+    @Override public String forOrConstraintOnly(OrConstraint that,
+                                                String left_result,
+                                                String right_result) {
+        return left_result + " OR " + right_result;
+    }
+
+    @Override public String forAndConstraintOnly(AndConstraint that,
+                                                 String left_result,
+                                                 String right_result) {
+        return left_result + " AND " + right_result;
+    }
+
+    @Override public String forImpliesConstraintOnly(ImpliesConstraint that,
+                                                     String left_result,
+                                                     String right_result) {
+        return left_result + " IMPLIES " + right_result;
+    }
+
+    @Override public String forBEConstraintOnly(BEConstraint that,
+                                                String left_result,
+                                                String right_result) {
+        return left_result + " = " + right_result;
+    }
+
+    @Override public String forUnitRefOnly(UnitRef that,
+                                           String name_result) {
+        return name_result;
+    }
+
+    @Override public String forProductUnitOnly(ProductUnit that,
+                                               String left_result,
+                                               String right_result) {
+        return left_result + " " + right_result;
+    }
+
+    @Override public String forQuotientUnitOnly(QuotientUnit that,
+                                                String left_result,
+                                                String right_result) {
+        return left_result + "/" + right_result;
+    }
+
+    @Override public String forExponentUnitOnly(ExponentUnit that,
+                                                String left_result,
+                                                String right_result) {
+        return left_result + "^" + right_result;
+    }
 
     @Override public String forWhereClauseOnly(WhereClause that,
                                                List<String> bindings_result,
