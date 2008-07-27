@@ -144,7 +144,8 @@ public class ReferenceCell extends IndirectionCell {
                 node = new ValueNode(f2, me, node);
                 if (Transaction.debug) me.addWrite(this, f2);
             } else if (w.isActive()) {
-                throw new RuntimeException("How can writer be active after cleanup?");
+				// Cleanup got us to a parent node with an active writer
+                assignValue(f2);
             }
         }
     }
