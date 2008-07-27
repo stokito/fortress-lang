@@ -527,7 +527,27 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forCaseExprOnly( that,
+    @Override public String forCaseExprOnly(CaseExpr that,
+                                            Option<String> param_result,
+                                            Option<String> compare_result,
+                                            String equalsOp_result,
+                                            String inOp_result,
+                                            List<String> clauses_result,
+                                            Option<String> elseClause_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( "case " );
+        if ( param_result.isSome() )
+            s.append( param_result.unwrap() ).append( " " );
+        else s.append( "most " );
+        if ( compare_result.isSome() )
+            s.append( compare_result.unwrap() ).append( " " );
+        s.append( "of\n" );
+        s.append( join(clauses_result, "\n") );
+        if ( elseClause_result.isSome() )
+            s.append( elseClause_result.unwrap() ).append( "\n" );
+        s.append( "end" );
+        return s.toString();
+    }
 
     @Override public String forDoOnly(Do that,
                                       List<String> fronts_result) {
@@ -630,8 +650,49 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forGeneratedExprOnly( that,
-//    @Override public String forSubscriptExprOnly( that,
+    @Override public String forGeneratedExprOnly(GeneratedExpr that,
+                                                 String expr_result,
+                                                 List<String> gens_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( expr_result );
+        if ( ! gens_result.isEmpty() ) {
+            s.append( ", " );
+            s.append( join(gens_result, ", ") );
+        }
+
+        return s.toString();
+    }
+
+    @Override public String forSubscriptExprOnly(SubscriptExpr that,
+                                                 String obj_result,
+                                                 List<String> subs_result,
+                                                 Option<String> op_result,
+                                                 List<String> staticArgs_result) {
+        StringBuilder s = new StringBuilder();
+        String left;
+        String right;
+
+        s.append( obj_result );
+        if ( op_result.isSome() ) {
+            String enclosing = op_result.unwrap();
+            int size = enclosing.length();
+            left = enclosing.substring(0, size/2);
+            right = enclosing.substring(size/2+1, size);
+        } else {
+            left = "[";
+            right = "]";
+        }
+        s.append( left );
+        if ( ! staticArgs_result.isEmpty() ) {
+            s.append( inOxfordBrackets(staticArgs_result) );
+        }
+        s.append( " " );
+        s.append( join(subs_result, ", ") );
+        s.append( " " ).append( right );
+
+        return s.toString();
+    }
 
     @Override public String forFloatLiteralExprOnly(FloatLiteralExpr that) {
         return that.getText();
@@ -1388,13 +1449,60 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forAnonymousFnNameOnly( that,
-//    @Override public String forConstructorFnNameOnly( that,
-//    @Override public String forArrayComprehensionClauseOnly( that,
-//    @Override public String forKeywordExprOnly( that,
-//    @Override public String forCaseClauseOnly( that,
-//    @Override public String forCatchOnly( that,
-//    @Override public String forCatchClauseOnly( that,
+    @Override public String forAnonymousFnNameOnly(AnonymousFnName that,
+                                                   Option<String> api_result) {
+        return bug(that, "Anonymous function names are not supported " +
+                   "in Fortress concrete syntax.");
+    }
+
+    @Override public String forConstructorFnNameOnly(ConstructorFnName that,
+                                                     Option<String> api_result,
+                                                     String def_result) {
+        return bug(that, "Anonymous constructor names are not supported " +
+                   "in Fortress concrete syntax.");
+    }
+
+    @Override public String forArrayComprehensionClauseOnly(ArrayComprehensionClause that,
+                                                            List<String> bind_result,
+                                                            String init_result,
+                                                            List<String> gens_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( inParentheses(bind_result) );
+        s.append( " |-> " );
+        s.append( join(gens_result, "\n") );
+        return s.toString();
+    }
+
+    @Override public String forKeywordExprOnly(KeywordExpr that,
+                                               String name_result,
+                                               String init_result) {
+        return name_result + " = " + init_result;
+    }
+
+    @Override public String forCaseClauseOnly(CaseClause that,
+                                              String match_result,
+                                              String body_result) {
+        return match_result + " => " + body_result;
+    }
+
+    @Override public String forCatchOnly(Catch that,
+                                         String name_result,
+                                         List<String> clauses_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( name_result ).append( " " );
+        s.append( join(clauses_result, "\n") );
+        return s.toString();
+    }
+
+    @Override public String forCatchClauseOnly(CatchClause that,
+                                               String match_result,
+                                               String body_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( match_result );
+        s.append( " => " );
+        s.append( body_result );
+        return s.toString();
+    }
 
     @Override public String forDoFrontOnly(DoFront that,
                                            Option<String> loc_result,
@@ -1424,7 +1532,16 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forTypecaseClauseOnly( that,
+    @Override public String forTypecaseClauseOnly(TypecaseClause that,
+                                                  List<String> match_result,
+                                                  String body_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( inParentheses(match_result) );
+        s.append( " => " );
+        s.append( body_result );
+        return s.toString();
+    }
+
 //    @Override public String forExtentRangeOnly( that,
 
     @Override public String forGeneratorClauseOnly(GeneratorClause that,
