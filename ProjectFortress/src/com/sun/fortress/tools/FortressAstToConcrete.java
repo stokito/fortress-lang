@@ -544,7 +544,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( "for " );
         s.append( join(gens_result, ", \n") );
-        s.append( body_result );
+        s.append( "\n" ).append( body_result );
         s.append( "\nend" );
 
         return s.toString();
@@ -1407,7 +1407,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( that.isAtomic() ) {
             s.append( "atomic " );
         }
-        s.append( "do " ).append( expr_result );
+        s.append( "do\n" ).append( expr_result );
 
         return s.toString();
     }
@@ -1418,7 +1418,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( test_result );
-        s.append( "\nthen" );
+        s.append( "\nthen " );
         s.append( body_result ).append( "\n" );
 
         return s.toString();
