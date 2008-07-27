@@ -759,8 +759,10 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                  *       end
                  *  eqOp and inOp are to help with disambiguation
                  */
-                CaseExpr(Option<Expr> param, Option<OpRef> compare = Option.<OpRef>none(),
-                         OpRef equalsOp = ExprFactory.makeInfixEq(), OpRef inOp= ExprFactory.makeInfixIn(),
+                CaseExpr(Option<Expr> param,
+                         Option<OpRef> compare = Option.<OpRef>none(),
+                         OpRef equalsOp = ExprFactory.makeInfixEq(),
+                         OpRef inOp= ExprFactory.makeInfixIn(),
                          List<CaseClause> clauses,
                          Option<Block> elseClause = Option.<Block>none());
                 /**
