@@ -166,7 +166,7 @@ public class TypesUtil {
     									new Lambda<StaticParam,StaticArg>() {
     								public StaticArg value(StaticParam arg0) {
     									// This is only legal if StaticParam is a TypeParam!!!
-    									Type t = NodeFactory.make_InferenceVarType();
+    									Type t = NodeFactory.make_InferenceVarType(arg0.getSpan());
     									return new TypeArg(t);
     								}}));
     					}

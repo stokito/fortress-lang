@@ -49,7 +49,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 	public Node forLValueBindOnly(LValueBind that, Id name_result,
 			Option<Type> type_result, List<Modifier> mods_result) {
 		if( type_result.isNone() ) {
-			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType());
+			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(that.getName().getSpan()));
 			return new LValueBind(that.getSpan(),name_result,new_type,mods_result,that.isMutable());
 		}
 		else {
@@ -67,7 +67,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 		// Is the return type given?
 		Option<Type> new_ret_type = 
 			returnType_result.isNone() ? 
-					Option.<Type>some(NodeFactory.make_InferenceVarType()) :
+					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 					returnType_result;	
 		
 		return super.forFnDefOnly(that, mods_result, name_result, staticParams_result,
@@ -82,7 +82,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 		// Is the type given?
 		Option<Type> new_type = 
 			type_result.isNone() ? 
-					Option.<Type>some(NodeFactory.make_InferenceVarType()) :
+					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 						type_result;
 		
 		return super.forNormalParamOnly(that, mods_result, name_result, new_type,

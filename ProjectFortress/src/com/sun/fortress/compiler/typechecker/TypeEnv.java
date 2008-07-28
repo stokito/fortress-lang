@@ -128,9 +128,9 @@ public abstract class TypeEnv {
                     }
                 } else { // No type is explicitly declared for this parameter.
                     if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
-                        keywordTypes.add(makeKeywordType(_param.getName(), NodeFactory.make_InferenceVarType()));
+                        keywordTypes.add(makeKeywordType(_param.getName(), NodeFactory.make_InferenceVarType(_param.getSpan())));
                     } else { // We have an ordinary param.
-                        paramTypes.add(NodeFactory.make_InferenceVarType());
+                        paramTypes.add(NodeFactory.make_InferenceVarType(_param.getSpan()));
                     }
                 }
             } else { // We have a varargs param.
@@ -232,7 +232,7 @@ public abstract class TypeEnv {
                 // called. This is necessary because TypeEnvs are immutable.
                 // It's up to the type checker to accumulate the constraints
                 // on implicit types.
-                return Option.<Type>wrap(NodeFactory.make_InferenceVarType());
+                return Option.<Type>wrap(NodeFactory.make_InferenceVarType(var.getSpan()));
             }
         } else {
             return Option.none();

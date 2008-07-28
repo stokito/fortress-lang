@@ -620,7 +620,8 @@ public final class Shell {
             throw new MultipleStaticError(componentsDone.errors());
         }
 
-        return new AnalyzeResult(apiIR.apis(), componentsDone.components(), IterUtil.<StaticError>empty());
+        return new AnalyzeResult(previousPhase, apiIR.apis(),
+        		componentsDone.components(), IterUtil.<StaticError>empty());
     }
 
     public static AnalyzeResult rewriteGrammar(FortressRepository repository,
@@ -641,7 +642,8 @@ public final class Shell {
             throw new MultipleStaticError(apiDone.errors());
         }
 
-        return new AnalyzeResult(apiDone.apis(), previousPhase.components(), IterUtil.<StaticError>empty());
+        return new AnalyzeResult(previousPhase, apiDone.apis(),
+        		previousPhase.components(), IterUtil.<StaticError>empty());
     }
 
     public static AnalyzeResult typecheck(FortressRepository _repository,
@@ -666,7 +668,8 @@ public final class Shell {
             throw new MultipleStaticError(componentSR.errors());
         }
 
-        return new AnalyzeResult(apiSR.apis(), componentSR.components(), IterUtil.<StaticError>empty());
+        return new AnalyzeResult(apiSR.apis(), componentSR.components(), 
+        		IterUtil.<StaticError>empty(), componentSR.typeEnvAtNode());
     }
 
     public static AnalyzeResult desugar(FortressRepository _repository,
@@ -688,7 +691,8 @@ public final class Shell {
             throw new MultipleStaticError(componentDSR.errors());
         }
 
-        return new AnalyzeResult(apiDSR.apis(), componentDSR.components(), IterUtil.<StaticError>empty());
+        return new AnalyzeResult(previousPhase, apiDSR.apis(),
+        		componentDSR.components(), IterUtil.<StaticError>empty());
     }
 
     public static AnalyzeResult codeGeneration(FortressRepository _repository,
@@ -710,7 +714,8 @@ public final class Shell {
             throw new MultipleStaticError(componentGR.errors());
         }
 
-        return new AnalyzeResult(previousPhase.apis(), previousPhase.components(), IterUtil.<StaticError>empty());
+        return new AnalyzeResult(previousPhase, previousPhase.apis(),
+        		previousPhase.components(), IterUtil.<StaticError>empty());
     }
 
     private static abstract class Phase{

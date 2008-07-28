@@ -56,7 +56,7 @@ public class InferenceVarTranslator {
         _reverseUpdater = new NodeUpdateVisitor() {
             @Override public Node for_InferenceVarType(_InferenceVarType var) {
                 if (!_replacements.containsSecond(var)) {
-                    _replacements.add(NodeFactory.make_InferenceVarType(), var);
+                    _replacements.add(NodeFactory.make_InferenceVarType(var.getSpan()), var);
                 }
                 return _replacements.antecedent(var);
             }

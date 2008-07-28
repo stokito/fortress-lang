@@ -82,7 +82,7 @@ public class TypeAnalyzerUtil {
             });
         }
         for (Id id : hiddenParams) {
-            typeSubs.put(id, NodeFactory.make_InferenceVarType());
+            typeSubs.put(id, NodeFactory.make_InferenceVarType(id.getSpan()));
         }
 
         return new Lambda<Type, Type>() {
