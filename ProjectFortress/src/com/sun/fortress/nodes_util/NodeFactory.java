@@ -183,23 +183,19 @@ public class NodeFactory {
 		return new TraitTypeWhere(new Span(in_type.getSpan(), in_where.getSpan()), in_type, in_where);
 	}
 	
-	public static _InferenceVarType make_InferenceVarType() {
-		return new _InferenceVarType(new Object());
+	public static _InferenceVarType make_InferenceVarType(Span s) {
+		return new _InferenceVarType(s, new Object());
 	}
 
-	public static List<Type> make_InferenceVarTypes(int size) {
+	public static List<Type> make_InferenceVarTypes(Span s, int size) {
 		List<Type> result = new ArrayList<Type>(size);
-		for (int i = 0; i < size; i++) { result.add(make_InferenceVarType()); }
+		for (int i = 0; i < size; i++) { result.add(make_InferenceVarType(s)); }
 		return result;
 	}
 
 	public static TupleType makeTupleType(TupleType t, List<Type> tys) {
 		return new TupleType(t.getSpan(), t.isParenthesized(), tys);
 	}
-
-//	public static ArgType makeArgType(ArgType t, List<Type> tys, Type varargs) {
-//	return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs);
-//	}
 
 	public static KeywordType makeKeywordType(KeywordType t, Type s) {
 		return new KeywordType(t.getSpan(), t.getName(), s);

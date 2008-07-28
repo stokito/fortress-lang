@@ -24,6 +24,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerJUTest.*;
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
@@ -38,15 +39,15 @@ public class TypeInferenceJUTest extends TestCase {
     	debug.logStart();
     	try {
     	TypeAnalyzer t = makeAnalyzer(trait("Int"));
-    	_InferenceVarType i1=NodeFactory.make_InferenceVarType();
-    	_InferenceVarType i2=NodeFactory.make_InferenceVarType();
-    	_InferenceVarType i3=NodeFactory.make_InferenceVarType();
-    	_InferenceVarType i4=NodeFactory.make_InferenceVarType();
+    	_InferenceVarType i1=NodeFactory.make_InferenceVarType(new Span());
+    	_InferenceVarType i2=NodeFactory.make_InferenceVarType(new Span());
+    	_InferenceVarType i3=NodeFactory.make_InferenceVarType(new Span());
+    	_InferenceVarType i4=NodeFactory.make_InferenceVarType(new Span());
     	ConstraintFormula t1 = upperBound(i1,i2,t.new SubtypeHistory()).and(
     			lowerBound(i1,type("Int"),t.new SubtypeHistory()),t.new SubtypeHistory()).and(
     					upperBound(i2,type("Int"),t.new SubtypeHistory()), t.new SubtypeHistory()).and(
     							upperBound(i2,i1,t.new SubtypeHistory()),t.new SubtypeHistory());
-    	assertEquals(t1.isSatisfiable(),true);
+    	assertTrue(t1.isSatisfiable());
     	
     	t = makeAnalyzer(trait("A"),trait("B"),trait("C"),trait("D","C"));
     	ConstraintFormula t2 =  upperBound(i1,type("A"),t.new SubtypeHistory()).and(lowerBound(i1,type("A"),t.new SubtypeHistory()),t.new SubtypeHistory());
@@ -54,7 +55,7 @@ public class TypeInferenceJUTest extends TestCase {
     	ConstraintFormula t4 =  t3.and(upperBound(i3,type("C"),t.new SubtypeHistory()).and(lowerBound(i3,type("C"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
     	ConstraintFormula t5 =  t4.and(upperBound(i4,type("D"),t.new SubtypeHistory()).and(lowerBound(i4,type("D"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
     	ConstraintFormula t6 = t5.and(t.subtype(NodeFactory.makeIntersectionType(i1, i4),NodeFactory.makeUnionType(i2, i3)),t.new SubtypeHistory());
-    	assertEquals(t6.isSatisfiable(),true);
+    	assertTrue(t6.isSatisfiable());
     	} finally { debug.logEnd(); }
     }
 }
