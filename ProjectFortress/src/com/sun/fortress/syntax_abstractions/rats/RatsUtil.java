@@ -58,7 +58,8 @@ public abstract class RatsUtil {
 
     private static final char SEP = '/'; // File.separatorChar
 
-    public static final String COMSUNFORTRESSPARSER = "com"+ SEP +"sun"+SEP+"fortress"+SEP+"parser"+SEP;
+    public static final String BASEPARSER = "com"+ SEP +"sun"+SEP+"fortress"+SEP+"parser"+SEP;
+    public static final String TEMPLATEPARSER = BASEPARSER + SEP + "templateparser" + SEP;
 
     public static Module getRatsModule(String filename) {
         Option<Module> result = parseRatsModule(filename);
@@ -124,7 +125,7 @@ public abstract class RatsUtil {
     }
 
     private static void makeSureDirectoryExists(String tempDir) {
-        File dir = new File(tempDir+COMSUNFORTRESSPARSER);
+        File dir = new File(tempDir+TEMPLATEPARSER);
         if (!dir.isDirectory()) {
             if (!dir.mkdirs()) {
                 throw new RuntimeException("Could not create directories: "+dir.getAbsolutePath());
@@ -183,8 +184,18 @@ public abstract class RatsUtil {
     }
 
     public static String getParserPath() {
-        return RatsUtil.getFortressSrcDir() + COMSUNFORTRESSPARSER;
+        return RatsUtil.getFortressSrcDir() + BASEPARSER;
     }
+    
+    public static String getTemplateParserPath() {
+        return RatsUtil.getFortressSrcDir() + TEMPLATEPARSER;
+    }
+    
+    /*
+    public static String getTemplateParserPath() {
+        return RatsUtil.getFortressSrcDir() + COMSUNFORTRESSPARSER + SEP + "templateparser";
+    }
+    */
 
     public static String getTempDir() {
         // return System.getProperty("java.io.tmpdir")+SEP;
