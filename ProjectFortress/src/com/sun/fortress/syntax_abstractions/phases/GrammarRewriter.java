@@ -178,7 +178,7 @@ public class GrammarRewriter {
                 // List<String> names = collector.getNames();
                 // Debug.debug( Debug.Type.SYNTAX, 1, "Syntax transformers for " + api.ast().getName() + ": " + names );
 
-            final Api raw = (Api) api.ast();
+            final Api raw = (Api) api.ast().accept( new TemplateParser() );
 
             /* should this contain an instance of the class? */
             final Option<Class<?>>[] parser = new Option[1];
@@ -210,60 +210,6 @@ public class GrammarRewriter {
                     }
                 }
             }));
-
-            /*
-            if ( containsGrammar( env, raw) ){
-                final Class<?>[] parser = new Class<?>[1];
-                parser[ 0 ] = null;
-                // final Class<?> parserClass = createParser( api.grammars().values().iterator().next() );
-                final SyntaxTransformerCreater creater = new SyntaxTransformerCreater();
-                    api.ast().accept( new NodeDepthFirstVisitor_void(){
-
-                    private GrammarIndex findGrammar( GrammarDef grammar ){
-                        for ( GrammarIndex index : api.grammars().values() ){
-                            if ( index.getName().equals( grammar.getName() ) ){
-                                return index;
-                            }
-                        }
-                        throw new RuntimeException( "Could not find grammar for " + grammar.getName() );
-                    }
-
-                    @Override public void forGrammarDefDoFirst(GrammarDef that) {
-                        parser[ 0 ] = createParser( findGrammar(that) );
-                    }
-
-                    @Override public void forNonterminalDef(NonterminalDef that) {
-                        BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
-                        String name = that.getHeader().getName().getText();
-                        MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-                        visitSyntaxDefs(that.getSyntaxDefs(), name, type, memberEnv);
-                    }
-
-                    @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
-                        BaseType type = SyntaxAbstractionUtil.unwrap(that.getAstType());
-                        String name = that.getHeader().getName().getText();
-                        MemberEnv memberEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-                        visitSyntaxDefs(that.getSyntaxDefs(), name, type, memberEnv);
-                    }
-
-                    private void visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs, String name, BaseType type, MemberEnv memberEnv) {
-                        for (SyntaxDef syntaxDef: syntaxDefs) {
-                            visitSyntaxDef(syntaxDef, name, type, memberEnv);
-                        }
-                    }
-
-                    private void visitSyntaxDef(SyntaxDef syntaxDef, String name, BaseType type, MemberEnv memberEnv) {
-                        TransformerDef transformer = (TransformerDef) syntaxDef.getTransformer();
-                        Debug.debug( Debug.Type.SYNTAX, 1, "Create function for " + transformer.getTransformer() );
-                        SyntaxTransformerManager.addTransformer( transformer.getTransformer(), createTransformer( creater, raw.getName(), parser[0], transformer.getDef(), new SyntaxDeclEnv(syntaxDef, memberEnv) ) );
-                    }
-                });
-
-                rs.add( raw );
-            } else {
-                rs.add( (Api) api.ast() );
-            }
-            */
         }
         
         /*
@@ -344,7 +290,8 @@ public class GrammarRewriter {
 
     private static Node parseTemplate( APIName apiName, String stuff, Class<?> parserClass ){
         try{
-            BufferedReader in = Useful.bufferedStringReader(stuff);
+            BufferedReader in = Useful.bufferedStringReader(stuff.trim());
+            Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "'" );
             ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
             xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, "pExpression$Expr" );
             // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
@@ -356,7 +303,7 @@ public class GrammarRewriter {
                 throw new ParserError((ParseError) result, parser);
             }
         } catch ( Exception e ){
-            throw new RuntimeException( "Could not parse " + stuff, e );
+            throw new RuntimeException( "Could not parse '" + stuff + "'", e );
         }
     }
 

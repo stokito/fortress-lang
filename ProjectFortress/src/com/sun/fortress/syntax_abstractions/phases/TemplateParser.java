@@ -81,52 +81,51 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class TemplateParser extends NodeUpdateVisitor {
 
-	public static class Result extends StaticPhaseResult {
-		private Api api;
+    public static class Result extends StaticPhaseResult {
+        private Api api;
 
-		public Result(Api api, 
-				Collection<StaticError> errors) {
-			super(errors);
-			this.api = api;
-		}
+        public Result(Api api, 
+                Collection<StaticError> errors) {
+            super(errors);
+            this.api = api;
+        }
 
-		public Result(Api api,
-				Iterable<? extends StaticError> errors) {
-			super(errors);
-			this.api = api;
-		}
+        public Result(Api api,
+                Iterable<? extends StaticError> errors) {
+            super(errors);
+            this.api = api;
+        }
 
-		public Api api() { return api; }
-	}
-	
-	private Collection<ParserError> errors;
-	private Map<Id, BaseType> vars;
-	private Map<Id, BaseType> varsToNonterminalType;
+        public Api api() { return api; }
+    }
 
-	
-	public TemplateParser() {
-		this.errors = new LinkedList<ParserError>();
-	}
+    private Collection<ParserError> errors;
+    private Map<Id, BaseType> vars;
+    private Map<Id, BaseType> varsToNonterminalType;
 
-	private Collection<? extends StaticError> getErrors() {
-		return this.errors;
-	}
 
-	private boolean isSuccessfull() {
-		return this.errors.isEmpty();
-	}
+    public TemplateParser() {
+        this.errors = new LinkedList<ParserError>();
+    }
 
-	public static Result parseTemplates(Api api) {
-		TemplateParser templateParser = new TemplateParser();
-		Api a = (Api) api.accept(templateParser);
-		if (!templateParser.isSuccessfull()) {
-			return new Result(a, templateParser.getErrors());
-		}
-		return new Result(a, Collections.<StaticError>emptyList());
-	}
+    private Collection<? extends StaticError> getErrors() {
+        return this.errors;
+    }
 
-	@Override
-    public Node forNonterminalHeader(NonterminalHeader that) {
+    private boolean isSuccessfull() {
+        return this.errors.isEmpty();
+    }
+
+    public static Result parseTemplates(Api api) {
+        TemplateParser templateParser = new TemplateParser();
+        Api a = (Api) api.accept(templateParser);
+        if (!templateParser.isSuccessfull()) {
+            return new Result(a, templateParser.getErrors());
+        }
+        return new Result(a, Collections.<StaticError>emptyList());
+    }
+
+    @Override public Node forNonterminalHeader(NonterminalHeader that) {
         this.vars = new HashMap<Id, BaseType>();
         for (NonterminalParameter p: that.getParams()) {           
             this.vars.put(p.getName(), p.getType());
@@ -134,23 +133,21 @@ public class TemplateParser extends NodeUpdateVisitor {
         return super.forNonterminalHeader(that);
     }
 
-	private BaseType getType(Id id) {
-	    MemberEnv mEnv = GrammarEnv.getMemberEnv(id);
+    private BaseType getType(Id id) {
+        MemberEnv mEnv = GrammarEnv.getMemberEnv(id);
         return mEnv.getAstType();
     }
 
-    @Override
-	public Node forSyntaxDef(SyntaxDef that) {
-		this.varsToNonterminalType = new HashMap<Id, BaseType>();
-		return super.forSyntaxDef(that);
-	}
+    @Override public Node forSyntaxDef(SyntaxDef that) {
+        this.varsToNonterminalType = new HashMap<Id, BaseType>();
+        return super.forSyntaxDef(that);
+    }
 
-	@Override
-	public Node forPrefixedSymbol(PrefixedSymbol that) {
-		// We assume that all prefixed symbols have an identifier.
-		// If that is not the case then it is an error in the disambiguation and not here.
-	    Id id = that.getId().unwrap();
-	    PrefixSymbolSymbolGetter psg = new SyntaxDeclEnv.PrefixSymbolSymbolGetter(id);
+    @Override public Node forPrefixedSymbol(PrefixedSymbol that) {
+        // We assume that all prefixed symbols have an identifier.
+        // If that is not the case then it is an error in the disambiguation and not here.
+        Id id = that.getId().unwrap();
+        PrefixSymbolSymbolGetter psg = new SyntaxDeclEnv.PrefixSymbolSymbolGetter(id);
         that.getSymbol().accept(psg);
         for (Entry<Id, Id> e: psg.getVarToNonterminalName().entrySet()) {
             this.varsToNonterminalType.put(e.getKey(), getType(e.getValue()));
@@ -164,97 +161,100 @@ public class TemplateParser extends NodeUpdateVisitor {
         for (Id i: psg.getSpecialSymbols()) {
             this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
         }
-		return super.forPrefixedSymbol(that);
-	}
+        return super.forPrefixedSymbol(that);
+    }
 
-	@Override
-	public Node forTransformerDefOnly(TransformerDef that) {
-		TemplateVarRewriter tvs = new TemplateVarRewriter();
-		Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
-		vs.putAll(this.vars);
-		vs.putAll(this.varsToNonterminalType);
-		String p = tvs.rewriteVars(vs, that.getDef());
-		// Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
-		Option<Node> res = parseTemplate(that.getSpan(), p, "Expr");
-		return res.unwrap(that);
-	}
+    @Override public Node forTransformerDefOnly(TransformerDef that) {
+        TemplateVarRewriter tvs = new TemplateVarRewriter();
+        Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
+        vs.putAll(this.vars);
+        vs.putAll(this.varsToNonterminalType);
+        String p = tvs.rewriteVars(vs, that.getDef());
 
-	/** 
-	 * Find the method that would parse a given production, such as
-	 * pExpression$Expr when given "Expr".
-	 */ 
-	private Option<Method> lookupExpression(Class parser, String production){
-		try{
-			/* This is a Rats! specific naming convention. Move it
-			 * elsewhere?
-			 */
-			String fullName = "pExpression$" + production;
-		    // String fullName = "pExprOnly";
-			Method found = parser.getDeclaredMethod(fullName, int.class);
+        return new TransformerDef(that.getTransformer(), p);
+        /*
+        // Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
+        Option<Node> res = parseTemplate(that.getSpan(), p, "Expr");
+        return res.unwrap(that);
+        */
+    }
 
-			/* method is private by default so we have to make
-			 * it accessible
-			 */
-			if ( found != null ){
-				found.setAccessible(true);
-				return Option.wrap(found);
-			}
-			return Option.none();
-		} catch (NoSuchMethodException e){
-			throw new RuntimeException(e);
-		} catch (SecurityException e){
-			throw new RuntimeException(e);
-		}
-	}
+    /** 
+     * Find the method that would parse a given production, such as
+     * pExpression$Expr when given "Expr".
+     */ 
+    private Option<Method> lookupExpression(Class parser, String production){
+        try{
+            /* This is a Rats! specific naming convention. Move it
+             * elsewhere?
+             */
+            String fullName = "pExpression$" + production;
+            // String fullName = "pExprOnly";
+            Method found = parser.getDeclaredMethod(fullName, int.class);
 
-	/**
-	 * Wraps the invoked method to return a xtc.parser.Result and also throws
-	 * IOException.
-	 */
-	private xtc.parser.Result invokeParseMethod(com.sun.fortress.parser.templateparser.TemplateParser parser, Method method, int num) throws IOException {
-		try{
-			return (xtc.parser.Result) method.invoke(parser, num);
-		} catch (IllegalAccessException e){
-			throw new RuntimeException(e);
-		} catch (java.lang.reflect.InvocationTargetException e){
-			throw new RuntimeException(e);
-		}
-	}
+            /* method is private by default so we have to make
+             * it accessible
+             */
+            if ( found != null ){
+                found.setAccessible(true);
+                return Option.wrap(found);
+            }
+            return Option.none();
+        } catch (NoSuchMethodException e){
+            throw new RuntimeException(e);
+        } catch (SecurityException e){
+            throw new RuntimeException(e);
+        }
+    }
 
-	private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
-            /*
-		BufferedReader in = Useful.bufferedStringReader(transformation.trim());
-		com.sun.fortress.parser.templateparser.TemplateParser parser =
-                    new com.sun.fortress.parser.templateparser.TemplateParser(in, span.getBegin().getFileName());
+    /**
+     * Wraps the invoked method to return a xtc.parser.Result and also throws
+     * IOException.
+     */
+    private xtc.parser.Result invokeParseMethod(com.sun.fortress.parser.templateparser.TemplateParser parser, Method method, int num) throws IOException {
+        try{
+            return (xtc.parser.Result) method.invoke(parser, num);
+        } catch (IllegalAccessException e){
+            throw new RuntimeException(e);
+        } catch (java.lang.reflect.InvocationTargetException e){
+            throw new RuntimeException(e);
+        }
+    }
 
-                parser.setExpectedName(Option.<APIName>none());
-		Option<Method> parse = lookupExpression(parser.getClass(), productionName);
-		if ( ! parse.isSome() ){
-			throw new RuntimeException("Did not find method " + productionName);
-		}
+    private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
+        /*
+           BufferedReader in = Useful.bufferedStringReader(transformation.trim());
+           com.sun.fortress.parser.templateparser.TemplateParser parser =
+           new com.sun.fortress.parser.templateparser.TemplateParser(in, span.getBegin().getFileName());
 
-		try {
-//		    System.err.println("PARSING: "+transformation);
-			xtc.parser.Result parseResult = invokeParseMethod(parser,parse.unwrap(),0);
-			if (parseResult.hasValue()) {
-				Object cu = ((SemanticValue) parseResult).value;
-				if (cu instanceof AbstractNode) {
-//				    System.err.println("RESULT: "+writeJavaAST(makeComponent((Expr) cu)));
-					return Option.<Node>some(new TransformerDef(span, (AbstractNode) cu));
-				} 
-				throw new RuntimeException("Unexpected parse result: " + cu);
-			} 
-//			System.err.println("Error: "+((ParseError) parseResult).msg);
-			this.errors.add(new ParserError((ParseError) parseResult, parser));
-			return Option.none();
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage());
-		}
-                */
-            throw new RuntimeException("Can't parse templates");
-	}
-	
+           parser.setExpectedName(Option.<APIName>none());
+           Option<Method> parse = lookupExpression(parser.getClass(), productionName);
+           if ( ! parse.isSome() ){
+           throw new RuntimeException("Did not find method " + productionName);
+           }
+
+           try {
+        //		    System.err.println("PARSING: "+transformation);
+        xtc.parser.Result parseResult = invokeParseMethod(parser,parse.unwrap(),0);
+        if (parseResult.hasValue()) {
+        Object cu = ((SemanticValue) parseResult).value;
+        if (cu instanceof AbstractNode) {
+        //				    System.err.println("RESULT: "+writeJavaAST(makeComponent((Expr) cu)));
+        return Option.<Node>some(new TransformerDef(span, (AbstractNode) cu));
+        } 
+        throw new RuntimeException("Unexpected parse result: " + cu);
+        } 
+        //			System.err.println("Error: "+((ParseError) parseResult).msg);
+        this.errors.add(new ParserError((ParseError) parseResult, parser));
+        return Option.none();
+        } catch (IOException e) {
+        e.printStackTrace();
+        throw new RuntimeException(e.getMessage());
+        }
+        */
+        throw new RuntimeException("Can't parse templates");
+    }
+
     private Component makeComponent(Expr expression) {
         APIName name = NodeFactory.makeAPIName("TransformationComponent");
         Span span = new Span();
