@@ -24,8 +24,12 @@ api SyntaxNodes
         Expr |Expr:=
           b-a-d x:Thing <[ x ]>
 
+        B :Expr:=
+        b <[ "b" ]>
+
         Thing :Expr:=
-        b q:Expr <[ (b-a-d b 4) + 1 ]>
+        q:Expr <[ (b-a-d b) + q ]>
+        | n:B <[ n ]>
         (*
         b q:Expr <[ (b-a-d e q 4) + 1 ]>
         *)
