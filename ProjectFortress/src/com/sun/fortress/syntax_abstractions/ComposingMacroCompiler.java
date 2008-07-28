@@ -42,10 +42,12 @@ import xtc.tree.Comment;
 import xtc.parser.Action;
 import xtc.parser.Element;
 import xtc.parser.FullProduction;
+import xtc.parser.AlternativeAddition;
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleImport;
 import xtc.parser.ModuleInstantiation;
+import xtc.parser.ModuleModification;
 import xtc.parser.ModuleList;
 import xtc.parser.ModuleName;
 import xtc.parser.NonTerminal;
@@ -80,6 +82,10 @@ import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 public class ComposingMacroCompiler {
 
     private static final String FORTRESS = "com.sun.fortress.parser.Fortress";
+    private static final String TEMPLATEPARSER = "com.sun.fortress.parser.templateparser.TemplateParser";
+    private static final String COMPILATION = "com.sun.fortress.parser.Compilation";
+    private static final String TEMPLATECOMPILATION = "com.sun.fortress.parser.templateparser.Compilation";
+    private static final char SEP = '/'; // File.separatorChar
     private static final String USER_MODULE_NAME = "USER";
 
     private ComposingMacroCompiler() {}
@@ -357,8 +363,8 @@ public class ComposingMacroCompiler {
 
         // For each extended native nonterminal,
         //   add new module's production to top
-        String srcDir = RatsUtil.getParserPath();
-        Map<String, Module> baseModules = getBaseModules(srcDir);
+        Map<String, Module> baseModules = getBaseModules(RatsUtil.getParserPath());
+        Map<String, Module> templateModules = getBaseModules(RatsUtil.getTemplateParserPath());
         for (String definedByPeg : peg) {
             Debug.debug( Debug.Type.SYNTAX, 3,
                          "Checking if " + definedByPeg + " is native");
@@ -367,6 +373,9 @@ public class ComposingMacroCompiler {
                 String ntName = afterLastDot(definedByPeg);
                 String userExtensionsName = mangler.mangle(definedByPeg);
                 Module baseModule = baseModules.get(getRatsModuleName(definedByPeg));
+                if ( baseModule.modification != null ){
+                    Debug.debug( Debug.Type.SYNTAX, 3, baseModule.getClassName() + " is a modification" );
+                }
                 Debug.debug( Debug.Type.SYNTAX, 3,
                              "Modify " + definedByPeg +
                              "; ntName=" + ntName + 
@@ -378,10 +387,19 @@ public class ComposingMacroCompiler {
                         Element indirection = new NonTerminal(userExtensionsName);
                         Sequence indirectionSequence = new Sequence(indirection);
                         p.choice.alternatives.add(0, indirectionSequence);
+                    } else {
+                        // Debug.debug( Debug.Type.SYNTAX, 4, "Ignoring production " + p.name.name + ". " + p.getClass().getName() );
                     }
                 }
                 if (!found) {
-                    throw new RuntimeException("Failed to modify " + definedByPeg);
+                    /*
+                    String type = "Expr";
+                    Production add = new AlternativeAddition( type, new NonTerminal(userExtensionsName), new OrderedChoice(), null, true );
+                    Element indirection = new NonTerminal(userExtensionsName);
+                    Sequence indirectionSequence = new Sequence(indirection);
+                    add.choice.alternatives.add(0, indirectionSequence);
+                    */
+                    throw new RuntimeException("Failed to modify " + definedByPeg + ". Could not find a production for it." );
                 }
             }
         }
@@ -392,7 +410,8 @@ public class ComposingMacroCompiler {
         ModuleName uname = new ModuleName("USERvar");
         for (Module baseModule : baseModules.values()) {
             if (!baseModule.name.name.equals(FORTRESS) && 
-                !baseModule.name.name.equals("com.sun.fortress.parser.Compilation")) {
+                !baseModule.name.name.equals(TEMPLATEPARSER) && 
+                !baseModule.name.name.equals(COMPILATION)) {
                 ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
                 ups.add(bname);
@@ -404,13 +423,38 @@ public class ComposingMacroCompiler {
                 bps.add(uname);
                 baseModule.parameters = new ModuleList(bps);
                 baseModule.dependencies.add(new ModuleImport(uname));
-            } else if (baseModule.name.name.equals(FORTRESS)) {
+            }
+        }
+
+        for ( Module baseModule : templateModules.values() ){
+            if (!baseModule.name.name.equals(TEMPLATEPARSER) && 
+                !baseModule.name.name.equals(FORTRESS) && 
+                !baseModule.name.name.equals(TEMPLATECOMPILATION)) {
+                // ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
+                // List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
+                // ups.add(bname);
+                // userModule.parameters = new ModuleList(ups);
+                // userModule.dependencies.add(new ModuleImport(bname));
+                List<ModuleName> bps = new LinkedList<ModuleName>();
+                if (baseModule.parameters != null)
+                    bps.addAll(baseModule.parameters.names);
+                bps.add(uname);
+                baseModule.parameters = new ModuleList(bps);
+                baseModule.dependencies.add(new ModuleImport(uname));
+
+                for ( ModuleDependency dependancy : baseModule.dependencies ){
+                    if ( dependancy instanceof ModuleModification ){
+                        dependancy.arguments.names.add(uname);
+                    }
+                }
+            } else if (baseModule.name.name.equals(TEMPLATEPARSER)) {
                 mainModule = baseModule;
             }
         }
+
         // for each existing instantiation, add USER to the arguments
         for (ModuleDependency dep : mainModule.dependencies) {
-            if (!dep.module.name.equals("com.sun.fortress.parser.Compilation")) {
+            if (!dep.module.name.equals(TEMPLATECOMPILATION)) {
                 List<ModuleName> args = new LinkedList<ModuleName>();
                 if (dep.arguments != null) {
                     args.addAll(dep.arguments.names);
@@ -423,7 +467,8 @@ public class ComposingMacroCompiler {
         List<ModuleName> argslist = new LinkedList<ModuleName>();
         for (Module baseModule : baseModules.values()) {
             if (baseModule != mainModule &&
-                !baseModule.name.name.equals("com.sun.fortress.parser.Compilation")) {
+                !baseModule.name.name.equals(FORTRESS) &&
+                !baseModule.name.name.equals(COMPILATION)) {
                 ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 argslist.add(bname);
             }
@@ -436,6 +481,7 @@ public class ComposingMacroCompiler {
         // Generate parser
         Collection<Module> modules = new LinkedList<Module>();
         modules.addAll(baseModules.values());
+        modules.addAll(templateModules.values());
         modules.add(userModule);
         return RatsParserGenerator.generateParser(modules);
     }
