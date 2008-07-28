@@ -48,6 +48,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
+import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
 import com.sun.fortress.syntax_abstractions.MacroCompiler;
 import com.sun.fortress.syntax_abstractions.phases.Transform;
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
@@ -96,10 +97,15 @@ public class FortressParser {
         }
 
         // Compile the syntax abstractions and create a temporary parser
+        Class<?> temporaryParserClass = 
+            ComposingMacroCompiler.parserForComponent(ppr.getGrammars());
+
+        /*
         MacroCompiler macroCompiler = new FileBasedMacroCompiler();
         MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars(), env);
         if (!tr.isSuccessful()) { return new Result(tr.errors()); }
         Class<?> temporaryParserClass = tr.getParserClass(); 
+        */
         Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
 
         BufferedReader in = null; 

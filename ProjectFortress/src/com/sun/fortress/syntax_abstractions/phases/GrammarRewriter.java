@@ -80,6 +80,8 @@ import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Useful;
 
+// import com.sun.fortress.tools.FortressAstToConcrete;
+
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
@@ -155,7 +157,6 @@ public class GrammarRewriter {
         if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
         initializeGrammarIndexExtensions(apiIR.apis().values());
                 
-        List<Api> rs = new ArrayList<Api>();
         for (ApiIndex api: apiIR.apis().values()) { 
             initGrammarEnv(api.grammars().values());
         }
@@ -172,6 +173,7 @@ public class GrammarRewriter {
             }
         }
 
+        List<Api> rs = new ArrayList<Api>();
         IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(i2, System.currentTimeMillis() );
         initializeGrammarIndexExtensions(apiN.apis().values());
         for ( final ApiIndex api : apiN.apis().values() ){
@@ -181,6 +183,7 @@ public class GrammarRewriter {
             final Api raw = (Api) api.ast().accept( new TemplateParser() );
 
             /* should this contain an instance of the class? */
+            // FIXME: Eliminate side effects
             final Option<Class<?>>[] parser = new Option[1];
             parser[0] = Option.none();
             rs.add( (Api) raw.accept( new NodeUpdateVisitor(){
@@ -203,8 +206,10 @@ public class GrammarRewriter {
                 }
 
                 @Override public Node forTransformerDef(TransformerDef that) {
-                    try{
-                        return new TransformerNode(that.getTransformer(), parseTemplate( raw.getName(), that.getDef(), parser[ 0 ].unwrap() ) );
+                    try {
+                        Node templateNode = 
+                            parseTemplate( raw.getName(), that.getDef(), parser[ 0 ].unwrap() );
+                        return new TransformerNode(that.getTransformer(), templateNode);
                     } catch ( OptionUnwrapException e ){
                         throw StaticError.make( "No parser created while rewriting api " + raw, "" );
                     }
@@ -298,6 +303,9 @@ public class GrammarRewriter {
             if ( result.hasValue() ){
                 Object node = ((SemanticValue) result).value;
                 Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '" + stuff + "' as node " + node );
+//                 Debug.debug( Debug.Type.SYNTAX, 3,
+//                              "Template body is: " + 
+//                              FortressAstToConcrete.astToString((Node)node));
                 return (Node) node;
             } else {
                 throw new ParserError((ParseError) result, parser);
@@ -396,7 +404,7 @@ public class GrammarRewriter {
     }
     */
     
-    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+    public static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
         for (ApiIndex a2: apis) {
