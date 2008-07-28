@@ -21,11 +21,6 @@ export FortressBuiltin
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
-trait Object extends Any
-    toString(): String =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ToString")
-end
-
 value object Float extends RR64
     getter toString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ToString")
