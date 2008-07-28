@@ -162,10 +162,23 @@ public class ComposingMacroCompiler {
         return pegFor( collectImports( grammar ), imports, definitions, extensions );
     }
 
-    private static Collection<GrammarIndex> collectImports( GrammarIndex grammar ){
-        Collection<GrammarIndex> all = new HashSet<GrammarIndex>();
+    public static Class<?> parserForComponent(Collection<GrammarIndex> imports) {
+        Debug.debug(Debug.Type.SYNTAX, 2, 
+                    "ComposingMacroCompiler: create parser for component");
+        Debug.debug( Debug.Type.SYNTAX, 2, "Imports: " + imports );
+        Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions = 
+            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+        Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions = 
+            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
+        return pegFor( collectImports( imports ), imports, definitions, extensions );
+    }
 
-        Collection<GrammarIndex> extended = grammar.getExtended();
+    private static Collection<GrammarIndex> collectImports( GrammarIndex grammar ){
+        return collectImports(grammar.getExtended());
+    }
+
+    private static Collection<GrammarIndex> collectImports( Collection<GrammarIndex> extended ) {
+        Collection<GrammarIndex> all = new HashSet<GrammarIndex>();
         for ( GrammarIndex importedGrammar : extended ){
             all.add( importedGrammar );
             all.addAll( collectImports( importedGrammar ) );
@@ -179,6 +192,8 @@ public class ComposingMacroCompiler {
                              Collection<GrammarIndex> imports,
                              Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions,
                              Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions ){
+
+        Debug.debug( Debug.Type.SYNTAX, 2, "Relevant grammars: " + relevant );
 
         PEG peg = new PEG();
 
@@ -258,6 +273,9 @@ public class ComposingMacroCompiler {
             @Override public void for_TerminalDef(_TerminalDef that){
                 resolveChoice( defs, relevant, that.getSyntaxDef() );
             }
+            @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
+                return;
+            }
         });
     }
 
@@ -271,6 +289,12 @@ public class ComposingMacroCompiler {
                         if ( implicit.contains( that.getHeader().getName().toString() ) ){
                             all.add( nonterminal );
                         }
+                    }
+                    @Override public void forNonterminalDef(NonterminalDef that) {
+                        return;
+                    }
+                    @Override public void for_TerminalDef(_TerminalDef that) {
+                        return;
                     }
                 });
             }
@@ -297,6 +321,12 @@ public class ComposingMacroCompiler {
                 @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                     domain.add( that.getHeader().getName().toString() );
                 }
+                    @Override public void forNonterminalDef(NonterminalDef that) {
+                        return;
+                    }
+                    @Override public void for_TerminalDef(_TerminalDef that) {
+                        return;
+                    }
             });
         }
 
@@ -351,6 +381,10 @@ public class ComposingMacroCompiler {
     private static Class<?> makeParser(PEG peg, Set<String> nativeNonterminals) {
         Mangler mangler = new Mangler(nativeNonterminals);
 
+        Debug.debug( Debug.Type.SYNTAX, 3,
+                     "Native nonterminals: " + nativeNonterminals);
+
+
         // Turn peg into a single new module
         //   (mangle names to avoid conflict)
         //   extensions of native nonterminals become simple definitions
@@ -369,6 +403,7 @@ public class ComposingMacroCompiler {
             Debug.debug( Debug.Type.SYNTAX, 3,
                          "Checking if " + definedByPeg + " is native");
             if (nativeNonterminals.contains(definedByPeg)) {
+                Debug.debug( Debug.Type.SYNTAX, 3, "... yes!");
                 String moduleName = getRatsModuleName(definedByPeg);
                 String ntName = afterLastDot(definedByPeg);
                 String userExtensionsName = mangler.mangle(definedByPeg);

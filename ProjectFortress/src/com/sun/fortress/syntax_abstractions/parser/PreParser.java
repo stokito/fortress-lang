@@ -174,27 +174,27 @@ public class PreParser {
 	/** Parses a single file. */
 	public static Result parse(APIName api_name, File f, GlobalEnvironment env) {
 
-		Parser.Result pr = parseFile(api_name, f);
-		if (!pr.isSuccessful()) { return new Result(pr.errors()); }
-
-		// TODO: Check that result only contains at most one component
-
-        Collection<GrammarIndex> result = new LinkedList<GrammarIndex>();
-		for (Component c: pr.components()) {
-		    ImportedApiCollector collector = new ImportedApiCollector(env);
-		    collector.collectApis(c);
-		    if (collector.importsTopLevelGrammars()) {
-		        result.addAll(collector.getGrammars());
-		    }
-		    
-			if (!result.isEmpty()) {
-			    Debug.debug(Debug.Type.SYNTAX, "Component: ", c.getName(), " imports grammars...");
-			}
-		}
-
-		return new Result(result);
+            Parser.Result pr = parseFile(api_name, f);
+            if (!pr.isSuccessful()) { return new Result(pr.errors()); }
+            
+            // TODO: Check that result only contains at most one component
+            
+            Collection<GrammarIndex> result = new LinkedList<GrammarIndex>();
+            for (Component c: pr.components()) {
+                ImportedApiCollector collector = new ImportedApiCollector(env);
+                collector.collectApis(c);
+                if (collector.importsTopLevelGrammars()) {
+                    result.addAll(collector.getGrammars());
+                }
+		
+                if (!result.isEmpty()) {
+                    Debug.debug(Debug.Type.SYNTAX, "Component: ", c.getName(), " imports grammars...");
+                }
+            }
+            
+            return new Result(result);
 	}
-
+    
     private static Parser.Result parseFile(APIName api_name, File f) {
         try {
             return new Parser.Result(Parser.preparseFileConvertExn(api_name, f),
