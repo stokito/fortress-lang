@@ -33,6 +33,30 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
        3. Handle syntax abstraction nodes.
      */
 
+    private int indent = 0;
+
+    private void increaseIndent(){
+        indent += 1;
+    }
+
+    private void decreaseIndent(){
+        indent -= 1;
+    }
+
+    private String getIndent(){
+        StringBuilder s = new StringBuilder();
+
+        for ( int i = 0; i < indent; i++ ){
+            s.append( "    " );
+        }
+
+        return s.toString();
+    }
+
+    private String indent( String stuff ){
+        return getIndent() + stuff.replaceAll("\n", "\n" + getIndent() );
+    }
+
     /* utility methods ********************************************************/
     /* returns a string beginning with 'kind' followed by a sequence of elements
        in 'list' separated by commas and  enclosed by '{' and '}'
@@ -297,6 +321,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                  List<String> decls_result) {
         StringBuilder s = new StringBuilder();
 
+        increaseIndent();
+
         s.append( join(mods_result, " ") );
         s.append( "object " ).append( name_result );
         if ( ! staticParams_result.isEmpty() ) {
@@ -316,8 +342,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         s.append( contract_result );
         s.append( "\n" );
-        s.append( join(decls_result,"\n") );
+        s.append( indent(join(decls_result,"\n")) );
         s.append( "\nend" ).append( "\n" );
+
+        decreaseIndent();
 
         return s.toString();
     }
@@ -333,6 +361,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               String contract_result,
                                               List<String> decls_result) {
         StringBuilder s = new StringBuilder();
+        
+        increaseIndent();
 
         s.append( join(mods_result, " ") );
         s.append( "object " ).append( name_result );
@@ -353,8 +383,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         s.append( contract_result );
         s.append( "\n" );
-        s.append( join(decls_result,"\n") );
+        s.append( indent(join(decls_result,"\n")) );
         s.append( "\nend" ).append( "\n" );
+        
+        decreaseIndent();
 
         return s.toString();
     }
