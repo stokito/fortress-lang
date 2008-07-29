@@ -1254,7 +1254,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forMatrixTypeOnly( that,
 //    @Override public String forTaggedDimTypeOnly( that,
 //    @Override public String forTaggedUnitTypeOnly( that,
-//    @Override public String forTupleTypeOnly( that,
+    @Override public String forTupleTypeOnly(TupleType that, List<String> elements_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( "(" );
+        s.append( join(elements_result, ", ") );
+        s.append( ")" );
+        return s.toString();
+    }
+
 //    @Override public String forVarargTupleTypeOnly( that,
 
     @Override public String forVoidTypeOnly(VoidType that) {
