@@ -370,22 +370,6 @@ public final class Shell {
                 APIName name = trueApiName( s );
                 Path path = sourcePath( s, name );
 
-                /*
-                Debug.debug( Debug.Type.REPOSITORY, 2, "True api name is " + name );
-                Debug.debug( Debug.Type.REPOSITORY, 2, "Path is " + s );
-                Path path = ProjectProperties.SOURCE_PATH;
-                String source = new File( s ).getCanonicalPath().substring( 0, s.length() - (name.toString().length() + 4) );
-                path = path.prepend( source );
-                Debug.debug( Debug.Type.REPOSITORY, 2, "Source path is " + source );
-                Debug.debug( Debug.Type.REPOSITORY, 2, "Lookup path is " + path );
-                */
-                /*
-                if (s.contains("/")) {
-                    String head = s.substring(0, s.lastIndexOf("/"));
-                    s = s.substring(s.lastIndexOf("/")+1, s.length());
-                    path = path.prepend(head);
-                }
-                */
                 Iterable<? extends StaticError> errors = compile(path, name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi"), out );
                 if ( errors.iterator().hasNext() ){
                     for (StaticError error: errors) {
@@ -482,19 +466,9 @@ public final class Shell {
     private static void run(String fileName, List<String> args)
         throws UserError, Throwable {
         try {
-            /*
-            Path path = ProjectProperties.SOURCE_PATH;
-            if (fileName.contains("/")) {
-                String head = fileName.substring(0, fileName.lastIndexOf("/"));
-                fileName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
-                path = path.prepend(head);
-            }
-            APIName componentName = cuName(fileName);
-            */
-
             APIName name = trueApiName( fileName );
             Path path = sourcePath(fileName, name);
-            
+
             GraphRepository bcr = specificRepository( path, defaultRepository );
             Iterable<? extends StaticError> errors = IterUtil.empty();
 
@@ -518,7 +492,9 @@ public final class Shell {
             for (StaticError error: errors) {
                 System.err.println(error);
             }
-            // If there are no errors, all components will have been written to disk by the CacheBasedRepository.
+            // If there are no errors,
+            // all components will have been written to disk
+            // by the CacheBasedRepository.
         } catch ( StaticError e ){
             System.err.println(e);
             if ( Debug.isOnMax() ){
