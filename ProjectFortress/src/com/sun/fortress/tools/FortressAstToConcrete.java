@@ -819,7 +819,29 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
 //    @Override public String forArgExprOnly( that,
-//    @Override public String forTypecaseOnly( that,
+
+    @Override public String forTypecaseOnly(Typecase that, List<String> bindIds_result, Option<String> bindExpr_result, List<String> clauses_result, Option<String> elseClause_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "typecase " );
+        s.append( join(bindIds_result, ", ") );
+        if ( bindExpr_result.isSome() ){
+            s.append( " = " );
+            s.append( bindExpr_result.unwrap() );
+        }
+        s.append( " of\n" );
+        increaseIndent();
+        s.append(indent(join(clauses_result,"\n")));
+        if ( elseClause_result.isSome() ){
+            s.append(indent("\nelse => " + elseClause_result.unwrap()));
+        }
+        decreaseIndent();
+        s.append("\n");
+        s.append("end");
+
+        return s.toString();
+    }
+
 //    @Override public String forWhileOnly( that,
 //    @Override public String forAccumulatorOnly( that,
 //    @Override public String forArrayComprehensionOnly( that,
@@ -1204,7 +1226,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-//    @Override public String forTraitTypeOnly( that,
+    @Override public String forTraitTypeOnly(TraitType that, String name_result, List<String> args_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( name_result );
+        s.append( join(args_result,", ") );
+
+        return s.toString();
+    }
+
 //    @Override public String for_RewriteGenericSingletonTypeOnly( that,
 
     @Override public String forArrayTypeOnly(ArrayType that,

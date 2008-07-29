@@ -48,7 +48,8 @@ public class AstJUTest extends TestCase {
     }
 
     @Override public void runTest() throws FileNotFoundException, IOException {
-        assertEquals(parse(new File(file)), parse(unparse(parse(new File(file)))));
+        File f = new File(file);
+        assertEquals(parse(f), parse(unparse(parse(f))));
     }
 
     private Node parse(String buffer) throws IOException {
