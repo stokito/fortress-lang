@@ -31,16 +31,19 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 /* Converts a Node to a string which is the concrete version of that node
  *
  * Caveats:
- * 1. a#b is converted to a:b
- * 2. Accumulators can be optionally prefixed by "BIG". The Ast does not preserve this information
- * 3. Operator names have equivalent canonical versions, e.g., =/= and NE
+ * 1. "a:b" is converted to "a#(b-a+1)".
+ *    "b" is converted to "#b".
+ * 2. Accumulators can be optionally prefixed by "BIG".
+ *    The Ast does not preserve this information.
+ * 3. Operator names have equivalent canonical versions, e.g., "=/=" and "NE"
  */
-public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
-    /* Possible improvements **************************************************/
-    /* 1. Add newlines and indentation
-       2. Handle syntax abstraction nodes.
-     */
+/* Possible improvements **************************************************/
+/* 1. Add newlines and indentation
+   2. Handle syntax abstraction nodes.
+*/
+
+public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     /* indentation utilities *************************************************/
     private int indent = 0;
@@ -453,8 +456,27 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forUnpastingBindOnly( that,
-//    @Override public String forUnpastingSplitOnly( that,
+    @Override public String forUnpastingBindOnly(UnpastingBind that,
+                                                 String name_result,
+                                                 List<String> dim_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( name_result );
+        if ( ! dim_result.isEmpty() ) {
+            s.append( "[ " );
+            s.append( join(dim_result, " BY ") );
+            s.append( " ]" );
+        }
+
+        return s.toString();
+    }
+
+    @Override public String forUnpastingSplitOnly(UnpastingSplit that,
+                                                  List<String> elems_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( join(elems_result, "\n") );
+        return s.toString();
+    }
 
     @Override public String forAbsFnDeclOnly(AbsFnDecl that,
                                              List<String> mods_result,
@@ -466,6 +488,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              String where_result,
                                              String contract_result) {
         StringBuilder s = new StringBuilder();
+
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
         }
@@ -482,6 +505,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         s.append( where_result );
         s.append( contract_result );
+
         return s.toString();
     }
 
@@ -1045,7 +1069,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     @Override public Boolean forUnpastingBind(UnpastingBind that) {
                         return false;
                     }
-    
+
                     @Override public Boolean forUnpastingSplit(UnpastingSplit that) {
                         return false;
                     }
@@ -1210,9 +1234,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    /* TODO: BIG Op StaticArgs
-             LeftEncloser StaticArgs ExprList RightEncloser
-     */
     @Override public String forOpRefOnly(OpRef that,
                                          String originalName_result,
                                          List<String> ops_result,
@@ -1283,9 +1304,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return " " + oper + " ";
     }
 
-    //    @Override public String forOpExprOnly( that,
-    /* TODO: operator fixity
-     */
     @Override public String forOpExprOnly(OpExpr that,
                                           final String op_result,
                                           final List<String> args_result) {
@@ -1293,18 +1311,22 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( that.getOp().getOriginalName().accept( new NodeDepthFirstVisitor<String>(){
             @Override public String forOp(final Op opThat) {
-                /* fixity shouldnt be null */
                 final String oper = opThat.getText();
+                /* fixity shouldnt be null */
+                assert(opThat.getFixity().isSome());
                 return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
                     @Override public String forPreFixityOnly(PreFixity that) {
-                        return oper + join(args_result, " ");
+                        assert( args_result.size() == 1);
+                        return inParentheses(oper) + args_result.get(0);
                     }
 
                     @Override public String forPostFixityOnly(PostFixity that){
-                        return join(args_result, " ") + oper;
+                        assert( args_result.size() == 1);
+                        return inParentheses(args_result.get(0)) + oper;
                     }
 
                     @Override public String forNoFixityOnly(NoFixity that){
+                        assert( args_result.isEmpty() );
                         return oper;
                     }
 
@@ -1395,7 +1417,19 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-//    @Override public String forMathPrimaryOnly( that,
+    @Override public String forMathPrimaryOnly(MathPrimary that,
+                                               String multiJuxt_result,
+                                               String infixJuxt_result,
+                                               String front_result,
+                                               List<String> rest_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( front_result );
+        s.append( join(rest_result, "") );
+
+        return handleParen( s.toString(),
+                            that.isParenthesized() );
+    }
 
     @Override public String forArrayElementOnly(ArrayElement that,
                                                 List<String> staticArgs_result,
@@ -1427,13 +1461,84 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-//    @Override public String forExponentTypeOnly( that,
-//    @Override public String forBaseDimOnly( that,
-//    @Override public String forDimRefOnly( that,
-//    @Override public String forProductDimOnly( that,
-//    @Override public String forQuotientDimOnly( that,
-//    @Override public String forExponentDimOnly( that,
-//    @Override public String forOpDimOnly( that,
+    @Override public String forExponentTypeOnly(ExponentType that,
+                                                String base_result,
+                                                String power_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( base_result );
+        s.append( "^" );
+        s.append( power_result );
+
+        return handleParen( s.toString(),
+                            that.isParenthesized() );
+    }
+
+    @Override public String forBaseDimOnly(BaseDim that) {
+        return handleParen( "Unity",
+                            that.isParenthesized() );
+    }
+
+    @Override public String forDimRefOnly(DimRef that,
+                                          String name_result) {
+        return handleParen( name_result,
+                            that.isParenthesized() );
+    }
+
+    @Override public String forProductDimOnly(ProductDim that,
+                                              String multiplier_result,
+                                              String multiplicand_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( multiplier_result ).append( " " );
+        s.append( multiplicand_result );
+
+        return handleParen( s.toString(),
+                            that.isParenthesized() );
+    }
+
+    @Override public String forQuotientDimOnly(QuotientDim that,
+                                               String numerator_result,
+                                               String denominator_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( numerator_result ).append( "/" );
+        s.append( denominator_result );
+
+        return handleParen( s.toString(),
+                            that.isParenthesized() );
+    }
+
+    @Override public String forExponentDimOnly(ExponentDim that,
+                                               String base_result,
+                                               String power_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( base_result ).append( "^" );
+        s.append( power_result );
+
+        return handleParen( s.toString(),
+                            that.isParenthesized() );
+    }
+
+    @Override public String forOpDimOnly(OpDim that,
+                                         String val_result,
+                                         String op_result) {
+        StringBuilder s = new StringBuilder();
+
+        if ( op_result.equals("square") ||
+             op_result.equals("cubic") ||
+             op_result.equals("inverse")) { // DimPrefixOp
+            s.append( op_result ).append( " " );
+            s.append( val_result );
+        } else { // DimPostfixOp
+            s.append( val_result ).append( " " );
+            s.append( op_result );
+        }
+
+        return handleParen( s.toString(),
+                            that.isParenthesized() );
+    }
 
     @Override public String forAnyTypeOnly(AnyType that) {
         return handleParen( "Any",
@@ -2130,8 +2235,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return that.getText();
     }
 
-    /* TODO: use sites
-     */
     @Override public String forEnclosingOnly(Enclosing that,
                                              Option<String> api_result,
                                              String open_result,
@@ -2249,6 +2352,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
        In the Fortress source program, either "#size" or "size" may be used.
        In AST, only "#size" is used.
      */
+//    @Override public String forExtentRangeOnly( that,
     @Override public String forExtentRangeOnly(ExtentRange that,
                                                Option<String> base_result,
                                                Option<String> size_result) {
@@ -2316,10 +2420,44 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-//    @Override public String forParenthesisDelimitedMIOnly( that,
-//    @Override public String forNonParenthesisDelimitedMIOnly( that,
-//    @Override public String forExponentiationMIOnly( that,
-//    @Override public String forSubscriptingMIOnly( that,
+    @Override public String forParenthesisDelimitedMIOnly(ParenthesisDelimitedMI that,
+                                                          String expr_result) {
+        return inParentheses( expr_result );
+    }
+
+    @Override public String forNonParenthesisDelimitedMIOnly(NonParenthesisDelimitedMI that,
+                                                             String expr_result) {
+        return expr_result;
+    }
+
+    @Override public String forExponentiationMIOnly(ExponentiationMI that,
+                                                    String op_result,
+                                                    Option<String> expr_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( op_result );
+        if ( expr_result.isSome() ) {
+            s.append( expr_result.unwrap() );
+        }
+
+        return s.toString();
+    }
+
+    @Override public String forSubscriptingMIOnly(SubscriptingMI that,
+                                                  String op_result,
+                                                  List<String> exprs_result,
+                                                  List<String> staticArgs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( that.getOp().getOpen().getText() );
+        s.append( inOxfordBrackets( staticArgs_result ) );
+        s.append( " " );
+        s.append( join(exprs_result, ", ") );
+        s.append( " " );
+        s.append( that.getOp().getClose().getText() );
+
+        return s.toString();
+    }
 
     @Override public String forInFixityOnly(InFixity that) {
         return "";
