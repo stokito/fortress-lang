@@ -557,6 +557,7 @@ testOnly, testCruiseControl"/>
                     <include name="**/*JUTests.class"/>
                     <exclude name="**/*$*.class"/>
                     <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
+		    <exclude name="**/tools/AstJUTest.class"/>
                 </fileset>
             </batchtest>
         </junit>
