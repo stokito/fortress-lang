@@ -19,6 +19,8 @@ package com.sun.fortress.tools;
 
 import java.util.List;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.Fn;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -1031,9 +1033,32 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                 Option<String> rhs_result) {
         StringBuilder s = new StringBuilder();
 
+        /* contains a true if any of the variables have a 'var' modifier */
+        List<Boolean> mutables = Useful.applyToAll( that.getLhs(), new Fn<LValue,Boolean>(){
+            public Boolean apply( LValue value ){
+                return value.accept( new NodeDepthFirstVisitor<Boolean>(){
+                    @Override public Boolean forLValueBind(LValueBind that) {
+                        return that.isMutable();
+                    }
+
+                    @Override public Boolean forUnpastingBind(UnpastingBind that) {
+                        return false;
+                    }
+    
+                    @Override public Boolean forUnpastingSplit(UnpastingSplit that) {
+                        return false;
+                    }
+                });
+            }
+        });
+
         s.append( inParentheses(lhs_result) );
         if ( rhs_result.isSome() ){
-            s.append( " = " );
+            if ( mutables.contains( true ) ){
+                s.append( " := " );
+            } else {
+                s.append( " = " );
+            }
             s.append( rhs_result.unwrap() );
         }
         s.append("\n");
