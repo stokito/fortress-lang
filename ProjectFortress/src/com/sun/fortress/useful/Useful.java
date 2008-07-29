@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.rice.cs.plt.collect.ConsList;
 import edu.rice.cs.plt.collect.ImmutableRelation;
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
@@ -986,6 +988,19 @@ public class Useful {
         }
         return e;
     }
+
+    /**
+     * Does the given ConsList contain the given element?
+     */
+	public static <T> boolean consListContains(T item, ConsList<? extends T> list) {
+		Iterator<? extends T> iter = list.iterator();
+		while( iter.hasNext() ) {
+			T t = iter.next();
+			if( t.equals(item) )
+				return true;
+		}
+		return false;
+	}
 
 
 }

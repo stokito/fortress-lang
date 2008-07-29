@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+a
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component AngelinaTest
+export Executable
+
+trait T
+    x():ZZ32
+end
+
+object O(v:ZZ32) 
+    foo() = 3
+    (* After we move checking of method calls to be after
+       type inference, remove the explicit return type T. *)
+    bar():T = object extends T
+                x():ZZ32 = 4 
+            end
+    quack() = self.v
+end
+
+run(args:String...):() = do
+    o:O = O(3);
+    println o.v
+    println o.bar().x()
+end
+
+end
+

@@ -39,10 +39,12 @@ import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
+import com.sun.fortress.compiler.index.DeclaredVariable;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
+import com.sun.fortress.compiler.index.ParamVariable;
 import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -1271,8 +1273,30 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						 Map<Id,Variable> fields=object_index.fields();
 						 if(fields.containsKey(that.getField())){
 							 Variable field=fields.get(that.getField());
-							 Option<BindingLookup> type=this.typeEnv.binding(that.getField());
-							 return Option.some(type.unwrap().getType().unwrap());
+							 
+							 if( field instanceof ParamVariable ) {
+								 ParamVariable param = (ParamVariable)field;
+								 Param field_node = param.ast();
+								 
+								 Type field_type = 
+								 field_node.accept(new NodeAbstractVisitor<Type>() {
+									@Override
+									public Type forNormalParam(NormalParam that) { return that.getType().unwrap(); }
+
+									@Override
+									public Type forVarargsParam(VarargsParam that) { return that.getType(); }
+								 });
+								 
+								 return Option.some(field_type);
+							 }
+							 else if( field instanceof DeclaredVariable ) {
+								 DeclaredVariable var = (DeclaredVariable)field;
+								 LValueBind bind = var.ast();
+								 return Option.some(bind.getType().unwrap()); 
+							 }
+							 else {
+								 return bug("Field of an object should not be a Singleton Object." + field);
+							 }
 						 }
 					 }
 					 //error no such field
