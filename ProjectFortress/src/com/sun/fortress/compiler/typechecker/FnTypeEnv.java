@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
@@ -165,4 +166,16 @@ class FnTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	Set<? extends Function> fns = entries.matchFirst(no_api_var);
+        if (fns.isEmpty()) {
+            return parent.declarationSite(var);
+        }
+        
+        throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
+	}
 }

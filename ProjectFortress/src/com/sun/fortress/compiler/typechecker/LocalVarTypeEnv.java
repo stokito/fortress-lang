@@ -41,24 +41,33 @@ class LocalVarTypeEnv extends TypeEnv {
         parent = _parent;
     }
 
+    private Option<LValueBind> findLVal(IdOrOpOrAnonymousName var) {
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+
+    	for (LValue lval : decl.getLhs()) {
+    		if (lval instanceof LValueBind) {
+    			LValueBind _lval = (LValueBind) lval;
+    			if (_lval.getName().equals(var) || _lval.getName().equals(no_api_var)) {
+    				return some(_lval);
+    			}
+    		} else {
+    			return NI.nyi();
+    		}
+    	}
+    	return none();
+    }
+    
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	Option<LValueBind> lval = findLVal(var);
     	
-    	for (LValue lval : decl.getLhs()) {
-            if (lval instanceof LValueBind) {
-                LValueBind _lval = (LValueBind) lval;
-                if (_lval.getName().equals(var) || _lval.getName().equals(no_api_var)) {
-                    return some(new BindingLookup(_lval));
-                }
-            } else {
-                return NI.nyi();
-            }
-        }
-        return parent.binding(var);
+    	if(lval.isSome())
+    		return some(new BindingLookup(lval.unwrap()));
+    	else
+    		return parent.binding(var);
     }
 
     @Override
@@ -74,4 +83,14 @@ class LocalVarTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+		Option<LValueBind> lval = findLVal(var);
+		
+		if(lval.isSome())
+			return Option.<Node>some(decl);
+		else
+			return parent.declarationSite(var);
+	}
 }

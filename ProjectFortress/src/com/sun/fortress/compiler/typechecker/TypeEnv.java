@@ -17,27 +17,73 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.OprUtil;
-import com.sun.fortress.nodes_util.Span;
+import static com.sun.fortress.nodes_util.NodeFactory.makeEffect;
+import static com.sun.fortress.nodes_util.NodeFactory.makeId;
+import static com.sun.fortress.nodes_util.NodeFactory.makeKeywordType;
+import static edu.rice.cs.plt.tuple.Option.none;
+import static edu.rice.cs.plt.tuple.Option.some;
+import static edu.rice.cs.plt.tuple.Option.wrap;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
-import com.sun.fortress.compiler.index.ParamVariable;
-import com.sun.fortress.compiler.index.SingletonVariable;
-import com.sun.fortress.compiler.index.DeclaredVariable;
+import com.sun.fortress.nodes.AnonymousFnName;
+import com.sun.fortress.nodes.BoolArg;
+import com.sun.fortress.nodes.BoolParam;
+import com.sun.fortress.nodes.BoolRef;
+import com.sun.fortress.nodes.ConstructorFnName;
+import com.sun.fortress.nodes.DimArg;
+import com.sun.fortress.nodes.DimParam;
+import com.sun.fortress.nodes.DimRef;
+import com.sun.fortress.nodes.Domain;
+import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.IntArg;
+import com.sun.fortress.nodes.IntParam;
+import com.sun.fortress.nodes.IntRef;
+import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.KeywordType;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LocalVarDecl;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.NatParam;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NormalParam;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpArg;
+import com.sun.fortress.nodes.OpParam;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TypeParam;
+import com.sun.fortress.nodes.UnitArg;
+import com.sun.fortress.nodes.UnitParam;
+import com.sun.fortress.nodes.UnitRef;
+import com.sun.fortress.nodes.VarargsParam;
+import com.sun.fortress.nodes._RewriteGenericArrowType;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
+
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
-import com.sun.fortress.useful.NI;
-
-import static com.sun.fortress.nodes_util.NodeFactory.*;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
  * This class is used by the type checker to represent static type environments,
@@ -216,6 +262,17 @@ public abstract class TypeEnv {
     public abstract Option<BindingLookup> binding(IdOrOpOrAnonymousName var);
 
     /**
+     * Return the {@code Node} that declared the given id, or None if the id does not
+     * exist. Note that this method should not be passed the id of a function, since
+     * functions have multiple declaration sites. You can tell if an id is a function
+     * or not by calling type() on the same id.
+     * 
+     * @exception IllegalArgumentException If var is a function, since functions have
+     * multiple declaration sites.
+     */
+    public abstract Option<Node> declarationSite(IdOrOpOrAnonymousName var);
+    
+    /**
      * Return the type of the given IdOrOpOrAnonymousName (if the given IdOrOpOrAnonymousName is in
      * this type environment).
      */
@@ -363,8 +420,8 @@ public abstract class TypeEnv {
         return new ParamTypeEnv(Arrays.asList(param), this);
     }
 
-    public final TypeEnv extendWithout(Set<? extends IdOrOpOrAnonymousName> entries) {
-        return new ConcealingTypeEnv(entries, this);
+    public final TypeEnv extendWithout(Node declSite, Set<? extends IdOrOpOrAnonymousName> entries) {
+        return new ConcealingTypeEnv(declSite, entries, this);
     }
 
     /**

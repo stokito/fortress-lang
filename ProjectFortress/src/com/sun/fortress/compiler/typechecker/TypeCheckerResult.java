@@ -58,27 +58,27 @@ public class TypeCheckerResult extends StaticPhaseResult {
 					return arg0.nodeConstraints;
 				}});     
 
-		Boolean was_sat =
-			IterUtil.fold(constraints, true, new Lambda2<Boolean,ConstraintFormula,Boolean>(){
-				public Boolean value(Boolean arg0, ConstraintFormula arg1) {
-					return arg0 & (arg1.isSatisfiable());
-				}});
+//		Boolean was_sat =
+//			IterUtil.fold(constraints, true, new Lambda2<Boolean,ConstraintFormula,Boolean>(){
+//				public Boolean value(Boolean arg0, ConstraintFormula arg1) {
+//					return arg0 & (arg1.isSatisfiable());
+//				}});
 
 		ConstraintFormula and = ConstraintFormula.bigAnd(constraints, empty_history);
 
 		// we want to report if this particular addition of constraints made the
 		// whole thing unsatisfiable.
-		boolean became_unsat = was_sat & !(and.isSatisfiable());
-		Option<StaticError> error;
-		if( became_unsat ) {
-			String err_str = "Type inference constraints became unsatisfiable " +
-			"with the following set of constraints: " + constraints;
-			error = Option.<StaticError>some(TypeError.make(err_str,ast));
-			return Pair.make(ConstraintFormula.TRUE, error);
-		}
-		else {
+//		boolean became_unsat = was_sat & !(and.isSatisfiable());
+//		Option<StaticError> error;
+//		if( became_unsat ) {
+//			String err_str = "Type inference constraints became unsatisfiable " +
+//			"with the following set of constraints: " + constraints;
+//			error = Option.<StaticError>some(TypeError.make(err_str,ast));
+//			return Pair.make(ConstraintFormula.TRUE, error);
+//		}
+//		else {
 			return Pair.make(and, Option.<StaticError>none());
-		}
+		//}
 	}
 
 	private static Map<Pair<Node,Span>, TypeEnv> collectEnvMaps(Iterable<? extends TypeCheckerResult> results) {

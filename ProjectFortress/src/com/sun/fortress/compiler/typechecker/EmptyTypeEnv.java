@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.nodes.*;
+
 import edu.rice.cs.plt.tuple.Option;
 
 import static edu.rice.cs.plt.tuple.Option.*;
@@ -38,4 +39,9 @@ class EmptyTypeEnv extends TypeEnv {
     public List<BindingLookup> contents() {
         return Collections.emptyList();
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+		return none();
+	}
 }

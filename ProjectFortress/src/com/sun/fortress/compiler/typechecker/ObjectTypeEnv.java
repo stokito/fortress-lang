@@ -26,6 +26,7 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
@@ -107,4 +108,23 @@ class ObjectTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        if (!(var instanceof Id)) { return parent.declarationSite(var); }
+        Id _var = (Id)var;
+
+        // Api-less name used for look-up only.
+        Id no_api_var = removeApi(_var);
+        
+        if (!entries.containsKey(no_api_var)) { return parent.declarationSite(var); }
+        TypeConsIndex typeCons = entries.get(no_api_var);
+        
+        // TODO: This seems wrong... If they were looking for an Object, but found some
+        // other kind of type, isn't there some way we could return a better error message?
+        if (!(typeCons instanceof ObjectTraitIndex)) { return parent.declarationSite(var); }
+        ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
+        
+        return Option.<Node>some(objIndex.ast());
+	}
 }

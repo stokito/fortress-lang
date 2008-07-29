@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -70,6 +71,12 @@ public class Useful {
         return localNow(new java.util.Date());
     }
 
+    public static <K,V> TreeMap<K,V> treeMap(Comparator<K> comp, Map<? extends K,? extends V> map) {
+    	TreeMap<K,V> result = new TreeMap<K,V>(comp);
+    	result.putAll(map);
+    	return result;
+    }
+    
     /**
      * Returns a string containing String.valueOf each element of l,
      * separated by commas, all surrounded by parentheses.

@@ -17,20 +17,17 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.nodes.*;
-
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Lambda2;
-import edu.rice.cs.plt.tuple.Option;
+import static edu.rice.cs.plt.tuple.Option.some;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static edu.rice.cs.plt.tuple.Option.*;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.Type;
+
+import edu.rice.cs.plt.tuple.Option;
 
 /** 
  * A type environment that will conceal bindings from its parent type
@@ -38,12 +35,14 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * type.
  */
 class ConcealingTypeEnv extends TypeEnv {
-    private Set<? extends IdOrOpOrAnonymousName> entries;
-    private TypeEnv parent;
+    private final Set<? extends IdOrOpOrAnonymousName> entries;
+    private final TypeEnv parent;
+    private final Node declSite;
     
-    ConcealingTypeEnv(Set<? extends IdOrOpOrAnonymousName> _entries, TypeEnv _parent) {
+    ConcealingTypeEnv(Node _declSite, Set<? extends IdOrOpOrAnonymousName> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
+        declSite = _declSite;
     }
     
     /**
@@ -69,4 +68,12 @@ class ConcealingTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	if (!entries.contains(no_api_var)) { return parent.declarationSite(var); }
+        return some(declSite);
+	}
 }
