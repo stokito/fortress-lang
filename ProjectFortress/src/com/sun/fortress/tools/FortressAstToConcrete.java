@@ -654,8 +654,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forDoOnly(Do that,
                                       List<String> fronts_result) {
         StringBuilder s = new StringBuilder();
-        s.append( join(fronts_result, "\n") );
-        s.append( "end" );
+        s.append( indent(join(fronts_result, "\n")) );
+        s.append( "\nend" );
         return s.toString();
     }
 
@@ -1772,6 +1772,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                            Option<String> loc_result,
                                            String expr_result) {
         StringBuilder s = new StringBuilder();
+        increaseIndent();
 
         if ( loc_result.isSome() ) {
             s.append( "at " ).append( loc_result.unwrap() ).append( " " );
@@ -1779,7 +1780,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( that.isAtomic() ) {
             s.append( "atomic " );
         }
-        s.append( "do\n" ).append( expr_result );
+        s.append( "do\n" ).append( indent(expr_result) );
+
+        decreaseIndent();
 
         return s.toString();
     }
@@ -1790,8 +1793,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( test_result );
-        s.append( "\nthen " );
-        s.append( body_result ).append( "\n" );
+        s.append( " then\n" );
+        increaseIndent();
+        s.append( indent(body_result) ).append( "\n" );
+        decreaseIndent();
 
         return s.toString();
     }
