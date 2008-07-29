@@ -23,6 +23,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -37,19 +38,20 @@ import edu.rice.cs.plt.iter.IterUtil;
  * </ul>
  * Assumes all names referring to APIs are fully-qualified,
  * and that the other transformations handled by the {@link com.sun.fortress.compiler.Disambiguator} have
- * been performed.  
+ * been performed.
  */
 public class Desugarer {
 
     /**
      * These two fields are temporary switches used for testing.
      * When getter_setter_desugar is true, the desugaring for getter and setter
-     * is called during static checking.  When the objExpr_desugar is true, 
+     * is called during static checking.  When the objExpr_desugar is true,
      * the closure conversion pass for object expressions is called.
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
-    public static boolean getter_setter_desugar = false;
-    public static boolean objExpr_desugar = false;
+    public static final boolean getter_setter_desugar = false;
+    public static final boolean objExpr_desugar = false;
+    public static final boolean extends_object_desugar = true;
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
@@ -67,10 +69,26 @@ public class Desugarer {
      */
     public static ApiResult desugarApis(Map<APIName, ApiIndex> apis,
                                         GlobalEnvironment env) {
-        // TODO: implement
-        return new ApiResult(apis, IterUtil.<StaticError>empty());
+        HashSet<Api> desugaredApis = new HashSet<Api>();
+
+        for (ApiIndex apiIndex : apis.values()) {
+            Api api = desugarApi(apiIndex,env);
+            desugaredApis.add(api);
+        }
+        return new ApiResult
+            (IndexBuilder.buildApis(desugaredApis,
+                                    System.currentTimeMillis()).apis(),
+             IterUtil.<StaticError>empty());
     }
 
+    public static Api desugarApi(ApiIndex apiIndex, GlobalEnvironment env) {
+        Api api = (Api)apiIndex.ast();
+        if (extends_object_desugar) {
+            ExtendsObjectVisitor extendsObjectVisitor = new ExtendsObjectVisitor();
+            api = (Api) api.accept(extendsObjectVisitor);
+        }
+        return api;
+    }
 
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
@@ -90,8 +108,8 @@ public class Desugarer {
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
-        for (APIName componentName : components.keySet()) {
-            Component desugared = desugarComponent(components.get(componentName), env);
+        for (ComponentIndex componentIndex : components.values()) {
+            Component desugared = desugarComponent(componentIndex, env);
             desugaredComponents.add(desugared);
         }
         return new ComponentResult
@@ -102,14 +120,18 @@ public class Desugarer {
 
     public static Component desugarComponent(ComponentIndex component,
                                              GlobalEnvironment env) {
-     	Component comp = (Component) component.ast();  	
+     	Component comp = (Component) component.ast();
+        if(extends_object_desugar) {
+            ExtendsObjectVisitor extendsObjectVisitor = new ExtendsObjectVisitor();
+            comp = (Component) comp.accept(extendsObjectVisitor);
+        }
         if(getter_setter_desugar) {
-        	DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
-        	comp = (Component) comp.accept(desugaringVisitor);
-        } 
+            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
+            comp = (Component) comp.accept(desugaringVisitor);
+        }
         if(objExpr_desugar) {
-        	ObjectExpressionVisitor objExprVisitor = new ObjectExpressionVisitor();
-        	comp = (Component) comp.accept(objExprVisitor);
+            ObjectExpressionVisitor objExprVisitor = new ObjectExpressionVisitor();
+            comp = (Component) comp.accept(objExprVisitor);
         }
         return comp;
     }

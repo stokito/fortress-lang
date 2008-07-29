@@ -21,7 +21,6 @@ component Overview.Moving
 
 export Executable
 
-trait Object end
 trait Tangible end
 trait RR extends Number end
 

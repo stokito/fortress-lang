@@ -21,7 +21,6 @@ component Trait.Decl
 
 export Executable
 
-trait Object end
 object Reaction end
 (** EXAMPLE **)
 trait Catalyst extends Object

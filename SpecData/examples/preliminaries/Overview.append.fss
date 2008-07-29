@@ -21,7 +21,6 @@ component Overview.append
 
 export Executable
 
-trait Object end
 trait List
   cons(x: Object, self): List
   append(xs: List, self): List

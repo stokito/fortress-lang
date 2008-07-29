@@ -34,7 +34,7 @@ assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
     fail("Failed assertion: " s l.toString() " and " r.toString())
   end
 
-chkApp(tl: List[\ZZ32\], t : List[\Any\]) = do
+chkApp(tl: List[\ZZ32\], t : List[\Object\]) = do
     assert("Hello" IN t, true, "missing Hello from ", t)
     assert(l IN t, true, "missing ",l," from ",t), l <- tl
   end
@@ -162,7 +162,7 @@ run(args:String...):() = do
       end
   end
   testStr : List[\String\] = <| "Hello" asif String |>
-  testU : List[\Any\] = testStr || testLens
+  testU : List[\Object\] = testStr || testLens
   chkApp(testLens,testU)
   chkApp(testLens,(testU || testStr).drop(1))
   chkApp(testLens,(testStr || testU).drop(1))

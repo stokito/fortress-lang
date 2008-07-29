@@ -35,6 +35,6 @@ public abstract class FObject extends FValue implements Selectable {
     public String getString() { return type().toString(); }
 
     public String toString() {
-        return getString(); 
+        return getString();
     }
 }

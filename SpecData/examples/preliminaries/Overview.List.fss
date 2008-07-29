@@ -21,7 +21,6 @@ component Overview.List
 
 export Executable
 
-trait Object end
 (** EXAMPLE **)
 trait List
   cons(x: Object, self): List
