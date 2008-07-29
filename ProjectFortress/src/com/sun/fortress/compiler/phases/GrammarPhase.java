@@ -13,7 +13,7 @@
 
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-  ******************************************************************************/
+ ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
 
@@ -30,31 +30,32 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 public class GrammarPhase extends Phase {
 
-	public GrammarPhase(Phase parentPhase) {
-		super(parentPhase);
-	}
-	
-	@Override
-	public AnalyzeResult execute() throws StaticError {
-        Debug.debug( Debug.Type.FORTRESS, 1, "Start phase GrammarPhase" );		
-		AnalyzeResult previous = parentPhase.getResult();    	    	    	
+    public GrammarPhase(Phase parentPhase) {
+        super(parentPhase);
+    }
 
-		GlobalEnvironment apiEnv =
-			new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
-					previous.apis()));
+    @Override
+    public AnalyzeResult execute() throws StaticError {
+        Debug.debug(Debug.Type.FORTRESS, 1, "Start phase GrammarPhase");
+        AnalyzeResult previous = parentPhase.getResult();
 
-		GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(previous.apis(), apiEnv);
-		if (!apiID.isSuccessful()) {
-			throw new MultipleStaticError(apiID.errors());
-		}
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
+                .union(repository.apis(), previous.apis()));
 
-		IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(), lastModified);
-		if (!apiDone.isSuccessful()) {
-			throw new MultipleStaticError(apiDone.errors());
-		}
+        GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(previous
+                .apis(), apiEnv);
+        if (!apiID.isSuccessful()) {
+            throw new MultipleStaticError(apiID.errors());
+        }
 
-		return new AnalyzeResult(apiDone.apis(), previous.components(), 
-				IterUtil.<StaticError>empty(), previous.typeEnvAtNode());        
-	}
+        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(),
+                lastModified);
+        if (!apiDone.isSuccessful()) {
+            throw new MultipleStaticError(apiDone.errors());
+        }
+
+        return new AnalyzeResult(apiDone.apis(), previous.components(),
+                IterUtil.<StaticError> empty(), previous.typeEnvAtNode());
+    }
 
 }
