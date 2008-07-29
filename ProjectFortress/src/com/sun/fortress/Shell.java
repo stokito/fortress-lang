@@ -23,22 +23,20 @@ import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import java.io.*;
 import java.util.*;
+
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.environments.TopLevelEnvGen;
+import com.sun.fortress.compiler.phases.PhaseOrder;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -46,7 +44,6 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
-import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
@@ -56,19 +53,8 @@ import com.sun.fortress.tools.FortressAstToConcrete;
 public final class Shell {
     static boolean test;
 
-    /* These numbers have no importance, so don't worry about the order or even
-     * their value ( but they must be unique ).
-     * If you feel like changing this to an enum at any point that is fine.
-     */
-    private static final int PHASE_CODEGEN = 0;
-    private static final int PHASE_DESUGAR = 1;
-    private static final int PHASE_TYPECHECK = 2;
-    private static final int PHASE_GRAMMAR = 3;
-    private static final int PHASE_DISAMBIGUATE = 4;
-    private static final int PHASE_EMPTY = 5;
-
-    /* set this statically if you only want to run upto a certain phase */
-    private static int currentPhase = PHASE_CODEGEN;
+    /* set this statically if you only want to run up to a certain phase */
+    private static PhaseOrder finalPhase = PhaseOrder.CODEGEN;
 
     private final FortressRepository _repository;
     private static final CacheBasedRepository defaultRepository =
@@ -81,8 +67,8 @@ public final class Shell {
         return _repository;
     }
 
-    private static void setPhase( int phase ){
-        currentPhase = phase;
+    private static void setPhase( PhaseOrder phase ){
+        finalPhase = phase;
     }
 
     /**
@@ -193,18 +179,18 @@ public final class Shell {
             } else if ( what.equals("unparse" ) ){
                 unparse(args, Option.<String>none());
             } else if ( what.equals( "disambiguate" ) ){
-                setPhase( PHASE_DISAMBIGUATE );
+                setPhase( PhaseOrder.DISAMBIGUATE );
                 compile(args, Option.<String>none());
             } else if ( what.equals( "desugar" ) ){
-                setPhase( PHASE_DESUGAR );
+                setPhase( PhaseOrder.DESUGAR );
                 compile(args, Option.<String>none());
             } else if ( what.equals( "grammar" ) ){
-                setPhase( PHASE_GRAMMAR );
+                setPhase( PhaseOrder.GRAMMAR );
                 compile(args, Option.<String>none());
             } else if (what.equals("typecheck")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
                 turnOnTypeChecking();
-                setPhase( PHASE_TYPECHECK );
+                setPhase( PhaseOrder.TYPECHECK );
                 compile(args, Option.<String>none());
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
@@ -572,271 +558,14 @@ public final class Shell {
         return path;
     }
 
-    public static AnalyzeResult disambiguate(FortressRepository repository,
-                                             GlobalEnvironment env,
-                                             AnalyzeResult previousPhase,
-                                             long lastModified) throws StaticError {
-
-        // Build a new GlobalEnvironment consisting of all APIs in a global
-        // repository combined with all APIs that have been processed in the previous
-        // step.  For now, we are implementing pure static linking, so there is
-        // no global repository.
-        GlobalEnvironment rawApiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
-                                                            previousPhase.apis()));
-
-        // Rewrite all API ASTs so they include only fully qualified names, relying
-        // on the rawApiEnv constructed in the previous step. Note that, after this
-        // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
-        Disambiguator.ApiResult apiDR =
-            Disambiguator.disambiguateApis(previousPhase.apiIterator(), rawApiEnv, repository.apis());
-        if (!apiDR.isSuccessful()) {
-            throw new MultipleStaticError(apiDR.errors());
-        }
-
-        // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR =
-            IndexBuilder.buildApis(apiDR.apis(), lastModified);
-        if (!apiIR.isSuccessful()) {
-            throw new MultipleStaticError(apiIR.errors());
-        }
-
-        // Rebuild GlobalEnvironment.
-        GlobalEnvironment apiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
-                                                            apiIR.apis()));
-
-        Disambiguator.ComponentResult componentDR =
-            Disambiguator.disambiguateComponents(previousPhase.componentIterator(), apiEnv,
-                                                 previousPhase.components());
-        if (!componentDR.isSuccessful()) {
-            throw new MultipleStaticError(componentDR.errors());
-        }
-
-        // Rebuild ComponentIndices.
-        IndexBuilder.ComponentResult componentsDone =
-            IndexBuilder.buildComponents(componentDR.components(), lastModified);
-        if (!componentsDone.isSuccessful()) {
-            throw new MultipleStaticError(componentsDone.errors());
-        }
-
-        return new AnalyzeResult(previousPhase, apiIR.apis(),
-        		componentsDone.components(), IterUtil.<StaticError>empty());
-    }
-
-    public static AnalyzeResult rewriteGrammar(FortressRepository repository,
-                                               GlobalEnvironment env,
-                                               AnalyzeResult previousPhase,
-                                               long lastModified) throws StaticError {
-        GlobalEnvironment apiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
-                                                            previousPhase.apis()));
-
-        GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(previousPhase.apis(), apiEnv);
-        if (!apiID.isSuccessful()) {
-            throw new MultipleStaticError(apiID.errors());
-        }
-
-        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(), lastModified);
-        if (!apiDone.isSuccessful()) {
-            throw new MultipleStaticError(apiDone.errors());
-        }
-
-        return new AnalyzeResult(previousPhase, apiDone.apis(),
-        		previousPhase.components(), IterUtil.<StaticError>empty());
-    }
-
-    public static AnalyzeResult typecheck(FortressRepository _repository,
-                                          GlobalEnvironment env,
-                                          AnalyzeResult previousPhase,
-                                          long lastModified) throws StaticError {
-        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(previousPhase.apiIterator(), lastModified);
-        IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(previousPhase.componentIterator(), lastModified);
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                                                   apiIndex.apis()));
-
-        StaticChecker.ApiResult apiSR = StaticChecker.checkApis( apiIndex.apis(), apiEnv );
-
-        if ( !apiSR.isSuccessful() ){
-            throw new MultipleStaticError(apiSR.errors());
-        }
-
-        StaticChecker.ComponentResult componentSR =
-            StaticChecker.checkComponents( componentIndex.components(), env);
-
-        if ( !componentSR.isSuccessful() ){
-            throw new MultipleStaticError(componentSR.errors());
-        }
-
-        return new AnalyzeResult(apiSR.apis(), componentSR.components(), 
-        		IterUtil.<StaticError>empty(), componentSR.typeEnvAtNode());
-    }
-
-    public static AnalyzeResult desugar(FortressRepository _repository,
-                                        GlobalEnvironment env,
-                                        AnalyzeResult previousPhase,
-                                        long lastModified) throws StaticError {
-    	GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(_repository.apis(),
-                                                                                   previousPhase.apis()));
-
-        Desugarer.ApiResult apiDSR = Desugarer.desugarApis(previousPhase.apis(), apiEnv);
-
-        if ( ! apiDSR.isSuccessful() ){
-            throw new MultipleStaticError(apiDSR.errors());
-        }
-
-        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previousPhase.components(), apiEnv);
-
-        if ( ! componentDSR.isSuccessful() ){
-            throw new MultipleStaticError(componentDSR.errors());
-        }
-
-        return new AnalyzeResult(previousPhase, apiDSR.apis(),
-        		componentDSR.components(), IterUtil.<StaticError>empty());
-    }
-
-    public static AnalyzeResult codeGeneration(FortressRepository _repository,
-                                               GlobalEnvironment env,
-                                               AnalyzeResult previousPhase,
-                                               long lastModified) throws StaticError {
-        TopLevelEnvGen.CompilationUnitResult apiGR =
-            TopLevelEnvGen.generateApiEnvs(previousPhase.apis());
-
-        if ( !apiGR.isSuccessful() ){
-            throw new MultipleStaticError(apiGR.errors());
-        }
-
-        // Generate top-level byte code environments for components
-        TopLevelEnvGen.CompilationUnitResult componentGR =
-            TopLevelEnvGen.generateComponentEnvs(previousPhase.components());
-
-        if ( !componentGR.isSuccessful() ){
-            throw new MultipleStaticError(componentGR.errors());
-        }
-
-        return new AnalyzeResult(previousPhase, previousPhase.apis(),
-        		previousPhase.components(), IterUtil.<StaticError>empty());
-    }
-
-    private static abstract class Phase{
-        Phase parent;
-        public Phase( Phase parent ){
-            this.parent = parent;
-        }
-
-        public abstract AnalyzeResult execute( AnalyzeResult previousPhase) throws StaticError ;
-
-        public AnalyzeResult run() throws StaticError {
-            AnalyzeResult result = parent.run();
-            return execute( result );
-        }
-    }
-
-    private static Phase getPhase(final FortressRepository repository,
-                                  final GlobalEnvironment env,
-                                  final Iterable<Api> apis,
-                                  final Iterable<Component> components,
-                                  final long lastModified,
-                                  final int phase){
-        class EmptyPhase extends Phase{
-            public EmptyPhase(){
-                super(null);
-            }
-
-            public AnalyzeResult execute( AnalyzeResult previousPhase ) throws StaticError {
-                return null;
-            }
-
-            public AnalyzeResult run() throws StaticError {
-                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase Empty" );
-                IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, lastModified);
-                IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(components, lastModified);
-                return new AnalyzeResult(apiIndex.apis(), componentIndex.components(), IterUtil.<StaticError>empty());
-            }
-        }
-
-        class DisambiguatePhase extends Phase {
-            public DisambiguatePhase( Phase parent ){
-                super(parent);
-            }
-
-            public AnalyzeResult execute( AnalyzeResult previousPhase ) throws StaticError {
-                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase Disambiguate" );
-                return disambiguate(repository, env, previousPhase, lastModified);
-            }
-        }
-
-        class TypecheckPhase extends Phase {
-            public TypecheckPhase( Phase parent ){
-                super(parent);
-            }
-
-            public AnalyzeResult execute( AnalyzeResult previousPhase ) throws StaticError {
-                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase TypeCheck" );
-                return typecheck(repository, env, previousPhase, lastModified);
-            }
-        }
-
-        class DesugarPhase extends Phase {
-            public DesugarPhase( Phase parent ){
-                super(parent);
-            }
-
-            public AnalyzeResult execute( AnalyzeResult previousPhase ) throws StaticError {
-                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase Desugar" );
-                return desugar(repository, env, previousPhase, lastModified);
-            }
-        }
-
-        class CodeGenerationPhase extends Phase {
-            public CodeGenerationPhase( Phase parent ){
-                super(parent);
-            }
-
-            public AnalyzeResult execute( AnalyzeResult previousPhase ) throws StaticError {
-                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase TopLevelEnvironment" );
-                return codeGeneration(repository, env, previousPhase, lastModified);
-            }
-        }
-
-        class GrammarPhase extends Phase {
-            public GrammarPhase( Phase parent ){
-                super(parent);
-            }
-
-            public AnalyzeResult execute( AnalyzeResult previousPhase ) throws StaticError {
-                Debug.debug( Debug.Type.FORTRESS, 1, "Start phase GrammarPhase" );
-                return rewriteGrammar(repository, env, previousPhase, lastModified);
-            }
-        }
-
-        Lambda<Integer,Phase> nextPhase = new Lambda<Integer,Phase>(){
-            public Phase value(Integer phase){
-                return getPhase(repository, env, apis, components, lastModified, phase );
-            }
-        };
-
-        /* Phases are listed in the order they occur, top to bottom. If new phases are added please
-         * respect this ordering. This is simply to make it easy to look at.
-         */
-        switch (phase){
-            case PHASE_EMPTY : return new EmptyPhase();
-            case PHASE_DISAMBIGUATE : return new DisambiguatePhase(nextPhase.value(PHASE_EMPTY));
-            case PHASE_GRAMMAR : return new GrammarPhase(nextPhase.value(PHASE_DISAMBIGUATE));
-            case PHASE_TYPECHECK : return new TypecheckPhase(nextPhase.value(PHASE_GRAMMAR));
-            case PHASE_DESUGAR : return new DesugarPhase(nextPhase.value(PHASE_TYPECHECK));
-            case PHASE_CODEGEN : return new CodeGenerationPhase(nextPhase.value(PHASE_DESUGAR));
-            default : throw new RuntimeException( "Invalid phase number: " + phase );
-        }
-    }
-
     /* run all the analysis available */
     public static AnalyzeResult analyze(final FortressRepository repository,
                                         final GlobalEnvironment env,
-                                        final Iterable<Api> apis,
-                                        final Iterable<Component> components,
-                                        final long lastModified) throws StaticError {
-        return getPhase(repository, env, apis, components, lastModified, currentPhase).run();
+                                        List<Api> apis, 
+                                        List<Component> components, 
+                                        final long lastModified) throws StaticError {     	
+    	AnalyzeResult result = finalPhase.makePhase(repository,env,apis,components,lastModified).run();
+    	return result;
     }
 
 
