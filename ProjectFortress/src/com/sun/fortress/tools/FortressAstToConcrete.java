@@ -33,6 +33,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
        3. Handle syntax abstraction nodes.
      */
 
+    /* indentation utilities *************************************************/
     private int indent = 0;
 
     private void increaseIndent(){
@@ -58,6 +59,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     /* utility methods ********************************************************/
+    /* returns number copies of s */
+    private String makeCopies(int number, String s) {
+        String result = s;
+        for (int index = 1; index < number; index++) {
+            result += s;
+        }
+        return result;
+    }
+
     /* returns a string beginning with 'kind' followed by a sequence of elements
        in 'list' separated by commas and  enclosed by '{' and '}'
      */
@@ -361,7 +371,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               String contract_result,
                                               List<String> decls_result) {
         StringBuilder s = new StringBuilder();
-        
+
         increaseIndent();
 
         s.append( join(mods_result, " ") );
@@ -385,7 +395,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
         s.append( "\nend" ).append( "\n" );
-        
+
         decreaseIndent();
 
         return s.toString();
@@ -654,7 +664,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forDoOnly(Do that,
                                       List<String> fronts_result) {
         StringBuilder s = new StringBuilder();
-        s.append( indent(join(fronts_result, "\n")) );
+        s.append( indent(join(fronts_result, " also\n")) );
         s.append( "\nend" );
         return s.toString();
     }
@@ -1029,7 +1039,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                           List<String> args_result) {
         StringBuilder s = new StringBuilder();
 
-        // s.append( op_result );
         s.append( join(args_result, " " + op_result + " ") );
 
         return s.toString();
@@ -1093,22 +1102,30 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
 //    @Override public String forMathPrimaryOnly( that,
 
-    @Override public String forArrayElementOnly(ArrayElement that, List<String> staticArgs_result, String element_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( element_result );
-        s.append( inOxfordBrackets(staticArgs_result));
-
-        return s.toString();
+    @Override public String forArrayElementOnly(ArrayElement that,
+                                                List<String> staticArgs_result,
+                                                String element_result) {
+        return element_result;
     }
 
-    @Override public String forArrayElementsOnly(ArrayElements that, List<String> staticArgs_result, List<String> elements_result) {
+    @Override public String forArrayElementsOnly(ArrayElements that,
+                                                 List<String> staticArgs_result,
+                                                 List<String> elements_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "[ " );
-        s.append( join(elements_result, ", ") );
-        s.append( inOxfordBrackets( staticArgs_result ) );
-        s.append( " ]" );
+        if ( that.isOutermost() ) {
+            s.append( "[" );
+            s.append( inOxfordBrackets( staticArgs_result ) );
+            s.append( " " );
+        }
+        String separator;
+        if ( that.getDimension() == 1 )
+            separator = " ";
+        else
+            separator = makeCopies(that.getDimension()-1, ";");
+        s.append( join(elements_result, separator) );
+        if ( that.isOutermost() )
+            s.append( " ]" );
 
         return s.toString();
     }
@@ -1130,7 +1147,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 //    @Override public String forTraitTypeOnly( that,
 //    @Override public String for_RewriteGenericSingletonTypeOnly( that,
 
-    @Override public String forArrayTypeOnly(ArrayType that, String type_result, String indices_result) {
+    @Override public String forArrayTypeOnly(ArrayType that,
+                                             String type_result,
+                                             String indices_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( type_result );
@@ -1710,13 +1729,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forAnonymousFnNameOnly(AnonymousFnName that,
                                                    Option<String> api_result) {
-        StringBuilder s = new StringBuilder();
-
-        return s.toString();
-        /*
-        return bug(that, "Anonymous function names are not supported " +
-                   "in Fortress concrete syntax.");
-                   */
+        return "";
     }
 
     @Override public String forConstructorFnNameOnly(ConstructorFnName that,
@@ -1811,17 +1824,27 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forExtentRangeOnly(ExtentRange that, Option<String> base_result, Option<String> size_result) {
-            StringBuilder s = new StringBuilder();
+    /* Possible differences in the original Fortress program and
+       the unparsed program.
+       In the Fortress source program, either "#" or ":" may be used.
+       In AST, only "#" is used.
+       In the Fortress source program, either "#size" or "size" may be used.
+       In AST, only "#size" is used.
+     */
+    @Override public String forExtentRangeOnly(ExtentRange that,
+                                               Option<String> base_result,
+                                               Option<String> size_result) {
+        StringBuilder s = new StringBuilder();
 
-            if ( base_result.isSome() ){
-                    s.append( base_result.unwrap() );
-            }
-            if ( size_result.isSome() ){
-                    s.append( size_result.unwrap() );
-            }
+        if ( base_result.isSome() ){
+            s.append( base_result.unwrap() );
+        }
+        s.append( "#" );
+        if ( size_result.isSome() ){
+            s.append( size_result.unwrap() );
+        }
 
-            return s.toString();
+        return s.toString();
     }
 
     @Override public String forGeneratorClauseOnly(GeneratorClause that,
@@ -1855,7 +1878,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
 //    @Override public String forTraitTypeWhereOnly( that,
 
-    @Override public String forIndicesOnly(Indices that, List<String> extents_result) {
+    @Override public String forIndicesOnly(Indices that,
+                                           List<String> extents_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( join(extents_result, ", ") );

@@ -43,18 +43,20 @@ Expr LiteralExpr =
    ;
 
 /* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
-ArrayExpr ArrayExpr =
+ArrayElements ArrayExpr =
      void:opensquare a1:StaticArgs? w a2:RectElements w void:closesquare
-     { if (a1 == null) yyValue = a2;
+     { if (a1 == null) yyValue = FortressUtil.finalizeArrayExpr(a2);
        else            yyValue = FortressUtil.addStaticArgsToArrayExpr(a1, a2);
      };
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
-private ArrayExpr RectElements =
+private ArrayElements RectElements =
      a1:NoSpaceExpr a2s:MultiDimCons*
-     { if (a2s == null || a2s.isEmpty())
-           yyValue = new ArrayElement(a1.getSpan(), false, a1);
-       else
+     { if (a2s == null || a2s.isEmpty()) {
+             List<ArrayExpr> list = new ArrayList<ArrayExpr>();
+             list.add(new ArrayElement(a1.getSpan(), false, a1));
+             yyValue = new ArrayElements(a1.getSpan(), false, 1, list);
+         } else
            yyValue = FortressUtil.multiDimCons(a1, a2s.list());
      };
 

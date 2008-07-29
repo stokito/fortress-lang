@@ -667,7 +667,7 @@ public final class FortressUtil {
                                "ArrayElement or ArrayElements is expected.");
         }
     }
-    public static ArrayExpr multiDimCons(Expr init,
+    public static ArrayElements multiDimCons(Expr init,
                                         List<Pair<Integer,Expr>> rest) {
         ArrayExpr _init = multiDimElement(init);
         if (rest.isEmpty()) {
@@ -690,18 +690,17 @@ public final class FortressUtil {
         }
     }
 
-    public static ArrayExpr addStaticArgsToArrayExpr(List<StaticArg> sargs,
-                                              ArrayExpr a) {
-        if (a instanceof ArrayElement) {
-            ArrayElement arrayE = (ArrayElement)a;
-            return new ArrayElement(arrayE.getSpan(), arrayE.isParenthesized(),
-                                    sargs, arrayE.getElement());
-        } else { // a instanceof ArrayElements
-            ArrayElements arrayE = (ArrayElements)a;
-            return new ArrayElements(arrayE.getSpan(), arrayE.isParenthesized(),
-                                     sargs, arrayE.getDimension(),
-                                     arrayE.getElements());
-        }
+    public static ArrayElements finalizeArrayExpr(ArrayElements a) {
+        return new ArrayElements(a.getSpan(), a.isParenthesized(),
+                                 a.getStaticArgs(), a.getDimension(),
+                                 a.getElements(), true);
+    }
+
+    public static ArrayElements addStaticArgsToArrayExpr(List<StaticArg> sargs,
+                                                         ArrayElements a) {
+        return new ArrayElements(a.getSpan(), a.isParenthesized(),
+                                 sargs, a.getDimension(),
+                                 a.getElements(), true);
     }
 
 // let rec unpasting_cons (span : span)
