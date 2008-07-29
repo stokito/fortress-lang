@@ -43,25 +43,17 @@ public final class AnalyzeResult extends StaticPhaseResult {
     private final Option<Map<Pair<Node,Span>, TypeEnv>> _typeEnvAtNode;
     
     public AnalyzeResult(Iterable<? extends StaticError> errors) {
-        this(new HashMap<APIName, ApiIndex>(), new HashMap<APIName, ComponentIndex>(), errors);
-    }
-
-    public AnalyzeResult(Map<APIName, ApiIndex> apis,
-                         Map<APIName, ComponentIndex> components,
-                         Iterable<? extends StaticError> errors) {
-    	super(errors);
-    	_apis = apis;
-        _components = components;
-        _typeEnvAtNode = Option.none();
+        this(new HashMap<APIName, ApiIndex>(), new HashMap<APIName, ComponentIndex>(), 
+        		errors, Option.<Map<Pair<Node,Span>, TypeEnv>>none());
     }
     
     public AnalyzeResult(Map<APIName, ApiIndex> apis,
             Map<APIName, ComponentIndex> components,
-            Iterable<? extends StaticError> errors, Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode) {
+            Iterable<? extends StaticError> errors, Option<Map<Pair<Node,Span>, TypeEnv>> typeEnvAtNode) {
     	super(errors);
     	_apis = apis;
         _components = components;
-        _typeEnvAtNode = Option.some(typeEnvAtNode);
+        _typeEnvAtNode = typeEnvAtNode;
     }
     
     /**
