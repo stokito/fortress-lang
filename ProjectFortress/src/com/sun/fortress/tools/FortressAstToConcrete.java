@@ -25,6 +25,13 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+/* Converts a Node to a string which is the concrete version of that node
+ *
+ * Caveats:
+ * 1. a#b is converted to a:b
+ * 2. Accumulators can be optionally prefixed by "BIG". The Ast does not preserve this information
+ * 3. Operator names have equivalent canonical versions, e.g., =/= and NE
+ */
 public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     /* Possible improvements **************************************************/
@@ -431,6 +438,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( join(mods_result, " ") );
+        if ( ! mods_result.isEmpty() ){
+            s.append( " " );
+        }
         s.append( name_result );
         if ( type_result.isSome() ){
             s.append( ": " );
@@ -1174,7 +1184,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-//    @Override public String forOpRefOnly( that,
     /* TODO: BIG Op StaticArgs
              LeftEncloser StaticArgs ExprList RightEncloser
      */
@@ -1184,7 +1193,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          List<String> staticArgs_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( originalName_result );
+        if ( originalName_result.equals( "NE" ) ){
+            s.append( "=/=" );
+        } else {
+            s.append( originalName_result );
+        }
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
