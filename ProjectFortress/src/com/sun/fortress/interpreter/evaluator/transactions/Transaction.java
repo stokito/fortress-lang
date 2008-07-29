@@ -46,7 +46,7 @@ public class Transaction {
      **/
     private enum Status {ORPHANED, ABORTED, ACTIVE, COMMITTED};
     private Transaction parent;
-    private List<Transaction> children;
+    private volatile List<Transaction> children;
     /** Updater for status */
     private volatile AtomicReference<Status> myStatus;
     private ContentionManager manager;
@@ -181,7 +181,7 @@ public class Transaction {
 		return getStatus() == Status.ORPHANED;
     }
 
-    public List<Transaction> getChildren() { return children;}
+    private List<Transaction> getChildren() { return children;}
 
     public boolean addChild(Transaction c) { 
 		if (isActive()) {
@@ -192,7 +192,7 @@ public class Transaction {
 		} else 
 			return false;
     }
-    
+
     public Transaction getParent() { return parent;}
 
     /**
@@ -244,7 +244,7 @@ public class Transaction {
 			}
 
 			synchronized(children) {
-				children = new ArrayList<Transaction>();
+				children.clear();
 			}
 			return true;
 		}
@@ -260,7 +260,7 @@ public class Transaction {
 			synchronized(children ) {
 				for (Transaction child : getChildren())
 					child.orphan();
-				children = new ArrayList<Transaction>();
+				children.clear();
 			} 
 			return true;
 		} else {
@@ -275,7 +275,7 @@ public class Transaction {
 			synchronized(children ) {
 				for (Transaction child : getChildren())
 					child.orphan();
-				children = new ArrayList<Transaction>();
+				children.clear();
 			}
 			throw new OrphanedException(this, "I'm an orphan, so my kids are too");
 		} else if (myStatus.compareAndSet(Status.ABORTED, Status.ORPHANED)) {
