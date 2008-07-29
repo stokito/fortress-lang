@@ -1277,11 +1277,47 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     /* TODO: operator fixity
      */
     @Override public String forOpExprOnly(OpExpr that,
-                                          String op_result,
-                                          List<String> args_result) {
+                                          final String op_result,
+                                          final List<String> args_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( join(args_result, " " + op_result + " ") );
+        s.append( that.getOp().getOriginalName().accept( new NodeDepthFirstVisitor<String>(){
+            @Override public String forOp(final Op opThat) {
+                /* fixity shouldnt be null */
+                final String oper = opThat.getText();
+                return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
+                    @Override public String forPreFixityOnly(PreFixity that) {
+                        return oper + join(args_result, " ");
+                    }
+
+                    @Override public String forPostFixityOnly(PostFixity that){
+                        return join(args_result, " ") + oper;
+                    }
+
+                    @Override public String forNoFixityOnly(NoFixity that){
+                        return oper;
+                    }
+
+                    @Override public String forInFixityOnly(InFixity that){
+                        return join(args_result, " " + oper + " ");
+                    }
+
+                    @Override public String forMultiFixityOnly(MultiFixity that) {
+                        return join(args_result, " " + oper + " ");
+                    }
+
+                    /* this shouldn't occur here */
+                    /*
+                    @Override public String forBigFixityOnly(BigFixity that) {
+                    }
+                    */
+                });
+            }
+
+            @Override public String forEnclosing(Enclosing that) {
+                return that.getOpen().getText() + join(args_result, ", ") + that.getClose().getText();
+            }
+        }));
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
