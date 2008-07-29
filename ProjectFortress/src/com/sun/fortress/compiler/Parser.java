@@ -146,6 +146,17 @@ public class Parser {
     }
 
     /**
+     * Parses a string as a compilation unit. See parseFile above.
+     */
+    public static CompilationUnit parseString(APIName api_name, String buffer) throws IOException {
+        // Also throws StaticError, ParserError
+        BufferedReader in = Useful.bufferedStringReader(buffer);
+        Fortress parser = new Fortress(in, api_name.getText());
+        xtc.parser.Result parseResult = parser.pFile(0);
+        return checkResultCU(parseResult, parser, api_name.getText());
+    }
+
+    /**
      * Checks that a xtc.parser.Result is contains a CompilationUnit,
      * and checks the filename for the appropriate suffix.
      * Throws a ParserError (note, subtype of StaticError) if the parse fails.
