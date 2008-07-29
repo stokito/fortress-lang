@@ -13,7 +13,7 @@
 
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-  ******************************************************************************/
+ ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
 
@@ -26,34 +26,34 @@ import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.iter.IterUtil;
 
 public class CodeGenerationPhase extends Phase {
-	
-	public CodeGenerationPhase(Phase parentPhase) {
-		super(parentPhase);
-	}
 
-	@Override
-	public AnalyzeResult execute() throws StaticError {		
-        Debug.debug( Debug.Type.FORTRESS, 1, "Start phase CodeGeneration" );
-		AnalyzeResult previous = parentPhase.getResult();
-		
-		TopLevelEnvGen.CompilationUnitResult apiGR = TopLevelEnvGen
-				.generateApiEnvs(previous.apis());
+    public CodeGenerationPhase(Phase parentPhase) {
+        super(parentPhase);
+    }
 
-		if (!apiGR.isSuccessful()) {
-			throw new MultipleStaticError(apiGR.errors());
-		}
+    @Override
+    public AnalyzeResult execute() throws StaticError {
+        Debug.debug(Debug.Type.FORTRESS, 1, "Start phase CodeGeneration");
+        AnalyzeResult previous = parentPhase.getResult();
 
-		// Generate top-level byte code environments for components
-		TopLevelEnvGen.CompilationUnitResult componentGR = TopLevelEnvGen
-				.generateComponentEnvs(previous.components());
+        TopLevelEnvGen.CompilationUnitResult apiGR = TopLevelEnvGen
+                .generateApiEnvs(previous.apis());
 
-		if (!componentGR.isSuccessful()) {
-			throw new MultipleStaticError(componentGR.errors());
-		}
+        if (!apiGR.isSuccessful()) {
+            throw new MultipleStaticError(apiGR.errors());
+        }
 
-		return new AnalyzeResult(previous.apis(), previous.components(), 
-				IterUtil.<StaticError> empty(), previous.typeEnvAtNode());        
-        
-	}
+        // Generate top-level byte code environments for components
+        TopLevelEnvGen.CompilationUnitResult componentGR = TopLevelEnvGen
+                .generateComponentEnvs(previous.components());
+
+        if (!componentGR.isSuccessful()) {
+            throw new MultipleStaticError(componentGR.errors());
+        }
+
+        return new AnalyzeResult(previous.apis(), previous.components(),
+                IterUtil.<StaticError> empty(), previous.typeEnvAtNode());
+
+    }
 
 }

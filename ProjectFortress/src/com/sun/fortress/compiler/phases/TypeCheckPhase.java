@@ -13,7 +13,7 @@
 
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-  ******************************************************************************/
+ ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
 
@@ -36,37 +36,41 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 public class TypeCheckPhase extends Phase {
-	
+
     public TypeCheckPhase(Phase parentPhase) {
-		super(parentPhase);
-	}
+        super(parentPhase);
+    }
 
-	@Override
-    public AnalyzeResult execute( ) throws StaticError {
-        Debug.debug( Debug.Type.FORTRESS, 1, "Start phase TypeCheck" );
-		AnalyzeResult previous = parentPhase.getResult();    	
+    @Override
+    public AnalyzeResult execute() throws StaticError {
+        Debug.debug(Debug.Type.FORTRESS, 1, "Start phase TypeCheck");
+        AnalyzeResult previous = parentPhase.getResult();
 
-    	IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(previous.apiIterator(), lastModified);
-    	IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(previous.componentIterator(), lastModified);
-    	GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
-                                                     apiIndex.apis()));
+        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(previous
+                .apiIterator(), lastModified);
+        IndexBuilder.ComponentResult componentIndex = IndexBuilder
+                .buildComponents(previous.componentIterator(), lastModified);
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
+                .union(repository.apis(), apiIndex.apis()));
 
-    	StaticChecker.ApiResult apiSR = StaticChecker.checkApis( apiIndex.apis(), apiEnv );
+        StaticChecker.ApiResult apiSR = StaticChecker.checkApis(
+                apiIndex.apis(), apiEnv);
 
-    	if ( !apiSR.isSuccessful() ){
-    		throw new MultipleStaticError(apiSR.errors());
-    	}
+        if (!apiSR.isSuccessful()) {
+            throw new MultipleStaticError(apiSR.errors());
+        }
 
-    	StaticChecker.ComponentResult componentSR =
-    		StaticChecker.checkComponents( componentIndex.components(), env);
+        StaticChecker.ComponentResult componentSR = StaticChecker
+                .checkComponents(componentIndex.components(), env);
 
-    	if ( !componentSR.isSuccessful() ){
-    		throw new MultipleStaticError(componentSR.errors());
-    	}
+        if (!componentSR.isSuccessful()) {
+            throw new MultipleStaticError(componentSR.errors());
+        }
 
-    	return new AnalyzeResult(apiSR.apis(), componentSR.components(), 
-    			IterUtil.<StaticError> empty(), 
-    			Option.<Map<Pair<Node,Span>, TypeEnv>>some(componentSR.typeEnvAtNode()));
+        return new AnalyzeResult(apiSR.apis(), componentSR.components(),
+                IterUtil.<StaticError> empty(), Option
+                        .<Map<Pair<Node, Span>, TypeEnv>> some(componentSR
+                                .typeEnvAtNode()));
     }
 
 }
