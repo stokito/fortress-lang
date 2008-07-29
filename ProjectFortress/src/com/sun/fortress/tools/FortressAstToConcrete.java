@@ -843,7 +843,26 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
 //    @Override public String forWhileOnly( that,
-//    @Override public String forAccumulatorOnly( that,
+
+    @Override public String forAccumulatorOnly(Accumulator that, List<String> staticArgs_result, String opr_result, List<String> gens_result, String body_result) {
+        StringBuilder s = new StringBuilder();
+
+        /* is this a hack? */
+        if ( opr_result.equals( "BIG +" ) ){
+            s.append( "SUM" );
+        } else if ( opr_result.equals( "BIG DOT" ) ){
+            s.append( "PROD" );
+        } else {
+            s.append( opr_result );
+        }
+        s.append( inOxfordBrackets(staticArgs_result) );
+        s.append( " " );
+        s.append( join(gens_result,", ") );
+        s.append( body_result );
+
+        return s.toString();
+    }
+
 //    @Override public String forArrayComprehensionOnly( that,
 
     @Override public String forAtomicExprOnly(AtomicExpr that,
