@@ -907,8 +907,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * summation and other reduction expression
                      * FlowExpr ::= Accumulator StaticArgs?
                      *                ([ GeneratorClauseList ])? Expr
-                     * Accumulator ::= SUM | PRODUCT | Big Op
-                     * e.g.) PRODUCT[i <- 1:n] i
+                     * Accumulator ::= SUM | PROD | Big Op
+                     * e.g.) PROD[i <- 1:n] i
                      */
                     Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
                     /**
