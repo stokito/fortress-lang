@@ -21,26 +21,6 @@ import NatReflect.{...}
 
 export FortressLibrary
 
-(** The following function is actually recognized as a special piece
-    of built-in magic by the Fortress interpreter.  The javaClass
-    argument names a Java Class which is a subclass of
-    com.sun.fortress.interpreter.glue.NativeApp, which provides code
-    for the closure which is used in place of the call to
-    builtinPrimitive.  Meanwhile all the necessary type information,
-    argument names, etc. must be declared here in Fortress-land.  For
-    examples see the end of this file.
-
-    In practice if you're extending the interpreter you will probably
-    want to extend com.sun.fortress.interpreter.glue.NativeFn0,1,2,3,4
-    or one of their subclasses defined in
-    com.sun.fortress.interpreter.glue.primitive.  These types are
-    generally easier to work with, and the boilerplate packing and
-    unpacking of values is done for you.
-*)
-
-builtinPrimitive[\T\](javaClass:String):T =
-  fail ("Implementation should not invoke builtinPrimitive " javaClass)
-
 (************************************************************
 * Simple Combinators
 ************************************************************)

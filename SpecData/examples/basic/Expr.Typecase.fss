@@ -21,7 +21,6 @@ component Expr.Typecase
 
 export Executable
 
-trait Object end
 object myLoser
   myField = "mine"
 end

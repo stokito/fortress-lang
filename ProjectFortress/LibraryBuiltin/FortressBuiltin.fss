@@ -21,6 +21,30 @@ export FortressBuiltin
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
+(** The %builtinPrimitive% function is actually recognized as a special piece
+    of built-in magic by the Fortress interpreter.  The %javaClass%
+    argument names a Java Class which is a subclass of
+    \texttt{com.sun.fortress.interpreter.glue.NativeApp}, which provides code
+    for the closure which is used in place of the call to
+    %builtinPrimitive%.  Meanwhile all the necessary type information,
+    argument names, etc. must be declared here in Fortress-land.  For
+    examples, see the end of this file.
+
+    In practice, if you are extending the interpreter you will probably
+    want to extend \texttt{com.sun.fortress.interpreter.glue.NativeFn0,1,2,3,4}
+    or one of their subclasses defined in
+    \texttt{com.sun.fortress.interpreter.glue.primitive}.  These types are
+    generally easier to work with, and the boilerplate packing and
+    unpacking of values is done for you.
+**)
+builtinPrimitive[\T\](javaClass:String):T =
+  fail ("Implementation should not invoke builtinPrimitive " javaClass)
+
+trait Object extends Any
+    toString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ToString")
+end
+
 value object Float extends RR64
     getter toString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ToString")

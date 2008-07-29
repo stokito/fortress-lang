@@ -1,4 +1,3 @@
-(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -15,21 +14,25 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-(** END COPYRIGHT **)
 
-component Fun.Decl
-
+component ObjectToStringTest
 export Executable
 
-object Empty end
-Cons[\T extends Object, nat length\](hd: T, rest: T[length]) = Empty
-(** EXAMPLE **)
-List[\T extends Object, nat length\](rest: T[length]) =
-  if length = 0 then Empty
-  else Cons(rest[0], List(rest[1:(length-1)]))
-  end
-(** END EXAMPLE **)
+object Foo(a: ZZ32, b:String) extends Object
+end
 
-run(args:String...) = ()
+object Fue[\T\](a: T, b:String) extends Object
+end
+
+object Bar(a: ZZ32, b:String)
+end
+
+run(args:String...) : () = do
+    r = object end
+    println(r.toString())
+    println(Foo(17,"Hello there").toString())
+    println(Fue[\ZZ32\](17,"Hello there").toString())
+    println(Bar(17,"Hello there").toString())
+  end
 
 end
