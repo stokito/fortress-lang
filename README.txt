@@ -182,6 +182,16 @@ the repository. Copy this file to either ${FORTRESS_HOME}/.classpath.
 If you are using the Java 5.0 jdk under Windows or Linux, you will need
 to add an entry to ${JAVA_HOME}/lib/tools.jar to the classpath.
 
+Setting up Eclipse to follow the Fortress project coding style
+conventions is a two-step process. The following instructions are
+known to work on Eclipse 3.4, and should work on Eclipse 3.3 as well.
+These will change preferences for all your Eclipse projects.
+Open up Window --> Preferences to start configuring your global
+settings. First select General --> Editors --> Text Editors
+and make sure the checkbox is enabled for "Insert spaces for tabs".
+Second select Java --> Code Style --> Formatter and click on the "Edit..."
+button. Change the Tab policy to "Spaces only" and give the profile a new
+name (recommended name: "Spaces only").  Click "OK" and you are finished.
 
 DEMO PROGRAMS
 -------------
