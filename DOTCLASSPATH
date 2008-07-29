@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-3.1.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/astgen/astgen.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/unsigned/unsigned.jar"/>
 	<classpathentry kind="output" path="ProjectFortress/build"/>
 </classpath>
