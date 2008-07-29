@@ -18,6 +18,7 @@
 package com.sun.fortress.tools;
 
 import java.util.List;
+import java.util.LinkedList;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Fn;
@@ -1273,6 +1274,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
+    private String operatorSpace(String oper){
+        String[] all = new String[]{"^","/","DIV","per"};
+        List<String> nospace = new LinkedList<String>(java.util.Arrays.asList(all));
+        if ( nospace.contains( oper ) ){
+            return oper;
+        }
+        return " " + oper + " ";
+    }
+
     //    @Override public String forOpExprOnly( that,
     /* TODO: operator fixity
      */
@@ -1299,11 +1309,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     }
 
                     @Override public String forInFixityOnly(InFixity that){
-                        return join(args_result, " " + oper + " ");
+                        return join(args_result, operatorSpace(oper));
                     }
 
                     @Override public String forMultiFixityOnly(MultiFixity that) {
-                        return join(args_result, " " + oper + " ");
+                        return join(args_result, operatorSpace(oper));
                     }
 
                     /* this shouldn't occur here */
