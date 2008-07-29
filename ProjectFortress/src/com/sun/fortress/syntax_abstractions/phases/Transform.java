@@ -31,7 +31,9 @@ import com.sun.fortress.nodes.TransformerNode;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes._SyntaxTransformation;
 import com.sun.fortress.nodes.TemplateUpdateVisitor;
+import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
 import com.sun.fortress.useful.Debug;
+// import com.sun.fortress.tools.FortressAstToConcrete;
 
 public class Transform extends TemplateUpdateVisitor {
     private Map<String,Node> transformers;
@@ -51,6 +53,9 @@ public class Transform extends TemplateUpdateVisitor {
         for ( ApiIndex api : env.apis().values() ){
             api.ast().accept( new NodeDepthFirstVisitor_void(){
                 @Override public void forTransformerNode(TransformerNode that) {
+                    //Debug.debug(Debug.Type.SYNTAX, 3,
+                    //            "transformer " + that.getTransformer() + " =\n" + 
+                    //            FortressAstToConcrete.astToString(that.getNode()));
                     map.put( that.getTransformer(), that.getNode() );
                 }
             });
@@ -66,11 +71,13 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     @Override public Node forTemplateGapOnly(TemplateGap that, Id gapId_result, List<Id> templateParams_result) {
-        Node binding = (Node) variables.get( gapId_result.getText() );
+        String variable = gapId_result.getText();
+        Object binding = variables.get(variable);
         if ( binding == null ){
             throw new RuntimeException( "Can't find a binding for gap " + gapId_result );
+        } else {
+            return (Node)binding;
         }
-        return binding;
     }
 
     @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
@@ -80,17 +87,36 @@ public class Transform extends TemplateUpdateVisitor {
            */
         Debug.debug( Debug.Type.SYNTAX, 1, "Run transformation " + that.getSyntaxTransformer() );
         Node transformer = lookupTransformer( that.getSyntaxTransformer() );
-        Debug.debug( Debug.Type.SYNTAX, 1, "Transformation is " + transformer );
-        Map<String,Object> variables = that.getVariables();
+        //Debug.debug( Debug.Type.SYNTAX, 1, 
+        //             "Transformation is " + FortressAstToConcrete.astToString(transformer));
+        Map<String,Object> arguments = that.getVariables();
         Map<String,Object> evaluated = new HashMap<String,Object>();
-        for ( Map.Entry<String,Object> var : variables.entrySet() ){
-            evaluated.put( var.getKey(), ((Node) var.getValue()).accept( this ) );
-            Debug.debug( Debug.Type.SYNTAX, 3, "Binding " + var.getKey() + " to " + evaluated.get( var.getKey() ) );
+        for ( Map.Entry<String,Object> var : arguments.entrySet() ){
+            String varName = var.getKey();
+            Node argument = ((Node)var.getValue()).accept(this);
+            checkFullyTransformed(argument);
+            evaluated.put(varName, argument);
+            Debug.debug( Debug.Type.SYNTAX, 3, " argument " + varName + " is " + argument);
         }
 
         Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " + that.getSyntaxTransformer() );
-        return transformer.accept( new Transform(this.transformers, evaluated) );
+        Node transformed = transformer.accept( new Transform(this.transformers, evaluated) );
+        checkFullyTransformed(transformed);
+        return transformed;
         // run this recursively??
         // return that.invoke().accept( this );
     }
+
+    private void checkFullyTransformed(Node n) {
+        n.accept(new TemplateNodeDepthFirstVisitor_void() {
+                @Override public void forTemplateGapOnly(TemplateGap that) {
+                    throw new RuntimeException("Transformation left over template gap: " + that);
+                }
+                @Override public void for_SyntaxTransformationOnly(_SyntaxTransformation that) {
+                    throw new RuntimeException("Transformation left over transformation application: "
+                                               + that);
+                }
+            });
+    }
+
 }

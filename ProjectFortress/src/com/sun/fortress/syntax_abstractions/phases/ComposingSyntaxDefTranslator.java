@@ -551,14 +551,9 @@ public class ComposingSyntaxDefTranslator {
 
                 public String forBaseDepth(VariableCollector.Depth d) {
                     Id id = sym.getId().unwrap();
-                    if (syntaxDeclEnv.isCharacterClass(id)){
-                        Debug.debug(Debug.Type.SYNTAX, 3, "base is CharClass for " + id);
-                        return getFortressCharacterClass(source, code, indents);  
-                    } else if (syntaxDeclEnv.isAnyChar(id)) {
-                        Debug.debug(Debug.Type.SYNTAX, 3, "base is AnyChar for " + id);
-                        return getFortressAnyChar(source, code, indents);  
+                    if (syntaxDeclEnv.hasJavaStringType(id)) {
+                        return convertToStringLiteralExpr(source, code, indents);
                     } else {
-                        Debug.debug(Debug.Type.SYNTAX, 3, "base is ordinary for " + id);
                         return source;
                     }
                 }
@@ -607,20 +602,10 @@ public class ComposingSyntaxDefTranslator {
         }
     }
 
-    private static String getFortressCharacterClass(String id, List<String> code, List<Integer> indents) {
-        String name = FreshName.getFreshName("characterClass");
+    private static String convertToStringLiteralExpr(String id, List<String> code, List<Integer> indents) {
+        String name = FreshName.getFreshName("stringLiteral");
         indents.add(3);
         code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id+");");
         return name;
     }
-
-    private static String getFortressAnyChar(String id, List<String> code,
-            List<Integer> indents) {
-        String name = FreshName.getFreshName("anyCharacter");
-        indents.add(3);
-        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id+");");
-        return name;
-    }
-
-
 }

@@ -25,11 +25,11 @@ api SyntaxNodes
           b-a-d x:Thing <[ x ]>
 
         B :Expr:=
-        b <[ "b" ]>
+        b <[ 17 ]>
 
         Thing :Expr:=
-        q:Expr <[ (b-a-d b) + q ]>
-        | n:B <[ n ]>
+        n:B <[ n ]>
+        | q:Expr <[ (b-a-d b) + q ]>
         (*
         b q:Expr <[ (b-a-d e q 4) + 1 ]>
         *)
