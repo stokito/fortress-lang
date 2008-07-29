@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
@@ -48,7 +49,7 @@ import edu.rice.cs.plt.tuple.Option;
 class VarTypeEnv extends TypeEnv {
     private Map<Id, Variable> entries;
     private TypeEnv parent;
-
+    
     VarTypeEnv(Map<Id, Variable> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
@@ -98,4 +99,20 @@ class VarTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+    @Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName id) {
+	     if (!(id instanceof Id)) { return parent.declarationSite(id); }
+	     Id _var = (Id)id;
+	     
+	     Id no_api_var = removeApi(_var);
+	     
+	     if (entries.containsKey(no_api_var)) {
+	    	 Variable var = entries.get(no_api_var);
+	    	 if( var instanceof DeclaredVariable ) {
+	    		 return Option.<Node>some(((DeclaredVariable)var).ast());
+	    	 }
+	     }
+	     return parent.declarationSite(id);
+	}
 }

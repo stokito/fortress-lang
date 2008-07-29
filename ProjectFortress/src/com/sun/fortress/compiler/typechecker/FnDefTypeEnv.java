@@ -17,22 +17,22 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
-
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Lambda2;
-import edu.rice.cs.plt.tuple.Option;
+import static edu.rice.cs.plt.tuple.Option.some;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static edu.rice.cs.plt.tuple.Option.some;
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.Type;
+
+import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * A type environment whose outermost scope binds local function definitions.
@@ -82,4 +82,21 @@ class FnDefTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+    	IdOrOpOrAnonymousName no_api_name = removeApi(var);
+    	
+        Set<? extends FnDef> fns = entries.matchFirst(no_api_name);
+        if (fns.isEmpty()) {
+            if (var instanceof Id) {
+                Id _var = (Id)var;
+                if (_var.getApi().isSome())
+                    return declarationSite(new Id(_var.getSpan(), _var.getText()));
+            }
+            return parent.declarationSite(var);
+        }
+		
+		throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
+	}
 }

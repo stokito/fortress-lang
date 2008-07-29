@@ -202,9 +202,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				labelExitTypes);
 	}
 
-	public TypeChecker extendWithout(Set<? extends IdOrOpOrAnonymousName> names) {
+	public TypeChecker extendWithout(Node declSite, Set<? extends IdOrOpOrAnonymousName> names) {
 		return new TypeChecker(table, staticParamEnv,
-				typeEnv.extendWithout(names),
+				typeEnv.extendWithout(declSite, names),
 				compilationUnit,
 				subtypeChecker,
 				labelExitTypes);
@@ -2660,7 +2660,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 @Override
 	 public TypeCheckerResult forSpawn(Spawn that) {
 		 // Create a new type checker that conceals any labels
-		 TypeChecker newChecker = this.extendWithout(labelExitTypes.keySet());
+		 TypeChecker newChecker = this.extendWithout(that, labelExitTypes.keySet());
 		 TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
 		 if (bodyResult.type().isSome()) {
 			 return TypeCheckerResult.compose(that,

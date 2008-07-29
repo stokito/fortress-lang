@@ -17,17 +17,22 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
-import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
+import static edu.rice.cs.plt.tuple.Option.none;
+import static edu.rice.cs.plt.tuple.Option.some;
 
-import static edu.rice.cs.plt.tuple.Option.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.Node;
+
+import edu.rice.cs.plt.tuple.Option;
 
 class LValueTypeEnv extends TypeEnv {
-    private LValueBind[] entries;
-    private TypeEnv parent;
-
+    private final LValueBind[] entries;
+    private final TypeEnv parent;
+    
     LValueTypeEnv(LValueBind[] _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
@@ -38,19 +43,28 @@ class LValueTypeEnv extends TypeEnv {
         parent = _parent;
     }
 
+    private Option<LValueBind> findLVal(IdOrOpOrAnonymousName var) {
+    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	for (LValueBind entry : entries) {
+            if (var.equals(entry.getName()) || no_api_var.equals(entry.getName())) {
+                return some(entry);
+            }
+        }
+    	return none();
+    }
+    
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	Option<LValueBind> lval = findLVal(var);
     	
-    	for (LValueBind entry : entries) {
-            if (var.equals(entry.getName()) || no_api_var.equals(entry.getName())) {
-                return some(new BindingLookup(entry));
-            }
-        }
-        return parent.binding(var);
+    	if( lval.isSome() )
+    		return some(new BindingLookup(lval.unwrap()));
+    	else
+    		return parent.binding(var);
     }
 
     @Override
@@ -62,4 +76,14 @@ class LValueTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+		Option<LValueBind> lval = findLVal(var);
+
+		if( lval.isSome() )
+			return Option.<Node>some(lval.unwrap());
+		else
+			return parent.declarationSite(var);
+	}
 }

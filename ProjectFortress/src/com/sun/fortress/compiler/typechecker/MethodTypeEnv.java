@@ -40,7 +40,7 @@ class MethodTypeEnv extends TypeEnv {
         entries = _entries;
         parent = _parent;
     }
-
+    
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
@@ -91,4 +91,16 @@ class MethodTypeEnv extends TypeEnv {
         result.addAll(parent.contents());
         return result;
     }
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+   	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    	
+    	Set<Method> methods = entries.matchFirst(no_api_var);
+        if (methods.isEmpty()) {
+            return parent.declarationSite(var);
+        }
+		
+		throw new IllegalArgumentException("The declarationSite method should not be called on any functions, but was called on " + var);
+	}
 }

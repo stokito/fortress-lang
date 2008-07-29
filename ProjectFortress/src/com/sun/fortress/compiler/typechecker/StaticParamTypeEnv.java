@@ -36,6 +36,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 
 /**
@@ -57,21 +58,33 @@ public class StaticParamTypeEnv extends TypeEnv {
 		parent=_parent;
 	}
 
+	private Option<Pair<StaticParam,Type>> findParam(Id _var) {
+        Id no_api_var = removeApi(_var);
+        for (StaticParam param : entries) {        	
+        	IdOrOpName name = nameFromStaticParam(param);
+        	if(name.equals(no_api_var) || name.equals(_var) ){
+	        	Option<Type> type_ = typeOfStaticParam(param);
+	        	
+	        	if( type_.isSome() )
+	        		return Option.some(Pair.make(param, type_.unwrap()));
+        	}
+        }
+        return Option.none();
+    }
+	
 	@Override
 	public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         if (!(var instanceof Id)) { return parent.binding(var); }
         Id _var = (Id)var;
-        Id no_api_var = removeApi(_var);
-        for (StaticParam param : entries) {        	
-        	IdOrOpName name = nameFromStaticParam(param);
-        	if(name.equals(no_api_var) || name.equals(var) ){
-	        	Option<Type> type_ = typeOfStaticParam(param);
-	        	
-	        	if( type_.isSome() )
-	        		return Option.some(new BindingLookup(var,type_.unwrap()));
-        	}
+       
+        Option<Pair<StaticParam,Type>> p = findParam(_var);
+        
+        if( p.isSome() ) {
+        	Type type_ = p.unwrap().second();
+        	return Option.some(new BindingLookup(var, type_));
         }
-        return parent.binding(_var);
+        else
+        	return parent.binding(_var);
 	}
 
 	private static IdOrOpName nameFromStaticParam(StaticParam param) {
@@ -122,6 +135,18 @@ public class StaticParamTypeEnv extends TypeEnv {
 				result.add(new BindingLookup(nameFromStaticParam(param), type_.unwrap()));
 		}
 		return result;
+	}
+
+	@Override
+	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        if (!(var instanceof Id)) { return parent.declarationSite(var); }
+        Id _var = (Id)var;
+       
+        Option<Pair<StaticParam,Type>> p = findParam(_var);
+        if( p.isSome() )
+        	return Option.<Node>some(p.unwrap().first());
+        else
+        	return parent.declarationSite(var);
 	}
 
 }
