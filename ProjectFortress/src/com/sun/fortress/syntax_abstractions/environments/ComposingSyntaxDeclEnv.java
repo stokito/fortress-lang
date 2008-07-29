@@ -47,60 +47,64 @@ import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
 import com.sun.fortress.syntax_abstractions.util.TypeCollector;
-
-
-// FIXME: stub; needs completing
+import com.sun.fortress.useful.Debug;
+import edu.rice.cs.plt.tuple.Option;
 
 public class ComposingSyntaxDeclEnv {
 
-    private SyntaxDef sd;
+    private final Map<Id, Id> varToNT;
+    private final Set<Id> varIsAnyChar;
+    private final Set<Id> varIsCharClass;
 
-    public ComposingSyntaxDeclEnv(SyntaxDef sd) {
-        this.sd = sd;
+    public ComposingSyntaxDeclEnv(SyntaxDef def) {
+        varToNT = new HashMap<Id,Id>();
+        varIsAnyChar = new HashSet<Id>();
+        varIsCharClass = new HashSet<Id>();
+
+        for (SyntaxSymbol sym : def.getSyntaxSymbols()) {
+            sym.accept(new NodeDepthFirstVisitor_void() {
+                    @Override public void forPrefixedSymbolOnly(PrefixedSymbol that) {
+                        Option<Id> optName = that.getId();
+                        if (!optName.isSome()) {
+                            throw new RuntimeException("Prefix symbol without name: " + that);
+                        }
+                        final Id name = optName.unwrap();
+                        SyntaxSymbol inner = that.getSymbol();
+                        inner.accept(new NodeDepthFirstVisitor_void() {
+                                @Override
+                                public void forNonterminalSymbol(NonterminalSymbol that) {
+                                    varToNT.put(name, that.getNonterminal());
+                                }
+                                @Override
+                                public void forAnyCharacterSymbol(AnyCharacterSymbol that) {
+                                    //Debug.debug(Debug.Type.SYNTAX, 3,
+                                    //            "CharClass in " + name + "; " + that);
+                                    varIsAnyChar.add(name);
+                                }
+                                @Override
+                                public void forCharacterClassSymbol(CharacterClassSymbol that) {
+                                    varIsCharClass.add(name);
+                                }
+                            });
+                    }
+                });
+        }
     }
 
     public Id getNonterminalOfVar(Id var) {
-        throw new RuntimeException("STUB: getNonterminalName of " + var);
-    }
-
-
-
-
-    public boolean contains(Id var) {
-        return true;
-    }
-
-    public Collection<Id> getVariables() {
-        return new LinkedList<Id>();
-    }
-
-    public boolean isNonterminal(Id id) {
-        return true;
-    }
-
-    public boolean isPatternVariable(Id id) {
-        return isNonterminal(id) || isOption(id) || 
-               isRepeat(id) || isAnyChar(id) || 
-               isCharacterClass(id) || isSpecialSymbol(id);
+        Id nt = varToNT.get(var);
+        if (nt == null) {
+            throw new RuntimeException("Not bound to a nonterminal: " + var);
+        } else {
+            return nt;
+        }
     }
 
     public boolean isAnyChar(Id id) {
-        return true;
+        return varIsAnyChar.contains(id);
     }
 
     public boolean isCharacterClass(Id id) {
-        return true;
-    }
-
-    public boolean isOption(Id id) {
-        return true;
-    }
-
-    public boolean isRepeat(Id id) {
-        return true;
-    }
-
-    private boolean isSpecialSymbol(Id id) {
-        return true;
+        return varIsCharClass.contains(id);
     }
 }

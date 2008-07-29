@@ -552,10 +552,13 @@ public class ComposingSyntaxDefTranslator {
                 public String forBaseDepth(VariableCollector.Depth d) {
                     Id id = sym.getId().unwrap();
                     if (syntaxDeclEnv.isCharacterClass(id)){
+                        Debug.debug(Debug.Type.SYNTAX, 3, "base is CharClass for " + id);
                         return getFortressCharacterClass(source, code, indents);  
                     } else if (syntaxDeclEnv.isAnyChar(id)) {
+                        Debug.debug(Debug.Type.SYNTAX, 3, "base is AnyChar for " + id);
                         return getFortressAnyChar(source, code, indents);  
                     } else {
+                        Debug.debug(Debug.Type.SYNTAX, 3, "base is ordinary for " + id);
                         return source;
                     }
                 }
