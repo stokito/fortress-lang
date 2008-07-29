@@ -595,7 +595,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * Same as above but with the template( def ) parsed into a node
              */
-            TransformerNode(String transformer, Node node);
+            TransformerNode(String transformer, AbstractNode node);
 
             /**
              * For terminal nodes that are just a string literal
