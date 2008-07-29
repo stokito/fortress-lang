@@ -24,13 +24,20 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
+import java.util.Collection;
 
 import xtc.parser.ParseError;
 import xtc.parser.ParserBase;
 import xtc.parser.SemanticValue;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.exceptions.ParserError;
@@ -41,9 +48,11 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ASTIO;
@@ -57,6 +66,7 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.io.IOUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 public class FortressParser {
 
@@ -96,9 +106,12 @@ public class FortressParser {
                               f.lastModified());
         }
 
+        Collection<GrammarIndex> grammars = ppr.getGrammars();
+        initializeGrammarIndexExtensions( env.apis().values(), grammars );
+
         // Compile the syntax abstractions and create a temporary parser
         Class<?> temporaryParserClass = 
-            ComposingMacroCompiler.parserForComponent(ppr.getGrammars());
+            ComposingMacroCompiler.parserForComponent(grammars);
 
         /*
         MacroCompiler macroCompiler = new FileBasedMacroCompiler();
@@ -115,7 +128,7 @@ public class FortressParser {
                 ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
             CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(p), p, f.getName());
             dump(original, "original-" + f.getName());
-            CompilationUnit cu = (CompilationUnit) Transform.transform(original);
+            CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);
             dump(cu, "dump-" + f.getName());
             return new Result(cu, f.lastModified());
         } catch (Exception e) {
@@ -128,6 +141,33 @@ public class FortressParser {
         } finally {
             if (in != null) try { in.close(); } catch (IOException ioe) {}
         }
+    }
+
+    public static Collection<? extends StaticError> initializeGrammarIndexExtensions( Collection<ApiIndex> apis, Collection<GrammarIndex> grammars) {
+        List<StaticError> errors = new LinkedList<StaticError>();
+
+        Map<String, GrammarIndex> grammarMap = new HashMap<String, GrammarIndex>();
+        for (ApiIndex a2: apis) {
+            for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+                grammarMap.put(e.getKey(), e.getValue());
+            }
+        }
+
+        for ( GrammarIndex grammar : grammars ){
+            Option<GrammarDef> og = grammar.ast();
+            if (og.isSome()) {
+                List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
+                for (Id n: og.unwrap().getExtends()) {
+                    Debug.debug( Debug.Type.SYNTAX, 3, "Add grammar " + n.getText() + "[" + grammarMap.get(n.getText()) + "] to the extends list of " + grammar );
+                    ls.add(grammarMap.get(n.getText()));
+                }
+                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + grammar.getName() + " extends " + ls );
+                grammar.setExtended(ls);
+            } else {
+                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + grammar.getName() + " has no ast" );
+            }
+        }
+        return errors;
     }
 
 

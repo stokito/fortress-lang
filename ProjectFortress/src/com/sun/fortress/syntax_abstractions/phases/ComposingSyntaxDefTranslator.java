@@ -78,6 +78,7 @@ import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.TransformerDef;
+import com.sun.fortress.nodes.TransformerNode;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes._TerminalDef;
@@ -160,6 +161,15 @@ public class ComposingSyntaxDefTranslator {
             }
             code.add(String.format( "yyValue = %s;", yyValue ));
             indents.add(3);
+        } else if ( transformation instanceof TransformerNode ){
+            createVariableBinding(code, indents, syntaxDeclEnv, variables);
+            code.add(String.format("yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s);", 
+                                   type,
+                                   ((TransformerNode) transformation).getTransformer(), 
+                                   BOUND_VARIABLES ));
+            indents.add(3);
+        } else {
+            throw new RuntimeException( "Don't know what to do with " + transformation + " " + transformation.getClass().getName() );
         }
         return new Action(code, indents);
     }

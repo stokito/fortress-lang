@@ -237,7 +237,7 @@ public class ComposingMacroCompiler {
 
     private static void pegForGrammarDefsOnly( PEG peg, Collection<GrammarIndex> relevant ){
         for ( GrammarIndex grammar : relevant ){
-            pegForDefs( peg, relevant, grammar.getDeclaredNonterminals() );
+            pegForDefs( peg, relevant, computeDefinitions(grammar) );
         }
     }
 
