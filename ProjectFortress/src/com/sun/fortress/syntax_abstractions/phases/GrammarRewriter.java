@@ -56,6 +56,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.GrammarDef;
@@ -207,7 +208,7 @@ public class GrammarRewriter {
 
                 @Override public Node forTransformerDef(TransformerDef that) {
                     try {
-                        Node templateNode = 
+                        AbstractNode templateNode = 
                             parseTemplate( raw.getName(), that.getDef(), parser[ 0 ].unwrap() );
                         return new TransformerNode(that.getTransformer(), templateNode);
                     } catch ( OptionUnwrapException e ){
@@ -293,7 +294,7 @@ public class GrammarRewriter {
         }
     }
 
-    private static Node parseTemplate( APIName apiName, String stuff, Class<?> parserClass ){
+    private static AbstractNode parseTemplate( APIName apiName, String stuff, Class<?> parserClass ){
         try{
             BufferedReader in = Useful.bufferedStringReader(stuff.trim());
             Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "'" );
@@ -306,7 +307,7 @@ public class GrammarRewriter {
 //                 Debug.debug( Debug.Type.SYNTAX, 3,
 //                              "Template body is: " + 
 //                              FortressAstToConcrete.astToString((Node)node));
-                return (Node) node;
+                return (AbstractNode) node;
             } else {
                 throw new ParserError((ParseError) result, parser);
             }
