@@ -31,7 +31,7 @@ run(args:String...):() = do
   v : ZZ32 := 0
   x = pi / 4
   y = 4.0
-  f(a:ZZ32):ZZ32 = do atomic do v += a end; v end
+  f(a:ZZ32):ZZ32 = atomic do v += a; v end
   n = (f(1)) (f(1))
   if n=/=2 then
     println("FAIL: Multiple evaluation set n to " n)
