@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.glue;
 
 public class WellKnownNames {
+    public static final String anyTypeName = "Any";
     public static final String objectTypeName = "Object";
     public static final String defaultSelfName = "self";
     public static final String secretSelfName = "$self"; // The true name of the object
