@@ -1115,7 +1115,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( "fn " );
-        s.append( inParentheses(params_result) );
+        s.append( inParentheses(inParentheses(params_result)) );
         if ( returnType_result.isSome() ) {
             s.append( ": " ).append( returnType_result.unwrap() );
         }
@@ -1847,10 +1847,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( ", " );
             s.append( join(keywords_result, ", ") );
         }
-        if ( inParen )
-            return inParentheses( s.toString() );
 
-        else return s.toString();
+        String result = s.toString();
+        if ( inParen )
+            return inParentheses( result );
+
+        else return result.equals("") ? "()" : result;
     }
 
     @Override public String forEffectOnly(Effect that,
@@ -2465,7 +2467,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( base_result.unwrap() );
         }
         if ( op_result.isSome() ) {
-            s.append( op_result );
+            s.append( op_result.unwrap() );
         }
         if ( size_result.isSome() ){
             s.append( size_result.unwrap() );
