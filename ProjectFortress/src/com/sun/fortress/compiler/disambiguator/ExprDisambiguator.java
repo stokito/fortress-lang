@@ -72,6 +72,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
@@ -1021,23 +1022,42 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	 * disambiguated, it returns NONE, which other methods can then used to decide
 	 * if they want to report an error.
 	 */
-	private Option<Node> opRefHelper(OpRef that) {
-		OpName entity = IterUtil.first(that.getOps());
-		Set<OpName> ops = _env.explicitFunctionNames(entity);
+	private Option<OpRef> opRefHelper(OpRef that) {
+		OpName op_name = IterUtil.first(that.getOps());
+		Set<OpName> ops = _env.explicitFunctionNames(op_name);
 		if (ops.isEmpty()) {
-			ops = _env.onDemandFunctionNames(entity);
+			ops = _env.onDemandFunctionNames(op_name);
 		}
 
 		if (ops.isEmpty()) {
 			return Option.none();
 		}
 
-		OpRef result = new OpRef(that.getSpan(),that.isParenthesized(),entity,CollectUtil.makeList(ops),that.getStaticArgs());
-		return Option.<Node>some(result);
+		OpRef result = new OpRef(that.getSpan(),that.isParenthesized(),op_name,CollectUtil.makeList(ops),that.getStaticArgs());
+		return Option.<OpRef>some(result);
 	}
 	
+	@Override
+	public Node forOpExpr(OpExpr that) {
+		// OpExpr checks to make sure its OpRef can be disambiguated, since
+		// forOpRef will not automatically report an error.
+		OpRef op_result;
+		Option<OpRef> _op_result = opRefHelper(that.getOp()); 
+		if( _op_result.isSome() ) {
+			op_result = (OpRef)_op_result.unwrap();
+		}
+		else {
+			String op_name = IterUtil.first(that.getOp().getOps()).stringName();
+			error("Operator " + op_name + " cannot be disambiguated.", that.getOp());
+			op_result = (OpRef)recur(that.getOp());
+		}
+		
+        List<Expr> args_result = recurOnListOfExpr(that.getArgs());
+        return forOpExprOnly(that, op_result, args_result);
+	}
+
 	@Override public Node forOpRef(OpRef that) {
-		Option<Node> result_ = opRefHelper(that);
+		Option<OpRef> result_ = opRefHelper(that);
 
 		if ( result_.isNone() ) {
 			// Make sure to populate the 'originalName' field.

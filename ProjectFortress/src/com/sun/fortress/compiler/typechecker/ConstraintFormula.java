@@ -259,6 +259,7 @@ public abstract class ConstraintFormula {
 			else if( c.equals(FALSE) ) {
 				return this;
 			}
+			//return this;
 			else if( c instanceof ConjunctiveFormula){
 				if(c.equals(this)){
 					return this;
@@ -433,7 +434,7 @@ public abstract class ConstraintFormula {
 			for(final _InferenceVarType t: ivars){
 				Set<Type> uis = bounds.get(t);
 				if( uis != null ) {
-					for(Type  ui : uis){
+					for(Type  ui : uis) {
 						NodeUpdateVisitor v=new NodeUpdateVisitor(){
 
 							@Override
@@ -452,8 +453,8 @@ public abstract class ConstraintFormula {
 				}
 			}
 			
-			if(!new_bounds.equals(bounds)){
-				//return new SimpleFormula2(new_bounds,ivarLowerBounds).solve();
+			if(!new_bounds.equals(bounds)) {
+				bounds.clear(); // This just gets us a little love from the garbage collector.
 				return solveHelper(ivars, new_bounds, type_maker);
 			}
 			

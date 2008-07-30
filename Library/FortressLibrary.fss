@@ -87,7 +87,7 @@ copy[\T extends Any\](x:T): T =
 trait Region extends Equality[\Region\]
     getter toString(): String
     isLocalTo(r: Region): Boolean = false
-    opr =(self, other:Region): Boolean = self SEQUIV other
+    opr =(self, other:Region): Boolean = self SEQV other
 end
 
 object Global extends Region
