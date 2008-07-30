@@ -22,6 +22,8 @@ import junit.framework.TestSuite;
 import junit.framework.Test;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.LinkedList;
 
 import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
@@ -65,10 +67,14 @@ public class AstJUTest extends TestCase {
     }
 
     private static Iterable<String> allTests( String dir ){
+        String[] except = new String[]{"FortressSyntax.fsi",
+                                       "FortressSyntax.fss"};
+        final List<String> out = new LinkedList<String>(java.util.Arrays.asList(except));
         return Arrays.asList(new File(dir).list( new FilenameFilter(){
             public boolean accept( File dir, String name ){
-                return name.endsWith( ".fss" ) ||
-                       name.endsWith( ".fsi" );
+                return ( ! out.contains( name ) &&
+                         (name.endsWith( ".fss" ) ||
+                          name.endsWith( ".fsi" )) );
             }
         }));
     }

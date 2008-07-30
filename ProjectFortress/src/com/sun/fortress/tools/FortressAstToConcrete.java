@@ -186,6 +186,19 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
     }
 
+    private String canonicalOp(String name) {
+        if ( name.equals( "NE" ) ){
+            return "=/=";
+        } else {
+            return name;
+        }
+    }
+
+    private String filterString(String original,
+                                String pattern) {
+        return original.replaceAll( pattern, "" );
+    }
+
     /* visit nodes ************************************************************/
     @Override public String forComponentOnly(Component that, String name_result,
                                              List<String> imports_result,
@@ -1281,7 +1294,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         List<Boolean> mutables = isMutables( that.getLhs() );
-        s.append( inParentheses(lhs_result) );
+        if ( mutables.contains( true ) &&
+             lhs_result.size() > 1 ) {
+            s.append( "var " );
+            s.append( filterString(inParentheses(lhs_result), "var") );
+        } else
+            s.append( inParentheses(lhs_result) );
         if ( rhs_result.isSome() ){
             if ( mutables.contains( true ) ){
                 s.append( " := " );
@@ -1356,12 +1374,20 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forCharLiteralExprOnly(CharLiteralExpr that) {
-        return handleParen( "'" + that.getText() + "'",
+        return handleParen( "'" +
+                            that.getText().replaceAll( "\\\\", "\\\\\\\\" )
+                                          .replaceAll( "\\t", "\\\\t" )
+                                          .replaceAll( "\\n", "\\\\n" ) +
+                            "'",
                             that.isParenthesized() );
     }
 
     @Override public String forStringLiteralExprOnly(StringLiteralExpr that) {
-        return handleParen( "\"" + that.getText().replaceAll( "\\\\", "\\\\\\\\" ) + "\"",
+        return handleParen( "\"" +
+                            that.getText().replaceAll( "\\\\", "\\\\\\\\" )
+                                          .replaceAll( "\\t", "\\\\t" )
+                                          .replaceAll( "\\n", "\\\\n" ) +
+                            "\"",
                             that.isParenthesized() );
     }
 
@@ -1444,15 +1470,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          String originalName_result,
                                          List<String> ops_result,
                                          List<String> staticArgs_result) {
-        StringBuilder s = new StringBuilder();
-
-        if ( originalName_result.equals( "NE" ) ){
-            s.append( "=/=" );
-        } else {
-            s.append( originalName_result );
-        }
-
-        return handleParen( s.toString(),
+        return handleParen( canonicalOp(originalName_result),
                             that.isParenthesized() );
     }
 
@@ -1522,7 +1540,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( that.getOp().getOriginalName().accept( new NodeDepthFirstVisitor<String>(){
             @Override public String forOp(final Op opThat) {
-                final String oper = opThat.getText();
+                final String oper = canonicalOp( opThat.getText() );
                 /* fixity shouldnt be null */
                 assert(opThat.getFixity().isSome());
                 return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
@@ -1597,7 +1615,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
                     return s.toString();
                 } else {
-                    return left + staticArgs + join(args_result, ", ") + right;
+                    return (left + staticArgs +
+                            join(args_result, ", ").trim() +
+                            right);
                 }
             }
         }));
@@ -2485,7 +2505,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forOpOnly(Op that,
                                       Option<String> api_result,
                                       Option<String> fixity_result) {
-        return that.getText();
+        return canonicalOp( that.getText() );
     }
 
     @Override public String forEnclosingOnly(Enclosing that,
