@@ -52,6 +52,7 @@ public class Desugarer {
     public static final boolean getter_setter_desugar = false;
     public static final boolean objExpr_desugar = false;
     public static final boolean extends_object_desugar = true;
+    
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;

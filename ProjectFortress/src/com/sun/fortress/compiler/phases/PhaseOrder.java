@@ -26,6 +26,7 @@ import com.sun.fortress.repository.FortressRepository;
 
 public enum PhaseOrder {
     EMPTY("Empty Phase"), 
+    PREDISAMBIGUATEDESUGAR("Pre-Disambiguation Desugaring"),
     DISAMBIGUATE("Disambiguation"), 
     GRAMMAR("Grammar Rewriting"), 
     TYPECHECK("Typechecking"), 
@@ -52,20 +53,22 @@ public enum PhaseOrder {
         }
     }
 
-    private Phase makePhaseHelper(Phase emptyPhase) {
+    private Phase makePhaseHelper(Phase phase) {
         switch (this) {
         case EMPTY:
-            return emptyPhase;
+            return phase;
+        case PREDISAMBIGUATEDESUGAR:
+        	return new PreDisambiguationDesugarPhase(EMPTY.makePhaseHelper(phase));
         case DISAMBIGUATE:
-            return new DisambiguatePhase(EMPTY.makePhaseHelper(emptyPhase));
+            return new DisambiguatePhase(PREDISAMBIGUATEDESUGAR.makePhaseHelper(phase));
         case GRAMMAR:
-            return new GrammarPhase(DISAMBIGUATE.makePhaseHelper(emptyPhase));
+            return new GrammarPhase(DISAMBIGUATE.makePhaseHelper(phase));
         case TYPECHECK:
-            return new TypeCheckPhase(GRAMMAR.makePhaseHelper(emptyPhase));
+            return new TypeCheckPhase(GRAMMAR.makePhaseHelper(phase));
         case DESUGAR:
-            return new DesugarPhase(TYPECHECK.makePhaseHelper(emptyPhase));
+            return new DesugarPhase(TYPECHECK.makePhaseHelper(phase));
         case CODEGEN:
-            return new CodeGenerationPhase(DESUGAR.makePhaseHelper(emptyPhase));
+            return new CodeGenerationPhase(DESUGAR.makePhaseHelper(phase));
         default:
             return InterpreterBug.bug("Unknown static analysis phase: "
                     + phaseName);
