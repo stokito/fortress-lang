@@ -626,6 +626,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 String right = that.getClose().getText();
                 right = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
                 String params = vparams.equals("()") ? "" : vparams;
+                params = params.startsWith("(") ? params.substring(1, params.length()-1) : params;
                 return "opr " + left + sparams + " " + params + " " + right;
             }
         }));
@@ -708,6 +709,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 String right = that.getClose().getText();
                 right = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
                 String params = vparams.equals("()") ? "" : vparams;
+                params = params.startsWith("(") ? params.substring(1, params.length()-1) : params;
                 return "opr " + left + sparams + " " + params + " " + right;
             }
         }));
@@ -1781,7 +1783,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( op_result ).append( " " );
             s.append( val_result );
         } else { // DimPostfixOp
-            s.append( val_result ).append( " " );
+            s.append( val_result );
             s.append( op_result );
         }
 

@@ -985,7 +985,7 @@ public class NodeFactory {
             }
             public DimExpr forProductDim(ProductDim t) {
                 return new ProductDim(t.getSpan(), true, t.getMultiplier(),
-                        t.getMultiplicand());
+                                      t.getMultiplicand());
             }
             public DimExpr forQuotientDim(QuotientDim t) {
                 return new QuotientDim(t.getSpan(), true, t.getNumerator(),
