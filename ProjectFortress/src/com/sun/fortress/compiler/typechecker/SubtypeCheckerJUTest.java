@@ -224,7 +224,8 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
 
     private ExtentRange makeExtentRange(IntArg arg) {
         return new ExtentRange(arg.getSpan(), Option.<StaticArg>none(),
-                               Option.<StaticArg>some(arg));
+                               Option.<StaticArg>some(arg),
+                               Option.<Op>none());
     }
 
     private Option<Indices> makeIndices(List<ExtentRange> ext) {

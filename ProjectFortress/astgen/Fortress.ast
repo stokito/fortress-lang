@@ -2080,7 +2080,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          *               | StaticArg
          * e.g.) 3#5
          */
-        ExtentRange(Option<StaticArg> base, Option<StaticArg> size);
+        ExtentRange(Option<StaticArg> base,
+                    Option<StaticArg> size,
+                    Option<Op> op);
         /**
          * generator
          * Names must be unqualified.

@@ -31,17 +31,14 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 /* Converts a Node to a string which is the concrete version of that node
  *
  * Caveats:
- * 1. "a:b" is converted to "a#(b-a+1)".
- *    "b" is converted to "#b".
- * 2. Accumulators can be optionally prefixed by "BIG".
- *    The Ast does not preserve this information.
- * 3. Operator names have equivalent canonical versions, e.g., "=/=" and "NE"
+ * 1. Accumulators can be optionally prefixed by "BIG".
+ *    The AST does not preserve this information.
+ * 2. Operator names have equivalent canonical versions, e.g., "=/=" and "NE"
+ *
+ * Possible improvements:
+ * 1. Add newlines and indentation
+ * 2. Handle syntax abstraction nodes.
  */
-
-/* Possible improvements **************************************************/
-/* 1. Add newlines and indentation
-   2. Handle syntax abstraction nodes.
-*/
 
 public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
@@ -2345,23 +2342,18 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    /* Possible differences in the original Fortress program and
-       the unparsed program.
-       In the Fortress source program, either "#" or ":" may be used.
-       In AST, only "#" is used.
-       In the Fortress source program, either "#size" or "size" may be used.
-       In AST, only "#size" is used.
-     */
-//    @Override public String forExtentRangeOnly( that,
     @Override public String forExtentRangeOnly(ExtentRange that,
                                                Option<String> base_result,
-                                               Option<String> size_result) {
+                                               Option<String> size_result,
+                                               Option<String> op_result) {
         StringBuilder s = new StringBuilder();
 
         if ( base_result.isSome() ){
             s.append( base_result.unwrap() );
         }
-        s.append( "#" );
+        if ( op_result.isSome() ) {
+            s.append( op_result );
+        }
         if ( size_result.isSome() ){
             s.append( size_result.unwrap() );
         }

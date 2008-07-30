@@ -77,7 +77,7 @@ public abstract class SubtypeChecker {
      *    ArrayType ::= Type [ ExtentRange(, ExtentRange)* ]
      *    ArrayType(Type element, Indicies indices)
      *    Indices(List<ExtentRange> extents)
-     *    ExtentRange(Option<StaticArg> base, Option<StaticArg> size)
+     *    ExtentRange(Option<StaticArg> base, Option<StaticArg> size, Option<Op> op)
      *    trait Array1[\T, nat b0, nat s0\]
      *    trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
      *    trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
@@ -492,6 +492,23 @@ public abstract class SubtypeChecker {
                 subtype(t,s,h).booleanValue());
     }
 
+    private boolean equivalentOp(Option<Op> s, Option<Op> t,
+                                 SubtypeHistory h) {
+        if (s.isSome()) {
+            if (t.isSome()) {
+                return s.unwrap().getText().equals(t.unwrap().getText());
+            } else { // t.isNone()
+                return false;
+            }
+        } else { // s.isNone()
+            if (t.isSome()) {
+                return false;
+            } else { // t.isNone()
+                return true;
+            }
+        }
+    }
+
     private boolean equivalent(Option<StaticArg> s, Option<StaticArg> t,
                                SubtypeHistory h) {
         if (s.isSome()) {
@@ -511,7 +528,8 @@ public abstract class SubtypeChecker {
 
     private boolean equivalent(ExtentRange s, ExtentRange t, SubtypeHistory h) {
         return (equivalent(s.getBase(), t.getBase(), h) &&
-                equivalent(s.getSize(), t.getSize(), h));
+                equivalent(s.getSize(), t.getSize(), h) &&
+                equivalentOp(s.getOp(), t.getOp(), h));
     }
 
     private boolean equivalent(List<ExtentRange> s, List<ExtentRange> t,
@@ -828,7 +846,7 @@ public abstract class SubtypeChecker {
         }
         return false;
     }
-    
+
     class SubtypeHistory {
         private final Relation<Type, Type> _entries;
         public SubtypeHistory() {

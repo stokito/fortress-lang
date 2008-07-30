@@ -679,15 +679,15 @@ public class NodeFactory {
     }
 
     public static MatrixType makeMatrixType(Span span, Type element,
-            ExtentRange dimension) {
+                                            ExtentRange dimension) {
         List<ExtentRange> dims = new ArrayList<ExtentRange>();
         dims.add(dimension);
         return new MatrixType(span, element, dims);
     }
 
     public static MatrixType makeMatrixType(Span span, Type element,
-            ExtentRange dimension,
-            List<ExtentRange> dimensions) {
+                                            ExtentRange dimension,
+                                            List<ExtentRange> dimensions) {
         List<ExtentRange> dims = new ArrayList<ExtentRange>();
         dims.add(dimension);
         dims.addAll(dimensions);

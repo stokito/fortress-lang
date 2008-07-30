@@ -258,19 +258,26 @@ private Indices ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
  */
 ExtentRange ExtentRange =
      a1:(StaticArg w)? pound a2:(w StaticArg)?
-     { Option<StaticArg> base = Option.wrap(a1);
-       Option<StaticArg> size = Option.wrap(a2);
-       yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpInfix(span, "#");
+       yyValue = new ExtentRange(span,
+                                 Option.wrap(a1),
+                                 Option.wrap(a2),
+                                 Option.wrap(op));
      }
    / a1:(StaticArg w)? colon a2:(w StaticArg)?
-     { Option<StaticArg> base = Option.wrap(a1);
-       Option<StaticArg> size = Option.wrap(a2);
-       yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpInfix(span, "#");
+       yyValue = new ExtentRange(span,
+                                 Option.wrap(a1),
+                                 Option.wrap(a2),
+                                 Option.wrap(op));
      }
    / a1:StaticArg
      { yyValue = new ExtentRange(createSpan(yyStart,yyCount),
                                  Option.<StaticArg>none(),
-                                 Option.some(a1));
+                                 Option.some(a1),
+                                 Option.<Op>none());
      };
 
 /* Exponentiation ::=
