@@ -197,4 +197,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
        String tag = "Component ";
        return dateFromFile(name, s, tag);
     }
+
+    public void clear() {}
+
 }

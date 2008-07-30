@@ -89,4 +89,10 @@ public interface FortressRepository {
      */
     public boolean setVerbose(boolean new_value);
     public boolean verbose();
+
+	/** 
+	 * Clear 
+	 */
+
+    public void clear();
 }
