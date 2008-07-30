@@ -69,8 +69,7 @@ public class StaticChecker {
      * StaticTest sets typecheck to true before running type checking tests.
      */
     public static boolean typecheck = ProjectProperties.getBoolean("fortress.test.typecheck", false);
-
-
+    
     public static class ApiResult extends StaticPhaseResult {
         private Map<APIName, ApiIndex> _apis;
         public ApiResult(Iterable<? extends StaticError> errors, Map<APIName, ApiIndex> apis) {

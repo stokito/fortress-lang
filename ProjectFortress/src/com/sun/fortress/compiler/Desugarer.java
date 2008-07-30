@@ -25,8 +25,14 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.compiler.typechecker.TypeEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
+
 
 /**
  * Performs desugaring of Fortress programs. Specifically, the following transformations are performed:
@@ -49,8 +55,9 @@ public class Desugarer {
      * the closure conversion pass for object expressions is called.
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
-    public static final boolean getter_setter_desugar = false;
-    public static final boolean objExpr_desugar = false;    
+    public static boolean getter_setter_desugar = false;
+    public static boolean objExpr_desugar = false;
+    public static final boolean extends_object_desugar = true;
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
@@ -98,13 +105,14 @@ public class Desugarer {
     /** Statically check the given components. */
     public static ComponentResult
         desugarComponents(Map<APIName, ComponentIndex> components,
-                        GlobalEnvironment env)
+                          GlobalEnvironment env, 
+                          Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode)
     {
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
-        for (ComponentIndex componentIndex : components.values()) {
-            Component desugared = desugarComponent(componentIndex, env);
+        for (APIName componentName : components.keySet()) {
+            Component desugared = desugarComponent(components.get(componentName), env, typeEnvAtNode);
             desugaredComponents.add(desugared);
         }
         return new ComponentResult
@@ -114,15 +122,16 @@ public class Desugarer {
     }
 
     public static Component desugarComponent(ComponentIndex component,
-                                             GlobalEnvironment env) {
+                                             GlobalEnvironment env, 
+                                             Map<Pair<Node,Span>,TypeEnv> typeEnvAtNode) {
      	Component comp = (Component) component.ast();
         if(getter_setter_desugar) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
             comp = (Component) comp.accept(desugaringVisitor);
         }
         if(objExpr_desugar) {
-            ObjectExpressionVisitor objExprVisitor = new ObjectExpressionVisitor();
-            comp = (Component) comp.accept(objExprVisitor);
+        	ObjectExpressionVisitor objExprVisitor = new ObjectExpressionVisitor(typeEnvAtNode);
+        	comp = (Component) comp.accept(objExprVisitor);
         }
         return comp;
     }

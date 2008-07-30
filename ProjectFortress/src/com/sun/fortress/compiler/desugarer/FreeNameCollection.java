@@ -28,19 +28,21 @@ import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.useful.Debug;
 
 public final class FreeNameCollection {
 
-	private List<VarRef> freeVarRefs;
-	private List<FieldRef> freeFieldRefs;
-	private List<FnRef> freeFnRefs;
-	private List<OpRef> freeOpRefs;
-	private List<DimRef> freeDimRefs;
+	private List<VarRef> freeVarRefs; // variable references
+	private List<FieldRef> freeFieldRefs; // field references (i.e. x.y)
+	private List<FnRef> freeFnRefs; // function / method references
+	private List<OpRef> freeOpRefs; // operator references
+	private List<DimRef> freeDimRefs; 
 	private List<IntRef> freeIntRefs;
 	private List<BoolRef> freeBoolRefs;
-	private List<VarType> freeVarTypes;
+	private List<VarType> freeVarTypes; // type param
 
 	public final static FreeNameCollection EMPTY = new FreeNameCollection();
+	private static final int DEBUG_LEVEL = 1;
 
 	public FreeNameCollection() { }
 
@@ -148,13 +150,13 @@ public final class FreeNameCollection {
 		    return thisList == null ? otherList : thisList;
 		}
 	}
-
+	
 	private static <T> void debugList(List<T> list) {
 		if(list == null) return;
 
 		// For now just print it out.  Change it to use Debug later
 		for(T elt : list) {
-			System.err.println(elt);
+			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, elt);
 		}
 	}
 
@@ -167,6 +169,20 @@ public final class FreeNameCollection {
 		debugList(target.freeIntRefs);
 		debugList(target.freeBoolRefs);
 		debugList(target.freeVarTypes);
+	}
+	
+	public String toString() {
+		String retS = "";
+		if(freeVarRefs != null) retS += "freeVarRefs: " + freeVarRefs.toString() + "\n";
+		if(freeFieldRefs != null) retS += "freeFieldRefs: " + freeFieldRefs.toString() + "\n";
+		if(freeFnRefs != null) retS += "freeFnRefs: " + freeFnRefs.toString() + "\n";
+		if(freeOpRefs != null) retS += "freeOpRefs: " + freeOpRefs.toString() + "\n";
+		if(freeDimRefs != null) retS += "freeDimRefs: " + freeDimRefs.toString() + "\n";
+		if(freeIntRefs != null) retS += "freeIntRefs: " + freeIntRefs.toString() + "\n";
+		if(freeBoolRefs != null) retS += "freeBoolRefs: " + freeBoolRefs.toString() + "\n";
+		if(freeVarTypes != null) retS += "freeVarTypes: " + freeVarTypes.toString() + "\nA";
+		
+		return retS;
 	}
 
 }
