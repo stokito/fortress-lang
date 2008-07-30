@@ -239,7 +239,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                      String name_result,
                                                      Option<String> alias_result) {
         StringBuilder s = new StringBuilder();
-        s.append( name_result );
+        if ( that.getName() instanceof OpName) {
+            s.append( "opr " ).append( name_result );
+        } else {
+            s.append( name_result );
+        }
         if ( alias_result.isSome() ) {
             s.append( " as " ).append(alias_result.unwrap());
         }
@@ -278,15 +282,19 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( join(mods_result, " ") );
         s.append( "trait " ).append( name_result );
+        s.append( " " );
         if ( ! staticParams_result.isEmpty() ) {
             s.append( inOxfordBrackets(staticParams_result) );
+            s.append( " " );
         }
         if ( ! extendsClause_result.isEmpty() ) {
             s.append( inCurlyBraces("extends ", extendsClause_result) );
+            s.append( " " );
         }
         s.append( where_result );
         if ( ! excludes_result.isEmpty() ) {
             s.append( inCurlyBraces("excludes ", excludes_result) );
+            s.append( " " );
         }
         if ( comprises_result.isSome() ){
             List<String> throws_ = comprises_result.unwrap();
@@ -313,15 +321,19 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( join(mods_result, " ") );
         s.append( "trait " ).append( name_result );
+        s.append( " " );
         if ( ! staticParams_result.isEmpty() ) {
             s.append( inOxfordBrackets(staticParams_result) );
+            s.append( " " );
         }
         if ( ! extendsClause_result.isEmpty() ) {
             s.append( inCurlyBraces("extends ", extendsClause_result) );
+            s.append( " " );
         }
         s.append( where_result );
         if ( ! excludes_result.isEmpty() ) {
             s.append( inCurlyBraces("excludes ", excludes_result) );
+            s.append( " " );
         }
         if ( comprises_result.isSome() ){
             List<String> throws_ = comprises_result.unwrap();
@@ -351,21 +363,27 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( join(mods_result, " ") );
         s.append( "object " ).append( name_result );
+        s.append( " " );
         if ( ! staticParams_result.isEmpty() ) {
             s.append( inOxfordBrackets(staticParams_result) );
+            s.append( " " );
+        }
+        if ( params_result.isSome() ){
+            s.append( inParentheses(inParentheses(params_result.unwrap())) );
+            s.append( " " );
         }
         if ( ! extendsClause_result.isEmpty() ) {
             s.append( inCurlyBraces("extends ", extendsClause_result) );
-        }
-        s.append( where_result );
-        if ( params_result.isSome() ){
-            s.append( inParentheses(params_result.unwrap()) );
+            s.append( " " );
         }
         if ( throwsClause_result.isSome() ){
             List<String> throws_ = throwsClause_result.unwrap();
             if ( ! throws_.isEmpty() )
                 s.append( inCurlyBraces("throws ", throws_) );
+            s.append( " " );
         }
+        s.append( where_result );
+        s.append( " " );
         s.append( contract_result );
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
@@ -392,21 +410,27 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( join(mods_result, " ") );
         s.append( "object " ).append( name_result );
+        s.append( " " );
         if ( ! staticParams_result.isEmpty() ) {
             s.append( inOxfordBrackets(staticParams_result) );
+            s.append( " " );
+        }
+        if ( params_result.isSome() ){
+            s.append( inParentheses(inParentheses(params_result.unwrap())) );
+            s.append( " " );
         }
         if ( ! extendsClause_result.isEmpty() ) {
             s.append( inCurlyBraces("extends ", extendsClause_result) );
-        }
-        s.append( where_result );
-        if ( params_result.isSome() ){
-            s.append( inParentheses(params_result.unwrap()) );
+            s.append( " " );
         }
         if ( throwsClause_result.isSome() ){
             List<String> throws_ = throwsClause_result.unwrap();
             if ( ! throws_.isEmpty() )
                 s.append( inCurlyBraces("throws ", throws_) );
+            s.append( " " );
         }
+        s.append( where_result );
+        s.append( " " );
         s.append( contract_result );
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
@@ -493,14 +517,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( ! staticParams_result.isEmpty() )
             s.append( inOxfordBrackets(staticParams_result) );
         s.append( inParentheses(inParentheses(params_result)) );
-        if (returnType_result.isSome())
+        if (returnType_result.isSome()) {
             s.append( ": " ).append( returnType_result.unwrap() );
+            s.append( " " );
+        }
         if (throwsClause_result.isSome()) {
             List<String> throws_ = throwsClause_result.unwrap();
             if ( ! throws_.isEmpty() )
                 s.append( inCurlyBraces("throws ", throws_) );
         }
         s.append( where_result );
+        s.append( " " );
         s.append( contract_result );
 
         return s.toString();
@@ -572,14 +599,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             }
         }));
 
-        if ( returnType_result.isSome() )
+        if ( returnType_result.isSome() ) {
             s.append( ": " ).append( returnType_result.unwrap() );
+            s.append( " " );
+        }
         if ( throwsClause_result.isSome() ) {
             List<String> throws_ = throwsClause_result.unwrap();
             if ( ! throws_.isEmpty() )
                 s.append( inCurlyBraces("throws ", throws_) );
         }
         s.append( where_result );
+        s.append( " " );
         s.append( contract_result );
         s.append( " =\n" );
         increaseIndent();
@@ -749,9 +779,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( compare_result.unwrap() ).append( " " );
         s.append( "of\n" );
         s.append( join(clauses_result, "\n") );
-        if ( elseClause_result.isSome() )
-            s.append( elseClause_result.unwrap() ).append( "\n" );
-        s.append( "end" );
+        if ( elseClause_result.isSome() ) {
+            s.append( "\nelse => " );
+            s.append( elseClause_result.unwrap() );
+        }
+        s.append( "\nend" );
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -972,21 +1004,35 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                String body_result) {
         StringBuilder s = new StringBuilder();
 
-        if ( opr_result.equals( "BIG +" ) ){
-            s.append( "SUM" );
-        } else if ( opr_result.equals( "BIG DOT" ) ){
-            s.append( "PROD" );
-        } else {
-            s.append( opr_result );
-        }
-        s.append( inOxfordBrackets(staticArgs_result) );
-        s.append( " " );
-        if ( ! gens_result.isEmpty() ) {
-            s.append( "[" );
+        if ( that.getOpr() instanceof Enclosing) { // comprehensions
+            Enclosing _op = (Enclosing)that.getOpr();
+            String left = _op.getOpen().getText();
+            String right = _op.getClose().getText();
+            s.append( left.startsWith("BIG") ? left.substring(4, left.length()) : left );
+            String closing = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
+            s.append( inOxfordBrackets(staticArgs_result) );
+            s.append( " " );
+            s.append( body_result );
+            s.append( " | " );
             s.append( join(gens_result,", ") );
-            s.append( "] " );
+            s.append( closing );
+        } else { // reductions
+            if ( opr_result.equals( "BIG +" ) ){
+                s.append( "SUM" );
+            } else if ( opr_result.equals( "BIG DOT" ) ){
+                s.append( "PROD" );
+            } else {
+                s.append( opr_result );
+            }
+            s.append( inOxfordBrackets(staticArgs_result) );
+            s.append( " " );
+            if ( ! gens_result.isEmpty() ) {
+                s.append( "[" );
+                s.append( join(gens_result,", ") );
+                s.append( "] " );
+            }
+            s.append( body_result );
         }
-        s.append( body_result );
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -1090,7 +1136,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( join( fns_result, "\n" ) );
-        s.append( join( body_result, "\n" ) );
+        if ( ! body_result.isEmpty() ) {
+            s.append( "\n" );
+            s.append( join( body_result, "\n" ) );
+        }
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -1130,8 +1179,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             }
             s.append( rhs_result.unwrap() );
         }
-        s.append("\n");
-        s.append( join( body_result, "\n" ) );
+        if ( ! body_result.isEmpty() ) {
+            s.append( "\n" );
+            s.append( join( body_result, "\n" ) );
+        }
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -2240,7 +2291,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
         s.append( name_result );
         if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces("extends ", extendsClause_result) );
+            s.append( inCurlyBraces(" extends ", extendsClause_result) );
         }
         if ( that.isAbsorbs() ) {
             s.append( " absorbs unit" );
@@ -2297,7 +2348,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( open_result );
         s.append( " " );
-        s.append( close_result );
+        s.append( close_result.startsWith("BIG") ?
+                  close_result.substring(4, close_result.length()) :
+                  close_result );
 
         return s.toString();
     }
@@ -2341,8 +2394,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          String name_result,
                                          List<String> clauses_result) {
         StringBuilder s = new StringBuilder();
+
+        s.append( "catch " );
         s.append( name_result ).append( " " );
         s.append( join(clauses_result, "\n") );
+
         return s.toString();
     }
 
