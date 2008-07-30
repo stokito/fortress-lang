@@ -1292,10 +1292,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
+    private boolean isDiv(String oper){
+        String[] all = new String[]{"/","DIV","per"};
+        List<String> div = new LinkedList<String>(java.util.Arrays.asList(all));
+        return div.contains( oper );
+    }
+
     private String operatorSpace(String oper){
-        String[] all = new String[]{"^","/","DIV","per"};
-        List<String> nospace = new LinkedList<String>(java.util.Arrays.asList(all));
-        if ( nospace.contains( oper ) ){
+        if ( isDiv( oper ) || oper.equals("^") ){
             return oper;
         }
         return " " + oper + " ";
@@ -1313,12 +1317,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 assert(opThat.getFixity().isSome());
                 return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
                     @Override public String forPreFixityOnly(PreFixity that) {
-                        assert( args_result.size() == 1);
+                        assert( args_result.size() == 1 );
                         return oper + args_result.get(0);
                     }
 
                     @Override public String forPostFixityOnly(PostFixity that){
-                        assert( args_result.size() == 1);
+                        assert( args_result.size() == 1 );
                         return args_result.get(0) + oper;
                     }
 
@@ -1328,11 +1332,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     }
 
                     @Override public String forInFixityOnly(InFixity that){
-                        return join(args_result, operatorSpace(oper));
+                        assert( args_result.size() == 2 );
+                        String result = args_result.get(0) + operatorSpace(oper) + args_result.get(1);
+                        if ( isDiv(oper) ) {
+                            return inParentheses( result );
+                        } else {
+                            return result;
+                        }
                     }
 
                     @Override public String forMultiFixityOnly(MultiFixity that) {
-                        return join(args_result, operatorSpace(oper));
+                        return join(args_result, " " + oper + " ");
                     }
 
                     /* this shouldn't occur here */
