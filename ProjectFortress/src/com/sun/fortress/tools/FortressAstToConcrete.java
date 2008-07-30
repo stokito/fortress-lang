@@ -1314,12 +1314,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
                     @Override public String forPreFixityOnly(PreFixity that) {
                         assert( args_result.size() == 1);
-                        return inParentheses(oper) + args_result.get(0);
+                        return oper + args_result.get(0);
                     }
 
                     @Override public String forPostFixityOnly(PostFixity that){
                         assert( args_result.size() == 1);
-                        return inParentheses(args_result.get(0)) + oper;
+                        return args_result.get(0) + oper;
                     }
 
                     @Override public String forNoFixityOnly(NoFixity that){
