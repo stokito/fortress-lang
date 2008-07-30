@@ -75,9 +75,15 @@ public class AstJUTest extends TestCase {
 
     public static Test suite() throws IOException {
        String tests = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
+       String library = ProjectProperties.FORTRESS_AUTOHOME + "/Library";
+       String demos = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/demos";
+       String builtin = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/LibraryBuiltin";
        TestSuite suite = new TestSuite("Parses all .fss and .fsi files in ProjectFortress/tests" );
-       for ( String file : allTests(tests) ){
-           suite.addTest( new AstJUTest(tests + SEP + file) );
+       String[] dirs = new String[]{ tests, library, demos, builtin };
+       for ( String dir : dirs ){
+           for ( String file : allTests(dir) ){
+               suite.addTest( new AstJUTest(dir + SEP + file) );
+           }
        }
        return suite;
     }
