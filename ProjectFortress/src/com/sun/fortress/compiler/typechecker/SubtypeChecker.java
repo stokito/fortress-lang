@@ -214,7 +214,7 @@ public abstract class SubtypeChecker {
                 }
                 @Override public void forOpParam(OpParam p) {
                     if (isOpArg(a))
-                        opSubs.put(p.getName(), ((OpArg)a).getName());
+                        opSubs.put(p.getName(), (Op) ((OpArg)a).getName().getOriginalName());
                     else error("An operator parameter is instantiated with a " +
                                "non-operator argument.");
                 }
@@ -271,7 +271,7 @@ public abstract class SubtypeChecker {
                     /** Handle arguments to opr parameters */
                     @Override public OpArg forOpArg(OpArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OpArg(n.getSpan(), opSubs.get(n.getName()));
+                            return new OpArg(n.getSpan(),ExprFactory.makeOpRef(opSubs.get(n.getName())));
                         }
                         else { return n; }
                     }
@@ -470,7 +470,7 @@ public abstract class SubtypeChecker {
         if (isTypeArg(s) && isTypeArg(t)) {
             return equivalent(((TypeArg)s).getType(), ((TypeArg)t).getType(), h);
         } else if (isOpArg(s) && isOpArg(t)) {
-            return nameString(((OpArg)s).getName()).equals(((OpArg)t).getName());
+            return nameString(((OpArg)s).getName().getOriginalName()).equals(((OpArg)t).getName());
         } else {
             return false;
         }

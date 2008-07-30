@@ -73,6 +73,7 @@ import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -638,7 +639,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
 					@Override
 					public StaticArg forOpParam(OpParam that) {
-						return new OpArg(arg.getSpan(), that.getName());
+						return new OpArg(arg.getSpan(), ExprFactory.makeOpRef(that.getName()));
 					}
 
 					@Override

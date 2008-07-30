@@ -55,6 +55,7 @@ import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
@@ -192,7 +193,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         @Override
         public StaticArg forOpParam(OpParam that) {
-            return new OpArg(that.getName());
+        	return new OpArg(ExprFactory.makeOpRef(that.getName()));
         }
 
         @Override

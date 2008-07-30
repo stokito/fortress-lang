@@ -521,7 +521,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
  */
 StaticArg StaticArg =
      a1:Op
-     { yyValue = new OpArg(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new OpArg(createSpan(yyStart,yyCount), ExprFactory.makeOpRef(a1)); }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
                       w opendoublesquare / w opensquare / w rightarrow /
                       w "OR":op / w "AND":op / w "IMPLIES":op / w equals) /
