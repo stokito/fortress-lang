@@ -95,6 +95,7 @@ public class FileTests {
             String fssFile = f + ".fss";
 
             BufferedReader in = Useful.utf8BufferedFileReader(fssFile);
+            long start = System.nanoTime();
             try {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
@@ -186,7 +187,8 @@ public class FileTests {
                 }
             } else {
                 boolean anyFails = outs.contains("fail") || outs.contains("FAIL");
-                    System.out.println(anyFails ? " FAIL" : " OK");
+                long duration = (System.nanoTime() - start) / 1000000;
+                    System.out.println(anyFails ? " FAIL" : " OK (time = " + duration + "ms)");
                     wt_err.flush(anyFails ? printFailure : printSuccess);
                     wt_out.flush(anyFails ? printFailure : printSuccess);
 
