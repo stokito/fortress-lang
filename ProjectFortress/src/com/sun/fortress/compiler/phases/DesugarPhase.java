@@ -17,15 +17,23 @@
 
 package com.sun.fortress.compiler.phases;
 
+import java.util.Map;
+
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.Desugarer;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.typechecker.TypeEnv;
+import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 public class DesugarPhase extends Phase {
 
@@ -48,8 +56,12 @@ public class DesugarPhase extends Phase {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
+        Option<Map<Pair<Node,Span>, TypeEnv>> typeEnvs = previous.typeEnvAtNode();
+        if(typeEnvs.isNone()) {
+        	throw new DesugarerError("Expected typeEnvAtNode map from type checking phase is not found.");
+        }
         Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(
-                previous.components(), apiEnv);
+                previous.components(), apiEnv, typeEnvs.unwrap());
 
         if (!componentDSR.isSuccessful()) {
             throw new MultipleStaticError(componentDSR.errors());

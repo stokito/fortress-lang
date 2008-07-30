@@ -182,6 +182,7 @@ public final class Shell {
                 setPhase( PhaseOrder.DISAMBIGUATE );
                 compile(args, Option.<String>none());
             } else if ( what.equals( "desugar" ) ){
+                turnOnTypeChecking();
                 setPhase( PhaseOrder.DESUGAR );
                 compile(args, Option.<String>none());
             } else if ( what.equals( "grammar" ) ){

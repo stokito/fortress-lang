@@ -20,22 +20,34 @@ package com.sun.fortress.compiler.desugarer;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.BoolRef;
+import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimRef;
+import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
+import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.For;
+import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.GenericDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.IntRef;
+import com.sun.fortress.nodes.Label;
+import com.sun.fortress.nodes.LetFn;
+import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -45,30 +57,47 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
+import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Debug;
-import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
+
+
+// TODO: TypeEnv does not handle OpRef and DimRef
+// TODO: Remove the turnOnTypeChecker in shell under desugar phase to false
+// TODO: Getter/Setter is turned off, because it corrupts TypeEnvAtNode data structure
+//       Need to figure out how to get around that
+// TODO: TypeChecker by default is turned off, which is problematic, because
+//       when it's turned off, it does not create the data structure typeEnvAtNode
 
 public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	private List<ObjectDecl> liftedObjectExprs;
 	private Component enclosingComponent;
 	private int uniqueId;
+	private Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode;
+	// a stack keeping track of all nodes that can create a new lexical scope
+	// this does not include the top level component
+	private Stack<Node> scopeStack;  
 
-	public ObjectExpressionVisitor() {
+	public ObjectExpressionVisitor(Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
 		uniqueId = 0;
+		typeEnvAtNode = _typeEnvAtNode;
+		scopeStack = new Stack<Node>();
 	}
 
 	@Override
@@ -90,17 +119,143 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	}
 
 	@Override
+    public Node forTraitDecl(TraitDecl that) {
+		scopeStack.push(that);
+    	Node returnValue = super.forTraitDecl(that);
+		scopeStack.pop();
+    	return returnValue;
+    }
+
+	@Override
+    public Node forObjectDecl(ObjectDecl that) {
+		scopeStack.push(that);
+     	Node returnValue = super.forObjectDecl(that);
+     	scopeStack.pop();
+    	return returnValue;
+    }
+
+	@Override 
+	public Node forFnExpr(FnExpr that) {
+		scopeStack.push(that);
+		Node returnValue = super.forFnExpr(that);
+		scopeStack.pop();
+		return returnValue;
+	}
+	
+	@Override
+	public Node forFnDef(FnDef that) {
+		scopeStack.push(that);
+		Node returnValue = super.forFnDef(that);
+		scopeStack.pop();
+		return returnValue;
+	}
+	
+	@Override 
+	public Node forIfClause(IfClause that) {
+		scopeStack.push(that);
+		Node returnValue = super.forIfClause(that);
+		scopeStack.pop();
+		return returnValue;
+	}
+	
+	@Override 
+	public Node forFor(For that) {
+		scopeStack.push(that);
+		Node returnValue = super.forFor(that);
+		scopeStack.pop();
+		return returnValue;
+	}
+	
+	@Override 
+	public Node forLetFn(LetFn that) {
+		scopeStack.push(that);
+		Node returnValue = super.forLetFn(that);
+		scopeStack.pop();
+		return returnValue;
+	}
+	
+	@Override 
+	public Node forLocalVarDecl(LocalVarDecl that) {
+		scopeStack.push(that);
+		Node returnValue = super.forLocalVarDecl(that);
+		scopeStack.pop();
+		return returnValue;
+	}
+	
+	@Override 
+	public Node forLabel(Label that) {
+		scopeStack.push(that);
+		Node returnValue = super.forLabel(that);
+		scopeStack.pop();
+		return returnValue;
+	}
+	
+	@Override 
+	public Node forSpawn(Spawn that) {
+		scopeStack.push(that);
+		Node returnValue = super.forSpawn(that);
+		scopeStack.pop();
+		return returnValue;		
+	}
+	
+	@Override 
+	public Node forCatch(Catch that) {
+		scopeStack.push(that);
+		Node returnValue = super.forCatch(that);
+		scopeStack.pop();
+		return returnValue;		
+	}
+	
+	@Override 
+	public Node forTypecase(Typecase that) {
+		scopeStack.push(that);
+		Node returnValue = super.forTypecase(that);
+		scopeStack.pop();
+		return returnValue;		
+	}
+	
+	@Override 
+	public Node forGeneratedExpr(GeneratedExpr that) {
+		scopeStack.push(that);
+		Node returnValue = super.forGeneratedExpr(that);
+		scopeStack.pop();
+		return returnValue;		
+	}
+	
+	@Override 
+	public Node forWhile(While that) {
+		scopeStack.push(that);
+		Node returnValue = super.forWhile(that);
+		scopeStack.pop();
+		return returnValue;		
+	}
+	
+	@Override 
+	public Node forDoFront(DoFront that) {
+		scopeStack.push(that);
+		Node returnValue = super.forDoFront(that);
+		scopeStack.pop();
+		return returnValue;		
+	}
+	
+	@Override
     public Node forObjectExpr(ObjectExpr that) {
-		FreeNameCollection freeNames = that.accept(new FreeNameCollector(that));
-		FreeNameCollection.printDebug(freeNames);
+		scopeStack.push(that);
+		
+        FreeNameCollector freeNameCollector = new FreeNameCollector(scopeStack, typeEnvAtNode);
+        that.accept(freeNameCollector);
+		FreeNameCollection freeNames = freeNameCollector.getResult();
+		
+System.err.println("Free names: " + freeNames);
 
 		ObjectDecl lifted = liftObjectExpr(that, freeNames);  
 		if(liftedObjectExprs == null) {
 			liftedObjectExprs = new LinkedList<ObjectDecl>();
 		}
 		liftedObjectExprs.add(lifted);
-
 		TightJuxt callToLifted = makeCallToLiftedObj(lifted, that, freeNames);
+		
+		scopeStack.pop();
 		
         return callToLifted;
     }
@@ -162,55 +317,5 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 		return uniqueId++;
 	}
 
-//	private ObjectDecl createLiftedObjectExpr(ObjectExpr that) {
-//	Span span = that.getSpan();
-//	Id newId = null;
-//	List<TraitTypeWhere> extendsClause = that.getExtendsClause();
-//	List<Param> newParameters = new LinkedList<Param>();
-//	String enclosedName = null;
-//
-//	// Set up the enclosing type as a constructor parameter if it exists
-//	if (enclosingType != null) {
-//		enclosedName = "enclosed$" + enclosedCounter;
-//		APIName apiName = enclosingComponent.getName();
-//		Type newType = NodeFactory.makeTraitType(name);
-//		Param enclosed = new NormalParam(span, new Id(enclosedName), Option.some(newType));
-//
-//	}
-//
-//	if (enclosingComponent != null) {
-//		APIName apiName = enclosingComponent.getName();
-//        String apiNameString = NodeUtil.nameString(apiName);
-//        String newName = apiNameString + "$" + span.begin.getLine() + ":" + span.begin.column();
-//        Debug.debug(Debug.Type.COMPILER, 1, newName);
-//        newId = new Id(newName);
-//	} else {
-//
-//	}
-//
-//	// Now ensure that all enclosed names are unique
-//	if (enclosingType != null) {
-//		enclosedCounter++;
-//	}
-//
-//	return null;
-//}
-
-
-//	@Override
-//    public Node forTraitDecl(TraitDecl that) {
-//    	enclosingType = that;
-//    	Node returnValue = super.forTraitDecl(that);
-//    	enclosingType = null;
-//    	return returnValue;
-//    }
-//
-//	@Override
-//    public Node forObjectDecl(ObjectDecl that) {
-//    	enclosingType = that;
-//    	Node returnValue = super.forObjectDecl(that);
-//    	enclosingType = null;
-//    	return returnValue;
-//    }
 
 }
