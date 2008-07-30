@@ -587,10 +587,10 @@ public class NodeFactory {
 
     public static LValueBind makeLValue(Id name, Id type) {
         return new LValueBind(new Span(name.getSpan(), type.getSpan()),
-                name,
-                Option.some((Type)makeVarType(type.getSpan(),type)),
-                new ArrayList<Modifier>(),
-                false);
+                              name,
+                              Option.some((Type)makeVarType(type.getSpan(),type)),
+                              new ArrayList<Modifier>(),
+                              false);
     }
 
     public static LValueBind makeLValue(Id name, Type type) {
@@ -626,7 +626,7 @@ public class NodeFactory {
 
     public static LValueBind makeLValue(LValueBind lvb, boolean mutable) {
         return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
-                lvb.getMods(), mutable);
+                              lvb.getMods(), mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods) {
@@ -636,25 +636,25 @@ public class NodeFactory {
                 mutable = true;
         }
         return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
-                mods, mutable);
+                              mods, mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods,
             boolean mutable) {
         return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
-                mods, mutable);
+                              mods, mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty) {
         return new LValueBind(lvb.getSpan(), lvb.getName(),
-                Option.some(ty), lvb.getMods(),
-                lvb.isMutable());
+                              Option.some(ty), lvb.getMods(),
+                              lvb.isMutable());
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty,
             boolean mutable) {
         return new LValueBind(lvb.getSpan(), lvb.getName(),
-                Option.some(ty), lvb.getMods(), mutable);
+                              Option.some(ty), lvb.getMods(), mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty,
@@ -665,7 +665,7 @@ public class NodeFactory {
                 mutable = true;
         }
         return new LValueBind(lvb.getSpan(), lvb.getName(),
-                Option.some(ty), mods, mutable);
+                              Option.some(ty), mods, mutable);
     }
 
     public static LValueBind makeLValue(NormalParam param) {

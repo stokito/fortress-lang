@@ -645,7 +645,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }));
 
         if ( returnType_result.isSome() ) {
-            s.append( ": " ).append( returnType_result.unwrap() );
+            s.append( " : " ).append( returnType_result.unwrap() );
             s.append( " " );
         }
         if ( throwsClause_result.isSome() ) {
@@ -728,7 +728,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }));
 
         if ( returnType_result.isSome() ) {
-            s.append( ": " ).append( returnType_result.unwrap() );
+            s.append( " : " ).append( returnType_result.unwrap() );
             s.append( " " );
         }
         if ( throwsClause_result.isSome() ) {

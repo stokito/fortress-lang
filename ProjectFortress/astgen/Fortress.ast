@@ -699,7 +699,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * expression
          */
-        root abstract Expr(boolean parenthesized = false);
+        root abstract Expr(ignoreForEquals boolean parenthesized = false);
 
             /**
              * Repeated expression in a macro
@@ -960,7 +960,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * e.g.) fn x => x + 2
              */
             FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
-                   boolean parenthesized = false,
+                   ignoreForEquals boolean parenthesized = false,
                    IdOrOpOrAnonymousName name = new AnonymousFnName(in_span),
                    List<StaticParam> staticParams
                        = Collections.<StaticParam>emptyList(),
