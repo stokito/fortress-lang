@@ -1152,7 +1152,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forStringLiteralExprOnly(StringLiteralExpr that) {
-        return handleParen( "\"" + that.getText() + "\"",
+        return handleParen( "\"" + that.getText().replaceAll( "\\\\", "\\\\\\\\" ) + "\"",
                             that.isParenthesized() );
     }
 
