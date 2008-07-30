@@ -509,7 +509,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forFnDefOnly(FnDef that,
                                          List<String> mods_result,
-                                         String name_result,
+                                         final String name_result,
                                          List<String> staticParams_result,
                                          List<String> params_result,
                                          Option<String> returnType_result,
@@ -521,10 +521,57 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
         }
-        s.append( name_result );
+        final String sparams;
         if ( ! staticParams_result.isEmpty() )
-            s.append( inOxfordBrackets(staticParams_result) );
-        s.append( inParentheses(inParentheses(params_result)) );
+            sparams = inOxfordBrackets(staticParams_result);
+        else sparams = "";
+        final String vparams = inParentheses(params_result);
+        s.append( that.getName().accept( new NodeDepthFirstVisitor<String>(){
+
+            @Override public String forId(final Id idThat) {
+                return name_result + sparams + inParentheses(inParentheses(vparams));
+            }
+
+            @Override public String forOp(final Op opThat) {
+                final String oper = opThat.getText();
+                /* fixity shouldnt be null */
+                assert(opThat.getFixity().isSome());
+                return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
+                    @Override public String forPreFixityOnly(PreFixity that) {
+                        return "opr " + oper + sparams + inParentheses(vparams);
+                    }
+
+                    @Override public String forPostFixityOnly(PostFixity that){
+                        return "opr " + inParentheses(vparams) + oper + sparams;
+                    }
+
+                    @Override public String forNoFixityOnly(NoFixity that){
+                        return "opr " + oper + "()";
+                    }
+
+                    @Override public String forInFixityOnly(InFixity that){
+                        return "opr " + oper + sparams + inParentheses(vparams);
+                    }
+
+                    @Override public String forMultiFixityOnly(MultiFixity that) {
+                        return "opr " + oper + sparams + inParentheses(vparams);
+                    }
+
+                    @Override public String forBigFixityOnly(BigFixity that) {
+                        return "opr " + oper + sparams + inParentheses(vparams);
+                    }
+                });
+            }
+
+            @Override public String forEnclosing(Enclosing that) {
+                String left = that.getOpen().getText();
+                String right = that.getClose().getText();
+                right = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
+                String params = vparams.equals("()") ? "" : vparams;
+                return "opr " + left + sparams + " " + params + " " + right;
+            }
+        }));
+
         if ( returnType_result.isSome() )
             s.append( ": " ).append( returnType_result.unwrap() );
         if ( throwsClause_result.isSome() ) {
