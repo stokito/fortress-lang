@@ -98,7 +98,8 @@ public class TypeResolver {
     public static Type makeMatrixType(Span span, Type type, IntExpr power) {
         StaticArg arg = new IntArg(power.getSpan(), power);
         ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
-                                         Option.some(arg));
+                                         Option.some(arg),
+                                         Option.<Op>none());
         return NodeFactory.makeMatrixType(span, typeToType(type), er);
     }
 

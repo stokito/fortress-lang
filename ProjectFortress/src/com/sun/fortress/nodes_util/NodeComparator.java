@@ -29,7 +29,7 @@ import com.sun.fortress.exceptions.InterpreterBug;
 public class NodeComparator {
     /* option comparers **************************************************/
     public static int compareOptionalType(Option<Type> a,
-                                             Option<Type> b) {
+                                          Option<Type> b) {
         if (a.isSome() != b.isSome()) {
             return a.isSome() ? 1 : -1;
         }
@@ -46,6 +46,17 @@ public class NodeComparator {
         }
         if (a.isSome()) {
             return compare(a.unwrap(), b.unwrap());
+        }
+        return 0;
+    }
+
+    public static int compareOptionalOp(Option<Op> a,
+                                        Option<Op> b) {
+        if (a.isSome() != b.isSome()) {
+            return a.isSome() ? 1 : -1;
+        }
+        if (a.isSome()) {
+            return a.unwrap().getText().compareTo(b.unwrap().getText());
         }
         return 0;
     }
@@ -141,6 +152,7 @@ public class NodeComparator {
         if (x != 0) return x;
         x = compareOptionalStaticArg(left.getSize(), right.getSize());
         if (x != 0) return x;
+        x = compareOptionalOp(left.getOp(), right.getOp());
         return 0;
     }
 
@@ -259,7 +271,7 @@ public class NodeComparator {
         if (x != 0) return x;
         return compare(left.getEffect(), right.getEffect());
     }
-    
+
     static int compare(Domain left, Domain right) {
         int x = typeListComparer.compare(left.getArgs(), right.getArgs());
         if (x != 0) return x;
@@ -267,7 +279,7 @@ public class NodeComparator {
         if (x != 0) return x;
         return keywordTypeListComparer.compare(left.getKeywords(), right.getKeywords());
     }
-    
+
     static int compare(Effect left, Effect right) {
         if (left.isIo() != right.isIo())
             return left.isIo() ? 1 : -1;

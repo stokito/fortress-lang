@@ -60,7 +60,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class EvalType extends NodeAbstractVisitor<FType> {
-    
+
     Environment env;
     private EvalIndices ___evalIndices;
     private synchronized EvalIndices evalIndices() {
@@ -497,7 +497,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         }
 
     }
-    
+
     public FType forAnyType(AnyType a) {
         return FTypeTop.ONLY;
     }
@@ -509,7 +509,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         } catch (FortressException p) {
             throw p.setContext(x,env);
         }
-              
+
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
@@ -549,6 +549,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
         Option<StaticArg> b = extent.getBase();
         Option<StaticArg> s = extent.getSize();
+        Option<Op> op = extent.getOp();
         FTypeNat natB, natS;
         if (b.isSome()) {
             FType bt = b.unwrap().accept(this);
@@ -566,7 +567,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
         if (s.isSome()) {
             FType st = s.unwrap().accept(this);
-            if (st instanceof IntNat || st instanceof SymbolicNat) {
+            if ((st instanceof IntNat || st instanceof SymbolicNat) &&
+                (op.isNone() || op.unwrap().getText().equals("#"))) {
                 natS = (FTypeNat)st;
             } else {
                 natS = error(s.unwrap(),
