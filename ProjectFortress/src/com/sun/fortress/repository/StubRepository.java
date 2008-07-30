@@ -88,4 +88,7 @@ public class StubRepository implements FortressRepository {
     public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException {
 	    throw new FileNotFoundException();
     }
+
+    public void clear() {}
+
 }

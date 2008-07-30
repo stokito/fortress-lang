@@ -670,4 +670,32 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         throws FileNotFoundException {
         return 0;
     }
+
+	
+
+    public void clear() {
+		ArrayList<APIName> names = new ArrayList<APIName>();
+		Boolean isRoot = false;
+		// There should be an easier way, but contains doesn't do string compare.
+
+		for (Object o : components().keySet()) {
+			APIName n = (APIName) o;
+			
+			for (String r : roots) {
+				if (r.equalsIgnoreCase(n.getText()))
+					isRoot = true;
+			}
+
+			if (!isRoot)
+				names.add(n);
+
+			isRoot = false;
+		}
+		
+		for (APIName a : names) {
+			deleteComponent(a);
+		}
+		
+	}
+
 }
