@@ -79,6 +79,7 @@ import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 
@@ -194,7 +195,7 @@ public abstract class TypeEnv {
         for (StaticParam param: params) {
             result.add(param.accept(new NodeAbstractVisitor<StaticArg>() {
                 public StaticArg forOpParam(OpParam that) {
-                    return new OpArg(new Span(), that.getName());
+                    return new OpArg(new Span(), ExprFactory.makeOpRef(that.getName()));
                 }
                 public StaticArg forBoolParam(BoolParam that) {
                     return new BoolArg(new Span(), new BoolRef(new Span(), that.getName()));

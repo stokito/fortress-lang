@@ -265,7 +265,8 @@ public abstract class ConstraintFormula {
 					return this;
 				}
 				else{
-					return new DisjunctiveFormula(Useful.set(this,(ConjunctiveFormula)c));
+					//return new DisjunctiveFormula(Useful.set(this,(ConjunctiveFormula)c));
+					return this;
 				}
 			}
 			else if(c instanceof DisjunctiveFormula){

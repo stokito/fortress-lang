@@ -920,7 +920,7 @@ public class NodeFactory {
     }
 
     public static OpArg makeOpArg(String string) {
-        return new OpArg(new Span(), makeOp(string));
+        return new OpArg(new Span(), ExprFactory.makeOpRef(makeOp(string)));
     }
 
     public static VarDecl makeVarDecl(Span span, Id name, Expr init) {

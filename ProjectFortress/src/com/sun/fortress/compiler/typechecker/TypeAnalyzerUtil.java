@@ -26,6 +26,7 @@ import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import static com.sun.fortress.exceptions.StaticError.errorMsg;
@@ -56,7 +57,7 @@ public class TypeAnalyzerUtil {
                                  ((TypeArg) a).getType());
                 }
                 @Override public void forOpParam(OpParam p) {
-                    opSubs.put(p.getName(), ((OpArg) a).getName());
+                    opSubs.put(p.getName(), (Op) ((OpArg) a).getName().getOriginalName());
                 }
                 @Override public void forIntParam(IntParam p) {
                     intSubs.put(p.getName(),
@@ -100,7 +101,7 @@ public class TypeAnalyzerUtil {
                     /** Handle arguments to opr parameters */
                     @Override public OpArg forOpArg(OpArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OpArg(n.getSpan(), opSubs.get(n.getName()));
+                            return new OpArg(n.getSpan(), ExprFactory.makeOpRef(opSubs.get(n.getName())));
                         }
                         else { return n; }
                     }

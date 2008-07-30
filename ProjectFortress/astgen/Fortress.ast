@@ -1494,7 +1494,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * StaticArg ::= Op
              * e.g.) +
              */
-            OpArg(Op name);
+            OpArg(OpRef name);
             /**
              * dimension used as static argument
              * StaticArg ::= Type
