@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-#    Copyright 2007 Sun Microsystems, Inc.,
+#    Copyright 2008 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -18,13 +18,13 @@
 ################################################################################
 
 if (uname | egrep -q CYGWIN) ; then 
-  CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar"
+  CP="build;third_party/junit/junit.jar;third_party/unsigned/unsigned.jar;third_party/asm/asm-3.1.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar;third_party/astgen/astgen.jar"
 else
-  CP="build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/plt/plt.jar"
+  CP="build:third_party/junit/junit.jar:third_party/unsigned/unsigned.jar:third_party/asm/asm-3.1.jar:third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/plt/plt.jar:third_party/astgen/astgen.jar"
 fi
 
 
 
 java -cp "$CP" -Xmx800m -Xms400m \
 junit.swingui.TestRunner \
-com.sun.fortress.interpreter.drivers.SystemJUTests >& test.log
+com.sun.fortress.unit_tests.SystemJUTest >& test.log
