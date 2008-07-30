@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import com.sun.fortress.compiler.desugarer.ConditionalOpDesugarer;
+import com.sun.fortress.compiler.desugarer.ExtendsObjectVisitor;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
@@ -37,6 +38,9 @@ public class PreDisambiguationDesugarer {
 
 	/** Remove conditional operators, replacing their operands with thunks. */
 	public static final boolean conditional_op_desugar = true;
+	
+	/** Rewrite trait, object, and object expressions to explicitly extend Object. */
+    public static final boolean extends_object_desugar = true;	
 	
 	public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
@@ -74,6 +78,10 @@ public class PreDisambiguationDesugarer {
 
     public static Api desugarApi(ApiIndex apiIndex, GlobalEnvironment env) {
         Api api = (Api)apiIndex.ast();
+        if(extends_object_desugar) {
+            ExtendsObjectVisitor extendsObjectVisitor = new ExtendsObjectVisitor();
+            api = (Api) api.accept(extendsObjectVisitor);
+        }        
         return api;
     }
 	
@@ -99,6 +107,10 @@ public class PreDisambiguationDesugarer {
 		if(conditional_op_desugar) {
 			ConditionalOpDesugarer condOpDesugarer = new ConditionalOpDesugarer();
 			comp = (Component) comp.accept(condOpDesugarer);
+		}
+		if(extends_object_desugar) {
+            ExtendsObjectVisitor extendsObjectVisitor = new ExtendsObjectVisitor();
+            comp = (Component) comp.accept(extendsObjectVisitor);		    
 		}
 		return comp;
 	}

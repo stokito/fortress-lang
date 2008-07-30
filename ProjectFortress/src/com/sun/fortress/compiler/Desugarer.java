@@ -50,9 +50,7 @@ public class Desugarer {
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
     public static final boolean getter_setter_desugar = false;
-    public static final boolean objExpr_desugar = false;
-    public static final boolean extends_object_desugar = true;
-    
+    public static final boolean objExpr_desugar = false;    
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
@@ -84,10 +82,6 @@ public class Desugarer {
 
     public static Api desugarApi(ApiIndex apiIndex, GlobalEnvironment env) {
         Api api = (Api)apiIndex.ast();
-        if (extends_object_desugar) {
-            ExtendsObjectVisitor extendsObjectVisitor = new ExtendsObjectVisitor();
-            api = (Api) api.accept(extendsObjectVisitor);
-        }
         return api;
     }
 
@@ -122,10 +116,6 @@ public class Desugarer {
     public static Component desugarComponent(ComponentIndex component,
                                              GlobalEnvironment env) {
      	Component comp = (Component) component.ast();
-        if(extends_object_desugar) {
-            ExtendsObjectVisitor extendsObjectVisitor = new ExtendsObjectVisitor();
-            comp = (Component) comp.accept(extendsObjectVisitor);
-        }
         if(getter_setter_desugar) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
             comp = (Component) comp.accept(desugaringVisitor);

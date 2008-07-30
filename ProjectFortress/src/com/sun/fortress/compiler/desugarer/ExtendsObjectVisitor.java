@@ -18,27 +18,26 @@
 package com.sun.fortress.compiler.desugarer;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
-import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.useful.Debug;
-import com.sun.fortress.useful.Pair;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import edu.rice.cs.plt.tuple.Option;
 
 public class ExtendsObjectVisitor extends NodeUpdateVisitor {
-
-    private List<TraitTypeWhere> mungeExtendsClause(Node whence, List<TraitTypeWhere> extendsClause) {
+    
+    private final Id anyTypeId = new Id(WellKnownNames.anyTypeName);
+    
+    
+    /** If the extends clause of a trait declaration, an object declaration, or 
+     *  an object expression is empty, then replace the empty extends clause
+     *  with {Object}.
+     */
+    private List<TraitTypeWhere> rewriteExtendsClause(Node whence, List<TraitTypeWhere> extendsClause) {
         if (extendsClause.size() > 0) return extendsClause;
         Id objectId = NodeFactory.makeId(whence.getSpan(),
-                                         WellKnownNames.fortressBuiltin,
                                          WellKnownNames.objectTypeName);
         TraitType typeObject = NodeFactory.makeTraitType(objectId);
         TraitTypeWhere extendsObject = NodeFactory.makeTraitTypeWhere(typeObject);
@@ -47,44 +46,52 @@ public class ExtendsObjectVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forObjectExprOnly(ObjectExpr that, List<TraitTypeWhere> extendsClause, List<Decl> decls) {
-        extendsClause = mungeExtendsClause(that, extendsClause);
+        extendsClause = rewriteExtendsClause(that, extendsClause);
         return super.forObjectExprOnly(that, extendsClause, decls);
     }
 
+    @Override
     public Node forAbsTraitDeclOnly(AbsTraitDecl that, List<Modifier> mods, Id name,
                                     List<StaticParam> staticParams, List<TraitTypeWhere> extendsClause,
                                     WhereClause where, List<BaseType> excludes,
                                     Option<List<BaseType>> comprises, List<AbsDecl> decls) {
-        extendsClause = mungeExtendsClause(that, extendsClause);
+        if (!that.getName().equals(anyTypeId)) {
+            extendsClause = rewriteExtendsClause(that, extendsClause);
+        }
         return super.forAbsTraitDeclOnly(that, mods, name, staticParams, extendsClause,
                                          where, excludes, comprises, decls);
     }
 
+    @Override
     public Node forTraitDeclOnly(TraitDecl that, List<Modifier> mods, Id name,
                                  List<StaticParam> staticParams, List<TraitTypeWhere> extendsClause,
                                  WhereClause where, List<BaseType> excludes,
                                  Option<List<BaseType>> comprises, List<Decl> decls) {
-        extendsClause = mungeExtendsClause(that, extendsClause);
+        if (!that.getName().equals(anyTypeId)) {
+            extendsClause = rewriteExtendsClause(that, extendsClause);
+        }        
         return super.forTraitDeclOnly(that, mods, name, staticParams, extendsClause,
                                       where, excludes, comprises, decls);
     }
 
+    @Override
     public Node forAbsObjectDeclOnly(AbsObjectDecl that, List<Modifier> mods, Id name,
                                      List<StaticParam> staticParams, List<TraitTypeWhere> extendsClause,
                                      WhereClause where, Option<List<Param>> params,
                                      Option<List<BaseType>> throwsClause, Contract contract,
                                      List<AbsDecl> decls) {
-        extendsClause = mungeExtendsClause(that, extendsClause);
+        extendsClause = rewriteExtendsClause(that, extendsClause);
         return super.forAbsObjectDeclOnly(that, mods, name, staticParams, extendsClause,
                                           where, params, throwsClause, contract, decls);
     }
-
+    
+    @Override
     public Node forObjectDeclOnly(ObjectDecl that, List<Modifier> mods, Id name,
                                   List<StaticParam> staticParams, List<TraitTypeWhere> extendsClause,
                                   WhereClause where, Option<List<Param>> params,
                                   Option<List<BaseType>> throwsClause, Contract contract,
                                   List<Decl> decls) {
-        extendsClause = mungeExtendsClause(that, extendsClause);
+        extendsClause = rewriteExtendsClause(that, extendsClause);
         return super.forObjectDeclOnly(that, mods, name, staticParams, extendsClause,
                                        where, params, throwsClause, contract, decls);
     }

@@ -24,7 +24,6 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.Lambda2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
@@ -32,13 +31,9 @@ import com.sun.fortress.useful.*;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
-import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
-import com.sun.fortress.compiler.Types;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
-
-import static edu.rice.cs.plt.tuple.Option.wrap;
 
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
