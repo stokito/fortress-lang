@@ -385,8 +385,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * Overloading specification
          */
-        _RewriteFnOverloadDecl(IdOrOpName name, 
-                       List<IdOrOpName> fns) ;
+        _RewriteFnOverloadDecl(IdOrOpName name,
+                               List<IdOrOpName> fns) ;
         /**
          * functional declaration in components or APIs
          * Names must be unqualified.
