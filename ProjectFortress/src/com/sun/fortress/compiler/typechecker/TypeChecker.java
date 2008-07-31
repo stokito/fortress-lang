@@ -995,43 +995,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, this_result, init_result), result_bindings);
 	 }
 
-	 // In the end, this whole method may be pointless. We probably want a method that will
-	 // return the bindings so that other methods can actually use this.
-	 public TypeCheckerResult forGeneratorClauseOnly(GeneratorClause that,
-			 List<TypeCheckerResult> bind_result,
-			 TypeCheckerResult init_result) {
-
-		 List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(bind_result.size()+2);
-		 all_results.addAll(bind_result);
-		 all_results.add(init_result);
-
-		 if( init_result.type().isNone() ) {
-			 // Subexpr failed, we can go no further
-			 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-		 }
-
-		 if( bind_result.isEmpty() ) {
-			 // If bindings are empty, then init_result must be of type boolean, a filter, 13.14
-			 TypeCheckerResult bool_result =
-				 this.checkSubtype(init_result.type().unwrap(), Types.BOOLEAN, that.getInit(),
-						 "Filter expressions in generator clauses must have type boolean, but " +
-						 that.getInit() + " had type " + init_result.type().unwrap() + ".");
-
-			 all_results.add(bool_result);
-			 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-		 }
-
-		 // Otherwise, init expr must have type generator, 13.14
-		 // I don't think that passing 'any' to make generator type will work...
-		 TypeCheckerResult gen_result =
-			 this.checkSubtype(init_result.type().unwrap(), Types.makeGeneratorType(Types.ANY), that.getInit(),
-					 "Generator initializers must have type Generator, but " +
-					 that.getInit() + " had type " + init_result.type().unwrap() + ".");
-
-		 all_results.add(gen_result);
-		 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
-	 }
-
 	 public TypeCheckerResult forDoOnly(Do that, List<TypeCheckerResult> fronts_result) {
 		 // Get union of all clauses' types
 		 List<Type> frontTypes = new ArrayList<Type>();

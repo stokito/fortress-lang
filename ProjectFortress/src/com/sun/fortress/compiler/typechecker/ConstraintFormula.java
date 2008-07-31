@@ -474,7 +474,7 @@ public abstract class ConstraintFormula {
 					};
 					lub.accept(v);
 					if(flags[0])
-						lubs_or_glbs.put(t, Types.ANY);
+						lubs_or_glbs.put(t, Types.OBJECT);
 					else if(flags[1]){
 						Id x = new Id("x");
 						Type new_lub = (Type)lubs_or_glbs.get(t).accept(new InferenceVarReplacer(Collections.<_InferenceVarType,Type>singletonMap(t, new VarType(x))));

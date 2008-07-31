@@ -84,8 +84,7 @@ public class TypeAnalyzer {
 
     /** Verify that fundamental types are present in the current environment. */
     private void validateEnvironment() {
-        // TODO NEB: Reinsert the following call after Jan puts Object into the library
-     // assertTraitIndex(OBJECT.getName());
+    	assertTraitIndex(OBJECT.getName());
     }
 
     /** Verify that the given name is defined and is a TraitIndex. */
@@ -624,12 +623,8 @@ public class TypeAnalyzer {
     			result = result.or(f, h);
     			if (result.isTrue()) { break; }
     		}
-    		// TODO NEB: Reinsert the following conditional after Jan puts object into the library
-//  		if (!s.equals(OBJECT)) {
-//  		result = result.or(sub(OBJECT, t, h), h);
-//  		}
-    		if( !s.equals(ANY) ) {
-    			result = result.or(sub(ANY,t,h), h);
+    		if (!s.equals(OBJECT)) {
+    			result = result.or(sub(OBJECT, t, h), h);
     		}
     	}
     	return result;

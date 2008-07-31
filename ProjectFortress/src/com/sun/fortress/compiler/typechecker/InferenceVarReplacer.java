@@ -42,7 +42,7 @@ public class InferenceVarReplacer extends NodeUpdateVisitor {
 	}
 
 	public InferenceVarReplacer(Map<_InferenceVarType, Type> _map){
-		this(_map,Types.ANY);
+		this(_map,Types.OBJECT);
 	}
 
 
