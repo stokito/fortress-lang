@@ -60,6 +60,7 @@ import com.sun.fortress.nodes.KeywordType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierVar;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
@@ -263,6 +264,12 @@ public abstract class TypeEnv {
      */
     public abstract Option<BindingLookup> binding(IdOrOpOrAnonymousName var);
 
+    /**
+     * Return the {@code StaticParam} that declared the given id, or none if it
+     * is not in scope.
+     */
+    public abstract Option<StaticParam> staticParam(IdOrOpOrAnonymousName id);
+    
     /**
      * Return the {@code Node} that declared the given id, or None if the id does not
      * exist. Note that this method should not be passed the id of a function, since
@@ -499,7 +506,19 @@ public abstract class TypeEnv {
         public IdOrOpOrAnonymousName getVar() { return var; }
         public Option<Type> getType() { return type; }
         public List<Modifier> getMods() { return mods; }
-        public boolean isMutable() { return mutable; }
+        
+        public boolean isMutable() { 
+        	if( mutable ) 
+        		return true;
+        	
+        	// Check mods for ModifierVar
+        	for( Modifier mod : mods ) {
+        		if( mod instanceof ModifierVar )
+        			return true;
+        	}
+        	
+        	return false;
+        }
 
         @Override
         public String toString() {

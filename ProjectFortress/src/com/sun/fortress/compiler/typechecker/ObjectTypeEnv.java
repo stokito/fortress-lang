@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
@@ -142,5 +143,10 @@ class ObjectTypeEnv extends TypeEnv {
 			new_entries.put(entry.getKey(), tc);
 		}
 		return new ObjectTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return this.parent.staticParam(id);
 	}
 }

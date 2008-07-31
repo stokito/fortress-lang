@@ -89,6 +89,22 @@ public class StaticParamTypeEnv extends TypeEnv {
         	return parent.binding(_var);
 	}
 
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		if (!(id instanceof Id)) { return parent.staticParam(id); }
+		Id _var = (Id)id;
+
+		Id no_api_var = removeApi(_var);
+		for (StaticParam param : entries) {        	
+			IdOrOpName name = nameFromStaticParam(param);
+
+			if(name.equals(no_api_var) || name.equals(_var) ){
+				return Option.some(param);
+			}
+		}
+		return parent.staticParam(id);
+	}
+	
 	private static IdOrOpName nameFromStaticParam(StaticParam param) {
 		NodeAbstractVisitor<IdOrOpName> get_name = new NodeAbstractVisitor<IdOrOpName>(){
 			@Override public IdOrOpName forIdStaticParam(IdStaticParam that) { return that.getName(); }
@@ -162,5 +178,4 @@ public class StaticParamTypeEnv extends TypeEnv {
 		
 		return new StaticParamTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
-
 }

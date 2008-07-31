@@ -259,7 +259,6 @@ public abstract class ConstraintFormula {
 			else if( c.equals(FALSE) ) {
 				return this;
 			}
-			//return this;
 			else if( c instanceof ConjunctiveFormula){
 				if(c.equals(this)){
 					return this;

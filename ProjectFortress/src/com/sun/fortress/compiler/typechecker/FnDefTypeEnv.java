@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 
@@ -123,5 +124,10 @@ class FnDefTypeEnv extends TypeEnv {
 		
 		return new FnDefTypeEnv(CollectUtil.makeRelation(new_entries_),
 				                parent.replaceAllIVars(ivars));
+	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return this.parent.staticParam(id);
 	}
 }

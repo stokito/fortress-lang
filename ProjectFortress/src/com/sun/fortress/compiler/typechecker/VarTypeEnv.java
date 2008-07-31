@@ -27,22 +27,17 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.index.DeclaredVariable;
-import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.ParamVariable;
 import com.sun.fortress.compiler.index.SingletonVariable;
-import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
-import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
-import com.sun.fortress.nodes._RewriteGenericArrowType;
-import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -116,6 +111,15 @@ class VarTypeEnv extends TypeEnv {
 	    	 if( var instanceof DeclaredVariable ) {
 	    		 return Option.<Node>some(((DeclaredVariable)var).ast());
 	    	 }
+	    	 else if( var instanceof ParamVariable ) {
+	    		 return Option.<Node>some(((ParamVariable)var).ast());
+	    	 }
+	    	 else if( var instanceof SingletonVariable ) {
+	    		 return NI.nyi("We don't yet store the declaring nodes for SingletonVariables.");
+	    	 }
+	    	 else {
+	    		 bug("Unknown subtype of Variable");
+	    	 }
 	     }
 	     return parent.declarationSite(id);
 	}
@@ -134,5 +138,10 @@ class VarTypeEnv extends TypeEnv {
 		}
 		
 		return new VarTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return this.parent.staticParam(id);
 	}
 }
