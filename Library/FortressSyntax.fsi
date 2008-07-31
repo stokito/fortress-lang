@@ -23,7 +23,7 @@ api FortressSyntax
 (* Do we want separate the ablity to reference a nonterminal from the ability to 
    extend the nonterminal? *)
 
-  grammar Compilation
+  native grammar Compilation
     File : CompilationUnit
     CompilationUnit : CompilationUnit
     Component : Component
@@ -35,28 +35,28 @@ api FortressSyntax
   end
 
 
-(* We should move all declarations together in the declaration grammar *)
-  grammar Declaration 
+(* We should move all declarations together in the declaration native grammar *)
+  native grammar Declaration 
       Decls : List[\Decl\]
       Decl : List[\Decl\]
       AbsDecls : List[\AbsDecl\]
       AbsDecl : AbsDecl
   end
 
-  grammar TraitObject (* rename to TraitsAndObjectDecls *)
+  native grammar TraitObject (* rename to TraitsAndObjectDecls *)
     TraitDecl : TraitDecl
     AbsTraitDecl : AbsTraitDecl
     ObjectDecl : ObjectDecl
     AbsObjectDecl : AbsObjectDecl
   end
 
-  grammar Function
+  native grammar Function
     FnDecl : Decl
     FnSig : AbsFnDecl
     AbsFnDecl : AbsFnDecl
   end
 
-  grammar Method
+  native grammar Method
     MdDecl : FnAbsDeclOrDecl
     MdDef : FnDecl
     AbsMdDecl : AbsFnDecl
@@ -64,55 +64,55 @@ api FortressSyntax
 
 
   (* We should collapse Expression, NoNewlineExpr, LocalVarFnDecl *)  
-  grammar Expression 
+  native grammar Expression 
       Expr : Expr
   end
 
-  grammar NoNewlineExpr
+  native grammar NoNewlineExpr
       Expr : Expr
   end
 
-  grammar LocalVarFnDecl
+  native grammar LocalVarFnDecl
     LocalVarFnDecl : LetExpr
     LocalFnDecl : FnDef
     LocalVarDecl : LocalVarDecl
   end
 
-  grammar Variable
+  native grammar Variable
     VarDecl : VarDecl
     AbsVarDecl : AbsVarDecl
   end
 
-  grammar AbsField
+  native grammar AbsField
     AbsFldDecl : AbsVarDecl
   end
  
-  grammar Field
+  native grammar Field
     FldDecl : VarDecl
   end
 
-  grammar OtherDecl
+  native grammar OtherDecl
     DimUnitDecl : List[\DimUnitDecl\]
     TypeAlias : TypeAlias
     TestDecl : TestDecl
     PropertyDecl : PropertyDecl
   end
 
-(*   grammar Spacing *)
+(*   native grammar Spacing *)
 (*     w : () *)
 (*     wr : () *)
 (*     nl : () *)
 (*     br : () *)
 (*   end *)
 
-  grammar Parameter
+  native grammar Parameter
     ValParam : List[\Param\]
     AbsValParam : List[\Param\]
     Params : List[\Param\]
     AbsParams : List[\Param\]
   end
 
-  grammar Identifier 
+  native grammar Identifier 
     Id : Id
     BindId : Id
     BindIdOrBindIdTuple : List[\Id\]
@@ -121,7 +121,7 @@ api FortressSyntax
     QualifiedName : Id
   end
 
-  grammar Symbol
+  native grammar Symbol
     Encloser : Op
     LeftEncloser : Op
     RightEncloser : Op
@@ -132,7 +132,7 @@ api FortressSyntax
     Accumulator : Op
   end
 
-  grammar Syntax
+  native grammar Syntax
     GrammarDef : GrammarDecl
     NonterminalDef : GrammarMemberDecl
     SyntaxDef : SyntaxDef
@@ -141,7 +141,7 @@ api FortressSyntax
     TransformationTemplate : PreTransformerDef
   end
 
-  grammar Type
+  native grammar Type
     Type : BaseType
     TupleType : TupleType
     TypeRef : Type
@@ -149,12 +149,12 @@ api FortressSyntax
     ParenthesizedType : Type
   end
 
-  grammar Unicode
+  native grammar Unicode
     UnicodeIdStart : String
     UnicodeIdRest : String    
   end
 
-  grammar Literal 
+  native grammar Literal 
       LiteralExpr : Expr
   end
 end

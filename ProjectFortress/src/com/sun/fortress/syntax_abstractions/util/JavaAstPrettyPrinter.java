@@ -19,6 +19,7 @@ package com.sun.fortress.syntax_abstractions.util;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -75,6 +76,7 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes._SyntaxTransformation;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
@@ -735,6 +737,30 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
         this.code.add("Option<List<"+type+">> "+rVarName +" = " +rhs+";");
         return rVarName;
     }
+
+    private String handleVariables( Map<String,Object> variables ){
+        String rVarName = FreshName.getFreshName("variables");
+        String type = "java.util.HashMap<String,Object>";
+
+        this.code.add(String.format("%s %s = new %s();", type, rVarName, type));
+        for ( Map.Entry<String,Object> entry : variables.entrySet() ){
+            AbstractNode node = (AbstractNode) entry.getValue();
+            this.code.add(String.format("%s.put(\"%s\",%s);", rVarName, entry.getKey(), node.accept(this) ));
+        }
+
+        return rVarName;
+    }
+
+    @Override public String defaultTransformationNodeCase(_SyntaxTransformation that){
+        String rVarName = FreshName.getFreshName("transform");
+        String sVarName = JavaAstPrettyPrinter.getSpan((AbstractNode) that, this.code);
+        String type = that.getClass().getName();
+
+        String variables = handleVariables(that.getVariables());
+
+        this.code.add(String.format("%s %s = new %s(%s,\"%s\",%s);", type, rVarName, type, sVarName, that.getSyntaxTransformer(), variables));
+        return rVarName;
+    }
     
     @Override
 	public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that,
@@ -842,6 +868,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
         return SyntaxAbstractionUtil.makeTemplateGap(code, new LinkedList<Integer>(), typeName, idVarName, params, sVarName);
 
     }
+
 
     private String parameterizedGap(TemplateGap t){
         Id id = t.getGapId();

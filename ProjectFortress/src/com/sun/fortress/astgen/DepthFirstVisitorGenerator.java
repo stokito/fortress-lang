@@ -61,7 +61,7 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         // Write out forCASEOnly methods
         writer.startLine("/* Methods to handle a node after recursion. */");
         for (NodeType t : ast.descendents(root)) {
-            if (!(t instanceof TemplateGapClass)) {
+            if (!(t instanceof TemplateGapClass) && !(t instanceof TransformationNode)) {
                 outputForCaseOnly(t, writer, root);
             }
         }
@@ -74,8 +74,9 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
             if (!t.isAbstract()) {
                 if (t instanceof TemplateGapClass) {
                     outputVisitTemplateMethod(t, writer, root);
-                }
-                else {
+                } else if ( t instanceof TransformationNode ){
+                    outputVisitTransformationMethod(t, writer, root );
+                } else {
                     outputVisitMethod(t, writer, root);
                 }
             }
@@ -83,6 +84,7 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
 
         writer.println();
         outputRecurMethod(writer, root, "RetType");
+        writer.println();
 
         // Output helpers, if necessary
         for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
@@ -98,10 +100,35 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         writer.close();
     }
 
+    @Override
+    protected void outputDefaultCaseMethod(TabPrintWriter writer, NodeType root) {
+        super.outputDefaultCaseMethod(writer, root);
+        writer.println();
+        outputDefaultTemplateMethod(writer, root);
+    }
+
+    protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root ){
+        writer.startLine("public RetType defaultTemplateGap(TemplateGap t){");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
     protected void outputVisitTemplateMethod(NodeType t, TabPrintWriter writer, NodeType root) {
         outputForCaseHeader(t, writer, "RetType", "");
         writer.indent();
-        writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        // writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        writer.startLine("return defaultTemplateGap(that);");
+        writer.unindent();
+        writer.startLine("}");
+        writer.println();
+    }
+
+    protected void outputVisitTransformationMethod(NodeType t, TabPrintWriter writer, NodeType root) {
+        outputForCaseHeader(t, writer, "RetType", "");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(\"Do not visit _SyntaxTranformation nodes\");" );
         writer.unindent();
         writer.startLine("}");
         writer.println();

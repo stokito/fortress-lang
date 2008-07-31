@@ -77,13 +77,13 @@ public class ModuleTranslator {
 	public static Result translate(Collection<GrammarIndex> grammarIndexs) {
 		_errors = new LinkedList<StaticError>();
 		ModuleEnvironment menv = new ModuleEnvironment();
-			for (GrammarIndex g: grammarIndexs) {
-				if (g.isToplevel()) {
-					NonterminalContractor nc = new NonterminalContractor();
-					for (ContractedNonterminal cnt: nc.getContractionList(g)) {
-						menv.add(cnt);
-					}
-				}
+                for (GrammarIndex g: grammarIndexs) {
+                    if (g.isToplevel()) {
+                        NonterminalContractor nc = new NonterminalContractor();
+                        for (ContractedNonterminal cnt: nc.getContractionList(g)) {
+                            menv.add(cnt);
+                        }
+                    }
 		}
 
 		renameModulesToFreshName(menv);

@@ -75,13 +75,13 @@ public class FileBasedMacroCompiler implements MacroCompiler {
          * For each changed module write it to a file and run Rats! to 
          * generate a temporary parser.
          */
-        RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules());
-        if (!rpgr.isSuccessful()) { return new Result(rpgr.errors()); }
+        return new Result(RatsParserGenerator.generateParser(gtr.modules()));
+        // if (!rpgr.isSuccessful()) { return new Result(rpgr.errors()); }
 
         /*
          * Return the temporary parser
          */
-        return new Result(rpgr.parserClass());
+        // return new Result(rpgr.parserClass());
     }
 
 }

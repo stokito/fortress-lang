@@ -65,11 +65,7 @@ public class ImportedApiCollector extends TemplateNodeDepthFirstVisitor_void {
     }
 
     public void collectApis(CompilationUnit c) {
-        this.worklist.add(c);
-        while (!this.worklist.isEmpty()) {
-            this.worklist.removeFirst().accept(this);
-            this.isTopLevel = false;
-        }
+        c.accept(this);
     }
 
     @Override
@@ -103,7 +99,6 @@ public class ImportedApiCollector extends TemplateNodeDepthFirstVisitor_void {
                     grammars.add(g);
                 }
             }
-            addImportsToWorklist(that.getApi());
         }
         else {
             StaticError.make("Undefined api: "+that.getApi(), that);
@@ -128,24 +123,12 @@ public class ImportedApiCollector extends TemplateNodeDepthFirstVisitor_void {
                 }
             }
             grammars.addAll(api.grammars().values());
-            if (foundSome) {
-                addImportsToWorklist(that.getApi());
-            }
         }
         else {
             StaticError.make("Undefined api: "+that.getApi(), that);
         }
     }
 
-    /**
-     * @param that
-     */
-    private void addImportsToWorklist(APIName api) {
-        if (!seen.contains(api)) {
-            seen.add(api);
-            this.worklist.add(env.api(api).ast());
-        }
-    }
 
     public Collection<GrammarIndex> getGrammars() {
         return this.grammars;

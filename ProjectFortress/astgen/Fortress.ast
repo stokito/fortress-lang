@@ -33,16 +33,20 @@ generateEquals yes;
 generateSerializers yes;
 generateRecursiveVisitors no;
 customClassPath ../build;
+
+/* order matters here */
 customGenerator com.sun.fortress.astgen.DepthFirstVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateDepthFirstVisitorGenerator;
 
 customGenerator com.sun.fortress.astgen.DepthFirstVoidVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateDepthFirstVoidVisitorGenerator;
 
+
+customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
+customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
 customGenerator com.sun.fortress.astgen.UpdateVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
 
-customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
 customGenerator com.sun.fortress.astgen.SingleSpanConstructorGenerator;
 
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
@@ -105,6 +109,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      */
     interface TemplateGap(Id gapId, List<Id> templateParams);
 
+    interface _SyntaxTransformation(String syntaxTransformer, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters);
+
     /**
      * intersections of interface types
      */
@@ -124,6 +130,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * top-level node abstract class
      */
     abstract AbstractNode() extends UIDObject;
+        _CurriedTransformer(String syntaxTransformer, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters) implements _SyntaxTransformation;
         /**
          * compilation unit declaration
          * CompilationUnit ::= Component | Api
@@ -521,7 +528,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * grammar definition in grammar declarations
              */
-            GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers);
+            GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers,
+	               boolean native);
         /**
          * grammar member (nonterminal or terminal) declaration
          * Names and params must be unqualified.
@@ -583,7 +591,18 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * transformer definition in transformer declarations
              */
-            TransformerDef(AbstractNode transformer);
+            TransformerDef(String transformer, String def, List<NonterminalParameter> parameters);
+
+            /**
+             * Same as above but with the template( def ) parsed into a node
+             */
+            TransformerNode(String transformer, AbstractNode node, List<NonterminalParameter> parameters );
+
+            /**
+             * For terminal nodes that are just a string literal
+             */
+            SimpleTransformerDef(AbstractNode node);
+
             /**
              * transformer expression definition in transformer declarations
              */

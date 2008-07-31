@@ -139,6 +139,7 @@ public class TemplateGapClass extends NodeClass {
             writer.startLine("}");            
         }
 
+        /* this should probably be 'return visitor.for...' */
         writer.startLine("public void accept(TemplateUpdateVisitor visitor) {");
         writer.indent();
         writer.startLine("visitor.for"+name+"(this);");

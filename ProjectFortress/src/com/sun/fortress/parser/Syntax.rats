@@ -40,7 +40,7 @@ header {
 body {
   static {
     add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
-        "AND",    "BACKSPACE",    "FORMFEED",    "do",    "NEWLINE",
+        "AND",    "BACKSPACE",    "FORMFEED",    "NEWLINE",
         "NOT",    "RETURN",    "TAB",    "SPACE",    "<\\["
     });
 
@@ -54,11 +54,17 @@ option setOfString(FORTRESS_SYNTAX_SPECIAL_SYMBOLS), setOfString(FORTRESS_SYNTAX
 
 /* GrammarDef ::= grammar w id w GrammarExtends? (br NonterminalDef)* w end */
 public GrammarDecl GrammarDef =
-     grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
+     native w grammar w a1:Id a3s:(br NonterminalDecl)* w end
+     { List<Id> extendedGrammars = Collections.<Id>emptyList();
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, extendedGrammars,
+                                a3s.list(),
+                                new LinkedList<TransformerDecl>(),
+                                /*native*/ true); }
+   / grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end 
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
-       else { ids.addAll(a2); }
-       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>()); };
+       else { ids.addAll(a2); } 
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>(), false); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
 List<Id> GrammarExtends = extends w QualifiedNames ;
@@ -86,18 +92,22 @@ private GrammarMemberDecl NonterminalDef =
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
         List<SyntaxDef> syntaxDefs = a4s.list();
-        syntaxDefs.add(0, a4);
+        syntaxDefs.add(0, a4); 
         yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); }
-    /  header:NonterminalHeader w void:colon w astType:TraitType
+    /  yyValue:NonterminalDecl
+    /  header:NonterminalHeader w void:bar w astType:TraitType
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
-        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); }
-     / header:NonterminalHeader w void:bar w astType:TraitType
-      { Option<BaseType> astType1 = Option.none();
-        if (astType != null) astType1 = Option.some(astType);
-        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
+	List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
         yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); };
+
+/* Only nonterminal decls are allowed within native grammars */
+private GrammarMemberDecl NonterminalDecl =
+       header:NonterminalHeader w void:colon w astType:TraitType
+      { Option<BaseType> astType1 = Option.none();
+        if (astType != null) astType1 = Option.some(astType);
+        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); };
 
 private NonterminalHeader NonterminalHeader =
         mod:(NonTermMod w)? name:Id params:(w NonterminalArguments)? staticParams:(w StaticParams)? type:(void:colon Type)? whereClauses:(w Where)?
@@ -129,18 +139,27 @@ private NonterminalParameter Decl =
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDef SyntaxDef =
+     a1s:SyntaxSymbols w a2:PreTransformer
+     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+/*
        a1s:SyntaxSymbols w a2:TransformerExpr
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
      / a1s:SyntaxSymbols w a2:PreTransformer
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+       */
 
 SyntaxDef SyntaxDefOr =
+     void:bar w a1s:SyntaxSymbols w a2:PreTransformer
+     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+/*
        void:bar w a1s:SyntaxSymbols w a2:TransformerExpr
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
      / void:bar w a1s:SyntaxSymbols w a2:PreTransformer
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+*/
 
 /* TransformationExpr ::= do BlockElems end */
+/*
 TransformerExpressionDef TransformerExpr =
      do a3:(w BlockElems) w end
      { Span span = createSpan(yyStart, yyCount);
@@ -149,6 +168,7 @@ TransformerExpressionDef TransformerExpr =
                         FortressUtil.mkList(new DoFront(span, Option.<Expr>none(), false, a3)));
        yyValue = new TransformerExpressionDef(createSpan(yyStart,yyCount), d);
      };
+*/
 
 /* TransformationTemplate ::= <[ Expr ]> */
 PreTransformerDef PreTransformer =
@@ -158,7 +178,7 @@ PreTransformerDef PreTransformer =
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
 List<SyntaxSymbol> SyntaxSymbols =
-      a1:SyntaxSymbol a1s:Symbs* &(w (leftDelimiter / do))
+      a1:SyntaxSymbol a1s:Symbs* &(w (leftDelimiter))
       { List<SyntaxSymbol> ls = FortressUtil.mkList(a1);
         for(List<SyntaxSymbol> sl: a1s.list()) {
           ls.addAll(sl);
@@ -293,7 +313,7 @@ SyntaxSymbol Suffix =
     */
 
 SyntaxSymbol Item =
-      !(w (leftDelimiter / do)) s:ItemText
+      !(w (leftDelimiter)) s:ItemText
       { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
       { yyValue = new CharacterClassSymbol(createSpan(yyStart,yyCount), a1.list()); }
@@ -354,7 +374,7 @@ String EscapedSpecialSymbols =
 
 String SpecialSymbols =
       Tab / Formfeed / Return / Newline / Space
-    / Backspace / Not / And / leftDelimiter / do;
+    / Backspace / Not / And / leftDelimiter;
 
 transient String anyChar = "_";
 transient String bar = "|";
@@ -374,7 +394,6 @@ transient String rightDelimiter = "]>";
 
 transient String And = "AND";
 transient String Backspace = "BACKSPACE";      // backspace
-transient String do = "do";
 transient String Formfeed = "FORMFEED";      // form feed
 transient String Newline = "NEWLINE";      // break line
 transient String Not = "NOT";

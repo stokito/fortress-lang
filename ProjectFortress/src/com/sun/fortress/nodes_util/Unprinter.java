@@ -25,6 +25,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -277,6 +279,9 @@ public class Unprinter extends NodeReflection {
                     // structure-verification
                     // frob to any methods containing List or Pair.
                     f.set(node, readList());
+                } else if (f.getType() == Map.class ){
+                    expectPrefix("(Map");
+                    f.set(node, readMap());
                 } else if (f.getType() == Pair.class) {
                     expectPrefix("(Pair");
                     // This is an actual hole. Might want to add a
@@ -540,6 +545,22 @@ public class Unprinter extends NodeReflection {
         return new Pair<Object, Object>(x, y);
     }
 
+    public Map readMap() throws IOException {
+        Map map = new HashMap();
+        String s = l.name();
+        while (true) {
+            if ("!".equals(s)) {
+                String name = readIdentifier();
+                expectPrefix("=");
+                Object obj = readElement();
+                map.put( name, obj );
+            } else if ( ")".equals(s) ){
+                return map;
+            }
+            s = l.name();
+        }
+    }
+
     private Object readElement() throws IOException {
         String a = l.name();
          if ("(".equals(a)) {
@@ -556,6 +577,10 @@ public class Unprinter extends NodeReflection {
     int readInt(String s) throws IOException {
         return Integer.parseInt(s, 10);
 
+    }
+
+    private String readIdentifier() throws IOException {
+        return l.name();
     }
 
     double readDouble(String s) throws IOException {
