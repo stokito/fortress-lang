@@ -79,11 +79,48 @@ public class AstJUTest extends TestCase {
         }));
     }
 
+    private static void addSyntaxTests( TestSuite suite ){
+       String syntax = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/static_tests/syntax_abstraction";
+       String[] tests = new String[]{ 
+           "ChurchBooleans.fss",
+           "Comprehension.fss",
+           "ImportEmptyApiWhichImportsNonEmptyApiEmpty.fss",
+           "ImportEmptyApiWhichImportsNonEmptyApiNonEmpty.fss",
+           "SXXGrammarExtendsNonExistingGrammar.fss",
+           "SXXTemplateGapWithInconsistentParameters.fss",
+           "SXXTemplateParamsAreNotApplicable.fss",
+           "SyntaxGrammarImports.fss",
+           "SyntaxGrammarImportsA.fss",
+           "SyntaxNodes.fss",
+           "TemplateGapWithWrongASTType.fss",
+           "UsingJavaIdentifiersAsPatternVariables.fss",
+           "ChurchBooleans.fsi",
+           "Comprehension.fsi",
+           "ImportEmptyApiWhichImportsNonEmptyApiEmpty.fsi",
+           "ImportEmptyApiWhichImportsNonEmptyApiNonEmpty.fsi",
+           "SXXGrammarExtendsNonExistingGrammar.fsi",
+           "SXXTemplateGapWithInconsistentParameters.fsi",
+           "SXXTemplateParamsAreNotApplicable.fsi",
+           "SyntaxGrammarImports.fsi",
+           "SyntaxGrammarImportsA.fsi",
+           "SyntaxNodes.fsi",
+           "TemplateGapWithWrongASTType.fsi",
+           "UsingJavaIdentifiersAsPatternVariables.fsi" };
+
+       for ( String file : tests ){
+           suite.addTest( new AstJUTest( syntax + SEP + file ) );
+       }
+    }
+
     public static Test suite() throws IOException {
        String tests = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
        String library = ProjectProperties.FORTRESS_AUTOHOME + "/Library";
        String demos = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/demos";
        String builtin = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/LibraryBuiltin";
+       /* we cant add all the syntax tests because some of the blahUse.fss files
+        * use the macros, so they have non-standard syntax in the first place.
+        */
+       // String syntax = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/static_tests/syntax_abstraction";
        TestSuite suite = new TestSuite("Parses all .fss and .fsi files in ProjectFortress/tests" );
        String[] dirs = new String[]{ tests, library, demos, builtin };
        for ( String dir : dirs ){
@@ -91,6 +128,7 @@ public class AstJUTest extends TestCase {
                suite.addTest( new AstJUTest(dir + SEP + file) );
            }
        }
+       addSyntaxTests(suite);
        return suite;
     }
 }

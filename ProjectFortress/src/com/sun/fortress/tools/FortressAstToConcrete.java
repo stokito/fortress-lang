@@ -361,6 +361,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              List<String> decls_result) {
         StringBuilder s = new StringBuilder();
 
+        increaseIndent();
         if ( ! mods_result.isEmpty() ) {
             s.append( join(mods_result, " ") );
             s.append( " " );
@@ -386,8 +387,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( inCurlyBraces("comprises ", throws_) );
         }
         s.append( "\n" );
-        s.append( join(decls_result,"\n") );
+        s.append( indent(join(decls_result,"\n")) );
         s.append( "\nend" ).append( "\n" );
+
+        decreaseIndent();
 
         return s.toString();
     }
@@ -906,7 +909,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( astType_result.unwrap() );
         }
         s.append( ":=\n");
-        s.append( join(syntaxDefs_result, "\n") );
+        s.append( "  " + join(syntaxDefs_result, "\n| ") );
 
         return s.toString();
     }
@@ -923,7 +926,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( astType_result.unwrap() );
         }
         s.append( ":=\n" );
-        s.append( join(syntaxDefs_result, "\n") );
+        s.append( "  " + join(syntaxDefs_result, "\n| ") );
 
         return s.toString();
     }
@@ -1031,18 +1034,37 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    // @Override public String forAnyCharacterSymbolOnly( that,
+    @Override public String forAnyCharacterSymbolOnly( AnyCharacterSymbol that ){
+        return "_";
+    }
 
     @Override public String forWhitespaceSymbolOnly(WhitespaceSymbol that) {
         return " ";
     }
 
-    // @Override public String forTabSymbolOnly( that,
-    // @Override public String forFormfeedSymbolOnly( that,
-    // @Override public String forCarriageReturnSymbolOnly( that,
-    // @Override public String forBackspaceSymbolOnly( that,
-    // @Override public String forNewlineSymbolOnly( that,
-    // @Override public String forBreaklineSymbolOnly( that,
+    @Override public String forTabSymbolOnly( TabSymbol that ){
+        return "TAB";
+    }
+
+    @Override public String forFormfeedSymbolOnly( FormfeedSymbol that ){
+        return "FORMFEED";
+    }
+
+    @Override public String forCarriageReturnSymbolOnly( CarriageReturnSymbol that ){
+        return "RETURN";
+    }
+
+    @Override public String forBackspaceSymbolOnly( BackspaceSymbol that ){
+        return "BACKSPACE";
+    }
+
+    @Override public String forNewlineSymbolOnly( NewlineSymbol that ){
+        return "NEWLINE";
+    }
+
+    @Override public String forBreaklineSymbolOnly( BreaklineSymbol that ){
+        return "\n";
+    }
 
     @Override public String forItemSymbolOnly(ItemSymbol that) {
         return that.getItem();
@@ -1061,11 +1083,31 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return that.getToken();
     }
 
-    // @Override public String forNotPredicateSymbolOnly( that,
-    // @Override public String forAndPredicateSymbolOnly( that,
-    // @Override public String forCharacterClassSymbolOnly( that,
-    // @Override public String forCharSymbolOnly( that,
-    // @Override public String forCharacterIntervalOnly( that,
+    @Override public String forNotPredicateSymbolOnly(NotPredicateSymbol that, String symbol_result) {
+        return "NOT " + symbol_result;
+    }
+
+    @Override public String forAndPredicateSymbolOnly( AndPredicateSymbol that, String symbol_result ){
+        return "AND " + symbol_result;
+    }
+
+    @Override public String forCharacterClassSymbolOnly(CharacterClassSymbol that, List<String> characters_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( "[" );
+        s.append(join(characters_result,""));
+        s.append( "]" );
+
+        return s.toString();
+    }
+
+    @Override public String forCharSymbolOnly( CharSymbol that ){
+        return that.getString();
+    }
+
+    @Override public String forCharacterIntervalOnly(CharacterInterval that) {
+        return that.getBegin() + ":" + that.getEnd();
+    }
 
     @Override public String defaultTemplateGap(TemplateGap t){
         StringBuilder s = new StringBuilder();
