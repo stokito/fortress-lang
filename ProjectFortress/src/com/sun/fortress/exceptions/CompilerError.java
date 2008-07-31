@@ -25,6 +25,14 @@ public class CompilerError extends RuntimeException {
 	public CompilerError(String message) {
 		super(message);
 	}
+	
+        public CompilerError(String message, Exception e) {
+		super(message, e);
+	}
+        
+        public CompilerError(Exception e) {
+		super(e);
+	}
 
 	public CompilerError(Span span, String message) {
 		super(span.toString() + message);

@@ -24,6 +24,14 @@ public class MacroError extends CompilerError {
 	public MacroError(String msg) {
 		super(msg);
 	}
+	
+        public MacroError(String msg, Exception e) {
+		super(msg, e);
+	}
+        
+        public MacroError(Exception e) {
+		super(e);
+	}
 
 	public MacroError(Span span, String msg) {
 		super(span, msg);

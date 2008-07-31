@@ -31,6 +31,7 @@ import java.util.Collection;
 
 import edu.rice.cs.astgen.TabPrintWriter;
 
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
@@ -42,6 +43,9 @@ import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 
 import com.sun.fortress.useful.Debug;
 
+/* creates java classes that represent syntax transformers.
+ * this is not used anymore, it is superceded by the ComposingSyntaxDefTranslater
+ */
 public class SyntaxTransformerCreater {
 
     private static final String PACKAGE = "com.sun.fortress.syntax_abstractions.transformer";
@@ -76,14 +80,14 @@ public class SyntaxTransformerCreater {
             writer.close();
             int compileResult = JavaC.compile(dir, dir, file.getCanonicalPath() );
             if (compileResult != 0) {
-                throw new RuntimeException("A compiler error occured while compiling a temporary parser: " + compileResult );
+                throw new MacroError("A compiler error occured while compiling a temporary parser: " + compileResult );
             }
 
             Debug.debug( Debug.Type.SYNTAX, 2, "Created transformer " + className + " in " + dir );
 
             return (SyntaxTransformer) instantiate( dir, PACKAGE + "." + className );
         } catch ( IOException e ){
-            throw new RuntimeException( "Could not create transformer for " + className, e );
+            throw new MacroError( "Could not create transformer for " + className, e );
         }
     }
 
@@ -96,9 +100,9 @@ public class SyntaxTransformerCreater {
             Constructor<?> constructor = c.getConstructor();
             return c.newInstance();
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException( "Could not find class " + full, e );
+            throw new MacroError( "Could not find class " + full, e );
         } catch ( Exception e ){
-            throw new RuntimeException( "Could not create class of type " + full, e );
+            throw new MacroError( "Could not create class of type " + full, e );
         }
     }
 
@@ -143,7 +147,7 @@ public class SyntaxTransformerCreater {
         File dir = new File(tempDir);
         if (!dir.isDirectory()) {
             if (!dir.mkdirs()) {
-                throw new RuntimeException("Could not create directories: "+dir.getAbsolutePath());
+                throw new MacroError("Could not create directories: "+dir.getAbsolutePath());
             }
         }
     }

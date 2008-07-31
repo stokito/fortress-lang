@@ -43,6 +43,7 @@ import xtc.parser.Action;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
@@ -144,7 +145,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
     @Override
         public List<Sequence> forNonterminalExtensionDef(NonterminalExtensionDef that) {
-            throw new RuntimeException("Nonterminal extension definitions should have been eliminated by now");
+            throw new MacroError("Nonterminal extension definitions should have been eliminated by now");
         }
 
     @Override
@@ -263,10 +264,10 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                         @Override
                         public CharRange forCharacterInterval(CharacterInterval that) {
                             if (that.getBegin().length() != 1) {
-                                new RuntimeException(mess +that.getBegin());
+                                new MacroError(mess +that.getBegin());
                             }
                             if (that.getEnd().length() != 1) {
-                                new RuntimeException(mess+that.getEnd());
+                                new MacroError(mess+that.getEnd());
                             }
                             return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
                         }
@@ -274,7 +275,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     @Override
                         public CharRange forCharSymbol(CharSymbol that) {
                             if (that.getString().length() != 1) {
-                                new RuntimeException(mess+that.getString());
+                                new MacroError(mess+that.getString());
                             }
                             return new CharRange(that.getString().charAt(0));
                         }
@@ -296,11 +297,11 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                 }
                 if (symbol_result.isEmpty()) {
                     if (that.getId().isSome()) {
-                        throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+that.getId().unwrap().getText() + " "+that.getSymbol());
+                        throw new MacroError("Malformed variable binding, bound to nonsensible symbol: "+that.getId().unwrap().getText() + " "+that.getSymbol());
                     }
-                    throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
+                    throw new MacroError("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
                 }
-                throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
+                throw new MacroError("Malformed variable binding, bound to multiple symbols: "+symbol_result);
             }
 
         @Override
@@ -331,7 +332,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
                     List<Element> symbol_result) {
                 if (symbol_result.isEmpty()) {
-                    throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
+                    throw new MacroError("Malformed AND predicate symbol, not bound to any symbol: ");
                 }
                 if (symbol_result.size() == 1) {
                     Element e = symbol_result.get(0);
@@ -344,14 +345,14 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     Element e = symbol_result.get(0);
                     return mkList(new FollowedBy(new Sequence(e)));
                 }
-                throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
+                throw new MacroError("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
             }
 
         @Override
             public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
                     List<Element> symbol_result) {
                 if (symbol_result.isEmpty()) {
-                    throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
+                    throw new MacroError("Malformed NOT predicate symbol, not bound to any symbol: ");
                 }
                 if (symbol_result.size() == 1) {
                     Element e = symbol_result.get(0);
@@ -361,7 +362,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     Element e = symbol_result.get(0);
                     return mkList(new NotFollowedBy(new Sequence(e)));
                 }
-                throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
+                throw new MacroError("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
             }
 
         @Override
@@ -395,7 +396,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     Element e = result.get(0);
                     return mkList(modifier.makePack(e));
                 } else {
-                    throw new RuntimeException
+                    throw new MacroError
                         (String.format("Malformed %s symbol while scanning %s, %s",
                                        modifier.getName(),
                                        that.getClass().getName(),

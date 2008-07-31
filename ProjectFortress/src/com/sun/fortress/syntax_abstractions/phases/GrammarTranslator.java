@@ -34,6 +34,7 @@ import xtc.parser.Production;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -190,7 +191,7 @@ public class GrammarTranslator {
 		for (String keyword: keywords) {
 			int insertPoint = insertString.indexOf("}");
 			if (insertPoint < 0) {
-				throw new RuntimeException("Expected to add keyword, but found no insert point "+insertString);
+				throw new MacroError("Expected to add keyword, but found no insert point "+insertString);
 			}
 			else {
 				if (!isKeyword(keyword)) {
