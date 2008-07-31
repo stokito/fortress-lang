@@ -15,20 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.unit_tests;
+package com.sun.fortress.tests.unit_tests;
 
 import java.math.BigInteger;
 import java.util.Collections;
 
 import junit.framework.Assert;
-import junit.framework.TestCase;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TupleExpr;

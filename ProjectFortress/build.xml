@@ -58,6 +58,7 @@
  <property name="plt" location="${basedir}/third_party/plt"/>
  <property name="unicode.third" location="${basedir}/third_party/unicode"/>
  <property name="xtc" location="${basedir}/third_party/xtc"/>
+ <property name="xerces" location="${basedir}/third_party/xerces"/>
  <property name="unsigned" location="${basedir}/third_party/unsigned"/>
  <!-- astgen -->
  <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
@@ -102,6 +103,7 @@
     <pathelement location="${build}"/>
     <pathelement location="${asm}/asm-3.1.jar"/>
     <pathelement location="${xtc}/xtc.jar"/>
+    <pathelement location="${xerces}/xerces.jar"/>
     <pathelement location ="${unsigned}/unsigned.jar"/>
     <pathelement location="${jsr166y}/jsr166y.jar"/>
     <pathelement location="${plt}/plt.jar"/>

@@ -15,9 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.unit_tests;
+package com.sun.fortress.tests.unit_tests;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
@@ -29,7 +28,6 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.TestCaseWrapper;
-import com.sun.fortress.useful.Useful;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.exceptions.StaticError;
 

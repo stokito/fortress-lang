@@ -15,22 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.unit_tests;
+package com.sun.fortress.tests.unit_tests;
 import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
-/**
- * Junit wrapper that runs all the programs found in demos, looking for
- * exceptions and/or "FAIL".  The name was chosen to NOT trigger the
- * filters for pattern-matching unit tests within ant; this is run
- * explicitly, as part of nightly tests.
- *
- * @author chase
- */
-public class DemoTests {
+public class SystemJUTest {
 
 
     public static void main(String[] args) throws IOException {
@@ -39,14 +31,15 @@ public class DemoTests {
     }
 
     public static Test suite() throws IOException {
-        String testDir = ProjectProperties.BASEDIR + "demos";
-        String s = System.getProperty("demos");
+        String testDir = ProjectProperties.BASEDIR + "tests";
+        String s = System.getProperty("tests");
+        boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
         if (s != null) {
             testDir = s;
         }
-        TestSuite suite = new TestSuite("Test all .fss files in 'demos'.");
+        TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir, false, false));
+        suite.addTest(FileTests.suite(testDir, failsOnly, false));
         //$JUnit-END$
         return suite;
     }
