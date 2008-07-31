@@ -28,6 +28,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 
@@ -69,8 +70,10 @@ class ParamTypeEnv extends TypeEnv {
     	
     	Option<Param> _p = findParam(_var); 
     	
-    	if( _p.isSome() )
-    		return some(new BindingLookup(_var, typeFromParam(_p.unwrap())));
+    	if( _p.isSome() ) {
+    		Param p = _p.unwrap();
+    		return some(new BindingLookup(_var, typeFromParam(p), p.getMods()));
+    	}
     	else
     		return parent.binding(_var);
     }
@@ -79,7 +82,7 @@ class ParamTypeEnv extends TypeEnv {
     public List<BindingLookup> contents() {
         List<BindingLookup> result = new ArrayList<BindingLookup>();
         for (Param param : entries) {
-            result.add(new BindingLookup(param.getName(), typeFromParam(param)));
+            result.add(new BindingLookup(param.getName(), typeFromParam(param), param.getMods()));
         }
         result.addAll(parent.contents());
         return result;
@@ -108,5 +111,10 @@ class ParamTypeEnv extends TypeEnv {
 		}
 		
 		return new ParamTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return this.parent.staticParam(id);
 	}
 }

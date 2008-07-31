@@ -129,4 +129,9 @@ class MethodTypeEnv extends TypeEnv {
 		return new MethodTypeEnv(CollectUtil.makeRelation(new_entries),
 				parent.replaceAllIVars(ivars));
 	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return parent.staticParam(id);
+	}
 }

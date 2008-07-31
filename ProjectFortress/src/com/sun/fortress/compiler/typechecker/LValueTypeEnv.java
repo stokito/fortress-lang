@@ -27,6 +27,7 @@ import java.util.Map;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 
@@ -101,5 +102,10 @@ class LValueTypeEnv extends TypeEnv {
 		}
 		
 		return new LValueTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return parent.staticParam(id);
 	}
 }

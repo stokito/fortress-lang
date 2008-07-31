@@ -100,4 +100,9 @@ class LocalVarTypeEnv extends TypeEnv {
 		return new LocalVarTypeEnv((LocalVarDecl)this.decl.accept(rep),
 				this.parent.replaceAllIVars(ivars));
 	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return this.parent.staticParam(id);
+	}
 }

@@ -1240,69 +1240,62 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return this.subtypeChecker.subtype(arg_type, domain_type);
 	 }
 
-	 private Option<Type> findFieldInTraitHierarchy(List<Type> supers, FieldRef that) {
+	 private Option<Type> findFieldInTraitHierarchy(List<TraitType> supers, FieldRef that) {
 
-		 List<Type> new_supers = new ArrayList<Type>();
+		 List<TraitType> new_supers = new ArrayList<TraitType>();
 		 Option<Type> result = Option.none();
 
-		 for( Type my_super : supers ) {
-			 Option<TraitIndex> is_trait=expectTraitType(my_super);
+		 for( TraitType my_super : supers ) {
+			 TraitIndex index = expectTraitIndex(my_super);
 
-			 if(is_trait.isSome()){
-				 TraitIndex trait_index=is_trait.unwrap();
+			 // Map to list of supertypes
+			 for( TraitTypeWhere ttw : index.extendsTypes() ) {
+				 Type t = ttw.getType();
+				 new_supers.addAll(traitTypesCallable(t));
+			 }
 
-				 // Map to list of supertypes
-				 List<Type> extends_types =
-					 CollectUtil.makeList(IterUtil.map(trait_index.extendsTypes(),
-							 new Lambda<TraitTypeWhere,Type>(){
-						 public Type value(TraitTypeWhere arg0) {
-							 return arg0.getType();
-						 }}));
-				 new_supers.addAll(extends_types);
+			 // check if trait has a getter
+			 Map<Id,Method> getters=index.getters();
+			 if(getters.containsKey(that.getField())) {
+				 Method field=getters.get(that.getField());
+				 return Option.some(field.getReturnType());
+			 }
+			 else {
+				 //check if trait is an object
+				 if(index instanceof ObjectTraitIndex) {
+					 //Check if object has field
+					 ObjectTraitIndex object_index=(ObjectTraitIndex)index;
+					 Map<Id,Variable> fields=object_index.fields();
+					 if(fields.containsKey(that.getField())){
+						 Variable field=fields.get(that.getField());
 
-				 // check if trait has a getter
-				 Map<Id,Method> getters=trait_index.getters();
-				 if(getters.containsKey(that.getField())) {
-					 Method field=getters.get(that.getField());
-					 return Option.some(field.getReturnType());
-				 }
-				 else {
-					 //check if trait is an object
-					 if(trait_index instanceof ObjectTraitIndex){
-						 //Check if object has field
-						 ObjectTraitIndex object_index=(ObjectTraitIndex)trait_index;
-						 Map<Id,Variable> fields=object_index.fields();
-						 if(fields.containsKey(that.getField())){
-							 Variable field=fields.get(that.getField());
-							 
-							 if( field instanceof ParamVariable ) {
-								 ParamVariable param = (ParamVariable)field;
-								 Param field_node = param.ast();
-								 
-								 Type field_type = 
+						 if( field instanceof ParamVariable ) {
+							 ParamVariable param = (ParamVariable)field;
+							 Param field_node = param.ast();
+
+							 Type field_type = 
 								 field_node.accept(new NodeAbstractVisitor<Type>() {
-									@Override
-									public Type forNormalParam(NormalParam that) { return that.getType().unwrap(); }
+									 @Override
+									 public Type forNormalParam(NormalParam that) { return that.getType().unwrap(); }
 
-									@Override
-									public Type forVarargsParam(VarargsParam that) { return that.getType(); }
+									 @Override
+									 public Type forVarargsParam(VarargsParam that) { return that.getType(); }
 								 });
-								 
-								 return Option.some(field_type);
-							 }
-							 else if( field instanceof DeclaredVariable ) {
-								 DeclaredVariable var = (DeclaredVariable)field;
-								 LValueBind bind = var.ast();
-								 return Option.some(bind.getType().unwrap()); 
-							 }
-							 else {
-								 return bug("Field of an object should not be a Singleton Object." + field);
-							 }
+
+							 return Option.some(field_type);
+						 }
+						 else if( field instanceof DeclaredVariable ) {
+							 DeclaredVariable var = (DeclaredVariable)field;
+							 LValueBind bind = var.ast();
+							 return Option.some(bind.getType().unwrap()); 
+						 }
+						 else {
+							 return bug("Field of an object should not be a Singleton Object." + field);
 						 }
 					 }
-					 //error no such field
 				 }
-				 //error receiver not a trait
+				 //error no such field
+
 			 }
 		 }
 
@@ -1327,8 +1320,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 Type recvr_type=obj_result.type().unwrap();
 		 TypeCheckerResult result;
 		 Option<Type> result_type;
-		 if( recvr_type instanceof TraitType ) {
-			 Option<Type> f_type = this.findFieldInTraitHierarchy(Collections.singletonList(recvr_type), that);
+		 
+		 List<TraitType> trait_types = traitTypesCallable(recvr_type);
+		 
+		 if( !trait_types.isEmpty() ) {
+			 Option<Type> f_type = this.findFieldInTraitHierarchy(trait_types, that);
 			 if( f_type.isSome() ) {
 				 result = new TypeCheckerResult(that);
 				 result_type = f_type;
@@ -1348,92 +1344,189 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 		 return TypeCheckerResult.compose(that, result_type, this.subtypeChecker, obj_result, result);
 	 }
-
+	 
+//	 /** 
+//	  * If the given type is a trait, or a type variable that extends some trait,
+//	  * or some conjunction/disjunction of things that could have methods called on it,
+//	  * return all the TraitIndex-es, otherwise nothing.  
+//	  */
+//	 private List<TraitIndex> getTypeIndecesFromType(Type rcvr_type) {
+//		 if( rcvr_type instanceof NamedType ) {
+//			 NamedType named_type = (NamedType)rcvr_type;
+//			 // Since it's not in the trait table, let's try the type environment.
+//			 Id name = named_type.getName();
+//			 
+//			 Option<TypeConsIndex> ind = table.typeCons(name);
+//			 if( ind.isSome() ) {
+//				 if( ind.unwrap() instanceof TraitIndex ) {
+//					 return Collections.singletonList((TraitIndex)ind.unwrap());
+//				 }
+//				 else {
+//					 return bug("Shouldn't this be a trait index?");
+//				 }
+//			 }
+//			 // At this point, we don't have a Trait, but we could still have a
+//			 // VarType or an intersection: something that is allowed to have method
+//			 // calls.
+//			 Option<StaticParam> param_ = this.typeEnv.staticParam(name);
+//			 
+//			 if( param_.isNone() ) return Collections.emptyList();
+//			 
+//			 StaticParam param = param_.unwrap();
+//			 return param.accept(new NodeAbstractVisitor<List<TraitIndex>>(){
+//
+//				@Override
+//				public List<TraitIndex> forTypeParam(TypeParam that) {
+//					List<TraitIndex> result = new ArrayList<TraitIndex>();
+//					for( BaseType type : that.getExtendsClause() ) {
+//						result.addAll(TypeChecker.this.getTypeIndecesFromType(type));
+//					}
+//					return result;
+//				}
+//			 });
+//		 }
+//		 else if( rcvr_type instanceof BoundType ) {
+//			 return NI.nyi("You should be able to call methods on this type, but this is nyi." + rcvr_type);
+//		 }
+//		 else {
+//			 return Collections.emptyList();
+//		 }
+//	 }
+	 
 	 /**
-	  * If the given type is a trait, return its TraitIndex, otherwise nothing.
+	  * Look up the index of the given type, expecting it to exist. If it
+	  * does not, that represents a bug.
 	  */
-	 private Option<TraitIndex> expectTraitType(Type rcvr_type){
-		 if( rcvr_type instanceof NamedType ) {
-			 NamedType named_rcvr_type = (NamedType)rcvr_type;
-			 Option<TypeConsIndex> ind = table.typeCons(named_rcvr_type.getName());
-			 if(ind.isNone()){
-				 return Option.none();
-			 }
-			 TypeConsIndex index = ind.unwrap();
-			 if( index instanceof TraitIndex ) {
-				 return Option.some((TraitIndex)index);
-			 }
+	 private TraitIndex expectTraitIndex(TraitType trait) {
+		 Option<TypeConsIndex> tc_ = table.typeCons(trait.getName());
+		 if( tc_.isNone() || !(tc_.unwrap() instanceof TraitIndex) ) {
+			 return bug("This should never be anything but a legitimate trait index.");
 		 }
-		 return Option.none();
+		 else {
+			 return (TraitIndex)tc_.unwrap();
+		 }
 	 }
+	 
+	 private List<TraitIndex> expectTraitIndeces(List<TraitType> traits) {
+		 List<TraitIndex> result = new ArrayList<TraitIndex>(traits.size());
+		 for( TraitType type : traits ) {
+			 result.add(expectTraitIndex(type));
+		 }
+		 return result;
+	 }
+	 
+	 /**
+	  * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
+	  * that this type could be used as for the purposes of calling methods and fields.
+	  */
+	 private List<TraitType> traitTypesCallable(Type type) {
+		 return type.accept(new NodeAbstractVisitor<List<TraitType>>(){
 
+			@Override
+			public List<TraitType> forIntersectionType(IntersectionType that) {
+				return NI.nyi("You should be able to call methods on this type, but this is nyi." + that);
+			}
+
+			@Override
+			public List<TraitType> forTraitType(TraitType that) {
+				return Collections.singletonList(that);
+			}
+
+			@Override
+			public List<TraitType> forType(Type that) {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public List<TraitType> forUnionType(UnionType that) {
+				return NI.nyi("You should be able to call methods on this type, but this is nyi." + that);
+			}
+
+			@Override
+			public List<TraitType> forVarType(VarType that) {
+				 Option<StaticParam> param_ = typeEnv.staticParam(that.getName());
+				 
+				 if( param_.isNone() ) return Collections.emptyList();
+				 
+				 StaticParam param = param_.unwrap();
+				 return param.accept(new NodeAbstractVisitor<List<TraitType>>(){
+
+					@Override
+					public List<TraitType> forTypeParam(TypeParam that) {
+						List<TraitType> result = new ArrayList<TraitType>();
+						for( BaseType type : that.getExtendsClause() ) {
+							result.addAll(TypeChecker.this.traitTypesCallable(type));
+						}
+						return result;
+					}
+				 });
+			}
+		 });
+	 }
+	 
 	 // This method does a lot: Basically all of the hard work of finding an appropriate overloading, including looking
 	 // in parent traits.
-	 private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(final IdOrOpOrAnonymousName method_name, List<Type> supers,
+	 private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(final IdOrOpOrAnonymousName method_name, List<TraitType> supers,
 			 Type arg_type, List<StaticArg> in_static_args,
 			 Node that) {
 		 List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
 		 List<Method> candidates=new ArrayList<Method>();
-		 List<Type> new_supers=new ArrayList<Type>();
-		 for(Type type: supers){
-			 Option<TraitIndex> is_trait=expectTraitType(type);
-			 if(is_trait.isSome()){
-				 TraitIndex trait_index= is_trait.unwrap();
-				 final List<StaticArg> extended_type_args = ((TraitType)type).getArgs();
-				 final List<StaticParam> extended_type_params = trait_index.staticParameters();
-				 // get all of the types this type extends. Note that because we can extend types with our own static args,
-				 // we must visit the extended type with a static type replacer.
-				 List<Type> temp = CollectUtil.makeList(IterUtil.map(trait_index.extendsTypes(),
-						 new Lambda<TraitTypeWhere,Type>(){
-					 public Type value(TraitTypeWhere arg0) {
-						 return (Type)arg0.getType().accept(new StaticTypeReplacer(extended_type_params, extended_type_args));
-					 }}
-				 ));
-				 new_supers.addAll(temp);
+		 List<TraitType> new_supers=new ArrayList<TraitType>();
+		 
+		 for(TraitType type: supers) {
+			 TraitIndex trait_index = expectTraitIndex(type);
 
-				 // Get methods with the right name:
-				 // Add all dotted methods,
-				 Set<Method> methods_with_name = trait_index.dottedMethods().matchFirst(method_name);
+			 final List<StaticArg> extended_type_args = type.getArgs();
+			 final List<StaticParam> extended_type_params = trait_index.staticParameters();
+			 // get all of the types this type extends. Note that because we can extend types with our own static args,
+			 // we must visit the extended type with a static type replacer.
+			 for( TraitTypeWhere ttw : trait_index.extendsTypes() ) {
+				Type t = (Type)ttw.getType().accept(new StaticTypeReplacer(extended_type_params, extended_type_args));
+				new_supers.addAll(traitTypesCallable(t));
+			 }
 
-				 for( Method m : methods_with_name ) {
-					 List<StaticArg> static_args = new ArrayList<StaticArg>(in_static_args);
-					 // same number of static args
-					 if( m.staticParameters().size() > 0 && in_static_args.size() == 0 ) {
-						 // we need to infer static arguments
+			 // Get methods with the right name:
+			 // Add all dotted methods,
+			 Set<Method> methods_with_name = trait_index.dottedMethods().matchFirst(method_name);
 
-						 // TODO if parameters are anything but TypeParam, we don't know
-						 // how to infer it yet.
-						 for( StaticParam p : m.staticParameters() )
-							 if( !(p instanceof TypeParam) ) continue;
-						 // Otherwise, we've got all static parameters
-						 List<StaticArg> static_inference_params =
-							 CollectUtil.makeList(
-									 IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
-										 public StaticArg value(StaticParam arg0) {
-											 Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());
-											 return new TypeArg(ivt);
-										 }}));
-						 static_args = static_inference_params;
-					 }
-					 else if(m.staticParameters().size()!=static_args.size()) {
-						 // we don't need to infer, and they have different numbers of args
-						 continue;
-					 }
-					 // instantiate method params with method and type args
-					 Functional im_maybe = m.instantiate(Useful.concat(m.staticParameters(), extended_type_params),
-							 Useful.concat(static_args, extended_type_args));
-					 // we know this cast works, instantiate contract
-					 Method im = (Method)im_maybe;
-					 // Do they have the same number of parameters, or at least can they be matched.
-					 ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_type);
-					 // constraint satisfiable?
-					 if(mc.isSatisfiable()) {
-						 //add method to candidates
-						 candidates.add(im);
-						 all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
-					 }
+			 for( Method m : methods_with_name ) {
+				 List<StaticArg> static_args = new ArrayList<StaticArg>(in_static_args);
+				 // same number of static args
+				 if( m.staticParameters().size() > 0 && in_static_args.size() == 0 ) {
+					 // we need to infer static arguments
 
+					 // TODO if parameters are anything but TypeParam, we don't know
+					 // how to infer it yet.
+					 for( StaticParam p : m.staticParameters() )
+						 if( !(p instanceof TypeParam) ) continue;
+					 // Otherwise, we've got all static parameters
+					 List<StaticArg> static_inference_params =
+						 CollectUtil.makeList(
+								 IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
+									 public StaticArg value(StaticParam arg0) {
+										 Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());
+										 return new TypeArg(ivt);
+									 }}));
+					 static_args = static_inference_params;
 				 }
+				 else if(m.staticParameters().size()!=static_args.size()) {
+					 // we don't need to infer, and they have different numbers of args
+					 continue;
+				 }
+				 // instantiate method params with method and type args
+				 Functional im_maybe = m.instantiate(Useful.concat(m.staticParameters(), extended_type_params),
+						 Useful.concat(static_args, extended_type_args));
+				 // we know this cast works, instantiate contract
+				 Method im = (Method)im_maybe;
+				 // Do they have the same number of parameters, or at least can they be matched.
+				 ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_type);
+				 // constraint satisfiable?
+				 if(mc.isSatisfiable()) {
+					 //add method to candidates
+					 candidates.add(im);
+					 all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
+				 }
+
 			 }
 		 }
 
@@ -1443,57 +1536,50 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return Pair.make(candidates,all_results);
 	 }
 
-	 private TypeCheckerResult findSetterInTraitHierarchy(IdOrOpOrAnonymousName field_name, List<Type> supers,
+	 private TypeCheckerResult findSetterInTraitHierarchy(IdOrOpOrAnonymousName field_name, List<TraitType> supers,
 			 Type arg_type, Node ast){
-		 List<Type> new_supers = new ArrayList<Type>();
+		 List<TraitType> new_supers = new ArrayList<TraitType>();
 		 Option<Type> result = Option.none();
 
-		 for( Type my_super : supers ) {
-			 Option<TraitIndex> is_trait=expectTraitType(my_super);
+		 for( TraitType my_super : supers ) {
+			 TraitIndex trait_index = expectTraitIndex(my_super);
 
-			 if(is_trait.isSome()){
-				 TraitIndex trait_index=is_trait.unwrap();
 
-				 // Map to list of supertypes
-				 List<Type> extends_types =
-					 CollectUtil.makeList(IterUtil.map(trait_index.extendsTypes(),
-							 new Lambda<TraitTypeWhere,Type>(){
-						 public Type value(TraitTypeWhere arg0) {
-							 return arg0.getType();
-						 }}));
-				 new_supers.addAll(extends_types);
-
-				 // check if trait has a getter
-				 Map<Id,Method> setters=trait_index.setters();
-				 if(setters.containsKey(field_name)) {
-					 Method field=setters.get(field_name);
-					 ConstraintFormula works =  argsMatchParams(field.parameters(),arg_type);
-					 if(!works.isSatisfiable()){
-						 String errmes = "Argument to setter has wrong type";
-						 StaticError err = TypeError.make(errmes, ast);
-						 return new TypeCheckerResult(ast,Option.<Type>none(),Collections.singletonList(err),works);
-					 }
-					 else{
-						 return new TypeCheckerResult(ast,works);
-					 }
-				 }
-				 else {
-					 // we used to check for a field but we don't think that's right.
-					 //check if trait is an object
-//					 if(trait_index instanceof ObjectTraitIndex){
-//					 //Check if object has field
-//					 ObjectTraitIndex object_index=(ObjectTraitIndex)trait_index;
-//					 Map<Id,Variable> fields=object_index.fields();
-//					 if(fields.containsKey(field_name)){
-//					 Variable field=fields.get(field_name);
-//					 Option<BindingLookup> type=this.typeEnv.binding(field_name);
-//					 return this.checkSubtype(arg_type,type.unwrap().getType().unwrap(),ast, "Argument to field has wrong type");
-//					 }
-//					 }
-					 //error no such field
-				 }
-				 //error receiver not a trait
+			 // Map to list of supertypes
+			 for( TraitTypeWhere ttw : trait_index.extendsTypes() ) {
+				 new_supers.addAll(traitTypesCallable(ttw.getType()));
 			 }
+
+			 // check if trait has a getter
+			 Map<Id,Method> setters=trait_index.setters();
+			 if(setters.containsKey(field_name)) {
+				 Method field=setters.get(field_name);
+				 ConstraintFormula works =  argsMatchParams(field.parameters(),arg_type);
+				 if(!works.isSatisfiable()){
+					 String errmes = "Argument to setter has wrong type";
+					 StaticError err = TypeError.make(errmes, ast);
+					 return new TypeCheckerResult(ast,Option.<Type>none(),Collections.singletonList(err),works);
+				 }
+				 else{
+					 return new TypeCheckerResult(ast,works);
+				 }
+			 }
+			 else {
+				 // we used to check for a field but we don't think that's right.
+				 //check if trait is an object
+//				 if(trait_index instanceof ObjectTraitIndex){
+//				 //Check if object has field
+//				 ObjectTraitIndex object_index=(ObjectTraitIndex)trait_index;
+//				 Map<Id,Variable> fields=object_index.fields();
+//				 if(fields.containsKey(field_name)){
+//				 Variable field=fields.get(field_name);
+//				 Option<BindingLookup> type=this.typeEnv.binding(field_name);
+//				 return this.checkSubtype(arg_type,type.unwrap().getType().unwrap(),ast, "Argument to field has wrong type");
+//				 }
+//				 }
+				 //error no such field
+			 }
+			 //error receiver not a trait
 		 }
 
 		 if( result.isNone() && !new_supers.isEmpty() ) {
@@ -1529,8 +1615,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 		 // Check whether receiver can have methods
 		 Type recvr_type=obj_result.type().unwrap();
-		 Option<TraitIndex> is_trait=expectTraitType(recvr_type);
-		 if(is_trait.isNone()){
+		 List<TraitType> traits = traitTypesCallable(recvr_type);
+		 if( traits.isEmpty() ) {
 			 //error receiver not a trait
 			 String trait_err = "Target of a method invocation must have trait type, while this receiver has type " + recvr_type + ".";
 			 all_results.add(new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj())));
@@ -1538,7 +1624,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 		 else{
 			 Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
-				 findMethodsInTraitHierarchy(that.getMethod(), Collections.singletonList(recvr_type),arg_result.type().unwrap(),that.getStaticArgs(),that);
+				 findMethodsInTraitHierarchy(that.getMethod(), traits, arg_result.type().unwrap(),that.getStaticArgs(),that);
 			 List<Method> candidates = candidate_pair.first();
 			 all_results.addAll(candidate_pair.second());
 			 // Now we join together the results, or return an error if there are no candidates.
@@ -1893,8 +1979,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 					 TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
 					 if(obj_result.type().isSome()){
-						 Type obj_type=obj_result.type().unwrap();
-						 TypeCheckerResult r = findSetterInTraitHierarchy(that.getField(),Collections.singletonList(obj_type),rhs_type, that);
+						 Type obj_type = obj_result.type().unwrap();
+						 List<TraitType> traits = traitTypesCallable(obj_type);
+						 
+						 TypeCheckerResult r = findSetterInTraitHierarchy(that.getField(),traits,rhs_type, that);
 						 return TypeCheckerResult.compose(that, read_result.type(), subtypeChecker, r, read_result);
 					 }
 					 else{
@@ -2698,9 +2786,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	 private TypeCheckerResult subscriptHelper(Node that, Option<Enclosing> op,
 			 Type obj_type, List<Type> subs_types, List<StaticArg> static_args) {
-		 Option<TraitIndex> obj_index_ = expectTraitType(obj_type);
+		 List<TraitType> traits = traitTypesCallable(obj_type);
 		 // we need to have a trait otherwise we can't see its methods.
-		 if( obj_index_.isNone() ) {
+		 if( traits.isEmpty() ) {
 			 String err = "Only traits can have subscripting methods and " + obj_type + " is not one.";
 			 TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that));
 			 return TypeCheckerResult.compose(that, subtypeChecker, err_result);
@@ -2710,7 +2798,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 Type arg_type = Types.MAKE_TUPLE.value(subs_types);
 
 		 Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
-			 findMethodsInTraitHierarchy(op.unwrap(), Collections.singletonList(obj_type), arg_type, static_args,that);
+			 findMethodsInTraitHierarchy(op.unwrap(), traits, arg_type, static_args,that);
 		 TypeCheckerResult result = TypeCheckerResult.compose(that, subtypeChecker, candidate_pair.second());
 		 List<Method> candidates = candidate_pair.first();
 

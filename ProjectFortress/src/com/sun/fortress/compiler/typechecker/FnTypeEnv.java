@@ -201,4 +201,9 @@ class FnTypeEnv extends TypeEnv {
 		return new FnTypeEnv(CollectUtil.makeRelation(new_entries_),
 				             parent.replaceAllIVars(ivars));
 	}
+
+	@Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+		return this.parent.staticParam(id);
+	}
 }

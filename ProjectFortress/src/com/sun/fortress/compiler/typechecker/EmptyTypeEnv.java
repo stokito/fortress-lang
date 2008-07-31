@@ -34,6 +34,9 @@ class EmptyTypeEnv extends TypeEnv {
     
     private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
     
+    @Override
+	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) { return none(); }
+    @Override
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) { return none(); }
 
     @Override
