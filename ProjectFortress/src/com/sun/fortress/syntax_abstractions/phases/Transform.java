@@ -30,7 +30,6 @@ import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes._CurriedTransformer;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.TransformerNode;
 import com.sun.fortress.nodes.TemplateGap;
@@ -39,6 +38,9 @@ import com.sun.fortress.nodes._SyntaxTransformationExpr;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes.TemplateUpdateVisitor;
 import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.NodeVisitor;
+import com.sun.fortress.nodes.NodeVisitor_void;
+import com.sun.fortress.nodes.TabPrintWriter;
 import com.sun.fortress.useful.Debug;
 // import com.sun.fortress.tools.FortressAstToConcrete;
 
@@ -52,6 +54,76 @@ public class Transform extends TemplateUpdateVisitor {
     private Transform( Map<String,Node> transformers, Map<String,Object> variables ){
         this.transformers = transformers;
         this.variables = variables;
+    }
+
+    private class CurriedTransformer implements Node {
+        private String original;
+        private Map<String,Object> vars;
+        private List<String> parameters;
+
+        public CurriedTransformer( String original, Map<String,Object> vars, List<String> parameters ){
+            this.original = original;
+            this.vars = vars;
+            this.parameters = parameters;
+        }
+
+        public String getSyntaxTransformer(){
+            return original;
+        }
+
+        public Map<String,Object> getVariables(){
+            return vars;
+        }
+
+        public List<String> getSyntaxParameters(){
+            return parameters;
+        }
+
+        private Object error(){
+            throw new MacroError("Dont call this method");
+        }
+
+        public Span getSpan(){
+            error();
+            return null;
+        }
+        
+        public String at(){
+            error();
+            return null;
+        }
+
+        public String stringName(){
+            error();
+            return null;
+        }
+
+        public <RetType> RetType accept(NodeVisitor<RetType> visitor){
+            error();
+            return null;
+        }
+
+        public void accept(NodeVisitor_void visitor){
+            error();
+        }
+
+        public int generateHashCode(){
+            error();
+            return 0;
+        }
+
+        public java.lang.String serialize(){
+            error();
+            return null;
+        }
+
+        public void serialize(java.io.Writer writer){
+            error();
+        }
+
+        public void outputHelp(TabPrintWriter writer, boolean lossless){
+            error();
+        }
     }
     
     public static Node transform( GlobalEnvironment env, Node node ){
@@ -81,7 +153,7 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     private Node curry( String original, Map<String,Object> vars, List<String> parameters ){
-        return new _CurriedTransformer(new Span(), original, vars, parameters);
+        return new CurriedTransformer(original, vars, parameters);
     }
 
     private Node lookupVariable(Id id, List<Id> params){
@@ -94,11 +166,11 @@ public class Transform extends TemplateUpdateVisitor {
                 return (Node)binding;
             } else {
 
-                if ( ! (binding instanceof _CurriedTransformer) ){
+                if ( ! (binding instanceof CurriedTransformer) ){
                     throw new MacroError( "Parameterized template gap is not bound to a _CurriedTransformer, instead bound to " + binding.getClass().getName() );
                 }
 
-                _CurriedTransformer curried = (_CurriedTransformer) binding;
+                CurriedTransformer curried = (CurriedTransformer) binding;
                 Map<String,Object> vars = new HashMap<String,Object>( curried.getVariables() );
                 if ( curried.getSyntaxParameters().size() != params.size() ){
                     throw new MacroError( "Passing " + params.size() + " arguments to a nonterminal that accepts " + curried.getSyntaxParameters().size() + " arguments." );
