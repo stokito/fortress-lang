@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component ImportLocalCollision
+import TestImports1.{...}
+export Executable
+
+trait U
+  s():String = "s from ImportLocalCollision.U"
+end
+
+object V extends U
+end
+
+object W extends T
+  myname():String = "ImportLocalCollision.W"
+end
+
+run(args:String...):()=do
+  assert( V.s() = "s from ImportLocalCollision.U", "V's s() comes from local U")
+  assert( W.s() = "s from TestImports1.S object ImportLocalCollision.W", "W's s() comes from TestImports1.S")
+  assert( W.t() = "t from TestImports1.T ImportLocalCollision.W", "W's t() comes from TestImports1.T")
+  println "No news is good news"
+end
+
+end
