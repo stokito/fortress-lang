@@ -30,7 +30,6 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 
@@ -57,7 +56,6 @@ public class Desugarer {
      */
     public static boolean getter_setter_desugar = false;
     public static boolean objExpr_desugar = false;
-    public static final boolean extends_object_desugar = true;
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
