@@ -201,7 +201,7 @@ public class Desugarer extends Rewrite {
         public String toString() { return "Local@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
-    private class FunctionalMethod extends Local {
+    public class FunctionalMethod extends Local {
         public String toString() { return "FunctionalMethod@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
@@ -277,7 +277,7 @@ public class Desugarer extends Rewrite {
     }
 
 
-    private static class ArrowOrFunctional {
+    public static class ArrowOrFunctional {
         public String toString() {
             return s;
         }
@@ -286,11 +286,11 @@ public class Desugarer extends Rewrite {
         }
         private final String s;
     };
-    private final static ArrowOrFunctional NEITHER = new ArrowOrFunctional("NEITHER");
-    private final static ArrowOrFunctional ARROW = new ArrowOrFunctional("ARROW");
-    private final static ArrowOrFunctional FUNCTIONAL = new ArrowOrFunctional("FUNCTIONAL");
+    public final static ArrowOrFunctional NEITHER = new ArrowOrFunctional("NEITHER");
+    public final static ArrowOrFunctional ARROW = new ArrowOrFunctional("ARROW");
+    public final static ArrowOrFunctional FUNCTIONAL = new ArrowOrFunctional("FUNCTIONAL");
     
-    private static class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
+    public static class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
 
         @Override
         public ArrowOrFunctional defaultCase(Node that) {
@@ -380,7 +380,7 @@ public class Desugarer extends Rewrite {
      * Visitor, returning true if something's name is an "arrow" -- that is, it
      * can be invoked, but is not an object.
      */
-    final static IsAnArrowName isAnArrowName = new IsAnArrowName();
+    public final static IsAnArrowName isAnArrowName = new IsAnArrowName();
 
     /**
      * Rewritings in scope.

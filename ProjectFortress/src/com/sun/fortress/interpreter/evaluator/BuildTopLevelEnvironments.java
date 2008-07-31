@@ -18,7 +18,9 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
@@ -35,7 +37,23 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Voidoid;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 public class BuildTopLevelEnvironments extends BuildEnvironments {
+
+    /**
+     * Empty by default
+     */
+    public Set<String> valNames = new HashSet<String>();
+    /**
+     * Empty by default
+     */
+    public Set<String> overloadNames = new HashSet<String>();
+    /**
+     * Empty by default
+     */
+    public Set<String> typeNames = new HashSet<String>();
+
     /**
      * Creates an environment builder that will inject bindings into 'within'.
      * The visit is suspended at generics (com.sun.fortress.interpreter.nodes
@@ -155,5 +173,10 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             def.accept(this);
         }
     }
+    
+    public void setExporterAndApi(ComponentWrapper exporter, ComponentWrapper api) {
+        bug("Can only set exporter of API environment builder.");
+    }
+    
 
 }

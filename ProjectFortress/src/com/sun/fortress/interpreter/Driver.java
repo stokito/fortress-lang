@@ -99,6 +99,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.Visitor1;
 import com.sun.fortress.useful.Visitor2;
 import com.sun.fortress.useful.Debug;
 
@@ -141,7 +142,8 @@ public class Driver {
             Importer imp =
                 importAllExcept(lib,
                                 cw.getEnvironment(),
-                                lib.getEnvironment(), libcomp.getEnvironment(),
+                                //lib.getEnvironment(),
+                                libcomp.getEnvironment(),
                                 Collections.<String> emptyList(),
                                 libraryName, libraryName,
                                 cw);
@@ -250,7 +252,8 @@ public class Driver {
         /*
          * After all apis etc have been imported, populate their environments.
          */
-        for (ComponentWrapper cw : components) {
+        for (int i = components.size() - 1; i >= 0; i--) {
+            ComponentWrapper cw = components.get(i);
             // System.err.println("populating " + cw);
             cw.populateOne();
         }
@@ -450,7 +453,7 @@ public class Driver {
                             },
                             new BASet<String>(StringComparer.V));// cw.ownNonFunctionNames.copy());
 
-                    Importer imp = importAllExcept(api_cw, e, api_e, from_e, except_names,
+                    Importer imp = importAllExcept(api_cw, e, from_e, except_names,
                                     from_apiname,
                                     NodeUtil.nameString(from_cw.getCompilationUnit().getName()),
                                     cw);
@@ -609,8 +612,8 @@ public class Driver {
     }
 
 
-    private static void notImport(String s, Object o, String api, String component) {
-//        System.err.println("Not importing from " + api + " into " + component + " name " + s + ", value " + o);
+    private static void notImport(String s, String api, String component) {
+//        System.err.println("Not importing from " + api + " into " + component + " name " + s);
     }
 
     static abstract class Importer {
@@ -640,7 +643,7 @@ public class Driver {
      */
     private static Importer importAllExcept(final ComponentWrapper importee,
             final Environment into_e,
-            final Environment api_e,
+          //  final Environment api_e,
             final Environment from_e,
             final Collection<String> except_names,
             final String a,
@@ -652,6 +655,21 @@ public class Driver {
         final Set<String> tnames = new HashSet<String>();
 
         collectImportedValueAndTypeNames(fromApi, vnames, tnames);
+       
+        // Debugging/testing glop
+        if (true) {
+            Set<String> v_old_minus_new = Useful.difference(vnames, importee.be.valNames);
+            Set<String> v_new_minus_old = Useful.difference(importee.be.valNames, vnames);
+            Set<String> t_old_minus_new = Useful.difference(tnames, importee.be.typeNames);
+            Set<String> t_new_minus_old = Useful.difference(importee.be.typeNames, tnames);
+            if (v_old_minus_new.size() != 0 ||
+                    t_old_minus_new.size() != 0 ||
+                    v_new_minus_old.size() != 0 ||
+                    t_new_minus_old.size() != 0
+            ) {
+ //               System.err.println("Difference in imported name lists");
+            }
+        }
 
         // HACK -- is this only true for the "builtins" interface?
         if (importee.desugarer != null)
@@ -696,22 +714,27 @@ public class Driver {
         synchronized void reportErrors() {
             noisy[0] = true;
 
-            trysomeImports(api_e, vnames, tnames);
+            trysomeImports(importee, vnames, tnames);
         }
 
         @Override
         synchronized boolean runImports() {
 
             noisy[0] = false;
-            return trysomeImports(api_e, vnames, tnames);
+            return trysomeImports(importee, vnames, tnames);
 
         }
 
-        private boolean trysomeImports(final Environment api_e,
+        private boolean trysomeImports(final ComponentWrapper api_cw,
                 final Set<String> vnames, final Set<String> tnames) {
             boolean flag = false;
             for (String s : vnames) {
-                vv.visit(s, api_e.getValueRaw(s));
+                if (api_cw.overloadableExportedFunction.contains(s)) {
+                    vo.visit(s);
+                } else {
+                    vv.visit(s);
+                }
+                
             }
             if (added.size() > 0) {
                 flag = true;
@@ -720,7 +743,7 @@ public class Driver {
             }
 
             for (String s : tnames) {
-                vt.visit(s, api_e.getType(s));
+                vt.visit(s);
             }
             if (added.size() > 0) {
                 flag = true;
@@ -731,8 +754,8 @@ public class Driver {
         }
 
 
-        final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
-            public void visit(String s, FType o) {
+        final Visitor1<String> vt = new Visitor1<String>() {
+            public void visit(String s) {
                 try {
                     if (!except_names.contains(s) &&
                             !importer.excludedImportNames.contains(s) &&
@@ -743,11 +766,11 @@ public class Driver {
                             added.add(s);
                         } else {
                             importer.excludedImportNames.add(s);
-                            into_e.removeType(s); // Safe to remove, because explcitly defined names are excluded already.
+                            into_e.removeType(s); // Safe to remove, because explicitly defined names are excluded already.
                             added.add(s);
                         }
                     } else {
-                        notImport(s, o, a, c);
+                        notImport(s, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
                     if (noisy[0])
@@ -769,21 +792,15 @@ public class Driver {
          * Potential problem here, we have to make overloading work when we put
          * a function.
          */
-        final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
-            public void visit(String s, FValue o) {
+        final Visitor1<String> vv = new Visitor1<String>() {
+            public void visit(String s) {
                 try {
                     boolean do_import = false;
                     if (!except_names.contains(s) &&
                             !importer.excludedImportNames.contains(s)) {
-                        if (ComponentWrapper.overloadable(o)) {
-                            if (!importer.ownNonFunctionNames.contains(s)) {
-                                do_import = true;
-                            }
-                        } else {
                             if (!importer.ownNames.contains(s)) {
                                 do_import = true;
                             }
-                        }
                     }
                     if (do_import) {
                         FValue fv = NI.cnnf(from_e.getValueRaw(s));
@@ -796,7 +813,7 @@ public class Driver {
                         }
                         added.add(s);
                     } else {
-                        notImport(s, o, a, c);
+                        notImport(s, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
                     if (noisy[0])
@@ -814,6 +831,46 @@ public class Driver {
             }
         };
 
+        final Visitor1<String> vo = new Visitor1<String>() {
+            public void visit(String s) {
+                try {
+                    boolean do_import = false;
+                    if (!except_names.contains(s) &&
+                            !importer.excludedImportNames.contains(s)) {
+                            if (!importer.ownNonFunctionNames.contains(s)) {
+                                do_import = true;
+                            }
+                    }
+                    if (do_import) {
+                        FValue fv = NI.cnnf(from_e.getValueRaw(s));
+                        into_e.putValue(s, fv);
+                        FValue fv2 = into_e.getValueRaw(s);
+                        if (
+                            fv2 instanceof OverloadedFunction) {
+                         // hack, leave this empty temporarily.
+                          overloaded.add(s);
+                        }
+                        added.add(s);
+                    } else {
+                        notImport(s, a, c);
+                    }
+                } catch (CheckedNullPointerException ex) {
+                    if (noisy[0])
+                    error("Import of value " + s + " from api " + a
+                          + " not found in implementing component " + c);
+                } catch (RedefinitionError re) {
+                    if (re.existingValue == null ||
+                        re.existingValue != re.attemptedReplacementValue) {
+                        /* Completely new or bogus definition. */
+                        throw re;
+                    } else {
+                        /* Redefining entity as itself; silently ignore. */
+                    }
+                }
+            }
+        };
+
+        
         };
 
         return imp;
