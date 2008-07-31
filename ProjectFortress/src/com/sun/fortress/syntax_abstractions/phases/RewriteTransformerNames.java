@@ -39,6 +39,7 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
@@ -137,7 +138,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
             // addTransformer( name );
             return new TransformerDef( name, that.getTransformer(), parameters.unwrap() );
         } catch ( OptionUnwrapException e ){
-            throw new RuntimeException( "Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e );
+            throw new MacroError( "Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e );
         }
     }
 }

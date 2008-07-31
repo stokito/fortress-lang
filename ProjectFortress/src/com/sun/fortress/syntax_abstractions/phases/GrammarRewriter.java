@@ -35,6 +35,7 @@ import xtc.parser.ParseError;
 
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.MultipleStaticError;
+import com.sun.fortress.exceptions.MacroError;
 
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
 
@@ -196,7 +197,7 @@ public class GrammarRewriter {
                             return index;
                         }
                     }
-                    throw new RuntimeException( "Could not find grammar for " + grammar.getName() );
+                    throw new MacroError( "Could not find grammar for " + grammar.getName() );
                 }
 
                 @Override public Node forGrammarDef(GrammarDef that) {
@@ -285,23 +286,23 @@ public class GrammarRewriter {
             }
             return Option.none();
         } catch (NoSuchMethodException e){
-            throw new RuntimeException(e);
+            throw new MacroError(e);
         } catch (SecurityException e){
-            throw new RuntimeException(e);
+            throw new MacroError(e);
         }
     }
 
     private static Object invokeMethod( Object obj, String name ){
         Option<Method> method = lookupExpression( obj.getClass(), name );
         if ( ! method.isSome() ){
-            throw new RuntimeException( "Could not find method " + name + " in " + obj.getClass().getName() );
+            throw new MacroError( "Could not find method " + name + " in " + obj.getClass().getName() );
         } else {
             try{
                 return (xtc.parser.Result) method.unwrap().invoke(obj, 0);
             } catch (IllegalAccessException e){
-                throw new RuntimeException(e);
+                throw new MacroError(e);
             } catch (java.lang.reflect.InvocationTargetException e){
-                throw new RuntimeException(e);
+                throw new MacroError(e);
             }
         }
     }
@@ -324,7 +325,7 @@ public class GrammarRewriter {
                 throw new ParserError((ParseError) result, parser);
             }
         } catch ( Exception e ){
-            throw new RuntimeException( "Could not parse '" + stuff + "'", e );
+            throw new MacroError( "Could not parse '" + stuff + "'", e );
         }
     }
 
@@ -341,7 +342,7 @@ public class GrammarRewriter {
                 throw new ParserError((ParseError) result, parser);
             }
         } catch ( Exception e ){
-            throw new RuntimeException( "Could not create transformer for '" + def + "'", e );
+            throw new MacroError( "Could not create transformer for '" + def + "'", e );
         }
     }
 

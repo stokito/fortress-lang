@@ -27,6 +27,7 @@ import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
@@ -65,7 +66,7 @@ public class NonterminalParameterDisambiguator extends NodeUpdateVisitor {
                 return Option.none();
             }
         }
-        throw new RuntimeException("Non-disambiguated grammar: "+name);
+        throw new MacroError("Non-disambiguated grammar: "+name);
     }
 
     @Override

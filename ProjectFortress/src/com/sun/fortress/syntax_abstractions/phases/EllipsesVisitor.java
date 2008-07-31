@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.phases;
 import java.util.List;
 import java.util.ArrayList;
 
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
@@ -72,7 +73,7 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
                 return ((List) env.getValue( var )).size();
             }
         }
-        throw new RuntimeException( "No repeated variables!" );
+        throw new MacroError( "No repeated variables!" );
     }
 
     /* convert an environment into a list of environments, one for each value in the list
@@ -133,12 +134,12 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
             }
             return nodes;
         } else {
-            throw new RuntimeException( "Invalid ellipses expression: " + that );
+            throw new MacroError( "Invalid ellipses expression: " + that );
         }
     }
     
     @Override
     public Node for_EllipsesExpr(_EllipsesExpr that) {
-        throw new RuntimeException( "Should not see an ellipses expr" );
+        throw new MacroError( "Should not see an ellipses expr" );
     }
 }

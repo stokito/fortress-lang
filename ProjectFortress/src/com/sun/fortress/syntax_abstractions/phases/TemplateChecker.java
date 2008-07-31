@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.typechecker.ConstraintFormula;
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
@@ -127,7 +128,7 @@ public class TemplateChecker extends TemplateUpdateVisitor {
             for (SyntaxSymbol ss: that.getSyntaxSymbols()) {
                 sd += ss.accept(new SyntaxSymbolPrinter());
             }
-            throw new RuntimeException("Could not find a member environment for "+sd +" in "+this.currentMemberEnv.getName());
+            throw new MacroError("Could not find a member environment for "+sd +" in "+this.currentMemberEnv.getName());
         }
         this.currentSyntaxDeclEnv = os.unwrap();
         return super.forSyntaxDef(that);
@@ -211,7 +212,7 @@ public class TemplateChecker extends TemplateUpdateVisitor {
         }
         
         if (!this.patternVariablesAndArguments.containsKey(that.getGapId())) {
-            throw new RuntimeException("Unknown pattern variable: "+that.getGapId());
+            throw new MacroError("Unknown pattern variable: "+that.getGapId());
         }
 
 //        Id freshName = this.patternVariables.get(gap.getId());

@@ -38,6 +38,7 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
@@ -200,9 +201,9 @@ public Result(Api api,
             }
             return Option.none();
         } catch (NoSuchMethodException e){
-            throw new RuntimeException(e);
+            throw new MacroError(e);
         } catch (SecurityException e){
-            throw new RuntimeException(e);
+            throw new MacroError(e);
         }
     }
 
@@ -214,44 +215,10 @@ public Result(Api api,
         try{
             return (xtc.parser.Result) method.invoke(parser, num);
         } catch (IllegalAccessException e){
-            throw new RuntimeException(e);
+            throw new MacroError(e);
         } catch (java.lang.reflect.InvocationTargetException e){
-            throw new RuntimeException(e);
+            throw new MacroError(e);
         }
-    }
-
-    private Option<Node> parseTemplate(Span span, String transformation, String productionName) {
-        /*
-           BufferedReader in = Useful.bufferedStringReader(transformation.trim());
-           com.sun.fortress.parser.templateparser.TemplateParser parser =
-           new com.sun.fortress.parser.templateparser.TemplateParser(in, span.getBegin().getFileName());
-
-           parser.setExpectedName(Option.<APIName>none());
-           Option<Method> parse = lookupExpression(parser.getClass(), productionName);
-           if ( ! parse.isSome() ){
-           throw new RuntimeException("Did not find method " + productionName);
-           }
-
-           try {
-        //		    System.err.println("PARSING: "+transformation);
-        xtc.parser.Result parseResult = invokeParseMethod(parser,parse.unwrap(),0);
-        if (parseResult.hasValue()) {
-        Object cu = ((SemanticValue) parseResult).value;
-        if (cu instanceof AbstractNode) {
-        //				    System.err.println("RESULT: "+writeJavaAST(makeComponent((Expr) cu)));
-        return Option.<Node>some(new TransformerDef(span, (AbstractNode) cu));
-        } 
-        throw new RuntimeException("Unexpected parse result: " + cu);
-        } 
-        //			System.err.println("Error: "+((ParseError) parseResult).msg);
-        this.errors.add(new ParserError((ParseError) parseResult, parser));
-        return Option.none();
-        } catch (IOException e) {
-        e.printStackTrace();
-        throw new RuntimeException(e.getMessage());
-        }
-        */
-        throw new RuntimeException("Can't parse templates");
     }
 
         private Component makeComponent(Expr expression) {
@@ -275,7 +242,7 @@ public Result(Api api,
                         //   System.err.println(sw.getBuffer().toString());
                         return sw.getBuffer().toString();
                 } catch (IOException e) {
-                        throw new RuntimeException("Unexpected error: "+e.getMessage());
+                        throw new MacroError("Unexpected error: "+e.getMessage());
                 }
         }
 }

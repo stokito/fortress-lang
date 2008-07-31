@@ -36,6 +36,7 @@ import xtc.tree.Attribute;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.GrammarMemberDecl;
@@ -149,7 +150,7 @@ public class MemberTranslator {
 
         @Override
         public Production forNonterminalExtensionDef(NonterminalExtensionDef that) {
-            throw new RuntimeException("Nonterminal extension definition should not appear"+that);
+            throw new MacroError("Nonterminal extension definition should not appear"+that);
         }
 
         @Override
