@@ -15,11 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.unit_tests;
+package com.sun.fortress.tests.unit_tests;
 
 import junit.framework.Assert;
 
-import com.sun.fortress.nodes_util.UIDComparator;
 import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.useful.BATree;

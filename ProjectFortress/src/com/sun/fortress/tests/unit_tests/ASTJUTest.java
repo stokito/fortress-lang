@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.unit_tests;
+package com.sun.fortress.tests.unit_tests;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,10 +26,8 @@ import java.util.List;
 
 import junit.framework.Assert;
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;

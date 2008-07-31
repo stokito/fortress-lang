@@ -15,36 +15,26 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.unit_tests;
+package com.sun.fortress.tests.unit_tests;
+import java.io.IOException;
 
-import junit.framework.Assert;
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import com.sun.fortress.repository.ProjectProperties;
 
-import com.sun.fortress.interpreter.evaluator.transactions.*;
-import com.sun.fortress.interpreter.evaluator.tasks.*;
-import com.sun.fortress.useful.TestCaseWrapper;
+public class NotPassingYet {
 
-public class TestTask2 extends BaseTask {
-    ReadSet rs;
-    int count;
-
-    public TestTask2(ReadSet _rs, int c) {
-        rs = _rs;
-        count = c;
+    public static void main(String[] args) {
+        junit.swingui.TestRunner.run(NotPassingYet.class);
     }
 
-    public void print() {
-        System.out.println("TestTask");
+    public static Test suite() throws IOException {
+        String testDir = ProjectProperties.BASEDIR + "not_passing_yet";
+        TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
+        //$JUnit-BEGIN$
+        suite.addTest(FileTests.suite(testDir, true, true));
+        //$JUnit-END$
+        return suite;
     }
 
-    public void compute() {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        runner.setCurrentTask(this);
-        for (int i = 0 ; i < count; i++) {
-            rs.add(new Transaction());
-        }
-
-    }
 }

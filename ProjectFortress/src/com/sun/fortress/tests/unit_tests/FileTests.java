@@ -15,10 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.unit_tests;
+package com.sun.fortress.tests.unit_tests;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -30,17 +29,14 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.Shell;
-import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
-import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
