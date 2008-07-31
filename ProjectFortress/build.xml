@@ -556,7 +556,6 @@ testOnly, testCruiseControl"/>
                     <include name="**/*JUTest.class"/>
                     <include name="**/*JUTests.class"/>
                     <exclude name="**/*$*.class"/>
-                    <exclude name="**/SyntaxAbstractionJUTest.class"/>
                     <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
 		    <exclude name="**/tools/AstJUTest.class"/>
                 </fileset>

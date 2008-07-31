@@ -105,6 +105,7 @@ public class Disambiguator {
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
             NonterminalDisambiguator pd = new NonterminalDisambiguator(env, globalEnv, newErrs);
+            Debug.debug( Debug.Type.COMPILER, 3, "Disambiguate grammar members for api " + index );
             Api pdResult = (Api) index.ast().accept(pd);
             results.add(pdResult);
             if (!newErrs.isEmpty()) { 
@@ -327,7 +328,7 @@ public class Disambiguator {
         	 ApiIndex index = globalEnv.api(api.getName());
         	 
         	 Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), api);
-             GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
+                 GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
         	 NameEnv env = new TopLevelEnv(filtered_global_env, index, errors);
         	 
         	 Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
@@ -387,13 +388,24 @@ public class Disambiguator {
     private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, Collection<ApiIndex> moreApis ) {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
-        for (ApiIndex a2: apis) {
+
+        /* It seems that this for loop has to come first, but I'm not sure why.
+         * If it comes after the next for loop then the grammar index's wont
+         * be fully qualified ant the NonterminalEnv.constructNonterminalApi
+         * will complain. That is because the grammars from the moreApis set
+         * have some overlap with the grammars from the apis set, so they will
+         * conflict with each other in the grammars map. The grammars from the
+         * moreApis set should be fully qualified, but they aren't.
+         */
+        for (ApiIndex a2: moreApis) {
             for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+                Debug.debug( Debug.Type.COMPILER, 4, "Add Grammar " + e.getKey() + " from other apis" );
                 grammars.put(e.getKey(), e.getValue());
             }
         }
-        for (ApiIndex a2: moreApis) {
+        for (ApiIndex a2: apis) {
             for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+                Debug.debug( Debug.Type.COMPILER, 4, "Add Grammar " + e.getKey() + " from normal apis" );
                 grammars.put(e.getKey(), e.getValue());
             }
         }
