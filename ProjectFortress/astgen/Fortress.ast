@@ -130,7 +130,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * top-level node abstract class
      */
     abstract AbstractNode() extends UIDObject;
-        _CurriedTransformer(String syntaxTransformer, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters) implements _SyntaxTransformation;
         /**
          * compilation unit declaration
          * CompilationUnit ::= Component | Api
