@@ -42,48 +42,48 @@ end
 
 object Nn(x:ZZ32)
   extends { Monoid[\Nn, OTIMES\], Monoid[\Nn, OPLUS\], Monoid[\Nn, MAX\],
-            TotalOrder[\Nn, LESS, LESSEQ, EQ, GREATEQ, GREAT\] }
+            TotalOrder[\Nn, <, <=, =, >=, >\] }
     opr OPLUS(self, other:Nn):Nn = Nn(x + other.x)
     opr OTIMES(self, other:Nn):Nn = Nn(x other.x)
     opr MAX(self, other:Nn):Nn = Nn(x MAX other.x)
     opr EQ(self, other:Nn):Boolean = (x = other.x)
-    opr LESSEQ(self, other:Nn):Boolean = (x <= other.x)
+    opr <=(self, other:Nn):Boolean = (x <= other.x)
 end
 
-c[\T extends TotalOrder[\T,LESS,LESSEQ,EQ,GREATEQ,GREAT\]\](x:T, y:T): () =
-    if x LESS y then
-        assert(x LESSEQ y,"< not LESSEQ")
-        assert(NOT (x EQ y),"< EQ")
-        assert(NOT (x GREATEQ y),"< GREATEQ")
-        assert(NOT (x GREAT y),"< GREAT")
-        assert(y GREAT x,"< not GREAT")
-        assert(y GREATEQ x,"< not GREATEQ")
-        assert(NOT (y EQ x),"< EQ r")
-        assert(NOT (y LESSEQ x),"< LESSEQ")
-        assert(NOT (y LESS x),"< LESS")
-        println("LESS OK")
-    elif x GREAT y then
-        assert(x GREATEQ y,"> not GREATEQ")
-        assert(NOT (x EQ y),"> EQ")
-        assert(NOT (x LESSEQ y),"> LESSEQ")
-        assert(y LESS x,"> not LESS")
-        assert(y LESSEQ x,"> not LESSEQ")
-        assert(NOT (y EQ x),"> EQ r")
-        assert(NOT (y GREATEQ x),"> GREATEQ")
-        assert(NOT (y GREAT x),"> GREAT")
-        println("GREAT OK")
+c[\T extends TotalOrder[\T,<,<=,=,>=,>\]\](x:T, y:T): () =
+    if x < y then
+        assert(x <= y,"< not <=")
+        assert(NOT (x = y),"< =")
+        assert(NOT (x >= y),"< >=")
+        assert(NOT (x > y),"< >")
+        assert(y > x,"< not >")
+        assert(y >= x,"< not >=")
+        assert(NOT (y = x),"< = r")
+        assert(NOT (y <= x),"< <=")
+        assert(NOT (y < x),"< <")
+        println("< OK")
+    elif x > y then
+        assert(x >= y,"> not >=")
+        assert(NOT (x = y),"> =")
+        assert(NOT (x <= y),"> <=")
+        assert(y < x,"> not <")
+        assert(y <= x,"> not <=")
+        assert(NOT (y = x),"> = r")
+        assert(NOT (y >= x),"> >=")
+        assert(NOT (y > x),"> >")
+        println("> OK")
     else
-        assert(x EQ y,"= not EQ")
-        assert(y EQ x,"= not EQ r")
-        assert(x GREATEQ y,"= not GREATEQ")
-        assert(y GREATEQ x,"= not GREATEQ r")
-        assert(x LESSEQ y,"= not LESSEQ")
-        assert(y LESSEQ x,"= not LESSEQ r")
-        assert(NOT (x GREAT y),"= GREAT")
-        assert(NOT (y GREAT x),"= GREAT r")
-        assert(NOT (x LESS y),"= LESS")
-        assert(NOT (y LESS x),"= LESS r")
-        println("EQ OK")
+        assert(x = y,"= not =")
+        assert(y = x,"= not = r")
+        assert(x >= y,"= not >=")
+        assert(y >= x,"= not >= r")
+        assert(x <= y,"= not <=")
+        assert(y <= x,"= not <= r")
+        assert(NOT (x > y),"= >")
+        assert(NOT (y > x),"= > r")
+        assert(NOT (x < y),"= <")
+        assert(NOT (y < x),"= < r")
+        println("= OK")
     end
 
 run(args:String...) = do
