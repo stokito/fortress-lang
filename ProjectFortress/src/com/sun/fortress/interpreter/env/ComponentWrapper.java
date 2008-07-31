@@ -19,6 +19,8 @@ package com.sun.fortress.interpreter.env;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.HashMap;
+
+import com.sun.fortress.interpreter.evaluator.BuildApiEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
@@ -41,7 +43,7 @@ public class ComponentWrapper {
 
     HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
 
-    BuildEnvironments be;
+    public BuildTopLevelEnvironments be;
 
     public BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
@@ -49,6 +51,24 @@ public class ComponentWrapper {
     public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
 
+    /**
+     * If a variable/value/function name is missing when an API is initialized, 
+     * store it here, in case it is found later (that is, imported into the 
+     * component through some other API).
+     */
+    public BASet<String> missingExportedVars = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    /**
+     * Any function that is exported, may be overloaded, and so any subsequently
+     * discovered imports should also propagate.
+     */
+    public BASet<String> overloadableExportedFunction = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    /**
+     * If a type name is missing when an API is initialized, store it here, in
+     * case it is found later  (that is, imported into the component through
+     * some other API).
+     */
+    public BASet<String> missingExportedTypes = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    
     // For debugging use/def annotation
     public BASet<String> topLevelUsesForDebugging;
     
@@ -63,12 +83,12 @@ public class ComponentWrapper {
         ownTypeNames = null;
         excludedImportNames = null;
         importedNames = null;
-        HashMap<String, ComponentWrapper> exports = this.exports;
-        this.exports = null;
         if (exports != null)
             for (ComponentWrapper cw : exports.values()) {
                 cw.reset();
             }
+        this.exports = null;
+        
     }
     
     Visitor2<String, Object> nameCollector = new Visitor2<String, Object>() {
@@ -104,7 +124,7 @@ public class ComponentWrapper {
         if (comp instanceof Component) {
             be = ((Component)comp).is_native() ? new BuildNativeEnvironment(e, linker) : new BuildTopLevelEnvironments(e, linker);
         } else { // comp instanceof Api
-            be = new BuildTopLevelEnvironments(e, linker);
+            be = new BuildApiEnvironment(e, linker);
         }
     }
 
@@ -188,12 +208,38 @@ public class ComponentWrapper {
         topLevelUsesForDebugging.removeAll(ownNames);
         
         for (ComponentWrapper api: exports.values()) {
-            api.populateOne();
+            api.populateOne(this);
         }
 
         return cu;
     }
 
+     public CompilationUnit populateOne(ComponentWrapper exporter) {
+         if (visitState != IMPORTED)
+             return bug("Component wrapper in wrong visit state: " + visitState);
+
+         visitState = POPULATED;
+
+         be.setExporterAndApi(exporter, this);
+         
+         CompilationUnit cu = p;
+
+         cu = (CompilationUnit) desugarer.visit(cu); // Rewrites cu!
+                                       // Caches information in dis!
+         be.visit(cu);
+         // Reset the non-function names from the disambiguator.
+         ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+         ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+         be.getEnvironment().visit(nameCollector);
+         p = cu;
+         topLevelUsesForDebugging = desugarer.topLevelUses.copy();
+         topLevelUsesForDebugging.removeAll(ownNames);
+
+         return cu;
+     }
+
+     
     public void initTypes() {
         if (visitState == POPULATED) {
             visitState = TYPED;

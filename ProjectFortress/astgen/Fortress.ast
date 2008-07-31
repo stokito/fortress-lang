@@ -383,6 +383,11 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                  */
                 UnpastingSplit(List<Unpasting> elems, int dim);
         /**
+         * Overloading specification
+         */
+        FnOverloadDecl(IdOrOpName name, 
+                       List<IdOrOpName> fns) ;
+        /**
          * functional declaration in components or APIs
          * Names must be unqualified.
          */
