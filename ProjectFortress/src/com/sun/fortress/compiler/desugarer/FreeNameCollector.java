@@ -22,18 +22,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import com.sun.fortress.compiler.index.TraitIndex;
+import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
+import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
-import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.GenericDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.Span;
@@ -50,6 +55,9 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	private Map<Pair<Node,Span>, TypeEnv> in_typeEnvAtNode;
 	private Map<Span, TypeEnv> typeEnvAtNode;
 	private Stack<Node> scopeStack;
+	private TraitTable traitTable;
+	// The TraitDecl or ObjectDecl enclosing the object expression
+	private GenericDecl enclosingTraitOrObject;
 	
 	private static final int DEBUG_LEVEL = 1;
 	
@@ -58,16 +66,23 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	// type ObjectExpr.
 	// A reference is considered free if it is not declared within thisObjExpr, 
 	// not inherited by thisObjExpr, AND not declared at top level environment.
-	public FreeNameCollector(Stack<Node> scopeStack, Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode) {
+	public FreeNameCollector(Stack<Node> scopeStack, 
+                             Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode, 
+                             TraitTable traitTable, 
+                             GenericDecl enclosingTraitOrObject) {
 		result = new FreeNameCollection();
 		thisObjExpr = (ObjectExpr) scopeStack.peek();  
 		this.in_typeEnvAtNode = typeEnvAtNode;
 		
 		this.typeEnvAtNode = new HashMap<Span,TypeEnv>();
-		for(Pair<Node, Span> n : in_typeEnvAtNode.keySet()) { // FIXME: Temp hack to use Map<Span,TypeEnv>
+
+        // FIXME: Temp hack to use Map<Span,TypeEnv>
+		for(Pair<Node, Span> n : in_typeEnvAtNode.keySet()) { 
 			this.typeEnvAtNode.put(n.second(), in_typeEnvAtNode.get(n));
 		}
 		this.scopeStack = scopeStack;
+		this.traitTable = traitTable;
+		this.enclosingTraitOrObject = enclosingTraitOrObject;
 	}
 
 	public FreeNameCollection getResult() {
@@ -81,12 +96,16 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 
 	@Override
     public FreeNameCollection forObjectExpr(ObjectExpr that) {
-		// TODO: if(thisObjExpr.equals(that) && thisObjExpr.getSpan().equals(that.getSpan()))
-		// need to do something different if it's an ObjectExpr nested inside another ObjectExpr
+		// TODO: if(thisObjExpr.equals(that) && 
+        //       thisObjExpr.getSpan().equals(that.getSpan()))
+		// need to do something different if it's an ObjectExpr nested 
+        // inside another ObjectExpr
 		// System.err.println("In FreeNameCollector, obj: " + that);
 
-        List<FreeNameCollection> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-        List<FreeNameCollection> decls_result = recurOnListOfDecl(that.getDecls());
+        List<FreeNameCollection> extendsClause_result = 
+            recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        List<FreeNameCollection> decls_result = 
+            recurOnListOfDecl(that.getDecls());
 
         for(FreeNameCollection c : extendsClause_result) {
         	result = result.composeResult(c);
@@ -95,37 +114,43 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
         	result = result.composeResult(c);
         }
 
-        return super.forObjectExprOnly(that, extendsClause_result, decls_result);
+        return super.forObjectExprOnly(that, extendsClause_result, 
+                                       decls_result);
     }
 
 	@Override
 	public FreeNameCollection forVarRef(VarRef that) {
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getVar()) || isDeclareInTopLevel(that.getVar())) {
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+		if(isDeclaredInObjExpr(that.getVar()) || 
+           isDeclareInTopLevel(that.getVar())) {
 			return FreeNameCollection.EMPTY;
 		}
 
 		return result.add(that);
 	}
 
-	@Override
-	public FreeNameCollection forFieldRef(FieldRef that) {
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getField()) || isDeclareInTopLevel(that.getField())) {
-			return FreeNameCollection.EMPTY;
-		}
-
-		return result.add(that);
-	}
+//	@Override
+//	public FreeNameCollection forFieldRef(FieldRef that) {
+//		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+//		if(isDeclaredInObjExpr(that.getField()) || 
+//         isDeclareInTopLevel(that.getField())) {
+//			return FreeNameCollection.EMPTY;
+//		}
+//
+//		return result.add(that);
+//	}
 
 	@Override
 	public FreeNameCollection forFnRef(FnRef that) {
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getOriginalName()) || isDeclareInTopLevel(that.getOriginalName())) {
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+		if(isDeclaredInObjExpr(that.getOriginalName()) || 
+           isDeclareInTopLevel(that.getOriginalName())) {
 			return FreeNameCollection.EMPTY;
 		}
-
-		return result.add(that);
+		
+		return result.add(that, isDottedMethod(that));
 	}
 
 //	@Override
@@ -141,9 +166,12 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	
 	@Override
 	public FreeNameCollection forDimRef(DimRef that) {
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getName()) || isDeclareInTopLevel(that.getName())) {
-			// FIXME: I put this in, but the TypeEnv doesn't actually contain DimRef
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+		if(isDeclaredInObjExpr(that.getName()) || 
+           isDeclareInTopLevel(that.getName())) {
+			// FIXME: I put this in, but the TypeEnv doesn't actually 
+            // contain DimRef
 			return FreeNameCollection.EMPTY;
 		}
 
@@ -152,8 +180,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 
 	@Override
 	public FreeNameCollection forIntRef(IntRef that) {
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getName()) || isDeclareInTopLevel(that.getName())) {
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+		if(isDeclaredInObjExpr(that.getName()) || 
+           isDeclareInTopLevel(that.getName())) {
 			return FreeNameCollection.EMPTY;
 		}
 
@@ -162,8 +192,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 
 	@Override
 	public FreeNameCollection forBoolRef(BoolRef that) {
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getName()) || isDeclareInTopLevel(that.getName())) {
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+		if(isDeclaredInObjExpr(that.getName()) || 
+           isDeclareInTopLevel(that.getName())) {
 			return FreeNameCollection.EMPTY;
 		}
 
@@ -172,17 +204,57 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 
 	@Override
 	public FreeNameCollection forVarType(VarType that) {
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getName()) || isDeclareInTopLevel(that.getName())) {
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+		if(isDeclaredInObjExpr(that.getName()) || 
+           isDeclareInTopLevel(that.getName())) {
 			return FreeNameCollection.EMPTY;
 		}
 
 		return result.add(that);
 	}
 
+	private boolean isDottedMethod(FnRef fnRef) {
+		
+		Option<TypeConsIndex> typeConsIndex = null;
+		TraitIndex traitIndex = null;
+		
+		if(enclosingTraitOrObject == null) {
+			return false;
+		}
+		
+		if(enclosingTraitOrObject instanceof TraitDecl) {
+			typeConsIndex = traitTable.typeCons( 
+					((TraitDecl) enclosingTraitOrObject).getName() );
+		} else if(enclosingTraitOrObject instanceof ObjectDecl) {
+			typeConsIndex = traitTable.typeCons( 
+					((ObjectDecl) enclosingTraitOrObject).getName() );
+		} else {
+			throw new DesugarerError(enclosingTraitOrObject.getSpan(), 
+					"TraitDecl or ObjectDecl expected, but getting " +
+					enclosingTraitOrObject.getClass() + "instead.");
+		}
+		
+		if(typeConsIndex.isNone()) {
+			throw new DesugarerError(enclosingTraitOrObject.getSpan(), 
+					"TypeConsIndex for " + enclosingTraitOrObject +
+					" is not found.");
+		}
+		else if(typeConsIndex.unwrap() instanceof TraitIndex) {
+			traitIndex = (TraitIndex) typeConsIndex.unwrap();
+		} else {
+			throw new DesugarerError(enclosingTraitOrObject.getSpan(), 
+					"TypeConsIndex for " + enclosingTraitOrObject +
+					" is not type TraitIndex.");
+		}
+
+		return traitIndex.dottedMethods().containsFirst(fnRef.getOriginalName());
+	}
+	
 	private boolean isDeclaredInObjExpr(Id id) { 
+        // FIXME: change if going back to Pair<Node,Span> key
 		TypeEnv objExprTypeEnv = 
-			typeEnvAtNode.get(thisObjExpr.getSpan());  // FIXME: change if going back to Pair<Node,Span> key
+			typeEnvAtNode.get(thisObjExpr.getSpan());  
 		Option<BindingLookup> binding = objExprTypeEnv.binding(id);
 
 		// The typeEnv are things visible outside of object expression
@@ -202,18 +274,22 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 
 	private boolean isDeclareInTopLevel(Id id) {
 		// The first node in this stack must be declared at a top level
-		// Its corresonding environment must be the top level environment
+		// Its corresponding environment must be the top level environment
 		Node topLevelNode = scopeStack.get(0);  
 		
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "top level node is: ", topLevelNode);
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "its span is: ", topLevelNode.getSpan());
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "top level node is: ", topLevelNode);
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "its span is: ", topLevelNode.getSpan());
 		
 		// FIXME: change if going back to Pair<Node,Span> key
 		TypeEnv topLevelEnv = typeEnvAtNode.get(topLevelNode.getSpan());
 
 		if(topLevelEnv == null) {
 			DebugTypeEnvAtNode();
-		}
+		}		
+		Debug.debug(Debug.Type.COMPILER, 
+					DEBUG_LEVEL, "top level type env is: ", topLevelEnv.contents());
 		
 		Option<BindingLookup> binding = topLevelEnv.binding(id);
 		if(binding.isNone()) { 
@@ -229,14 +305,23 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	
 	private void DebugTypeEnvAtNode() {
 		int i = 0;
-		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "Debuggging typeEnvAtNode ... ");
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "Debuggging typeEnvAtNode ... ");
 		for(Pair<Node,Span> n : in_typeEnvAtNode.keySet()) {
 			i++;
-			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "key ", i, ": ", n.first());
-			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "\t Its span is ", n.second());
-			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "\t Are they equal? ", n.first().getSpan().equals(n.second()));
-			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "\t It's env contains: ", typeEnvAtNode.get(n));
+			Debug.debug(Debug.Type.COMPILER, 
+                        DEBUG_LEVEL, "key ", i, ": ", n.first());
+			Debug.debug(Debug.Type.COMPILER, 
+                        DEBUG_LEVEL, "\t Its span is ", n.second());
+			Debug.debug(Debug.Type.COMPILER,                    
+                        DEBUG_LEVEL, "\t Are they equal? ", 
+                        n.first().getSpan().equals(n.second()));
+			Debug.debug(Debug.Type.COMPILER, 
+                        DEBUG_LEVEL, "\t It's env contains: ", 
+                        typeEnvAtNode.get(n));
 		}
 	}
 
 }
+
+

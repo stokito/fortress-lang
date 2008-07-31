@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -128,7 +129,9 @@ public class Desugarer {
             comp = (Component) comp.accept(desugaringVisitor);
         }
         if(objExpr_desugar) {
-        	ObjectExpressionVisitor objExprVisitor = new ObjectExpressionVisitor(typeEnvAtNode);
+        	TraitTable traitTable = new TraitTable(component, env);
+        	ObjectExpressionVisitor objExprVisitor = 
+        		new ObjectExpressionVisitor(traitTable, typeEnvAtNode);
         	comp = (Component) comp.accept(objExprVisitor);
         }
         return comp;
