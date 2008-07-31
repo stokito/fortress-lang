@@ -379,12 +379,12 @@ public class Disambiguator {
         GlobalEnvironment new_global_env2 = new GlobalEnvironment.FromMap(CollectUtil.union(repository_apis,
         		rebuilt_indx2.apis()));
 
-        initializeGrammarIndexExtensions(rebuilt_indx2.apis().values());
+        initializeGrammarIndexExtensions(rebuilt_indx2.apis().values(), globalEnv.apis().values() );
         results = disambiguateGrammarMembers(rebuilt_indx2.apis().values(), errors, new_global_env2);
         return new ApiResult(results, errors);
     }
 
-    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, Collection<ApiIndex> moreApis ) {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
         for (ApiIndex a2: apis) {
@@ -392,13 +392,23 @@ public class Disambiguator {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
+        for (ApiIndex a2: moreApis) {
+            for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+                grammars.put(e.getKey(), e.getValue());
+            }
+        }
+
         for (ApiIndex a1: apis) {
             for (Map.Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
                 Option<GrammarDef> og = e.getValue().ast();
                 if (og.isSome()) {
                     List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
                     for (Id n: og.unwrap().getExtends()) {
-                        ls.add(grammars.get(n.getText()));
+                        GrammarIndex g = grammars.get(n.getText());
+                        if ( g == null ){
+                            throw new RuntimeException( "Could not find grammar for " + n.getText() );
+                        }
+                        ls.add(g);
                     }
                     Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
                     e.getValue().setExtended(ls);
