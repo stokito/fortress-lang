@@ -976,7 +976,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
      */
     @Override public String forTransformerNode(TransformerNode that) {
         StringBuilder s = new StringBuilder();
-        s.append( "..macro.." );
+        s.append( "(* ..macro.. *)" );
         return s.toString();
     }
 
@@ -1008,15 +1008,26 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    // @Override public String forOptionalSymbolOnly( that,
-    // @Override public String forRepeatSymbolOnly( that,
-    // @Override public String forRepeatOneOrMoreSymbolOnly( that,
-    // @Override public String forNoWhitespaceSymbolOnly( that,
+    @Override public String forOptionalSymbolOnly(OptionalSymbol that, String symbol_result) {
+        return "{" + symbol_result + "}?";
+    }
+    
+    @Override public String forRepeatSymbolOnly(RepeatSymbol that, String symbol_result) {
+        return "{" + symbol_result + "}*";
+    }
+
+    @Override public String forRepeatOneOrMoreSymbolOnly( RepeatOneOrMoreSymbol that, String symbol_result) {
+        return "{" + symbol_result + "}+";
+    }
+
+    @Override public String forNoWhitespaceSymbolOnly( NoWhitespaceSymbol that, String symbol_result) {
+        return symbol_result + "#";
+    }
 
     @Override public String forGroupSymbolOnly(GroupSymbol that,
                                                List<String> symbols_result) {
         StringBuilder s = new StringBuilder();
-        s.append( join(symbols_result, ", ") );
+        s.append( join(symbols_result, "") );
         return s.toString();
     }
 
