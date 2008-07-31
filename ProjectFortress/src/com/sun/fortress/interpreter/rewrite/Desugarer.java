@@ -768,15 +768,12 @@ public class Desugarer extends Rewrite {
                     String s = NodeUtil.stringName(vre.getObj());
                     Expr update = newName(vre, s);
                     return update;
-                } else if (node instanceof OpExpr) {
-                    node = cleanupOpExpr((OpExpr)node);
-                    
                 } else if (node instanceof AmbiguousMultifixOpExpr ) {
                 	// NEB: This code is temporary. Very soon the static end will
                 	// remove these nodes and they should never appear at this
                 	// phase of execution. However, now we simply create an OpExpr.
                 	AmbiguousMultifixOpExpr op = (AmbiguousMultifixOpExpr)node;
-                	node = cleanupOpExpr(new OpExpr(op.getSpan(), op.isParenthesized(), op.getMultifix_op(), op.getArgs()));
+                	node = new OpExpr(op.getSpan(), op.isParenthesized(), op.getMultifix_op(), op.getArgs());
                 } else if (node instanceof _RewriteFnRef) {
 
                     _RewriteFnRef fr = (_RewriteFnRef) node;
@@ -1395,39 +1392,6 @@ public class Desugarer extends Rewrite {
         return ExprFactory.makeFnExpr(e.getSpan(),
                                       Collections.<Param>emptyList(), e);
     }
-
-    private Expr cleanupOpExpr(OpExpr opExp) {
-        OpRef ref = opExp.getOp();
-
-        List<Expr> args = opExp.getArgs();
-
-        if (args.size() <= 1) return opExp;
-        OpName qop = ref.getOriginalName();
-
-        if (OprUtil.isEnclosing(qop)) return opExp;
-        if (OprUtil.isUnknownFixity(qop))
-            return bug(opExp, "The operator fixity is unknown: " +
-                       ((Op)qop).getText());
-        boolean prefix = OprUtil.hasPrefixColon(qop);
-        boolean suffix = OprUtil.hasSuffixColon(qop);
-        if (!prefix && !suffix) return opExp;
-        qop = OprUtil.noColon(qop);
-        Iterator<Expr> i = args.iterator();
-        Expr res = i.next();
-        Span sp = opExp.getSpan();
-        while (i.hasNext()) {
-            Expr arg = (Expr)i.next();
-            if (prefix) {
-                res = thunk(res);
-            }
-            if (suffix) {
-                arg = thunk(arg);
-            }
-            res = ExprFactory.makeOpExpr(sp,qop,res,arg);
-        }
-        return res;
-    }
-
 
     /**
      * @param td

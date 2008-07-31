@@ -22,6 +22,7 @@ import java.util.List;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -48,4 +49,6 @@ public abstract class Functional {
     public abstract Iterable<BaseType> thrownTypes();
 
     public abstract Option<Expr> body();
+    
+    public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
 }

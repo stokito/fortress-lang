@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import java.util.*;
 import com.sun.fortress.nodes.DimDecl;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.StaticParam;
 
 import com.sun.fortress.useful.NI;
@@ -30,7 +31,13 @@ public class Dimension extends TypeConsIndex {
         ast = _ast;
     }
     
+    @Override
     public List<StaticParam> staticParameters() { 
         return new ArrayList<StaticParam>(); 
     }
+
+	@Override
+	public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+		return new Dimension((DimDecl)ast.accept(visitor));
+	}
 }

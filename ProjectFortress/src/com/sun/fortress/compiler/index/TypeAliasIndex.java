@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.index;
 import java.util.Map;
 import java.util.List;
 
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -38,4 +39,8 @@ public class TypeAliasIndex extends TypeConsIndex {
     
     public Type type() { return _ast.getType(); }
 
+	@Override
+	public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+		return new TypeAliasIndex((TypeAlias)_ast.accept(visitor));
+	}
 }

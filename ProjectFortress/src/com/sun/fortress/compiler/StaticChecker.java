@@ -19,6 +19,7 @@ package com.sun.fortress.compiler;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +38,13 @@ import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 /**
@@ -180,11 +182,39 @@ public class StaticChecker {
             	InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
             	Node replaced = result.ast().accept(rep);
 
-            	return TypeCheckerResult.replaceAST(result, replaced);
+            	Map<Pair<Node,Span>, TypeEnv> node_type_envs = 
+            		result.getNodeTypeEnvs();
+            	
+            	node_type_envs = replaceIVarsInNodeTypeEnv(result.getIVarResults(), node_type_envs);
+            	
+            	return TypeCheckerResult.replaceAST(result, replaced, node_type_envs);
             }
         } else {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
         }
     }
+
+    /**
+     * Keep a nodeTypeEnvMap consistent with the newly replaced inference variables.
+     */
+	private static Map<Pair<Node, Span>, TypeEnv> replaceIVarsInNodeTypeEnv(
+			Map<_InferenceVarType, Type> varResults,
+			Map<Pair<Node, Span>, TypeEnv> node_type_envs) {
+		Map<Pair<Node, Span>, TypeEnv> result = new HashMap<Pair<Node, Span>, TypeEnv>();
+		
+		InferenceVarReplacer rep = new InferenceVarReplacer(varResults);
+		
+		for( Map.Entry<Pair<Node,Span>, TypeEnv> entry : node_type_envs.entrySet() ) {
+			Pair<Node,Span> key = entry.getKey();
+			TypeEnv type_env = entry.getValue();
+			
+			Pair<Node, Span> new_key = Pair.make(key.first().accept(rep), key.second());
+			TypeEnv new_type_env = type_env.replaceAllIVars(varResults);
+			
+			result.put(new_key, new_type_env);
+		}
+		
+		return result;
+	}
 
 }

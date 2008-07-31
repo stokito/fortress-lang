@@ -22,10 +22,13 @@ import static edu.rice.cs.plt.tuple.Option.some;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -85,5 +88,18 @@ class LValueTypeEnv extends TypeEnv {
 			return Option.<Node>some(lval.unwrap());
 		else
 			return parent.declarationSite(var);
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		LValueBind[] new_entries = new LValueBind[entries.length];
+		
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		for( int i = 0; i<entries.length; i++ ) {
+			new_entries[i] = (LValueBind)entries[i].accept(rep);
+		}
+		
+		return new LValueTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 }

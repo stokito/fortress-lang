@@ -550,12 +550,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 TypeCheckerResult contractResult = that.getContract().accept(newChecker);
 
 		 // Verify that no extends clauses try to extend an object.
-		 extendsClauseResult =
-			 Useful.concat(extendsClauseResult, CollectUtil.makeList(
+		 List<TypeCheckerResult> extends_no_obj_result =
+			 CollectUtil.makeList(
 							 IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
 								 public TypeCheckerResult value(TraitTypeWhere arg0) {
 									 return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
-								 }})));
+								 }}));
 
 		 // Check field declarations.
 		 List<TypeCheckerResult> fieldsResult = new ArrayList<TypeCheckerResult>();
@@ -608,6 +608,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				                            		               TypeCheckerResult.astFromResults(methodsResult))) );
 		 
 		 return TypeCheckerResult.compose(new_node, subtypeChecker, 
+				 TypeCheckerResult.compose(new_node, subtypeChecker, extends_no_obj_result),
 				 TypeCheckerResult.compose(new_node, subtypeChecker, modsResult), 
 				 nameResult,
 				 TypeCheckerResult.compose(new_node, subtypeChecker, extendsClauseResult),

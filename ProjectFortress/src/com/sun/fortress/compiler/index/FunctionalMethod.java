@@ -28,6 +28,7 @@ import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -96,6 +97,8 @@ public class FunctionalMethod extends Function {
 		return _ast.getReturnType().unwrap();
 	}
 
-
-
+	@Override
+	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+		return new FunctionalMethod((FnAbsDeclOrDecl)this.ast().accept(visitor), this._declaringTrait);
+	}
 }

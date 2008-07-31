@@ -17,10 +17,16 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Type;
 
 import com.sun.fortress.useful.NI;
 
 /** Comprises DeclaredVariable, ParamVariable, and SingletonVariable. */
 public abstract class Variable {
+
+	public Variable acceptNodeUpdateVisitor(NodeUpdateVisitor v) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

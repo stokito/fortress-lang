@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.fortress.nodes.*;
 
@@ -43,5 +44,10 @@ class EmptyTypeEnv extends TypeEnv {
 	@Override
 	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
 		return none();
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		return this;
 	}
 }

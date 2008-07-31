@@ -18,6 +18,8 @@
 package com.sun.fortress.compiler.index;
 
 import java.util.*;
+
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.StaticParam;
 
@@ -33,4 +35,9 @@ public class Unit extends TypeConsIndex {
     public List<StaticParam> staticParameters() { 
         return new ArrayList<StaticParam>(); 
     }
+
+	@Override
+	public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+		return new Unit((UnitDecl)ast.accept(visitor));
+	}
 }

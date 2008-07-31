@@ -17,15 +17,24 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.NI;
 
-import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 public class Constructor extends Function {
@@ -91,6 +100,47 @@ public class Constructor extends Function {
 	public Type getReturnType() {
 		// TODO Auto-generated method stub
 		return NI.nyi();
+	}
+
+	@Override
+	public Functional acceptNodeUpdateVisitor(final NodeUpdateVisitor v) {
+		
+		Option<List<Param>> new_params;
+		if( _params.isSome() ) {
+			List<Param> new_params_ = new ArrayList<Param>(_params.unwrap().size());
+			for( Param p : _params.unwrap() ) {
+				new_params_.add((Param)p.accept(v));
+			}
+			new_params = Option.some(new_params_);
+		}
+		else {
+			new_params = Option.none();
+		}
+		
+		Option<List<BaseType>> new_throws;
+		if( _throwsClause.isSome() ) {
+			List<BaseType> new_throws_ = new ArrayList<BaseType>(_throwsClause.unwrap().size());
+			for( BaseType p : _throwsClause.unwrap() ) {
+				new_throws_.add((BaseType)p.accept(v));
+			}
+			new_throws = Option.some(new_throws_);
+		}
+		else {
+			new_throws = Option.none();
+		}
+		
+		List<StaticParam> new_static_params = 
+			CollectUtil.makeList(IterUtil.map(_staticParams, new Lambda<StaticParam,StaticParam>(){
+				public StaticParam value(StaticParam arg0) {
+					return (StaticParam)arg0.accept(v);
+				}}));
+		
+		return 
+		  new Constructor(_declaringTrait,
+				          new_static_params,
+				  	      new_params,
+			              new_throws,
+			              (WhereClause)_where.accept(v));
 	}
 	
 	

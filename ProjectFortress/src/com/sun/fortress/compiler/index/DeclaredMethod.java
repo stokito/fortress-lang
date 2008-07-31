@@ -17,13 +17,10 @@
 
 package com.sun.fortress.compiler.index;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
-import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
@@ -31,20 +28,12 @@ import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NormalParam;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.VarargsParam;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.useful.NI;
 
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 public class DeclaredMethod extends Method {
@@ -102,7 +91,14 @@ public class DeclaredMethod extends Method {
 	public Type getReturnType() {
 		return _ast.getReturnType().unwrap();
 	}
-	
-	
-	
+
+	@Override
+	public Id getDeclaringTrait() {
+		return this._declaringTrait;
+	}
+
+	@Override
+	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+		return new DeclaredMethod((FnAbsDeclOrDecl)_ast.accept(visitor), this._declaringTrait);
+	}
 }

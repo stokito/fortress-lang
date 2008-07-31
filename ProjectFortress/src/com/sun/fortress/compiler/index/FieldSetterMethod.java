@@ -26,6 +26,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -74,6 +75,16 @@ public class FieldSetterMethod extends Method {
 	@Override
 	public Type getReturnType() {
 		return Types.VOID;
+	}
+
+	@Override
+	public Id getDeclaringTrait() {
+		return this._declaringTrait;
+	}
+
+	@Override
+	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+		return new FieldSetterMethod((LValueBind)this._ast.accept(visitor), this._declaringTrait);
 	}
 	
 }

@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import java.util.*;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.StaticParam;
 
 import com.sun.fortress.useful.NI;
@@ -30,5 +31,12 @@ import com.sun.fortress.useful.NI;
 public abstract class TypeConsIndex {
 
     public abstract List<StaticParam> staticParameters();
+    
+    /**
+     * Accepts the given node on every {@code Node} that the index contains.
+     * Note that because this method returns new TypeConsIndex-es, this visitor
+     * is required to return the same type of node for top-level nodes.
+     */
+    public abstract TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
     
 }

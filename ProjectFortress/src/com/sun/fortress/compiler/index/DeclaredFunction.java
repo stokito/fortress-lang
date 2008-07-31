@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -83,6 +84,11 @@ public class DeclaredFunction extends Function {
 	@Override
 	public Type getReturnType() {
 		return _ast.getReturnType().unwrap();
+	}
+
+	@Override
+	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+		return new DeclaredFunction((FnAbsDeclOrDecl)this._ast.accept(visitor));
 	}
 
 }

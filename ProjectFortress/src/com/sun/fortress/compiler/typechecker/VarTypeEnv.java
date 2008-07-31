@@ -19,8 +19,10 @@ package com.sun.fortress.compiler.typechecker;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeLValue;
 import static edu.rice.cs.plt.tuple.Option.some;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,10 +35,12 @@ import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -114,5 +118,21 @@ class VarTypeEnv extends TypeEnv {
 	    	 }
 	     }
 	     return parent.declarationSite(id);
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		Map<Id, Variable> new_entries = new HashMap<Id,Variable>();
+		
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		for( Map.Entry<Id, Variable> entry : this.entries.entrySet() ) {
+			Variable v = entry.getValue();
+		
+			Variable new_v = v.acceptNodeUpdateVisitor(rep);
+			new_entries.put(entry.getKey(), new_v);
+		}
+		
+		return new VarTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 }
