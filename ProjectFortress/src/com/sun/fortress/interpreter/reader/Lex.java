@@ -196,7 +196,7 @@ public class Lex {
             white();
         int c = read();
         if (c == '(' || c == ')' || c == '[' || c == ']' || c == '@'
-                || c == '=' || c == ',' || c == ':' || c == '~') {
+                || c == '=' || c == ',' || c == ':' || c == '~' || c == '!') {
             sb.append((char) c);
             read();
             unread(); // Need to advance the line/column to next.

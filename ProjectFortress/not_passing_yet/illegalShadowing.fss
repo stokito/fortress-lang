@@ -15,26 +15,35 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ImportLocalCollision
-import TestImports1.{...}
+component illegalShadowing
 export Executable
 
-trait U
-  s():String = "s from ImportLocalCollision.U"
+trait T
+  getI():ZZ32
+  setI(newI:ZZ32):ZZ32
 end
 
-object V extends U
+object A(i:ZZ32) extends T
+    getI():ZZ32 = i
+    setI(newI:ZZ32):ZZ32 = i (* don't actually set it *)
+
+    b():T = object extends T
+                getI():ZZ32 = i
+                setI(newI:ZZ32):ZZ32 = do
+                    i = newI
+                    i
+                end
+            end
 end
 
-object W extends T
-  myname():String = "ImportLocalCollision.W"
-end
 
 run(args:String...):()=do
-  assert( V.s() = "s from ImportLocalCollision.U", "V's s() comes from local U")
-  assert( W.s() = "s from TestImports1.S object ImportLocalCollision.W", "W's s() comes from TestImports1.S")
-  assert( W.t() = "t from TestImports1.T ImportLocalCollision.W", "W's t() comes from TestImports1.T")
-  println "No news is good news"
+  a:A = A(1)
+  b:T = a.b()
+  println("a.getI() = " a.getI())
+  println("b.getI() = " b.getI())
+  println("b.setI(3) = " b.setI(3))
+  println("a.getI() = " a.getI())
 end
 
 end

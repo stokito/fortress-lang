@@ -21,13 +21,15 @@ import SyntaxNodes.{...}
 export Executable
 
 run(args:String...) = do
-    b-a-d a
+    println (b-a-d 7)
+    (*
     b-a-d b
     b-a-d c
     b-a-d d
     b-a-d d
 
     println (b-a-d f a b hi b)
+    *)
 
 (*
     b-a-d m1 b-a-d a q b-a-d a b-a-d a

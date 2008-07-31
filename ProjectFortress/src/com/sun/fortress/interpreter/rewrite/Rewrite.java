@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes_util.HasSomeExtraState;
@@ -84,6 +85,8 @@ public abstract class Rewrite extends NodeReflection {
         } else if (o instanceof Boolean) {
             result = o;
         } else if (o instanceof String) {
+            result = o;
+        } else if (o instanceof Map<?,?>) {
             result = o;
         } else { // (o instanceof Node)
             result = visit((AbstractNode) o);

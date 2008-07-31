@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 import edu.rice.cs.plt.tuple.Null;
 import edu.rice.cs.plt.tuple.Wrapper;
 
@@ -195,6 +196,16 @@ public class Printer extends NodeReflection {
             dumpFields(w, indent, x, oneLiner, fields, true);
             w.append(")");
             oneLinerNesting -= oneLinerNestingInc;
+        } else if ( o instanceof Map ){
+            w.append("(Map ");
+            java.util.Set<Map.Entry> set = ((Map) o ).entrySet();
+            for ( Map.Entry entry : set ){
+                w.append("!");
+                w.append( entry.getKey().toString() );
+                w.append( "=" );
+                dump( entry.getValue(), w, indent );
+            }
+            w.append(")");
         } else {
             w.append("?" + o.getClass().getName());
         }

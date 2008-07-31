@@ -31,7 +31,7 @@ api SyntaxGrammarImports
          when <[ "in 84" ]>
 
       Beautiful :Expr:=
-         beautiful <[ beautiful ]>
+         beautiful <[ "beautiful" ]>
   end
 
 end

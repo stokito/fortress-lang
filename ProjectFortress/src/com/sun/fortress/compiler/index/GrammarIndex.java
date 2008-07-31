@@ -93,4 +93,8 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
         return this.isToplevel;
     }
 
+    public String toString(){
+        return getName().toString();
+    }
+
 }

@@ -54,6 +54,7 @@ import com.sun.fortress.parser_util.IdentifierUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -130,23 +131,30 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 				n instanceof KeywordSymbol) {
 			this._currentItem = that.getItem();
 		}
+                Debug.debug( Debug.Type.SYNTAX, 4, "Resolve item symbol " + that.getItem() + " to " + n );
 		return n;
 	}
 
 	private SyntaxSymbol nameResolution(ItemSymbol item) {
 		if (IdentifierUtil.validId(item.getItem())) {
-			GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
+			// GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
+                        // NonterminalEnv env = new NonterminalEnv(this._currentGrammarIndex);
 			Id name = makeId(item.getSpan(), item.getItem());
 			NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
 			Option<Id> oname = nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
 
 			if (oname.isSome()) {
 				name = oname.unwrap();
-				Set<Id> setOfNonterminals = ga.getContained(name.getText(), this._currentGrammarIndex);
+				// Set<Id> setOfNonterminals = ga.getContained(name.getText(), this._currentGrammarIndex);
+				// Set<Id> setOfNonterminals = env.declaredNonterminalNames(name.getText());
 
+                                return makeNonterminal(item, name);
+
+                                /*
 				if (setOfNonterminals.size() == 1) {
 					this._errors.addAll(nnd.errors());
-					return makeNonterminal(item, name);
+                                        Debug.debug( Debug.Type.SYNTAX, 4, "Disambiguate " + name + " to " + IterUtil.first(setOfNonterminals));
+					return makeNonterminal(item, IterUtil.first(setOfNonterminals));
 				}
 
 				if (setOfNonterminals.size() > 1) {
@@ -154,6 +162,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 					error("Production name may refer to: " + NodeUtil.namesString(setOfNonterminals), name);
 					return makeNonterminal(item, name);
 				}
+                                */
 			}
 			return makeKeywordSymbol(item);
 		}
@@ -222,6 +231,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		@Override
 		public String forNonterminalSymbol(NonterminalSymbol that) {
 			return _currentItem; // handle(that, _currentItem);
+                        // return that.getName();
 		}
 
 		@Override

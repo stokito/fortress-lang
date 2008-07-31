@@ -29,7 +29,7 @@ import xtc.tree.Attribute;
 
 public class FortressRatsGrammar {
 
-	private static final String FORTRESS = "com.sun.fortress.parser.Fortress";
+	private static final String FORTRESS = "com.sun.fortress.parser.templateparser.TemplateParser";
 
 	private static class RatsFilenameFilter implements FilenameFilter {
 		public boolean accept(File dir, String name) {
@@ -54,7 +54,7 @@ public class FortressRatsGrammar {
 			String name = s.substring(0, s.length()-5);
 			String filename = srcDir+File.separatorChar+s;
 			if (new File(filename).isFile()) {
-				this.map.put("com.sun.fortress.parser."+name, RatsUtil.getRatsModule(filename));
+				this.map.put("com.sun.fortress.parser.templateparser."+name, RatsUtil.getRatsModule(filename));
 			}
 		}
 	}
@@ -69,7 +69,7 @@ public class FortressRatsGrammar {
 		List<Attribute> attrs = new LinkedList<Attribute>();
 		for (Attribute attribute: m.attributes) {
 			if (attribute.getName().equals("parser")) {
-				attrs.add(new Attribute("parser", "com.sun.fortress.parser."+name));
+				attrs.add(new Attribute("parser", "com.sun.fortress.parser.templateparser."+name));
 			}
 			else {
 				attrs.add(attribute);
@@ -91,5 +91,19 @@ public class FortressRatsGrammar {
 		}
 	}
 
-
+        /* hack to copy the base parser */
+        /*
+        public void hackClone(String targetDir){
+            String srcDir = RatsUtil.getBaseParserPath();
+            File f = new File(srcDir);
+            String[] ls = f.list(new RatsFilenameFilter());
+            for(String s: ls) {
+                String name = s.substring(0, s.length()-5);
+                String filename = srcDir+File.separatorChar+s;
+                if (new File(filename).isFile()) {
+                    RatsUtil.writeRatsModule( RatsUtil.getRatsModule( filename ), targetDir);
+                }
+            }
+        }
+        */
 }

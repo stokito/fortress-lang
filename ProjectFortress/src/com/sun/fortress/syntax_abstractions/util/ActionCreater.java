@@ -28,6 +28,7 @@ import java.util.Map;
 import xtc.parser.Action;
 
 import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
+import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.StaticError;
@@ -43,8 +44,10 @@ import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.TransformerDef;
+import com.sun.fortress.nodes.SimpleTransformerDef;
 import com.sun.fortress.nodes.TransformerExpressionDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.StaticArg;
@@ -60,10 +63,11 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ActionCreater {
 
-    protected static final String BOUND_VARIABLES = "boundVariables";
+    public static final String BOUND_VARIABLES = "boundVariables";
     protected static final String PACKAGE = "com.sun.fortress.syntax_abstractions.util";
     private static final String FORTRESS_AST = "FortressAst";
     private static final String FORTRESS_AST_UTIL = "FortressAstUtil";
+    private static int indent = 3;
 
     public class Result extends StaticPhaseResult {
         private Action action;
@@ -86,14 +90,19 @@ public class ActionCreater {
             SyntaxDeclEnv syntaxDeclEnv,
             Map<PrefixedSymbol,VariableCollector.Depth> variables
             ) {
+
+        Debug.debug( Debug.Type.SYNTAX, 2, "Create action for alternative " + alternativeName );
         ActionCreater ac = new ActionCreater();
         Collection<StaticError> errors = new LinkedList<StaticError>();
 
+        // String transformer = FreshName.getFreshName(String.format("%sTransformer", alternativeName));
         String returnType = new FortressTypeToJavaType().analyze(type);
 
         List<Integer> indents = new LinkedList<Integer>();
         List<String> code = new LinkedList<String>();
+        /* TransformerExpressionDef is going away */
         if (transformation instanceof TransformerExpressionDef) {
+            /*
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false, variables );
             Expr e = ((TransformerExpressionDef) transformation).getTransformer();
             Component component = ac.makeComponent(e, syntaxDeclEnv, variables);
@@ -104,29 +113,59 @@ public class ActionCreater {
                 addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
             }
             addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
+            */
         }
         else if (transformation instanceof TransformerDef) {
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
+            /*
             AbstractNode n = ((TransformerDef) transformation).getTransformer();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
-            String yyValue = n.accept(jpp);
+	    String yyValue = n.accept(jpp);
+	     */
+	    // addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), new %s(%s));", returnType, transformer, BOUND_VARIABLES ), code, indents );
+            TransformerDef def = (TransformerDef) transformation;
+            String parameters = collectParameters( def, code, indents );
+            String name = def.getTransformer();
+	    addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s, %s);", returnType, name, BOUND_VARIABLES, parameters ), code, indents );
+	} else if ( transformation instanceof SimpleTransformerDef ){
+		code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
+		AbstractNode n = ((SimpleTransformerDef) transformation).getNode();
+		JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
+		String yyValue = n.accept(jpp);
+		for (String s: jpp.getCode()) {
+			addCodeLine(s, code, indents);
+		}
+		addCodeLine( String.format( "yyValue = %s;", yyValue ), code, indents );
+	}
+	Action a = new Action(code, indents);
+	return ac.new Result(a, errors);
+    }
 
-            for (String s: jpp.getCode()) {
-                addCodeLine(s, code, indents);
-            }
+    private static String collectParameters( TransformerDef def, List<String> code, List<Integer> indents ){
+        String variable = FreshName.getFreshName("parameterList");
 
-            if (Debug.isOnMaxFor(Debug.Type.SYNTAX)) {
-                addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+" with template\");", code, indents);
-            }
-            addCodeLine("yyValue = "+yyValue+";", code, indents);
+        addCodeLine( String.format( "java.util.List %s = new java.util.LinkedList<String>();", variable ), code, indents );
+        for ( NonterminalParameter parameter : def.getParameters() ){
+            addCodeLine( String.format( "%s.add( \"%s\" );", parameter.getName().getText() ), code, indents );
         }
-        Action a = new Action(code, indents);
-        return ac.new Result(a, errors);
+
+        return variable;
+    }
+
+    private static void moreIndent(){
+        indent += 1;
+    }
+
+    private static void lessIndent(){
+        indent -= 1;
+        if ( indent < 1 ){
+            indent = 1;
+        }
     }
 
     private static void addCodeLine(String s, List<String> code,
             List<Integer> indents) {
-        indents.add(3);
+        indents.add(indent);
         code.add(s);
     }
 

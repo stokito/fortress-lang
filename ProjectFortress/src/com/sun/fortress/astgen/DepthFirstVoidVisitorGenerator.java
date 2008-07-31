@@ -33,12 +33,28 @@ public class DepthFirstVoidVisitorGenerator extends edu.rice.cs.astgen.DepthFirs
             super.outputDelegatingForCase(t, writer, root, retType, suff, defaultMethod);
         }
     }
-    
+
+    protected void outputDefaultCaseVoidMethod(TabPrintWriter writer, NodeType root) {
+        super.outputDefaultCaseVoidMethod(writer, root);
+        writer.println();
+        outputDefaultTemplateMethod(writer, root);
+    }
+
+    protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root ){
+        writer.startLine("public void defaultTemplateGap(TemplateGap t){");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(\"Please use TemplateDepthFirstVoidVisitor if you intend to visit template gaps, if not then a template gap survived longer than its expected life time.\");");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
+
+  
     protected void outputVisitMethod(NodeType t, TabPrintWriter writer, NodeType root) {
         if (t instanceof TemplateGapClass) {
             outputForCaseHeader(t, writer, "void", "");
             writer.indent();
-            writer.startLine("throw new RuntimeException(\"Please use TemplateDepthFirstVoidVisitor if you intend to visit template gaps, if not then a template gap survived longer than its expected life time.\");");
+            writer.startLine("defaultTemplateGap(that);");
             writer.unindent();
             writer.startLine("}");
             writer.println();

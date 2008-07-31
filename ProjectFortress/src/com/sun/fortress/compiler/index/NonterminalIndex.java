@@ -66,4 +66,8 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
         return getAst().getHeader().getModifier().isSome();
     }
 
+    public String toString(){
+        return getName().toString();
+    }
+
 }
