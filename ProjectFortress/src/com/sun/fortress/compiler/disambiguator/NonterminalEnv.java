@@ -57,7 +57,9 @@ public class NonterminalEnv {
     private Map<String, Set<Id>> nonterminals = new HashMap<String, Set<Id>>();
 
     public NonterminalEnv(GrammarIndex currentGrammar) {
-        assert(currentGrammar != null);
+        if ( currentGrammar == null ){
+            throw new RuntimeException("Current grammar is null");
+        }
         this.current = currentGrammar;
         initializeNonterminals();
     }

@@ -127,9 +127,9 @@ public class FortressParser {
             ParserBase p =
                 ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
             CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(p), p, f.getName());
-            // dump(original, "original-" + f.getName());
+            dump(original, "original-" + f.getName());
             CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);
-            // dump(cu, "dump-" + f.getName());
+            dump(cu, "dump-" + f.getName());
             return new Result(cu, f.lastModified());
         } catch (Exception e) {
             String desc =
@@ -227,6 +227,7 @@ public class FortressParser {
     private static void dump( Node node, String name ){
         try{
             ASTIO.writeJavaAst( (CompilationUnit) node, name );
+            Debug.debug( Debug.Type.SYNTAX, 1, "Dumped node to " + name );
         } catch ( IOException e ){
             e.printStackTrace();
         }

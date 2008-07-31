@@ -35,6 +35,7 @@ import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.TypeError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.repository.CacheBasedRepository;
@@ -187,12 +188,15 @@ public final class StaticTestSuite extends TestSuite {
 
         private void assertSyntaxAbstractionFails(File f) throws IOException {
             com.sun.fortress.compiler.StaticChecker.typecheck = false;
-            Iterable<? extends StaticError> errors = compile(f);
-            assertFalse("Source " + f + " was compiled without syntax abstraction errors",
-                        IterUtil.isEmpty(errors));
-            if (VERBOSE) {
-                System.out.println(f + "  OK -- errors:");
-                System.out.println(IterUtil.multilineToString(errors));
+            try{
+                Iterable<? extends StaticError> errors = compile(f);
+                assertFalse("Source " + f + " was compiled without syntax abstraction errors",
+                            IterUtil.isEmpty(errors));
+            } catch ( MacroError error ){
+                if (VERBOSE) {
+                    System.out.println(f + "  OK -- errors:");
+                    error.printStackTrace();
+                }
             }
         }
 

@@ -124,7 +124,7 @@ public class GrammarRewriter {
         apis.addAll(map.values());
         /* why is adding all the env apis necessary? it does redudant work */
         // apis.addAll(env.apis().values());
-        errors.addAll(initializeGrammarIndexExtensions(apis));
+        errors.addAll(initializeGrammarIndexExtensions(apis, env.apis().values()));
 
         List<Api> results = new ArrayList<Api>();
         ItemDisambiguator id = new ItemDisambiguator(env);
@@ -158,7 +158,7 @@ public class GrammarRewriter {
         // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(results, System.currentTimeMillis());
         if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
-        initializeGrammarIndexExtensions(apiIR.apis().values());
+        initializeGrammarIndexExtensions(apiIR.apis().values(), env.apis().values());
                 
         for (ApiIndex api: apiIR.apis().values()) { 
             initGrammarEnv(api.grammars().values());
@@ -179,7 +179,7 @@ public class GrammarRewriter {
 
         List<Api> rs = new ArrayList<Api>();
         IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(i2, System.currentTimeMillis() );
-        initializeGrammarIndexExtensions(apiN.apis().values());
+        initializeGrammarIndexExtensions(apiN.apis().values(), env.apis().values());
         for ( final ApiIndex api : apiN.apis().values() ){
                 // List<String> names = collector.getNames();
                 // Debug.debug( Debug.Type.SYNTAX, 1, "Syntax transformers for " + api.ast().getName() + ": " + names );
@@ -418,7 +418,7 @@ public class GrammarRewriter {
     }
     */
     
-    public static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis) {
+    public static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, Collection<ApiIndex> moreApis ) {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
         for (ApiIndex a2: apis) {
@@ -426,6 +426,12 @@ public class GrammarRewriter {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
+        for (ApiIndex a2: moreApis) {
+            for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+                grammars.put(e.getKey(), e.getValue());
+            }
+        }
+
         for (ApiIndex a1: apis) {
             for (Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
                 Option<GrammarDef> og = e.getValue().ast();
