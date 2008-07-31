@@ -25,6 +25,8 @@ import java.util.LinkedList;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 
+import com.sun.fortress.exceptions.MacroError;
+
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.Node;
@@ -73,7 +75,7 @@ public class Transform extends TemplateUpdateVisitor {
 
     private Node lookupTransformer( String name ){
         if ( transformers.get( name ) == null ){
-            throw new RuntimeException( "Cannot find transformer for " + name );
+            throw new MacroError( "Cannot find transformer for " + name );
         }
         return transformers.get( name );
     }
@@ -86,19 +88,22 @@ public class Transform extends TemplateUpdateVisitor {
         String variable = id.getText();
         Object binding = this.variables.get(variable);
         if ( binding == null ){
-                throw new RuntimeException( "Can't find a binding for gap " + id );
+                throw new MacroError( "Can't find a binding for gap " + id );
         } else {
             if ( params.isEmpty() ){
                 return (Node)binding;
             } else {
+
                 if ( ! (binding instanceof _CurriedTransformer) ){
-                    throw new RuntimeException( "Parameterized template gap is not bound to a _CurriedTransformer, instead bound to " + binding.getClass().getName() );
+                    throw new MacroError( "Parameterized template gap is not bound to a _CurriedTransformer, instead bound to " + binding.getClass().getName() );
                 }
+
                 _CurriedTransformer curried = (_CurriedTransformer) binding;
                 Map<String,Object> vars = new HashMap<String,Object>( curried.getVariables() );
                 if ( curried.getSyntaxParameters().size() != params.size() ){
-                    throw new RuntimeException( "Passing " + params.size() + " to a nonterminal that takes " + curried.getSyntaxParameters().size() + " parameters" );
+                    throw new MacroError( "Passing " + params.size() + " arguments to a nonterminal that accepts " + curried.getSyntaxParameters().size() + " arguments." );
                 }
+
                 Debug.debug( Debug.Type.SYNTAX, 3, "Template gap " + id.getText() + " has parameters " + params );
                 for ( int i = 0; i < params.size(); i++ ){
                     Id parameter = params.get( i );
@@ -170,10 +175,10 @@ public class Transform extends TemplateUpdateVisitor {
     private void checkFullyTransformed(Node n) {
         n.accept(new TemplateNodeDepthFirstVisitor_void() {
                 @Override public void forTemplateGapOnly(TemplateGap that) {
-                    throw new RuntimeException("Transformation left over template gap: " + that);
+                    throw new MacroError("Transformation left over template gap: " + that);
                 }
                 @Override public void for_SyntaxTransformationOnly(_SyntaxTransformation that) {
-                    throw new RuntimeException("Transformation left over transformation application: "
+                    throw new MacroError("Transformation left over transformation application: "
                                                + that);
                 }
             });
