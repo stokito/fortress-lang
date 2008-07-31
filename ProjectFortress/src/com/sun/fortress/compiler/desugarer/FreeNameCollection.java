@@ -22,7 +22,6 @@ import java.util.List;
 
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
-import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.OpRef;
@@ -33,14 +32,17 @@ import com.sun.fortress.useful.Debug;
 public final class FreeNameCollection {
 
 	private List<VarRef> freeVarRefs; // variable references
-	private List<FieldRef> freeFieldRefs; // field references (i.e. x.y)
-	private List<FnRef> freeFnRefs; // function / method references
+	// Don't need to worry about FieldRef actually; in the case of x.y, we will
+	// get x as VarRef, and .y as FieldRef, but we just need to pass in x
+	// private List<FieldRef> freeFieldRefs; // field references (i.e. x.y)
+	private List<FnRef> freeFnRefs; // function references
+	private List<FnRef> freeMethodRefs; // dotted method references
 	private List<OpRef> freeOpRefs; // operator references
 	private List<DimRef> freeDimRefs; 
 	private List<IntRef> freeIntRefs;
 	private List<BoolRef> freeBoolRefs;
 	private List<VarType> freeVarTypes; // type param
-
+	
 	public final static FreeNameCollection EMPTY = new FreeNameCollection();
 	private static final int DEBUG_LEVEL = 1;
 
@@ -48,8 +50,9 @@ public final class FreeNameCollection {
 
 	public FreeNameCollection composeResult(FreeNameCollection other) {
 		this.freeVarRefs = composeLists(this.freeVarRefs, other.freeVarRefs);
-		this.freeFieldRefs = composeLists(this.freeFieldRefs, other.freeFieldRefs);
+		// this.freeFieldRefs = composeLists(this.freeFieldRefs, other.freeFieldRefs);
 		this.freeFnRefs = composeLists(this.freeFnRefs, other.freeFnRefs);
+		this.freeMethodRefs = composeLists(this.freeMethodRefs, other.freeMethodRefs);
 		this.freeOpRefs = composeLists(this.freeOpRefs, other.freeOpRefs);
 		this.freeDimRefs = composeLists(this.freeDimRefs, other.freeDimRefs);
 		this.freeIntRefs = composeLists(this.freeIntRefs, other.freeIntRefs);
@@ -59,12 +62,45 @@ public final class FreeNameCollection {
 		return this;
 	}
 
+    public List<VarRef> getFreeVarRefs() {
+        return freeVarRefs;
+    }
+
+    public List<FnRef> getFreeFnRefs() {
+        return freeFnRefs;
+    }
+
+    public List<FnRef> getFreeMethodRefs() {
+        return freeMethodRefs;
+    }
+
+    public List<OpRef> getFreeOpRefs() {
+        return freeOpRefs;
+    }
+
+    public List<DimRef> getFreeDimRefs() {
+        return freeDimRefs;
+    }
+
+    public List<IntRef> getFreeIntRefs() {
+        return freeIntRefs;
+    }
+
+    public List<BoolRef> getFreeBoolRefs() {
+        return freeBoolRefs;
+    }
+
+    public List<VarType> getFreeVarTypes() {
+        return freeVarTypes;
+    }
+
 	public boolean equals(FreeNameCollection other) {
 		if(other == null) return false;
 		else {
 			return( areEqualLists(freeVarRefs, other.freeVarRefs) &&
-					areEqualLists(freeFieldRefs, other.freeFieldRefs) &&
+					// areEqualLists(freeFieldRefs, other.freeFieldRefs) &&
 					areEqualLists(freeFnRefs, other.freeFnRefs) &&
+					areEqualLists(freeMethodRefs, other.freeMethodRefs) &&
 					areEqualLists(freeOpRefs, other.freeOpRefs) &&
 					areEqualLists(freeDimRefs, other.freeDimRefs) &&
 					areEqualLists(freeIntRefs, other.freeIntRefs) &&
@@ -75,70 +111,96 @@ public final class FreeNameCollection {
 
 	private <T> boolean areEqualLists(List<T> thisList, List<T> otherList) {
 		return thisList == null ?
-				(otherList == null) : (thisList.equals(otherList));
+			   (otherList == null) : (thisList.equals(otherList));
 	}
 
 	public FreeNameCollection add(VarRef n) {
 		if(freeVarRefs == null) {
 			freeVarRefs = new LinkedList<VarRef>();
-		}
-		freeVarRefs.add(n);
+		    freeVarRefs.add(n);
+		} else if(freeVarRefs.contains(n) == false) {
+		    freeVarRefs.add(n);
+        }
 		return this;
 	}
 
-	public FreeNameCollection add(FieldRef n) {
-		if(freeFieldRefs == null) {
-			freeFieldRefs = new LinkedList<FieldRef>();
-		}
-		freeFieldRefs.add(n);
-		return this;
-	}
 
-	public FreeNameCollection add(FnRef n) {
-		if(freeFnRefs == null) {
-			freeFnRefs = new LinkedList<FnRef>();
+//	public FreeNameCollection add(FieldRef n) {
+//		if(freeFieldRefs == null) {
+//			freeFieldRefs = new LinkedList<FieldRef>();
+//		}
+//		freeFieldRefs.add(n);
+//		return this;
+//	}
+
+
+	public FreeNameCollection add(FnRef n, boolean isDottedMethod) {
+		if(isDottedMethod) {
+			if(freeMethodRefs == null) {
+				freeMethodRefs = new LinkedList<FnRef>();
+				freeMethodRefs.add(n);				
+			} else if(freeMethodRefs.contains(n) == false) {
+			    freeMethodRefs.add(n);
+		    }
+		} else {
+			if(freeFnRefs == null) {
+				freeFnRefs = new LinkedList<FnRef>();
+				freeFnRefs.add(n);
+			} else if(freeFnRefs.contains(n) == false) {
+				freeFnRefs.add(n);
+			}			
 		}
-		freeFnRefs.add(n);
+		
 		return this;
 	}
 
 	public FreeNameCollection add(OpRef n) {
         if(freeOpRefs == null) {
         	freeOpRefs = new LinkedList<OpRef>();
+		    freeOpRefs.add(n);
+        } else if(freeOpRefs.contains(n) == false) {
+		    freeOpRefs.add(n);
         }
-		freeOpRefs.add(n);
 		return this;
 	}
 
 	public FreeNameCollection add(DimRef n) {
 	    if(freeDimRefs == null) {
 	    	freeDimRefs = new LinkedList<DimRef>();
-	    }
-		freeDimRefs.add(n);
+		    freeDimRefs.add(n);
+	    } else if(freeDimRefs.contains(n) == false) {
+		    freeDimRefs.add(n);
+        }
 		return this;
 	}
 
 	public FreeNameCollection add(IntRef n) {
 		if(freeIntRefs == null) {
 			freeIntRefs = new LinkedList<IntRef>();
-		}
-		freeIntRefs.add(n);
+		    freeIntRefs.add(n);
+		} else if(freeIntRefs.contains(n) == false) {
+		    freeIntRefs.add(n);
+        }
 		return this;
 	}
 
 	public FreeNameCollection add(BoolRef n) {
 		if(freeBoolRefs == null) {
 			freeBoolRefs = new LinkedList<BoolRef>();
-		}
-		freeBoolRefs.add(n);
+		    freeBoolRefs.add(n);
+		} else if(freeBoolRefs.contains(n) == false) {
+		    freeBoolRefs.add(n);
+        }
 		return this;
 	}
 
 	public FreeNameCollection add(VarType n) {
 		if(freeVarTypes == null) {
 			freeVarTypes = new LinkedList<VarType>();
-		}
-		freeVarTypes.add(n);
+		    freeVarTypes.add(n);
+		} else if(freeVarTypes.contains(n) == false) {
+		    freeVarTypes.add(n);
+        }
 		return this;
 	}
 
@@ -162,8 +224,9 @@ public final class FreeNameCollection {
 
 	public static void printDebug(FreeNameCollection target) {
 		debugList(target.freeVarRefs);
-		debugList(target.freeFieldRefs);
+		// debugList(target.freeFieldRefs);
 		debugList(target.freeFnRefs);
+		debugList(target.freeMethodRefs);
 		debugList(target.freeOpRefs);
 		debugList(target.freeDimRefs);
 		debugList(target.freeIntRefs);
@@ -174,8 +237,9 @@ public final class FreeNameCollection {
 	public String toString() {
 		String retS = "";
 		if(freeVarRefs != null) retS += "freeVarRefs: " + freeVarRefs.toString() + "\n";
-		if(freeFieldRefs != null) retS += "freeFieldRefs: " + freeFieldRefs.toString() + "\n";
+		// if(freeFieldRefs != null) retS += "freeFieldRefs: " + freeFieldRefs.toString() + "\n";
 		if(freeFnRefs != null) retS += "freeFnRefs: " + freeFnRefs.toString() + "\n";
+		if(freeMethodRefs != null) retS += "freeMethodRefs: " + freeMethodRefs.toString() + "\n";
 		if(freeOpRefs != null) retS += "freeOpRefs: " + freeOpRefs.toString() + "\n";
 		if(freeDimRefs != null) retS += "freeDimRefs: " + freeDimRefs.toString() + "\n";
 		if(freeIntRefs != null) retS += "freeIntRefs: " + freeIntRefs.toString() + "\n";

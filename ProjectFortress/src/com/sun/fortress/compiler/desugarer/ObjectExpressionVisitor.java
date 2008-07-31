@@ -21,20 +21,17 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 
+import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnRef;
@@ -44,18 +41,14 @@ import com.sun.fortress.nodes.GenericDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
@@ -63,16 +56,12 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
-import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
@@ -80,10 +69,10 @@ import edu.rice.cs.plt.tuple.Pair;
 
 // TODO: TypeEnv does not handle OpRef and DimRef
 // TODO: Remove the turnOnTypeChecker in shell under desugar phase to false
-// TODO: Getter/Setter is turned off, because it corrupts TypeEnvAtNode data structure
-//       Need to figure out how to get around that
+// TODO: Getter/Setter is turned off, because it corrupts TypeEnvAtNode 
+//       data structure; Need to figure out how to get around that
 // TODO: TypeChecker by default is turned off, which is problematic, because
-//       when it's turned off, it does not create the data structure typeEnvAtNode
+//       when it's turned off, it does not create typeEnvAtNode
 
 public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	private List<ObjectDecl> liftedObjectExprs;
@@ -93,21 +82,28 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	// a stack keeping track of all nodes that can create a new lexical scope
 	// this does not include the top level component
 	private Stack<Node> scopeStack;  
+	private TraitTable traitTable;
+	private GenericDecl enclosingTraitOrObject;
 
-	public ObjectExpressionVisitor(Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
+	public ObjectExpressionVisitor(TraitTable traitTable, 
+								   Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
 		uniqueId = 0;
 		typeEnvAtNode = _typeEnvAtNode;
 		scopeStack = new Stack<Node>();
+		this.traitTable = traitTable;
+		enclosingTraitOrObject = null;
 	}
 
 	@Override
 	public Node forComponentOnly(Component that, APIName name_result,
-			                     List<Import> imports_result, List<Export> exports_result,
+			                     List<Import> imports_result, 
+                                 List<Export> exports_result,
 			                     List<Decl> decls_result) {
 		if(liftedObjectExprs != null) {
 			decls_result.addAll(liftedObjectExprs);
 		}
-		return super.forComponentOnly(that, name_result, imports_result, exports_result, decls_result);
+		return super.forComponentOnly(that, name_result, 
+                            imports_result, exports_result, decls_result);
 	}
 
 	@Override
@@ -121,7 +117,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	@Override
     public Node forTraitDecl(TraitDecl that) {
 		scopeStack.push(that);
+		enclosingTraitOrObject = that;
     	Node returnValue = super.forTraitDecl(that);
+    	enclosingTraitOrObject = null;
 		scopeStack.pop();
     	return returnValue;
     }
@@ -129,7 +127,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	@Override
     public Node forObjectDecl(ObjectDecl that) {
 		scopeStack.push(that);
+		enclosingTraitOrObject = that;
      	Node returnValue = super.forObjectDecl(that);
+     	enclosingTraitOrObject = null;
      	scopeStack.pop();
     	return returnValue;
     }
@@ -242,7 +242,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     public Node forObjectExpr(ObjectExpr that) {
 		scopeStack.push(that);
 		
-        FreeNameCollector freeNameCollector = new FreeNameCollector(scopeStack, typeEnvAtNode);
+        FreeNameCollector freeNameCollector = 
+            new FreeNameCollector(scopeStack, typeEnvAtNode, 
+            					  traitTable, enclosingTraitOrObject);
         that.accept(freeNameCollector);
 		FreeNameCollection freeNames = freeNameCollector.getResult();
 		
@@ -260,7 +262,9 @@ System.err.println("Free names: " + freeNames);
         return callToLifted;
     }
 
-	private TightJuxt makeCallToLiftedObj(ObjectDecl lifted, ObjectExpr objExpr, FreeNameCollection freeNames) {
+	private TightJuxt makeCallToLiftedObj(ObjectDecl lifted, 
+                                          ObjectExpr objExpr, 
+                                          FreeNameCollection freeNames) {
 		Span span = objExpr.getSpan();
 		Id originalName = lifted.getName();
 		List<Id> fns = new LinkedList<Id>();
@@ -271,39 +275,66 @@ System.err.println("Free names: " + freeNames);
 		/* Now make the call to construct the lifted object */
 		/* Use default value for parenthesized */
 		FnRef fnRef = new FnRef(span, originalName, fns, staticArgs);
-		VoidLiteralExpr voidLit = new VoidLiteralExpr(span);  /* TODO: this is only if there is no param */
+        /* TODO: this is only if there is no param */
+		VoidLiteralExpr voidLit = new VoidLiteralExpr(span);  
 		List<Expr> exprs = new LinkedList<Expr>();
 		exprs.add(fnRef);
 		exprs.add(voidLit);
-		TightJuxt callToConstructor = new TightJuxt(span, objExpr.isParenthesized(), exprs);
+		TightJuxt callToConstructor = 
+            new TightJuxt(span, objExpr.isParenthesized(), exprs);
 		
 		return callToConstructor;
 	}
 
-	private ObjectDecl liftObjectExpr(ObjectExpr target, FreeNameCollection freeNames) {
+	private ObjectDecl liftObjectExpr(ObjectExpr target, 
+                                      FreeNameCollection freeNames) {
 		String name = getMangledName(target);
 		Span span = target.getSpan();
 		Id id = new Id(Option.some(enclosingComponent.getName()), name);
 		List<StaticParam> staticParams = getCapturedStaticParams(freeNames);
 		List<TraitTypeWhere> extendsClauses = target.getExtendsClause();
-		Option<List<Param>> params = getCapturedVars(freeNames);
-        List<Decl> decls = target.getDecls();   // FIXME: need to rewrite all decls w/ the freeNames.
+		Option<List<Param>> params = makeParamsForCapturedVars(freeNames);
+        // FIXME: need to rewrite all decls w/ the freeNames.
+        List<Decl> decls = target.getDecls();   
 
-        /* Use default value for modifiers, where clauses, throw clauses, contract */
-		ObjectDecl lifted = new ObjectDecl(span, id, staticParams, extendsClauses, params, decls);
+        /* Use default value for modifiers, where clauses, 
+           throw clauses, contract */
+		ObjectDecl lifted = new ObjectDecl(span, id, staticParams, 
+                                           extendsClauses, params, decls);
 
 		return lifted;
 	}
 
-	private Option<List<Param>> getCapturedVars(FreeNameCollection freeNames) {
+	private Option<List<Param>> 
+    makeParamsForCapturedVars(FreeNameCollection freeNames) {
 		// TODO: Fill this in - this is more complicated;
 		// need to figure out shadowed self via FnRef, FieldRef ... and so on
 		// need to box any var that's mutable
-		return Option.<List<Param>>some(Collections.<Param>emptyList());
+   
+        NormalParam param = null;
+        List<Param> params = new LinkedList<Param>();
+        List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
+        // List<Id> lhsOfAssignmt = freeNames.getLhsOfAssignment();
+
+        // FIXME: Need to handle also FnRef and mutated vars
+        if(freeVarRefs != null) {
+        	for(VarRef var : freeVarRefs) {
+        		// Default value for modifier, type, and default expression
+        		// which is Option.none()
+                // FIXME: ?? Is it ok not to put type here?
+                // What if it has a type that's not visible at top level?
+        	    param = new NormalParam(var.getSpan(), var.getVar());
+        		params.add(param);
+        	}
+        }
+        
+        return Option.<List<Param>>some(params);       
 	}
 
-	private List<StaticParam> getCapturedStaticParams(FreeNameCollection freeNames) {
-		// TODO: Fill this in - get the VarTypes(?) that's free and generate static param using it
+	private List<StaticParam> 
+    getCapturedStaticParams(FreeNameCollection freeNames) {
+		// TODO: Fill this in - get the VarTypes(?) that's free and 
+        // generate static param using it
         return Collections.<StaticParam>emptyList();
 	}
 
