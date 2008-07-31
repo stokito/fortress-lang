@@ -662,6 +662,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
     
+    @Override public String forItemSymbolOnly(ItemSymbol that) {
+        return that.getItem();
+    }
+    
+    @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
+        return that.getTransformer();
+    }
+    
     @Override public String forSyntaxDefOnly(SyntaxDef that, List<String> syntaxSymbols_result, String transformer_result) {
         StringBuilder s = new StringBuilder();
 
