@@ -949,7 +949,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    // @Override public String forNonterminalParameterOnly( that,
+    @Override public String forNonterminalParameterOnly(NonterminalParameter that, String name_result, String type_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( name_result ).append( ":" ).append( type_result );
+
+        return s.toString();
+    }
 
     @Override public String forSyntaxDefOnly(SyntaxDef that,
                                              List<String> syntaxSymbols_result,
@@ -975,6 +981,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     // @Override public String forSimpleTransformerDefOnly( that,
+
+    /* this node will be going away, so not needed */
     // @Override public String forTransformerExpressionDefOnly( that,
 
     @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
