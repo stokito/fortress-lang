@@ -373,47 +373,47 @@ public class TypesUtil {
      * @return
      */
     public static Option<Type> applyStaticArgsIfPossible(Type type, final List<StaticArg> static_args) {
-     if( static_args.size() == 0 ) {
-      return Option.some(type);
-     }
-     else {
-      return type.accept(new NodeDepthFirstVisitor<Option<Type>>() {
-       @Override
-       public Option<Type> defaultCase(Node that) {
-        return Option.none();
-       }
-    public Option<Type> forIntersectionType(IntersectionType that) {
-        List<Option<Type>> results = this.recurOnListOfType(that.getElements());
-        List<Type> conjuncts = new ArrayList<Type>(results.size());
-        for( Option<Type> t : results ) {
-         if( t.isNone() ) {
-          return Option.none();
-         }
-         else {
-          conjuncts.add(t.unwrap());
-         }
-        }
-        return Option.<Type>some(new IntersectionType(that.getSpan(),that.isParenthesized(),conjuncts));
-    }
+    	if( static_args.size() == 0 ) {
+    		return Option.some(type);
+    	}
+    	else {
+    		return type.accept(new NodeDepthFirstVisitor<Option<Type>>() {
+    			@Override
+    			public Option<Type> defaultCase(Node that) {
+    				return Option.none();
+    			}
+    			public Option<Type> forIntersectionType(IntersectionType that) {
+    				List<Option<Type>> results = this.recurOnListOfType(that.getElements());
+    				List<Type> conjuncts = new ArrayList<Type>(results.size());
+    				for( Option<Type> t : results ) {
+    					if( t.isNone() ) {
+    						return Option.none();
+    					}
+    					else {
+    						conjuncts.add(t.unwrap());
+    					}
+    				}
+    				return Option.<Type>some(new IntersectionType(that.getSpan(),that.isParenthesized(),conjuncts));
+    			}
 
-    @Override
-       public Option<Type> for_RewriteGenericArrowType(
-         _RewriteGenericArrowType that) {
-        if( StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams()) ) {
-         _RewriteGenericArrowType temp = (_RewriteGenericArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
-         Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),temp.getDomain(),temp.getRange(), temp.getEffect());
-         return Option.some(new_type);
-        }
-        else {
-         return Option.none();
-        }
-       }
-       @Override
-       public Option<Type> forArrowType(ArrowType that) {
-        return Option.<Type>none();
-       }
-      });
-     }
+    			@Override
+    			public Option<Type> for_RewriteGenericArrowType(
+    					_RewriteGenericArrowType that) {
+    				if( StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams()) ) {
+    					_RewriteGenericArrowType temp = (_RewriteGenericArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
+    					Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),temp.getDomain(),temp.getRange(), temp.getEffect());
+    					return Option.some(new_type);
+    				}
+    				else {
+    					return Option.none();
+    				}
+    			}
+    			@Override
+    			public Option<Type> forArrowType(ArrowType that) {
+    				return Option.<Type>none();
+    			}
+    		});
+    	}
     }
 
     /**
@@ -421,15 +421,15 @@ public class TypesUtil {
      * @return
      */
     public static Type getObjectExprType(ObjectExpr obj) {
-     List<Type> extends_types = CollectUtil.makeList(IterUtil.map(obj.getExtendsClause(),
-       new Lambda<TraitTypeWhere,Type>(){
-      public Type value(TraitTypeWhere arg0) {
-       return arg0.getType();
-      }}));
-     Type self_type =
-      extends_types.isEmpty() ?
-       Types.ANY :           // TODO: This line must be changed to OBJECT once Jan puts it in
-       Types.makeIntersection(extends_types);
-     return self_type;
+    	List<Type> extends_types = CollectUtil.makeList(IterUtil.map(obj.getExtendsClause(),
+    			new Lambda<TraitTypeWhere,Type>(){
+    		public Type value(TraitTypeWhere arg0) {
+    			return arg0.getType();
+    		}}));
+    	Type self_type =
+    		extends_types.isEmpty() ?
+    				Types.OBJECT :
+    				Types.makeIntersection(extends_types);
+    	return self_type;
     }
 }

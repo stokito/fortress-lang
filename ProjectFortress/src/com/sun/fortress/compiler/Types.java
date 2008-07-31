@@ -48,8 +48,7 @@ public final class Types {
     public static final Id ARRAY_NAME = makeId(fortressLibrary,"Array");
     public static final AnyType ANY = new AnyType();
     public static final BottomType BOTTOM = new BottomType();
-    public static final TraitType OBJECT = makeTraitType(fortressLibrary, "Object");
-    // public static final Type TUPLE = NodeFactory.makeTraitType(fortressBuiltin, "Tuple");
+    public static final TraitType OBJECT = makeTraitType(fortressBuiltin, "Object");
 
     public static final Domain BOTTOM_DOMAIN = NodeFactory.makeDomain(BOTTOM);
 
