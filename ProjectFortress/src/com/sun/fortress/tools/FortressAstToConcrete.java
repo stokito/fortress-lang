@@ -1296,7 +1296,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         List<Boolean> mutables = isMutables( that.getLhs() );
         if ( mutables.contains( true ) &&
              lhs_result.size() > 1 ) {
-            s.append( "var " );
+            if ( rhs_result.isNone() )
+                s.append( "var " );
             s.append( filterString(inParentheses(lhs_result), "var") );
         } else
             s.append( inParentheses(lhs_result) );
@@ -1503,8 +1504,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( inParentheses(expr) );
         }
 
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
+        if ( that.isParenthesized() )
+            return "(" + s.toString() + ")";
+        else
+            return s.toString();
     }
 
     @Override public String for_RewriteFnAppOnly(_RewriteFnApp that,

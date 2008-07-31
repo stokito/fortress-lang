@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -187,7 +187,7 @@ public class Lex {
      * <li> a double-quoted escaped string (@see readQuoted)
      * <li> a sequence of underscores, dollar signs, digits, and letters.
      * </ul>
-     * 
+     *
      * @throws IOException
      */
     public String name(boolean skipLeadingWhite) throws IOException {
