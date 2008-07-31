@@ -337,8 +337,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         if ( comprises_result.isSome() ){
             List<String> throws_ = comprises_result.unwrap();
+            s.append("comprises ");
             if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("comprises ", throws_) );
+                s.append( inCurlyBraces("", throws_) );
+            else
+                s.append( "{ ... }" );
         }
         s.append( "\n" );
         s.append( join(decls_result,"\n") );
@@ -576,157 +579,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
         s.append( join(elems_result, "\n") );
         return s.toString();
-    }
-    
-    @Override public String forNonterminalHeaderOnly(NonterminalHeader that, Option<String> modifier_result, String name_result, List<String> params_result, List<String> staticParams_result, Option<String> type_result, String whereClause_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( name_result );
-        if ( ! params_result.isEmpty() ){
-            s.append( "(" );
-            s.append(join(params_result, ", "));
-            s.append( ")" );
-        }
-
-        return s.toString();
-    }
-    
-    @Override public String forTokenSymbolOnly(TokenSymbol that) {
-        return that.getToken();
-    }
-    
-    @Override public String forGroupSymbolOnly(GroupSymbol that, List<String> symbols_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( join(symbols_result, ", ") );
-
-        return s.toString();
-    }
-    
-    @Override public String forWhitespaceSymbolOnly(WhitespaceSymbol that) {
-        return " ";
-    }
-    
-    @Override public String forNonterminalSymbolOnly(NonterminalSymbol that, String nonterminal_result) {
-        return nonterminal_result;
-    }
-    
-    @Override public String defaultTemplateGap(TemplateGap t){
-        StringBuilder s = new StringBuilder();
-
-        s.append( t.getGapId().accept( this ) );
-        if ( ! t.getTemplateParams().isEmpty() ){
-            s.append( "(" );
-            for ( Id id : t.getTemplateParams() ){
-                s.append( id.accept( this ) );
-            }
-            s.append( ")" );
-        }
-
-        return s.toString();
-    }
-
-    /* sad but true, its hard to convert a macro template back to its original form.
-     */
-    @Override public String forTransformerNode(TransformerNode that) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( "..macro.." );
-
-        return s.toString();
-    }
-    
-    @Override public String forGrammarDefOnly(GrammarDef that, String name_result, List<String> extends_result, List<String> members_result, List<String> transformers_result) {
-        StringBuilder s = new StringBuilder();
-
-        if ( that.isNative() ){
-            s.append( "native " );
-        }
-        increaseIndent();
-        s.append( "grammar " + name_result );
-        if ( ! extends_result.isEmpty() ){
-            s.append( " extends { " );
-            s.append( join(extends_result, ", ") );
-            s.append( " }" );
-        }
-        s.append( "\n" );
-
-        s.append( indent(join(members_result,"\n")) );
-
-        /* transformers_result ?? */
-
-        s.append( "\n" );
-        s.append( "end" );
-        decreaseIndent();
-
-        return s.toString();
-    }
-    
-    @Override public String forItemSymbolOnly(ItemSymbol that) {
-        return that.getItem();
-    }
-    
-    @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
-        return that.getTransformer();
-    }
-    
-    @Override public String forSyntaxDefOnly(SyntaxDef that, List<String> syntaxSymbols_result, String transformer_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( join(syntaxSymbols_result, "") );
-        s.append( " <[ " );
-        s.append( transformer_result );
-        s.append( " ]>" );
-
-        return s.toString();
-    }
-    
-    @Override public String forNonterminalExtensionDefOnly(NonterminalExtensionDef that, String header_result, Option<String> astType_result, List<String> syntaxDefs_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( header_result );
-        if ( astType_result.isSome() ){
-            s.append( " |" );
-            s.append( astType_result.unwrap() );
-        }
-        s.append( ":=\n" );
-        s.append( join(syntaxDefs_result, "\n") );
-
-        return s.toString();
-    }
-
-     @Override public String forNonterminalDefOnly(NonterminalDef that, String header_result, Option<String> astType_result, List<String> syntaxDefs_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( header_result );
-        if ( astType_result.isSome() ){
-            s.append( " :" );
-            s.append( astType_result.unwrap() );
-        }
-        s.append( ":=\n");
-        s.append( join(syntaxDefs_result, "\n") );
-
-        return s.toString();
-    }
-    
-    @Override public String forPrefixedSymbolOnly(PrefixedSymbol that, Option<String> id_result, Option<String> type_result, String symbol_result) {
-        StringBuilder s = new StringBuilder();
-
-        if ( id_result.isSome() ){
-            s.append( id_result.unwrap() );
-            s.append( ":" );
-        }
-        s.append( symbol_result );
-        if ( type_result.isSome() ){
-            s.append( ":" );
-            s.append( type_result.unwrap() );
-        }
-
-        return s.toString();
-    }
-    
-    @Override public String forKeywordSymbolOnly(KeywordSymbol that) {
-        return that.getToken();
     }
 
     @Override public String forAbsFnDeclOnly(AbsFnDecl that,
@@ -1001,6 +853,205 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
         }
         s.append(expr_result);
+
+        return s.toString();
+    }
+
+    @Override public String forGrammarDefOnly(GrammarDef that,
+                                              String name_result,
+                                              List<String> extends_result,
+                                              List<String> members_result,
+                                              List<String> transformers_result) {
+        StringBuilder s = new StringBuilder();
+
+        if ( that.isNative() ){
+            s.append( "native " );
+        }
+        increaseIndent();
+        s.append( "grammar " + name_result );
+        if ( ! extends_result.isEmpty() ){
+            s.append( " extends { " );
+            s.append( join(extends_result, ", ") );
+            s.append( " }" );
+        }
+        s.append( "\n" );
+
+        s.append( indent(join(members_result,"\n")) );
+
+        /* transformers_result ?? */
+
+        s.append( "\n" );
+        s.append( "end" );
+        decreaseIndent();
+
+        return s.toString();
+    }
+
+    @Override public String forNonterminalDefOnly(NonterminalDef that,
+                                                  String header_result,
+                                                  Option<String> astType_result,
+                                                  List<String> syntaxDefs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( header_result );
+        if ( astType_result.isSome() ){
+            s.append( " :" );
+            s.append( astType_result.unwrap() );
+        }
+        s.append( ":=\n");
+        s.append( join(syntaxDefs_result, "\n") );
+
+        return s.toString();
+    }
+
+    @Override public String forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
+                                                           String header_result,
+                                                           Option<String> astType_result,
+                                                           List<String> syntaxDefs_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( header_result );
+        if ( astType_result.isSome() ){
+            s.append( " |" );
+            s.append( astType_result.unwrap() );
+        }
+        s.append( ":=\n" );
+        s.append( join(syntaxDefs_result, "\n") );
+
+        return s.toString();
+    }
+
+    // @Override public String for_TerminalDefOnly( that,
+
+    @Override public String forNonterminalHeaderOnly(NonterminalHeader that,
+                                                     Option<String> modifier_result,
+                                                     String name_result,
+                                                     List<String> params_result,
+                                                     List<String> staticParams_result,
+                                                     Option<String> type_result,
+                                                     String whereClause_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( name_result );
+        if ( ! params_result.isEmpty() ){
+            s.append( "(" );
+            s.append(join(params_result, ", "));
+            s.append( ")" );
+        }
+
+        return s.toString();
+    }
+
+    // @Override public String forNonterminalParameterOnly( that,
+
+    @Override public String forSyntaxDefOnly(SyntaxDef that,
+                                             List<String> syntaxSymbols_result,
+                                             String transformer_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( join(syntaxSymbols_result, "") );
+        s.append( " <[ " );
+        s.append( transformer_result );
+        s.append( " ]>" );
+
+        return s.toString();
+    }
+
+    // @Override public String forTransformerDefOnly( that,
+
+    /* sad but true, it's hard to convert a macro template back to its original form.
+     */
+    @Override public String forTransformerNode(TransformerNode that) {
+        StringBuilder s = new StringBuilder();
+        s.append( "..macro.." );
+        return s.toString();
+    }
+
+    // @Override public String forSimpleTransformerDefOnly( that,
+    // @Override public String forTransformerExpressionDefOnly( that,
+
+    @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
+        return that.getTransformer();
+    }
+
+    @Override public String forPrefixedSymbolOnly(PrefixedSymbol that,
+                                                  Option<String> id_result,
+                                                  Option<String> type_result,
+                                                  String symbol_result) {
+        StringBuilder s = new StringBuilder();
+
+        if ( id_result.isSome() ){
+            s.append( id_result.unwrap() );
+            s.append( ":" );
+        }
+        s.append( symbol_result );
+        if ( type_result.isSome() ){
+            s.append( ":" );
+            s.append( type_result.unwrap() );
+        }
+
+        return s.toString();
+    }
+
+    // @Override public String forOptionalSymbolOnly( that,
+    // @Override public String forRepeatSymbolOnly( that,
+    // @Override public String forRepeatOneOrMoreSymbolOnly( that,
+    // @Override public String forNoWhitespaceSymbolOnly( that,
+
+    @Override public String forGroupSymbolOnly(GroupSymbol that,
+                                               List<String> symbols_result) {
+        StringBuilder s = new StringBuilder();
+        s.append( join(symbols_result, ", ") );
+        return s.toString();
+    }
+
+    // @Override public String forAnyCharacterSymbolOnly( that,
+
+    @Override public String forWhitespaceSymbolOnly(WhitespaceSymbol that) {
+        return " ";
+    }
+
+    // @Override public String forTabSymbolOnly( that,
+    // @Override public String forFormfeedSymbolOnly( that,
+    // @Override public String forCarriageReturnSymbolOnly( that,
+    // @Override public String forBackspaceSymbolOnly( that,
+    // @Override public String forNewlineSymbolOnly( that,
+    // @Override public String forBreaklineSymbolOnly( that,
+
+    @Override public String forItemSymbolOnly(ItemSymbol that) {
+        return that.getItem();
+    }
+
+    @Override public String forNonterminalSymbolOnly(NonterminalSymbol that,
+                                                     String nonterminal_result) {
+        return nonterminal_result;
+    }
+
+    @Override public String forKeywordSymbolOnly(KeywordSymbol that) {
+        return that.getToken();
+    }
+
+    @Override public String forTokenSymbolOnly(TokenSymbol that) {
+        return that.getToken();
+    }
+
+    // @Override public String forNotPredicateSymbolOnly( that,
+    // @Override public String forAndPredicateSymbolOnly( that,
+    // @Override public String forCharacterClassSymbolOnly( that,
+    // @Override public String forCharSymbolOnly( that,
+    // @Override public String forCharacterIntervalOnly( that,
+
+    @Override public String defaultTemplateGap(TemplateGap t){
+        StringBuilder s = new StringBuilder();
+
+        s.append( t.getGapId().accept( this ) );
+        if ( ! t.getTemplateParams().isEmpty() ){
+            s.append( "(" );
+            for ( Id id : t.getTemplateParams() ){
+                s.append( id.accept( this ) );
+            }
+            s.append( ")" );
+        }
 
         return s.toString();
     }
@@ -1521,7 +1572,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forIntLiteralExprOnly(IntLiteralExpr that) {
-        return handleParen( that.getVal().toString(),
+        return handleParen( that.getText(),
                             that.isParenthesized() );
     }
 
@@ -1754,9 +1805,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     s.append( staticArgs );
                     s.append( " " );
                     List<Expr> exprs = that.getArgs();
-                    if ( exprs.isEmpty() )
-                        s.append( "{ }" );
-                    else {
+                    if ( ! exprs.isEmpty() ) {
                         for ( Expr expr : IterUtil.skipLast(exprs) ) {
                             s.append( handleMapElem(expr, that,
                                                     visitor) );
@@ -2161,6 +2210,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             if ( args_size > 0 )
                 s.append( ", " );
             s.append( varargs_result.unwrap() );
+            s.append( "..." );
         }
         if ( keywords_size > 0 ) {
             if ( args_size + varargs_size > 0)
@@ -2718,7 +2768,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( "catch " );
-        s.append( name_result ).append( " " );
+        s.append( name_result ).append( "\n" );
         s.append( join(clauses_result, "\n") );
 
         return s.toString();
