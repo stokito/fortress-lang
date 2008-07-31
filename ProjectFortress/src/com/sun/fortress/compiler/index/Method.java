@@ -17,6 +17,9 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.nodes.Id;
+
 /** Comprises DeclaredMethod, FieldGetterMethod, and FieldSetterMethod. */
 public abstract class Method extends Functional {
+	public abstract Id getDeclaringTrait(); 
 }

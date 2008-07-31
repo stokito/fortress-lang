@@ -22,8 +22,14 @@ import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
+
 import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
@@ -102,5 +108,25 @@ class MethodTypeEnv extends TypeEnv {
         }
 		
 		throw new IllegalArgumentException("The declarationSite method should not be called on any functions, but was called on " + var);
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+
+		Set<Pair<IdOrOpOrAnonymousName, Method>> new_entries = new HashSet<Pair<IdOrOpOrAnonymousName, Method>>();
+		Iterator<Pair<IdOrOpOrAnonymousName, Method>> iter = entries.iterator();
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		while(iter.hasNext()) {
+			Pair<IdOrOpOrAnonymousName, Method> p = iter.next();
+			
+			Method m = p.second();
+			Method new_m = (Method)m.acceptNodeUpdateVisitor(rep);
+			
+			new_entries.add(Pair.make(p.first(), new_m));
+		}
+		
+		return new MethodTypeEnv(CollectUtil.makeRelation(new_entries),
+				parent.replaceAllIVars(ivars));
 	}
 }

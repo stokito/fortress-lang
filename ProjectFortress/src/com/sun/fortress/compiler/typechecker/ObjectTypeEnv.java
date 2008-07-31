@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -126,5 +128,19 @@ class ObjectTypeEnv extends TypeEnv {
         ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
         
         return Option.<Node>some(objIndex.ast());
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		
+		Map<Id, TypeConsIndex> new_entries = new HashMap<Id, TypeConsIndex>();
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		for( Map.Entry<Id, TypeConsIndex> entry : entries.entrySet() ) {
+			TypeConsIndex tc = entry.getValue();
+			tc = tc.acceptNodeUpdateVisitor(rep);
+			new_entries.put(entry.getKey(), tc);
+		}
+		return new ObjectTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 }

@@ -20,8 +20,11 @@ package com.sun.fortress.compiler.typechecker;
 import static edu.rice.cs.plt.tuple.Option.some;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.nodes.FnDef;
@@ -30,9 +33,12 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 /**
  * A type environment whose outermost scope binds local function definitions.
@@ -98,5 +104,24 @@ class FnDefTypeEnv extends TypeEnv {
         }
 		
 		throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		Iterator<? extends Pair<IdOrOpOrAnonymousName, ? extends FnDef>> iter = this.entries.iterator();
+		Set<Pair<IdOrOpOrAnonymousName, FnDef>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, FnDef>>();
+		
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		while( iter.hasNext() ) {
+			Pair<IdOrOpOrAnonymousName, ? extends FnDef> p = iter.next();
+			FnDef f = p.second();
+			
+			f = (FnDef)f.accept(rep);
+			new_entries_.add(Pair.make(p.first(), f));
+		}
+		
+		return new FnDefTypeEnv(CollectUtil.makeRelation(new_entries_),
+				                parent.replaceAllIVars(ivars));
 	}
 }

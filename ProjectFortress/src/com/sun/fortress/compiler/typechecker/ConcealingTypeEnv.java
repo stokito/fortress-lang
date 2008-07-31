@@ -21,11 +21,13 @@ import static edu.rice.cs.plt.tuple.Option.some;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -75,5 +77,14 @@ class ConcealingTypeEnv extends TypeEnv {
     	
     	if (!entries.contains(no_api_var)) { return parent.declarationSite(var); }
         return some(declSite);
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		return new ConcealingTypeEnv((Node)this.declSite.accept(rep),
+				entries, 
+				parent.replaceAllIVars(ivars));
 	}
 }

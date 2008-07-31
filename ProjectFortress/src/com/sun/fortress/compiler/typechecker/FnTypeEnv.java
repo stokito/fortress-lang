@@ -21,8 +21,11 @@ import static com.sun.fortress.nodes_util.NodeFactory.makeEffect;
 import static com.sun.fortress.nodes_util.NodeFactory.makeTraitType;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.IndexBuilder;
@@ -45,6 +48,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
@@ -177,5 +181,24 @@ class FnTypeEnv extends TypeEnv {
         }
         
         throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		Iterator<? extends Pair<IdOrOpOrAnonymousName, ? extends Function>> iter = entries.iterator();
+		Set<Pair<IdOrOpOrAnonymousName, Function>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, Function>>();
+		
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		while( iter.hasNext() ) {
+			Pair<IdOrOpOrAnonymousName, ? extends Function> p = iter.next();
+			Function f = p.second();
+			
+			f = (Function)f.acceptNodeUpdateVisitor(rep);
+			new_entries_.add(Pair.make(p.first(), f));
+		}
+		
+		return new FnTypeEnv(CollectUtil.makeRelation(new_entries_),
+				             parent.replaceAllIVars(ivars));
 	}
 }

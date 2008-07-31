@@ -93,4 +93,11 @@ class LocalVarTypeEnv extends TypeEnv {
 		else
 			return parent.declarationSite(var);
 	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		return new LocalVarTypeEnv((LocalVarDecl)this.decl.accept(rep),
+				this.parent.replaceAllIVars(ivars));
+	}
 }

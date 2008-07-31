@@ -17,17 +17,23 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.compiler.*;
-import com.sun.fortress.compiler.index.*;
-import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
+import static edu.rice.cs.plt.tuple.Option.none;
+import static edu.rice.cs.plt.tuple.Option.some;
 
-import static com.sun.fortress.nodes_util.NodeFactory.*;
-import static edu.rice.cs.plt.tuple.Option.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
+
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * A type environment whose outermost lexical scope consists of a map from IDs
@@ -89,5 +95,18 @@ class ParamTypeEnv extends TypeEnv {
     		return Option.<Node>some(_p.unwrap());
     	else
     		return parent.declarationSite(var);
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		
+		List<Param> new_entries = new ArrayList<Param>(entries.size());
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		for( Param p : entries ) {
+			new_entries.add((Param)p.accept(rep));
+		}
+		
+		return new ParamTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 }

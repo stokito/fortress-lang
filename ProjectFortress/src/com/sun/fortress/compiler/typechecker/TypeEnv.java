@@ -78,6 +78,7 @@ import com.sun.fortress.nodes.UnitArg;
 import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarargsParam;
+import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -505,5 +506,10 @@ public abstract class TypeEnv {
             return String.format("%s:%s", var, type);
         }
 
-    };
+    }
+
+    /**
+     * Replace all of the inference variables given with their corresponding types.
+     */
+	public abstract TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars);
 }

@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.typechecker;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes.BoolParam;
@@ -34,6 +35,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
 
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
@@ -147,6 +149,18 @@ public class StaticParamTypeEnv extends TypeEnv {
         	return Option.<Node>some(p.unwrap().first());
         else
         	return parent.declarationSite(var);
+	}
+
+	@Override
+	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+		List<StaticParam> new_entries = new ArrayList<StaticParam>(entries.size());
+		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+		
+		for( StaticParam entry : entries ) {
+			new_entries.add((StaticParam)entry.accept(rep));
+		}
+		
+		return new StaticParamTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 
 }
