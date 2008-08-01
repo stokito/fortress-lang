@@ -203,7 +203,7 @@ transient String greaterthan      = ">":op  / "GT":op;
 transient String NOT     = "NOT":op;
 transient String OR      = "OR":op;
 transient String AND     = "AND":op;
-transient String IMPLIES = "->":op / "IMPLIES":op;
+transient String IMPLIES = "IMPLIES":op;
 
 transient String DOT = "DOT":OpName;
 transient String slash = "/":singleOp;

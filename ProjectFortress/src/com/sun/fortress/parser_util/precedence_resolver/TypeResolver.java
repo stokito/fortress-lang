@@ -775,6 +775,59 @@ public class TypeResolver {
         }
     }
 
+    private static Type canonicalizeType(Type ty) {
+        if (ty instanceof TaggedDimType) {
+            TaggedDimType _ty = (TaggedDimType)ty;
+            return new TaggedDimType(_ty.getSpan(),
+                                     _ty.isParenthesized(),
+                                     canonicalizeType(_ty.getType()),
+                                     canonicalizeDim(_ty.getDim()),
+                                     _ty.getUnit());
+        } else return ty;
+    }
+
+    private static DimExpr canonicalizeDim(DimExpr dim) {
+        return dim.accept(new NodeAbstractVisitor<DimExpr>() {
+            public DimExpr forProductDim(ProductDim d) {
+                DimExpr left = d.getMultiplier();
+                DimExpr right = d.getMultiplicand();
+                if (right instanceof ProductDim) {
+                    ProductDim _right = (ProductDim)right;
+                    DimExpr rleft = _right.getMultiplier();
+                    left = new ProductDim(spanTwo(left, rleft),
+                                          true, left, rleft);
+                    left = canonicalizeDim(left);
+                    right = canonicalizeDim(_right.getMultiplicand());
+                } else
+                    left = canonicalizeDim(left);
+                return new ProductDim(d.getSpan(),
+                                      d.isParenthesized(),
+                                      left, right);
+            }
+            public DimExpr forQuotientDim(QuotientDim d) {
+                return new QuotientDim(d.getSpan(),
+                                       d.isParenthesized(),
+                                       canonicalizeDim(d.getNumerator()),
+                                       canonicalizeDim(d.getDenominator()));
+            }
+            public DimExpr forExponentDim(ExponentDim d) {
+                return new ExponentDim(d.getSpan(),
+                                       d.isParenthesized(),
+                                       canonicalizeDim(d.getBase()),
+                                       d.getPower());
+            }
+            public DimExpr forOpDim(OpDim d) {
+                return new OpDim(d.getSpan(),
+                                 d.isParenthesized(),
+                                 canonicalizeDim(d.getVal()),
+                                 d.getOp());
+            }
+            public DimExpr defaultCase(Node x) {
+                return (DimExpr)x;
+            }
+        });
+    }
+
     public static Type resolveOps(PureList<PostfixOpExpr> opTypes) {
         try {
             if (isVerbose) {
@@ -787,10 +840,11 @@ public class TypeResolver {
             TypeOrDomain type = buildLayer(opTypes);
             if (isVerbose) System.out.println("after resolveOps: " + type);
             try {
-                if (type instanceof DimExpr) return dimToType((DimExpr)type);
-                else return typeToType(type);
+                if (type instanceof DimExpr)
+                    return canonicalizeType(dimToType((DimExpr)type));
+                else return canonicalizeType(typeToType(type));
             } catch (TypeConvertFailure x) {
-                return (Type)type;
+                return canonicalizeType((Type)type);
             }
         } catch (Throwable e) {
             String msg = e.getMessage();
@@ -805,10 +859,11 @@ public class TypeResolver {
         try {
             TypeOrDomain type = buildLayer(opTypes);
             try {
-                if (type instanceof DimExpr) return typeToDim((DimExpr)type);
-                else return typeToDim(type);
+                if (type instanceof DimExpr)
+                    return canonicalizeDim(typeToDim((DimExpr)type));
+                else return canonicalizeDim(typeToDim(type));
             } catch (TypeConvertFailure x) {
-                return (DimExpr)type;
+                return canonicalizeDim((DimExpr)type);
             }
         } catch (Throwable e) {
             String msg = e.getMessage();

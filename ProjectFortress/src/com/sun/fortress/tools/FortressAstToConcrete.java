@@ -72,7 +72,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     /* handles parenthesized field */
     private String handleParen(String str, boolean isParen) {
         if ( isParen )
-            return inParentheses( str );
+            return "(" + str + ")";
         else return str;
     }
 
@@ -952,7 +952,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forNonterminalParameterOnly(NonterminalParameter that, String name_result, String type_result) {
+    @Override public String forNonterminalParameterOnly(NonterminalParameter that,
+                                                        String name_result,
+                                                        String type_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( name_result ).append( ":" ).append( type_result );
@@ -986,7 +988,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     // @Override public String forSimpleTransformerDefOnly( that,
 
     /* this node will be going away, so not needed */
-    // @Override public String forTransformerExpressionDefOnly( that,
+    // @Override public String forTransformerExpressionDefOnly
 
     @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
         return that.getTransformer();
@@ -1011,19 +1013,23 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forOptionalSymbolOnly(OptionalSymbol that, String symbol_result) {
+    @Override public String forOptionalSymbolOnly(OptionalSymbol that,
+                                                  String symbol_result) {
         return "{" + symbol_result + "}?";
     }
-    
-    @Override public String forRepeatSymbolOnly(RepeatSymbol that, String symbol_result) {
+
+    @Override public String forRepeatSymbolOnly(RepeatSymbol that,
+                                                String symbol_result) {
         return "{" + symbol_result + "}*";
     }
 
-    @Override public String forRepeatOneOrMoreSymbolOnly( RepeatOneOrMoreSymbol that, String symbol_result) {
+    @Override public String forRepeatOneOrMoreSymbolOnly( RepeatOneOrMoreSymbol that,
+                                                          String symbol_result) {
         return "{" + symbol_result + "}+";
     }
 
-    @Override public String forNoWhitespaceSymbolOnly( NoWhitespaceSymbol that, String symbol_result) {
+    @Override public String forNoWhitespaceSymbolOnly( NoWhitespaceSymbol that,
+                                                       String symbol_result) {
         return symbol_result + "#";
     }
 
@@ -1083,15 +1089,18 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return that.getToken();
     }
 
-    @Override public String forNotPredicateSymbolOnly(NotPredicateSymbol that, String symbol_result) {
+    @Override public String forNotPredicateSymbolOnly(NotPredicateSymbol that,
+                                                      String symbol_result) {
         return "NOT " + symbol_result;
     }
 
-    @Override public String forAndPredicateSymbolOnly( AndPredicateSymbol that, String symbol_result ){
+    @Override public String forAndPredicateSymbolOnly(AndPredicateSymbol that,
+                                                      String symbol_result ){
         return "AND " + symbol_result;
     }
 
-    @Override public String forCharacterClassSymbolOnly(CharacterClassSymbol that, List<String> characters_result) {
+    @Override public String forCharacterClassSymbolOnly(CharacterClassSymbol that,
+                                                        List<String> characters_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( "[" );
@@ -1101,7 +1110,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forCharSymbolOnly( CharSymbol that ){
+    @Override public String forCharSymbolOnly(CharSymbol that){
         return that.getString();
     }
 
@@ -1647,6 +1656,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forCharLiteralExprOnly(CharLiteralExpr that) {
         return handleParen( "'" +
                             that.getText().replaceAll( "\\\\", "\\\\\\\\" )
+                                          .replaceAll( "\\\"", "\\\\\"" )
                                           .replaceAll( "\\t", "\\\\t" )
                                           .replaceAll( "\\n", "\\\\n" ) +
                             "'",
@@ -1656,6 +1666,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forStringLiteralExprOnly(StringLiteralExpr that) {
         return handleParen( "\"" +
                             that.getText().replaceAll( "\\\\", "\\\\\\\\" )
+                                          .replaceAll( "\\\"", "\\\\\"" )
                                           .replaceAll( "\\t", "\\\\t" )
                                           .replaceAll( "\\n", "\\\\n" ) +
                             "\"",
@@ -2163,12 +2174,18 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                  Option<String> unit_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( type_result ).append( " " );
+        s.append( type_result );
+        if ( unit_result.isNone() )
+            s.append( "(" );
+        else
+            s.append( " " );
         s.append( dim_result );
         if ( unit_result.isSome() ) {
             s.append( " in " );
             s.append( unit_result.unwrap() );
         }
+        if ( unit_result.isNone() )
+            s.append(")");
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
