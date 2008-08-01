@@ -34,12 +34,53 @@ public final class ApiMaker extends NodeUpdateVisitor {
 
     private ApiMaker() {}
 
+    private boolean containsPrivate(List<Modifier> mods) {
+        boolean result = false;
+        for (Modifier mod : mods) {
+            if ( mod instanceof ModifierPrivate )
+                result = true;
+        }
+        return result;
+    }
+
+    private Boolean isPrivate(AbsDecl decl) {
+        return decl.accept( new NodeDepthFirstVisitor<Boolean>() {
+                @Override public Boolean forAbsTraitDecl(AbsTraitDecl that) {
+                    return new Boolean(containsPrivate(that.getMods()));
+                }
+
+                @Override public Boolean forAbsObjectDecl(AbsObjectDecl that) {
+                    return new Boolean(containsPrivate(that.getMods()));
+                }
+
+                @Override public Boolean forAbsVarDecl(AbsVarDecl that) {
+                    List<LValueBind> lhs = that.getLhs();
+                    boolean result = false;
+                    for (LValueBind lv : lhs) {
+                        if ( containsPrivate(lv.getMods()) )
+                            result = true;
+                    }
+                    return new Boolean(result);
+                }
+
+                @Override public Boolean forAbsFnDecl(AbsFnDecl that) {
+                    return new Boolean(containsPrivate(that.getMods()));
+                }
+
+                @Override public Boolean defaultCase(Node that) {
+                    return new Boolean(false);
+                }
+            } ).booleanValue();
+    }
+
     private List<AbsDecl> declsToAbsDecls(final List<Decl> that) {
         boolean changed = false;
         List<AbsDecl> result = new java.util.ArrayList<AbsDecl>(0);
         for (Decl elt : that) {
             AbsDecl elt_result = (AbsDecl) elt.accept(this);
-            result.add(elt_result);
+            if ( ! isPrivate(elt_result) ) {
+                result.add(elt_result);
+            }
         }
         return result;
     }
