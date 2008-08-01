@@ -326,9 +326,17 @@ constant inline Action<Type> Exponentiation =
            }};
      };
 
-/* ParenthesizedType ::= ( w OpType w ) */
+/* MayParenthesizedOpType ::=
+     ( w OpType w )
+   | OpType
+ */
+PureList<PostfixOpExpr> MayParenthesizedOpType =
+     openparen w yyValue:OpType w closeparen
+   / OpType ;
+
+/* ParenthesizedType ::= ( w MayParenthesizedOpType w ) */
 constant inline Action<Type> ParenthesizedTypeLeft =
-     openparen w a1:OpType w closeparen
+     openparen w a1:MayParenthesizedOpType w closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                DimExpr dim = TypeResolver.resolveOpsDim(a1);
