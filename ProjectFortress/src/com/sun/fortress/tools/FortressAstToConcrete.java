@@ -1944,7 +1944,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                       String type_result,
                                                       List<String> staticArgs_result,
                                                       String arg_result) {
-        /*
         StringBuilder s = new StringBuilder();
 
         s.append( type_result );
@@ -1954,11 +1953,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( ".coercion" );
         s.append( inParentheses(arg_result) );
 
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
-        */
-        return bug(that, "Explicit coercion invocation is not supported " +
-                   "in Fortress concrete syntax.");
+        return "(* " + handleParen( s.toString(),
+                                    that.isParenthesized() ) + " *)";
     }
 
     @Override public String forMethodInvocationOnly(MethodInvocation that,
@@ -2107,8 +2103,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forBottomTypeOnly(BottomType that) {
-        return bug(that, "BottomType is not supported " +
-                   "in Fortress concrete syntax.");
+        return "(* BottomType *)";
     }
 
     @Override public String forVarTypeOnly(VarType that, String name_result) {
@@ -2225,8 +2220,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forVarargTupleTypeOnly(VarargTupleType that,
                                                    List<String> elements_result,
                                                    String varargs_result) {
-        return bug(that, "VarargTupleType is not supported " +
-                   "in Fortress concrete syntax.");
+        StringBuilder s = new StringBuilder();
+
+        s.append( "(" );
+        s.append( join(elements_result, ", ") );
+        s.append( ", " );
+        s.append( varargs_result );
+        s.append( "...)" );
+
+        return "(* " + s.toString() + " *)";
     }
 
     @Override public String forVoidTypeOnly(VoidType that) {
@@ -2254,37 +2256,62 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                             String range_result,
                                                             String effect_result,
                                                             String where_result) {
-        return bug(that, "Generic arrow types are not supported " +
-                   "in Fortress concrete syntax.");
+        StringBuilder s = new StringBuilder();
+
+        if ( ! staticParams_result.isEmpty() ) {
+            s.append( inOxfordBrackets(staticParams_result ) );
+        }
+        s.append( domain_result );
+        s.append( " -> " );
+        s.append( range_result );
+        s.append( effect_result );
+
+        return "(* " + handleParen( s.toString(),
+                                    that.isParenthesized() ) + " *)";
     }
 
     @Override public String for_InferenceVarTypeOnly(_InferenceVarType that) {
-        return bug(that, "Inference variable types are not supported " +
-                   "in Fortress concrete syntax.");
+        return "(* _InferenceVarType *)";
     }
 
     @Override public String forIntersectionTypeOnly(IntersectionType that,
                                                     List<String> elements_result) {
-        return bug(that, "Intersection types are not supported " +
-                   "in Fortress concrete syntax.");
+        StringBuilder s = new StringBuilder();
+
+        s.append( "(* " );
+        s.append( join(elements_result, " /\ ") );
+        s.append( " *)" );
+
+        return s.toString();
     }
 
     @Override public String forUnionTypeOnly(UnionType that,
                                              List<String> elements_result) {
-        return bug(that, "Union types are not supported " +
-                   "in Fortress concrete syntax.");
+        StringBuilder s = new StringBuilder();
+
+        s.append( "(* " );
+        s.append( join(elements_result, " \/ ") );
+        s.append( " *)" );
+
+        return s.toString();
     }
 
     @Override public String forFixedPointTypeOnly(FixedPointType that,
                                                   String name_result,
                                                   String body_result) {
-        return bug(that, "Fixed point types are not supported " +
-                   "in Fortress concrete syntax.");
+        StringBuilder s = new StringBuilder();
+
+        s.append( "(* FIX " );
+        s.append( name_result );
+        s.append( "." );
+        s.append( body_result );
+        s.append( " *)" );
+
+        return s.toString();
     }
 
     @Override public String forLabelTypeOnly(LabelType that) {
-        return bug(that, "Label types are not supported " +
-                   "in Fortress concrete syntax.");
+        return "(* LabelType *)";
     }
 
     @Override public String forDomainOnly(Domain that,
@@ -2828,8 +2855,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forConstructorFnNameOnly(ConstructorFnName that,
                                                      Option<String> api_result,
                                                      String def_result) {
-        return bug(that, "Anonymous constructor names are not supported " +
-                   "in Fortress concrete syntax.");
+        return "(* ConstructorFnName *)";
     }
 
     @Override public String forArrayComprehensionClauseOnly(ArrayComprehensionClause that,
