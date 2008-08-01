@@ -82,10 +82,13 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
         return super.forGrammarDef(that);
     }
 
+    /*
+    // Isn't this the default implementation?
     @Override
     public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> nonterminal_result, List<TransformerDecl> transformers) {
         return new GrammarDef(that.getSpan(), name_result, extends_result, nonterminal_result, transformers, that.isNative());
     }
+    */
 
     @Override
     public Node forNonterminalDefOnly(NonterminalDef that,
@@ -115,7 +118,4 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
         this._errors.addAll(pnd.errors());
         return new NonterminalHeader(that.getSpan(), modifier_result, name, params_result, staticParams_result, type_result, whereClause_result);
     }
-
-    
-
 }

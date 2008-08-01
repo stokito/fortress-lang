@@ -606,6 +606,11 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             TransformerNode(String transformer, AbstractNode node, List<NonterminalParameter> parameters );
 
             /**
+             * Case-dispatch transformer expr
+             */
+            SyntaxCaseTransformer(Id gapName, List<SyntaxCaseClause> clauses);
+
+            /**
              * For terminal nodes that are just a string literal
              */
             SimpleTransformerDef(AbstractNode node);
@@ -618,6 +623,12 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * pre transformer definition in transformer declarations
              */
             PreTransformerDef(String productionName, String transformer);
+
+        /**
+         * Syntax case clause
+         */
+        SyntaxCaseClause(Id constructor, List<Id> parameters, TransformerDecl body);
+
         /**
           * syntax symbol
           */

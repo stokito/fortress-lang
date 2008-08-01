@@ -42,7 +42,7 @@ body {
     add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
         "AND",    "BACKSPACE",    "FORMFEED",    "NEWLINE",
         "NOT",    "RETURN",    "TAB",    "SPACE",    "<\\[",
-	"without"
+	"without", "=>"
     });
 
     add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
@@ -142,7 +142,7 @@ private NonterminalParameter Decl =
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDecl SyntaxDef =
-     mods:ChoiceModifier? w a1s:SyntaxSymbols w a2:PreTransformer
+     mods:ChoiceModifier? w a1s:SyntaxSymbols w void:separator w a2:PreTransformer
      { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 SyntaxDecl SyntaxExtensionDef =
@@ -163,27 +163,25 @@ String SuperChoiceModifier =
      yyValue:private
      / yyValue:without;
 
-/* TransformationExpr ::= do BlockElems end */
-/*
-TransformerExpressionDef TransformerExpr =
-     do a3:(w BlockElems) w end
-     { Span span = createSpan(yyStart, yyCount);
-       if (a3 == null) a3 = FortressUtil.doBlock(span);
-       Do d = new Do(span, false,
-                        FortressUtil.mkList(new DoFront(span, Option.<Expr>none(), false, a3)));
-       yyValue = new TransformerExpressionDef(createSpan(yyStart,yyCount), d);
-     };
-*/
-
 /* TransformationTemplate ::= <[ Expr ]> */
-PreTransformerDef PreTransformer =
-     leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
+TransformerDecl PreTransformer =
+     case w pvar:Id of clauses:SyntaxCaseClauses w end
+     { yyValue = new SyntaxCaseTransformer(createSpan(yyStart,yyCount), pvar, clauses); }
+   / leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
      { yyValue = new PreTransformerDef(createSpan(yyStart,yyCount), "Expr", a1); };
+
+List<SyntaxCaseClause> SyntaxCaseClauses =
+     a1:SyntaxCaseClause a2s:(br SyntaxCaseClause)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+SyntaxCaseClause SyntaxCaseClause =
+     c:Id w openparen w gaps:BindIdList w closeparen w void:separator w transformer:PreTransformer
+     { yyValue = new SyntaxCaseClause(createSpan(yyStart,yyCount), c, gaps, transformer); };
 
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
 List<SyntaxSymbol> SyntaxSymbols =
-      a1:SyntaxSymbol a1s:Symbs* &(w (leftDelimiter))
+      a1:SyntaxSymbol a1s:Symbs* &(w separator)
       { List<SyntaxSymbol> ls = FortressUtil.mkList(a1);
         for(List<SyntaxSymbol> sl: a1s.list()) {
           ls.addAll(sl);
@@ -306,19 +304,8 @@ SyntaxSymbol Symbol =
       { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
      / yyValue:Item;
 
-/*
-SyntaxSymbol Suffix =
-      a1:Item questionmark
-      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
-    / a1:Item star
-     { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), a1); }
-    / a1:Item plus
-     { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), a1); }
-    / yyValue:Item;
-    */
-
 SyntaxSymbol Item =
-      !(w (leftDelimiter)) s:ItemText
+      !(w separator) s:ItemText
       { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
       { yyValue = new CharacterClassSymbol(createSpan(yyStart,yyCount), a1.list()); }
@@ -379,7 +366,7 @@ String EscapedSpecialSymbols =
 
 String SpecialSymbols =
       Tab / Formfeed / Return / Newline / Space
-    / Backspace / Not / And / leftDelimiter;
+    / Backspace / Not / And / separator;
 
 transient String anyChar = "_";
 transient String bar = "|";
@@ -394,6 +381,7 @@ transient String closeSquareBraket = "]";
 transient String leftParen = "(";
 transient String rightParen = ")";
 
+transient String separator = "=>";
 transient String leftDelimiter = "<[";
 transient String rightDelimiter = "]>";
 

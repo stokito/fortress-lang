@@ -160,7 +160,7 @@ public class GrammarRewriter {
         IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(results, System.currentTimeMillis());
         if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
         initializeGrammarIndexExtensions(apiIR.apis().values(), env.apis().values());
-                
+
         for (ApiIndex api: apiIR.apis().values()) { 
             initGrammarEnv(api.grammars().values());
         }
@@ -220,7 +220,7 @@ public class GrammarRewriter {
                 }
             }));
         }
-        
+
         /*
         for (ApiIndex api: apiIR.apis().values()) {
             rs.add( (Api) api.ast() );
