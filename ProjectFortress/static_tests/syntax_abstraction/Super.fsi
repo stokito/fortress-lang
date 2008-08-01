@@ -23,19 +23,18 @@ api Super
 
     grammar A extends Expression
         Expr |Expr:=
-          afoo <[ 1 ]>
+          afoo => <[ 1 ]>
     end
 
     grammar B extends {A, Expression}
         Expr |Expr:=
-          bfoo <[ 2 ]>
+          bfoo => <[ 2 ]>
         | Expr from A
     end
 
     grammar C extends {B, Expression}
         Expr |Expr:=
-           cfoo <[ (afoo) + (bfoo) ]>
-        |  Expr from B
+          cfoo => <[ (afoo) + (bfoo) ]>
+        | Expr from B
     end
-
 end
