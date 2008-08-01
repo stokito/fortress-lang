@@ -22,9 +22,9 @@ export Executable
 test1():() = do
     var count : ZZ32 = 0
     atomic do 
-        for i <- 1 # 50 do
+        for i <- 1 # 5 do
             atomic do
-                for j <- 1 # 50 do
+                for j <- 1 # 5 do
                     atomic do
                        count := count + 1
                     end
@@ -32,7 +32,7 @@ test1():() = do
            end
         end
    end
-   assert(count,    2500, "test1 failed")
+   assert(count,    25, "test1 failed")
 end
 
 run(args:String...):()=do
