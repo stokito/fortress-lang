@@ -58,15 +58,19 @@ import xtc.parser.Sequence;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.phases.ComposingSyntaxDefTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes.SyntaxDef;
@@ -386,7 +390,24 @@ public class ComposingMacroCompiler {
         defs.addAll( 0, intermediate );
     }
 
-    private static List<SyntaxDef> resolveChoice( Collection<GrammarIndex> relevant, SyntaxDecl def ){
+    private static Collection<SyntaxDecl> findExtension( Id nonterminalName, Id grammarName, Collection<GrammarIndex> grammars ){
+        Debug.debug( Debug.Type.SYNTAX, 3, "Searching for extension for nonterminal " + nonterminalName + " and grammar " + grammarName );
+        for ( GrammarIndex grammar : grammars ){
+            Debug.debug( Debug.Type.SYNTAX, 3, "Checking if grammar " + grammar.getName() + " matches " + grammarName );
+            if ( grammar.getName().equals( grammarName ) ){
+                Debug.debug( Debug.Type.SYNTAX, 3, ".. yes!" );
+                Option<GrammarNonterminalIndex<? extends NonterminalDecl>> nt = grammar.getNonterminalDecl( nonterminalName );
+                if ( nt.isSome() ){
+                    return nt.unwrap().getSyntaxDefs();
+                }
+            } else {
+                Debug.debug( Debug.Type.SYNTAX, 3, ".. no" );
+            }
+        }
+        throw new MacroError( "Could not find nonterminal " + nonterminalName + " in grammar " + grammarName );
+    }
+
+    private static List<SyntaxDef> resolveChoice( final Collection<GrammarIndex> relevant, SyntaxDecl def ){
 
         final List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
         def.accept( new NodeDepthFirstVisitor_void(){
@@ -395,7 +416,9 @@ public class ComposingMacroCompiler {
             }
 
             @Override public void forSuperSyntaxDef(SuperSyntaxDef that) {
-                /* TODO: do something with super choices */
+                for ( SyntaxDecl extension : findExtension(that.getNonterminal(), that.getGrammar(), relevant) ){
+                    defs.addAll( resolveChoice(relevant, extension) );
+                }
             }
         });
 
