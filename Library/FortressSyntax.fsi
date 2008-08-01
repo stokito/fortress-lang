@@ -20,7 +20,7 @@ api FortressSyntax
   import FortressAst.{...}
   import List.{...}
 
-(* Do we want separate the ablity to reference a nonterminal from the ability to 
+(* Do we want separate the ablity to reference a nonterminal from the ability to
    extend the nonterminal? *)
 
   native grammar Compilation
@@ -36,7 +36,7 @@ api FortressSyntax
 
 
 (* We should move all declarations together in the declaration native grammar *)
-  native grammar Declaration 
+  native grammar Declaration
       Decls : List[\Decl\]
       Decl : List[\Decl\]
       AbsDecls : List[\AbsDecl\]
@@ -63,8 +63,8 @@ api FortressSyntax
   end
 
 
-  (* We should collapse Expression, NoNewlineExpr, LocalVarFnDecl *)  
-  native grammar Expression 
+  (* We should collapse Expression, NoNewlineExpr, LocalVarFnDecl *)
+  native grammar Expression
       Expr : Expr
   end
 
@@ -86,7 +86,7 @@ api FortressSyntax
   native grammar AbsField
     AbsFldDecl : AbsVarDecl
   end
- 
+
   native grammar Field
     FldDecl : VarDecl
   end
@@ -112,7 +112,7 @@ api FortressSyntax
     AbsParams : List[\Param\]
   end
 
-  native grammar Identifier 
+  native grammar Identifier
     Id : Id
     BindId : Id
     BindIdOrBindIdTuple : List[\Id\]
@@ -132,15 +132,6 @@ api FortressSyntax
     Accumulator : Op
   end
 
-  native grammar Syntax
-    GrammarDef : GrammarDecl
-    NonterminalDef : GrammarMemberDecl
-    SyntaxDef : SyntaxDef
-    SyntaxDefOr : SyntaxDef
-    TransformationExpression : TransformerExpressionDef
-    TransformationTemplate : PreTransformerDef
-  end
-
   native grammar Type
     Type : BaseType
     TupleType : TupleType
@@ -151,10 +142,10 @@ api FortressSyntax
 
   native grammar Unicode
     UnicodeIdStart : String
-    UnicodeIdRest : String    
+    UnicodeIdRest : String
   end
 
-  native grammar Literal 
+  native grammar Literal
       LiteralExpr : Expr
   end
 end
