@@ -311,7 +311,6 @@ public class ComposingSyntaxDefTranslator {
                                                    Option<List<Element>> id_result, 
                                                    Option<List<Element>> type_result,
                                                    List<Element> symbol_result) {
-            Debug.debug( Debug.Type.SYNTAX, 3, "Prefixed symbol has ", symbol_result.size() );
             if (symbol_result.size() == 1) {
                 Element e = symbol_result.get(0);
                 assert(that.getId().isSome());
@@ -566,7 +565,7 @@ public class ComposingSyntaxDefTranslator {
 
             final PrefixedSymbol sym = pair.getKey();
             VariableCollector.Depth depth = pair.getValue();
-            Debug.debug( Debug.Type.SYNTAX, 3, "Depth for ", sym, " is ", depth );
+            // Debug.debug( Debug.Type.SYNTAX, 3, "Depth for ", sym, " is ", depth );
 
             String var = sym.getId().unwrap().getText();
             // String ntOfVar = syntaxDeclEnv.getNonterminalOfVar(sym.getId().unwrap());

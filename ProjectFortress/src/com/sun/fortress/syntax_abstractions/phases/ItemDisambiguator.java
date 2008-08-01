@@ -200,6 +200,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			if (!IdentifierUtil.validId(varName)) {
 				return symbol_result;
 			}
+                        Debug.debug( Debug.Type.SYNTAX, 3, "Create new prefixed symbol with id '" + varName + "'" );
 			return handle(prefix, symbol_result, varName);
 		}
 		else {

@@ -348,12 +348,14 @@ public class ComposingMacroCompiler {
                 @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                     domain.add( that.getHeader().getName().toString() );
                 }
-                    @Override public void forNonterminalDef(NonterminalDef that) {
-                        return;
-                    }
-                    @Override public void for_TerminalDef(_TerminalDef that) {
-                        return;
-                    }
+
+                @Override public void forNonterminalDef(NonterminalDef that) {
+                    return;
+                }
+
+                @Override public void for_TerminalDef(_TerminalDef that) {
+                    return;
+                }
             });
         }
 
@@ -412,6 +414,7 @@ public class ComposingMacroCompiler {
         final List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
         def.accept( new NodeDepthFirstVisitor_void(){
             @Override public void forSyntaxDef(SyntaxDef that) {
+                Debug.debug( Debug.Type.SYNTAX, 3, "Add choice " + that );
                 defs.add(that);
             }
 
@@ -599,6 +602,17 @@ public class ComposingMacroCompiler {
         return map;
     }
 
+    /* Filter redundant syntax defs. Rats! will complain if they are left in */
+    private static List<SyntaxDef> unique(List<SyntaxDef> defs){
+        List<SyntaxDef> all = new LinkedList<SyntaxDef>();
+        for ( SyntaxDef def : defs ){
+            if ( ! all.contains( def ) ){
+                all.add( def );
+            }
+        }
+        return all;
+    }
+
     private static void addEntry(Module m, Mangler mangler, PEG peg, String nt) {
         Debug.debug( Debug.Type.SYNTAX, 2, "Create alternative for " + nt );
 
@@ -607,7 +621,7 @@ public class ComposingMacroCompiler {
 
         ComposingSyntaxDefTranslator translator = 
             new ComposingSyntaxDefTranslator(mangler, nt, javaType, peg.typemap);
-        List<Sequence> sequences = translator.visitSyntaxDefs(peg.get(nt));
+        List<Sequence> sequences = translator.visitSyntaxDefs(unique(peg.get(nt)));
 
         /* dont add an empty sequence */
         List<Attribute> attributes = new LinkedList<Attribute>();
