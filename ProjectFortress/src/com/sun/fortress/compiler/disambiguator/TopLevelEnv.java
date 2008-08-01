@@ -274,6 +274,12 @@ public class TopLevelEnv extends NameEnv {
     	return result;
     }
 
+    public List<Id> explicitVariableNames() {
+        List<Id> result = new LinkedList<Id>();
+        result.addAll(_current.variables().keySet());
+        return result;
+    }
+
     public Set<Id> explicitFunctionNames(Id name) {
     	Set<Id> result = Collections.emptySet();
     	

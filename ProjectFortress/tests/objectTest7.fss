@@ -29,8 +29,8 @@ object A(i:ZZ32, j:ZZ32) extends T
      getI():ZZ32 = i
      getJ():ZZ32 = j
 
-  b(k:ZZ32):T = object extends T
-     m:ZZ32 = k
+  b(n:ZZ32):T = object extends T
+     m:ZZ32 = n
      getI():ZZ32 = i
      getJ():ZZ32 = m
   end

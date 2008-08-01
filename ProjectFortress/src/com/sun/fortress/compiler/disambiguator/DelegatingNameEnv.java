@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
+import java.util.List;
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -28,7 +29,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class DelegatingNameEnv extends NameEnv {
-    private NameEnv _parent;
+    protected NameEnv _parent;
 
     protected DelegatingNameEnv(NameEnv parent) {
         _parent = parent;
@@ -47,6 +48,9 @@ public abstract class DelegatingNameEnv extends NameEnv {
     }
     public Set<Id> explicitVariableNames(Id name) {
         return _parent.explicitVariableNames(name);
+    }
+    public List<Id> explicitVariableNames() {
+        return _parent.explicitVariableNames(); 
     }
     public Set<Id> explicitFunctionNames(Id name) {
         return _parent.explicitFunctionNames(name);

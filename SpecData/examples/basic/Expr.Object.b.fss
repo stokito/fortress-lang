@@ -22,7 +22,7 @@ component Expr.Object.b
 export Executable
 
 (** EXAMPLE **)
-f[\T\](x: T) = object f: T = x end
+f[\T\](x: T) = object f': T = x end
 (** END EXAMPLE **)
 
 run(args:String...) = ()
