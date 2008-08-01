@@ -2278,9 +2278,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                     List<String> elements_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "(* " );
-        s.append( join(elements_result, " /\ ") );
-        s.append( " *)" );
+        s.append( "(* INTERSECT(" );
+        s.append( join(elements_result, ", ") );
+        s.append( ") *)" );
 
         return s.toString();
     }
@@ -2289,9 +2289,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              List<String> elements_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "(* " );
-        s.append( join(elements_result, " \/ ") );
-        s.append( " *)" );
+        s.append( "(* UNION(" );
+        s.append( join(elements_result, ", ") );
+        s.append( ") *)" );
 
         return s.toString();
     }
