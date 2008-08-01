@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.index;
 import java.util.Collection;
 
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -30,7 +30,7 @@ public class GrammarNonterminalIndex<T extends NonterminalDecl> extends Nontermi
         super(ast); 
     }
 
-    public Collection<SyntaxDef> getSyntaxDefs() {
+    public Collection<SyntaxDecl> getSyntaxDefs() {
         if (this.ast().isNone()) {
             throw new RuntimeException("Ast not found.");
         }

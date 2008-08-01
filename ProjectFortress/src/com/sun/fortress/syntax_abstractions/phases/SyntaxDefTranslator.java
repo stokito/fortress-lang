@@ -62,6 +62,7 @@ import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalSymbol;
@@ -71,6 +72,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
@@ -157,12 +159,16 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             return sequences;
         }
 
-    private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs,
-            String name, BaseType type, MemberEnv memberEnv) {
-        List<Sequence> sequence = new LinkedList<Sequence>();
-        int inx = 1;
-        for (SyntaxDef syntaxDef: syntaxDefs) {
-	    sequence.add(visitSyntaxDef(syntaxDef, name+"_"+inx, type, memberEnv));
+    private List<Sequence> visitSyntaxDefs(final Iterable<SyntaxDecl> syntaxDefs,
+            final String name, final BaseType type, final MemberEnv memberEnv) {
+        final List<Sequence> sequence = new LinkedList<Sequence>();
+        final int inx = 1;
+        for (SyntaxDecl syntaxDef: syntaxDefs) {
+            syntaxDef.accept( new NodeDepthFirstVisitor_void(){
+                @Override public void forSyntaxDef(SyntaxDef that){
+                    sequence.add(visitSyntaxDef(that, name+"_"+inx, type, memberEnv));
+                }
+            });
         }
         return sequence;
     }

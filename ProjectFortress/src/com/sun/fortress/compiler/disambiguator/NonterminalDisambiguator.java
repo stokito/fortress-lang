@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TransformerDecl;
@@ -89,7 +90,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forNonterminalDefOnly(NonterminalDef that,
             NonterminalHeader header_result, Option<BaseType> astType_result,
-            List<SyntaxDef> syntaxDefs_result) {
+            List<SyntaxDecl> syntaxDefs_result) {
         if (astType_result.isNone()) {
             throw new RuntimeException("Type inference is not supported yet!");
         }

@@ -35,9 +35,13 @@ import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SuperSyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.TerminalDecl;
@@ -180,8 +184,27 @@ public abstract class Module implements Analyzable<Module> {
             NonterminalIndex<? extends GrammarMemberDecl> member = nit.next();
             s+= indent+"- "+member.getName()+":"+member.getAstType()+"\n";
             if (member.getAst() instanceof NonterminalDecl) {
-                for (SyntaxDef sd: ((NonterminalDecl) member.getAst()).getSyntaxDefs()) {
+                for (SyntaxDecl sd: ((NonterminalDecl) member.getAst()).getSyntaxDefs()) {
+                    /*
                     s+= indent+indent+" - "+toString(sd.getSyntaxSymbols())+"\n";
+                    */
+                    final String sIndent = indent + indent;
+                    s += sd.accept( new NodeDepthFirstVisitor<String>(){
+                        private String mine = "";
+                        @Override public String defaultCase(Node node){
+                            return mine;
+                        }
+
+                        @Override public String forSyntaxDef(SyntaxDef def){
+                            mine = sIndent+" - "+Module.this.toString(def.getSyntaxSymbols())+"\n";
+                            return super.forSyntaxDef(def);
+                        }
+
+                        @Override public String forSuperSyntaxDef(SuperSyntaxDef def){
+                            mine = "super def";
+                            return super.forSuperSyntaxDef(def);
+                        }
+                    });
                 }
             }
         }

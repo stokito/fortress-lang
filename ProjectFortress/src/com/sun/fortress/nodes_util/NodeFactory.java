@@ -1107,6 +1107,10 @@ public class NodeFactory {
     public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformerDecl transformation) {
         return new SyntaxDef(s, syntaxSymbols, transformation);
     }
+    
+    public static SuperSyntaxDef makeSuperSyntaxDef(Span s, Option<String> modifier, Id nonterminal, Id grammar) {
+        return new SuperSyntaxDef(s, modifier, nonterminal, grammar);
+    }
 
     public static IntLiteralExpr makeIntLiteralExpr(int i) {
         return new IntLiteralExpr(BigInteger.valueOf(i));

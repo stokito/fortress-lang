@@ -41,7 +41,8 @@ body {
   static {
     add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
         "AND",    "BACKSPACE",    "FORMFEED",    "NEWLINE",
-        "NOT",    "RETURN",    "TAB",    "SPACE",    "<\\["
+        "NOT",    "RETURN",    "TAB",    "SPACE",    "<\\[",
+	"without"
     });
 
     add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
@@ -82,31 +83,33 @@ private List<Id> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedNa
 Option<Id> Extends = extends w a1:QualifiedName { yyValue = Option.some(a1); };
 
 private GrammarMemberDecl NonterminalDef =
-      header:NonterminalHeader w void:bar astType:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
+      header:NonterminalHeader w void:bar astType:(w TraitType)? w void:colonequals w a4:SyntaxExtensionDef a4s:(w SyntaxExtensionDefOr)*
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
-        List<SyntaxDef> syntaxDefs = a4s.list();
+        List<SyntaxDecl> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
         yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); }
     /  header:NonterminalHeader w void:colon astType:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
-        List<SyntaxDef> syntaxDefs = a4s.list();
+        List<SyntaxDecl> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4); 
         yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); }
-    /  yyValue:NonterminalDecl
+    /  yyValue:NonterminalDecl;
+    /*
     /  header:NonterminalHeader w void:bar w astType:TraitType
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
-	List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
+	List<SyntaxDecl> syntaxDefs = Collections.<SyntaxDecl>emptyList();
         yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); };
+	*/
 
 /* Only nonterminal decls are allowed within native grammars */
 private GrammarMemberDecl NonterminalDecl =
        header:NonterminalHeader w void:colon w astType:TraitType
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
-        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
+        List<SyntaxDecl> syntaxDefs = Collections.<SyntaxDecl>emptyList();
         yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); };
 
 private NonterminalHeader NonterminalHeader =
@@ -138,25 +141,27 @@ private NonterminalParameter Decl =
                                              a1,a2); };
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
-SyntaxDef SyntaxDef =
-     a1s:SyntaxSymbols w a2:PreTransformer
+SyntaxDecl SyntaxDef =
+     mods:ChoiceModifier? w a1s:SyntaxSymbols w a2:PreTransformer
      { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
-/*
-       a1s:SyntaxSymbols w a2:TransformerExpr
-       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
-     / a1s:SyntaxSymbols w a2:PreTransformer
-       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
-       */
 
-SyntaxDef SyntaxDefOr =
-     void:bar w a1s:SyntaxSymbols w a2:PreTransformer
-     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
-/*
-       void:bar w a1s:SyntaxSymbols w a2:TransformerExpr
-       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); }
-     / void:bar w a1s:SyntaxSymbols w a2:PreTransformer
-       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
-*/
+SyntaxDecl SyntaxExtensionDef =
+     yyValue:SyntaxDef
+     / void:bar w mods:SuperChoiceModifier? w nt:Id w "from" w grammar:Id
+     { yyValue = NodeFactory.makeSuperSyntaxDef(createSpan(yyStart, yyCount), Option.wrap(mods), nt, grammar); };
+
+SyntaxDecl SyntaxDefOr =
+     void:bar w yyValue:SyntaxDef;
+
+SyntaxDecl SyntaxExtensionDefOr =
+     void:bar w yyValue:SyntaxExtensionDef;
+
+String ChoiceModifier =
+     yyValue:private;
+
+String SuperChoiceModifier =
+     yyValue:private
+     / yyValue:without;
 
 /* TransformationExpr ::= do BlockElems end */
 /*
@@ -400,6 +405,7 @@ transient String Not = "NOT";
 transient String Return = "RETURN";      // carriage return
 transient String Space = "SPACE";      // whitespace
 transient String Tab = "TAB";      // tabulator
+transient String without = "without";      // tabulator
 
 String sr  = space+; // significant space
 private String space = " ";

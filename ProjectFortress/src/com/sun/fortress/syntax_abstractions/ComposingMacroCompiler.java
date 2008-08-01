@@ -70,6 +70,8 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SuperSyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.BaseType;
 
@@ -79,6 +81,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
+/* TODO: Comment this class!!!!!!!!!!
+ */
 public class ComposingMacroCompiler {
 
     private static final String FORTRESS = "com.sun.fortress.parser.Fortress";
@@ -283,13 +287,15 @@ public class ComposingMacroCompiler {
                                         NonterminalIndex<? extends GrammarMemberDecl> nonterminal ){
         nonterminal.getAst().accept( new NodeDepthFirstVisitor_void(){
             @Override public void forNonterminalDef(NonterminalDef that){
-                for ( SyntaxDef def : that.getSyntaxDefs() ){
-                    resolveChoice( defs, relevant, def );
+                for ( SyntaxDecl def : that.getSyntaxDefs() ){
+                    defs.addAll( resolveChoice( relevant, def ) );
                 }
             }
+
             @Override public void for_TerminalDef(_TerminalDef that){
-                resolveChoice( defs, relevant, that.getSyntaxDef() );
+                defs.addAll( resolveChoice( relevant, that.getSyntaxDef() ) );
             }
+
             @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                 return;
             }
@@ -350,35 +356,50 @@ public class ComposingMacroCompiler {
         // GrammarC _ _ _ exts _) = (map nameof exts)
     }
 
-    private static void applyExtension( PEG peg, 
-                                        NonterminalIndex<? extends GrammarMemberDecl> extension, 
-                                        Collection<GrammarIndex> relevant ){
+    private static void applyExtension( final PEG peg, 
+                                        final NonterminalIndex<? extends GrammarMemberDecl> extension, 
+                                        final Collection<GrammarIndex> relevant ){
         Debug.debug( Debug.Type.SYNTAX, 2, "Apply extensions to " + extension.getName() );
         final List<SyntaxDef> defs = peg.get( extension.getName().toString() );
         if ( defs == null ){
             throw new RuntimeException( "Defs is null, this cannot happen" );
         }
 
+        final List<SyntaxDef> intermediate = new LinkedList<SyntaxDef>();
         extension.getAst().accept( new NodeDepthFirstVisitor_void(){
             @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
-                defs.addAll( 0, that.getSyntaxDefs() );
+                for ( SyntaxDecl def : that.getSyntaxDefs() ){
+                    intermediate.addAll( resolveChoice( relevant, def ) );
+                }
             }
 
             @Override public void forNonterminalDef(NonterminalDef that){
-                defs.addAll( 0, that.getSyntaxDefs() );
+                for ( SyntaxDecl def : that.getSyntaxDefs() ){
+                    intermediate.addAll( resolveChoice( relevant, def ) );
+                }
             }
 
             @Override public void for_TerminalDef(_TerminalDef that){
-                defs.add( 0, that.getSyntaxDef() );
+                intermediate.addAll( resolveChoice( relevant, that.getSyntaxDef() ) );
             }
         });
+        defs.addAll( 0, intermediate );
     }
 
-    private static void resolveChoice( List<SyntaxDef> defs, Collection<GrammarIndex> relevant, SyntaxDef def ){
+    private static List<SyntaxDef> resolveChoice( Collection<GrammarIndex> relevant, SyntaxDecl def ){
 
-        defs.add( def );
+        final List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
+        def.accept( new NodeDepthFirstVisitor_void(){
+            @Override public void forSyntaxDef(SyntaxDef that) {
+                defs.add(that);
+            }
 
-        /* TODO: do something with super choices, SuperSyntaxDef..? */
+            @Override public void forSuperSyntaxDef(SuperSyntaxDef that) {
+                /* TODO: do something with super choices */
+            }
+        });
+
+        return defs;
 
         /*
             resolveChoice :: [GrammarC] -> Choice -> [Choice]

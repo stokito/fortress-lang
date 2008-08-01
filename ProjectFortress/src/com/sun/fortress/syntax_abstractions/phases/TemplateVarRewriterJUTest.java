@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -56,7 +57,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         Option<Type> type = Option.<Type>wrap(new VarType(name));
         NonterminalHeader header = new NonterminalHeader(name, params, type);
         Option<BaseType> astType1 = Option.<BaseType>wrap(new VarType(name));
-        NonterminalDef nd = new NonterminalDef(header, astType1, new LinkedList<SyntaxDef>());
+        NonterminalDef nd = new NonterminalDef(header, astType1, new LinkedList<SyntaxDecl>());
         GrammarEnv.add(NodeFactory.makeId("Expr"), new MemberEnv(new NonterminalDefIndex(Option.wrap(nd))));
     }
 
