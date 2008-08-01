@@ -187,7 +187,6 @@ public class GrammarRewriter {
 
             final Api raw = (Api) api.ast().accept( new TemplateParser() );
 
-            /* should this contain an instance of the class? */
             // FIXME: Eliminate side effects
             final Option<Class<?>>[] parser = new Option[1];
             parser[0] = Option.none();
@@ -422,12 +421,13 @@ public class GrammarRewriter {
     public static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, Collection<ApiIndex> moreApis ) {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
-        for (ApiIndex a2: apis) {
+
+        for (ApiIndex a2: moreApis) {
             for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
-        for (ApiIndex a2: moreApis) {
+        for (ApiIndex a2: apis) {
             for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
             }

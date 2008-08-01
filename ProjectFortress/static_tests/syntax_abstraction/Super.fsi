@@ -34,7 +34,8 @@ api Super
 
     grammar C extends {B, Expression}
         Expr |Expr:=
-           cfoo <[ afoo + bfoo ]>
+           cfoo <[ (afoo) + (bfoo) ]>
+        |  Expr from B
     end
 
 end
