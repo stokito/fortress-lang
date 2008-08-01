@@ -588,7 +588,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
                       TransformerDecl transformer);
-            
+
             SuperSyntaxDef(Option<String> modifier, Id nonterminal, Id grammar);
 
         /**
@@ -610,10 +610,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             SimpleTransformerDef(AbstractNode node);
 
-            /**
-             * transformer expression definition in transformer declarations
-             */
-            TransformerExpressionDef(Expr transformer);
             /**
              * pre transformer definition in transformer declarations
              */

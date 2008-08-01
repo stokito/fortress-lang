@@ -993,9 +993,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     // @Override public String forSimpleTransformerDefOnly( that,
 
-    /* this node will be going away, so not needed */
-    // @Override public String forTransformerExpressionDefOnly
-
     @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
         return that.getTransformer();
     }
@@ -1727,7 +1724,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forFnRefOnly(FnRef that, Option<String> exprType_result, 
+    @Override public String forFnRefOnly(FnRef that, Option<String> exprType_result,
                                          String originalName_result,
                                          List<String> fns_result,
                                          List<String> staticArgs_result) {
@@ -1742,7 +1739,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String for_RewriteFnRefOnly(_RewriteFnRef that, Option<String> exprType_result, 
+    @Override public String for_RewriteFnRefOnly(_RewriteFnRef that, Option<String> exprType_result,
                                                  String fn_result,
                                                  List<String> staticArgs_result) {
         StringBuilder s = new StringBuilder();
@@ -1756,7 +1753,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forOpRefOnly(OpRef that, Option<String> exprType_result, 
+    @Override public String forOpRefOnly(OpRef that, Option<String> exprType_result,
                                          String originalName_result,
                                          List<String> ops_result,
                                          List<String> staticArgs_result) {
@@ -1764,7 +1761,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forLooseJuxtOnly(LooseJuxt that, Option<String> exprType_result, 
+    @Override public String forLooseJuxtOnly(LooseJuxt that, Option<String> exprType_result,
                                              String multiJuxt_result,
                                              String infixJuxt_result,
                                              List<String> exprs_result) {
@@ -1779,7 +1776,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forTightJuxtOnly(TightJuxt that, Option<String> exprType_result, 
+    @Override public String forTightJuxtOnly(TightJuxt that, Option<String> exprType_result,
                                              String multiJuxt_result,
                                              String infixJuxt_result,
                                              List<String> exprs_result) {
@@ -1799,7 +1796,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             return s.toString();
     }
 
-    @Override public String for_RewriteFnAppOnly(_RewriteFnApp that, Option<String> exprType_result, 
+    @Override public String for_RewriteFnAppOnly(_RewriteFnApp that, Option<String> exprType_result,
                                                  String function_result,
                                                  String argument_result) {
         StringBuilder s = new StringBuilder();
@@ -1824,7 +1821,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return " " + oper + " ";
     }
 
-    @Override public String forOpExprOnly(final OpExpr that, Option<String> exprType_result, 
+    @Override public String forOpExprOnly(final OpExpr that, Option<String> exprType_result,
                                           final String op_result,
                                           final List<String> args_result) {
         StringBuilder s = new StringBuilder();
@@ -1916,7 +1913,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that, Option<String> exprType_result, 
+    @Override public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that, Option<String> exprType_result,
                                                            String infix_op_result,
                                                            String multifix_op_result,
                                                            List<String> args_result) {
@@ -1928,7 +1925,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forChainExprOnly(ChainExpr that, Option<String> exprType_result, 
+    @Override public String forChainExprOnly(ChainExpr that, Option<String> exprType_result,
                                              String first_result,
                                              List<String> links_result) {
         StringBuilder s = new StringBuilder();
@@ -1940,7 +1937,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forCoercionInvocationOnly(CoercionInvocation that, Option<String> exprType_result, 
+    @Override public String forCoercionInvocationOnly(CoercionInvocation that, Option<String> exprType_result,
                                                       String type_result,
                                                       List<String> staticArgs_result,
                                                       String arg_result) {
@@ -1957,7 +1954,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                     that.isParenthesized() ) + " *)";
     }
 
-    @Override public String forMethodInvocationOnly(MethodInvocation that, Option<String> exprType_result, 
+    @Override public String forMethodInvocationOnly(MethodInvocation that, Option<String> exprType_result,
                                                     String obj_result,
                                                     String method_result,
                                                     List<String> staticArgs_result,
@@ -1974,7 +1971,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forMathPrimaryOnly(MathPrimary that, Option<String> exprType_result, 
+    @Override public String forMathPrimaryOnly(MathPrimary that, Option<String> exprType_result,
                                                String multiJuxt_result,
                                                String infixJuxt_result,
                                                String front_result,
@@ -1988,14 +1985,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forArrayElementOnly(ArrayElement that, Option<String> exprType_result, 
+    @Override public String forArrayElementOnly(ArrayElement that, Option<String> exprType_result,
                                                 List<String> staticArgs_result,
                                                 String element_result) {
         return handleParen( element_result,
                             that.isParenthesized() );
     }
 
-    @Override public String forArrayElementsOnly(ArrayElements that, Option<String> exprType_result, 
+    @Override public String forArrayElementsOnly(ArrayElements that, Option<String> exprType_result,
                                                  List<String> staticArgs_result,
                                                  List<String> elements_result) {
         StringBuilder s = new StringBuilder();
