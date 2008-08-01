@@ -40,6 +40,7 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.Span;
@@ -114,9 +115,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
         for(FreeNameCollection c : decls_result) {
         	result = result.composeResult(c);
         }
+        
+        Option<FreeNameCollection> type_result=recurOnOptionOfType(that.getExprType());
 
-        return super.forObjectExprOnly(that, extendsClause_result, 
-                                       decls_result);
+        return super.forObjectExprOnly(that, type_result , extendsClause_result, decls_result);
     }
 
 	@Override

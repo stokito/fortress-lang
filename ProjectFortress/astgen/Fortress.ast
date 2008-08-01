@@ -725,7 +725,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * expression
          */
-        root abstract Expr(ignoreForEquals boolean parenthesized = false);
+        root abstract Expr(ignoreForEquals boolean parenthesized = false, ignoreForEquals Option<Type> exprType = Option.<Type>none());
 
             /**
              * Repeated expression in a macro

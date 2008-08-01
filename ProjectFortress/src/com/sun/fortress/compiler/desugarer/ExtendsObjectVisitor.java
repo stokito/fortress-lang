@@ -45,9 +45,9 @@ public class ExtendsObjectVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forObjectExprOnly(ObjectExpr that, List<TraitTypeWhere> extendsClause, List<Decl> decls) {
+    public Node forObjectExprOnly(ObjectExpr that, Option<Type> exprType_result, List<TraitTypeWhere> extendsClause, List<Decl> decls) {
         extendsClause = rewriteExtendsClause(that, extendsClause);
-        return super.forObjectExprOnly(that, extendsClause, decls);
+        return super.forObjectExprOnly(that, exprType_result, extendsClause, decls);
     }
 
     @Override

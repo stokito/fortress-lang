@@ -365,11 +365,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return TypeCheckerResult.compose(new_node, arr, 
 				 this.subtypeChecker, all_results).addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
-
+	 
+	 @Override
 	 public TypeCheckerResult defaultCase(Node that) {
 		 return new TypeCheckerResult(that);
 	 }
 
+	 @Override
 	 public TypeCheckerResult forFnDef(FnDef that) {
 		 TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
 
@@ -412,7 +414,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				 bodyResult, result).addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
 
-
+	 @Override
 	 public TypeCheckerResult forVarDecl(VarDecl that) {
 		 // System.err.println("forVarDecl: " + that);
 		 List<LValueBind> lhs = that.getLhs();
@@ -465,7 +467,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 else
 			 return TypeEnv.make(table.compilationUnit(api));
 	 }
-
+	 
+	 @Override
 	 public TypeCheckerResult forId(Id name) {
 		 Option<APIName> apiName = name.getApi();
 		 if (apiName.isSome()) {
@@ -519,8 +522,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return new TypeCheckerResult(that);
 	 }
 
-
-	 public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
+	 @Override
+	 public TypeCheckerResult forVarRefOnly(VarRef that, Option<TypeCheckerResult> exprType_result, TypeCheckerResult var_result) {
 		 Option<Type> varType = var_result.type();
 		 
 		 VarRef new_node = new VarRef(that.getSpan(), (Id)var_result.ast());
@@ -538,6 +541,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return newChecker.extend(Collections.singletonList(NodeFactory.makeLValue("self", self_type)));
 	 }
 	 
+	 @Override
 	 public TypeCheckerResult forObjectDecl(final ObjectDecl that) {
 		 List<TypeCheckerResult> modsResult = recurOnListOfModifier(that.getMods());
 		 TypeCheckerResult nameResult = that.getName().accept(this);
@@ -757,6 +761,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return inheritedMethodsHelper(new HierarchyHistory(), extended_traits);
 	 }
 	 
+	 @Override
 	 public TypeCheckerResult forTraitDecl(final TraitDecl that) {
 		 List<TypeCheckerResult> modsResult = recurOnListOfModifier(that.getMods());
 		 List<TypeCheckerResult> extendsClauseResult = recurOnListOfTraitTypeWhere(that.getExtendsClause());
@@ -839,9 +844,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		         ).addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
 
+
      // **** REWRITING AST NODES... YOU ARE HERE.
 	 
-	public TypeCheckerResult forIfOnly(If that,
+    @Override
+    public TypeCheckerResult forIfOnly(If that, Option<TypeCheckerResult> exprType_result,
 			 List<TypeCheckerResult> clauses_result,
 			 Option<TypeCheckerResult> elseClause_result) {
 
@@ -901,6 +908,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return forIfClauseOnly(that, test_result, body_result);
 	 }
 
+	 @Override
 	 public TypeCheckerResult forIfClauseOnly(IfClause that,
 			 TypeCheckerResult test_result,
 			 TypeCheckerResult body_result) {
@@ -1028,7 +1036,48 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, this_result, init_result), result_bindings);
 	 }
 
-	 public TypeCheckerResult forDoOnly(Do that, List<TypeCheckerResult> fronts_result) {
+
+	 // In the end, this whole method may be pointless. We probably want a method that will
+	 // return the bindings so that other methods can actually use this.
+	 @Override
+	 public TypeCheckerResult forGeneratorClauseOnly(GeneratorClause that,
+			 List<TypeCheckerResult> bind_result,
+			 TypeCheckerResult init_result) {
+
+		 List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(bind_result.size()+2);
+		 all_results.addAll(bind_result);
+		 all_results.add(init_result);
+
+		 if( init_result.type().isNone() ) {
+			 // Subexpr failed, we can go no further
+			 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+		 }
+
+		 if( bind_result.isEmpty() ) {
+			 // If bindings are empty, then init_result must be of type boolean, a filter, 13.14
+			 TypeCheckerResult bool_result =
+				 this.checkSubtype(init_result.type().unwrap(), Types.BOOLEAN, that.getInit(),
+						 "Filter expressions in generator clauses must have type boolean, but " +
+						 that.getInit() + " had type " + init_result.type().unwrap() + ".");
+
+			 all_results.add(bool_result);
+			 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+		 }
+
+		 // Otherwise, init expr must have type generator, 13.14
+		 // I don't think that passing 'any' to make generator type will work...
+		 TypeCheckerResult gen_result =
+			 this.checkSubtype(init_result.type().unwrap(), Types.makeGeneratorType(Types.ANY), that.getInit(),
+					 "Generator initializers must have type Generator, but " +
+					 that.getInit() + " had type " + init_result.type().unwrap() + ".");
+
+		 all_results.add(gen_result);
+		 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+	 }
+
+
+	 @Override
+	 public TypeCheckerResult forDoOnly(Do that, Option<TypeCheckerResult> exprType_result, List<TypeCheckerResult> fronts_result) {
 		 // Get union of all clauses' types
 		 List<Type> frontTypes = new ArrayList<Type>();
 		 for (TypeCheckerResult frontResult : fronts_result) {
@@ -1039,6 +1088,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return TypeCheckerResult.compose(that, subtypeChecker.join(frontTypes), subtypeChecker, fronts_result);
 	 }
 
+	 @Override
 	 public TypeCheckerResult forDoFront(DoFront that) {
 		 TypeCheckerResult bodyResult =
 			 that.isAtomic() ? forAtomic(that,
@@ -1067,9 +1117,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 @Override
 	 public TypeCheckerResult forFor(For that) {
 		 Pair<List<TypeCheckerResult>,List<LValueBind>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
+		 Option<TypeCheckerResult> type_result = recurOnOptionOfType(that.getExprType());
 		 TypeChecker extend = this.extend(pair.second());
 		 TypeCheckerResult body_result = that.getBody().accept(extend);
-		 return forForOnly(that, pair.first(), body_result);
+		 return forForOnly(that, type_result, pair.first(), body_result);
 	 }
 
 	 // For each generator clause, check its body, then put its variables in scope for the next generator clause.
@@ -1094,7 +1145,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forForOnly(For that, List<TypeCheckerResult> gens_result, TypeCheckerResult body_result) {
+	 public TypeCheckerResult forForOnly(For that, Option<TypeCheckerResult> exprType_result, List<TypeCheckerResult> gens_result, TypeCheckerResult body_result) {
 
 		 List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(gens_result);
 		 all_results.add(body_result);
@@ -1112,7 +1163,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				                          all_results).addNodeTypeEnvEntry(that, typeEnv);
 	 }
 
-	 public TypeCheckerResult forOpRefOnly(OpRef that,
+	 @Override
+	 public TypeCheckerResult forOpRefOnly(OpRef that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult originalName_result,
 			 List<TypeCheckerResult> ops_result,
 			 List<TypeCheckerResult> staticArgs_result) {
@@ -1135,7 +1187,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						 TypeCheckerResult.compose(that, subtypeChecker, ops_result), TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 	 }
 
-	 public TypeCheckerResult forBlockOnly(Block that, List<TypeCheckerResult> exprs_result) {
+	 @Override
+	 public TypeCheckerResult forBlockOnly(Block that, Option<TypeCheckerResult> exprType_result, List<TypeCheckerResult> exprs_result) {
 		 // Type is type of last expression or void if none.
 		 if (exprs_result.isEmpty()) {
 			 return TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, exprs_result);
@@ -1163,6 +1216,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return all_results;
 	 }
 
+	 @Override
 	 public TypeCheckerResult forLetFn(LetFn that) {
 		 TypeCheckerResult result = new TypeCheckerResult(that);
 		 Relation<IdOrOpOrAnonymousName, FnDef> fnDefs = new IndexedRelation<IdOrOpOrAnonymousName, FnDef>(false);
@@ -1305,7 +1359,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forFieldRefOnly(FieldRef that,
+	 public TypeCheckerResult forFieldRefOnly(FieldRef that, Option<TypeCheckerResult> exprType_result,
 			 TypeCheckerResult obj_result, TypeCheckerResult field_result) {
 
 		 // We need the type of the receiver
@@ -1591,7 +1645,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 
 	 @Override
-	 public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that,
+	 public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult obj_result, TypeCheckerResult method_result,
 			 List<TypeCheckerResult> staticArgs_result,
 			 TypeCheckerResult arg_result) {
@@ -1650,7 +1704,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 }
 		 });
 	 }
-
+	 
+	 @Override
 	 public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
 		 TypeCheckerResult result = new TypeCheckerResult(that);
 
@@ -1683,7 +1738,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forArgExprOnly(ArgExpr that,
+	 public TypeCheckerResult forArgExprOnly(ArgExpr that, Option<TypeCheckerResult> exprType_result, 
 			 List<TypeCheckerResult> exprs_result,
 			 Option<TypeCheckerResult> varargs_result,
 			 List<TypeCheckerResult> keywords_result) {
@@ -1702,7 +1757,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 // This case is only called for single element arrays ( e.g., [5] )
 	 // and not for pieces of ArrayElements
 	 @Override
-	 public TypeCheckerResult forArrayElementOnly(ArrayElement that,
+	 public TypeCheckerResult forArrayElementOnly(ArrayElement that, Option<TypeCheckerResult> exprType_result, 
 			 List<TypeCheckerResult> staticArgs_result,
 			 TypeCheckerResult element_result) {
 
@@ -2091,7 +2146,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forTupleExprOnly(TupleExpr that,
+	 public TypeCheckerResult forTupleExprOnly(TupleExpr that, Option<TypeCheckerResult> exprType_result,
 			 List<TypeCheckerResult> exprs_result) {
 		 List<Type> types = new ArrayList<Type>(exprs_result.size());
 		 for (TypeCheckerResult r : exprs_result) {
@@ -2100,7 +2155,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 }
 			 types.add(r.type().unwrap());
 		 }
-		 return TypeCheckerResult.compose(that, NodeFactory.makeTupleType(types), subtypeChecker, exprs_result);
+		 List<TypeCheckerResult> all_results = new ArrayList(exprs_result);
+		 if(exprType_result.isSome())
+		     all_results.add(exprType_result.unwrap());
+		 return TypeCheckerResult.compose(that, NodeFactory.makeTupleType(types), subtypeChecker, all_results);
 	 }
 
 	 @Override
@@ -2393,7 +2451,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forOpExprOnly(OpExpr that,
+	 public TypeCheckerResult forOpExprOnly(OpExpr that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult op_result,
 			 List<TypeCheckerResult> args_result) {
 		 Option<Type> applicationType = none();
@@ -2440,7 +2498,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forFnRefOnly(FnRef that,
+	 public TypeCheckerResult forFnRefOnly(FnRef that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult originalName_result,
 			 List<TypeCheckerResult> fns_result,
 			 List<TypeCheckerResult> staticArgs_result) {
@@ -2470,7 +2528,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult for_RewriteFnAppOnly(_RewriteFnApp that,
+	 public TypeCheckerResult for_RewriteFnAppOnly(_RewriteFnApp that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult function_result, TypeCheckerResult argument_result) {
 		 // check sub expressions
 		 if( function_result.type().isNone() || argument_result.type().isNone() )
@@ -2498,7 +2556,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that,
+	 public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult obj_result,
 			 List<TypeCheckerResult> staticArgs_result) {
 
@@ -2573,7 +2631,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forLooseJuxtOnly(LooseJuxt that,
+	 public TypeCheckerResult forLooseJuxtOnly(LooseJuxt that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult multiJuxt_result,
 			 TypeCheckerResult infixJuxt_result,
 			 List<TypeCheckerResult> exprs_result) {
@@ -2656,7 +2714,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forThrowOnly(Throw that,
+	 public TypeCheckerResult forThrowOnly(Throw that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult expr_result) {
 		 // A throw expression has type bottom, pretty much regardless
 		 // but expr must have type Exception
@@ -2813,7 +2871,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forSubscriptExprOnly(SubscriptExpr that,
+	 public TypeCheckerResult forSubscriptExprOnly(SubscriptExpr that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult obj_result, List<TypeCheckerResult> subs_result,
 			 Option<TypeCheckerResult> op_result,
 			 List<TypeCheckerResult> staticArgs_result) {
@@ -2906,7 +2964,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 	 @Override
-	 public TypeCheckerResult forTryOnly(Try that,
+	 public TypeCheckerResult forTryOnly(Try that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult body_result,
 			 Option<TypeCheckerResult> catch_result,
 			 List<TypeCheckerResult> forbid_result,
@@ -3267,11 +3325,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 Pair<TypeCheckerResult,List<LValueBind>> res=this.forGeneratorClauseGetBindings(that.getTest(), true);
 		 TypeChecker extended=this.extend(res.second());
 		 TypeCheckerResult body_result = that.getBody().accept(extended);
-		 return forWhileOnly(that, res.first(), body_result);
+		 Option<TypeCheckerResult> type_result = recurOnOptionOfType(that.getExprType());
+		 return forWhileOnly(that, type_result, res.first(), body_result);
 	 }
 
 	 @Override
-	 public TypeCheckerResult forWhileOnly(While that,
+	 public TypeCheckerResult forWhileOnly(While that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult test_result,
 			 TypeCheckerResult body_result) {
 

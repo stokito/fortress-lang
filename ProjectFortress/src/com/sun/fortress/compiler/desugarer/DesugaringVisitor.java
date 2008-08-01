@@ -260,39 +260,42 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
      * Be sure not to recur on FieldRefs that might occur in that.getLhs().
      * TODO: Rewrite assignments to single fields as setters.
      */
+    @Override
     public Node forAssignment(Assignment that) {
         // To handle setters, we must process the lhs. For now, do not recur on lhs.
         // Instead, walk over the Lhs and recur on everything but FieldRefs.
         // For FieldRefs, recur only on their receivers.
         // In this way, we avoid turning them into MethodRefs.
         List<Lhs> lhs_result = mangleLhs(that.getLhs()); 
-
+        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         Option<OpRef> opr_result = recurOnOptionOfOpRef(that.getOpr());
         Expr rhs_result = (Expr) that.getRhs().accept(this);
-        return forAssignmentOnly(that, lhs_result, opr_result, rhs_result);
+        return forAssignmentOnly(that, type_result, lhs_result, opr_result, rhs_result);
     }
 
     /*
      * Recur on VarRef to change to a mangled name if it's a field ref.
      */
-    public Node forVarRefOnly(VarRef that, Id varResult) {
+    @Override
+    public Node forVarRefOnly(VarRef that, Option<Type> exprType_result,  Id varResult) {
         // After disambiguation, the Id in a VarRef should have an empty API.
         assert(varResult.getApi().isNone());
 
         if (fieldsInScope.contains(varResult)) { 
-            return new VarRef(that.getSpan(), 
-                              that.isParenthesized(),
+            return new VarRef(that.getSpan(),
+                              that.isParenthesized(), exprType_result,
                     	      mangleName(varResult));       	
         } else {
         	return that;
         }
     }
 
-    public Node forFieldRefOnly(FieldRef that, Expr obj_result, Id field_result) {
+    @Override
+    public Node forFieldRefOnly(FieldRef that, Option<Type> exprType_result, Expr obj_result, Id field_result) {
         return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj_result, field_result,
                                     new ArrayList<StaticArg>(), NodeFactory.makeVoidLiteralExpr());
     }
-
+    @Override
     public Node forObjectDecl(ObjectDecl that) {
         DesugaringVisitor newVisitor = extend(that.getParams(), that.getDecls());
 
@@ -314,7 +317,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
                                  where_result, params_result, throwsClause_result, contract_result, gettersAndDecls);
     }
-
+    
+    @Override
     public Node forTraitDecl(TraitDecl that) {
         DesugaringVisitor newVisitor = extend(Option.<List<Param>>none(), that.getDecls());
 

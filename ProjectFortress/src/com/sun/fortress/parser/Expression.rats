@@ -655,7 +655,7 @@ Expr FlowExpr =
      exit a1:(w Id)? a2:(w with w Expr)?
      { Option<Id> name = (a1 == null) ? Option.<Id>none() : Option.some(a1);
        Option<Expr> expr = Option.wrap(a2);
-       yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
+       yyValue = new Exit(createSpan(yyStart,yyCount), false, Option.<Type>none() ,name, expr);
      }
    / <ErrorProduction>
      Accumulator wr StaticArgs
