@@ -48,7 +48,6 @@ import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.TransformerDef;
 import com.sun.fortress.nodes.SimpleTransformerDef;
-import com.sun.fortress.nodes.TransformerExpressionDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TraitType;
@@ -100,28 +99,8 @@ public class ActionCreater {
 
         List<Integer> indents = new LinkedList<Integer>();
         List<String> code = new LinkedList<String>();
-        /* TransformerExpressionDef is going away */
-        if (transformation instanceof TransformerExpressionDef) {
-            /*
-            code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false, variables );
-            Expr e = ((TransformerExpressionDef) transformation).getTransformer();
-            Component component = ac.makeComponent(e, syntaxDeclEnv, variables);
-            String serializedComponent = ac.writeJavaAST(component);
-            code.addAll(ActionCreaterUtil.createRatsAction(serializedComponent, indents));
-
-            if (Debug.isOnMaxFor(Debug.Type.SYNTAX)) {
-                addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
-            }
-            addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
-            */
-        }
-        else if (transformation instanceof TransformerDef) {
+        if (transformation instanceof TransformerDef) {
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
-            /*
-            AbstractNode n = ((TransformerDef) transformation).getTransformer();
-            JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
-	    String yyValue = n.accept(jpp);
-	     */
 	    // addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), new %s(%s));", returnType, transformer, BOUND_VARIABLES ), code, indents );
             TransformerDef def = (TransformerDef) transformation;
             String parameters = collectParameters( def, code, indents );
