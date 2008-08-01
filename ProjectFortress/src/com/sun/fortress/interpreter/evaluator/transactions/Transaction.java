@@ -49,7 +49,6 @@ public class Transaction {
     private volatile List<Transaction> children;
     /** Updater for status */
     private volatile AtomicReference<Status> myStatus;
-    private ContentionManager manager;
     private int nestingDepth;
     private long threadID;
     private int count;
@@ -64,7 +63,6 @@ public class Transaction {
      * Creates a new, active transaction.
      */
     public Transaction() {
-        manager = FortressTaskRunner.getContentionManager();
         threadID = Thread.currentThread().getId();
         parent = null;
         children = new ArrayList<Transaction>();
@@ -80,7 +78,6 @@ public class Transaction {
     }
 
     public Transaction(Transaction p) {
-        manager = FortressTaskRunner.getContentionManager();
         threadID = Thread.currentThread().getId();
         parent = p;
         children = new ArrayList<Transaction>();
@@ -320,7 +317,7 @@ public class Transaction {
      * @return the manager
      */
     public ContentionManager getContentionManager() {
-        return manager;
+        return FortressTaskRunner.getContentionManager();
     }
 
     public boolean isAncestorOf(Transaction t) {
