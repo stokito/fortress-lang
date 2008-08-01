@@ -1046,6 +1046,8 @@ public class Desugarer extends Rewrite {
                     return node;
                 } else if (node instanceof Spawn) {
                     node = translateSpawn((Spawn)node);
+                } else if ( node instanceof GrammarDef) {
+                    return node;
                 } else if (node instanceof Typecase) {
                     Typecase tc = (Typecase) node;
                     List<Id> lid = tc.getBindIds();
