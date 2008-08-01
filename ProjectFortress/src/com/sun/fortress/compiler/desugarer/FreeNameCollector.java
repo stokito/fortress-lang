@@ -38,6 +38,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
@@ -52,8 +53,8 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	private FreeNameCollection result;
 	private ObjectExpr thisObjExpr;
 	// TODO: Maybe we do want to use the Span as a key for this??
-	private Map<Pair<Node,Span>, TypeEnv> in_typeEnvAtNode;
-	private Map<Span, TypeEnv> typeEnvAtNode;
+	private Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode;
+	private Map<Span,TypeEnv> tmpTypeEnvAtNode;
 	private Stack<Node> scopeStack;
 	private TraitTable traitTable;
 	// The TraitDecl or ObjectDecl enclosing the object expression
@@ -72,13 +73,13 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
                              GenericDecl enclosingTraitOrObject) {
 		result = new FreeNameCollection();
 		thisObjExpr = (ObjectExpr) scopeStack.peek();  
-		this.in_typeEnvAtNode = typeEnvAtNode;
-		
-		this.typeEnvAtNode = new HashMap<Span,TypeEnv>();
+		this.typeEnvAtNode = typeEnvAtNode;
+
+		this.tmpTypeEnvAtNode = new HashMap<Span,TypeEnv>(); 
 
         // FIXME: Temp hack to use Map<Span,TypeEnv>
-		for(Pair<Node, Span> n : in_typeEnvAtNode.keySet()) { 
-			this.typeEnvAtNode.put(n.second(), in_typeEnvAtNode.get(n));
+		for(Pair<Node, Span> n : typeEnvAtNode.keySet()) { 
+			this.tmpTypeEnvAtNode.put(n.second(), typeEnvAtNode.get(n));
 		}
 		this.scopeStack = scopeStack;
 		this.traitTable = traitTable;
@@ -206,11 +207,8 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	public FreeNameCollection forVarType(VarType that) {
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if(isDeclaredInObjExpr(that.getName()) || 
-           isDeclareInTopLevel(that.getName())) {
-			return FreeNameCollection.EMPTY;
-		}
-
+		// Object expression can't declare its own static param, so must
+		// have been captured from the enclosing trait / object
 		return result.add(that);
 	}
 
@@ -253,8 +251,12 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	
 	private boolean isDeclaredInObjExpr(Id id) { 
         // FIXME: change if going back to Pair<Node,Span> key
-		TypeEnv objExprTypeEnv = 
-			typeEnvAtNode.get(thisObjExpr.getSpan());  
+		TypeEnv objExprTypeEnv = tmpTypeEnvAtNode.get(thisObjExpr.getSpan()); 
+		
+        if(objExprTypeEnv == null) {
+            DebugTypeEnvAtNode(thisObjExpr);
+        }
+		    
 		Option<BindingLookup> binding = objExprTypeEnv.binding(id);
 
 		// The typeEnv are things visible outside of object expression
@@ -283,13 +285,14 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
                     DEBUG_LEVEL, "its span is: ", topLevelNode.getSpan());
 		
 		// FIXME: change if going back to Pair<Node,Span> key
-		TypeEnv topLevelEnv = typeEnvAtNode.get(topLevelNode.getSpan());
+		TypeEnv topLevelEnv = tmpTypeEnvAtNode.get(topLevelNode.getSpan());
 
-		if(topLevelEnv == null) {
-			DebugTypeEnvAtNode();
-		}		
-		Debug.debug(Debug.Type.COMPILER, 
-					DEBUG_LEVEL, "top level type env is: ", topLevelEnv.contents());
+//		if(topLevelEnv == null) {
+//			DebugTypeEnvAtNode();
+//		}		
+//		Debug.debug(Debug.Type.COMPILER, 
+//					DEBUG_LEVEL, "top level type env is: ", 
+//					topLevelEnv.contents());
 		
 		Option<BindingLookup> binding = topLevelEnv.binding(id);
 		if(binding.isNone()) { 
@@ -303,11 +306,16 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		return true;
 	}
 	
-	private void DebugTypeEnvAtNode() {
-		int i = 0;
-		Debug.debug(Debug.Type.COMPILER, 
+	private void DebugTypeEnvAtNode(Node nodeToLookFor) {
+	    int i = 0;
+		Span span = nodeToLookFor.getSpan();
+		
+	    Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "Debuggging typeEnvAtNode ... ");
-		for(Pair<Node,Span> n : in_typeEnvAtNode.keySet()) {
+        Debug.debug(Debug.Type.COMPILER, 
+                DEBUG_LEVEL, "Looking for node: " + nodeToLookFor);
+        
+	    for(Pair<Node,Span> n : typeEnvAtNode.keySet()) {
 			i++;
 			Debug.debug(Debug.Type.COMPILER, 
                         DEBUG_LEVEL, "key ", i, ": ", n.first());
@@ -319,6 +327,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 			Debug.debug(Debug.Type.COMPILER, 
                         DEBUG_LEVEL, "\t It's env contains: ", 
                         typeEnvAtNode.get(n));
+			if(n.second().equals(span)) {
+			    Debug.debug(Debug.Type.COMPILER, 
+			                DEBUG_LEVEL, "Node in data struct: ", n.first());   
+			}
 		}
 	}
 
