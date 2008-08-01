@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
+import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.nodes.Id;
@@ -31,6 +32,10 @@ public abstract class NameEnv extends TypeNameEnv {
      * than 1.
      */
     public abstract Set<Id> explicitVariableNames(Id name);
+    /** 
+     * Produce the set of all unaliased explcit variable names in this environment.
+     */
+    public abstract List<Id> explicitVariableNames();
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * function name; on-demand imports are ignored.  An undefined reference

@@ -17,6 +17,8 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.Collections;
 
@@ -35,35 +37,42 @@ public class LocalVarEnv extends DelegatingNameEnv {
     }
 
     @Override public Set<Id> explicitVariableNames(Id name) {
-        if (_vars.contains(name)) {
-            return Collections.singleton(name);
+        for (Id var : _vars) {
+            if (var.getText().equals(name.getText())) {
+                return Collections.singleton(var);
+            }                
         }
-        else { return super.explicitVariableNames(name); }
+        return super.explicitVariableNames(name); 
+    }
+    @Override public List<Id> explicitVariableNames() {
+        List<Id> result = new LinkedList<Id>();
+        result.addAll(_vars);
+        result.addAll(_parent.explicitVariableNames());
+        return result;
+    }
+    @Override
+	public Set<Id> explicitGrammarNames(String name) {
+        return Collections.emptySet();
+    }
+    
+    @Override
+	public boolean hasGrammar(String name) {
+        return false;
+    }
+    
+    @Override
+	public boolean hasQualifiedGrammar(Id name) {
+        return false;
+    }
+    
+    @Override
+        public Set<Id> onDemandGrammarNames(String name) {
+        return Collections.emptySet();
     }
 
-	@Override
-	public Set<Id> explicitGrammarNames(String name) {
-		return Collections.emptySet();
-	}
-
-	@Override
-	public boolean hasGrammar(String name) {
-		return false;
-	}
-
-	@Override
-	public boolean hasQualifiedGrammar(Id name) {
-		return false;
-	}
-
-	@Override
-	public Set<Id> onDemandGrammarNames(String name) {
-		return Collections.emptySet();
-	}
-
-	@Override
+    @Override
 	public Option<GrammarIndex> grammarIndex(Id name) {
-		return Option.none();
-	}
-
+        return Option.none();
+    }
+    
 }

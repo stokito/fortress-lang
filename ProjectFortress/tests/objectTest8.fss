@@ -37,9 +37,9 @@ object A(i:ZZ32, j:ZZ32) extends T
      getJ():ZZ32 = j
 
 
-  b(k:ZZ32):T = do outer = self
+  b(n:ZZ32):T = do outer = self
                    object extends {T,U}
-                        m:ZZ32 = k
+                        m:ZZ32 = n
                         x:ZZ32 = 7
                         getI():ZZ32 = m
                         getJ():ZZ32 = i+j+1

@@ -181,7 +181,7 @@ end
 object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     getter size():ZZ32 = 0
     getter isEmpty():Boolean = true
-    getter showTree():String = "ε"
+    getter showTree():String = "[]"
     getter toString():String = "{}"
     opr |self| : ZZ32 = 0
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
@@ -425,61 +425,61 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
             self
         end
 
-    balancedAdd(k:Key, v:Val, left:Map[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
-      ln = |left|
-      rn = |right|
-      if ln + rn < weight then NodeMap[\Key,Val\](k,v, left, right)
+    balancedAdd(k:Key, v:Val, l:Map[\Key,Val\], r:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
+      ln = |l|
+      rn = |r|
+      if ln + rn < weight then NodeMap[\Key,Val\](k,v, l, r)
       elif rn > weight ln then
-        rl = right.getLeftChild()
-        rr = right.getRightChild()
+        rl = r.getLeftChild()
+        rr = r.getRightChild()
         rln = |rl|
         rrn = |rr|
         if rln < rrn
-        then single_L(k,v, left, right)
-        else double_L(k,v, left, right)
+        then single_L(k,v, l, r)
+        else double_L(k,v, l, r)
         end
       elif ln > weight rn then
-        ll = left.getLeftChild()
-        lr = left.getRightChild()
+        ll = l.getLeftChild()
+        lr = l.getRightChild()
         lln = |ll|
         lrn = |lr|
         if lrn < lln
-        then single_R(k,v, left, right)
-        else double_R(k,v, left, right)
+        then single_R(k,v, l, r)
+        else double_R(k,v, l, r)
         end
-      else NodeMap[\Key,Val\](k,v, left, right) end
+      else NodeMap[\Key,Val\](k,v, l, r) end
     end
 
-    single_L(k:Key,v:Val, left:Map[\Key,Val\], right:NodeMap[\Key,Val\]):NodeMap[\Key,Val\] =
-      NodeMap[\Key,Val\](right.getKey(), right.getVal(),
-                         NodeMap[\Key,Val\](k,v, left, right.getLeftChild()),
-                         right.getRightChild())
+    single_L(k:Key,v:Val, l:Map[\Key,Val\], r:NodeMap[\Key,Val\]):NodeMap[\Key,Val\] =
+      NodeMap[\Key,Val\](r.getKey(), r.getVal(),
+                         NodeMap[\Key,Val\](k,v, l, r.getLeftChild()),
+                         r.getRightChild())
 
-    single_R(k:Key,v:Val, left:NodeMap[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] =
-      NodeMap[\Key,Val\](left.getKey(), left.getVal(),
-                         left.getLeftChild(),
-                         NodeMap[\Key,Val\](k,v,left.getRightChild(),right))
+    single_R(k:Key,v:Val, l:NodeMap[\Key,Val\], r:Map[\Key,Val\]):NodeMap[\Key,Val\] =
+      NodeMap[\Key,Val\](l.getKey(), l.getVal(),
+                         l.getLeftChild(),
+                         NodeMap[\Key,Val\](k,v,l.getRightChild(),r))
 
-    double_L(k:Key,v:Val, left:Map[\Key,Val\], right:NodeMap[\Key,Val\]):NodeMap[\Key,Val\] = do
-        x = left
-        (ck,cv) = right.getPair()
-        (bk,bv) = right.getLeftChild().getPair()
+    double_L(k:Key,v:Val, l:Map[\Key,Val\], r:NodeMap[\Key,Val\]):NodeMap[\Key,Val\] = do
+        x = l
+        (ck,cv) = r.getPair()
+        (bk,bv) = r.getLeftChild().getPair()
         (* println("double_L " a ">" b "\\" c) *)
-        y1 = right.getLeftChild().getLeftChild()
-        y2 = right.getLeftChild().getRightChild()
-        z = right.getRightChild()
+        y1 = r.getLeftChild().getLeftChild()
+        y2 = r.getLeftChild().getRightChild()
+        z = r.getRightChild()
         NodeMap[\Key,Val\](bk,bv, NodeMap[\Key,Val\](k,v,x,y1),NodeMap[\Key,Val\](ck,cv,y2,z))
      end
 
-    double_R(k:Key,v:Val, left:NodeMap[\Key,Val\], right:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
-        (* println("double_R " NodeMap[\Key,Val\](c,left,right).showTree()) *)
-        (ak,av) = left.getPair()
-        x = left.getLeftChild()
-        (bk,bv) = left.getRightChild().getPair()
+    double_R(k:Key,v:Val, l:NodeMap[\Key,Val\], r:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
+        (* println("double_R " NodeMap[\Key,Val\](c,l,r).showTree()) *)
+        (ak,av) = l.getPair()
+        x = l.getLeftChild()
+        (bk,bv) = l.getRightChild().getPair()
         (* println("double_R " a "/" b "<" c) *)
-        y1 = left.getRightChild().getLeftChild()
-        y2 = left.getRightChild().getRightChild()
-        z = right
+        y1 = l.getRightChild().getLeftChild()
+        y2 = l.getRightChild().getRightChild()
+        z = r
         NodeMap[\Key,Val\](bk,bv, NodeMap[\Key,Val\](ak,av,x,y1), NodeMap[\Key,Val\](k,v,y2,z))
       end
 end

@@ -30,6 +30,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedList;
 
 public class DesugaringVisitor extends NodeUpdateVisitor {
     private boolean inTrait = false;
@@ -162,33 +163,49 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
+    private FnDef makeGetter(Param param) {
+        Option<Type> returnType; 
+
+        if (param instanceof NormalParam) { 
+            returnType = ((NormalParam)param).getType(); 
+        } else {
+            returnType = Option.<Type>wrap(Types.makeVarargsParamType(((VarargsParam)param).getType())); 
+        }
+
+        List<Modifier> mods = new LinkedList<Modifier>();
+        for (Modifier mod : param.getMods()) { mods.add(mod); }
+        mods.add(new ModifierAtomic(param.getSpan()));
+
+        return new FnDef(param.getSpan(), mods, param.getName(),
+                         new ArrayList<StaticParam>(),
+                         new ArrayList<Param>(),
+                         returnType,                       
+                         new WhereClause(param.getSpan()), new Contract(new Span()),
+                         new VarRef(param.getSpan(), false,
+                                    mangleName(param.getName())));
+    }
+
+    private FnDef makeGetter(LValueBind binding) {
+        List<Modifier> mods = new LinkedList<Modifier>();
+        for (Modifier mod : binding.getMods()) { mods.add(mod); }
+        mods.add(new ModifierAtomic(binding.getSpan()));
+
+        return new FnDef(binding.getSpan(), mods, binding.getName(),
+                         new ArrayList<StaticParam>(),
+                         new ArrayList<Param>(),
+                         binding.getType(),
+                         new WhereClause(new Span()), new Contract(new Span()),
+                         new VarRef(binding.getSpan(), false,
+                                    mangleName(binding.getName())));
+    }
+
     private List<Decl> makeGetters(Option<List<Param>> params, final List<Decl> decls) {
         final List<Decl> result = new ArrayList<Decl>();
         if (params.isSome()) {
             for (Param param : params.unwrap()) {
-                param.accept(new NodeAbstractVisitor_void() {
-                    public void forNormalParam(NormalParam param) {
-                        if (! hidden(param) && ! trans(param) && ! hasExplicitGetter(param.getName(), decls)) {
-                            result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
-                                                 new ArrayList<StaticParam>(),
-                                                 new ArrayList<Param>(), param.getType(),
-                                                 new WhereClause(param.getSpan()), new Contract(new Span()),
-                                                 new VarRef(param.getSpan(), false,
-                                                            mangleName(param.getName()))));
-                        }
-                    }
-                    public void forVarargsParam(VarargsParam param) {
-                        if (! hidden(param) && ! trans(param) && ! hasExplicitGetter(param.getName(), decls)) {
-                            result.add(new FnDef(param.getSpan(), param.getMods(), param.getName(),
-                                                 new ArrayList<StaticParam>(),
-                                                 new ArrayList<Param>(),
-                                                 Option.<Type>wrap(Types.makeVarargsParamType(param.getType())),
-                                                 new WhereClause(param.getSpan()), new Contract(new Span()),
-                                                 new VarRef(param.getSpan(), false,
-                                                            mangleName(param.getName()))));
-                        }
-                    }
-                });
+                if (! hidden(param) && ! trans(param) && ! hasExplicitGetter(param.getName(), decls)) {
+                    result.add(makeGetter(param));
+                }
             }
         }
         for (Decl decl : decls) {
@@ -196,13 +213,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 public void forVarDecl(VarDecl decl) {
                     for (LValueBind binding : decl.getLhs()) {
                         if (! hidden(binding) && ! trans(binding) && ! hasExplicitGetter(binding.getName(), decls)) {
-                            result.add(new FnDef(binding.getSpan(), binding.getMods(), binding.getName(),
-                                                 new ArrayList<StaticParam>(),
-                                                 new ArrayList<Param>(),
-                                                 binding.getType(),
-                                                 new WhereClause(new Span()), new Contract(new Span()),
-                                                 new VarRef(binding.getSpan(), false,
-                                                            mangleName(binding.getName()))));
+                            result.add(makeGetter(binding));
                         }
                     }
                 }
@@ -215,15 +226,16 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new NodeUpdateVisitor() {
             public Node forVarDecl(VarDecl that) {
                 List<LValueBind> newLVals = new ArrayList<LValueBind>();
-
+                
                 for (LValueBind lval : that.getLhs()) {
+                    System.err.println(mangleName(lval.getName()));
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
                 return new VarDecl(that.getSpan(), newLVals, that.getInit());
             }
             public Node forAbsVarDecl(AbsVarDecl that) {
                 List<LValueBind> newLVals = new ArrayList<LValueBind>();
-
+                
                 for (LValueBind lval : that.getLhs()) {
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
@@ -307,11 +319,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Option<List<Param>> params_result = mangleParams(newVisitor.recurOnOptionOfListOfParam(that.getParams()));
         Option<List<BaseType>> throwsClause_result = newVisitor.recurOnOptionOfListOfBaseType(that.getThrowsClause());
         Contract contract_result = (Contract) that.getContract().accept(newVisitor);
+
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
         List<Decl> gettersAndDecls = makeGetters(that.getParams(), that.getDecls());
-        for (int i = decls_result.size() - 1; i >= 0; i--) { 
-        	gettersAndDecls.add(decls_result.get(i));
+        for (Decl decl : decls_result) {
+            gettersAndDecls.add(decl);
         }
 
         return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
