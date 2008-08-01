@@ -546,8 +546,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 Option<List<TypeCheckerResult>> paramsResult = recurOnOptionOfListOfParam(that.getParams());
 		 Option<List<TypeCheckerResult>> throwsClauseResult = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 
-		 TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
-		 TypeCheckerResult contractResult = that.getContract().accept(newChecker);
+		 TypeChecker method_checker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
+		 TypeChecker field_checker = method_checker;
+		 TypeCheckerResult contractResult = that.getContract().accept(method_checker);
 
 		 // Verify that no extends clauses try to extend an object.
 		 List<TypeCheckerResult> extends_no_obj_result =
@@ -557,13 +558,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 									 return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
 								 }}));
 
-		 // Check field declarations.
-		 List<TypeCheckerResult> fieldsResult = new ArrayList<TypeCheckerResult>();
+		 // Extend method checker with fields
 		 for (Decl decl: that.getDecls()) {
 			 if (decl instanceof VarDecl) {
 				 VarDecl _decl = (VarDecl)decl;
-				 fieldsResult.add(_decl.accept(newChecker));
-				 newChecker = newChecker.extend(_decl.getLhs());
+				 method_checker = method_checker.extend(_decl.getLhs());
 			 }
 		 }
 
@@ -576,24 +575,31 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 TraitIndex thatIndex = (TraitIndex)ind.unwrap();
 		 Relation<IdOrOpOrAnonymousName,Method> methods = thatIndex.dottedMethods();
 		 methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(that.getExtendsClause()), methods);
-		 newChecker = newChecker.extendWithMethods(methods);
-		 newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
+		 method_checker = method_checker.extendWithMethods(methods);
+		 method_checker = method_checker.extendWithFunctions(thatIndex.functionalMethods());
 
 		 // Extend checker with self, (could we ever be nested more deeply than Component/Object, so that api of cu would be wrong?) 
 		 APIName api = this.compilationUnit.ast().getName();
-		 newChecker = TypeChecker.addSelf(api, that.getName(),newChecker,thatIndex.staticParameters());
+		 method_checker = TypeChecker.addSelf(api, that.getName(),method_checker,thatIndex.staticParameters());
 
-
-		 List<TypeCheckerResult> methodsResult = new ArrayList<TypeCheckerResult>();
+		 // Check declarations, storing them in the same order
+		 List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>();
 		 for (Decl decl: that.getDecls()) {
 			 if (decl instanceof FnDecl) {
-				 methodsResult.add(decl.accept(newChecker));
+				 // Methods get some extra vars in their declarations
+			     decls_result.add(decl.accept(method_checker));
+			 }
+			 else if( decl instanceof VarDecl ) {
+			     // Fields get to see earlier fields
+			     VarDecl _decl = (VarDecl)decl;
+			     decls_result.add(decl.accept(field_checker));
+			     field_checker = field_checker.extend(_decl.getLhs());
+			 }
+			 else {
+			     decls_result.add(decl.accept(this));
 			 }
 		 }
 
-		 //ObjectDecl(Span in_span, List<Modifier> in_mods, Id in_name, List<StaticParam> in_staticParams, 
-		 // List<TraitTypeWhere> in_extendsClause, WhereClause in_where, Option<List<Param>> in_params, 
-		 // Option<List<BaseType>> in_throwsClause, Contract in_contract, List<Decl> in_decls)
 		 ObjectDecl new_node = new ObjectDecl(that.getSpan(), 
 				                             (List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
 				                             that.getName(),
@@ -603,46 +609,38 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				                             (Option<List<Param>>)TypeCheckerResult.astFromResults(paramsResult),
 				                             (Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClauseResult),
 				                             (Contract)contractResult.ast(),
-				                             (List<Decl>)Useful.questionMarkList(
-				                            		 Useful.concat(TypeCheckerResult.astFromResults(fieldsResult),
-				                            		               TypeCheckerResult.astFromResults(methodsResult))) );
+				                             (List<Decl>)TypeCheckerResult.astFromResults(decls_result));
 		 
 		 return TypeCheckerResult.compose(new_node, subtypeChecker, 
-				 TypeCheckerResult.compose(new_node, subtypeChecker, extends_no_obj_result),
-				 TypeCheckerResult.compose(new_node, subtypeChecker, modsResult), 
-				 nameResult,
-				 TypeCheckerResult.compose(new_node, subtypeChecker, extendsClauseResult),
-				 whereResult,
-				 TypeCheckerResult.compose(new_node, subtypeChecker, paramsResult),
-				 TypeCheckerResult.compose(new_node, subtypeChecker, throwsClauseResult), 
-				 contractResult, 
-				 TypeCheckerResult.compose(new_node, subtypeChecker, fieldsResult), 
-				 TypeCheckerResult.compose(new_node, subtypeChecker, methodsResult)).addNodeTypeEnvEntry(new_node, typeEnv);
+		         TypeCheckerResult.compose(new_node, subtypeChecker, extends_no_obj_result),
+		         TypeCheckerResult.compose(new_node, subtypeChecker, modsResult), 
+		         nameResult,
+		         TypeCheckerResult.compose(new_node, subtypeChecker, extendsClauseResult),
+		         whereResult,
+		         TypeCheckerResult.compose(new_node, subtypeChecker, paramsResult),
+		         TypeCheckerResult.compose(new_node, subtypeChecker, throwsClauseResult), 
+		         contractResult, 
+		         TypeCheckerResult.compose(new_node, subtypeChecker, decls_result)).addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
-
-	// **** REWRITING AST NODES... YOU ARE HERE.
 
 	 @Override
 	 public TypeCheckerResult forObjectExpr(final ObjectExpr that) {
-		 TypeCheckerResult extendsClause_result = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+		 List<TypeCheckerResult> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 
 		 // Verify that no extends clauses try to extend an object.
-		 extendsClause_result =
-			 TypeCheckerResult.compose(that, subtypeChecker, extendsClause_result,
-					 TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(
-							 IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
-								 public TypeCheckerResult value(TraitTypeWhere arg0) {
-									 return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
-								 }}))));
+		 List<TypeCheckerResult> extends_traits_result = CollectUtil.makeList(
+		         IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>() {
+		             public TypeCheckerResult value(TraitTypeWhere arg0) {
+		                 return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
+		             }}));
 		 
-		 // Check field declarations.
-		 TypeChecker new_checker = this;
-		 TypeCheckerResult fields_result = new TypeCheckerResult(that);
+		 // Extend the type checker with all of the field decls
+		 TypeChecker method_checker = this;
+		 TypeChecker field_checker = this;
 		 for( Decl decl : that.getDecls() ) {
 			 if( decl instanceof VarDecl ) {
 				 VarDecl _decl = (VarDecl)decl;
-				 fields_result = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(new_checker), fields_result);
-				 new_checker = new_checker.extend(_decl.getLhs());
+				 method_checker = method_checker.extend(_decl.getLhs());
 			 }
 		 }
 
@@ -650,27 +648,43 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 ObjectTraitIndex obj_index = IndexBuilder.buildObjectExprIndex(that);
 		 Relation<IdOrOpOrAnonymousName,Method> methods = obj_index.dottedMethods();
 		 methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(that.getExtendsClause()), methods);
-		 new_checker = new_checker.extendWithMethods(methods);
-		 new_checker = new_checker.extendWithFunctions(obj_index.functionalMethods());
-		 
-		 Type obj_type = TypesUtil.getObjectExprType(that);
+		 method_checker = method_checker.extendWithMethods(methods);
+		 method_checker = method_checker.extendWithFunctions(obj_index.functionalMethods());
 
 		 // Extend checker with self
-		 new_checker = new_checker.extend(Collections.singletonList(NodeFactory.makeLValue("self",
+		 Type obj_type = TypesUtil.getObjectExprType(that);
+		 method_checker = method_checker.extend(Collections.singletonList(NodeFactory.makeLValue("self",
 				 obj_type)));
 
-		 TypeCheckerResult methods_result = new TypeCheckerResult(that);
+		 // Typecheck each declaration
+		 List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>(that.getDecls().size());
 		 for (Decl decl: that.getDecls()) {
 			 if (decl instanceof FnDecl) {
-				 methods_result = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(new_checker), methods_result);
+				 // Methods get a few more things in scope than everything else
+			     decls_result.add(decl.accept(method_checker));
+			 }
+			 else if( decl instanceof VarDecl ) {
+			     // fields get to see earlier fields
+			     VarDecl _decl = (VarDecl)decl;
+			     decls_result.add(decl.accept(field_checker));
+			     field_checker = field_checker.extend(_decl.getLhs());
+			 }
+			 else {
+			     decls_result.add(decl.accept(this));
 			 }
 		 }
 
-		 return TypeCheckerResult.compose(that, obj_type, subtypeChecker, 
-				                          extendsClause_result, methods_result,
-				                          fields_result).addNodeTypeEnvEntry(that, typeEnv);
+		 ObjectExpr new_node = new ObjectExpr(that.getSpan(),
+		                                      that.isParenthesized(),
+		                                      (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClause_result),
+		                                      (List<Decl>)TypeCheckerResult.astFromResults(decls_result)
+		                                      );
+		 return TypeCheckerResult.compose(new_node, obj_type, subtypeChecker, 
+				                          TypeCheckerResult.compose(new_node, subtypeChecker, extendsClause_result),
+				                          TypeCheckerResult.compose(new_node, subtypeChecker, decls_result),
+				                          TypeCheckerResult.compose(new_node, subtypeChecker, extends_traits_result)).addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
-
+	 
 	 /**
 	  * Return a failing TypecheckerResult with error message if the given type {@code t} is
 	  * not a trait.
@@ -744,70 +758,89 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 	 
 	 public TypeCheckerResult forTraitDecl(final TraitDecl that) {
-		 TypeCheckerResult modsResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfModifier(that.getMods()));
-		 TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+		 List<TypeCheckerResult> modsResult = recurOnListOfModifier(that.getMods());
+		 List<TypeCheckerResult> extendsClauseResult = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 		 TypeCheckerResult whereResult = that.getWhere().accept(this);
-		 TypeCheckerResult excludesResult = TypeCheckerResult.compose(that, subtypeChecker, recurOnListOfBaseType(that.getExcludes()));
+		 List<TypeCheckerResult> excludesResult = recurOnListOfBaseType(that.getExcludes());
 
-		 // Verify that no extends clauses try to extend an object.
-		 extendsClauseResult =
-			 TypeCheckerResult.compose(that, subtypeChecker, extendsClauseResult,
-					 TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(
-							 IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
-								 public TypeCheckerResult value(TraitTypeWhere arg0) {
-									 return assertTrait(arg0.getType(), that, "Traits can only extend traits.", arg0);
-								 }}))));
+		 // Verify that this trait only extends other traits
+		 List<TypeCheckerResult> extends_trait_result = CollectUtil.makeList(
+		         IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
+		             public TypeCheckerResult value(TraitTypeWhere arg0) {
+		                 return assertTrait(arg0.getType(), that, "Traits can only extend traits.", arg0);
+		             }}));
 
-		 TypeCheckerResult comprisesResult = new TypeCheckerResult(that);
-		 Option<List<BaseType>> comprises = that.getComprises();
-		 if (comprises.isSome()) {
-			 comprisesResult =
-				 TypeCheckerResult.compose
-				 (that, subtypeChecker, recurOnOptionOfListOfBaseType(that.getComprises()).unwrap());
-		 }
+		 Option<List<TypeCheckerResult>> comprisesResult =  recurOnOptionOfListOfBaseType(that.getComprises());	 
 
-		 TypeChecker newChecker = this.extend(that.getStaticParams(), that.getWhere());
+		 TypeChecker method_checker = this.extend(that.getStaticParams(), that.getWhere());
+		 TypeChecker field_checker = method_checker;
 
-		 // Check "field" declarations (really getter and setter declarations).
-		 TypeCheckerResult fieldsResult = new TypeCheckerResult(that);
+		 // Add field declarations (getters/setters?) to method_checker 
 		 for (Decl decl: that.getDecls()) {
 			 if (decl instanceof VarDecl) {
 				 VarDecl _decl = (VarDecl)decl;
-
-				 fieldsResult = TypeCheckerResult.compose(that, subtypeChecker, _decl.accept(newChecker), fieldsResult);
-				 newChecker = newChecker.extend(_decl.getLhs());
+				 method_checker = method_checker.extend(_decl.getLhs());
 			 }
 		 }
 
-		 // Check method declarations.
 		 Option<TypeConsIndex> ind = table.typeCons(that.getName());
 		 if(ind.isNone()){
 			 bug(that.getName()+"is not in table");
 		 }
 
-		 // Extend type checker with methods and functions that will now be in scope
+		 // Extend method checker with methods and functions that will now be in scope
 		 TraitIndex thatIndex = (TraitIndex)ind.unwrap();
 		 Relation<IdOrOpOrAnonymousName,Method> methods = thatIndex.dottedMethods();
 		 methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(that.getExtendsClause()), methods);
-		 newChecker = newChecker.extendWithMethods(methods);
-		 newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
+		 method_checker = method_checker.extendWithMethods(methods);
+		 method_checker = method_checker.extendWithFunctions(thatIndex.functionalMethods());
 
-		 // Extend checker with self, (could we ever be nested more deeply than Component/Object, so that api of cu would be wrong?) 
+		 // Extend method checker with self, (could we ever be nested more deeply than Component/Object, so that api of cu would be wrong?) 
 		 APIName api = this.compilationUnit.ast().getName();
-		 newChecker = TypeChecker.addSelf(api, that.getName(),newChecker,thatIndex.staticParameters());
+		 method_checker = TypeChecker.addSelf(api, that.getName(),method_checker,thatIndex.staticParameters());
 
-		 TypeCheckerResult methodsResult = new TypeCheckerResult(that);
+		 // Check declarations
+		 List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>(that.getDecls().size());
 		 for (Decl decl: that.getDecls()) {
 			 if (decl instanceof FnDecl) {
-				 methodsResult = TypeCheckerResult.compose(that, subtypeChecker, decl.accept(newChecker), methodsResult);
+				 // methods see extra variables in scope
+				 decls_result.add(decl.accept(method_checker));
+			 }
+			 else if( decl instanceof VarDecl ) {
+			     // fields see other fields
+			     VarDecl _decl = (VarDecl)decl;
+			     decls_result.add(decl.accept(field_checker));
+			     field_checker = field_checker.extend(_decl.getLhs());
+			 }
+			 else {
+			     decls_result.add(decl.accept(this));
 			 }
 		 }
-
-		 return TypeCheckerResult.compose(that, subtypeChecker, modsResult,
-				 extendsClauseResult, whereResult, excludesResult,
-				 comprisesResult, fieldsResult, methodsResult).addNodeTypeEnvEntry(that, typeEnv);
+		 
+		 TraitDecl new_node = 
+		     new TraitDecl(that.getSpan(),
+		                   (List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
+		                   that.getName(),
+		                   that.getStaticParams(),
+		                   (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
+		                   (WhereClause)whereResult.ast(),
+		                   (List<BaseType>)TypeCheckerResult.astFromResults(excludesResult),
+		                   (Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult),
+		                   (List<Decl>)TypeCheckerResult.astFromResults(decls_result));
+		 
+		 return TypeCheckerResult.compose(new_node, subtypeChecker, 
+		         TypeCheckerResult.compose(new_node, subtypeChecker, modsResult),
+		         TypeCheckerResult.compose(new_node, subtypeChecker, extendsClauseResult), 
+				 whereResult, 
+				 TypeCheckerResult.compose(new_node, subtypeChecker, extends_trait_result), 
+				 TypeCheckerResult.compose(new_node, subtypeChecker, excludesResult),
+				 TypeCheckerResult.compose(new_node, subtypeChecker, comprisesResult), 
+				 TypeCheckerResult.compose(new_node, subtypeChecker, decls_result)
+		         ).addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
 
+     // **** REWRITING AST NODES... YOU ARE HERE.
+	 
 	public TypeCheckerResult forIfOnly(If that,
 			 List<TypeCheckerResult> clauses_result,
 			 Option<TypeCheckerResult> elseClause_result) {

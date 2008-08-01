@@ -66,6 +66,8 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
 		ConstraintFormula and = ConstraintFormula.bigAnd(constraints, empty_history);
 
+		// NEB: Pretty soon we ought to get rid of this. It makes almost no sense to anyone
+		// other than us.
 		// we want to report if this particular addition of constraints made the
 		// whole thing unsatisfiable.
 		boolean became_unsat = was_sat & !(and.isSatisfiable());
