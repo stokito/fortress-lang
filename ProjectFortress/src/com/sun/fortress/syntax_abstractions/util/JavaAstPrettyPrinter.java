@@ -125,7 +125,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forIntLiteralExprOnly(IntLiteralExpr that){
+    public String forIntLiteralExprOnly(IntLiteralExpr that, Option<String> exprType_result){
         String rVarName = FreshName.getFreshName("intExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add( String.format("IntLiteralExpr %s = new IntLiteralExpr(%s, new java.math.BigInteger(\"%s\"));", rVarName, sVarName, that.getVal().toString() ) );
@@ -142,7 +142,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
 
 
     @Override
-    public String forAccumulatorOnly(Accumulator that,
+    public String forAccumulatorOnly(Accumulator that, Option<String> exprType_result,
             List<String> staticArgs_result, String opr_result,
             List<String> gens_result, String body_result) {
         if (that instanceof TemplateGap) {
@@ -159,7 +159,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forMethodInvocationOnly(MethodInvocation that, String obj_result, String method_result, List<String> staticArgs_result, String arg_result) {
+    public String forMethodInvocationOnly(MethodInvocation that, Option<String> exprType_result, String obj_result, String method_result, List<String> staticArgs_result, String arg_result) {
         String rVarName = FreshName.getFreshName("methodInvocation");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         String lsStatic = FreshName.getFreshName("ls");
@@ -209,7 +209,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forChainExprOnly(ChainExpr that, String first_result, List<String> links_result) {
+    public String forChainExprOnly(ChainExpr that, Option<String> exprType_result, String first_result, List<String> links_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -229,7 +229,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forVoidLiteralExprOnly(VoidLiteralExpr that){
+    public String forVoidLiteralExprOnly(VoidLiteralExpr that, Option<String> exprType_result){
         String rVarName = FreshName.getFreshName("voidExpr");
         String sVarName = JavaAstPrettyPrinter.getSpan(that, this.code);
         this.code.add( String.format("VoidLiteralExpr %s = new VoidLiteralExpr(%s);",  rVarName, sVarName ) );
@@ -250,7 +250,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forAsExprOnly(AsExpr that, String expr_result,
+    public String forAsExprOnly(AsExpr that, Option<String> exprType_result, String expr_result,
             String type_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
@@ -262,7 +262,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forAsIfExprOnly(AsIfExpr that, String expr_result,
+    public String forAsIfExprOnly(AsIfExpr that, Option<String> exprType_result, String expr_result,
             String type_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
@@ -274,7 +274,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forBlockOnly(Block that, List<String> exprs_result) {
+    public String forBlockOnly(Block that, Option<String> exprType_result, List<String> exprs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -300,7 +300,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forDoOnly(Do that, List<String> fronts_result) {
+    public String forDoOnly(Do that, Option<String> exprType_result, List<String> fronts_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -313,7 +313,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forFnExprOnly(FnExpr that, String name_result,
+    public String forFnExprOnly(FnExpr that, Option<String> exprType_result, String name_result,
             List<String> staticParams_result, List<String> params_result,
             Option<String> returnType_result, String where_result,
             Option<List<String>> throwsClause_result, String body_result) {
@@ -334,7 +334,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
 
 
     @Override
-    public String forFnRefOnly(FnRef that,
+    public String forFnRefOnly(FnRef that, Option<String> exprType_result,
             String originalName_result,
             List<String> fns_result,
             List<String> staticArgs_result) {
@@ -377,7 +377,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forIfOnly(If that, List<String> clauses_result,
+    public String forIfOnly(If that, Option<String> exprType_result, List<String> clauses_result,
             Option<String> elseClause_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
@@ -429,7 +429,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forLocalVarDeclOnly(LocalVarDecl that,
+    public String forLocalVarDeclOnly(LocalVarDecl that, Option<String> exprType_result,
             List<String> body_result, List<String> lhs_result,
             Option<String> rhs_result) {
         if (that instanceof TemplateGap) {
@@ -452,7 +452,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forLooseJuxtOnly(LooseJuxt that, String multiJuxt_result,
+    public String forLooseJuxtOnly(LooseJuxt that, Option<String> exprType_result, String multiJuxt_result,
             String infixJuxt_result,
             List<String> exprs_result) {
         if (that instanceof TemplateGap) {
@@ -484,7 +484,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
 
 
     @Override
-	public String forMathPrimaryOnly(MathPrimary that, String multiJuxt_result,
+	public String forMathPrimaryOnly(MathPrimary that, Option<String> exprType_result, String multiJuxt_result,
 			String infixJuxt_result, String front_result,
 			List<String> rest_result) {
         if (that instanceof TemplateGap) {
@@ -558,7 +558,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forTightJuxtOnly(TightJuxt that, String multiJuxt_result,
+    public String forTightJuxtOnly(TightJuxt that, Option<String> exprType_result, String multiJuxt_result,
             String infixJuxt_result,
             List<String> exprs_result) {
         if (that instanceof TemplateGap) {
@@ -587,7 +587,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forTupleExprOnly(TupleExpr that, List<String> exprs_result) {
+    public String forTupleExprOnly(TupleExpr that, Option<String> exprType_result, List<String> exprs_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -611,7 +611,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forVarRefOnly(VarRef that, String var_result) {
+    public String forVarRefOnly(VarRef that, Option<String> exprType_result, String var_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -763,7 +763,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
     
     @Override
-	public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that,
+	public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that, Option<String> exprType_result,
 			String infix_op_result, String multifix_op_result,
 			List<String> args_result) {
         if (that instanceof TemplateGap) {
@@ -778,7 +778,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
 	}
 
 	@Override
-    public String forOpExprOnly(OpExpr that, String in_op_result, List<String> args_result) {
+    public String forOpExprOnly(OpExpr that, Option<String> exprType_result, String in_op_result, List<String> args_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
         }
@@ -791,7 +791,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     }
 
     @Override
-    public String forOpRefOnly(OpRef that,
+    public String forOpRefOnly(OpRef that, Option<String> exprType_result,
             String originalName_result,
             List<String> ops_result,
             List<String> staticArgs_result) {

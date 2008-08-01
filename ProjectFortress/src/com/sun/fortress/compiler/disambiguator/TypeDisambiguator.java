@@ -356,7 +356,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             else { newN = NodeFactory.makeId(realApi, n); }
 
             if (!_env.hasQualifiedTypeCons(newN)) {
-                error("Undefined type: " + NodeUtil.nameString(newN), newN);
+                error(NodeUtil.nameString(newN) + " is undefined.", newN);
                 return that;
             }
             return typeConsHandler.value(newN);
@@ -372,7 +372,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 }
 
                 if (typeConses.isEmpty()) {
-                    error("Undefined type: " + NodeUtil.nameString(n), n);
+                    error(NodeUtil.nameString(n)+" is undefined.", n);
                     return that;
                 }
 // FIXME: We want this line to be inserted.

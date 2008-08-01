@@ -111,7 +111,7 @@ Expr DelimitedExpr =
        if (a4 == null)
            _else = Option.none();
        else _else = Option.some(a4);
-       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
+       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, Option.<Type>none(),
                               Option.some(a1), compare, a3, _else);
      }
    / <ErrorProduction1>
@@ -121,7 +121,7 @@ Expr DelimitedExpr =
      }
    / case w most w a1:(Encloser / Op) w of w a2:CaseClauses w end
      { Option<OpRef> compare = Option.some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a1)));
-       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
+       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, Option.<Type>none(),
                               Option.<Expr>none(), compare, a2,
                               Option.<Block>none());
      }

@@ -40,6 +40,7 @@ import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.AtomicExpr;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
+import com.sun.fortress.nodes.CaseClause;
 import com.sun.fortress.nodes.CaseExpr;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
@@ -682,8 +683,8 @@ public class ExprFactory {
             return new Block(e.getSpan(), true, e.getExprs());
         }
         public Expr forCaseExpr(CaseExpr e) {
-            return new CaseExpr(e.getSpan(), true, e.getParam(),
-                    e.getCompare(), e.getClauses(),
+            return new CaseExpr(e.getSpan(), true, e.getExprType() , e.getParam(),
+                    e.getCompare(),e.getInOp() ,e.getClauses(),
                     e.getElseClause());
         }
         public Expr forDo(Do e) {
@@ -742,8 +743,9 @@ public class ExprFactory {
             return new AtomicExpr(e.getSpan(), true, e.getExpr());
         }
         public Expr forExit(Exit e) {
-            return new Exit(e.getSpan(), true, e.getTarget(), e.getReturnExpr());
+            return new Exit(e.getSpan(), true, e.getExprType() ,e.getTarget(), e.getReturnExpr());
         }
+        
         public Expr forSpawn(Spawn e) {
             return new Spawn(e.getSpan(), true, e.getBody());
         }
