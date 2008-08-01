@@ -49,6 +49,7 @@ import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.tools.FortressAstToConcrete;
+import com.sun.fortress.nodes_util.ApiMaker;
 
 public final class Shell {
     static boolean test;
@@ -94,6 +95,7 @@ public final class Shell {
         System.err.println("Usage:");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" [run] [-test] [-debug [type]* [#]] somefile.fss arg...");
+        System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
         System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" unparse [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
         System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
@@ -109,11 +111,15 @@ public final class Shell {
          "Invoked by java: java ... com.sun.fortress.Shell args\n"+
          "\n"+
          "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
-         "  Compile somefile. If compilation succeeds no message will be printed.\n"+
+         "  Compiles somefile. If compilation succeeds no message will be printed.\n"+
          "\n"+
          "fortress [run] [-test] [-debug [type]* [#]] somefile.fss arg ...\n"+
          "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
          "  run method of somefile.fss.\n"+
+         "\n"+
+         "fortress api [-out file] [-debug [type]* [#]] somefile.fss\n"+
+         "  Automatically generate an API from a component.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
          "fortress parse [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
@@ -174,6 +180,8 @@ public final class Shell {
                 compile(args, Option.<String>none());
             } else if (what.equals("run")) {
                 run(args);
+            } else if ( what.equals("api" ) ){
+                api(args, Option.<String>none());
             } else if ( what.equals("parse" ) ){
                 parse(args, Option.<String>none());
             } else if ( what.equals("unparse" ) ){
@@ -211,6 +219,65 @@ public final class Shell {
     }
 
     /**
+     * Automatically generate an API from a component.
+     */
+    private static void api(List<String> args, Option<String> out)
+        throws UserError, InterruptedException, IOException {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to generatoe an API.");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                rest = Debug.parseOptions(rest);
+            }
+            if (s.equals("-out") && ! rest.isEmpty() ){
+                out = Option.<String>some(rest.get(0));
+                rest = rest.subList( 1, rest.size() );
+            }
+            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+
+            api( rest, out );
+        } else {
+            api( s, out );
+        }
+    }
+
+    private static void api( String file, Option<String> out ){
+        try{
+            if ( isApi(file) ) {
+                System.out.println( "Need a component file " +
+                                    "instead of an API file." );
+            } else if (isComponent(file)) {
+                Component c = (Component) Parser.parseFile(cuName(file), new File(file));
+                Api a = (Api) c.accept( ApiMaker.ONLY );
+                String code = a.accept( new FortressAstToConcrete() );
+                if ( out.isSome() ){
+                    try{
+                        BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
+                        writer.write(code);
+                        writer.close();
+                        System.out.println( "Dumped code to " + out.unwrap() );
+                    } catch ( IOException e ){
+                        System.err.println( "Error while writing " + out.unwrap() );
+                    }
+                } else {
+                    System.out.println( code );
+                }
+            } else {
+                System.out.println( "Don't know what kind of file " + file +
+                                    " is. Append .fsi or .fss." );
+            }
+        } catch ( IOException i ){
+            i.printStackTrace();
+        } catch ( OptionUnwrapException o ){
+            o.printStackTrace();
+        }
+    }
+
+    /**
      * Parse a file. If the file parses ok it will say "Ok".
      * If you want a dump then give -out somefile.
      */
@@ -235,6 +302,36 @@ public final class Shell {
             parse( rest, out );
         } else {
             parse( s, out );
+        }
+    }
+
+    private static void parse( String file, Option<String> out){
+        try{
+            CompilationUnit unit = Parser.parseFile(cuName(file), new File(file));
+            System.out.println( "Ok" );
+            if ( out.isSome() ){
+                try{
+                    ASTIO.writeJavaAst(unit, out.unwrap());
+                    System.out.println( "Dumped parse tree to " + out.unwrap() );
+                } catch ( IOException e ){
+                    System.err.println( "Error while writing " + out.unwrap() );
+                }
+            }
+        } catch (ProgramError e) {
+            System.err.println(e.getMessage());
+            e.printInterpreterStackTrace(System.err);
+            if (Debug.isOnMax()) {
+                e.printStackTrace();
+            } else {
+                System.err.println("Turn on -debug for Java-level error dump.");
+            }
+            System.exit(1);
+        } catch ( FileNotFoundException f ){
+            System.err.println( file + " not found" );
+        } catch ( IOException ie ){
+            System.err.println( "Error while reading " + file );
+        } catch ( StaticError s ){
+            System.err.println(s);
         }
     }
 
@@ -285,36 +382,6 @@ public final class Shell {
             i.printStackTrace();
         } catch ( OptionUnwrapException o ){
             o.printStackTrace();
-        }
-    }
-
-    private static void parse( String file, Option<String> out){
-        try{
-            CompilationUnit unit = Parser.parseFile(cuName(file), new File(file));
-            System.out.println( "Ok" );
-            if ( out.isSome() ){
-                try{
-                    ASTIO.writeJavaAst(unit, out.unwrap());
-                    System.out.println( "Dumped parse tree to " + out.unwrap() );
-                } catch ( IOException e ){
-                    System.err.println( "Error while writing " + out.unwrap() );
-                }
-            }
-        } catch (ProgramError e) {
-            System.err.println(e.getMessage());
-            e.printInterpreterStackTrace(System.err);
-            if (Debug.isOnMax()) {
-                e.printStackTrace();
-            } else {
-                System.err.println("Turn on -debug for Java-level error dump.");
-            }
-            System.exit(1);
-        } catch ( FileNotFoundException f ){
-            System.err.println( file + " not found" );
-        } catch ( IOException ie ){
-            System.err.println( "Error while reading " + file );
-        } catch ( StaticError s ){
-            System.err.println(s);
         }
     }
 
@@ -538,9 +605,9 @@ public final class Shell {
     /* run all the analysis available */
     public static AnalyzeResult analyze(final FortressRepository repository,
                                         final GlobalEnvironment env,
-                                        List<Api> apis, 
-                                        List<Component> components, 
-                                        final long lastModified) throws StaticError {     	
+                                        List<Api> apis,
+                                        List<Component> components,
+                                        final long lastModified) throws StaticError {
     	AnalyzeResult result = finalPhase.makePhase(repository,env,apis,components,lastModified).run();
     	return result;
     }
