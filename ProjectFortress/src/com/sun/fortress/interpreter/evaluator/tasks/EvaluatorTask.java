@@ -69,6 +69,7 @@ public class EvaluatorTask extends BaseTask {
 			throw new RuntimeException(e);
 		} finally {
 			fortressRepository.clear();
+			taskState = null;
 		}
 	}
 
