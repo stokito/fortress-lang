@@ -25,6 +25,7 @@ import java.util.Stack;
 
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
+import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.Component;
@@ -56,6 +57,8 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.TupleExpr;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
@@ -84,14 +87,17 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	private Stack<Node> scopeStack;  
 	private TraitTable traitTable;
 	private GenericDecl enclosingTraitOrObject;
+    private int levelOfObjExprNesting;
+    private static final String ENCLOSING_NAME = "enclosing";
 
 	public ObjectExpressionVisitor(TraitTable traitTable, 
-								   Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
+						Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
 		uniqueId = 0;
 		typeEnvAtNode = _typeEnvAtNode;
 		scopeStack = new Stack<Node>();
 		this.traitTable = traitTable;
 		enclosingTraitOrObject = null;
+	    levelOfObjExprNesting = 0;
 	}
 
 	@Override
@@ -240,6 +246,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	
 	@Override
     public Node forObjectExpr(ObjectExpr that) {
+	    levelOfObjExprNesting++;
 		scopeStack.push(that);
 		
         FreeNameCollector freeNameCollector = 
@@ -265,7 +272,7 @@ System.err.println("Free names: " + freeNames);
 	private TightJuxt makeCallToLiftedObj(ObjectDecl lifted, 
                                           ObjectExpr objExpr, 
                                           FreeNameCollection freeNames) {
-		Span span = objExpr.getSpan();
+	    Span span = objExpr.getSpan();
 		Id originalName = lifted.getName();
 		List<Id> fns = new LinkedList<Id>();
 		fns.add(originalName);
@@ -275,25 +282,93 @@ System.err.println("Free names: " + freeNames);
 		/* Now make the call to construct the lifted object */
 		/* Use default value for parenthesized */
 		FnRef fnRef = new FnRef(span, originalName, fns, staticArgs);
-        /* TODO: this is only if there is no param */
-		VoidLiteralExpr voidLit = new VoidLiteralExpr(span);  
-		List<Expr> exprs = new LinkedList<Expr>();
-		exprs.add(fnRef);
-		exprs.add(voidLit);
+		List<Expr> exprs = makeArgsForCallToLiftedObj(objExpr, freeNames);
+		exprs.add(0, fnRef);
+		
 		TightJuxt callToConstructor = 
             new TightJuxt(span, objExpr.isParenthesized(), exprs);
 		
 		return callToConstructor;
 	}
 
-	private ObjectDecl liftObjectExpr(ObjectExpr target, 
+	private List<Expr> 
+    makeArgsForCallToLiftedObj(ObjectExpr objExpr,
+                               FreeNameCollection freeNames) {
+	    Span span = objExpr.getSpan();
+
+        List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
+        List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
+        List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
+        // List<Id> lhsOfAssignmt = freeNames.getLhsOfAssignment();
+        List<Expr> exprs = new LinkedList<Expr>();
+
+        // FIXME: Need to handle mutated vars
+        if(freeVarRefs != null) {
+        	for(VarRef var : freeVarRefs) {
+        	    // FIXME: is it ok to get rid of parenthesis around it?
+        	    VarRef newVar = new VarRef(var.getSpan(), false, 
+        	                               var.getVar(), var.getLexicalDepth());
+                exprs.add(newVar);
+        	}
+        }
+
+        if(freeFnRefs != null) {
+        	for(FnRef fn : freeFnRefs) {
+                exprs.add(fn);
+        	}
+        }
+        
+//        // Need to pass in the implicit "self" from the enclosing 
+//        // trait / object decl
+//        if(freeMethodRefs != null) {
+//            // id of the enclosing trait or object
+//            Id enclosingId = null;
+//            // id of the newly created param for implicit self 
+//            Id enclosingParamId = null;
+//            // FIXME: what span should I use? 
+//            Span paramSpan = freeMethodRefs.get(0).getSpan();
+//
+//            if(enclosingTraitOrObject == null) {
+//                throw new DesugarerError("enclosingTraitOrObject " + 
+//                    "is null when a dotted method is referenced.");
+//            } 
+//            if(enclosingTraitOrObject instanceof TraitDecl) {
+//            	TraitDecl cast = (TraitDecl) enclosingTraitOrObject;
+//                enclosingId = cast.getName();
+//            } else if(enclosingTraitOrObject instanceof ObjectDecl) {
+//            	ObjectDecl cast = (ObjectDecl) enclosingTraitOrObject;
+//                enclosingId = cast.getName();
+//            } 
+//            type = typeEnv.type(enclosingId);
+//            
+//            Option<APIName> inApi = Option.wrap(enclosingComponent.getName());
+//            enclosingParamId = new Id(paramSpan, inApi, 
+//                       ENCLOSING_NAME + "$" + levelOfObjExprNesting);
+//            param = new NormalParam(paramSpan, enclosingParamId, type);
+//            params.add(param);
+//        }
+        
+        if( exprs.size() == 0 ) {
+            VoidLiteralExpr voidLit = new VoidLiteralExpr(span);  
+            exprs.add(voidLit);
+        } else {
+            TupleExpr tuple = new TupleExpr(span, exprs);
+            exprs = new LinkedList<Expr>();
+            exprs.add(tuple);
+        }
+
+        return exprs;       
+    }
+
+    private ObjectDecl liftObjectExpr(ObjectExpr target, 
                                       FreeNameCollection freeNames) {
 		String name = getMangledName(target);
 		Span span = target.getSpan();
 		Id id = new Id(Option.some(enclosingComponent.getName()), name);
-		List<StaticParam> staticParams = getCapturedStaticParams(freeNames);
+		List<StaticParam> staticParams = 
+            makeStaticParamsForLiftedObj(freeNames);
 		List<TraitTypeWhere> extendsClauses = target.getExtendsClause();
-		Option<List<Param>> params = makeParamsForCapturedVars(freeNames);
+		Option<List<Param>> params = makeParamsForLiftedObj(freeNames);
         // FIXME: need to rewrite all decls w/ the freeNames.
         List<Decl> decls = target.getDecls();   
 
@@ -306,41 +381,90 @@ System.err.println("Free names: " + freeNames);
 	}
 
 	private Option<List<Param>> 
-    makeParamsForCapturedVars(FreeNameCollection freeNames) {
-		// TODO: Fill this in - this is more complicated;
-		// need to figure out shadowed self via FnRef, FieldRef ... and so on
-		// need to box any var that's mutable
-   
+    makeParamsForLiftedObj(FreeNameCollection freeNames) {
+		// TODO: need to figure out shadowed self via FnRef
+		// need to box any var that's mutabl  
+		Node currentScope = scopeStack.get(0);
+        TypeEnv typeEnv = typeEnvAtNode.get(
+                new Pair<Node,Span>(currentScope, currentScope.getSpan()));
+		
+		Option<Type> type = null;
         NormalParam param = null;
         List<Param> params = new LinkedList<Param>();
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
+        List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
+        List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
         // List<Id> lhsOfAssignmt = freeNames.getLhsOfAssignment();
 
-        // FIXME: Need to handle also FnRef and mutated vars
+        // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
         	for(VarRef var : freeVarRefs) {
-        		// Default value for modifier, type, and default expression
-        		// which is Option.none()
-                // FIXME: ?? Is it ok not to put type here?
-                // What if it has a type that's not visible at top level?
-        	    param = new NormalParam(var.getSpan(), var.getVar());
+        		// Default value for modifier and default expression
+                // FIXME: What if it has a type that's not visible at top level?
+                // FIXME: what span should I use? 
+        		type = typeEnv.type(var.getVar());
+        	    param = new NormalParam(var.getSpan(), var.getVar(), type);
+        	    
         		params.add(param);
         	}
+        }
+
+        if(freeFnRefs != null) {
+        	for(FnRef fn : freeFnRefs) {
+        		// Default value for modifier and default expression
+                // FIXME: What if it has a type that's not visible at top level?
+                // FIXME: what span should I use? 
+        		type = typeEnv.type(fn.getOriginalName());
+        	    param = new NormalParam(fn.getSpan(), 
+                                fn.getOriginalName(), type);
+        		params.add(param);
+        	}
+        }
+        
+        // Need to pass in the implicit "self" from the enclosing 
+        // trait / object decl
+        // FIXME: still need to write the FnRef into MethodInvocation
+        if(freeMethodRefs != null) {
+            // id of the enclosing trait or object
+            Id enclosingId = null;
+            // id of the newly created param for implicit self 
+            Id enclosingParamId = null;
+            // FIXME: what span should I use? 
+            Span paramSpan = freeMethodRefs.get(0).getSpan();
+
+            if(enclosingTraitOrObject == null) {
+                throw new DesugarerError("enclosingTraitOrObject " + 
+                    "is null when a dotted method is referenced.");
+            } 
+            if(enclosingTraitOrObject instanceof TraitDecl) {
+            	TraitDecl cast = (TraitDecl) enclosingTraitOrObject;
+                enclosingId = cast.getName();
+            } else if(enclosingTraitOrObject instanceof ObjectDecl) {
+            	ObjectDecl cast = (ObjectDecl) enclosingTraitOrObject;
+                enclosingId = cast.getName();
+            } 
+            type = typeEnv.type(enclosingId);
+            
+            Option<APIName> inApi = Option.wrap(enclosingComponent.getName());
+            enclosingParamId = new Id(paramSpan, inApi, 
+                       ENCLOSING_NAME + "$" + levelOfObjExprNesting);
+            param = new NormalParam(paramSpan, enclosingParamId, type);
+            params.add(param);
         }
         
         return Option.<List<Param>>some(params);       
 	}
 
-	private List<StaticParam> 
-    getCapturedStaticParams(FreeNameCollection freeNames) {
+    private List<StaticParam> 
+    makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
 		// TODO: Fill this in - get the VarTypes(?) that's free and 
         // generate static param using it
         return Collections.<StaticParam>emptyList();
 	}
 
 	private String getMangledName(ObjectExpr target) {
-		String componentName = NodeUtil.nameString(enclosingComponent.getName());
-		String mangled = componentName + "$" + nextUniqueId();
+		String compName = NodeUtil.nameString(enclosingComponent.getName());
+		String mangled = compName + "$" + nextUniqueId();
 		return mangled;
 	}
 
