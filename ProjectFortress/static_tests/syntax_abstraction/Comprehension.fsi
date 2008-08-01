@@ -31,7 +31,7 @@ api Comprehension
       a e:Expr d DGeneratorClauseList b 
       <[ DGeneratorClauseList(e) ]>
 
-    Big :StringLiteralExpr:= BIG SPACE <[ "BIG" ]>
+    Big :StringLiteralExpr:= BIG <[ "BIG" ]>
 
 (*    (Big w)? LeftEncloser StaticArgs? w e:Expr wr | wr GeneratorClauseList w RightEncloser *)
     DGeneratorClauseList(e:Expr) :Expr:= 
