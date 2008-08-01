@@ -121,7 +121,9 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 		} catch (FortressError fe) {
 			throw fe;
 		} finally {
-			getTaskState().giveUpTransaction();		
+			TaskState ts = getTaskState();
+			if (ts != null)
+				ts.giveUpTransaction();		
 		}
     }
 
