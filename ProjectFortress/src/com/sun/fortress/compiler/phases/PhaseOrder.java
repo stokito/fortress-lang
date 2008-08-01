@@ -31,6 +31,7 @@ public enum PhaseOrder {
     GRAMMAR("Grammar Rewriting"), 
     TYPECHECK("Typechecking"), 
     DESUGAR("Desugaring"), 
+    OVERLOADREWRITE("Overloading Rewriting"),
     CODEGEN("Code generation");
 
     private String phaseName;
@@ -67,8 +68,10 @@ public enum PhaseOrder {
             return new TypeCheckPhase(GRAMMAR.makePhaseHelper(phase));
         case DESUGAR:
             return new DesugarPhase(TYPECHECK.makePhaseHelper(phase));
+        case OVERLOADREWRITE:
+            return new OverloadRewritingPhase(DESUGAR.makePhaseHelper(phase));
         case CODEGEN:
-            return new CodeGenerationPhase(DESUGAR.makePhaseHelper(phase));
+            return new CodeGenerationPhase(OVERLOADREWRITE.makePhaseHelper(phase));
         default:
             return InterpreterBug.bug("Unknown static analysis phase: "
                     + phaseName);

@@ -374,6 +374,9 @@ public class NodeUtil {
             public IterableOnce<String> forGrammarDecl(GrammarDecl d) {
                 return new UnitIterable<String>(d.getName().getText());
             }
+            public IterableOnce<String> for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl d) {
+                return new UnitIterable<String>(nameString(d.getName()));
+            }            
         });
     }
 

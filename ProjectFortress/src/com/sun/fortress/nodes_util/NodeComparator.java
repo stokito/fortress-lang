@@ -129,6 +129,20 @@ public class NodeComparator {
     final static TypeComparer typeComparer = new TypeComparer();
     public final static AnyListComparer<Type> typeListComparer =
         new AnyListComparer<Type>(typeComparer);
+    static class IdComparer implements Comparator<Id> {
+        public int compare(Id left, Id right) {
+            return NodeComparator.compare(left, right);
+        }        
+    }
+    public final static IdComparer idComparer = new IdComparer();
+
+    static class OpNameComparer implements Comparator<OpName> {
+        public int compare(OpName left, OpName right) {
+            return NodeComparator.compare(left, right);
+        }        
+    }
+
+    public final static OpNameComparer opNameComparer = new OpNameComparer();    
 
     /* comparing lists ***************************************************/
     public static int compare(List<StaticParam> left, List<StaticParam> right) {
