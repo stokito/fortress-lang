@@ -68,6 +68,7 @@ public class AstJUTest extends TestCase {
 
     private static Iterable<String> allTests( String dir ){
         String[] except = new String[]{"FortressSyntax.fsi",
+                                       "XXXwrongName.fss",
                                        "FortressSyntax.fss"};
         final List<String> out = new LinkedList<String>(java.util.Arrays.asList(except));
         return Arrays.asList(new File(dir).list( new FilenameFilter(){
