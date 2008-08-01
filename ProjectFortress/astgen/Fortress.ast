@@ -543,7 +543,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * nonterminal declaration
              */
-            abstract NonterminalDecl(List<SyntaxDef> syntaxDefs);
+            abstract NonterminalDecl(List<SyntaxDecl> syntaxDefs);
                 /**
                  * nonterminal definition in nonterminal declarations
                  */
@@ -588,6 +588,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
                       TransformerDecl transformer);
+            
+            SuperSyntaxDef(Option<String> modifier, Id nonterminal, Id grammar);
+
         /**
           * Transformation declaration
           */

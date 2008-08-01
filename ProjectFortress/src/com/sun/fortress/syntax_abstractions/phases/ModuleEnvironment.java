@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -121,7 +122,7 @@ public class ModuleEnvironment {
             MemberEnv mEnv = GrammarEnv.getMemberEnv(cni1.getName());
             // We may inherit the same alternative from multiple parents
             // which is not currently allowed
-            for (SyntaxDef s: cni2.getSyntaxDefs()) {
+            for (SyntaxDecl s: cni2.getSyntaxDefs()) {
                 if (!cni1.getSyntaxDefs().contains(s)) {
                     cni1.getSyntaxDefs().add(s);
                     mEnv.add(s, new SyntaxDeclEnv(s, mEnv));
@@ -147,7 +148,7 @@ public class ModuleEnvironment {
                         MemberEnv mEnv = GrammarEnv.getMemberEnv(cni1.getName());
                         // We may inherit the same alternative from multiple parents
                         // which is not currently allowed
-                        for (SyntaxDef s: cni2.getSyntaxDefs()) {
+                        for (SyntaxDecl s: cni2.getSyntaxDefs()) {
                             if (!cni1.getSyntaxDefs().contains(s)) {
                                 cni1.getSyntaxDefs().add(s);
                                 mEnv.add(s, new SyntaxDeclEnv(s, mEnv));

@@ -31,6 +31,7 @@ import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
@@ -72,7 +73,7 @@ public class ContractedNonterminal {
      * @return
      */
     public NonterminalIndex<? extends GrammarMemberDecl> getNonterminal() {
-        List<SyntaxDef> syntaxDefs = new LinkedList<SyntaxDef>();
+        List<SyntaxDecl> syntaxDefs = new LinkedList<SyntaxDecl>();
         Span span = this.members.get(0).getAst().getSpan();
         Option<BaseType> astType = this.members.get(0).getAst().getAstType();
         NonterminalHeader header = this.members.get(0).getAst().getHeader();

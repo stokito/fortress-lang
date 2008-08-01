@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -47,12 +48,12 @@ public class MemberEnv {
     private Id name;
     private Id[] params;
     
-    private Map<SyntaxDef, SyntaxDeclEnv> syntaxDefToEnv;
+    private Map<SyntaxDecl, SyntaxDeclEnv> syntaxDefToEnv;
     private Map<Id, BaseType> parameterToTypeMap;
 
 	private MemberEnv() {
 		this.parameterToTypeMap = new HashMap<Id, BaseType>();
-		this.syntaxDefToEnv = new HashMap<SyntaxDef, SyntaxDeclEnv>();
+		this.syntaxDefToEnv = new HashMap<SyntaxDecl, SyntaxDeclEnv>();
 	}
 	
 	public MemberEnv(NonterminalIndex<? extends GrammarMemberDecl> member) {
@@ -66,13 +67,13 @@ public class MemberEnv {
 		}
 		else if (member.getAst() instanceof TerminalDecl) {
 			TerminalDecl nd = (TerminalDecl) member.getAst();
-			List<SyntaxDef> ls = new LinkedList<SyntaxDef>();
+			List<SyntaxDecl> ls = new LinkedList<SyntaxDecl>();
 			ls.add(nd.getSyntaxDef());
 			initEnv(nd.getHeader().getParams(), ls);
 		}
 	}
 	
-	private void initEnv(List<NonterminalParameter> ls, List<SyntaxDef> syntaxDefs) {
+	private void initEnv(List<NonterminalParameter> ls, List<SyntaxDecl> syntaxDefs) {
 		Id[] params = new Id[ls.size()];
 		int inx = 0;
 		for (NonterminalParameter p: ls) {
@@ -84,19 +85,19 @@ public class MemberEnv {
 		}
 		this.setParamArray(params);
 		
-		for (SyntaxDef sd: syntaxDefs) {
+		for (SyntaxDecl sd: syntaxDefs) {
 			SyntaxDeclEnv sdEnv = new SyntaxDeclEnv(sd, this);
 			this.add(sd, sdEnv);
 		}
 	}
 
-	public void add(SyntaxDef sd, SyntaxDeclEnv sdEnv) {
+	public void add(SyntaxDecl sd, SyntaxDeclEnv sdEnv) {
 		this.syntaxDefToEnv.put(sd, sdEnv);		
 	}
 	
-    public void rebuildSyntaxDeclEnvs(List<SyntaxDef> syntaxDefs) {
+    public void rebuildSyntaxDeclEnvs(List<SyntaxDecl> syntaxDefs) {
         this.syntaxDefToEnv.clear();
-        for (SyntaxDef sd: syntaxDefs) {
+        for (SyntaxDecl sd: syntaxDefs) {
             this.add(sd, new SyntaxDeclEnv(sd, this));
         }
     }
@@ -121,7 +122,7 @@ public class MemberEnv {
 		throw new IllegalArgumentException("Argument out of range: "+inx);
 	}
 
-	public Option<SyntaxDeclEnv> getSyntaxDeclEnv(SyntaxDef syntaxDef) {
+	public Option<SyntaxDeclEnv> getSyntaxDeclEnv(SyntaxDecl syntaxDef) {
 		SyntaxDeclEnv sdEnv = null;
 		if (null != (sdEnv= this.syntaxDefToEnv.get(syntaxDef))) {
 		    return Option.some(sdEnv);

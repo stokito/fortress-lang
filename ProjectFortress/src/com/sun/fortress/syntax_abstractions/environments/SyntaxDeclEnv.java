@@ -38,6 +38,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.Type;
@@ -49,7 +50,7 @@ import com.sun.fortress.syntax_abstractions.util.TypeCollector;
 
 public class SyntaxDeclEnv {
 
-    private SyntaxDef sd;
+    private SyntaxDecl sd;
     private final Set<Id> anyChars;
     private final Set<Id> characterClasses;
     private final Set<Id> options;
@@ -60,7 +61,7 @@ public class SyntaxDeclEnv {
     private boolean init;
     private MemberEnv memberEnv;
 
-    public SyntaxDeclEnv(SyntaxDef sd, MemberEnv memberEnv) {
+    public SyntaxDeclEnv(SyntaxDecl sd, MemberEnv memberEnv) {
         this.anyChars = new HashSet<Id>();
         this.characterClasses = new HashSet<Id>();
         this.options = new HashSet<Id>();
@@ -74,25 +75,28 @@ public class SyntaxDeclEnv {
     }
 
     private void init() {
-        for (SyntaxSymbol ss: this.sd.getSyntaxSymbols()) {
-            ss.accept(new NodeDepthFirstVisitor_void() {
-                @Override
-                public void forPrefixedSymbolOnly(PrefixedSymbol that) {
-                    assert(that.getId().isSome());
-                    final Id id = that.getId().unwrap();
-                    PrefixSymbolSymbolGetter psg = new PrefixSymbolSymbolGetter(id);
-                    that.getSymbol().accept(psg);
-                    anyChars.addAll(psg.getAnyChars());
-                    characterClasses.addAll(psg.getCharacterClasses());
-                    options.addAll(psg.getOptions());
-                    repeats.addAll(psg.getRepeats());
-                    specialSymbols.addAll(psg.getSpecialSymbols());
-                    varToNonterminalName.putAll(psg.getVarToNonterminalName());
-                    varToType.put(id, TypeCollector.getType(that));
-                    super.forPrefixedSymbolOnly(that);
+        sd.accept( new NodeDepthFirstVisitor_void(){
+            @Override public void forSyntaxDef(SyntaxDef def){
+                for (SyntaxSymbol ss: def.getSyntaxSymbols()) {
+                    ss.accept(new NodeDepthFirstVisitor_void() {
+                        @Override
+                        public void forPrefixedSymbolOnly(PrefixedSymbol that) {
+                            assert(that.getId().isSome());
+                            final Id id = that.getId().unwrap();
+                            PrefixSymbolSymbolGetter psg = new PrefixSymbolSymbolGetter(id);
+                            that.getSymbol().accept(psg);
+                            anyChars.addAll(psg.getAnyChars());
+                            characterClasses.addAll(psg.getCharacterClasses());
+                            options.addAll(psg.getOptions());
+                            repeats.addAll(psg.getRepeats());
+                            specialSymbols.addAll(psg.getSpecialSymbols());
+                            varToNonterminalName.putAll(psg.getVarToNonterminalName());
+                            varToType.put(id, TypeCollector.getType(that));
+                            super.forPrefixedSymbolOnly(that);
+                        }
+                    });
                 }
-            });
-        }
+            }});
         this.init = true;
     }
 
@@ -327,9 +331,11 @@ public class SyntaxDeclEnv {
     @Override
     public String toString() {
         String st = "";
+        /*
         for (SyntaxSymbol s: sd.getSyntaxSymbols()) {
             st += " "+s.accept(new SyntaxSymbolPrinter());
         }
+        */
         st += "\n AnyChars: "+this.anyChars;
         st += "\n Characterclasses: "+this.characterClasses;
         st += "\n Options: "+this.options;

@@ -70,6 +70,7 @@ import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.TransformerDef;
 import com.sun.fortress.nodes.TransformerNode;
 import com.sun.fortress.nodes.TerminalDecl;
@@ -474,7 +475,7 @@ public class GrammarRewriter {
             @Override
             public void for_TerminalDef(_TerminalDef that) {
                 MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-                mEnv.rebuildSyntaxDeclEnvs(FortressUtil.mkList(that.getSyntaxDef()));
+                mEnv.rebuildSyntaxDeclEnvs(FortressUtil.mkList((SyntaxDecl)that.getSyntaxDef()));
             }
             
         });
