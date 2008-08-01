@@ -22,14 +22,14 @@ api SyntaxNodes
 
     grammar G extends Expression
         Expr |Expr:=
-          b-a-d x:Thing <[ x ]>
+          b-a-d x:Thing => <[ x ]>
 
         B :Expr:=
-        b <[ 17 ]>
+        b => <[ 17 ]>
 
         Thing :Expr:=
-        n:B <[ n ]>
-        | q:Expr <[ (b-a-d b) + q ]>
+        n:B => <[ n ]>
+        | q:Expr => <[ (b-a-d b) + q ]>
         (*
         b q:Expr <[ (b-a-d e q 4) + 1 ]>
         *)
