@@ -62,6 +62,7 @@ import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.SuperSyntaxDef;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TransformerDecl;
@@ -515,6 +516,11 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             }
         }
         return new Pair<List<Id>, Collection<GrammarIndex>>(ls,gs);
+    }
+
+    @Override public Node forSuperSyntaxDefOnly(SuperSyntaxDef that, Id nonterminal_result, Id grammar_result) {
+        Id disambiguatedGrammar = handleGrammarName(grammar_result);
+        return new SuperSyntaxDef(that.getSpan(), that.getModifier(), nonterminal_result, disambiguatedGrammar);
     }
 
     @Override
