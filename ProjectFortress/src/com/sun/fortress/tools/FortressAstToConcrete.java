@@ -1276,13 +1276,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               List<String> decls_result) {
         StringBuilder s = new StringBuilder();
 
+        increaseIndent();
         s.append( "object " );
         if ( ! extendsClause_result.isEmpty() ) {
             s.append( inCurlyBraces("extends ", extendsClause_result) );
             s.append( "\n" );
         }
-        s.append( join(decls_result, "\n") );
+        s.append( indent(join(decls_result, "\n")) );
         s.append( "\nend" );
+        decreaseIndent();
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
