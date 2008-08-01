@@ -1,0 +1,9 @@
+component SuperUse
+import Super.C
+export Executable
+
+run(args:String...) = do
+    println (cfoo)
+end
+
+end
