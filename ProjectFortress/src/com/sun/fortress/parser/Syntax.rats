@@ -147,7 +147,7 @@ SyntaxDecl SyntaxDef =
 
 SyntaxDecl SyntaxExtensionDef =
      yyValue:SyntaxDef
-     / void:bar w mods:SuperChoiceModifier? w nt:Id w "from" w grammar:Id
+     / mods:SuperChoiceModifier? w nt:Id w "from" w grammar:Id
      { yyValue = NodeFactory.makeSuperSyntaxDef(createSpan(yyStart, yyCount), Option.wrap(mods), nt, grammar); };
 
 SyntaxDecl SyntaxDefOr =
