@@ -930,7 +930,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    // @Override public String for_TerminalDefOnly( that,
+    @Override public String for_TerminalDefOnly(_TerminalDef that,
+                                                String header_result,
+                                                Option<String> astType_result,
+                                                String syntaxDef_result) {
+        return "(* _TerminalDef *)";
+    }
 
     @Override public String forNonterminalHeaderOnly(NonterminalHeader that,
                                                      Option<String> modifier_result,
@@ -981,7 +986,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    // @Override public String forTransformerDefOnly( that,
+    @Override public String forTransformerDefOnly(TransformerDef that,
+                                                  List<String> parameters_result) {
+        return "(* TransformerDef *)";
+    }
 
     /* sad but true, it's hard to convert a macro template back to its original form.
      */
@@ -991,7 +999,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    // @Override public String forSimpleTransformerDefOnly( that,
+    @Override public String forSimpleTransformerDefOnly(SimpleTransformerDef that,
+                                                        String node_result) {
+        return "(* SimpleTransformerDef *)";
+    }
 
     @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
         return that.getTransformer();
