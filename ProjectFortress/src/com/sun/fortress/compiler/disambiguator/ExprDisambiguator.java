@@ -181,7 +181,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * scope.
      */
     private void checkForShadowingFunction(Id var) {
-        if (CHECK_FOR_SHADOWING) {
+        // Keep this off for now until we can allow for explicit getters with the same names as fields.
+        // TODO Allow for getters with the same names as fields.
+        if (false) {
             for(Id shadowed : _env.explicitVariableNames(var)) {
                 // Check Spans to ensure shadowed declaration is distinct.
                 // This is necessary because Fortress supports recursive definitions.
@@ -206,11 +208,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     
     private ExprDisambiguator extendWithVars(Set<Id> vars) {
         checkForShadowingVars(vars);
-
+        return extendWithVarsNoCheck(vars);
+    }
+	
+    private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
         return new ExprDisambiguator(newEnv, _errors, this._innerMostLabel);
     }
-	
+
     private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames){
         checkForShadowingFunctions(definedNames);
                 
@@ -694,9 +699,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
+        // No need to recur on the name, as we will not modify it and we have already checked
+        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it 
+        // to share its name with a field, so blindly checking for shadowing at this point 
+        // doesn't work.
         return forAbsFnDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
-				(IdOrOpOrAnonymousName) that.getName().accept(v),
+				(IdOrOpOrAnonymousName) that.getName(),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				v.recurOnListOfParam(that.getParams()),
 				v.recurOnOptionOfType(that.getReturnType()),
@@ -718,9 +727,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
+        // No need to recur on the name, as we will not modify it and we have already checked
+        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it 
+        // to share its name with a field, so blindly checking for shadowing at this point 
+        // doesn't work.
         return forFnDefOnly(that,
                             v.recurOnListOfModifier(that.getMods()),
-                            (IdOrOpOrAnonymousName) that.getName().accept(v),
+                            (IdOrOpOrAnonymousName) that.getName(),
                             v.recurOnListOfStaticParam(that.getStaticParams()),
                             v.recurOnListOfParam(that.getParams()),
                             v.recurOnOptionOfType(that.getReturnType()),
@@ -865,7 +878,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override
 	public Node forTypecase(Typecase that) {
         Set<Id> bound_ids = Useful.set(that.getBindIds());
-        ExprDisambiguator e_d = this.extendWithVars(bound_ids);
+        ExprDisambiguator e_d = this.extendWithVarsNoCheck(bound_ids);
 
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         return forTypecaseOnly(that, type_result,
