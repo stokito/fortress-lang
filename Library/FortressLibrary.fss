@@ -1098,7 +1098,7 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
         cond[\G\](f, fn () => Nothing[\G\])
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
-        cond[\G\](fn (e:E):Generator[\(E,G)\] => g.map[\(E,G)\](fn (g:G):(E,G) => (e,g)),
+        cond[\G\](fn (e:E):Generator[\(E,G)\] => g.map[\(E,G)\](fn (g':G):(E,G) => (e,g')),
                fn () => Nothing[\(E,G)\])
     mapReduce[\R\](body: E->R, _:(R,R)->R, id:R): R =
         cond[\R\](body, fn () => id)
@@ -3667,11 +3667,11 @@ forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] = do
         if( radix = 12 ) then
             forDigit(x, "0123456789xe")
         elif(x < radix) then
-            forDigit(x, "0123456789abcdef") 
-        else 
+            forDigit(x, "0123456789abcdef")
+        else
             Nothing[\Char\]
         end
-    else 
+    else
         Nothing[\Char\]
     end
 end
