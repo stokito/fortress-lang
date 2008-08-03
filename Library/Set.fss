@@ -402,67 +402,67 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
       end
     concat3(v:E, t2:Set[\E\]) = add(v)
 
-    balancedAdd(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = do
-        ln = |left|
-        rn = |right|
-        if ln + rn < weight then NodeSet[\E\](val, left, right)
+    balancedAdd(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
+        ln = |left'|
+        rn = |right'|
+        if ln + rn < weight then NodeSet[\E\](val', left', right')
         elif rn > weight ln then
-            rl = right.getLeftChild()
-            rr = right.getRightChild()
+            rl = right'.getLeftChild()
+            rr = right'.getRightChild()
             rln = |rl|
             rrn = |rr|
             if rln < rrn
-            then single_L(val, left, right)
-            else double_L(val, left, right) end
+            then single_L(val', left', right')
+            else double_L(val', left', right') end
         elif ln > weight rn then
-            ll = left.getLeftChild()
-            lr = left.getRightChild()
+            ll = left'.getLeftChild()
+            lr = left'.getRightChild()
             lln = |ll|
             lrn = |lr|
             if lrn < lln
-            then single_R(val, left, right)
-            else double_R(val,left,right) end
-        else NodeSet[\E\](val,left,right) end
+            then single_R(val', left', right')
+            else double_R(val',left',right') end
+        else NodeSet[\E\](val',left',right') end
       end
 
-    single_L(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = do
-        a = val
-        x = left
-        b = right.getVal()
-        y = right.getLeftChild()
-        z = right.getRightChild()
+    single_L(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
+        a = val'
+        x = left'
+        b = right'.getVal()
+        y = right'.getLeftChild()
+        z = right'.getRightChild()
         NodeSet[\E\](b, NodeSet[\E\](a, x, y), z)
       end
 
-    single_R(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = do
-        b = val
-        a = left.getVal()
-        x = left.getLeftChild()
-        y = left.getRightChild()
-        z = right
+    single_R(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
+        b = val'
+        a = left'.getVal()
+        x = left'.getLeftChild()
+        y = left'.getRightChild()
+        z = right'
         NodeSet[\E\](a,x,NodeSet[\E\](b,y,z))
       end
 
-    double_L(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = do
-        a = val
-        x = left
-        c = right.getVal()
-        b = right.getLeftChild().getVal()
-        y1 = right.getLeftChild().getLeftChild()
-        y2 = right.getLeftChild().getRightChild()
-        z = right.getRightChild()
+    double_L(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
+        a = val'
+        x = left'
+        c = right'.getVal()
+        b = right'.getLeftChild().getVal()
+        y1 = right'.getLeftChild().getLeftChild()
+        y2 = right'.getLeftChild().getRightChild()
+        z = right'.getRightChild()
         (* println("double_L " a " " b) *)
         NodeSet[\E\](b, NodeSet[\E\](a,x,y1),NodeSet[\E\](c,y2,z))
       end
 
-    double_R(val:E,  left:Set[\E\], right:Set[\E\]):NodeSet[\E\] = do
-        c = val
-        a = left.getVal()
-        x = left.getLeftChild()
-        b = left.getRightChild().getVal()
-        y1 = left.getRightChild().getLeftChild()
-        y2 = left.getRightChild().getRightChild()
-        z = right
+    double_R(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
+        c = val'
+        a = left'.getVal()
+        x = left'.getLeftChild()
+        b = left'.getRightChild().getVal()
+        y1 = left'.getRightChild().getLeftChild()
+        y2 = left'.getRightChild().getRightChild()
+        z = right'
         (* println("double_R " a " " b " " c) *)
         NodeSet[\E\](b, NodeSet[\E\](a, x,y1), NodeSet[\E\](c,y2,z))
       end
