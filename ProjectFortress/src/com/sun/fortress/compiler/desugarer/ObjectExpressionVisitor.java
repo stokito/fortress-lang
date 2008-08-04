@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.desugarer;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,8 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
+import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
@@ -82,6 +85,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	private Component enclosingComponent;
 	private int uniqueId;
 	private Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode;
+	private Map<Span,TypeEnv> tmpTypeEnvAtNode;
 	// a stack keeping track of all nodes that can create a new lexical scope
 	// this does not include the top level component
 	private Stack<Node> scopeStack;  
@@ -98,6 +102,12 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 		this.traitTable = traitTable;
 		enclosingTraitOrObject = null;
 	    levelOfObjExprNesting = 0;
+	    
+	    this.tmpTypeEnvAtNode = new HashMap<Span,TypeEnv>();
+	    // FIXME: Temp hack to use Map<Span,TypeEnv>
+        for(Pair<Node, Span> n : typeEnvAtNode.keySet()) { 
+            this.tmpTypeEnvAtNode.put(n.second(), typeEnvAtNode.get(n));
+        }
 	}
 
 	@Override
@@ -255,7 +265,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         that.accept(freeNameCollector);
 		FreeNameCollection freeNames = freeNameCollector.getResult();
 		
-System.err.println("Free names: " + freeNames);
+       // System.err.println("Free names: " + freeNames);
 
 		ObjectDecl lifted = liftObjectExpr(that, freeNames);  
 		if(liftedObjectExprs == null) {
@@ -265,6 +275,7 @@ System.err.println("Free names: " + freeNames);
 		TightJuxt callToLifted = makeCallToLiftedObj(lifted, that, freeNames);
 		
 		scopeStack.pop();
+	    levelOfObjExprNesting--;
 		
         return callToLifted;
     }
@@ -278,36 +289,44 @@ System.err.println("Free names: " + freeNames);
 		fns.add(originalName);
 		// TODO: Need to figure out what Static params are captured.
 		List<StaticArg> staticArgs = Collections.<StaticArg>emptyList(); 
+		List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
+        VarRef enclosingSelf = null;
 		
 		/* Now make the call to construct the lifted object */
-		/* Use default value for parenthesized */
-		FnRef fnRef = new FnRef(span, originalName, fns, staticArgs);
-		List<Expr> exprs = makeArgsForCallToLiftedObj(objExpr, freeNames);
+		/* Use default value for parenthesized and exprType */
+        // FIXME: I didn't initialize its exprType
+        FnRef fnRef = ExprFactory.makeFnRef(span, false,
+                            originalName, fns, staticArgs);
+		
+        if(freeMethodRefs != null && freeMethodRefs.size() != 0) {
+            enclosingSelf = ExprFactory.makeVarRef(span, "self");
+        }
+    
+		List<Expr> exprs = makeArgsForCallToLiftedObj(objExpr, 
+                                                      freeNames, enclosingSelf);
 		exprs.add(0, fnRef);
 		
 		TightJuxt callToConstructor = 
-            new TightJuxt(span, objExpr.isParenthesized(), exprs);
+            ExprFactory.makeTightJuxt(span, objExpr.isParenthesized(), exprs);
 		
 		return callToConstructor;
 	}
 
 	private List<Expr> 
     makeArgsForCallToLiftedObj(ObjectExpr objExpr,
-                               FreeNameCollection freeNames) {
+                               FreeNameCollection freeNames,
+                               VarRef enclosingSelf) {
 	    Span span = objExpr.getSpan();
 
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
-        List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
-        // List<Id> lhsOfAssignmt = freeNames.getLhsOfAssignment();
         List<Expr> exprs = new LinkedList<Expr>();
 
         // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
         	for(VarRef var : freeVarRefs) {
         	    // FIXME: is it ok to get rid of parenthesis around it?
-        	    VarRef newVar = new VarRef(var.getSpan(), false, 
-        	                               var.getVar(), var.getLexicalDepth());
+                VarRef newVar = ExprFactory.makeVarRef(var.getSpan(), var.getVar());
                 exprs.add(newVar);
         	}
         }
@@ -318,41 +337,15 @@ System.err.println("Free names: " + freeNames);
         	}
         }
         
-//        // Need to pass in the implicit "self" from the enclosing 
-//        // trait / object decl
-//        if(freeMethodRefs != null) {
-//            // id of the enclosing trait or object
-//            Id enclosingId = null;
-//            // id of the newly created param for implicit self 
-//            Id enclosingParamId = null;
-//            // FIXME: what span should I use? 
-//            Span paramSpan = freeMethodRefs.get(0).getSpan();
-//
-//            if(enclosingTraitOrObject == null) {
-//                throw new DesugarerError("enclosingTraitOrObject " + 
-//                    "is null when a dotted method is referenced.");
-//            } 
-//            if(enclosingTraitOrObject instanceof TraitDecl) {
-//            	TraitDecl cast = (TraitDecl) enclosingTraitOrObject;
-//                enclosingId = cast.getName();
-//            } else if(enclosingTraitOrObject instanceof ObjectDecl) {
-//            	ObjectDecl cast = (ObjectDecl) enclosingTraitOrObject;
-//                enclosingId = cast.getName();
-//            } 
-//            type = typeEnv.type(enclosingId);
-//            
-//            Option<APIName> inApi = Option.wrap(enclosingComponent.getName());
-//            enclosingParamId = new Id(paramSpan, inApi, 
-//                       ENCLOSING_NAME + "$" + levelOfObjExprNesting);
-//            param = new NormalParam(paramSpan, enclosingParamId, type);
-//            params.add(param);
-//        }
+        if(enclosingSelf != null) {
+            exprs.add(enclosingSelf);
+        }
         
         if( exprs.size() == 0 ) {
-            VoidLiteralExpr voidLit = new VoidLiteralExpr(span);  
+            VoidLiteralExpr voidLit = ExprFactory.makeVoidLiteralExpr(span);
             exprs.add(voidLit);
-        } else {
-            TupleExpr tuple = new TupleExpr(span, exprs);
+        } else if( exprs.size() > 1 ) {
+            TupleExpr tuple = ExprFactory.makeTuple(span, exprs);
             exprs = new LinkedList<Expr>();
             exprs.add(tuple);
         }
@@ -364,37 +357,46 @@ System.err.println("Free names: " + freeNames);
                                       FreeNameCollection freeNames) {
 		String name = getMangledName(target);
 		Span span = target.getSpan();
-		Id id = new Id(Option.some(enclosingComponent.getName()), name);
+		Id liftedObjId = NodeFactory.makeId(span, name);
 		List<StaticParam> staticParams = 
             makeStaticParamsForLiftedObj(freeNames);
 		List<TraitTypeWhere> extendsClauses = target.getExtendsClause();
-		Option<List<Param>> params = makeParamsForLiftedObj(freeNames);
         // FIXME: need to rewrite all decls w/ the freeNames.
         List<Decl> decls = target.getDecls();   
-
+        
+        NormalParam enclosingSelf = null;
+        Option<List<Param>> params = null;
+        List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
+        TypeEnv typeEnv = tmpTypeEnvAtNode.get(scopeStack.get(0).getSpan());
+        enclosingSelf = makeEnclosingSelfParam(typeEnv, freeMethodRefs);
+        
+        params = makeParamsForLiftedObj(freeNames, typeEnv, enclosingSelf);        
         /* Use default value for modifiers, where clauses, 
            throw clauses, contract */
-		ObjectDecl lifted = new ObjectDecl(span, id, staticParams, 
+		ObjectDecl lifted = new ObjectDecl(span, liftedObjId, staticParams, 
                                            extendsClauses, params, decls);
+		
+		if(enclosingSelf != null) {		    
+		    VarRef receiver = makeVarRefFromNormalParam(enclosingSelf);
+		    DottedMethodRewriteVisitor rewriter = 
+		        new DottedMethodRewriteVisitor(receiver, freeMethodRefs);
+		    lifted = (ObjectDecl) lifted.accept(rewriter);
+		}
 
 		return lifted;
 	}
 
-	private Option<List<Param>> 
-    makeParamsForLiftedObj(FreeNameCollection freeNames) {
+    private Option<List<Param>> 
+    makeParamsForLiftedObj(FreeNameCollection freeNames, 
+                           TypeEnv typeEnv, NormalParam enclosingSelfParam) {
 		// TODO: need to figure out shadowed self via FnRef
 		// need to box any var that's mutabl  
-		Node currentScope = scopeStack.get(0);
-        TypeEnv typeEnv = typeEnvAtNode.get(
-                new Pair<Node,Span>(currentScope, currentScope.getSpan()));
-		
+
 		Option<Type> type = null;
         NormalParam param = null;
         List<Param> params = new LinkedList<Param>();
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
-        List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
-        // List<Id> lhsOfAssignmt = freeNames.getLhsOfAssignment();
 
         // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
@@ -420,11 +422,26 @@ System.err.println("Free names: " + freeNames);
         		params.add(param);
         	}
         }
+
+        if(enclosingSelfParam != null) {
+            params.add(enclosingSelfParam);
+        }
         
-        // Need to pass in the implicit "self" from the enclosing 
-        // trait / object decl
-        // FIXME: still need to write the FnRef into MethodInvocation
-        if(freeMethodRefs != null) {
+        return Option.<List<Param>>some(params);       
+	}
+
+    private VarRef makeVarRefFromNormalParam(NormalParam param) {
+        VarRef varRef = ExprFactory.makeVarRef(param.getSpan(), 
+                                               param.getName());
+        return varRef;
+    }
+
+    private NormalParam makeEnclosingSelfParam(TypeEnv typeEnv,
+                                         List<FnRef> freeMethodRefs) {
+        Option<Type> type;
+        NormalParam param = null;
+
+        if(freeMethodRefs != null && freeMethodRefs.size() != 0) {
             // id of the enclosing trait or object
             Id enclosingId = null;
             // id of the newly created param for implicit self 
@@ -445,15 +462,13 @@ System.err.println("Free names: " + freeNames);
             } 
             type = typeEnv.type(enclosingId);
             
-            Option<APIName> inApi = Option.wrap(enclosingComponent.getName());
-            enclosingParamId = new Id(paramSpan, inApi, 
-                       ENCLOSING_NAME + "$" + levelOfObjExprNesting);
+            enclosingParamId = NodeFactory.makeId(paramSpan, 
+                                ENCLOSING_NAME + "$" + levelOfObjExprNesting);
             param = new NormalParam(paramSpan, enclosingParamId, type);
-            params.add(param);
         }
-        
-        return Option.<List<Param>>some(params);       
-	}
+         
+        return param;
+    }
 
     private List<StaticParam> 
     makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
