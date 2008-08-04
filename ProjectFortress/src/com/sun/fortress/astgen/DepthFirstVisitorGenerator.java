@@ -61,7 +61,9 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         // Write out forCASEOnly methods
         writer.startLine("/* Methods to handle a node after recursion. */");
         for (NodeType t : ast.descendents(root)) {
-            if (!(t instanceof TemplateGapClass) && !(t instanceof TransformationNode)) {
+            if (!(t instanceof TemplateGapClass) &&
+                !(t instanceof TransformationNode) &&
+                !(t instanceof EllipsesNode)) {
                 outputForCaseOnly(t, writer, root);
             }
         }
@@ -76,6 +78,8 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
                     outputVisitTemplateMethod(t, writer, root);
                 } else if ( t instanceof TransformationNode ){
                     outputVisitTransformationMethod(t, writer, root );
+                } else if ( t instanceof EllipsesNode ){
+                    outputVisitEllipsesMethod(t, writer, root);
                 } else {
                     outputVisitMethod(t, writer, root);
                 }
@@ -107,6 +111,8 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         outputDefaultTemplateMethod(writer, root);
         writer.println();
         outputDefaultTransformationMethod(writer, root);
+        writer.println();
+        outputDefaultEllipsesMethod(writer, root);
     }
 
     protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root ){
@@ -125,6 +131,14 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         writer.startLine("}");
     }
 
+    protected void outputDefaultEllipsesMethod(TabPrintWriter writer, NodeType root ){
+        writer.startLine("public RetType defaultEllipsesNode(_Ellipses that){");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(\"Override defaultEllipsesNode to support ellipses\");" );
+        writer.unindent();
+        writer.startLine("}");
+    }
+
     protected void outputVisitTemplateMethod(NodeType t, TabPrintWriter writer, NodeType root) {
         outputForCaseHeader(t, writer, "RetType", "");
         writer.indent();
@@ -139,6 +153,15 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         outputForCaseHeader(t, writer, "RetType", "");
         writer.indent();
         writer.startLine("return defaultTransformationNode(that);");
+        writer.unindent();
+        writer.startLine("}");
+        writer.println();
+    }
+    
+    protected void outputVisitEllipsesMethod(NodeType t, TabPrintWriter writer, NodeType root) {
+        outputForCaseHeader(t, writer, "RetType", "");
+        writer.indent();
+        writer.startLine("return defaultEllipsesNode(that);");
         writer.unindent();
         writer.startLine("}");
         writer.println();

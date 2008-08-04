@@ -43,6 +43,7 @@ customGenerator com.sun.fortress.astgen.TemplateDepthFirstVoidVisitorGenerator;
 
 
 customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
+customPreprocessor com.sun.fortress.astgen.EllipsesNodeCreator;
 customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
 customGenerator com.sun.fortress.astgen.UpdateVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
@@ -109,7 +110,15 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      */
     interface TemplateGap(Id gapId, List<Id> templateParams);
 
+    /**
+     * A syntax transformation
+     */
     interface _SyntaxTransformation(String syntaxTransformer, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters);
+
+    /**
+     * Repeated expression inside a syntax transformation template
+     */
+    interface _Ellipses(Node repeatedNode);
 
     /**
      * intersections of interface types
@@ -741,7 +750,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * Repeated expression in a macro
              */
-            _EllipsesExpr(Expr expr);
+            /* _EllipsesExpr(Expr expr); */
 
             /**
              * expression annotated with a type

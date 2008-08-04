@@ -57,7 +57,7 @@ public class EllipsesJUTest extends TestCase {
         Node expected;
         {
             List<Expr> exprs = new ArrayList<Expr>();
-            exprs.add( new _EllipsesExpr( mkTemplate( "x" ) ) );
+            exprs.add( new _EllipsesExpr(new Span(), mkTemplate( "x" ) ) );
             original = new TightJuxt(new Span(), false, exprs); 
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "x" ), 1, mkList(new StringLiteralExpr( "hello" )) );
@@ -79,7 +79,7 @@ public class EllipsesJUTest extends TestCase {
         Node expected;
         {
             List<Expr> exprs = new ArrayList<Expr>();
-            exprs.add( new _EllipsesExpr( mkTemplate( "x" ) ) );
+            exprs.add( new _EllipsesExpr(new Span(), mkTemplate( "x" ) ) );
             original = new TightJuxt(new Span(), false, exprs); 
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "x" ), 1, mkList(new StringLiteralExpr( "hello" ), new StringLiteralExpr( "goodbye" ) ) );
@@ -107,7 +107,7 @@ public class EllipsesJUTest extends TestCase {
             blocks.add( mkTemplate( "x" ) );
             Expr extra = new Block( blocks );
             List<Expr> exprs = new ArrayList<Expr>();
-            exprs.add( new _EllipsesExpr( extra ) );
+            exprs.add( new _EllipsesExpr( new Span(), extra ) );
             original = new TightJuxt(new Span(), false, exprs );
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "x" ), 1, mkList( new StringLiteralExpr("a"), new StringLiteralExpr( "b" ) ) );
@@ -135,7 +135,7 @@ public class EllipsesJUTest extends TestCase {
             List<Expr> extra = mkExprList(mkTemplate("i"), mkTemplate("j"));
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add( new StringLiteralExpr( "bar" ) );
-            exprs.add( new _EllipsesExpr( new TightJuxt(new Span(), false, extra ) ) );
+            exprs.add( new _EllipsesExpr(new Span(), new TightJuxt(new Span(), false, extra ) ) );
             original = new TightJuxt(new Span(), false, exprs );
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "i" ), 0, new StringLiteralExpr( "a" ) );
