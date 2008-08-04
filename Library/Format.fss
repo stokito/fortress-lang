@@ -31,7 +31,7 @@ export Format
  *  d - format as integer. keys = w, ww, i, r, n, nn
  *  f - format as a floating point number. keys = w, ww, i, r, n, nn
  *  e - format in scientific notation. keys = w, ww
- *  b - format as a boolean( true/false ). keys = 
+ *  b - format as a boolean( true/false ). keys =
  *  m - format for Maybe types, only print object if a Just is given. keys =
  *  s - format using toString() of the object. keys = w, ww
  *  x - format as hex. keys = w, ww, i, n, nn
@@ -41,7 +41,7 @@ export Format
  *  ww=num - pad the right side
  *  p='char' - character to pad with. default is ' '
  *  i=num - index into the argument list
- *  n=num - number of chars to skip before placing a delimiter. default delimiter is ','  
+ *  n=num - number of chars to skip before placing a delimiter. default delimiter is ','
  *  nn='char' - delimiter to use
  *  r=num - radix of number
  *
@@ -52,13 +52,13 @@ padHelper(string:String,c:Char,size:ZZ32):String =
     if |string| < size then
         n = size - |string|
         (BIG || [_<-1:n] c)
-    else 
+    else
         ""
     end
 
 padLeft(string:String,c:Char,size:ZZ32):String =
     padHelper(string,c,size) string
-    
+
 padRight(string:String,c:Char,size:ZZ32):String =
     string padHelper(string,c,size)
 
@@ -76,7 +76,7 @@ radixHelper(base:ZZ64,val:ZZ64):String = do
     n = |/(val / base)\|
     if n =/= 0 then
         radixHelper(base, n) radixConvert(-narrow(val REM base))
-    else 
+    else
         radixConvert(-narrow(val REM base))
     end
 end
@@ -126,11 +126,11 @@ end
 
 digitSeparatorRight(num:String,nth:ZZ32,separator:String):String = do
     total = narrow(|\((|num|)-1) / nth/|)
-    (BIG || [index <- 0#total] (num[(index nth)#nth] separator)) num[(total nth):] 
+    (BIG || [index <- 0#total] (num[(index nth)#nth] separator)) num[(total nth):]
 end
 
 indexOf(string:String,find:Char):Maybe[\ZZ32\] = do
-    label out 
+    label out
         for g<-seq(0#|string|) do
             if string[g] = find then
                 exit out with Just[\ZZ32\](g)
@@ -158,7 +158,7 @@ end
 (*
  * %d - int
  * %x - hex
- * %base x - 
+ * %base x -
  * %o - octaln
  * %e - scientific notation
  * %f - floating point
@@ -201,7 +201,7 @@ object Parameters(widthLeft:Maybe[\ZZ32\],
                   index:Maybe[\ZZ32\],
                   chars:Maybe[\ZZ32\],
                   charType:Maybe[\String\],
-                  radix:ZZ32,
+                  desiredRadix:ZZ32,
                   pad:Char)
 end
 
@@ -235,7 +235,7 @@ parseParameters(string:String):Parameters = do
             readInt() = do
                 str2int(readString())
             end
-                           
+
             case front of
                 "w" => widthLeft := Just[\ZZ32\](readInt())
                 "ww" => widthRight := Just[\ZZ32\](readInt())
@@ -293,7 +293,7 @@ compileD(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\
     this(params) = do
         (fn () => getWidth(params,
                   getDelimiter(params,
-                  radix(params.radix,
+                  radix(params.desiredRadix,
                   getArg(params,args,allArgs)))))
     end
     params = parseParameters(front)
@@ -376,7 +376,7 @@ compileSpecifier(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]
         'f' => compileF(start,string,allArgs,args)
         '%' => compile(string,allArgs,args).addLeft((fn () => "%"))
         else => throw FormatException("unknown format specifier")
-        
+
     end
 end
 

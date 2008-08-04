@@ -22,9 +22,9 @@ export Executable
 
 var effects:ZZ32=0
 
-sideeffect(x:ZZ32):ZZ32 = do
+sideeffect(v:ZZ32):ZZ32 = do
   effects+=1
-  x
+  v
 end
 
 a=sideeffect(x)
@@ -37,7 +37,7 @@ object P
 end
 
 object O
-  p(x:ZZ32):() = println("O.p(" x ") called")
+  p(xx:ZZ32):() = println("O.p(" xx ") called")
 end
 
 x:ZZ32=sideeffect(1)

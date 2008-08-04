@@ -133,10 +133,10 @@ object Csr[\N extends Number, nat n, nat m\]
     replica[\U\]() = fail("Csr replica undefined")
     indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
         SparseGen[\N,((ZZ32,ZZ32),N)\](rows,
-            fn (i:ZZ32,j:ZZ32,n:N):((ZZ32,ZZ32),N) => ((i,j),n))
+            fn (i:ZZ32,j:ZZ32,nn:N):((ZZ32,ZZ32),N) => ((i,j),nn))
     zeroIndices():Generator[\(ZZ32,ZZ32)\] =
         SparseGen[\N,(ZZ32,ZZ32)\](rows,
-            fn (i:ZZ32,j:ZZ32,n:N):((ZZ32,ZZ32),N) => (i,j))
+            fn (i:ZZ32,j:ZZ32,_:N):((ZZ32,ZZ32),N) => (i,j))
     t() = Csc[\N,m,n\](rows)
     (** Sparse matrix * dense vector multiply (yields dense vector) *)
     rmul(other:Vector[\N,m\]): Vector[\N,n\] = do
@@ -177,10 +177,10 @@ object Csc[\N extends Number, nat n, nat m\]
     replica[\U\]() = fail("Csc replica undefined")
     indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
         SparseGen[\N,((ZZ32,ZZ32),N)\](cols,
-            fn (i:ZZ32,j:ZZ32,n:N):((ZZ32,ZZ32),N) => ((j,i),n))
+            fn (i:ZZ32,j:ZZ32,nn:N):((ZZ32,ZZ32),N) => ((j,i),nn))
     zeroIndices():Generator[\(ZZ32,ZZ32)\] =
         SparseGen[\N,(ZZ32,ZZ32)\](cols,
-            fn (i:ZZ32,j:ZZ32,n:N):((ZZ32,ZZ32),N) => (j,i))
+            fn (i:ZZ32,j:ZZ32,_:N):((ZZ32,ZZ32),N) => (j,i))
     t() = Csr[\N,m,n\](cols)
     lmul(other:Vector[\N,n\]): Vector[\N,m\] = t().rmul(other)
 end

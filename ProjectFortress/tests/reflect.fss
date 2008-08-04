@@ -20,7 +20,7 @@ import NatReflect.{...}
 
 export Executable
 
-x : ZZ32 = 43 - 1
+t : ZZ32 = 43 - 1
 
 foo(x:N[\42\]):() = println("OK")
 foo(x:NatParam):() = println("Fail")
@@ -29,8 +29,8 @@ bar(x:N[\17\]):() = println("Fail")
 bar(x:NatParam):() = println("OK")
 
 run() = do
-  foo(reflect(x))
-  bar(reflect(x))
+  foo(reflect(t))
+  bar(reflect(t))
 end
 
 end

@@ -414,7 +414,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         else
             (l,m,r) = other.splitAt(key)
             if v <- m
-            then val=v AND: (left=l AND right=r)
+            then (val=v) AND: (left=l AND right=r)
             else false end
         end
 

@@ -29,23 +29,22 @@ trait U
   getParentX():ZZ32
 end
 
-object A(i:ZZ32, j:ZZ32) extends T
+object A(ii:ZZ32, jj:ZZ32) extends T
 
      k:ZZ32 = 4
      x:ZZ32 = 9
-     getI():ZZ32 = i
-     getJ():ZZ32 = j
+     getI():ZZ32 = ii
+     getJ():ZZ32 = jj
 
 
-  b(n:ZZ32):T = do outer = self
-                   object extends {T,U}
+  b(n:ZZ32):T = do object extends {T,U}
                         m:ZZ32 = n
-                        x:ZZ32 = 7
+                        xx:ZZ32 = 7
                         getI():ZZ32 = m
-                        getJ():ZZ32 = i+j+1
-                        getMyX():ZZ32 = x
-                        getMyXAlt():ZZ32 = x+1
-                        getParentX():ZZ32 = outer.x
+                        getJ():ZZ32 = ii+jj+1
+                        getMyX():ZZ32 = xx
+                        getMyXAlt():ZZ32 = xx+1
+                        getParentX():ZZ32 = x
                    end
   end
 

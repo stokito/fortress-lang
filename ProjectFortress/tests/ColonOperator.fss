@@ -33,8 +33,7 @@ run(args:String...) = do
     println i
   end
   (fn (x:ZZ32):() => println x) 8
-  x: ZZ32
-  x = 5
+  x: ZZ32 = 5
   println 5
   "left":"right"
 end
