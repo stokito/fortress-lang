@@ -28,14 +28,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 
 import xtc.parser.Module;
 
-import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.Debug;
 
@@ -94,7 +90,7 @@ public class RatsParserGenerator {
         private byte[] loadClassData(String classname) throws ClassNotFoundException {
 
             byte[] res = null;
-            classname = classname.replaceAll("\\.", ""+File.separatorChar);
+            classname = classname.replace('.', File.separatorChar);
 
             File classfile = new File(basedir + classname+".class");
             if (classfile.exists()) {
