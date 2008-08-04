@@ -142,7 +142,7 @@ private NonterminalParameter Decl =
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDecl SyntaxDef =
-     mods:ChoiceModifier? w a1s:SyntaxSymbols w void:separator w a2:PreTransformer
+     mods:ChoiceModifier? w a1s:SyntaxSymbols w void:separator w a2:PreTransformerDecl
      { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 SyntaxDecl SyntaxExtensionDef =
@@ -163,20 +163,23 @@ String SuperChoiceModifier =
      yyValue:private
      / yyValue:without;
 
-/* TransformationTemplate ::= <[ Expr ]> */
-TransformerDecl PreTransformer =
-     case w pvar:Id of clauses:SyntaxCaseClauses w end
-     { yyValue = new SyntaxCaseTransformer(createSpan(yyStart,yyCount), pvar, clauses); }
-   / leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
-     { yyValue = new PreTransformerDef(createSpan(yyStart,yyCount), "Expr", a1); };
+TransformerDecl PreTransformerDecl =
+     transformer:PreTransformer
+     { yyValue = new PreTransformerDef(createSpan(yyStart,yyCount), transformer); };
 
-List<SyntaxCaseClause> SyntaxCaseClauses =
-     a1:SyntaxCaseClause a2s:(br SyntaxCaseClause)*
+Transformer PreTransformer =
+     case w pvar:Id of clauses:CaseTransformerClauses w end
+     { yyValue = new CaseTransformer(createSpan(yyStart,yyCount), pvar, clauses); }
+   / leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
+     { yyValue = new UnparsedTransformer(createSpan(yyStart,yyCount), a1, "Expr"); };
+
+List<CaseTransformerClause> CaseTransformerClauses =
+     a1:CaseTransformerClause a2s:(br CaseTransformerClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-SyntaxCaseClause SyntaxCaseClause =
+CaseTransformerClause CaseTransformerClause =
      c:Id w openparen w gaps:BindIdList w closeparen w void:separator w transformer:PreTransformer
-     { yyValue = new SyntaxCaseClause(createSpan(yyStart,yyCount), c, gaps, transformer); };
+     { yyValue = new CaseTransformerClause(createSpan(yyStart,yyCount), c, gaps, transformer); };
 
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+/*
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,10 +51,10 @@ import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 import edu.rice.cs.plt.tuple.Option;
 
-/*
+/ *
  * Rewrite occurrences of Keyword symbols and token symbols to
  * nonterminal references to terminal definitions
- */
+ * /
 public class TerminalRewriter extends NodeUpdateVisitor {
 
     private static final String STRINGLITERALEXPR = "StringLiteralExpr";
@@ -106,12 +107,12 @@ public class TerminalRewriter extends NodeUpdateVisitor {
         return handleTerminal(that, that.getToken());
     }
 
-    /**
+    / **
      * TODO: Check to see if we already have created terminal definition
      * with the same token and reuse it.
      * @param that
      * @return
-     */
+     * /
     private Node handleTerminal(SyntaxSymbol that, String token){
         // Create a new name for the terminal definition
         String var = "";
@@ -149,3 +150,4 @@ public class TerminalRewriter extends NodeUpdateVisitor {
     }
 
 }
+*/

@@ -566,8 +566,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             abstract TerminalDecl(SyntaxDef syntaxDef);
                 /**
-                 * terminal definition result of rewrite of keyword and token symbols in disambigutation of
-                 * syntax abstractions
+                 * terminal definition result of rewrite of keyword and token 
+		 * symbols in disambigutation of syntax abstractions
                  */
                 _TerminalDef();
         /**
@@ -605,38 +605,35 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
           */
         abstract TransformerDecl() implements AbsDecl;
             /**
+             * pre transformer definition in transformer declarations
+             */
+            PreTransformerDef(Transformer transformer);
+            /**
              * transformer definition in transformer declarations
              */
-            TransformerDef(String transformer, String def, List<NonterminalParameter> parameters);
+            NamedTransformerDef(String name, List<NonterminalParameter> parameters, Transformer transformer);
 
+        /**
+         * Transformers
+         */
+        abstract Transformer();
             /**
-             * Same as above but with the template( def ) parsed into a node
+             * Unparsed template
              */
-            TransformerNode(String transformer, AbstractNode node, List<NonterminalParameter> parameters );
-
+            UnparsedTransformer(String transformer, String nonterminal);
+            /**
+             * Parsed template
+             */
+            NodeTransformer(AbstractNode node);
             /**
              * Case-dispatch transformer expr
              */
-            SyntaxCaseTransformer(Id gapName, List<SyntaxCaseClause> clauses);
-
-            /**
-             * For terminal nodes that are just a string literal
-             */
-            SimpleTransformerDef(AbstractNode node);
-
-            /**
-             * transformer expression definition in transformer declarations
-             */
-            TransformerExpressionDef(Expr transformer);
-            /**
-             * pre transformer definition in transformer declarations
-             */
-            PreTransformerDef(String productionName, String transformer);
+            CaseTransformer(Id gapName, List<CaseTransformerClause> clauses);
 
         /**
-         * Syntax case clause
+         * Case transformer clause
          */
-        SyntaxCaseClause(Id constructor, List<Id> parameters, TransformerDecl body);
+        CaseTransformerClause(Id constructor, List<Id> parameters, Transformer body);
 
         /**
           * syntax symbol

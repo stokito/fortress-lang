@@ -60,7 +60,8 @@ import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.PreTransformerDef;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.TransformerDef;
+import com.sun.fortress.nodes.NamedTransformerDef;
+import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarType;
@@ -148,35 +149,29 @@ public Result(Api api,
         // If that is not the case then it is an error in the disambiguation and not here.
         Id id = that.getId().unwrap();
         PrefixSymbolSymbolGetter psg = new SyntaxDeclEnv.PrefixSymbolSymbolGetter(id);
-                        that.getSymbol().accept(psg);
-                        for (Entry<Id, Id> e: psg.getVarToNonterminalName().entrySet()) {
-                                this.varsToNonterminalType.put(e.getKey(), getType(e.getValue()));
-                        }
-                        for (Id i: psg.getAnyChars()) {
-                                this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
-                        }
-                        for (Id i: psg.getCharacterClasses()) {
-                                this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
-                        }
-                        for (Id i: psg.getSpecialSymbols()) {
-                                this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
+	that.getSymbol().accept(psg);
+	for (Entry<Id, Id> e: psg.getVarToNonterminalName().entrySet()) {
+	    this.varsToNonterminalType.put(e.getKey(), getType(e.getValue()));
+	}
+	for (Id i: psg.getAnyChars()) {
+	    this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
+	}
+	for (Id i: psg.getCharacterClasses()) {
+	    this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
+	}
+	for (Id i: psg.getSpecialSymbols()) {
+	    this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
         }
         return super.forPrefixedSymbol(that);
     }
 
-    @Override public Node forTransformerDefOnly(TransformerDef that, List<NonterminalParameter> parameters_result) {
+    @Override public Node forNamedTransformerDef(NamedTransformerDef that) {
         TemplateVarRewriter tvs = new TemplateVarRewriter();
         Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
         vs.putAll(this.vars);
         vs.putAll(this.varsToNonterminalType);
-        String p = tvs.rewriteVars(vs, that.getDef());
-
-        return new TransformerDef(that.getTransformer(), p, parameters_result);
-        /*
-        // Option<Node> res = parseTemplate(that.getSpan(), p, that.getProductionName());
-        Option<Node> res = parseTemplate(that.getSpan(), p, "Expr");
-        return res.unwrap(that);
-        */
+        Transformer transformer = tvs.rewriteVars(vs, that.getTransformer());
+        return new NamedTransformerDef(that.getName(), that.getParameters(), transformer);
     }
 
     /** 

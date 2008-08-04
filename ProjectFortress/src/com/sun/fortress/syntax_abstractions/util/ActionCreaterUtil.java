@@ -17,6 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
+/*
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -132,10 +133,10 @@ public class ActionCreaterUtil {
                         return fresh;
                     }
                 };
-                /*
+                / *
                 String var = depth.createCode(sym.getId().getText(), listCode, listIndents);
                 indents.add(3);
-                */
+                * /
                 var = depth.accept(new DepthConvertVisitor(sym.getId().unwrap().getText(), 3));
             }
             indents.add(3);
@@ -220,3 +221,4 @@ public class ActionCreaterUtil {
     }
 
 }
+*/
