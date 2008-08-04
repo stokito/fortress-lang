@@ -25,7 +25,9 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
+import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
@@ -33,16 +35,21 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Voidoid;
+
+import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
@@ -102,8 +109,13 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
     private void importAPIName(APIName imported) {
         String s = NodeUtil.nameString(imported);
+        importAPIName(s);
+    }
+
+    public void importAPIName(String s) {
         ComponentWrapper c = linker.get(s);
-        bindInto.putApi(s, c.getEnvironment());
+        if (c != null)
+            bindInto.putApi(s, c.getEnvironment());
         // Null Pointer Exception here means that static checking was inadequate.
     }
 
@@ -138,7 +150,33 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         
         case 2: {
             String s = x.getName().stringName();
-            // Retrieve the overloaded function, scan definitions and copy them in.
+            OverloadedFunction of = (OverloadedFunction) bindInto.getValue(s);
+            for (IdOrOpName fn : x.getFns()) {
+                Option<APIName> oapi = fn.getApi();
+                FValue oapi_val = null;
+                
+                if (fn instanceof Id) {
+                    oapi_val = bindInto.getValueNull((Id) fn, Environment.TOP_LEVEL); // top-level reference
+                } else if (fn instanceof OpName) {
+                    oapi_val = bindInto.getValueNull((OpName) fn, Environment.TOP_LEVEL); // top-level reference
+                } else {
+                    bug("Unexpected change to AST node hierarchy");
+                }
+                
+                if (oapi_val == null) {
+                    bug("Failed to find overload member " + fn + " for " + x);
+                }
+                
+                if (oapi_val instanceof SingleFcn) {
+                    of.addOverload((SingleFcn) oapi_val, true);
+                } else if (oapi_val instanceof OverloadedFunction) {
+                    of.addOverloads((OverloadedFunction) oapi_val);
+                } else {
+                    bug("Unexpected function binding for " + fn +" , value is " + oapi_val);
+                }
+                
+            }
+            
         }
         
         }
@@ -177,7 +215,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
     public Voidoid forComponent1(Component x) {
         APIName name = x.getName();
-        // List<Import> imports = x.getImports();
+        List<Import> imports = x.getImports();
         // List<Export> exports = x.getExports();
         List<? extends AbsDeclOrDecl> defs = x.getDecls();
 
@@ -185,6 +223,10 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         //containing.putComponent(name, comp);
 
         forComponentDefs(x);
+        
+        for (Import imp : imports) {
+            imp.accept(this);
+        }
 
         return null;
     }

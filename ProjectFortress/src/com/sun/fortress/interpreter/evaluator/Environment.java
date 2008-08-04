@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NamedType;
+import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.HasAt;
@@ -33,6 +34,8 @@ import com.sun.fortress.useful.Visitor2;
 
 
 public interface Environment  {
+
+    public final static int TOP_LEVEL = 0;
 
     /**
      * Assign to a pre-existing variable wherever it happens
@@ -124,6 +127,10 @@ public interface Environment  {
     
     public abstract FValue getValueNull(OpRef vr);
 
+    public abstract FValue getValueNull(Id name, int l);
+    
+    public abstract FValue getValueNull(OpName name, int l);
+    
     public abstract FValue getValue(VarRef vr);
     
     public abstract FValue getValue(OpRef vr);

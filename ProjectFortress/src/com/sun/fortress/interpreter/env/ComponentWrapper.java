@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.env;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.HashMap;
+import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.BuildApiEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
@@ -45,6 +46,12 @@ public class ComponentWrapper {
 
     public BuildTopLevelEnvironments be;
 
+    /**
+     * The names of libraries that are implicitly imported
+     * (e.g., FortressLibrary, FortressBuiltin}
+     */
+    private String[]  implicitLibs;
+    
     public BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     public BASet<String> ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
@@ -107,7 +114,8 @@ public class ComponentWrapper {
         }
     };
 
-    public ComponentWrapper(CompilationUnit comp, HashMap<String, ComponentWrapper> linker) {
+
+    public ComponentWrapper(CompilationUnit comp, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
         if (comp == null)
             throw new NullPointerException("Null compilation unit not allowed");
         p = comp;
@@ -126,6 +134,7 @@ public class ComponentWrapper {
         } else { // comp instanceof Api
             be = new BuildApiEnvironment(e, linker);
         }
+        this.implicitLibs = implicitLibs;
     }
 
     /**
@@ -133,8 +142,8 @@ public class ComponentWrapper {
      * @param comp
      * @param api
      */
-    public ComponentWrapper(Component comp, ComponentWrapper api, HashMap<String, ComponentWrapper> linker) {
-        this(comp, linker);
+    public ComponentWrapper(Component comp, ComponentWrapper api, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+        this(comp, linker, implicitLibs);
 
         exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
@@ -206,6 +215,10 @@ public class ComponentWrapper {
         p = cu;
         topLevelUsesForDebugging = desugarer.topLevelUses.copy();
         topLevelUsesForDebugging.removeAll(ownNames);
+        
+        for (String implicitLibraryName : implicitLibs) {
+            be.importAPIName(implicitLibraryName);
+        }
         
         for (ComponentWrapper api: exports.values()) {
             api.populateOne(this);

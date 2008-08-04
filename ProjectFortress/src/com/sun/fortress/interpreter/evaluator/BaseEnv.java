@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
@@ -48,6 +49,10 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringArrayIterator;
 import com.sun.fortress.useful.Visitor2;
 
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionUnwrapException;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
@@ -69,8 +74,11 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     public Environment getApi(String s) {
-        // TODO Auto-generated method stub
-        return null;
+        Environment e = getApiNull(s);
+        if (s == null) {
+            return error(errorMsg("Missing api name ", s));
+        }
+        return e;
     }
 
     public void putApi(String apiName, Environment env) {
@@ -423,34 +431,49 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     
     final public  FValue getValueNull(VarRef vr) {
         Id name = vr.getVar();
-        String s = NodeUtil.nameString(name);
         int l = vr.getLexicalDepth();
-        FValue v = getValueRaw(s, l);
-        if (l == -1) {
-            // Debugging code, currently fires for $self
-            if (false)
-                return error(errorMsg("Untagged VarRef ", vr));
-            if (false)
-                missedNames.syncPut(s);
-        }
-        return getValueNullTail(s, v);
+        return getValueNull(name, l);
     }
-        
+
     final public  FValue getValueNull(OpRef vr) {
         OpName name = vr.getOriginalName();
-        String s = NodeUtil.nameString(name);
         int l = vr.getLexicalDepth();
-        FValue v = getValueRaw(s, l);
-        if (l == -1) {
-            // Debugging code, currently fires for $self
-            if (false)
-                return error(errorMsg("Untagged OpRef ", vr));
-            if (false)
-                missedNames.syncPut(s);
-        }
-        return getValueNullTail(s, v);
+        return getValueNull(name, l);
     }
-        
+
+    final public FValue getValueNull(Id name, int l) throws CircularDependenceError {
+        //String s = NodeUtil.nameString(name);
+        String local = name.getText();
+        Option<APIName> opt_api = name.getApi();
+        return getValueNullTail(name, l, local, opt_api);
+    }
+
+      final public FValue getValueNull(OpName name, int l)
+            throws CircularDependenceError {
+        // String s = NodeUtil.nameString(name);
+        String local = NodeUtil.nameString(name);
+        Option<APIName> opt_api = name.getApi();
+        return getValueNullTail(name, l, local, opt_api);
+
+    }
+    
+      private FValue getValueNullTail(IdOrOpName name, int l, String local,
+              Option<APIName> opt_api) throws OptionUnwrapException,
+              CircularDependenceError {
+          if (opt_api.isSome()) {
+              if (l != TOP_LEVEL) {
+                  bug("Non-top-level reference to imported " + name);
+              }
+              APIName api = opt_api.unwrap();
+              // Circular dependence etc will be signalled in API.
+              Environment api_e = getApi(api);
+              return api_e.getValueNull(local);
+          } else {
+              FValue v = getValueRaw(local, l);
+              return getValueNullTail(local, v);
+          }
+      }
+      
     private FValue getValueNullTail(String s, FValue v)
         throws CircularDependenceError {
     if (v == null)
