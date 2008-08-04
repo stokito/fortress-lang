@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
@@ -48,7 +49,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
 
-    public BuildNativeEnvironment(Environment within, HashMap<String, ComponentWrapper> linker) {
+    public BuildNativeEnvironment(Environment within, Map<String, ComponentWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }

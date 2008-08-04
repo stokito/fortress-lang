@@ -58,14 +58,14 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 abstract public class BaseEnv implements Environment, Iterable<String> {
 
-    public Environment getApi(APIName s) {
-        // TODO Auto-generated method stub
-        return null;
+    public Environment getApi(APIName a) {
+        String s = NodeUtil.nameString(a);
+        return getApi(s);
     }
 
-    public Environment getApi(List<Id> s) {
-        // TODO Auto-generated method stub
-        return null;
+    public Environment getApi(List<Id> ids) {
+        String s = com.sun.fortress.useful.Useful.<Id>dottedList(ids);
+        return getApi(s);
     }
 
     public Environment getApi(String s) {
@@ -73,6 +73,10 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return null;
     }
 
+    public void putApi(String apiName, Environment env) {
+        /* Should override in the generated top level environment */
+    }
+    
     public Environment extend() {
         // TODO Auto-generated method stub
         return null;    	
@@ -623,10 +627,6 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
  
     public Environment getApiNull(String apiName) {
     	return null;
-    }
-    
-    public void putApi(String apiName, Environment env) {
-        /* Should override in the generated top level environment */
     }
     
     public Iterable<String> youngestFrame() {

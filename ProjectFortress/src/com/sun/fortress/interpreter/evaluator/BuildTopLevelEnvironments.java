@@ -20,20 +20,27 @@ package com.sun.fortress.interpreter.evaluator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
+import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.ImportNames;
+import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Voidoid;
 
@@ -53,15 +60,53 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
      * Empty by default
      */
     public Set<String> typeNames = new HashSet<String>();
+    
+    /**
+     * Used for mapping API Names to their environments
+     */
+    Map<String, ComponentWrapper> linker;
 
     /**
      * Creates an environment builder that will inject bindings into 'within'.
      * The visit is suspended at generics (com.sun.fortress.interpreter.nodes
      * with type parameters) until they can be instantiated.
      */
-    public BuildTopLevelEnvironments(Environment within, HashMap<String, ComponentWrapper> linker) {
+    public BuildTopLevelEnvironments(Environment within, Map<String, ComponentWrapper> linker) {
         super(within);
+        this.linker = linker;
     }
+
+    @Override
+    public Voidoid forImportApi(ImportApi x) {
+        List<AliasedAPIName> apis = x.getApis();
+        for (AliasedAPIName aliased_api : apis) {
+            APIName imported = aliased_api.getApi();
+            importAPIName(imported);
+        }
+        return null;
+    }
+
+  @Override
+    public Voidoid forImportNames(ImportNames x) {
+        APIName imported = x.getApi();
+        importAPIName(imported);
+        return null;
+    }
+
+    @Override
+    public Voidoid forImportStar(ImportStar x) {
+        APIName imported = x.getApi();
+        importAPIName(imported);
+        return null;
+    }
+
+    private void importAPIName(APIName imported) {
+        String s = NodeUtil.nameString(imported);
+        ComponentWrapper c = linker.get(s);
+        bindInto.putApi(s, c.getEnvironment());
+        // Null Pointer Exception here means that static checking was inadequate.
+    }
+
 
     /*
      * (non-Javadoc)
@@ -80,6 +125,24 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         }
         return null;
 
+    }
+    
+    public Voidoid for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
+        switch (getPass()) {
+        case 1: {
+            // Define the overloaded function.
+            String s = x.getName().stringName();
+            bindInto.putValue(s,new OverloadedFunction(x.getName(), bindInto));
+        }
+        break;
+        
+        case 2: {
+            String s = x.getName().stringName();
+            // Retrieve the overloaded function, scan definitions and copy them in.
+        }
+        
+        }
+        return null;
     }
 
     /*
