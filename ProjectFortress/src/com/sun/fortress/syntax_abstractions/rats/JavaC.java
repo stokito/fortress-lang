@@ -33,10 +33,12 @@ public class JavaC {
 	 * 
 	 */
 	static final String nl = "\n";
+	static final String PATHSEP = File.pathSeparator;
 	
 	public static int compile(String sourceDir, String destinationDir, String filename) {
 		Debug.debug(Debug.Type.SYNTAX, "compiling a temporary parser...");
-		String classpath = sourceDir+":"+getFortressThirdPartyDependencyJars()+":"+getFortressBuildDir();
+		String classpath = sourceDir + PATHSEP + getFortressThirdPartyDependencyJars() 
+		    + PATHSEP + getFortressBuildDir();
 		String[] args = {"-nowarn", "-cp", classpath , "-d", destinationDir, filename};
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
@@ -59,12 +61,12 @@ public class JavaC {
 		String thirdPartyDir = ProjectProperties.FORTRESS_AUTOHOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"third_party"+File.separatorChar;
 		
 		String jars = "";
-		jars += thirdPartyDir+"ant"+sepChar+"ant-junit.jar:";
-		jars += thirdPartyDir+"ant"+sepChar+"ant.jar:";
-		jars += thirdPartyDir+"jsr166y"+sepChar+"jsr166y.jar:";
-		jars += thirdPartyDir+"junit"+sepChar+"junit.jar:";
-		jars += thirdPartyDir+"junit"+sepChar+"junit_src.jar:";
-		jars += thirdPartyDir+"plt"+sepChar+"plt.jar:";
+		jars += thirdPartyDir+"ant"+sepChar+"ant-junit.jar" + PATHSEP;
+		jars += thirdPartyDir+"ant"+sepChar+"ant.jar" + PATHSEP;
+		jars += thirdPartyDir+"jsr166y"+sepChar+"jsr166y.jar" + PATHSEP;
+		jars += thirdPartyDir+"junit"+sepChar+"junit.jar" + PATHSEP;
+		jars += thirdPartyDir+"junit"+sepChar+"junit_src.jar" + PATHSEP;
+		jars += thirdPartyDir+"plt"+sepChar+"plt.jar" + PATHSEP;
 		jars += thirdPartyDir+"xtc"+sepChar+"xtc.jar";
 		
 		return jars;

@@ -59,7 +59,7 @@ public abstract class RatsUtil {
     private static final char SEP = '/'; // File.separatorChar
 
     public static final String BASEPARSER = "com"+ SEP +"sun"+SEP+"fortress"+SEP+"parser"+SEP;
-    public static final String TEMPLATEPARSER = BASEPARSER + SEP + "templateparser" + SEP;
+    public static final String TEMPLATEPARSER = BASEPARSER + "templateparser" + SEP;
 
     public static Module getRatsModule(String filename) {
         Option<Module> result = parseRatsModule(filename);
