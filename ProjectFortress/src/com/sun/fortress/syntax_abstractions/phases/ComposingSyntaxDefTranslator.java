@@ -73,14 +73,16 @@ import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
-import com.sun.fortress.nodes.SimpleTransformerDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TransformerDecl;
-import com.sun.fortress.nodes.TransformerDef;
-import com.sun.fortress.nodes.TransformerNode;
+import com.sun.fortress.nodes.PreTransformerDef;
+import com.sun.fortress.nodes.NamedTransformerDef;
+import com.sun.fortress.nodes.Transformer;
+import com.sun.fortress.nodes.NodeTransformer;
+import com.sun.fortress.nodes.CaseTransformer;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes._TerminalDef;
@@ -88,7 +90,6 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.ComposingSyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
@@ -143,68 +144,35 @@ public class ComposingSyntaxDefTranslator {
         List<String> code = new LinkedList<String>();
         List<Integer> indents = new LinkedList<Integer>();
 
-        if (transformation instanceof TransformerDef) {
+        if (transformation instanceof NamedTransformerDef) {
             createVariableBinding(code, indents, syntaxDeclEnv, variables);
-            TransformerDef def = (TransformerDef) transformation;
+            NamedTransformerDef def = (NamedTransformerDef) transformation;
             String parameters = collectParameters( def, code, indents );
-            String name = def.getTransformer();
+            String name = def.getName();
             code.add(String.format("yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s, %s);", type, name, BOUND_VARIABLES, parameters ));
             indents.add(3);
-        } else if ( transformation instanceof SimpleTransformerDef ){
-            createVariableBinding(code, indents, syntaxDeclEnv, variables);
-            AbstractNode n = ((SimpleTransformerDef) transformation).getNode();
-            // FIXME: hack: We know it's a StringLiteralExpr, so the env isn't needed
-            // should convert to new env
-            JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(null);
-            String yyValue = n.accept(jpp);
-            for (String s: jpp.getCode()) {
-                code.add(s);
-                indents.add(3);
-            }
-            code.add(String.format( "yyValue = %s;", yyValue ));
-            indents.add(3);
-        } else if ( transformation instanceof TransformerNode ){
-            createVariableBinding(code, indents, syntaxDeclEnv, variables);
-            TransformerNode def = (TransformerNode) transformation;
-            String parameters = collectParameters( def, code, indents );
-            String name = def.getTransformer();
-
-            code.add(String.format("yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s, %s);", 
-                                   type, name, BOUND_VARIABLES, parameters ));
-            indents.add(3);
         } else {
-            throw new MacroError( "Don't know what to do with " + transformation + " " + transformation.getClass().getName() );
+            throw new MacroError( "Don't know what to do with " + transformation +
+				  " " + transformation.getClass().getName() );
         }
         return new Action(code, indents);
     }
 
-    private static String collectParameters( TransformerDef def, List<String> code, List<Integer> indents ){
+    private static String collectParameters( NamedTransformerDef def, 
+					     List<String> code, 
+					     List<Integer> indents ){
         String variable = FreshName.getFreshName("parameterList");
-
-        code.add( String.format( "java.util.List %s = new java.util.LinkedList<String>();", variable ) );
+        code.add(String.format("java.util.List %s = new java.util.LinkedList<String>();", 
+			       variable));
         indents.add(3);
         for ( NonterminalParameter parameter : def.getParameters() ){
-            code.add( String.format( "%s.add( \"%s\" );", variable, parameter.getName().getText() ) );
+            code.add( String.format( "%s.add( \"%s\" );", 
+				     variable, 
+				     parameter.getName().getText() ) );
             indents.add(3);
         }
-
         return variable;
     }
-
-    private static String collectParameters( TransformerNode def, List<String> code, List<Integer> indents ){
-        String variable = FreshName.getFreshName("parameterList");
-
-        code.add( String.format( "java.util.List %s = new java.util.LinkedList<String>();", variable ) );
-        indents.add(3);
-        for ( NonterminalParameter parameter : def.getParameters() ){
-            code.add( String.format( "%s.add( \"%s\" );", variable, parameter.getName().getText() ) );
-            indents.add(3);
-        }
-
-        return variable;
-    }
-
-
 
     private static List<Element> mkList(Element... e) {
         return Arrays.asList(e);

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
+/*
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -100,9 +101,9 @@ public class ActionCreater {
 
         List<Integer> indents = new LinkedList<Integer>();
         List<String> code = new LinkedList<String>();
-        /* TransformerExpressionDef is going away */
+        / * TransformerExpressionDef is going away * /
         if (transformation instanceof TransformerExpressionDef) {
-            /*
+            / *
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, false, variables );
             Expr e = ((TransformerExpressionDef) transformation).getTransformer();
             Component component = ac.makeComponent(e, syntaxDeclEnv, variables);
@@ -113,15 +114,15 @@ public class ActionCreater {
                 addCodeLine("System.err.println(\"Parsing... production: "+alternativeName+"\");", code, indents);
             }
             addCodeLine("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">(createSpan(yyStart,yyCount))).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+alternativeName+"\", code, "+BOUND_VARIABLES+").value());", code, indents);
-            */
+            * /
         }
         else if (transformation instanceof TransformerDef) {
             code = ActionCreaterUtil.createVariableBinding(indents, syntaxDeclEnv, BOUND_VARIABLES, true, variables);
-            /*
+            / *
             AbstractNode n = ((TransformerDef) transformation).getTransformer();
             JavaAstPrettyPrinter jpp = new JavaAstPrettyPrinter(syntaxDeclEnv);
 	    String yyValue = n.accept(jpp);
-	     */
+	     * /
 	    // addCodeLine( String.format( "yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), new %s(%s));", returnType, transformer, BOUND_VARIABLES ), code, indents );
             TransformerDef def = (TransformerDef) transformation;
             String parameters = collectParameters( def, code, indents );
@@ -173,7 +174,7 @@ public class ActionCreater {
         APIName name = NodeFactory.makeAPIName("TransformationComponent");
         Span span = new Span();
         List<Import> imports = new LinkedList<Import>();
-        /* TODO: these imports should be the same imports that the api with the grammar had */
+        / * TODO: these imports should be the same imports that the api with the grammar had * /
         imports.add(NodeFactory.makeImportStar(FORTRESS_AST_UTIL));
         imports.add(NodeFactory.makeImportStar(FORTRESS_AST));
         imports.add(NodeFactory.makeImportStar("List"));
@@ -230,3 +231,4 @@ public class ActionCreater {
         }
     }
 }
+*/

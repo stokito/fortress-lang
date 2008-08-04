@@ -24,7 +24,7 @@
  */
 
 package com.sun.fortress.syntax_abstractions;
-
+/*
 import java.util.Collection;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -45,15 +45,15 @@ public class FileBasedMacroCompiler implements MacroCompiler {
         //	        System.err.println(g.getName() + ", "+ g.isToplevel());
         //	    }
 
-        /*
+        / *
          * Initialize GrammarIndex
-         */
+         * /
         GrammarIndexInitializer.Result giir = GrammarIndexInitializer.init(grammarIndexs); 
         if (!giir.isSuccessful()) { return new Result(giir.errors()); }
 
-        /* 
+        / * 
          * Resolve grammar extensions and extensions of nonterminal definitions.
-         */
+         * /
         ModuleTranslator.Result mrr = ModuleTranslator.translate(grammarIndexs);
         if (!mrr.isSuccessful()) { return new Result(mrr.errors()); }
 
@@ -65,23 +65,24 @@ public class FileBasedMacroCompiler implements MacroCompiler {
             }
         }
 
-        /*
+        / *
          * Translate each grammar to a corresponding Rats! module
-         */
+         * /
         GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
         if (!gtr.isSuccessful()) { return new Result(gtr.errors()); }
 
-        /*
+        / *
          * For each changed module write it to a file and run Rats! to 
          * generate a temporary parser.
-         */
+         * /
         return new Result(RatsParserGenerator.generateParser(gtr.modules()));
         // if (!rpgr.isSuccessful()) { return new Result(rpgr.errors()); }
 
-        /*
+        / *
          * Return the temporary parser
-         */
+         * /
         // return new Result(rpgr.parserClass());
     }
 
 }
+*/

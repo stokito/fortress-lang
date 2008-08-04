@@ -977,21 +977,22 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     // @Override public String forTransformerDefOnly( that,
 
     /* sad but true, it's hard to convert a macro template back to its original form.
-     */
     @Override public String forTransformerNode(TransformerNode that) {
         StringBuilder s = new StringBuilder();
         s.append( "(* ..macro.. *)" );
         return s.toString();
     }
+     */
 
     // @Override public String forSimpleTransformerDefOnly( that,
 
     /* this node will be going away, so not needed */
     // @Override public String forTransformerExpressionDefOnly
-
+    /*
     @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
         return that.getTransformer();
     }
+    */
 
     @Override public String forPrefixedSymbolOnly(PrefixedSymbol that,
                                                   Option<String> id_result,

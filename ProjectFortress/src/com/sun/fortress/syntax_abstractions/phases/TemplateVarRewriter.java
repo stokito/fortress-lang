@@ -180,38 +180,4 @@ public class TemplateVarRewriter {
         }
         return TemplateVarRewriter.GAPSYNTAXPREFIX+type.trim();
     }
-
-//    L:for (int inx=0; inx<t.length(); inx++) {
-//        
-//        if (isString(inx, t)) {
-//            consumeString();
-//        }
-//        else {
-//            for (Id id: vs.keySet()) {
-//                String var = id.getText();
-//                //              System.err.println("Testing: "+var);
-//                int end = inx+var.length();
-//
-//                if (match(inx, end, var, t)) {
-//                    //                  System.err.println("Match... "+inx);
-//                    if (isVar(inx, end, t)) {
-//                        //                      System.err.println("isVar...");
-//                        inx = end-1;
-//                        String tmp = "";
-//                        if (isTemplateApplication(end, t)) {
-//                            Pair<Integer,String> p = parseTemplateApplication(varToGapName, end, t, var);
-//                            inx = p.getA();
-//                            tmp = p.getB();
-//                        }
-//                        String type = vs.get(id).accept(new BaseTypeCollector());
-//                        result += getVar(var+tmp, type);
-//                        continue L;
-//                    }
-//                }
-//            }
-//            result += t.charAt(inx);
-//        }
-//    }   
-//    return result;
-    
 }
