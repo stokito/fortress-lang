@@ -105,12 +105,22 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         super.outputDefaultCaseMethod(writer, root);
         writer.println();
         outputDefaultTemplateMethod(writer, root);
+        writer.println();
+        outputDefaultTransformationMethod(writer, root);
     }
 
     protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root ){
         writer.startLine("public RetType defaultTemplateGap(TemplateGap t){");
         writer.indent();
         writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
+    protected void outputDefaultTransformationMethod(TabPrintWriter writer, NodeType root ){
+        writer.startLine("public RetType defaultTransformationNode(_SyntaxTransformation that){");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(\"Override defaultTransformationNode to support syntax transformations\");" );
         writer.unindent();
         writer.startLine("}");
     }
@@ -128,7 +138,7 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
     protected void outputVisitTransformationMethod(NodeType t, TabPrintWriter writer, NodeType root) {
         outputForCaseHeader(t, writer, "RetType", "");
         writer.indent();
-        writer.startLine("throw new RuntimeException(\"Do not visit _SyntaxTranformation nodes\");" );
+        writer.startLine("return defaultTransformationNode(that);");
         writer.unindent();
         writer.startLine("}");
         writer.println();
