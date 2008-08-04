@@ -446,6 +446,10 @@ public class ExprFactory {
         return new TightJuxt(span, false, Useful.list(first, second));
     }
 
+    public static TightJuxt makeTightJuxt(Span span, boolean isParenthesized, List<Expr> exprs) {
+        return new TightJuxt(span, isParenthesized, exprs);
+    }
+
     public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs, Boolean isParenthesized, OpRef infixJuxt, OpRef multiJuxt){
      return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,exprs);
     }

@@ -28,21 +28,15 @@ import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.exceptions.DesugarerError;
-import com.sun.fortress.nodes.BoolRef;
-import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.GenericDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Debug;
 
@@ -60,8 +54,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 	private TraitTable traitTable;
 	// The TraitDecl or ObjectDecl enclosing the object expression
 	private GenericDecl enclosingTraitOrObject;
+    private boolean inAssignmentLhs;
 	
-	private static final int DEBUG_LEVEL = 1;
+	private static final int DEBUG_LEVEL = 2;
+	private static final int DEBUG_LEVEL0 = 1;
 	
 	// This class is used to collect names captured by object expression.
 	// The assumption is that, the top node accepting this visitor is always
@@ -85,6 +81,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		this.scopeStack = scopeStack;
 		this.traitTable = traitTable;
 		this.enclosingTraitOrObject = enclosingTraitOrObject;
+		this.inAssignmentLhs = false;
 	}
 
 	public FreeNameCollection getResult() {
@@ -116,33 +113,68 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
         	result = result.composeResult(c);
         }
         
-        Option<FreeNameCollection> type_result=recurOnOptionOfType(that.getExprType());
+        Option<FreeNameCollection> type_result = 
+                recurOnOptionOfType(that.getExprType());
 
-        return super.forObjectExprOnly(that, type_result , extendsClause_result, decls_result);
+        return super.forObjectExprOnly(that, type_result, 
+                                       extendsClause_result, decls_result);
     }
+
+	/*
+	@Override
+	public FreeNameCollection forAssignment(Assignment that) {
+	    Option<FreeNameCollection> exprType_result = 
+                            recurOnOptionOfType(that.getExprType());
+        inAssignmentLhs = true;
+	    List<FreeNameCollection> lhs_result = recurOnListOfLhs(that.getLhs());
+        inAssignmentLhs = false;
+	    Option<FreeNameCollection> opr_result = 
+                            recurOnOptionOfOpRef(that.getOpr());
+	    FreeNameCollection rhs_result = recur(that.getRhs());
+	    
+	    return forAssignmentOnly(that, exprType_result, 
+                                 lhs_result, opr_result, rhs_result);
+	} */
 
 	@Override
 	public FreeNameCollection forVarRef(VarRef that) {
 		Debug.debug(Debug.Type.COMPILER, 
-                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+                    DEBUG_LEVEL0, "FreeNameCollector visiting ", that);
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL0, "isAssignmentLhs is ", inAssignmentLhs);
+		
+		TypeEnv innerTypeEnv = 
+		    tmpTypeEnvAtNode.get(scopeStack.peek().getSpan());
+		Option<Node> declSite = innerTypeEnv.declarationSite(that.getVar());
+		if(declSite.isNone()) {
+		    Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL0,
+		            "Decl site for ", that, " is null.");
+		} else {
+		    Debug.debug(Debug.Type.COMPILER, 
+		                DEBUG_LEVEL0, "decl site is: ", 
+		                declSite.unwrap().stringName());
+		}
+		
 		if(isDeclaredInObjExpr(that.getVar()) || 
            isDeclareInTopLevel(that.getVar())) {
 			return FreeNameCollection.EMPTY;
 		}
 
-		return result.add(that);
+		return result.add(that, inAssignmentLhs);
 	}
 
-//	@Override
-//	public FreeNameCollection forFieldRef(FieldRef that) {
-//		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-//		if(isDeclaredInObjExpr(that.getField()) || 
-//         isDeclareInTopLevel(that.getField())) {
-//			return FreeNameCollection.EMPTY;
-//		}
-//
-//		return result.add(that);
-//	}
+    /*
+	@Override
+	public FreeNameCollection forFieldRef(FieldRef that) {
+		Debug.debug(Debug.Type.COMPILER, 
+                    DEBUG_LEVEL, "FreeNameCollector visiting ", that);
+		if(isDeclaredInObjExpr(that.getField()) || 
+         isDeclareInTopLevel(that.getField())) {
+			return FreeNameCollection.EMPTY;
+		}
+
+		return result.add(that);
+	} */
 
 	@Override
 	public FreeNameCollection forFnRef(FnRef that) {
@@ -156,16 +188,15 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		return result.add(that, isDottedMethod(that));
 	}
 
-//	@Override
-//	public FreeNameCollection forOpRef(OpRef that) {
-//		if(isDeclaredInObjExpr(that.) || isDeclareInTopLevel(that)) {
-//			return FreeNameCollection.EMPTY;
-//		}
-//
-//		return result.add(that);
-//	}
-//
-//
+    /*
+	@Override
+	public FreeNameCollection forOpRef(OpRef that) {
+		if(isDeclaredInObjExpr(that.) || isDeclareInTopLevel(that)) {
+			return FreeNameCollection.EMPTY;
+		}
+
+		return result.add(that);
+	} 
 	
 	@Override
 	public FreeNameCollection forDimRef(DimRef that) {
@@ -179,7 +210,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		}
 
 		return result.add(that);
-	}
+	} 
 
 	@Override
 	public FreeNameCollection forIntRef(IntRef that) {
@@ -212,7 +243,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
 		// Object expression can't declare its own static param, so must
 		// have been captured from the enclosing trait / object
 		return result.add(that);
-	}
+	} */
 
 	private boolean isDottedMethod(FnRef fnRef) {
 		
@@ -287,14 +318,15 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor<FreeNameColle
                     DEBUG_LEVEL, "its span is: ", topLevelNode.getSpan());
 		
 		// FIXME: change if going back to Pair<Node,Span> key
+
 		TypeEnv topLevelEnv = tmpTypeEnvAtNode.get(topLevelNode.getSpan());
 
-//		if(topLevelEnv == null) {
-//			DebugTypeEnvAtNode();
-//		}		
-//		Debug.debug(Debug.Type.COMPILER, 
-//					DEBUG_LEVEL, "top level type env is: ", 
-//					topLevelEnv.contents());
+		if(topLevelEnv == null) {
+			DebugTypeEnvAtNode(topLevelNode);
+		}		
+		Debug.debug(Debug.Type.COMPILER, 
+					DEBUG_LEVEL, "top level type env is: ", 
+					topLevelEnv.contents()); 
 		
 		Option<BindingLookup> binding = topLevelEnv.binding(id);
 		if(binding.isNone()) { 
