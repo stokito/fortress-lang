@@ -32,12 +32,13 @@ import com.sun.fortress.nodes.IdOrOpName;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.repository.ProjectProperties;
 
 public class OverloadRewriter {
 
 
     /** Please remove this flag once overload rewriting is fully implemented */
-    private static final boolean killSwitch = true;
+    private static final boolean do_rewrite = ProjectProperties.getBoolean("fortress.rewrite.overloads", false);
 
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
@@ -71,7 +72,7 @@ public class OverloadRewriter {
                                              GlobalEnvironment env) {
         Component comp = (Component) component.ast();
         OverloadRewriteVisitor visitor = new OverloadRewriteVisitor();
-        if (!killSwitch) {
+        if (do_rewrite) {
             comp = (Component) comp.accept(visitor);
         }
         List<Decl> decls = comp.getDecls();

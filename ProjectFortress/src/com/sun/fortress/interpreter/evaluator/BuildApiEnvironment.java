@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.ComponentWrapper;
@@ -145,7 +146,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     }
     
     public BuildApiEnvironment(Environment within,
-            HashMap<String, ComponentWrapper> linker) {
+            Map<String, ComponentWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }
