@@ -883,6 +883,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
             String paramEnv = FreshName.getFreshName("paramEnv");
             List<String> ls = new LinkedList<String>();
             ls.add("final Map<String, AbstractNode> "+paramEnv +" = new HashMap<String, AbstractNode>();");
+            /* dead code probably
             for (int inx=0;inx<t.getTemplateParams().size();inx++) {
                 Id formalParam = mEnv.getParameter(inx);
                 Id actualParam = t.getTemplateParams().get(inx);
@@ -893,6 +894,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
                 }
                 ls.add(paramEnv+".put(\""+formalParam +"\", "+var+");");
             }
+            */
             this.code.addAll(ls);
             return addParamHandlers(id, mEnv, t.getTemplateParams(), paramEnv, this.code);
     }

@@ -63,6 +63,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateGapExpr;
+import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.PreTransformerDef;
 import com.sun.fortress.nodes.Type;
@@ -110,7 +111,11 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
         return super.forGrammarDef(that);
     }
 
-    /* these names might need consistently created, rather than use FreshName */
+    /* These names might need to be consistently created, rather than use FreshName
+     * Also, at this point the grammar is fully qualifid so the output is something
+     * like api_api_grammar_name. If this ever matters then take off the first
+     * api.unwrap() + "_"
+     */
     private String transformationName( String name ){
         return api.unwrap() + "_" + grammar.unwrap() + "_" + FreshName.getFreshName( name + "Transformer" );
     }
@@ -124,11 +129,11 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
         return result;
     }
 
-    @Override public Node forPreTransformerDefOnly(PreTransformerDef that) {
+    @Override public Node forPreTransformerDefOnly(PreTransformerDef that, Transformer transformer) {
         try{
             Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());
             String name = transformationName(productionName.unwrap());
-            return new NamedTransformerDef( name, parameters.unwrap(), that.getTransformer() );
+            return new NamedTransformerDef( name, parameters.unwrap(), transformer );
         } catch ( OptionUnwrapException e ){
             throw new MacroError( "Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e );
         }

@@ -17,6 +17,10 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
+public class ActionCreater {
+    public static final String BOUND_VARIABLES = "boundVariables";
+}
+
 /*
 import java.io.BufferedWriter;
 import java.io.IOException;

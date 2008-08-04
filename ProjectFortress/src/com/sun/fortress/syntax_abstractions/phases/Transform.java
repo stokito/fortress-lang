@@ -160,7 +160,7 @@ public class Transform extends TemplateUpdateVisitor {
     }
     */
 
-    static class TransformerEvaluator extends NodeDepthFirstVisitor<Node> {
+    class TransformerEvaluator extends NodeDepthFirstVisitor<Node> {
 	private Map<String,Transformer> transformers;
 	private Map<String,Object> variables;
 
@@ -174,11 +174,11 @@ public class Transform extends TemplateUpdateVisitor {
 	    return that.getNode().accept(new Transform(transformers, variables));
 	}
 
-	@Override public Node forNodeTransformer(CaseTransformer that) {
+	@Override public Node forCaseTransformer(CaseTransformer that) {
 	    Id gapName = that.getGapName();
-	    List<CaseTransformerClause> clauses = that.getCaseTransformerClauses();
+	    List<CaseTransformerClause> clauses = that.getClauses();
 
-	    Object toMatch = lookupVariable(gapName);
+	    Object toMatch = lookupVariable(gapName, new LinkedList<Id>());
 	    for (CaseTransformerClause clause : clauses) {
 		Option<Node> result = matchClause(clause, toMatch);
 		if (result.isSome()) {
@@ -207,7 +207,7 @@ public class Transform extends TemplateUpdateVisitor {
 		if (constructor.equals("Cons")) {
 		    if (!list.isEmpty()) {
 			Object first = list.get(0);
-			Object rest = list.sublist(1);
+			Object rest = list.subList(1, list.size());
 			String firstParam = parameters.get(0).getText();
 			String restParam = parameters.get(1).getText();
 			Map<String, Object> newEnv = new HashMap<String,Object>(variables);

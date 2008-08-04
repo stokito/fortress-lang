@@ -23,10 +23,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.CaseTransformer;
+import com.sun.fortress.nodes.CaseTransformerClause;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.UnparsedTransformer;
 import com.sun.fortress.parser_util.IdentifierUtil;
 import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
@@ -37,16 +43,44 @@ import com.sun.fortress.useful.Pair;
 
 import static com.sun.fortress.parser_util.SyntaxUtil.notIdOrOpOrKeyword;
 
+import edu.rice.cs.plt.tuple.Option;
+
 /*
  * Rewrite all occurrences of variables in a given template to 
  * occurrences of gaps 
  */
-public class TemplateVarRewriter {
+public class TemplateVarRewriter extends NodeUpdateVisitor {
 
     public static final String GAPSYNTAXPREFIX = " <!@#$%^&*<";
     public static final String GAPSYNTAXSUFFIX = ">*&^%$#@!> ";
 
-    public String rewriteVars(Map<Id, BaseType> vs, String t) {
+    private Map<Id, BaseType> vars;
+    private Option<BaseType> caseBaseType;
+
+    public TemplateVarRewriter( Map<Id, BaseType> vs ){
+        vars = vs;
+        caseBaseType = Option.none();
+    }
+    
+    @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that) {
+        return new UnparsedTransformer( rewriteVars( that.getTransformer() ), that.getNonterminal() );
+    }
+
+    @Override public Node forCaseTransformer(CaseTransformer that) {
+        caseBaseType = Option.wrap(vars.get(that.getGapName()));
+        return super.forCaseTransformer(that);
+    }
+    
+    /* extend the environment and transform the body */
+    @Override public Node forCaseTransformerClause(CaseTransformerClause that) {
+        Map<Id, BaseType> myvars = new HashMap<Id, BaseType>( vars );
+        for ( Id param : that.getParameters() ){
+            myvars.put( param, caseBaseType.unwrap() );
+        }
+        return new CaseTransformerClause( that.getConstructor(), that.getParameters(), (Transformer) that.getBody().accept( new TemplateVarRewriter( myvars ) ) );
+    }
+
+    public String rewriteVars(String t) {
         Map<String, String> varToGapName = new HashMap<String, String>();
         String result = "";
         boolean inSideString = false;
@@ -61,7 +95,7 @@ public class TemplateVarRewriter {
                 inSideString = !inSideString;
             }
             else if (!inSideString) {
-                for (Id id: vs.keySet()) {
+                for (Id id: vars.keySet()) {
                     String var = id.getText();
                     //	            System.err.println("Testing: "+var);
                     int end = inx+var.length();
@@ -77,7 +111,7 @@ public class TemplateVarRewriter {
                                 inx = p.getA();
                                 tmp = p.getB();
                             }
-                            String type = vs.get(id).accept(new BaseTypeCollector());
+                            String type = vars.get(id).accept(new BaseTypeCollector());
                             result += getVar(var+tmp, type);
                             continue L;
                         }
@@ -175,6 +209,7 @@ public class TemplateVarRewriter {
     }
 
     public static String getGapSyntaxPrefix(String type) {
+        /* get rid of this check? */
         if (type.startsWith("THELLO")) {
             return TemplateVarRewriter.GAPSYNTAXPREFIX+"StringLiteralExpr";
         }

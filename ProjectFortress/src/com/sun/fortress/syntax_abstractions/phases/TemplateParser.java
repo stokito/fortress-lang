@@ -166,11 +166,12 @@ public Result(Api api,
     }
 
     @Override public Node forNamedTransformerDef(NamedTransformerDef that) {
-        TemplateVarRewriter tvs = new TemplateVarRewriter();
         Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
         vs.putAll(this.vars);
         vs.putAll(this.varsToNonterminalType);
-        Transformer transformer = tvs.rewriteVars(vs, that.getTransformer());
+        TemplateVarRewriter tvs = new TemplateVarRewriter( vs );
+        Transformer transformer = (Transformer) that.getTransformer().accept( tvs );
+        // tvs.rewriteVars(vs, that.getTransformer());
         return new NamedTransformerDef(that.getName(), that.getParameters(), transformer);
     }
 
