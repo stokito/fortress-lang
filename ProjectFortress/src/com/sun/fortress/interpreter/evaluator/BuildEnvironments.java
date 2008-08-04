@@ -159,6 +159,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
  */
 public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
+    
      private int pass = 1;
 
     public void resetPass() {

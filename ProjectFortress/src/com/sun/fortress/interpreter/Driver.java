@@ -52,6 +52,7 @@ import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.AbsExternalSyntax;
@@ -169,7 +170,7 @@ public class Driver {
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
 
-        ComponentWrapper comp = new ComponentWrapper((Component) p, linker);
+        ComponentWrapper comp = new ComponentWrapper((Component) p, linker, WellKnownNames.defaultLibrary);
 
         /*
          * This "linker" implements a one-to-one, same-name correspondence
@@ -202,7 +203,7 @@ public class Driver {
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
-        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr), linker);
+        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr), linker, WellKnownNames.defaultLibrary);
         builtins.getEnvironment().installPrimitives();
 
         ComponentWrapper lib = null;
@@ -1145,8 +1146,8 @@ public class Driver {
 
             newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
 
-            ComponentWrapper apicw = new ComponentWrapper(newapi, linker);
-            newwrapper = new ComponentWrapper(newcomp, apicw, linker);
+            ComponentWrapper apicw = new ComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary);
+            newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
             newwrapper.getExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
