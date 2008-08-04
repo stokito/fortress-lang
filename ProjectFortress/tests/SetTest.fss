@@ -46,19 +46,19 @@ run(args:String...):() = do
 
     u = b UNION f
     assert(u, set(1#15), " union")
-    i = b INTERSECTION f
-    assert(i, set(6#5), " intersection")
+    inter = b INTERSECTION f
+    assert(inter, set(6#5), " intersection")
     df = b DIFFERENCE f
     assert(df, set(1#5), " difference")
 
     cmp(a,a,EqualTo)
     cmp(a,u,LessThan)
-    cmp(a,i,LessThan)
+    cmp(a,inter,LessThan)
     cmp(a,df,LessThan)
     cmp(b,u,LessThan)
-    cmp(b,i,GreaterThan)
+    cmp(b,inter,GreaterThan)
     cmp(b,df,GreaterThan)
-    cmp(i,df,Unordered)
+    cmp(inter,df,Unordered)
 
     sets: (Set[\ZZ32\])[4] = [b c d e]
 

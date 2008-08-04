@@ -151,7 +151,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         _innerMostLabel = innerMostLabel;
     }
 
-    /** 
+    /**
      * Check that the variable corresponding to the give Id does not shadow any variables or
      * functions in scope.
      */
@@ -205,12 +205,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
         }
     }
-    
+
     private ExprDisambiguator extendWithVars(Set<Id> vars) {
         checkForShadowingVars(vars);
         return extendWithVarsNoCheck(vars);
     }
-	
+
     private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
         return new ExprDisambiguator(newEnv, _errors, this._innerMostLabel);
@@ -218,7 +218,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames){
         checkForShadowingFunctions(definedNames);
-                
+
         NameEnv newEnv = new LocalFnEnv(_env, CollectUtil.makeSet(IterUtil.relax(definedNames)));
         return new ExprDisambiguator(newEnv, _errors, this._innerMostLabel);
     }
@@ -232,7 +232,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<Id> resultSet = Collections.singleton(new Id(span, "result"));
         return extendWithVars(resultSet);
     }
-	
+
     private void error(String msg, HasAt loc) {
         _errors.add(StaticError.make(msg, loc));
     }
@@ -321,21 +321,21 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             @Override public Boolean forModifierGetter(ModifierGetter that) { return true; }
             @Override public Boolean forModifierSetter(ModifierSetter that) { return true; }
         };
-		
+
         return
             IterUtil.fold(mod_visitor.recurOnListOfModifier(mods), false, new Lambda2<Boolean,Boolean,Boolean>(){
                     public Boolean value(Boolean arg0, Boolean arg1) { return arg0 | arg1; }});
     }
-	
+
     private Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> extractDeclNames(List<Decl> decls) {
         final Set<IdOrOpOrAnonymousName> accessors = new HashSet<IdOrOpOrAnonymousName>();
-		
+
         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
             @Override
             public Set<Id> forAbsVarDecl(AbsVarDecl that) {
                 return extractDefinedVarNames(that.getLhs());
             }
-			
+
             @Override
             public Set<Id> forVarDecl(VarDecl that) {
                 return extractDefinedVarNames(that.getLhs());
@@ -350,14 +350,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             public Set<Id> forFnDef(FnDef that) {
                 return Collections.emptySet();
             }
-		
+
         };
         NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder = new NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>>(){
             @Override
             public Set<IdOrOpOrAnonymousName> forAbsVarDecl(AbsVarDecl that) {
                 return Collections.emptySet();
             }
-			
+
             @Override
             public Set<IdOrOpOrAnonymousName> forVarDecl(VarDecl that) {
                 return Collections.emptySet();
@@ -367,7 +367,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             public Set<IdOrOpOrAnonymousName> forAbsFnDecl(AbsFnDecl that) {
                 if( isSetterOrGetter(that.getMods()) )
                     accessors.add(that.getName());
-				
+
                 if( FortressUtil.isFunctionalMethod(that.getParams()) ) {
                     // don't add functional methods! they go at the top level...
                     return Collections.emptySet();
@@ -392,10 +392,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         };
         List<Set<Id>> vars_ = var_finder.recurOnListOfDecl(decls);
         List<Set<IdOrOpOrAnonymousName>> fns_ = fn_finder.recurOnListOfDecl(decls);
-		
+
         Set<Id> vars = Useful.union(vars_);
         Set<IdOrOpOrAnonymousName> fns = new HashSet<IdOrOpOrAnonymousName>(Useful.union(fns_));
-		
+
         // For every accessor, remove that fn from fns if there is also a variable.
         // See shadowing rules in section 7.3
         for( IdOrOpOrAnonymousName ioooan : accessors ) {
@@ -403,10 +403,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 fns.remove(ioooan);
             }
         }
-		
+
         return Pair.make(vars, fns);
     }
-	
+
     /**
      * When recurring on an AbsTraitDecl, we first need to extend the
      * environment with all the newly bound static parameters that can
@@ -417,7 +417,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
         ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
         List<TraitTypeWhere> extends_clause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-		
+
         // Include trait declarations and inherited methods
         Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> decl_names = extractAbsDeclNames(that.getDecls());
         Set<Id> vars = decl_names.first();
@@ -426,7 +426,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				(that.getStaticParams())).
             extendWithFns(inheritedMethods(extends_clause)).
             extendWithSelf(that.getSpan()).extendWithVars(vars).extendWithFns(fns);
-		
+
         return forAbsTraitDeclOnly(that,
                                    v.recurOnListOfModifier(that.getMods()),
                                    (Id) that.getName().accept(v),
@@ -437,8 +437,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    v.recurOnOptionOfListOfBaseType(that.getComprises()),
                                    v.recurOnListOfAbsDecl(that.getDecls()));
     }
-	
-	
+
+
     /**
      * When recurring on an ObjExpr, we first need to extend the
      * environment with all the newly bound variables and methods
@@ -447,7 +447,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override
 	public Node forObjectExpr(ObjectExpr that) {
         List<TraitTypeWhere> extends_clause = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-		
+
         // Include trait declarations and inherited methods
         Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> decl_names = extractDeclNames(that.getDecls());
         Set<Id> vars = decl_names.first();
@@ -465,19 +465,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     // Make sure we don't infinitely explore supertraits that are acyclic
     public static class HierarchyHistory {
         final private Set<Type> explored;
-		
+
         public HierarchyHistory() {	explored = Collections.emptySet();	}
         private HierarchyHistory(Set<Type> explored) { this.explored = explored; }
-		
+
         public HierarchyHistory explore(Type t) {
             return new HierarchyHistory(CollectUtil.union(explored, t));
         }
-		
+
         public boolean hasExplored(Type t) {
             return explored.contains(t);
         }
     }
-	
+
     /**
      * Given a list of TraitTypeWhere that some trait or object extends,
      * this method returns a list of method ids that the trait receives
@@ -488,7 +488,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * @param extended_traits
      * @return
      */
-    private Set<IdOrOpOrAnonymousName> inheritedMethods(List<TraitTypeWhere> extended_traits) {	
+    private Set<IdOrOpOrAnonymousName> inheritedMethods(List<TraitTypeWhere> extended_traits) {
         return inheritedMethodsHelper(new HierarchyHistory(), extended_traits);
     }
 
@@ -496,13 +496,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                                               List<TraitTypeWhere> extended_traits) {
         Set<IdOrOpOrAnonymousName> methods = new HashSet<IdOrOpOrAnonymousName>();
         for( TraitTypeWhere trait_ : extended_traits ) {
-			
+
             BaseType type_ = trait_.getType();
-			
+
             if( h.hasExplored(type_) )
                 continue;
             h = h.explore(type_);
-			
+
             // Trait types or VarTypes can represent traits at this phase of compilation.
             Id trait_name;
             if( type_ instanceof TraitType ) {
@@ -515,7 +515,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // Probably ANY
                 return Collections.emptySet();
             }
-			
+
             TypeConsIndex tci = this._env.typeConsIndex(trait_name);
             if( tci instanceof TraitIndex ) {
                 TraitIndex ti = (TraitIndex)tci;
@@ -528,19 +528,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // For now we won't add functional methods. They are not received through inheritance.
 
                 // Now recursively add methods from trait's extends clause
-				
+
                 methods.addAll(inheritedMethodsHelper(h, ti.extendsTypes()));
             }
             else {
                 // Probably ANY
                 return Collections.emptySet();
             }
-			
-			
+
+
         }
         return methods;
     }
-	
+
     /**
      * When recurring on a TraitDecl, we first need to extend the
      * environment with all the newly bound static parameters that
@@ -551,7 +551,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override public Node forTraitDecl(final TraitDecl that) {
         ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
         List<TraitTypeWhere> extends_clause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-		
+
         // Include trait declarations and inherited methods
         Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> decl_names = extractDeclNames(that.getDecls());
         Set<Id> vars = decl_names.first();
@@ -560,7 +560,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				(that.getStaticParams())).
             extendWithFns(inheritedMethods(extends_clause)).
             extendWithSelf(that.getSpan()).extendWithVars(vars).extendWithFns(fns);
-		
+
         return forTraitDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
 				(Id) that.getName().accept(v),
@@ -583,7 +583,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
         ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
         List<TraitTypeWhere> extends_clause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-		
+
         // Include trait declarations and inherited methods
         Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> decl_names = extractAbsDeclNames(that.getDecls());
         Set<Id> vars = decl_names.first();
@@ -594,7 +594,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithSelf(that.getSpan()).
             extendWithVars(extractParamNames(that.getParams())).
             extendWithVars(vars).extendWithFns(fns);
-		
+
         return forAbsObjectDeclOnly(that,
                                     v.recurOnListOfModifier(that.getMods()),
                                     (Id) that.getName().accept(v),
@@ -609,7 +609,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> extractAbsDeclNames(List<AbsDecl> decls) {
         final Set<IdOrOpOrAnonymousName> accessors = new HashSet<IdOrOpOrAnonymousName>();
-		
+
         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
 
             @Override
@@ -619,7 +619,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             @Override
             public Set<Id> forAbsFnDecl(AbsFnDecl that) {
                 return Collections.emptySet();
-            }		
+            }
         };
         NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder = new NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>>(){
 
@@ -631,16 +631,16 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             public Set<IdOrOpOrAnonymousName> forAbsFnDecl(AbsFnDecl that) {
                 if( isSetterOrGetter(that.getMods()) )
                     accessors.add(that.getName());
-				
+
                 return Collections.singleton(that.getName());
             }
         };
         List<Set<Id>> vars_ = var_finder.recurOnListOfAbsDecl(decls);
         List<Set<IdOrOpOrAnonymousName>> fns_ = fn_finder.recurOnListOfAbsDecl(decls);
-		
+
         Set<Id> vars = Useful.union(vars_);
         Set<IdOrOpOrAnonymousName> fns = new HashSet<IdOrOpOrAnonymousName>(Useful.union(fns_));
-		
+
         // For every accessor, remove that fn from fns if there is also a variable.
         // See shadowing rules in section 7.3
         for( IdOrOpOrAnonymousName ioooan : accessors ) {
@@ -648,7 +648,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 fns.remove(ioooan);
             }
         }
-		
+
         return Pair.make(vars, fns);
     }
 
@@ -662,7 +662,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override public Node forObjectDecl(final ObjectDecl that) {
         ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
         List<TraitTypeWhere> extends_clause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-		
+
         // Include trait declarations and inherited methods
         Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> decl_names = extractDeclNames(that.getDecls());
         Set<Id> vars = decl_names.first();
@@ -700,8 +700,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
         // No need to recur on the name, as we will not modify it and we have already checked
-        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it 
-        // to share its name with a field, so blindly checking for shadowing at this point 
+        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it
+        // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
         return forAbsFnDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
@@ -728,8 +728,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
         // No need to recur on the name, as we will not modify it and we have already checked
-        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it 
-        // to share its name with a field, so blindly checking for shadowing at this point 
+        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it
+        // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
         return forFnDefOnly(that,
                             v.recurOnListOfModifier(that.getMods()),
@@ -743,8 +743,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                             (Expr) that.getBody().accept(v));
     }
 
-	
-	
+
+
     /**
      * Currently we don't descend into dimensions or units.
      */
@@ -766,7 +766,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                      that.getUnit());
     }
 
-	
+
     /**
      * Currently we don't do any disambiguation of dimension or unit declarations.
      */
@@ -796,8 +796,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
 
-	
-	
+
+
     @Override
 	public Node forCatch(Catch that) {
         ExprDisambiguator v = this.extendWithVars(Collections.singleton(that.getName()));
@@ -839,7 +839,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                   recurOnListOfStaticArg(that.getStaticArgs()),
                                   (OpName)that.getOpr().accept(this),
                                   pair.first(),
-                                  (Expr)that.getBody().accept(extended_d)); 
+                                  (Expr)that.getBody().accept(extended_d));
     }
 
     /**
@@ -889,10 +889,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
 
-    private static Pair<List<GeneratorClause>, Set<Id>> bindInListGenClauses(final ExprDisambiguator cur_disam, 
+    private static Pair<List<GeneratorClause>, Set<Id>> bindInListGenClauses(final ExprDisambiguator cur_disam,
                                                                              List<GeneratorClause> gens) {
-		
-        return IterUtil.fold(gens, Pair.<List<GeneratorClause>,Set<Id>>make(new LinkedList<GeneratorClause>(),new HashSet<Id>()), 
+
+        return IterUtil.fold(gens, Pair.<List<GeneratorClause>,Set<Id>>make(new LinkedList<GeneratorClause>(),new HashSet<Id>()),
                              new Lambda2<Pair<List<GeneratorClause>,Set<Id>>,GeneratorClause,Pair<List<GeneratorClause>,Set<Id>>>(){
                                  public Pair<List<GeneratorClause>, Set<Id>> value(
                                                                                    Pair<List<GeneratorClause>, Set<Id>> arg0,
@@ -915,7 +915,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forFor(For that) {
-        Pair<List<GeneratorClause>, Set<Id>> pair = bindInListGenClauses(this, that.getGens());	
+        Pair<List<GeneratorClause>, Set<Id>> pair = bindInListGenClauses(this, that.getGens());
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
 
         ExprDisambiguator new_disambiguator = this.extendWithVars(pair.second());
@@ -1125,13 +1125,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return Option.<OpRef>some(result);
     }
 
-	
+
     @Override
 	public Node forOpExpr(OpExpr that) {
         // OpExpr checks to make sure its OpRef can be disambiguated, since
         // forOpRef will not automatically report an error.
         OpRef op_result;
-        Option<OpRef> _op_result = opRefHelper(that.getOp()); 
+        Option<OpRef> _op_result = opRefHelper(that.getOp());
         if( _op_result.isSome() ) {
             op_result = (OpRef)_op_result.unwrap();
         }
@@ -1170,7 +1170,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     @Override public Node forExitOnly(Exit that, Option<Type> exprType_result, Option<Id> target_result, Option<Expr> returnExpr_result) {
         Option<Id> target = target_result.isSome() ? target_result : _innerMostLabel;
-        Option<Expr> with = returnExpr_result.isSome() ? 
+        Option<Expr> with = returnExpr_result.isSome() ?
             returnExpr_result :
             wrap((Expr)new VoidLiteralExpr(that.getSpan()));
 
@@ -1189,5 +1189,5 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override
 	public Node forGrammarDef(GrammarDef that) {
         return that;
-    }	
+    }
 }

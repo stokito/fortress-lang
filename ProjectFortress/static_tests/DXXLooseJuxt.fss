@@ -20,14 +20,13 @@ component DXXLooseJuxt
 
   object Foo end
 
-  map(f:ZZ32->String, Foo) : String = "Simplestring"
+  map(f:ZZ32->String, _:Foo) : String = "Simplestring"
 
-  (* Here's something that looks like it should work but should not. 
+  (* Here's something that looks like it should work but should not.
      These fns will be right associated. *)
   foo(n:RR64, x:RR64, one:RR64) : RR64 = do
     map (fn (a:ZZ32):String => "S") Foo
   end
-    
 
   run(args:String...):()= ()
 end

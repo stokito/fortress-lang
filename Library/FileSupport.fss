@@ -148,9 +148,9 @@ end
 object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
                           readOne:ReadStream -> S)
         extends { Consumable, Generator[\S\] }
-    consumed : Boolean = false
+    consumed : Boolean := false
     up : ZZ32 = if upper <= 0 then 1024 else upper end
-    consume():() = atomic do whenUnconsumed(); consumed = true end
+    consume():() = atomic do whenUnconsumed(); consumed := true end
     whenUnconsumed():() =
         if consumed then
             fail("Using consumed generator of " reader)
@@ -219,8 +219,8 @@ end
 
 object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S)
         extends { Consumable, SequentialGenerator[\S\] }
-    consumed : Boolean = false
-    consume():() = atomic do whenUnconsumed(); consumed = true end
+    consumed : Boolean := false
+    consume():() = atomic do whenUnconsumed(); consumed := true end
     whenUnconsumed():() =
         if consumed then
             fail("Using consumed generator of " reader)

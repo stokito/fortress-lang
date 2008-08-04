@@ -3662,19 +3662,14 @@ println(a:Any):() = println("" a)
 print():() = print("()")
 println():() = println("")
 
-forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] = do
-    if( 2 <= radix <= 16 ) then
-        if( radix = 12 ) then
-            forDigit(x, "0123456789xe")
-        elif(x < radix) then
-            forDigit(x, "0123456789abcdef")
-        else
-            Nothing[\Char\]
-        end
-    else
+forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] =
+    if (radix<2 OR radix>16 OR x<0 OR x>=radix) then
         Nothing[\Char\]
+    elif (radix <= 12) then
+        forDigit(x, "0123456789xe")
+    else
+        forDigit(x, "0123456789abcdef")
     end
-end
 
 forDigit(x:ZZ32, radixString:String): Maybe[\Char\] = do
     if( 0 <= x < |radixString| ) then

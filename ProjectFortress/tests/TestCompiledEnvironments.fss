@@ -52,7 +52,7 @@ trait Emptyש end
 trait Emptyת end
 trait Empty end
 
-opr $(a:Empty,b:Empty):ZZ32 = 42
+opr $(_:Empty,_:Empty):ZZ32 = 42
 
 A:ZZ32 = 65
 B:ZZ32 = 66
