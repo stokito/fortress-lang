@@ -62,8 +62,8 @@ public class TemplateVarRewriter extends NodeUpdateVisitor {
         caseBaseType = Option.none();
     }
     
-    @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that) {
-        return new UnparsedTransformer( rewriteVars( that.getTransformer() ), that.getNonterminal() );
+    @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that, Id id_result) {
+        return new UnparsedTransformer( rewriteVars( that.getTransformer() ), id_result);
     }
 
     @Override public Node forCaseTransformer(CaseTransformer that) {
