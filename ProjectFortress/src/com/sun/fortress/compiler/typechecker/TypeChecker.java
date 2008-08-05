@@ -2578,24 +2578,25 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return juxtaposeMathPrimary(that);
 	 }
 
+     // YOU ARE HERE REWRITING AST, MOVING UP. NEB
+	 
 	 @Override
 	 public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that, Option<TypeCheckerResult> exprType_result, 
-			 TypeCheckerResult obj_result, TypeCheckerResult method_result,
+			 TypeCheckerResult obj_result, TypeCheckerResult DONTUSE,
 			 List<TypeCheckerResult> staticArgs_result,
 			 TypeCheckerResult arg_result) {
+	     
+	     // This method will probably be moved to a later pass...
 
-		 List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(staticArgs_result.size() + 3);
-		 all_results.add(obj_result);
-		 //all_results.add(method_result); Ignore! This will try to look up method in local context
-		 all_results.addAll(staticArgs_result);
-		 all_results.add(arg_result);
 		 // Did the arguments typecheck?
 		 if( arg_result.type().isNone() ) {
-			 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+			 return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, 
+			         TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 		 }
 		 // We need the type of the receiver
 		 if( obj_result.type().isNone() ) {
-			 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+		     return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, 
+                     TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 		 }
 		 // Check whether receiver can have methods
 		 Type recvr_type=obj_result.type().unwrap();
@@ -2603,18 +2604,22 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 if( traits.isEmpty() ) {
 			 //error receiver not a trait
 			 String trait_err = "Target of a method invocation must have trait type, while this receiver has type " + recvr_type + ".";
-			 all_results.add(new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj())));
-			 return TypeCheckerResult.compose(that, this.subtypeChecker, all_results);
+			 TypeCheckerResult trait_result = new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj()));
+			 return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, trait_result,
+                     TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 		 }
-		 else{
+		 else {
 			 Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
 				 findMethodsInTraitHierarchy(that.getMethod(), traits, arg_result.type().unwrap(),that.getStaticArgs(),that);
-			 List<Method> candidates = candidate_pair.first();
-			 all_results.addAll(candidate_pair.second());
+			 
 			 // Now we join together the results, or return an error if there are no candidates.
-			 if(candidates.isEmpty()){
+			 List<Method> candidates = candidate_pair.first();
+			 if(candidates.isEmpty()) {
 				 String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
-				 all_results.add(new TypeCheckerResult(that,TypeError.make(err,that)));
+				 TypeCheckerResult no_methods = new TypeCheckerResult(that,TypeError.make(err,that));
+				 
+				 return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, no_methods,
+				         TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 			 }
 
 			 List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
@@ -2622,18 +2627,26 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					 return arg0.getReturnType();
 				 }}));
 
-			 Type range = this.subtypeChecker.join(ranges);
-			 return TypeCheckerResult.compose(that,range,this.subtypeChecker,all_results);
+			 Type range = subtypeChecker.join(ranges);
+			 MethodInvocation new_node = new MethodInvocation(that.getSpan(),
+			                                                  that.isParenthesized(),
+			                                                  Option.<Type>some(range),
+			                                                  (Expr)obj_result.ast(),
+			                                                  that.getMethod(),
+			                                                  (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
+			                                                  (Expr)arg_result.ast());
+			 
+			 return TypeCheckerResult.compose(new_node, range, subtypeChecker, obj_result, arg_result,
+			         TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
+			         TypeCheckerResult.compose(new_node, subtypeChecker, candidate_pair.second()));
 		 }
 	 }
-
+	 
 	 @Override
 	 public TypeCheckerResult forMultiFixity(MultiFixity that) {
 		 // No checks needed to be performed on a MultiFixity.
 		 return new TypeCheckerResult(that);
 	 }
-
-
 
 	 @Override
 	 public TypeCheckerResult forNoFixity(NoFixity that) {
@@ -2803,74 +2816,81 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	 @Override
 	 public TypeCheckerResult forOp(Op that) {
-		 Option<APIName> api = that.getApi();
-		 if( api.isSome() ) {
-			 TypeEnv type_env = returnTypeEnvForApi(api.unwrap());
-			 Option<BindingLookup> binding = type_env.binding(that);
-			 if( binding.isSome() ) {
-				 return new TypeCheckerResult(that, binding.unwrap().getType());
-			 }
-		 }
+	     Option<APIName> api = that.getApi();
 
-		 Option<BindingLookup> binding = typeEnv.binding(that);
-		 if (binding.isSome()) {
-			 return new TypeCheckerResult(that, binding.unwrap().getType());
-		 } else {
-			 return new TypeCheckerResult(that,
-					 TypeError.make(errorMsg("Operator not found: ",
-							 OprUtil.decorateOperator(that)),
-							 that));
-		 }
+	     Option<BindingLookup> binding;
+
+	     if( api.isSome() ) {
+	         TypeEnv type_env = returnTypeEnvForApi(api.unwrap());
+	         binding = type_env.binding(that);
+	     }
+	     else {
+	         binding = typeEnv.binding(that);
+	     }
+
+	     if (binding.isNone()) {
+	         return new TypeCheckerResult(that,
+	                 TypeError.make(errorMsg("Operator not found: ",
+	                         OprUtil.decorateOperator(that)),
+	                         that));
+	     }
+	     else {
+	         // Happy case. No rewriting necessary, b/c nothing interesting below Op
+	         return new TypeCheckerResult(that, binding.unwrap().getType());
+	     }
 	 }
-
+	 
 	 @Override
 	 public TypeCheckerResult forOpExprOnly(OpExpr that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult op_result,
 			 List<TypeCheckerResult> args_result) {
-		 Option<Type> applicationType = none();
-		 List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(args_result);
+	     
+	     if( op_result.type().isNone() ) {
+	         return TypeCheckerResult.compose(that, subtypeChecker, op_result,
+	                TypeCheckerResult.compose(that, subtypeChecker, args_result));
+	     }
+		 
+	     Type arrowType = op_result.type().unwrap();
+	     
+	     ArgList argTypes = new ArgList();
+	     for (TypeCheckerResult r : args_result) {
+	         if (r.type().isNone()) {
+	             return TypeCheckerResult.compose(that, subtypeChecker, op_result,
+	                     TypeCheckerResult.compose(that, subtypeChecker, args_result));
+	         }
+	         argTypes.add(r.type().unwrap());
+	     }
 
-		 if (op_result.type().isSome()) {
-			 Type arrowType = op_result.type().unwrap();
-			 ArgList argTypes = new ArgList();
-			 boolean success = true;
-			 for (TypeCheckerResult r : args_result) {
-				 if (r.type().isNone()) {
-					 success = false;
-					 break;
-				 }
-				 argTypes.add(r.type().unwrap());
-			 }
-			 if (success) {
-				 Option<Pair<Type,ConstraintFormula>> app_result = TypesUtil.applicationType(subtypeChecker, arrowType, argTypes);
-				 if (app_result.isNone()) {
-					 // Guaranteed at least one operator because all the overloaded operators
-					 // are created by disambiguation, not by the user.
-					 OpName opName = that.getOp().getOps().get(0);
-					 return TypeCheckerResult.compose(that,
-							 subtypeChecker,
-							 op_result,
-							 TypeCheckerResult.compose(that, subtypeChecker, args_result),
-							 new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator ",
-									 opName, " has invalid arguments, " + argTypes),
-									 that)));
-				 }
-				 else {
-					 applicationType = Option.some(app_result.unwrap().first());
-					 // If we have a type, constraints must be propagated up.
-					 all_results.add(new TypeCheckerResult(that,app_result.unwrap().second()));
-				 }
-			 }
-		 }
-		 return TypeCheckerResult.compose(that,
-				 applicationType,
-				 subtypeChecker,
-				 op_result, TypeCheckerResult.compose(that,
-						 subtypeChecker,
-						 all_results));
+	     Option<Pair<Type,ConstraintFormula>> app_result = TypesUtil.applicationType(subtypeChecker, arrowType, argTypes);
+	     if (app_result.isNone()) {
+	         // Guaranteed at least one operator because all the overloaded operators
+	         // are created by disambiguation, not by the user.
+	         OpName opName = IterUtil.first(that.getOp().getOps());
+	         return TypeCheckerResult.compose(that, subtypeChecker,
+	                 op_result,
+	                 TypeCheckerResult.compose(that, subtypeChecker, args_result),
+	                 new TypeCheckerResult(that, TypeError.make(errorMsg("Call to operator ",
+	                         opName, " has invalid arguments, " + argTypes),
+	                         that)));
+	     }
+
+	     Type applicationType = app_result.unwrap().first();
+
+	     OpExpr new_node = new OpExpr(that.getSpan(),
+	                                  that.isParenthesized(),
+	                                  Option.<Type>some(applicationType),
+	                                  (OpRef)op_result.ast(),
+	                                  (List<Expr>)TypeCheckerResult.astFromResults(args_result));
+	     
+         // If we have a type, constraints must be propagated up.	     
+	     TypeCheckerResult result = new TypeCheckerResult(new_node, app_result.unwrap().second());
+
+	     
+	     
+		 return TypeCheckerResult.compose(new_node, applicationType,
+				 subtypeChecker, op_result, result,
+				 TypeCheckerResult.compose(new_node, subtypeChecker, args_result));
 	 }
-
-	 // YOU ARE HERE REWRITING AST, MOVING UP. NEB
 	 
 	 @Override
 	 public TypeCheckerResult forOpRefOnly(OpRef that, Option<TypeCheckerResult> exprType_result, 
