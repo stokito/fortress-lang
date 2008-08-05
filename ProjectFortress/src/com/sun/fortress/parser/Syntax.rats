@@ -170,8 +170,12 @@ TransformerDecl PreTransformerDecl =
 Transformer PreTransformer =
      case w pvar:Id w of w clauses:CaseTransformerClauses w end
      { yyValue = new CaseTransformer(createSpan(yyStart,yyCount), pvar, clauses); }
-   / leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
-     { yyValue = new UnparsedTransformer(createSpan(yyStart,yyCount), a1, "Expr"); };
+   / nt:(Id w)? leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
+     { Id nt1 = nt;
+       if (nt1 == null) {
+          nt1 = NodeFactory.makeId(createSpan(yyStart,yyCount), "Expr");
+       }
+       yyValue = new UnparsedTransformer(createSpan(yyStart,yyCount), a1, nt1); };
 
 List<CaseTransformerClause> CaseTransformerClauses =
      a1:CaseTransformerClause a2s:(br CaseTransformerClause)*

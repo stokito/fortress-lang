@@ -620,7 +620,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * Unparsed template
              */
-            UnparsedTransformer(String transformer, String nonterminal);
+            UnparsedTransformer(String transformer, Id nonterminal);
             /**
              * Parsed template
              */
