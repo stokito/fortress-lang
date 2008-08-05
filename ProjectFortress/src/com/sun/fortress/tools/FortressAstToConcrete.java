@@ -43,6 +43,16 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
+    private boolean _noQualified;
+
+    public FortressAstToConcrete() {
+        _noQualified = false;
+    }
+
+    public FortressAstToConcrete( boolean noQualified ) {
+        _noQualified = noQualified;
+    }
+
     /* indentation utilities *************************************************/
     private int indent = 0;
 
@@ -769,7 +779,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( mod ).append( " " );
         }
         s.append( name_result );
-        if (type_result.isSome())
+        if (type_result.isSome() &&
+            !name_result.equals("self"))
             s.append( ": " ).append( type_result.unwrap() );
         if (defaultExpr_result.isSome())
             s.append( "=").append( defaultExpr_result );
@@ -2828,7 +2839,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forIdOnly(Id that, Option<String> api_result) {
         StringBuilder s = new StringBuilder();
-        if ( api_result.isSome() )
+        if ( api_result.isSome() && !_noQualified )
             s.append( api_result.unwrap() ).append( "." );
         s.append( that.getText() );
         return s.toString();
