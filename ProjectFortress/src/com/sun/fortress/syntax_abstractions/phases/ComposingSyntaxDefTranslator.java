@@ -555,8 +555,12 @@ public class ComposingSyntaxDefTranslator {
                         return source;
                     }
                 }
+
                 public String forListDepth(VariableCollector.Depth d) {
-                    throw new MacroError("not supported now");
+
+                    return source;
+
+                    // throw new MacroError("not supported now");
                     /*
                     String fresh = FreshName.getFreshName("list");
                     String innerType = d.getParent().getType(astNode);
