@@ -44,6 +44,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
@@ -96,8 +97,9 @@ public final class Shell {
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" [run] [-test] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
+        System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" unparse [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
+        System.err.println(" unparse [-noQualified] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
         System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" desugar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" grammar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
@@ -121,12 +123,16 @@ public final class Shell {
          "  Automatically generate an API from a component.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
+         "fortress compare [-debug [type]* [#]] somefile.fss anotherfile.fss\n"+
+         "  Compare results of two components.\n"+
+         "\n"+
          "fortress parse [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
-         "fortress unparse [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
+         "fortress unparse [-noQualified] [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
          "  Convert a parsed file back to Fortress source code. The output will be dumped to stdout if -out is not given.\n"+
+         "  If -noQualified is given, identifiers are dumped without their API prefixes.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
          "fortress disambiguate [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
@@ -182,10 +188,12 @@ public final class Shell {
                 run(args);
             } else if ( what.equals("api" ) ){
                 api(args, Option.<String>none());
+            } else if ( what.equals("compare" ) ){
+                compare(args);
             } else if ( what.equals("parse" ) ){
                 parse(args, Option.<String>none());
             } else if ( what.equals("unparse" ) ){
-                unparse(args, Option.<String>none());
+                unparse(args, Option.<String>none(), false);
             } else if ( what.equals( "disambiguate" ) ){
                 setPhase( PhaseOrder.DISAMBIGUATE );
                 compile(args, Option.<String>none());
@@ -278,6 +286,68 @@ public final class Shell {
     }
 
     /**
+     * Compare results of two components.
+     */
+    private static void compare(List<String> args)
+        throws UserError, InterruptedException, IOException, Throwable {
+        if (args.size() == 0) {
+            throw new UserError("Need files to compare the results.");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                rest = Debug.parseOptions(rest);
+            }
+            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+
+            compare( rest );
+        } else {
+            if (args.size() == 1)
+                throw new UserError("Need one more file to compare the results.");
+            compare( s, args.get(1) );
+        }
+    }
+
+    private static void compare( String first, String second )
+        throws Throwable {
+        try{
+            if ( isApi(first) || isApi(second) ) {
+                System.out.println( "Need component files " +
+                                    "instead of API files." );
+            } else if (isComponent(first) && isComponent(second)) {
+                APIName name = trueApiName( first );
+                Path path = sourcePath( first, name );
+                GraphRepository bcr = specificRepository( path, defaultRepository );
+                CompilationUnit cu = bcr.getLinkedComponent(name).ast();
+                List<String> args = new ArrayList<String>();
+                FValue value1 = Driver.runProgram(bcr, cu, false, args);
+
+                name = trueApiName( second );
+                path = sourcePath( second, name );
+                bcr = specificRepository( path, defaultRepository );
+                cu = bcr.getLinkedComponent(name).ast();
+                FValue value2 = Driver.runProgram(bcr, cu, false, args);
+
+                if (value1 == value2)
+                    System.out.println( "Ok" );
+                else System.out.println( "Failed: " +
+                                         first + " evaluated to " + value1 +
+                                         " but " +
+                                         second + " evaluated to " + value2 );
+            } else {
+                System.out.println( "Don't know what kind of file is." +
+                                    "Append .fsi or .fss." );
+            }
+        } catch ( IOException i ){
+            i.printStackTrace();
+        } catch ( OptionUnwrapException o ){
+            o.printStackTrace();
+        }
+    }
+
+    /**
      * Parse a file. If the file parses ok it will say "Ok".
      * If you want a dump then give -out somefile.
      */
@@ -339,15 +409,20 @@ public final class Shell {
      * UnParse a file.
      * If you want a dump then give -out somefile.
      */
-    private static void unparse(List<String> args, Option<String> out)
+    private static void unparse(List<String> args, Option<String> out,
+                                boolean _noQualified)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to unparse");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
+        boolean noQualified = _noQualified;
 
         if (s.startsWith("-")) {
+            if (s.equals("-noQualified")){
+                noQualified = true;
+            }
             if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
             }
@@ -357,15 +432,15 @@ public final class Shell {
             }
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
 
-            unparse( rest, out );
+            unparse( rest, out, noQualified );
         } else {
-            unparse( s, out );
+            unparse( s, out, noQualified );
         }
     }
 
-    private static void unparse( String file, Option<String> out ){
+    private static void unparse( String file, Option<String> out, boolean noQualified ){
         try{
-            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete() );
+            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete(noQualified) );
             if ( out.isSome() ){
                 try{
                     BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
