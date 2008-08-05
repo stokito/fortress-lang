@@ -130,7 +130,7 @@ public class Driver {
     public static Environment getFortressLibrary() {
         return libraryComponentWrapper.getEnvironment();
     }
-    
+
     public static ArrayList<ComponentWrapper> components;
 
     private static void injectLibraryNames(List<Importer> importers,
@@ -207,7 +207,7 @@ public class Driver {
         builtins.getEnvironment().installPrimitives();
 
         ComponentWrapper lib = null;
- 
+
         libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
         lib = libraryComponentWrapper.getExportedCW(libraryName);
 
@@ -656,7 +656,7 @@ public class Driver {
         final Set<String> tnames = new HashSet<String>();
 
         collectImportedValueAndTypeNames(fromApi, vnames, tnames);
-       
+
         // Debugging/testing glop
         if (true) {
             Set<String> v_old_minus_new = Useful.difference(vnames, importee.be.valNames);
@@ -675,7 +675,7 @@ public class Driver {
         // HACK -- is this only true for the "builtins" interface?
         if (importee.desugarer != null)
             vnames.addAll(importee.desugarer.functionals);
-        
+
         Set<String> actually_used = importer.desugarer.topLevelUses;
 
         // HACK, types referenced from native code, I think.
@@ -684,18 +684,18 @@ public class Driver {
 //        actually_used.add("__builtinFactory1");
 //        actually_used.add("__builtinFactory2");
 //        actually_used.add("__builtinFactory3");
-        
+
         Set<String> removed = Useful.difference(vnames, actually_used);
-         
+
         vnames.retainAll(actually_used);
-        
+
         // Skip filtering the type names, for now.
         // tnames.retainAll(actually_used);
-        
+
         // Keep track of what remains, for debugging.
         importer.topLevelUsesForDebugging.removeAll(vnames);
-        importer.topLevelUsesForDebugging.removeAll(tnames);     
-        
+        importer.topLevelUsesForDebugging.removeAll(tnames);
+
        final Importer imp = new Importer() {
            public String toString() {
                return  a + "/" + c + "->" + importer.name();
@@ -735,7 +735,7 @@ public class Driver {
                 } else {
                     vv.visit(s);
                 }
-                
+
             }
             if (added.size() > 0) {
                 flag = true;
@@ -871,7 +871,7 @@ public class Driver {
             }
         };
 
-        
+
         };
 
         return imp;
@@ -1200,14 +1200,9 @@ public class Driver {
     static FortressTaskRunnerGroup group;
 
     // This creates the parallel context
-    public static void runProgram(FortressRepository fr,
-                                  CompilationUnit p,
-                                  boolean runTests,
-                                  boolean libraryTest,
-                                  List<String> args)
-        throws Throwable
-    {
-        _libraryTest = libraryTest;
+    public static FValue runProgram(FortressRepository fr, CompilationUnit p,
+                                  boolean runTests, List<String> args)
+        throws Throwable {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null)
             numThreads = Integer.parseInt(numThreadsString);
@@ -1219,26 +1214,16 @@ public class Driver {
         EvaluatorTask evTask = new EvaluatorTask(fr, p, runTests, "run", args);
         try {
             group.invoke(evTask);
+            if (evTask.causedException()) {
+                throw evTask.taskException();
+            }
+            return evTask.result();
         }
         finally {
             // group.interruptAll();
         }
-        if (evTask.causedException()) {
-            throw evTask.taskException();
-        }
     }
 
-    public static void runProgram(FortressRepository fr, CompilationUnit p,
-                                  boolean runTests, List<String> args)
-        throws Throwable {
-        runProgram(fr, p, runTests, false, args);
-    }
-
-
-    public static void runProgram(FortressRepository fr, CompilationUnit p,
-                                  List<String> args) throws Throwable {
-        runProgram(fr, p, false, false, args);
-    }
 
     private static class Toplevel implements HasAt {
         public String at() {
