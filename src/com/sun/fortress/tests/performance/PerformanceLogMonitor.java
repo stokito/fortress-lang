@@ -148,12 +148,24 @@ public class PerformanceLogMonitor {
      */
     private static Integer getRevisionNumber(Document doc) {
         NodeList revisions = doc.getElementsByTagName("revision");
-	Integer revision = 0;
+        Integer revisionInt = 0;
         if (revisions.getLength() > 0) {
-	        String revisionString = revisions.item(revisions.getLength() - 1).getFirstChild().getNodeValue();
-        	revision = Integer.parseInt(revisionString);
-	}
-        return revision;
+            Node revision = revisions.item(revisions.getLength() - 1);
+            String revisionString = revision.getFirstChild().getNodeValue();
+            revisionInt = Integer.parseInt(revisionString);
+            Node parent = revision.getParentNode();
+            Node child = parent.getFirstChild();
+            while (child != null) {
+                if (child.getNodeName().equals("date")) {
+                    String dateString = child.getFirstChild().getNodeValue();
+                    testingData.putRevisionDate(revisionInt, dateString);
+                    child = null;
+                } else {
+                    child = child.getNextSibling();
+                }
+            }
+        }
+        return revisionInt;
     }
     
     /**
@@ -186,9 +198,9 @@ public class PerformanceLogMonitor {
         readDataFile(dataFile);
         readLogFile(xmlLogFile);
         if (chartDirectory != null) {
-            testingData.makeCharts(chartDirectory);
-            testingData.makeHtml(chartDirectory, false);            
-            testingData.makeHtml(chartDirectory, true);
+            testingData.writeCharts(chartDirectory);
+            testingData.writeHtml(chartDirectory, false);
+            testingData.writeHtml(chartDirectory, true);
         }
         writeDataFile(dataFile);
     }

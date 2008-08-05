@@ -42,9 +42,12 @@ import org.jfree.chart.entity.StandardEntityCollection;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.title.Title;
 import org.jfree.data.function.LineFunction2D;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.RectangleEdge;
 
 public class TestSuiteData implements Serializable {
 
@@ -53,6 +56,8 @@ public class TestSuiteData implements Serializable {
      */
     private static final long serialVersionUID = -2469807233782317273L;
 
+    private final Map<Integer, String> revisionDate;
+    
     private final Map<String, SortedMap<Integer, Double>> testData;
 
     /** The number of columns in our html table */
@@ -66,9 +71,10 @@ public class TestSuiteData implements Serializable {
 
     TestSuiteData() {
         testData = new HashMap<String, SortedMap<Integer, Double>>();
+        revisionDate = new HashMap<Integer, String>();
     }
  
-    public void makeHtml(String chartDirectory, boolean imagemap) {
+    public void writeHtml(String chartDirectory, boolean imagemap) {
         StringBuilder html = new StringBuilder();
         html.append("<html><head><title>Performance Measures</title></head>\n");
         html.append("<body>");
@@ -92,7 +98,7 @@ public class TestSuiteData implements Serializable {
     }
 
     /**
-     * Helper function to {@link #makeHtml(String) makeHtml}.
+     * Helper function to {@link #writeHtml(String, boolean) writeHtml}.
      */    
     private int makeHtmlEachFile(StringBuilder html, File[] images, boolean imagemap) {
         int counter = 0;        
@@ -129,7 +135,7 @@ public class TestSuiteData implements Serializable {
     }
 
     /**
-     * Helper function to {@link #makeHtml(String) makeHtml}.
+     * Helper function to {@link #writeHtml(String, boolean) writeHtml}.
      */
     private void writeHtmlFile(String chartDirectory, StringBuilder html, boolean imagemap) {
         String indexHtml = null;
@@ -177,13 +183,13 @@ public class TestSuiteData implements Serializable {
         return lineFunction;
     }
 
-    public void makeCharts(String chartDirectory) {
+    public void writeCharts(String chartDirectory) {
         for (String testcaseName : testData.keySet()) {
             XYSeries series = new XYSeries(testcaseName);
             XYSeries line = new XYSeries(testcaseName + " slope");
             SortedMap<Integer, Double> performance = testData.get(testcaseName);
             LineFunction2D lineFunction = makeLineFunction(performance);
-
+            
             for (Map.Entry<Integer, Double> entry : performance.entrySet()) {
                 Integer revision = entry.getKey();
                 series.add(revision, entry.getValue());
@@ -191,24 +197,9 @@ public class TestSuiteData implements Serializable {
                         .doubleValue()));
             }
             if (series.getItemCount() > 1) {
-                XYSeriesCollection dataset = new XYSeriesCollection();
-                dataset.addSeries(series);
-                dataset.addSeries(line);
-                NumberAxis xaxis = new NumberAxis("Revision");
-                NumberAxis yaxis = new NumberAxis("Time (sec)");
-                yaxis.setLowerBound(0);
-                yaxis
-                        .setUpperBound(performance.get(performance.lastKey()) * 1.2);
-                XYItemRenderer renderer = new XYLineAndShapeRenderer(true,
-                        false);
-                renderer.setSeriesToolTipGenerator(0,
-                        new FeatureXYToolTipGenerator());
-                renderer.setSeriesToolTipGenerator(1, null);
-                XYPlot plot = new XYPlot(dataset, xaxis, yaxis, renderer);
-                JFreeChart chart = new JFreeChart(testcaseName, plot);
-                chart.removeLegend();
-                xaxis.setAutoRange(true);
-                xaxis.setAutoRangeIncludesZero(false);
+                JFreeChart chart = createChartEntity(testcaseName, series, line,
+                        performance);
+                
                 ChartRenderingInfo info = new ChartRenderingInfo(
                         new StandardEntityCollection());
                 OutputStream htmlOut = null;
@@ -238,8 +229,40 @@ public class TestSuiteData implements Serializable {
         }
     }
 
+    private JFreeChart createChartEntity(String testcaseName, XYSeries series,
+            XYSeries line, SortedMap<Integer, Double> performance) {
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(series);
+        dataset.addSeries(line);
+        NumberAxis xaxis = new NumberAxis("Revision");
+        NumberAxis yaxis = new NumberAxis("Time (sec)");
+        yaxis.setLowerBound(0);
+        yaxis.setUpperBound(performance.get(performance.lastKey()) * 1.2);
+        XYItemRenderer renderer = new XYLineAndShapeRenderer(true,
+                false);
+        renderer.setSeriesToolTipGenerator(0,
+                new FeatureXYToolTipGenerator());
+        renderer.setSeriesToolTipGenerator(1, null);
+        XYPlot plot = new XYPlot(dataset, xaxis, yaxis, renderer);
+        JFreeChart chart = new JFreeChart(testcaseName, plot);
+        chart.removeLegend();
+        xaxis.setAutoRange(true);
+        xaxis.setAutoRangeIncludesZero(false);        
+        String startDateString = revisionDate.get(performance.firstKey());
+        String endDateString = revisionDate.get(performance.lastKey());
+        Title dates = new TextTitle("Start: " + startDateString + "                " + "End: " + endDateString);
+        dates.setPosition(RectangleEdge.BOTTOM);
+        dates.setPadding(1.0,1.0,10.0,1.0);
+        chart.addSubtitle(dates);        
+        return chart;
+    }
+
     public SortedMap<Integer, Double> getTimingData(String testcase) {
         return testData.get(testcase);
+    }
+    
+    public void putRevisionDate(Integer revision, String date) {
+        revisionDate.put(revision, date);
     }
 
     public void addTimingInformation(String testName, Integer revision,
