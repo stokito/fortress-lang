@@ -182,6 +182,7 @@ public class PerformanceLogMonitor {
     }
     
     public static void main(String[] args) {
+	System.setProperty("java.awt.headless","true"); 
         if (!((args.length == 3) || (args.length == 2))) {
             System.err.println("First argument is the xml log file.");
             System.err.println("Second argument is the data file to read and write.");
