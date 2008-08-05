@@ -171,7 +171,13 @@ public class Transform extends TemplateUpdateVisitor {
 	}
 
         private Object lookupVariable( Id name ){
-            return variables.get( name.getText() );
+            Object obj = variables.get( name.getText() );
+            if ( obj == null ){
+                throw new MacroError( "Can't find a binding for gap " + name );
+            } else if ( obj instanceof CurriedTransformer ){
+                throw new MacroError( name + " cannot accept parameters in a case expression" );
+            }
+            return obj;
         }
 
 	@Override public Node forNodeTransformer(NodeTransformer that) {
