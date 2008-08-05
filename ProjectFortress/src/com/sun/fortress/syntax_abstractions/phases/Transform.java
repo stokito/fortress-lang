@@ -170,6 +170,10 @@ public class Transform extends TemplateUpdateVisitor {
 	    this.variables = variables;
 	}
 
+        private Object lookupVariable( Id name ){
+            return variables.get( name.getText() );
+        }
+
 	@Override public Node forNodeTransformer(NodeTransformer that) {
 	    return that.getNode().accept(new Transform(transformers, variables));
 	}
@@ -178,7 +182,8 @@ public class Transform extends TemplateUpdateVisitor {
 	    Id gapName = that.getGapName();
 	    List<CaseTransformerClause> clauses = that.getClauses();
 
-	    Object toMatch = lookupVariable(gapName, new LinkedList<Id>());
+	    // Object toMatch = lookupVariable(gapName, new LinkedList<Id>());
+	    Object toMatch = lookupVariable(gapName);
 	    for (CaseTransformerClause clause : clauses) {
 		Option<Node> result = matchClause(clause, toMatch);
 		if (result.isSome()) {
@@ -225,6 +230,21 @@ public class Transform extends TemplateUpdateVisitor {
 	}
     }
 
+    private Object traverse( Object partial ){
+        if ( partial instanceof List ){
+            List<Object> all = new LinkedList<Object>();
+            for ( Object o : (List<?>) partial ){
+                all.add( traverse( o ) );
+            }
+            return all;
+        } else if ( partial instanceof Node ){
+            return ((Node) partial).accept( this );
+        }
+        throw new MacroError( "Unknown object type " + partial.getClass().getName() + " value: " + partial );
+    }
+
+            // Node argument = ((Node)var.getValue()).accept(this);
+
     @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
         if ( ! that.getSyntaxParameters().isEmpty() ){
 	    /* needs parameters, curry it! */
@@ -246,7 +266,8 @@ public class Transform extends TemplateUpdateVisitor {
         Map<String,Object> evaluated = new HashMap<String,Object>();
         for ( Map.Entry<String,Object> var : arguments.entrySet() ){
             String varName = var.getKey();
-            Node argument = ((Node)var.getValue()).accept(this);
+            // Node argument = ((Node)var.getValue()).accept(this);
+            Object argument = traverse( var.getValue() );
             // checkFullyTransformed(argument);
             evaluated.put(varName, argument);
             Debug.debug( Debug.Type.SYNTAX, 3,
