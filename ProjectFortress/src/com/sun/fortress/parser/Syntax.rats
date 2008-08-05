@@ -168,7 +168,7 @@ TransformerDecl PreTransformerDecl =
      { yyValue = new PreTransformerDef(createSpan(yyStart,yyCount), transformer); };
 
 Transformer PreTransformer =
-     case w pvar:Id of clauses:CaseTransformerClauses w end
+     case w pvar:Id w of w clauses:CaseTransformerClauses w end
      { yyValue = new CaseTransformer(createSpan(yyStart,yyCount), pvar, clauses); }
    / leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
      { yyValue = new UnparsedTransformer(createSpan(yyStart,yyCount), a1, "Expr"); };
@@ -179,7 +179,9 @@ List<CaseTransformerClause> CaseTransformerClauses =
 
 CaseTransformerClause CaseTransformerClause =
      c:Id w openparen w gaps:BindIdList w closeparen w void:separator w transformer:PreTransformer
-     { yyValue = new CaseTransformerClause(createSpan(yyStart,yyCount), c, gaps, transformer); };
+     { yyValue = new CaseTransformerClause(createSpan(yyStart,yyCount), c, gaps, transformer); }
+     / c:Id w void:separator w transformer:PreTransformer
+     { yyValue = new CaseTransformerClause(createSpan(yyStart,yyCount), c, new LinkedList<Id>(), transformer); };
 
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
