@@ -124,8 +124,10 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
         parameters = Option.some(that.getParams());
         productionName = Option.some(that.getName().getText());
         Node result = super.forNonterminalHeader(that);
+        /*
         parameters = Option.none();
         productionName = Option.none();
+        */
         return result;
     }
 
