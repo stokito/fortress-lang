@@ -990,9 +990,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( join(syntaxSymbols_result, "") );
-        s.append( " <[" );
+        s.append( " => " );
         s.append( transformer_result );
-        s.append( "]>" );
 
         return s.toString();
     }
@@ -1026,6 +1025,28 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return that.getTransformer();
     }
     */
+    
+    @Override public String forPreTransformerDefOnly(PreTransformerDef that, String transformer_result) {
+        return transformer_result;
+    }
+
+    /* TODO: handle nonterminal_result */
+    @Override public String forUnparsedTransformerOnly(UnparsedTransformer that, String nonterminal_result) {
+        StringBuilder s = new StringBuilder();
+
+        /* should be nonterminal_result + " <[" ... */
+        s.append( "<[ " + that.getTransformer() + "]>"  );
+
+        return s.toString();
+    }
+    
+    @Override public String forSuperSyntaxDefOnly(SuperSyntaxDef that, String nonterminal_result, String grammar_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( nonterminal_result ).append( " from " ).append( grammar_result );
+
+        return s.toString();
+    }
 
     @Override public String forPrefixedSymbolOnly(PrefixedSymbol that,
                                                   Option<String> id_result,

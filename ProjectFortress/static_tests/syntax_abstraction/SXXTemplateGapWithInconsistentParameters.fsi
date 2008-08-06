@@ -22,10 +22,10 @@ api SXXTemplateGapWithInconsistentParameters
 
   grammar helloworld extends { Expression }
     Expr |Expr:=
-      hello a1:World <[ hello " " a1(hello, hello) ]>
+      hello a1:World => <[ hello " " a1(hello, hello) ]>
 
     World(e:StringLiteralExpr) :Expr:=
-      world <[ e " world" ]>
+      world => <[ e " world" ]>
 
   end
 

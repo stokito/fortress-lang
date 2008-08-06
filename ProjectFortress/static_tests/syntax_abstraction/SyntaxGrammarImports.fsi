@@ -23,15 +23,15 @@ api SyntaxGrammarImports
 
   grammar Helloworld extends { A, B, Expression }
       Expr |Expr:=
-         Hello a:Beautiful world <[ Hello " " a " world" ]>
+         Hello a:Beautiful world => <[ Hello " " a " world" ]>
   end
 
   grammar B 
       Foo :Expr:=
-         when <[ "in 84" ]>
+         when => <[ "in 84" ]>
 
       Beautiful :Expr:=
-         beautiful <[ "beautiful" ]>
+         beautiful => <[ "beautiful" ]>
   end
 
 end
