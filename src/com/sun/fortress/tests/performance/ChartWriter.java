@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.tests.performance;
 
 import java.io.BufferedOutputStream;
@@ -13,7 +30,6 @@ import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.entity.StandardEntityCollection;
-import org.jfree.data.function.LineFunction2D;
 import org.jfree.data.xy.XYSeries;
 
 public class ChartWriter extends Thread {
@@ -31,19 +47,14 @@ public class ChartWriter extends Thread {
     @Override
     public void run() {
         XYSeries series = new XYSeries(testcaseName);
-        XYSeries line = new XYSeries(testcaseName + " slope");
         SortedMap<Integer, Double> performance = testSuiteData.testData.get(testcaseName);
-        LineFunction2D lineFunction = testSuiteData.makeLineFunction(performance);
         
         for (Map.Entry<Integer, Double> entry : performance.entrySet()) {
             Integer revision = entry.getKey();
             series.add(revision, entry.getValue());
-            line.add(revision.doubleValue(), lineFunction.getValue(revision
-                    .doubleValue()));
         }
         if (series.getItemCount() > 1) {
-            JFreeChart chart = testSuiteData.createChartEntity(testcaseName, series, line,
-                    performance);
+            JFreeChart chart = testSuiteData.createChartEntity(testcaseName, series, performance);
             
             ChartRenderingInfo info = new ChartRenderingInfo(
                     new StandardEntityCollection());
@@ -56,8 +67,7 @@ public class ChartWriter extends Thread {
                         new File(htmlPath)));
                 htmlWriter = new PrintWriter(htmlOut);
                 htmlWriter.println("<html><head></head><body>");
-                String filePath = chartDirectory + File.separator
-                        + testcaseName + ".png";
+                String filePath = chartDirectory + File.separator + testcaseName + ".png";
                 ChartUtilities.saveChartAsPNG(new File(filePath), chart,
                         500, 300, info);
                 htmlWriter.println("<IMG SRC=\"" + testcaseName + ".png"

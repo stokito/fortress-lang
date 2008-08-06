@@ -17,12 +17,15 @@
 
 package com.sun.fortress.tests.performance;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -34,7 +37,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.title.Title;
-import org.jfree.data.function.LineFunction2D;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleEdge;
@@ -69,7 +71,8 @@ public class TestSuiteData implements Serializable {
         html.append("<html><head><title>Performance Measures</title></head>\n");
         html.append("<body>");
         html.append("<h2>Performance Measures</h2>");
-        html.append("Click on the image to see the imagemap.<p>\n");
+        html.append("Click on an image to see its imagemap version. ");
+        html.append("Mouse hover on imagemap version shows actual data.<p>\n");
         html.append("<table>\n");
         File directory = new File(chartDirectory);
         File[] images = directory.listFiles(new ExtensionFilenameFilter(".png"));
@@ -93,7 +96,7 @@ public class TestSuiteData implements Serializable {
                 html.append("\">");
                 html.append("<image src=\"");
                 html.append(image.getName());
-                html.append("\">");
+                html.append("\" border=0>");
                 html.append("</a>\n");
                 html.append("</td>\n");
                 counter++;                
@@ -118,50 +121,36 @@ public class TestSuiteData implements Serializable {
             PerformanceLogMonitor.closeStream(printer);
             PerformanceLogMonitor.closeStream(output);
         }
-    }
-    
-    
-    public double getSlope(double x1, double y1, double x2, double y2) {
-        if (x1 == x2)
-            return 0;
-        else
-            return (y2 - y1) / (x2 - x1);
-    }
-
-    public double getIntercept(double x1, double y1, double slope) {
-        return (y1 - slope * x1);
-    }
-
-    public LineFunction2D makeLineFunction(
-            SortedMap<Integer, Double> performance) {
-        double x1 = performance.firstKey().doubleValue();
-        double y1 = performance.get(performance.firstKey());
-        double x2 = performance.lastKey().doubleValue();
-        double y2 = performance.get(performance.lastKey());
-        double slope = getSlope(x1, y1, x2, y2);
-        double intercept = getIntercept(x1, y1, slope);
-        LineFunction2D lineFunction = new LineFunction2D(intercept, slope);
-        return lineFunction;
-    }
+    }    
 
     public void writeCharts(String chartDirectory) {
+        List<ChartWriter> writers = new ArrayList<ChartWriter>(testData.size());
         for (String testcaseName : testData.keySet()) {
             ChartWriter writer = new ChartWriter(chartDirectory, testcaseName, this);
-            writer.run();
+            writer.start();
+            writers.add(writer);
+        }
+        for(ChartWriter writer : writers) {
+            try {
+                writer.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     JFreeChart createChartEntity(String testcaseName, XYSeries series,
-            XYSeries line, SortedMap<Integer, Double> performance) {
+            SortedMap<Integer, Double> performance) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         dataset.addSeries(series);
-        dataset.addSeries(line);
         NumberAxis xaxis = new NumberAxis("Revision");
         NumberAxis yaxis = new NumberAxis("Time (sec)");
         yaxis.setLowerBound(0);
-        yaxis.setUpperBound(performance.get(performance.lastKey()) * 1.2);
+        double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
+        yaxis.setUpperBound(upperBound * 1.2);
         XYItemRenderer renderer = new XYLineAndShapeRenderer(true,
                 false);
+        renderer.setSeriesPaint(0, Color.BLUE);
         renderer.setSeriesToolTipGenerator(0,
                 new FeatureXYToolTipGenerator());
         renderer.setSeriesToolTipGenerator(1, null);
