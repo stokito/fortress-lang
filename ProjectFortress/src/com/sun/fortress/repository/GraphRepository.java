@@ -508,10 +508,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 }
             });
         GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
-        
+
         // Can we exclude non-imported pieces of the api here?
-        
-        
+
+
         List<Component> components = new ArrayList<Component>();
         Shell shell = new Shell(this);
         AnalyzeResult result =
@@ -630,9 +630,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     public void deleteComponent(APIName name) {
         ComponentGraphNode graphNode = new ComponentGraphNode(name);
-        if ( ! graph.contains(graphNode) ){
-            throw new RuntimeException("No such component " + name);
-        } else {
+        if ( graph.contains(graphNode) ){
             cache.deleteComponent(name);
         }
     }
@@ -671,7 +669,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return 0;
     }
 
-	
+
 
     public void clear() {
 		ArrayList<APIName> names = new ArrayList<APIName>();
@@ -680,7 +678,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
 		for (Object o : components().keySet()) {
 			APIName n = (APIName) o;
-			
+
 			for (String r : roots) {
 				if (r.equalsIgnoreCase(n.getText()))
 					isRoot = true;
@@ -691,11 +689,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
 			isRoot = false;
 		}
-		
+
 		for (APIName a : names) {
 			deleteComponent(a);
 		}
-		
+
 	}
 
 }

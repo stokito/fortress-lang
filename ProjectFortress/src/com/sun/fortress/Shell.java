@@ -286,6 +286,21 @@ public final class Shell {
     }
 
     /**
+     * Evaluate a given component and returns its value.
+     */
+    public static FValue eval( String file )
+        throws Throwable {
+        if ( ! isComponent(file) )
+            throw new UserError("A component file is expected to evaluate.");
+        APIName name = trueApiName( file );
+        Path path = sourcePath( file, name );
+        GraphRepository bcr = specificRepository( path, defaultRepository );
+        CompilationUnit cu = bcr.getLinkedComponent(name).ast();
+        List<String> args = new ArrayList<String>();
+        return Driver.runProgram(bcr, cu, false, args);
+    }
+
+    /**
      * Compare results of two components.
      */
     private static void compare(List<String> args)
@@ -317,19 +332,8 @@ public final class Shell {
                 System.out.println( "Need component files " +
                                     "instead of API files." );
             } else if (isComponent(first) && isComponent(second)) {
-                APIName name = trueApiName( first );
-                Path path = sourcePath( first, name );
-                GraphRepository bcr = specificRepository( path, defaultRepository );
-                CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-                List<String> args = new ArrayList<String>();
-                FValue value1 = Driver.runProgram(bcr, cu, false, args);
-
-                name = trueApiName( second );
-                path = sourcePath( second, name );
-                bcr = specificRepository( path, defaultRepository );
-                cu = bcr.getLinkedComponent(name).ast();
-                FValue value2 = Driver.runProgram(bcr, cu, false, args);
-
+                FValue value1 = eval( first );
+                FValue value2 = eval( second );
                 if (value1 == value2)
                     System.out.println( "Ok" );
                 else System.out.println( "Failed: " +
@@ -446,7 +450,6 @@ public final class Shell {
                     BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
                     writer.write(code);
                     writer.close();
-                    System.out.println( "Dumped code to " + out.unwrap() );
                 } catch ( IOException e ){
                     System.err.println( "Error while writing " + out.unwrap() );
                 }
@@ -543,12 +546,10 @@ public final class Shell {
         APIName name = cuName(file);
         try {
             if ( isApi(file) ) {
-            	// FIXME: The following line is executed for its side effects
                 Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
             } else if (isComponent(file)) {
-            	// FIXME: The following line is executed for its side effects
                 Component c = (Component) bcr.getComponent(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(defaultRepository.getComponent(name).ast(), out.unwrap());
@@ -609,15 +610,9 @@ public final class Shell {
     private static void run(String fileName, List<String> args)
         throws UserError, Throwable {
         try {
-            APIName name = trueApiName( fileName );
-            Path path = sourcePath(fileName, name);
-
-            GraphRepository bcr = specificRepository( path, defaultRepository );
             Iterable<? extends StaticError> errors = IterUtil.empty();
-
             try {
-                CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-                Driver.runProgram(bcr, cu, test, args);
+                eval( fileName );
             } catch (Throwable th) {
                 // TODO FIXME what is the proper treatment of errors/exceptions etc.?
                 if (th instanceof FortressException) {

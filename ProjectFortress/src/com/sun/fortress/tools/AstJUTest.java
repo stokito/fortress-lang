@@ -122,7 +122,7 @@ public class AstJUTest extends TestCase {
         * use the macros, so they have non-standard syntax in the first place.
         */
        String syntax = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/static_tests/syntax_abstraction";
-       TestSuite suite = new TestSuite("Parses all .fss and .fsi files in ProjectFortress/tests" );
+       TestSuite suite = new TestSuite("Parses all .fss and .fsi files." );
        String[] dirs = new String[]{ tests, library, demos, builtin };
        for ( String dir : dirs ){
            for ( String file : allTests(dir) ){
