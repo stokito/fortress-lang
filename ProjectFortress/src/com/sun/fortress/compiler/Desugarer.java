@@ -33,7 +33,6 @@ import com.sun.fortress.compiler.typechecker.TypeEnv;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Pair;
 
-
 /**
  * Performs desugaring of Fortress programs. Specifically, the following transformations are performed:
  * <ul>
@@ -104,7 +103,7 @@ public class Desugarer {
     /** Statically check the given components. */
     public static ComponentResult
         desugarComponents(Map<APIName, ComponentIndex> components,
-                          GlobalEnvironment env, 
+                          GlobalEnvironment env,
                           Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode)
     {
         HashSet<Component> desugaredComponents = new HashSet<Component>();
@@ -121,7 +120,7 @@ public class Desugarer {
     }
 
     public static Component desugarComponent(ComponentIndex component,
-                                             GlobalEnvironment env, 
+                                             GlobalEnvironment env,
                                              Map<Pair<Node,Span>,TypeEnv> typeEnvAtNode) {
      	Component comp = (Component) component.ast();
         if(getter_setter_desugar) {
@@ -130,7 +129,7 @@ public class Desugarer {
         }
         if(objExpr_desugar) {
         	TraitTable traitTable = new TraitTable(component, env);
-        	ObjectExpressionVisitor objExprVisitor = 
+        	ObjectExpressionVisitor objExprVisitor =
         		new ObjectExpressionVisitor(traitTable, typeEnvAtNode);
         	comp = (Component) comp.accept(objExprVisitor);
         }

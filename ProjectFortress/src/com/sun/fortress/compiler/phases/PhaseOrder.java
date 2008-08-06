@@ -25,13 +25,42 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.repository.FortressRepository;
 
 public enum PhaseOrder {
-    EMPTY("Empty Phase"), 
+    EMPTY("Empty Phase"),
+    /* Run desugaring phases that must occur before disambiguation.
+     * 1) Remove conditional operators, replacing their operands with thunks.
+     * 2) Rewrite trait, object, and object expressions to explicitly extend Object.
+     * More details in com.sun.fortress.compiler.PreDisambiguationDesugarer
+     */
     PREDISAMBIGUATEDESUGAR("Pre-Disambiguation Desugaring"),
-    DISAMBIGUATE("Disambiguation"), 
-    GRAMMAR("Grammar Rewriting"), 
-    TYPECHECK("Typechecking"), 
-    DESUGAR("Desugaring"), 
+    /* Eliminates ambiguities in an AST that can be resolved solely by knowing what
+     * kind of entity a name refers to.  For example, all names referring to APIs
+     * are made fully qualified.
+     * More details in com.sun.fortress.compiler.Disambiguator
+     */
+    DISAMBIGUATE("Disambiguation"),
+    /* Rewrites grammar definitions.
+     * For example, disambiguates an item symbol and rewrites it to either
+     * a nonterminal, a keyword, or a token symbol.
+     * More details in com.sun.fortress.syntax_abstractions.phases.GrammarRewriter
+     */
+    GRAMMAR("Grammar Rewriting"),
+    /* Checks types of expressions.
+     * More details in com.sun.fortress.compiler.typechecker.TypeChecker
+     */
+    TYPECHECK("Typechecking"),
+    /* Performs desugaring of Fortress programs.
+     * 1) getter/setter desugaring
+     * 2) object expression desugaring
+     * More details in com.sun.fortress.compiler.Desugarer
+     */
+    DESUGAR("Desugaring"),
+    /* Rewrites overloaded functional declarations.
+     * More details in com.sun.fortress.compiler.OverloadRewriter
+     */
     OVERLOADREWRITE("Overloading Rewriting"),
+    /* Generates a Java bytecode compiled environment.
+     * More details in com.sun.fortress.compiler.environments.TopLevelEnvGen
+     */
     CODEGEN("Code generation");
 
     private String phaseName;

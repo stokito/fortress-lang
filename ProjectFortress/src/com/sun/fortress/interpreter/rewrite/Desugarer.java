@@ -81,6 +81,7 @@ import com.sun.fortress.useful.Voidoid;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.nodes_util.DesugarerUtil.*;
 
 /**
  * Rewrite the AST to "disambiguate" (given known interpreter
@@ -122,40 +123,6 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
  */
 public class Desugarer extends Rewrite {
 
-    // Distinct from Types.ANY_NAME because qualified names aren't yet supported
-    public final static Id INTERNAL_ANY_NAME =
-        NodeFactory.makeId("Any");
-
-    public final static Id LOOP_NAME =
-        NodeFactory.makeId(WellKnownNames.loop);
-
-    public final static VarRef GENERATE_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.generate);
-
-    public final static VarRef MAP_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.map);
-
-    public final static VarRef SINGLETON_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.singleton);
-
-    public final static VarRef NEST_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.nest);
-
-    public final static VarRef COND_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.cond);
-
-    public final static VarRef WHILECOND_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.whileCond);
-
-    public final static VarRef BIGOP_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.bigOperator);
-
-    public final static VarRef BIGOP2_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.bigOperator);
-
-    public final static VarRef FILTER_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.filter);
-
     private boolean isLibrary;
     private final static boolean debug = false;
 
@@ -166,7 +133,7 @@ public class Desugarer extends Rewrite {
             objectNestedness = objectNestingDepth;
             lexicalNestedness = lexicalNestingDepth;
         }
-        
+
         public boolean equals(Object o) {
             if (o.getClass() == getClass()) {
                 Thing that = (Thing) o;
@@ -176,12 +143,12 @@ public class Desugarer extends Rewrite {
             }
             return false;
         }
-        
+
         /** May assume {@code original} has a non-zero length. */
         Expr replacement(VarRef original) {
             return NodeFactory.makeVarRef(original, lexicalNestedness);
         }
-        
+
         Expr replacement(FnRef original) {
             return NodeFactory.makeFnRef(original, lexicalNestedness);
         }
@@ -214,7 +181,7 @@ public class Desugarer extends Rewrite {
         Map<String, Thing> env;
         Trait(TraitAbsDeclOrDecl dod, Map<String, Thing> env) { defOrDecl = dod; this.env = env; }
         public String toString() { return "Trait="+defOrDecl; }
-        
+
         public boolean equals (Object o) {
             if (super.equals(o)) {
                 Trait that = (Trait) o;
@@ -289,7 +256,7 @@ public class Desugarer extends Rewrite {
     public final static ArrowOrFunctional NEITHER = new ArrowOrFunctional("NEITHER");
     public final static ArrowOrFunctional ARROW = new ArrowOrFunctional("ARROW");
     public final static ArrowOrFunctional FUNCTIONAL = new ArrowOrFunctional("FUNCTIONAL");
-    
+
     public static class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
 
         @Override
@@ -371,8 +338,8 @@ public class Desugarer extends Rewrite {
         private ArrowOrFunctional optionTypeIsArrow(Option<Type> ot) {
             return ot.unwrap(null) instanceof ArrowType ? ARROW : NEITHER;
         }
-        
-        
+
+
 
     }
 
@@ -386,7 +353,7 @@ public class Desugarer extends Rewrite {
      * Rewritings in scope.
      */
     private BATree<String, Thing> rewrites;
-    
+
     public Thing rewrites_put(String k, Thing d) {
         return rewrites.put(k, d);
     }
@@ -474,7 +441,7 @@ public class Desugarer extends Rewrite {
      *
      */
     int objectNestingDepth;
-    
+
     /**
      * Zero for toplevel, otherwise equal to the number of enclosing scopes,
      * for some definition of scope.  The definition of scope will be adjusted
@@ -486,12 +453,6 @@ public class Desugarer extends Rewrite {
 
     String currentSelfName = WellKnownNames.defaultSelfName;
     boolean atTopLevelInsideTraitOrObject = false; // true immediately within a trait/object
-
-    /**
-     * Used to generate temporary names when rewriting (for example)
-     * tuple initializations.
-     */
-    int tempCount = 0;
 
     /**
      * Adds, to the supplied environment, constructors for any object
@@ -548,7 +509,7 @@ public class Desugarer extends Rewrite {
         }
 
     }
-    
+
     Expr newName(_RewriteObjectRef vre, String s) {
         Thing t = rewrites.get(s);
         if (t == null) {
@@ -558,9 +519,9 @@ public class Desugarer extends Rewrite {
         }
         return vre;
     }
-    
+
    NamedType newType(VarType nt, String s) {
-        
+
         Thing t = rewrites.get(s);
         if (t == null) {
             return nt;
@@ -569,9 +530,9 @@ public class Desugarer extends Rewrite {
             return t.replacement(nt);
         }
     }
-   
+
    NamedType newType(TraitType nt, String s) {
-       
+
        Thing t = rewrites.get(s);
        if (t == null) {
            return nt;
@@ -939,20 +900,20 @@ public class Desugarer extends Rewrite {
                     String s = ((Catch) node).getName().stringName();
                     lexicalNestingDepth++;
                     rewrites_put(s, new Local());
-                    
+
                 } else if (node instanceof LocalVarDecl) {
                     atTopLevelInsideTraitOrObject = false;
                     lexicalNestingDepth++;
-                    
+
                     LocalVarDecl lvd = (LocalVarDecl) node;
-                    
+
                     List<LValue> lhs = lvd.getLhs();
                     Option<Expr> rhs = lvd.getRhs();
                     List<Expr> body = lvd.getBody();
-                    
+
                     lvaluesToLocal(lhs);
                     // not quite right because initializing exprs are evaluated in the wrong context.
-                    
+
                     // TODO wip
 
                 } else if (node instanceof LetFn) {
@@ -975,12 +936,12 @@ public class Desugarer extends Rewrite {
                     Option<List<Param>> params = od.getParams();
                     List<StaticParam> tparams = od.getStaticParams();
                     List<BaseType> xtends = NodeUtil.getTypes(od.getExtendsClause());
-                    
+
                     // TODO wip
                     lexicalNestingDepth++;
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
-                    
+
                     defsToMembers(defs);
                     immediateDef = tparamsToLocals(tparams, immediateDef);
                     paramsToMembers(params);
@@ -1040,7 +1001,7 @@ public class Desugarer extends Rewrite {
                     return visitLoop(ge.getSpan(), ge.getGens(), ge.getExpr());
                 } else if (node instanceof Accumulator) {
                     Accumulator ac = (Accumulator)node;
-                    node =  visitAccumulator(ac.getSpan(), ac.getGens(),
+                    node = visitAccumulator(ac.getSpan(), ac.getGens(),
                                             ac.getOpr(), ac.getBody(),
                                             ac.getStaticArgs());
                     return node;
@@ -1055,7 +1016,7 @@ public class Desugarer extends Rewrite {
                     // Not quite right because this will remove them from arrows,
                     // but perhaps they ARE arrows, depending on the typecase.
                     IdsToLocals(lid);
-                    
+
                     if (oe.isNone()) {
                         node = ExprFactory.makeTypecase(tc, lid, (Expr) tupleForIdList(lid));
                     }
@@ -1089,35 +1050,11 @@ public class Desugarer extends Rewrite {
 
     }
 
-   public String gensym(String prefix) {
-        return prefix + "$" + (++tempCount);
-    }
-
-    public String gensym() {
-        return gensym("t");
-    }
-
-    public Id gensymId(String prefix) {
-        return NodeFactory.makeId(gensym(prefix));
-    }
-
     private String vrToString(VarRef vre) {
         Iterable<Id> ids = NodeUtil.getIds(vre.getVar());
 
         String s = IterUtil.first(ids).getText();
         return s;
-    }
-
-    /**
-     *  Given body, binds <- exp
-     *  generate (fn binds => body)
-     */
-    Expr bindsAndBody(GeneratorClause g, Expr body) {
-        List<Id> binds = g.getBind();
-        List<Param> params = new ArrayList<Param>(binds.size());
-        for (Id b : binds) params.add(NodeFactory.makeParam(b));
-        Expr res = ExprFactory.makeFnExpr(g.getSpan(),params,body);
-        return res;
     }
 
     /**
@@ -1205,17 +1142,6 @@ public class Desugarer extends Rewrite {
     }
 
     /**
-     *  Given reduction of body | x <- exp, yields
-     *  __generate(x,reduction,fn x => body)
-     */
-    Expr oneGenerator(GeneratorClause g, VarRef reduction, Expr body) {
-        Expr loopBody = bindsAndBody(g, body);
-        Expr params = ExprFactory.makeTuple(g.getInit(), reduction, loopBody);
-        return new TightJuxt(g.getSpan(), false,
-                             Useful.list(GENERATE_NAME,params));
-    }
-
-    /**
      * @param loc   Containing context
      * @param gens  Generators in generator list
      * @return single generator equivalent to the generator list
@@ -1235,157 +1161,14 @@ public class Desugarer extends Rewrite {
         return (Expr)visitNode(body);
     }
 
-    /** Given outer generator clauses and inner body expression,
-     * determine if there's an opportunity for generator-of-generator.
-     * This is true if the generator expression has the form
-     *   BIG OP1[gs1, xs <- gOfg] BIG OP2[x <- xs, gs2] body
-     * In this case we should desugar into a generator-of-generators
-     * which we can naively think of as this:
-     *   BIG OP1[gs1] (BIG OP1[xs<-gOfg] BIG OP2 [x<-xs] (BIG OP2[gs2] body))
-     * where the middle two are accomplished by a single call to
-     * __generate2 with a pair of reductions.
-     */
-    boolean nestedGeneratorOpportunity(List<GeneratorClause> gens, Expr body) {
-        // Make sure there are outer generators.
-        int gs = gens.size();
-        if (gs==0) return false;
-        // Make sure body is an Accumulator expression.
-        if (!(body instanceof Accumulator)) return false;
-        Accumulator bodyAccum = (Accumulator)body;
-        // Make sure innermost generator of outer accumulator yields a single variable.
-        GeneratorClause outerGen = gens.get(gs-1);
-        List<Id> outerVars = outerGen.getBind();
-        if (outerVars.size()!=1) return false;
-        Id outerVar = outerVars.get(0);
-        // Find outermost generator of inner accumulator (might be body)
-        List<GeneratorClause> bodyGens = bodyAccum.getGens();
-        Expr bodyOuterInit;
-        if (bodyGens.size()==0) {
-            bodyOuterInit = bodyAccum.getBody();
-        } else {
-            GeneratorClause bodyOuterGen = bodyGens.get(0);
-            bodyOuterInit = bodyOuterGen.getInit();
-        }
-        // Make sure innermost generator is a single variable matching outerVar
-        if (!(bodyOuterInit instanceof VarRef)) return false;
-        Id innerVar = ((VarRef)bodyOuterInit).getVar();
-        return (outerVar.equals(innerVar));
-    }
-
-    /** Given a list of generator clauses and a position i, determine
-     * if the i^th generator clause is a predicate that can be fused
-     * with the first immediately preceding variable-labeled generator
-     * clause.  This requires that the comprehension be of the form:
-     * x <- gs, p(x) where p(x) is literally a function call, but where
-     * x might actually be a tuple of variables.  That way we can pass
-     * the literal function p to filter and make use of its
-     * properties.  When we have full type checking, we can simply
-     * unconditionally fuse predicates; that will be strictly better
-     * than the present approach.
-     */
-    GeneratorClause filterSqueezeOpportunity(GeneratorClause prevGen,
-                                             GeneratorClause gen) {
-        // Clause is predicate
-        if (gen.getBind().size()!=0) return null;
-        // Check shape of clause expression
-        Expr predicate = gen.getInit();
-        if (!(predicate instanceof Juxt)) return null;
-        List<Expr>exprs = ((Juxt)predicate).getExprs();
-        if (exprs.size() != 2) return null;
-        Expr fn = exprs.get(0);
-        if (!(fn instanceof VarRef)) return null;
-        // Argument handling.  Handle (a,b,c) <- xs, p(a,b,c) as well.
-        Expr arg = exprs.get(1);
-        List<Expr> args;
-        if (arg instanceof VarRef) {
-            args = Collections.<Expr>singletonList(arg);
-        } else if (arg instanceof TupleExpr) {
-            args = ((TupleExpr) arg).getExprs();
-        } else {
-            return null;
-        }
-        // Find all the argument variables, and check that each matches the
-        // corresponding variable in the binding of the previous generator.
-        List<Id> binds = prevGen.getBind();
-        int i = 0;
-        if (binds.size() != args.size()) return null;
-        for (Expr a : args) {
-            if (!(a instanceof VarRef)) return null;
-            if (!(binds.get(i).equals(((VarRef)a).getVar()))) return null;
-            i++;
-        }
-        // FILTER SQUEEZE.  Want to generate a new clause of the form
-        // binds <- __filter(init,fn)
-        Expr init = prevGen.getInit();
-        Expr filtered =
-            ExprFactory.makeTightJuxt(gen.getSpan(), FILTER_NAME,
-                                      ExprFactory.makeTuple(init,fn));
-        GeneratorClause res =
-            ExprFactory.makeGeneratorClause(prevGen.getSpan(), binds, filtered);
-        return res;
-    }
-
-    /** Given a list of generators, return an expression that computes
-     *  a composite generator given a reduction and a unit.  Desugars
-     *  to fn(r,u) => D where D is as follows:
-     *  exp | nothing       =>  __generate(exp,r,u)
-     *  body | x <- exp     =>  __generate(exp,r,fn x => u(body))
-     *  body | x <- exp, gs =>  __generate(exp,r,fn x => u(body)) | gs
-     */
-    Expr visitGenerators(Span span, List<GeneratorClause> gens, Expr body) {
-        Id reduction = gensymId("reduction");
-        VarRef redVar = ExprFactory.makeVarRef(reduction);
-        Id unitFn = gensymId("unit");
-        VarRef unitVar = ExprFactory.makeVarRef(unitFn);
-        int i = gens.size();
-        if (i==0) {
-            /* Single generator as body, with no generator clauses. */
-            body = new TightJuxt(span, false,
-                             Useful.list(GENERATE_NAME,
-                                         ExprFactory.makeTuple(body,redVar,unitVar)));
-        } else {
-            List<GeneratorClause> squozenGens =
-                new ArrayList<GeneratorClause>(gens.size());
-            GeneratorClause prevGen = gens.get(0);
-            for (int j = 1; j < i; j++) {
-                GeneratorClause gen = gens.get(j);
-                GeneratorClause squeeze = filterSqueezeOpportunity(prevGen,gen);
-                if (squeeze!=null) {
-                    // System.out.println(gen+": Filter squeeze opportunity\n"+
-                    //                    squeeze.toStringVerbose());
-                    prevGen = squeeze;
-                } else {
-                    squozenGens.add(prevGen);
-                    prevGen=gen;
-                }
-            }
-            squozenGens.add(prevGen);
-            gens = squozenGens;
-            i = gens.size();
-            if (nestedGeneratorOpportunity(gens,body)) {
-                System.out.println(span+" and\n"+body.getSpan()+
-                                   ": Generator of generator opportunity?");
-            }
-            body = new TightJuxt(body.getSpan(), false,
-                                 Useful.list(unitVar, body));
-            for (i--; i>=0; i--) {
-                body = oneGenerator(gens.get(i), redVar, body);
-            }
-        }
-        return ExprFactory.makeFnExpr(span,
-                       Useful.<Param>list(NodeFactory.makeParam(reduction),
-                                          NodeFactory.makeParam(unitFn)),
-                                      body);
-    }
-
-    Expr visitAccumulator(Span span, List<GeneratorClause> gens,
-                          OpName op, Expr body, List<StaticArg> staticArgs) {
+    private Expr visitAccumulator(Span span, List<GeneratorClause> gens,
+                                  OpName op, Expr body,
+                                  List<StaticArg> staticArgs) {
         body = visitGenerators(span, gens, body);
         Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
         Expr res = new TightJuxt(span, false,
                                  Useful.list(BIGOP_NAME,
                                              ExprFactory.makeTuple(opexp,body)));
-        // System.out.println("Desugared to "+res.toStringVerbose());
         return (Expr)visitNode(res);
     }
 
@@ -1449,13 +1232,13 @@ public class Desugarer extends Rewrite {
                 /*
                  *  Add the object itself (either constructor or singleton,
                  *  we don't care much) to the locals.
-                 *  
+                 *
                  *  If it is a constructor, it is also an arrow type.
-                 *  
+                 *
                  */
                 String s = od.getName().getText();
                 rewrites_put(s, new Local());
-                
+
                 if (params.isNone())
                     arrows.remove(s);
                 else
@@ -1467,7 +1250,7 @@ public class Desugarer extends Rewrite {
             }
         }
     }
-    
+
     /**
      * @param defs
      */
@@ -1494,7 +1277,7 @@ public class Desugarer extends Rewrite {
                     functionals.add(s);
                     rewrites_put(s, new FunctionalMethod());
                 }
-           
+
         }
     }
 
@@ -1512,14 +1295,14 @@ public class Desugarer extends Rewrite {
             }
         }
     }
-    
+
     private void IdsToLocals(List<Id> lid) {
         for (Id d : lid) {
             String s = d.getText();
             rewrites_put(s, new Local());
         }
     }
-    
+
     private NodeAbstractVisitor_void localVisitor = new  NodeAbstractVisitor_void() {
 
         @Override
@@ -1551,14 +1334,14 @@ public class Desugarer extends Rewrite {
             for (Unpasting up : that.getElems())
                 up.accept(this);
         }
-    
+
     };
-    
+
     /**
      * @param params
      */
     private void lvaluesToLocal(List<? extends LValue> params) {
-        for (LValue param : params) 
+        for (LValue param : params)
             param.accept(localVisitor);
     }
 
@@ -1632,7 +1415,7 @@ public class Desugarer extends Rewrite {
                     if (aof == FUNCTIONAL) {
                         functionals.add(s);
                         throw new Error("Don't think this can happen");
-                        
+
                     }
                 } else
                     arrows.remove(s);
@@ -1721,7 +1504,7 @@ public class Desugarer extends Rewrite {
                                     //visited.add(tdod);
                                 } else {
                                     ArrowOrFunctional aof = dd.accept(isAnArrowName);
-                                    
+
                                     if (aof != NEITHER) {
                                         arrow_names.add(sdd);
                                         if (aof == FUNCTIONAL) {
@@ -1784,7 +1567,7 @@ public class Desugarer extends Rewrite {
                             new TupleExpr(visitedArgs));
             }
         } else  if (expr instanceof _RewriteFieldRef) {
-       
+
             _RewriteFieldRef selfDotSomething = (_RewriteFieldRef) visit(first);
 
             return new MethodInvocation(node.getSpan(),
@@ -1795,10 +1578,10 @@ public class Desugarer extends Rewrite {
                                     visitedArgs.size() == 1 ? visitedArgs.get(0) :
                                         new TupleExpr(visitedArgs));
         }
-        
-        throw new Error("Not there yet."); 
 
-  
+        throw new Error("Not there yet.");
+
+
     }
 
     private AbstractNode translateJuxtOfDotted(MathPrimary node) {
