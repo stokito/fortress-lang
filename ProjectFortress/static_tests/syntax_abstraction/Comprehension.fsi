@@ -25,20 +25,20 @@ api Comprehension
 
     Expr |Expr:=
       foo DComprehension bar
-      <[ DComprehension ]>
+      => <[ DComprehension ]>
 
     DComprehension :Expr:=
       a e:Expr d DGeneratorClauseList b 
-      <[ DGeneratorClauseList(e) ]>
+      => <[ DGeneratorClauseList(e) ]>
 
-    Big :StringLiteralExpr:= BIG <[ "BIG" ]>
+    Big :StringLiteralExpr:= BIG => <[ "BIG" ]>
 
 (*    (Big w)? LeftEncloser StaticArgs? w e:Expr wr | wr GeneratorClauseList w RightEncloser *)
     DGeneratorClauseList(e:Expr) :Expr:= 
-      x:Id <- gen:Expr , GeneratorClauseList <[ "A" ]>
-    | filter:Expr , GeneratorClauseList <[ "B" ]>
-    | x:Id <- gen:Expr <[ __generate(gen, SumReduction, fn x => e) ]>
-    | filter:Expr <[ "D" ]>      
+      x:Id <- gen:Expr , GeneratorClauseList => <[ "A" ]>
+    | filter:Expr , GeneratorClauseList => <[ "B" ]>
+    | x:Id <- gen:Expr => <[ __generate(gen, SumReduction, fn x => e) ]>
+    | filter:Expr => <[ "D" ]>      
 
 (*
 __nest(gen, fn y => DGeneratorClauseList(e))
@@ -48,10 +48,10 @@ __nest(filter, fn () => e)
 
 x:BindIdOrBindIdTuple
     LeftEncloser :Expr:=
-      <| <[ "LeftEncloser" ]>
+      <| => <[ "LeftEncloser" ]>
 
     RightEncloser :Expr:=
-      |> <[ "RightEncloser" ]>
+      |> => <[ "RightEncloser" ]>
 *)
 
   end 
