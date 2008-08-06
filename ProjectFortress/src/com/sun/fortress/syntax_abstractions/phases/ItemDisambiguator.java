@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDef;
@@ -45,6 +46,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.UnparsedTransformer;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -121,6 +123,17 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
             error("Grammar "+that.getName()+" not found", that);
         }
         return super.forGrammarDef(that);
+    }
+    
+    @Override public Node forUnparsedTransformer(UnparsedTransformer that) {
+        NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
+        Option<Id> oname = nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), that.getNonterminal());
+
+        if (oname.isSome()) {
+            return new UnparsedTransformer( that.getTransformer(), oname.unwrap() ); 
+        } else {
+            throw new MacroError( "Cannot find non-terminal " + that.getNonterminal() );
+        }
     }
 
     @Override

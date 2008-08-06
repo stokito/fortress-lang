@@ -3,11 +3,11 @@ api Case
     import FortressAst.{...}
     import FortressSyntax.{...}
 
-    grammar Case extends Expression
+    grammar Case extends { Expression, Declaration }
         Expr |Expr:=
             foo {e:Expr , SPACE}* =>
                 case e of
-                    Empty => <[ println "none" ]>
+                    Empty => Expr <[ println "none" ]>
                     Cons(e1,e2) => <[ println "some" ]>
                 end
     end
