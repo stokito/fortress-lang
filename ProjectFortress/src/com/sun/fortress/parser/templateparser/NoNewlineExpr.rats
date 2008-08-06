@@ -29,3 +29,13 @@ import Spacing;
 
 modify com.sun.fortress.parser.NoNewlineExpr(Expr, NoNewlineType, Keyword,
 Symbol, Spacing);
+
+Action<Expr> ExprTail += NoNewlineEllipsesExpr / <As> ...;
+
+constant inline Action<Expr> NoNewlineEllipsesExpr = 
+	s DoubleStar 
+	{ yyValue = new Action<Expr>() { 
+		public Expr run(Expr base) { 
+			return new _EllipsesExpr(createSpan(yyStart,yyCount), base); 
+		}}; 
+	}; 
