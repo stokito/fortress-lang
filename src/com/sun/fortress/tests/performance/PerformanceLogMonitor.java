@@ -195,7 +195,6 @@ public class PerformanceLogMonitor {
         if (args.length == 3) {
             chartDirectory = args[2];
         }
-        System.out.println("Processing: " + xmlLogFile);
         readDataFile(dataFile);
         readLogFile(xmlLogFile);
         if (chartDirectory != null) {
