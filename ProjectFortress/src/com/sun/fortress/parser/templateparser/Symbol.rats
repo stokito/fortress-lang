@@ -31,3 +31,5 @@ import Keyword;
 
 modify com.sun.fortress.parser.Symbol(DelimitedExpr, LocalDecl,
  NoNewlineExpr, Type, Identifier, Spacing, Keyword);
+
+transient void DoubleStar = "**";

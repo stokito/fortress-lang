@@ -46,4 +46,12 @@ Expr ExprFront +=
    / FnExprGap
    / <Fn> ... ;
 
+Action<Expr> ExprTail += EllipsesExpr / <As> ...;
 
+constant inline Action<Expr> EllipsesExpr = 
+	w DoubleStar 
+	{ yyValue = new Action<Expr>() { 
+		public Expr run(Expr base) { 
+			return new _EllipsesExpr(createSpan(yyStart,yyCount), base); 
+		}}; 
+	}; 
