@@ -1040,6 +1040,34 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
     
+    @Override public String forCaseTransformerOnly(CaseTransformer that, String gapName_result, List<String> clauses_result) {
+        StringBuilder s = new StringBuilder();
+
+        increaseIndent();
+        s.append( "case " ).append( gapName_result ).append( " of\n" );
+        s.append( indent(join(clauses_result, "\n")) );
+        s.append("\n");
+        s.append("end");
+        decreaseIndent();
+
+        return s.toString();
+    }
+    
+    @Override public String forCaseTransformerClauseOnly(CaseTransformerClause that, String constructor_result, List<String> parameters_result, String body_result) {
+        StringBuilder s = new StringBuilder();
+
+        s.append( constructor_result );
+        if ( ! parameters_result.isEmpty() ){
+            s.append( "(" );
+            s.append( join(parameters_result, ", ") );
+            s.append( ")" );
+        }
+        s.append( " => " );
+        s.append( body_result );
+
+        return s.toString();
+    }
+    
     @Override public String forSuperSyntaxDefOnly(SuperSyntaxDef that, String nonterminal_result, String grammar_result) {
         StringBuilder s = new StringBuilder();
 
