@@ -43,6 +43,7 @@ customGenerator com.sun.fortress.astgen.TemplateDepthFirstVoidVisitorGenerator;
 
 
 customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
+customPreprocessor com.sun.fortress.astgen.EllipsesNodeCreator;
 customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
 customGenerator com.sun.fortress.astgen.UpdateVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
@@ -109,7 +110,15 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      */
     interface TemplateGap(Id gapId, List<Id> templateParams);
 
+    /**
+     * A syntax transformation
+     */
     interface _SyntaxTransformation(String syntaxTransformer, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters);
+
+    /**
+     * Repeated expression inside a syntax transformation template
+     */
+    interface _Ellipses(Node repeatedNode);
 
     /**
      * intersections of interface types
@@ -557,8 +566,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             abstract TerminalDecl(SyntaxDef syntaxDef);
                 /**
-                 * terminal definition result of rewrite of keyword and token symbols in disambigutation of
-                 * syntax abstractions
+                 * terminal definition result of rewrite of keyword and token 
+		 * symbols in disambigutation of syntax abstractions
                  */
                 _TerminalDef();
         /**
@@ -588,7 +597,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
                       TransformerDecl transformer);
-
+            
             SuperSyntaxDef(Option<String> modifier, Id nonterminal, Id grammar);
 
         /**
@@ -596,26 +605,38 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
           */
         abstract TransformerDecl() implements AbsDecl;
             /**
-             * transformer definition in transformer declarations
-             */
-            TransformerDef(String transformer, String def, List<NonterminalParameter> parameters);
-
-            /**
-             * Same as above but with the template( def ) parsed into a node
-             */
-            TransformerNode(String transformer, AbstractNode node, List<NonterminalParameter> parameters );
-
-            /**
-             * For terminal nodes that are just a string literal
-             */
-            SimpleTransformerDef(AbstractNode node);
-
-            /**
              * pre transformer definition in transformer declarations
              */
-            PreTransformerDef(String productionName, String transformer);
+            PreTransformerDef(Transformer transformer);
+            /**
+             * transformer definition in transformer declarations
+             */
+            NamedTransformerDef(String name, List<NonterminalParameter> parameters, Transformer transformer);
+
         /**
-          * syntax symbol
+         * Transformers
+         */
+        abstract Transformer();
+            /**
+             * Unparsed template
+             */
+            UnparsedTransformer(String transformer, Id nonterminal);
+            /**
+             * Parsed template
+             */
+            NodeTransformer(AbstractNode node);
+            /**
+             * Case-dispatch transformer expr
+             */
+            CaseTransformer(Id gapName, List<CaseTransformerClause> clauses);
+
+        /** 
+         * Case transformer clause
+         */
+        CaseTransformerClause(Id constructor, List<Id> parameters, Transformer body);
+
+        /**
+          * syntax symbol 
           */
         abstract SyntaxSymbol();
             /**
@@ -722,11 +743,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * expression
          */
         root abstract Expr(ignoreForEquals boolean parenthesized = false, ignoreForEquals Option<Type> exprType = Option.<Type>none());
-
-            /**
-             * Repeated expression in a macro
-             */
-            _EllipsesExpr(Expr expr);
 
             /**
              * expression annotated with a type

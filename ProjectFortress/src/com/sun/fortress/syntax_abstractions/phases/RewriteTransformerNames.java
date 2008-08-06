@@ -59,12 +59,13 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.PreTransformerDef;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.TemplateGapExpr;
-import com.sun.fortress.nodes.TransformerDef;
+import com.sun.fortress.nodes.Transformer;
+import com.sun.fortress.nodes.NamedTransformerDef;
+import com.sun.fortress.nodes.PreTransformerDef;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarType;
@@ -91,25 +92,14 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
     // private List<String> names;
     private Option<String> api;
     private Option<String> grammar;
+    private Option<String> productionName;
     private Option<List<NonterminalParameter>> parameters;
-	
+
     public RewriteTransformerNames(){
         // this.names = new ArrayList<String>();
         this.api = Option.none();
         this.grammar = Option.none();
     }
-
-    /*
-    public List<String> getNames(){
-        return names;
-    }
-    */
-
-    /*
-    private void addTransformer( String name ){
-        names.add( name );
-    }
-    */
 
     @Override public Node forApi(Api that) {
         api = Option.some(that.getName().toString());
@@ -121,22 +111,31 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
         return super.forGrammarDef(that);
     }
 
-    /* these names might need consistently created, rather than use FreshName */
+    /* These names might need to be consistently created, rather than use FreshName
+     * Also, at this point the grammar is fully qualifid so the output is something
+     * like api_api_grammar_name. If this ever matters then take off the first
+     * api.unwrap() + "_"
+     */
     private String transformationName( String name ){
         return api.unwrap() + "_" + grammar.unwrap() + "_" + FreshName.getFreshName( name + "Transformer" );
     }
 
     @Override public Node forNonterminalHeader(NonterminalHeader that) {
         parameters = Option.some(that.getParams());
-        return super.forNonterminalHeader(that);
+        productionName = Option.some(that.getName().getText());
+        Node result = super.forNonterminalHeader(that);
+        /*
+        parameters = Option.none();
+        productionName = Option.none();
+        */
+        return result;
     }
 
-    @Override public Node forPreTransformerDefOnly(PreTransformerDef that) {
+    @Override public Node forPreTransformerDefOnly(PreTransformerDef that, Transformer transformer) {
         try{
-            Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + that.getProductionName() );
-            String name = transformationName(that.getProductionName());
-            // addTransformer( name );
-            return new TransformerDef( name, that.getTransformer(), parameters.unwrap() );
+            Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());
+            String name = transformationName(productionName.unwrap());
+            return new NamedTransformerDef( name, parameters.unwrap(), transformer );
         } catch ( OptionUnwrapException e ){
             throw new MacroError( "Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e );
         }

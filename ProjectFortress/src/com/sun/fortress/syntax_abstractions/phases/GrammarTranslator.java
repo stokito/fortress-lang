@@ -17,6 +17,8 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+/*
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,10 +46,10 @@ import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import static com.sun.fortress.parser_util.SyntaxUtil.isKeyword;
 
-/**
+/ **
  * Creates or modifies each rats module and adds productions defined by
  * grammars in api's.
- */
+ * /
 public class GrammarTranslator {
 	private Collection<Module> ratsModules;
 	private Iterable<? extends StaticError> errors;
@@ -88,12 +90,12 @@ public class GrammarTranslator {
 		return new Result(errors);
 	}
 
-	/**
+	/ **
 	 * Load the corresponding Fortress grammar module and add the
 	 * translated syntax definitions to the relevant productions.
 	 * @param module
 	 * @return
-	 */
+	 * /
 	private Module makeFortressModule(FortressModule module) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+module.getName().toString()+".rats");
 
@@ -120,9 +122,9 @@ public class GrammarTranslator {
 			for (NonterminalIndex<? extends GrammarMemberDecl> member: module.getDeclaredNonterminals()) {
 				if (member.getName().getText().equals(p.name.name)) {
 					SyntaxDefTranslator.Result ptr = SyntaxDefTranslator.translate(member);
-					/* Add new productions to the front of the
+					/ * Add new productions to the front of the
 					 * choices so that user generated productions receive higher precedence than fortress productions.
-					 */
+					 * /
 					p.choice.alternatives.addAll(0, ptr.alternatives());
 				}
 			}
@@ -132,11 +134,11 @@ public class GrammarTranslator {
 		return m;
 	}
 
-	/**
+	/ **
 	 * Make a new module with the members defined in the module.
 	 * @param module
 	 * @return
-	 */
+	 * /
 	private Module makeUserModule(UserModule module) {
 		Module m = RatsUtil.makeExtendingRatsModule(module);
 		MemberTranslator.Result ptr = MemberTranslator.translate(module.getDeclaredNonterminals());
@@ -144,12 +146,12 @@ public class GrammarTranslator {
 		return m;
 	}
 
-	/**
+	/ **
 	 * Load Fortress.rats and modify the instantiations so the correct number of
 	 * parameters are passed
 	 * @param modules
 	 * @return
-	 */
+	 * /
 	private Module loadFortressGrammarModule(
 			Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {
 		Module m = RatsUtil.getRatsModule(RatsUtil.getParserPath()+"Fortress.rats");
@@ -205,3 +207,4 @@ public class GrammarTranslator {
 		return m;
 	}
 }
+*/

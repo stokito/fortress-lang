@@ -28,6 +28,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes._EllipsesExpr;
+import com.sun.fortress.nodes._Ellipses;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.OpRef;
 
@@ -57,8 +58,10 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
     public List<Expr> recurOnListOfExpr(List<Expr> that) {
         List<Expr> accum = new java.util.ArrayList<Expr>(that.size());
         for (Expr elt : that) {
-            if ( elt instanceof _EllipsesExpr ){
-                accum.addAll( handleEllipses((_EllipsesExpr) elt) );
+            if ( elt instanceof _Ellipses ){
+                for ( Node n : handleEllipses((_Ellipses) elt) ){
+                    accum.add( (Expr) n );
+                }
             } else {
                 accum.add((Expr) recur(elt));
             }
@@ -116,8 +119,8 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
         return vars;
     }
 
-    private boolean controllable( EllipsesEnvironment env, _EllipsesExpr that ){
-        for ( Id var : freeVariables( that ) ){
+    private boolean controllable( EllipsesEnvironment env, _Ellipses that ){
+        for ( Id var : freeVariables( that.getRepeatedNode() ) ){
             if ( env.contains( var ) && env.getLevel( var ) > 0 ){
                 return true;
             }
@@ -125,12 +128,12 @@ public class EllipsesVisitor extends NodeUpdateVisitor {
         return false;
     }
 
-    private List<Expr> handleEllipses( _EllipsesExpr that ){
+    private List<Node> handleEllipses( _Ellipses that ){
         if ( controllable( env, that ) ){
-            List<Expr> nodes = new ArrayList<Expr>();
-            for ( EllipsesEnvironment newEnv : decompose( env, freeVariables( that.getExpr() ) ) ){
+            List<Node> nodes = new ArrayList<Node>();
+            for ( EllipsesEnvironment newEnv : decompose( env, freeVariables( that.getRepeatedNode() ) ) ){
                 Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env ", newEnv );
-                nodes.add( (Expr) that.getExpr().accept( new EllipsesVisitor( newEnv ) ) );
+                nodes.add( that.getRepeatedNode().accept( new EllipsesVisitor( newEnv ) ) );
             }
             return nodes;
         } else {

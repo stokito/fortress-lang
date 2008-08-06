@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.List;
 import java.util.LinkedList;
 
+import com.sun.fortress.exceptions.MacroError;
+
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BaseType;
@@ -66,7 +68,7 @@ public class ComposingSyntaxDeclEnv {
                     @Override public void forPrefixedSymbolOnly(PrefixedSymbol that) {
                         Option<Id> optName = that.getId();
                         if (!optName.isSome()) {
-                            throw new RuntimeException("Prefix symbol without name: " + that);
+                            throw new MacroError("Prefix symbol without name: " + that);
                         }
                         final Id name = optName.unwrap();
                         SyntaxSymbol inner = that.getSymbol();

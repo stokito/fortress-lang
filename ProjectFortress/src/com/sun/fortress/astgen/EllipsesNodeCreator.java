@@ -33,7 +33,7 @@ import edu.rice.cs.astgen.Types.TypeName;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
-public class TransformationNodeCreator extends CodeGenerator implements Runnable {
+public class EllipsesNodeCreator extends CodeGenerator implements Runnable {
 
     // public static List<Field> FIELDS;
 
@@ -45,7 +45,7 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
         */
     }
 
-    public TransformationNodeCreator(ASTModel ast) {
+    public EllipsesNodeCreator(ASTModel ast) {
         super(ast);
     }
     
@@ -58,7 +58,7 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
         List<Pair<NodeType, NodeType>> all = new LinkedList<Pair<NodeType, NodeType>>();
         for ( NodeType n : ast.classes() ){
             if ( n.getClass() == NodeClass.class ){
-                NodeType child = new TransformationNode((NodeClass) n,ast);
+                NodeType child = new EllipsesNode((NodeClass) n,ast);
                 all.add( new Pair<NodeType,NodeType>( child, n ) );
             }
         }
@@ -66,14 +66,6 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
             ast.addType( p.first(), false, p.second() );
         }
     }
-
-    /*
-    private NodeType createNode( NodeType parent ){
-        List<TypeName> interfaces = new ArrayList<TypeName>();
-        interfaces.add( Types.parse("_SyntaxTransformation", ast ) );
-        return new NodeClass( "_SyntaxTransformation" + parent.name(), false, FIELDS, Types.parse( parent.name(), ast ), interfaces );
-    }
-    */
 
     @Override
     public void generateAdditionalCode() {

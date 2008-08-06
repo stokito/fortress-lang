@@ -1,0 +1,11 @@
+component DoubleCaseUse
+import DoubleCase.{...}
+export Executable
+
+run(args:String...) = do
+    (foo 1, 2, 3,)
+    (foo 1,)
+    (foo)
+end
+
+end

@@ -58,15 +58,19 @@ import xtc.parser.Sequence;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.phases.ComposingSyntaxDefTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes.SyntaxDef;
@@ -81,7 +85,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
-/* TODO: Comment this class!!!!!!!!!!
+/* Creates a parser by invoking Rats! on the productions defined by grammars
+ * and their imports.
  */
 public class ComposingMacroCompiler {
 
@@ -94,11 +99,17 @@ public class ComposingMacroCompiler {
 
     private ComposingMacroCompiler() {}
 
+    /* contains a mapping from a nonterminal name to its production, as well
+     * as a mapping from nonterminal name to its type
+     */
     public static class PEG implements Iterable<String> {
         Map<String, List<SyntaxDef>> entries = new HashMap<String,List<SyntaxDef>>();
         Map<String, BaseType> typemap = new HashMap<String, BaseType>();
         public PEG() { }
 
+        /* has the side effect of creating an entry in the peg with an
+         * empty definition list
+         */
         public List<SyntaxDef> create(String nt) {
             if (entries.containsKey(nt)) {
                 throw new RuntimeException("PEG already has an entry for " + nt);
@@ -108,10 +119,14 @@ public class ComposingMacroCompiler {
             return defs;
         }
 
+        /* remove a nonterminal from the set of productions
+         */
         private void remove(String nt){
             entries.remove(nt);
         }
 
+        /* remove nonterminals with empty definitions
+         */
         public void removeEmptyNonterminals(){
             Set<String> all = new HashSet<String>( entries.keySet() );
             for ( String nt : all ){
@@ -122,22 +137,28 @@ public class ComposingMacroCompiler {
             }
         }
 
+        /* return the list of productions for a nonterminal */
         public List<SyntaxDef> get(String nt) {
             if (!entries.containsKey(nt)) {
                 throw new RuntimeException("PEG has no entry for " + nt);
             }
             return entries.get(nt);
         }
+
+        /* iterate through the nonterminal names */
         public Iterator<String> iterator() {
             return entries.keySet().iterator();
         }
 
+        /* map a nonterminal name to its type */
         public void putType(String nt, BaseType type) {
             if (typemap.containsKey(nt)) {
                 throw new RuntimeException("PEG already has a type for " + nt);
             }
             typemap.put(nt, type);
         }
+
+        /* get the type of a nonterminal */
         public BaseType getType(String nt) {
             if (!typemap.containsKey(nt)) {
                 throw new RuntimeException("PEG has no entry for " + nt);
@@ -146,6 +167,7 @@ public class ComposingMacroCompiler {
         }
     }
 
+    /* takes a string and converts it to some internal name */
     public static class Mangler {
         Set<String> nativeNonterminals;
         Mangler(Set<String> nativeNonterminals) {
@@ -154,6 +176,8 @@ public class ComposingMacroCompiler {
         public String forDefinition(String name) {
             return mangle(name);
         }
+
+        /* doesn't mangle native nonterminals */
         public String forReference(String name) {
             if (nativeNonterminals.contains(name)) {
                 // (eg: Fortress.Expression.Expr => Expression.Expr)
@@ -167,7 +191,7 @@ public class ComposingMacroCompiler {
         }
     }
 
-
+    /* main entry point for a grammar of an api */
     public static Class<?> compile( GrammarIndex grammar ){
         Debug.debug(Debug.Type.SYNTAX, 2, 
                     "ComposingMacroCompiler: create parser for grammar " + grammar.getName() );
@@ -181,6 +205,7 @@ public class ComposingMacroCompiler {
         return pegFor( collectImports( grammar ), imports, definitions, extensions );
     }
 
+    /* main entry point for a component */
     public static Class<?> parserForComponent(Collection<GrammarIndex> imports) {
         Debug.debug(Debug.Type.SYNTAX, 2, 
                     "ComposingMacroCompiler: create parser for component");
@@ -192,10 +217,12 @@ public class ComposingMacroCompiler {
         return pegFor( collectImports( imports ), imports, definitions, extensions );
     }
 
+    /* get the complete list of imported grammars */
     private static Collection<GrammarIndex> collectImports( GrammarIndex grammar ){
         return collectImports(grammar.getExtended());
     }
 
+    /* finds imported grammars as well as their imported gramars */
     private static Collection<GrammarIndex> collectImports( Collection<GrammarIndex> extended ) {
         Collection<GrammarIndex> all = new HashSet<GrammarIndex>();
         for ( GrammarIndex importedGrammar : extended ){
@@ -206,7 +233,9 @@ public class ComposingMacroCompiler {
         return all;
     }
 
-
+    /* create a peg and populate it with nonterminals according to the
+     * grammar composition rules
+     */
     private static Class<?> pegFor( Collection<GrammarIndex> relevant,
                              Collection<GrammarIndex> imports,
                              Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions,
@@ -256,12 +285,14 @@ public class ComposingMacroCompiler {
         return makeParser(peg, nativeNonterminals);
     }
 
+    /* populate entries for definition sites only */
     private static void pegForGrammarDefsOnly( PEG peg, Collection<GrammarIndex> relevant ){
         for ( GrammarIndex grammar : relevant ){
             pegForDefs( peg, relevant, computeDefinitions(grammar) );
         }
     }
 
+    /* populate peg for a single grammar and its definitions */
     private static void pegForDefs( PEG peg, Collection<GrammarIndex> relevant, 
                                     Collection<NonterminalIndex<? extends GrammarMemberDecl>> nonterminals ){
 
@@ -282,6 +313,7 @@ public class ComposingMacroCompiler {
         // pegForDefs grammars defs = map (pegEntryForDef grammars) defs
     }
 
+    /* add choices for a single definition */
     private static void pegEntryForDef( final List<SyntaxDef> defs, 
                                         final Collection<GrammarIndex> relevant, 
                                         NonterminalIndex<? extends GrammarMemberDecl> nonterminal ){
@@ -302,6 +334,9 @@ public class ComposingMacroCompiler {
         });
     }
 
+    /* return set of nonterminals that are extended by virtue of being
+     * in the extends clause of the grammar
+     */
     private static List<NonterminalIndex<? extends GrammarMemberDecl>> computeImplicitExtensions( final Set<String> implicit, Collection<GrammarIndex> imports ){
 
         final List<NonterminalIndex<? extends GrammarMemberDecl>> all = new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
@@ -326,6 +361,8 @@ public class ComposingMacroCompiler {
         return all;
     }
 
+    /* add choices to nonterminals when the choice is an extension of the nonterminal
+     */
     private static Set<String> importsExtensionDomain( Collection<GrammarIndex> imports ){
         Set<String> all = new HashSet<String>();
 
@@ -338,24 +375,29 @@ public class ComposingMacroCompiler {
         return all;
     }
 
+    /* only handles nonterminal extensions */
     private static void extensionDomain( final Set<String> domain, GrammarIndex grammar ){
         for ( NonterminalIndex<? extends GrammarMemberDecl> nonterminal : grammar.getDeclaredNonterminals() ){
             nonterminal.getAst().accept( new NodeDepthFirstVisitor_void(){
                 @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                     domain.add( that.getHeader().getName().toString() );
                 }
-                    @Override public void forNonterminalDef(NonterminalDef that) {
-                        return;
-                    }
-                    @Override public void for_TerminalDef(_TerminalDef that) {
-                        return;
-                    }
+
+                @Override public void forNonterminalDef(NonterminalDef that) {
+                    return;
+                }
+
+                @Override public void for_TerminalDef(_TerminalDef that) {
+                    return;
+                }
             });
         }
 
         // GrammarC _ _ _ exts _) = (map nameof exts)
     }
 
+    /* adds the choices for nonterminal extensions to the definition nonterminals
+     */
     private static void applyExtension( final PEG peg, 
                                         final NonterminalIndex<? extends GrammarMemberDecl> extension, 
                                         final Collection<GrammarIndex> relevant ){
@@ -386,16 +428,41 @@ public class ComposingMacroCompiler {
         defs.addAll( 0, intermediate );
     }
 
-    private static List<SyntaxDef> resolveChoice( Collection<GrammarIndex> relevant, SyntaxDecl def ){
+    /* lookup the choices of a nonterminal in a specific grammar
+     */
+    private static Collection<SyntaxDecl> findExtension( Id nonterminalName, Id grammarName, Collection<GrammarIndex> grammars ){
+        Debug.debug( Debug.Type.SYNTAX, 3, "Searching for extension for nonterminal " + nonterminalName + " and grammar " + grammarName );
+        for ( GrammarIndex grammar : grammars ){
+            Debug.debug( Debug.Type.SYNTAX, 3, "Checking if grammar " + grammar.getName() + " matches " + grammarName );
+            if ( grammar.getName().equals( grammarName ) ){
+                Debug.debug( Debug.Type.SYNTAX, 3, ".. yes!" );
+                Option<GrammarNonterminalIndex<? extends NonterminalDecl>> nt = grammar.getNonterminalDecl( nonterminalName );
+                if ( nt.isSome() ){
+                    return nt.unwrap().getSyntaxDefs();
+                }
+            } else {
+                Debug.debug( Debug.Type.SYNTAX, 3, ".. no" );
+            }
+        }
+        throw new MacroError( "Could not find nonterminal " + nonterminalName + " in grammar " + grammarName );
+    }
+
+    /* add choices either defined by the SyntaxDecl or the choices defined by the
+     * super non-terminal
+     */
+    private static List<SyntaxDef> resolveChoice( final Collection<GrammarIndex> relevant, SyntaxDecl def ){
 
         final List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
         def.accept( new NodeDepthFirstVisitor_void(){
             @Override public void forSyntaxDef(SyntaxDef that) {
+                Debug.debug( Debug.Type.SYNTAX, 3, "Add choice " + that );
                 defs.add(that);
             }
 
             @Override public void forSuperSyntaxDef(SuperSyntaxDef that) {
-                /* TODO: do something with super choices */
+                for ( SyntaxDecl extension : findExtension(that.getNonterminal(), that.getGrammar(), relevant) ){
+                    defs.addAll( resolveChoice(relevant, extension) );
+                }
             }
         });
 
@@ -416,6 +483,10 @@ public class ComposingMacroCompiler {
     }
     */
 
+    /* Compile a parser given a set of nonterminals and productions.
+     * This gets a little hairy becuase we need the core Fortress parser
+     * as well as the template parser.
+     */
     private static Class<?> makeParser(PEG peg, Set<String> nativeNonterminals) {
         Mangler mangler = new Mangler(nativeNonterminals);
 
@@ -481,6 +552,7 @@ public class ComposingMacroCompiler {
         // Add import from USER to every fortress module
         Module mainModule = null;
         ModuleName uname = new ModuleName("USERvar");
+        /* modify fortress modules */
         for (Module baseModule : baseModules.values()) {
             if (!baseModule.name.name.equals(FORTRESS) && 
                 !baseModule.name.name.equals(TEMPLATEPARSER) && 
@@ -499,6 +571,7 @@ public class ComposingMacroCompiler {
             }
         }
 
+        /* modify template parser modules */
         for ( Module baseModule : templateModules.values() ){
             if (!baseModule.name.name.equals(TEMPLATEPARSER) && 
                 !baseModule.name.name.equals(FORTRESS) && 
@@ -576,6 +649,20 @@ public class ComposingMacroCompiler {
         return map;
     }
 
+    /* Filter redundant syntax defs. Rats! will complain if they are left in */
+    private static List<SyntaxDef> unique(List<SyntaxDef> defs){
+        List<SyntaxDef> all = new LinkedList<SyntaxDef>();
+        for ( SyntaxDef def : defs ){
+            if ( ! all.contains( def ) ){
+                all.add( def );
+            }
+        }
+        return all;
+    }
+
+    /* given a SyntaxDecl node, convert it to a Rats! production and
+     * add it to the peg
+     */
     private static void addEntry(Module m, Mangler mangler, PEG peg, String nt) {
         Debug.debug( Debug.Type.SYNTAX, 2, "Create alternative for " + nt );
 
@@ -584,7 +671,7 @@ public class ComposingMacroCompiler {
 
         ComposingSyntaxDefTranslator translator = 
             new ComposingSyntaxDefTranslator(mangler, nt, javaType, peg.typemap);
-        List<Sequence> sequences = translator.visitSyntaxDefs(peg.get(nt));
+        List<Sequence> sequences = translator.visitSyntaxDefs(unique(peg.get(nt)));
 
         /* dont add an empty sequence */
         List<Attribute> attributes = new LinkedList<Attribute>();
@@ -593,6 +680,8 @@ public class ComposingMacroCompiler {
         m.productions.add(p);
     }
 
+    /* Rats! module containing all the user defined syntax stuff
+     */
     private static Module createUserModule() {
         // based on RatsUtil.makeExtendingRatsModule()
         Module m = new Module();
@@ -606,6 +695,7 @@ public class ComposingMacroCompiler {
         return m;
     }
 
+    /* top of the user module */
     private static Action createHeader() {
         List<String> imports = new LinkedList<String>();
         List<Integer> indents = new LinkedList<Integer>();
@@ -617,12 +707,14 @@ public class ComposingMacroCompiler {
         return a;
     }
 
+    /* cruft */
     private static Comment createComment() {
         List<String> lines = new LinkedList<String>();
         lines.add("Module generated by the Fortress compiler on " + new Date());
         return new Comment(Comment.Kind.SINGLE_LINE, lines);
     }
 
+    /* helper functions */
     private static String getRatsModuleName(String name) {
         return afterLastDot(beforeLastDot(name));
     }
@@ -657,6 +749,8 @@ public class ComposingMacroCompiler {
         return all;
     }
 
+    /* returns the set of definition nonterminals in a grammar
+     */
     private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeDefinitions( GrammarIndex grammar ){
         Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = 
             new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
@@ -671,6 +765,8 @@ public class ComposingMacroCompiler {
         return all;
     }
 
+    /* returns the set of nonterminal extensions in a grammar
+     */
     private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeExtensions( GrammarIndex grammar ){
         Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = 
             new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
@@ -685,15 +781,18 @@ public class ComposingMacroCompiler {
         return all;
     }
 
+    /* true if the nonterminal is a definition site */
     private static boolean isDefinition( NonterminalIndex<? extends GrammarMemberDecl> index ){
         return index.getAst() instanceof NonterminalDef ||
                index.getAst() instanceof _TerminalDef;
     }
 
+    /* true if the nonterminal is an extension site */
     private static boolean isExtension( NonterminalIndex<? extends GrammarMemberDecl> index ){
         return index.getAst() instanceof NonterminalExtensionDef;
     }
 
+    /* convert extensions to their names */
     private static Set<String> computeExplicit( Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions ){
         Set<String> all = new HashSet<String>();
 

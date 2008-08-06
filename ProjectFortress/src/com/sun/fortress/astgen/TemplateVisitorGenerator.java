@@ -83,6 +83,8 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
             writer.println();
             if ( t instanceof TransformationNode ){
                 outputForTransformationCaseOnly( (TransformationNode) t, writer, root );
+            } else if ( t instanceof EllipsesNode ){
+                outputForEllipsesCaseOnly( (EllipsesNode) t, writer, root );
             } else {
                 outputForCaseOnly(t, writer, root);
             }
@@ -117,6 +119,8 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.println();
 
         outputTransformationDefaultCase(writer, root);
+        writer.println();
+        outputEllipsesDefaultCase(writer, root);
         
         // Output helpers
         for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
@@ -136,6 +140,15 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine("}");
     }
 
+    protected void outputForEllipsesCaseOnly( EllipsesNode node, TabPrintWriter writer, NodeType root ){
+        List<String> params = new ArrayList<String>();
+        outputForCaseHeader(node, writer, root.name(), "Only", params);
+        writer.indent();
+        writer.startLine("return defaultEllipsesNodeOnly(that);");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
     protected void outputTransformationDefaultCase( TabPrintWriter writer, NodeType root ){
         writer.startLine(String.format("public %s defaultTransformationNodeCase( _SyntaxTransformation s ){", root.name() ));
         writer.indent();
@@ -144,7 +157,13 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine( "}" );
     }
 
-
+    protected void outputEllipsesDefaultCase( TabPrintWriter writer, NodeType root ){
+        writer.startLine(String.format("public %s defaultEllipsesNodeOnly( _Ellipses s ){", root.name() ));
+        writer.indent();
+        writer.startLine("return s;");
+        writer.unindent();
+        writer.startLine( "}" );
+    }
 
     @Override
     protected void outputVisitMethod(NodeType t, TabPrintWriter writer, NodeType root) {

@@ -751,9 +751,11 @@ testOnly, testCruiseControl"/>
                     <srcfiles dir="${parser}" includes="**/*.rats"/>
                 </uptodate>
                 <uptodate targetfile="${preparser}/PreFortress.java">
+                    <srcfiles dir="${parser}" includes="**/*.rats"/>
                     <srcfiles dir="${preparser}" includes="**/*.rats"/>
                 </uptodate>
                 <uptodate targetfile="${templateparser}/TemplateParser.java">
+                    <srcfiles dir="${parser}" includes="**/*.rats"/>
                     <srcfiles dir="${templateparser}" includes="**/*.rats"/>
                 </uptodate>
             </and>
@@ -770,6 +772,7 @@ testOnly, testCruiseControl"/>
 
     <target name="checkPreparserUptodate" depends="init">
         <uptodate property="preparser.uptodate" targetfile="${preparser}/PreFortress.java">
+            <srcfiles dir="${parser}" includes="**/*.rats"/>
             <srcfiles dir="${preparser}" includes="**/*.rats"/>
         </uptodate>
         <echo>Preparser up to date? ${preparser.uptodate}</echo>
@@ -777,6 +780,7 @@ testOnly, testCruiseControl"/>
 
     <target name="checkTemplateparserUptodate" depends="init">
         <uptodate property="templateparser.uptodate" targetfile="${templateparser}/TemplateParser.java">
+            <srcfiles dir="${parser}" includes="**/*.rats"/>
             <srcfiles dir="${templateparser}" includes="**/*.rats"/>
         </uptodate>
         <echo>Templateparser up to date? ${templateparser.uptodate}</echo>

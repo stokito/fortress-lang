@@ -40,7 +40,8 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         String visitorName = "Template"+root.name() + "DepthFirstVisitor";
         TabPrintWriter writer = options.createJavaSourceInOutDir(visitorName);
         Map<Class<?>, TemplateGapClass> nodeClasses = new HashMap<Class<?>, TemplateGapClass>();
-        Map<Class<?>, TransformationNode> nodeClasses2 = new HashMap<Class<?>, TransformationNode>();
+        Map<Class<?>, TransformationNode> nodeClassesTransformation = new HashMap<Class<?>, TransformationNode>();
+        Map<Class<?>, EllipsesNode> nodeClassesEllipses = new HashMap<Class<?>, EllipsesNode>();
 
         // Class header
         writer.startLine("/** A parametric abstract implementation of a visitor over " + root.name());
@@ -70,10 +71,15 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
                 }
                 outputNonstandardClassesForCaseOnly((TemplateGapClass) t, writer, root);   
             } else if (t instanceof TransformationNode ) {
-                if (!nodeClasses2.containsKey(t.getClass())) {
-                    nodeClasses2.put(t.getClass(), (TransformationNode) t);
+                if (!nodeClassesTransformation.containsKey(t.getClass())) {
+                    nodeClassesTransformation.put(t.getClass(), (TransformationNode) t);
                 }
                 outputNonstandardClassesForCaseOnly((TransformationNode) t, writer, root); 
+            } else if (t instanceof EllipsesNode ) {
+                if (!nodeClassesEllipses.containsKey(t.getClass())) {
+                    nodeClassesEllipses.put(t.getClass(), (EllipsesNode) t);
+                }
+                outputNonstandardClassesForCaseOnly((EllipsesNode) t, writer, root); 
             } else {
                 outputForCaseOnly(t, writer, root);
             }
@@ -93,7 +99,10 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         for (TemplateGapClass t : nodeClasses.values()) {
             outputNonstandardDefaultCaseMethod(writer, t);
         }
-        for (TransformationNode t : nodeClasses2.values()) {
+        for (TransformationNode t : nodeClassesTransformation.values()) {
+            outputNonstandardDefaultCaseMethod(writer, t);
+        }
+        for (EllipsesNode t : nodeClassesEllipses.values()) {
             outputNonstandardDefaultCaseMethod(writer, t);
         }
 
@@ -142,6 +151,19 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         writer.startLine("}");
     }
 
+    private void outputNonstandardDefaultCaseMethod(TabPrintWriter writer, EllipsesNode t) {
+        writer.startLine("/**");
+        writer.startLine(" * This method is run for all cases that are not handled elsewhere.");
+        writer.startLine(" * By default, an exception is thrown; subclasses may override this behavior.");
+        writer.startLine(" * @throws IllegalArgumentException");
+        writer.startLine("**/");
+        writer.startLine("public RetType defaultEllipsesNodeCase(_Ellipses that) {");
+        writer.indent();
+        writer.startLine("throw new IllegalArgumentException(\"Visitor \" + getClass().getName()");
+        writer.print(" + \" does not support visiting values of type \" + that.getClass().getName());");
+        writer.unindent();
+        writer.startLine("}");
+    }
 
     /**
      * Direct all calls to the default case for this non standard type of classes
@@ -176,6 +198,25 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         outputForCaseHeader(t, writer, "RetType", "Only", recurDecls);
         writer.indent();
         writer.startLine("return defaultTransformationNodeCase(that);");
+        writer.unindent();
+        writer.startLine("}");
+        writer.println();
+    }
+
+    /**
+     * Direct all calls to the default case for this non standard type of classes
+     * @param t
+     * @param writer
+     * @param root
+     */
+    protected void outputNonstandardClassesForCaseOnly(EllipsesNode t, TabPrintWriter writer, NodeType root) {
+        List<String> recurDecls = new LinkedList<String>();
+        for (Field f : t.allFields(ast)) {
+            if (canRecurOn(f.type(), root)) { recurDecls.add(resultType(f.type()).name() + " " + f.name() + "_result"); }
+        }
+        outputForCaseHeader(t, writer, "RetType", "Only", recurDecls);
+        writer.indent();
+        writer.startLine("return defaultEllipsesNodeCase(that);");
         writer.unindent();
         writer.startLine("}");
         writer.println();

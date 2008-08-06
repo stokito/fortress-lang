@@ -56,7 +56,6 @@ import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ASTIO;
-import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
 import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
 import com.sun.fortress.syntax_abstractions.MacroCompiler;
 import com.sun.fortress.syntax_abstractions.phases.Transform;
