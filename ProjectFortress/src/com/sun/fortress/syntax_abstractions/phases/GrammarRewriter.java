@@ -189,6 +189,7 @@ public class GrammarRewriter {
 
             class TemplateParser extends NodeUpdateVisitor {
                 Class<?> parser;
+
                 TemplateParser(Class<?> parser) {
                     this.parser = parser;
                 }
@@ -196,7 +197,7 @@ public class GrammarRewriter {
                 @Override public Node forUnparsedTransformer(UnparsedTransformer that) {
                     try {
                         AbstractNode templateNode = 
-                            parseTemplate(raw.getName(), that.getTransformer(), parser);
+                            parseTemplate(raw.getName(), that.getTransformer(), that.getNonterminal(), parser);
                         return new NodeTransformer(templateNode);
                     } catch ( OptionUnwrapException e ){
                         throw StaticError.make("No parser created while rewriting api " + raw, "");
@@ -286,10 +287,10 @@ public class GrammarRewriter {
         }
     }
 
-    private static AbstractNode parseTemplate( APIName apiName, String stuff, Class<?> parserClass ){
+    private static AbstractNode parseTemplate( APIName apiName, String stuff, Id nonterminal, Class<?> parserClass ){
         try{
             BufferedReader in = Useful.bufferedStringReader(stuff.trim());
-            Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "'" );
+            Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
             ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
             xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, "pExpression$Expr" );
             // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
