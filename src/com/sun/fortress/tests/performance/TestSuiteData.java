@@ -18,13 +18,10 @@
 package com.sun.fortress.tests.performance;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -73,77 +70,48 @@ public class TestSuiteData implements Serializable {
         testData = new HashMap<String, SortedMap<Integer, Double>>();
         revisionDate = new HashMap<Integer, String>();
     }
- 
-    public void writeHtml(String chartDirectory, boolean imagemap) {
+    
+    public void writeHtml(String chartDirectory) {
         StringBuilder html = new StringBuilder();
         html.append("<html><head><title>Performance Measures</title></head>\n");
         html.append("<body>");
         html.append("<h2>Performance Measures</h2>");
-        if (!imagemap) {
-            html.append("<a href=\"imagemap.html\">Follow the link</a> ");
-            html.append("to see the image-mapped data version.<p>\n");
-        }
+        html.append("Click on the image to see the imagemap.<p>\n");
         html.append("<table>\n");
         File directory = new File(chartDirectory);
-        File[] images;
-        if (imagemap) {
-            images = directory
-                .listFiles(new ExtensionFilenameFilter(".fragment"));
-        } else {
-            images = directory
-            .listFiles(new ExtensionFilenameFilter(".png"));            
-        }
-        makeHtmlEachFile(html, images, imagemap);
-        writeHtmlFile(chartDirectory, html, imagemap);
+        File[] images = directory.listFiles(new ExtensionFilenameFilter(".png"));
+        makeHtmlEachFile(html, images);
+        writeHtmlFile(chartDirectory, html);
     }
-
+    
     /**
-     * Helper function to {@link #writeHtml(String, boolean) writeHtml}.
+     * Helper function to {@link #writeHtml(String) writeHtml}.
      */    
-    private int makeHtmlEachFile(StringBuilder html, File[] images, boolean imagemap) {
+    private void makeHtmlEachFile(StringBuilder html, File[] images) {
         int counter = 0;        
         for (File image : images) {
-            if ((counter % NUMCOLUMNS) == 0) {
-                html.append("<tr>");
-            }
-            html.append("<td>");
-
-            if (imagemap) {
-                BufferedReader reader = null;
-                try {
-                    reader = new BufferedReader(new InputStreamReader(
-                            new FileInputStream(image)));
-                    String nextLine = reader.readLine();
-                    while (nextLine != null) {
-                        html.append(nextLine + '\n');
-                        nextLine = reader.readLine();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    PerformanceLogMonitor.closeStream(reader);
+                if ((counter % NUMCOLUMNS) == 0) {
+                    html.append("<tr>");
                 }
-            } else {
+                html.append("<td>\n");
+                String linkname = image.getName().replaceFirst("\\.png","\\.html");
+                html.append("<a href=\"");
+                html.append(linkname);
+                html.append("\">");
                 html.append("<image src=\"");
                 html.append(image.getName());
                 html.append("\">");
-            }
-            html.append("</td>\n");
-            counter++;
+                html.append("</a>\n");
+                html.append("</td>\n");
+                counter++;                
         }
-        return counter;
     }
 
     /**
-     * Helper function to {@link #writeHtml(String, boolean) writeHtml}.
+     * Helper function to {@link #writeHtml(String) writeHtml}.
      */
-    private void writeHtmlFile(String chartDirectory, StringBuilder html, boolean imagemap) {
-        String indexHtml = null;
-        if (imagemap) {
-            indexHtml = chartDirectory + File.separator + "imagemap.html";
-        } else {
-            indexHtml = chartDirectory + File.separator + "index.html";            
-        }
+    private void writeHtmlFile(String chartDirectory, StringBuilder html) {
+        String indexHtml = chartDirectory + File.separator + "index.html";            
         html.append("</table></body></html>");
         FileOutputStream output = null;
         PrintStream printer = null;
@@ -206,10 +174,11 @@ public class TestSuiteData implements Serializable {
                 PrintWriter htmlWriter = null;
                 try {
                     String htmlPath = chartDirectory + File.separator
-                            + testcaseName + ".fragment";
+                            + testcaseName + ".html";
                     htmlOut = new BufferedOutputStream(new FileOutputStream(
                             new File(htmlPath)));
                     htmlWriter = new PrintWriter(htmlOut);
+                    htmlWriter.println("<html><head></head><body>");
                     String filePath = chartDirectory + File.separator
                             + testcaseName + ".png";
                     ChartUtilities.saveChartAsPNG(new File(filePath), chart,
@@ -219,6 +188,7 @@ public class TestSuiteData implements Serializable {
                             + "\">");
                     ChartUtilities.writeImageMap(htmlWriter, testcaseName,
                             info, false);
+                    htmlWriter.println("</body></html>");                    
                 } catch (IOException e) {
                     System.err.println(e.getMessage());
                 } finally {
@@ -250,7 +220,8 @@ public class TestSuiteData implements Serializable {
         xaxis.setAutoRangeIncludesZero(false);        
         String startDateString = revisionDate.get(performance.firstKey());
         String endDateString = revisionDate.get(performance.lastKey());
-        Title dates = new TextTitle("Start: " + startDateString + "                " + "End: " + endDateString);
+        Title dates = new TextTitle("Start: " + startDateString 
+                + "                " + "End: " + endDateString);
         dates.setPosition(RectangleEdge.BOTTOM);
         dates.setPadding(1.0,1.0,10.0,1.0);
         chart.addSubtitle(dates);        

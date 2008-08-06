@@ -200,8 +200,7 @@ public class PerformanceLogMonitor {
         readLogFile(xmlLogFile);
         if (chartDirectory != null) {
             testingData.writeCharts(chartDirectory);
-            testingData.writeHtml(chartDirectory, false);
-            testingData.writeHtml(chartDirectory, true);
+            testingData.writeHtml(chartDirectory);
         }
         writeDataFile(dataFile);
     }

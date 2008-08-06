@@ -39,12 +39,15 @@ public class FeatureXYToolTipGenerator extends StandardXYToolTipGenerator {
         } else {
             double previous = dataset.getYValue(series, item - 1);
             double next = dataset.getYValue(series, item + 1);
-            
-            /** local min/max */
-            if ( (yvalue > previous) && (yvalue > next) ) {
+            if (((yvalue / previous) > 1.2) || ((yvalue / previous) < 0.83))  {            
                 feature = true;
+            } else if (((yvalue / next) > 1.2) || ((yvalue / next) < 0.83))  {
+                feature = true;
+            /** local min/max */                
+            } else if ( (yvalue > previous) && (yvalue > next) ) {
+                    feature = true;
             } else if ( (yvalue < previous) && (yvalue < next) ) {
-                feature = true;
+                    feature = true;
             }
         }
         if (feature) {
