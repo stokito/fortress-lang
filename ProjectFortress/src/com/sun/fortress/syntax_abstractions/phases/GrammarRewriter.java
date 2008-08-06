@@ -287,12 +287,21 @@ public class GrammarRewriter {
         }
     }
 
+    private static String ratsParseMethod( Id nonterminal ){
+        String str = nonterminal.toString();
+        if ( str.startsWith( "FortressSyntax" ) ){
+            return "p" + str.substring( str.indexOf(".") + 1 ).replace( '.', '$' );
+        }
+        return "pUSER_" + str.replaceAll("_", "__").replace('.', '_');
+    }
+
     private static AbstractNode parseTemplate( APIName apiName, String stuff, Id nonterminal, Class<?> parserClass ){
         try{
             BufferedReader in = Useful.bufferedStringReader(stuff.trim());
             Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
             ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
-            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, "pExpression$Expr" );
+            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, ratsParseMethod( nonterminal ) );
+            // "pExpression$Expr" );
             // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
             if ( result.hasValue() ){
                 Object node = ((SemanticValue) result).value;
