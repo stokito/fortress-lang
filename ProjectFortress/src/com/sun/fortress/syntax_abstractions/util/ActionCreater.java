@@ -17,6 +17,11 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
+public class ActionCreater {
+    public static final String BOUND_VARIABLES = "boundVariables";
+}
+
+/*
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -152,7 +157,7 @@ public class ActionCreater {
         APIName name = NodeFactory.makeAPIName("TransformationComponent");
         Span span = new Span();
         List<Import> imports = new LinkedList<Import>();
-        /* TODO: these imports should be the same imports that the api with the grammar had */
+        / * TODO: these imports should be the same imports that the api with the grammar had * /
         imports.add(NodeFactory.makeImportStar(FORTRESS_AST_UTIL));
         imports.add(NodeFactory.makeImportStar(FORTRESS_AST));
         imports.add(NodeFactory.makeImportStar("List"));
@@ -209,3 +214,4 @@ public class ActionCreater {
         }
     }
 }
+*/

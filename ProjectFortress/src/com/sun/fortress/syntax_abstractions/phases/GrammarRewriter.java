@@ -41,10 +41,6 @@ import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
 
 import com.sun.fortress.syntax_abstractions.parser.ImportedApiCollector;
 
-import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
-import com.sun.fortress.syntax_abstractions.MacroCompiler;
-import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
-
 import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -71,8 +67,12 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxDecl;
-import com.sun.fortress.nodes.TransformerDef;
-import com.sun.fortress.nodes.TransformerNode;
+
+import com.sun.fortress.nodes.TransformerDecl;
+import com.sun.fortress.nodes.NamedTransformerDef;
+import com.sun.fortress.nodes.UnparsedTransformer;
+import com.sun.fortress.nodes.NodeTransformer;
+
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -130,7 +130,7 @@ public class GrammarRewriter {
         List<Api> results = new ArrayList<Api>();
         ItemDisambiguator id = new ItemDisambiguator(env);
         errors.addAll(id.errors());
-        
+
         for (ApiIndex api: apis) {
             // 1) Disambiguate item symbols and rewrite to either nonterminal,
             //    keyword or token symbol
@@ -140,11 +140,11 @@ public class GrammarRewriter {
                 NonterminalParameterDisambiguator npd = new NonterminalParameterDisambiguator(env);
                 Api npdResult = (Api) idResult.accept(npd);
                 errors.addAll(npd.errors());
-                
+
                 // 3) Remove whitespace where instructed by non-whitespace symbols
                 WhitespaceElimination we = new WhitespaceElimination();
                 Api sdResult = (Api) npdResult.accept(we);
-                
+
                 // 4) Rewrite escaped characters
                 EscapeRewriter escapeRewriter = new EscapeRewriter();
                 Api erResult = (Api) sdResult.accept(escapeRewriter);
@@ -160,7 +160,7 @@ public class GrammarRewriter {
         IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(results, System.currentTimeMillis());
         if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
         initializeGrammarIndexExtensions(apiIR.apis().values(), env.apis().values());
-                
+
         for (ApiIndex api: apiIR.apis().values()) { 
             initGrammarEnv(api.grammars().values());
         }
@@ -187,67 +187,46 @@ public class GrammarRewriter {
 
             final Api raw = (Api) api.ast().accept( new TemplateParser() );
 
-            /* should this contain an instance of the class? */
-            // FIXME: Eliminate side effects
-            final Option<Class<?>>[] parser = new Option[1];
-            parser[0] = Option.none();
-            rs.add( (Api) raw.accept( new NodeUpdateVisitor(){
+            class TemplateParser extends NodeUpdateVisitor {
+                Class<?> parser;
+
+                TemplateParser(Class<?> parser) {
+                    this.parser = parser;
+                }
+
+                @Override public Node forUnparsedTransformer(UnparsedTransformer that) {
+                    try {
+                        AbstractNode templateNode = 
+                            parseTemplate(raw.getName(), that.getTransformer(), that.getNonterminal(), parser);
+                        return new NodeTransformer(templateNode);
+                    } catch ( OptionUnwrapException e ){
+                        throw StaticError.make("No parser created while rewriting api " + raw, "");
+                    }
+                }
+            }
+
+            class GrammarParser extends NodeUpdateVisitor {
+                @Override public Node forGrammarDef(GrammarDef that) {
+                    if (!that.isNative()){
+                        Class<?> parser = createParser(findGrammar(that));
+                        return (new TemplateParser(parser)).forGrammarDef(that);
+                    } else {
+                        return that;
+                    }
+                }
                 private GrammarIndex findGrammar( GrammarDef grammar ){
                     for ( GrammarIndex index : api.grammars().values() ){
                         if ( index.getName().equals( grammar.getName() ) ){
                             return index;
                         }
                     }
-                    throw new MacroError( "Could not find grammar for " + grammar.getName() );
+                    throw new MacroError("Could not find grammar for " + 
+                                         grammar.getName());
                 }
+            }
 
-                @Override public Node forGrammarDef(GrammarDef that) {
-                    if ( ! that.isNative() ){
-                        parser[ 0 ] = Option.<Class<?>>some(createParser( findGrammar(that) ));
-                        return super.forGrammarDef(that);
-                    } else {
-                        return that;
-                    }
-                }
-
-                @Override public Node forTransformerDef(TransformerDef that) {
-                    try {
-                        AbstractNode templateNode = 
-                            parseTemplate( raw.getName(), that.getDef(), parser[ 0 ].unwrap() );
-                        return new TransformerNode(that.getTransformer(), templateNode, that.getParameters() );
-                    } catch ( OptionUnwrapException e ){
-                        throw StaticError.make( "No parser created while rewriting api " + raw, "" );
-                    }
-                }
-            }));
+            rs.add((Api)raw.accept(new GrammarParser()));
         }
-        
-        /*
-        for (ApiIndex api: apiIR.apis().values()) {
-            rs.add( (Api) api.ast() );
-        }
-        */
-
-        /*
-        for (ApiIndex api: apiIR.apis().values()) {
-            // 7) Parse content of pretemplates and replace pretemplate 
-            // with a real template
-
-            //  Api transfomerApi = TransformerParser.parseTemplates(api.ast());
-
-            TemplateParser.Result tpr = TemplateParser.parseTemplates((Api)api.ast());
-            for (StaticError se: tpr.errors()) { errors.add(se); };
-            if (!tpr.isSuccessful()) { return new ApiResult(rs, errors); }
-            
-            rebuildGrammarEnv(tpr.api());
-            
-            // 8) Well-formedness check on template gaps
-            TemplateChecker.Result tcr = TemplateChecker.checkTemplates(env, api, tpr.api());
-            for (StaticError se: tcr.errors()) { errors.add(se); };
-            if (!tcr.isSuccessful()) { return new ApiResult(rs, errors); }
-            rs.add(tcr.api());
-        }
-        */
 
         return new ApiResult(rs, errors);
     }
@@ -308,12 +287,21 @@ public class GrammarRewriter {
         }
     }
 
-    private static AbstractNode parseTemplate( APIName apiName, String stuff, Class<?> parserClass ){
+    private static String ratsParseMethod( Id nonterminal ){
+        String str = nonterminal.toString();
+        if ( str.startsWith( "FortressSyntax" ) ){
+            return "p" + str.substring( str.indexOf(".") + 1 ).replace( '.', '$' );
+        }
+        return "pUSER_" + str.replaceAll("_", "__").replace('.', '_');
+    }
+
+    private static AbstractNode parseTemplate( APIName apiName, String stuff, Id nonterminal, Class<?> parserClass ){
         try{
             BufferedReader in = Useful.bufferedStringReader(stuff.trim());
-            Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "'" );
+            Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
             ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
-            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, "pExpression$Expr" );
+            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, ratsParseMethod( nonterminal ) );
+            // "pExpression$Expr" );
             // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
             if ( result.hasValue() ){
                 Object node = ((SemanticValue) result).value;
@@ -330,104 +318,22 @@ public class GrammarRewriter {
         }
     }
 
-    private static SyntaxTransformer createTransformer( SyntaxTransformerCreater creater, APIName apiName, Class<?> parserClass, String def, SyntaxDeclEnv env ){
-        try{
-            BufferedReader in = Useful.bufferedStringReader(def);
-            ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
-            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, "pExpression$Expr" );
-            // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
-            if ( result.hasValue() ){
-                Object node = ((SemanticValue) result).value;
-                return creater.create( (Node) node, env );
-            } else {
-                throw new ParserError((ParseError) result, parser);
-            }
-        } catch ( Exception e ){
-            throw new MacroError( "Could not create transformer for '" + def + "'", e );
-        }
-    }
-
     private static Class<?> createParser( GrammarIndex grammar ){
         // Compile the syntax abstractions and create a temporary parser
-        
         Class<?> temporaryParserClass = ComposingMacroCompiler.compile( grammar );
         return temporaryParserClass;
-
-        /*
-        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
-        ImportedApiCollector collector = new ImportedApiCollector(env);
-        collector.collectApis((Api)api.ast());
-        Collection<GrammarIndex> grammars = collector.getGrammars();
-        for ( GrammarIndex g : api.grammars().values() ){
-            g.isToplevel(true);
-        }
-        grammars.addAll( api.grammars().values() );
-        MacroCompiler.Result tr = macroCompiler.compile(grammars, env);
-        // if (!tr.isSuccessful()) { return new Result(tr.errors()); }
-        if ( ! tr.isSuccessful() ){
-            throw new MultipleStaticError( tr.errors() );
-        }
-
-        Class<?> temporaryParserClass = tr.getParserClass(); 
-        Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
-        return temporaryParserClass;
-        */
-
-        /*
-        BufferedReader in = null; 
-        try {
-            in = Useful.utf8BufferedFileReader(f);
-            ParserBase p =
-                ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
-            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
-        } catch ( IOException e ){
-        }
-        */
     }
 
-    /*
-    private static Class<?> createParser( ApiIndex api, GlobalEnvironment env ){
-        // Compile the syntax abstractions and create a temporary parser
-        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
-        ImportedApiCollector collector = new ImportedApiCollector(env);
-        collector.collectApis((Api)api.ast());
-        Collection<GrammarIndex> grammars = collector.getGrammars();
-        for ( GrammarIndex g : api.grammars().values() ){
-            g.isToplevel(true);
-        }
-        grammars.addAll( api.grammars().values() );
-        MacroCompiler.Result tr = macroCompiler.compile(grammars, env);
-        // if (!tr.isSuccessful()) { return new Result(tr.errors()); }
-        if ( ! tr.isSuccessful() ){
-            throw new MultipleStaticError( tr.errors() );
-        }
-
-        Class<?> temporaryParserClass = tr.getParserClass(); 
-        Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
-        return temporaryParserClass;
-
-        / *
-        BufferedReader in = null; 
-        try {
-            in = Useful.utf8BufferedFileReader(f);
-            ParserBase p =
-                ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
-            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(), p, f.getName());
-        } catch ( IOException e ){
-        }
-        * /
-    }
-    */
-    
     public static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, Collection<ApiIndex> moreApis ) {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
-        for (ApiIndex a2: apis) {
+
+        for (ApiIndex a2: moreApis) {
             for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
-        for (ApiIndex a2: moreApis) {
+        for (ApiIndex a2: apis) {
             for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
             }
@@ -450,13 +356,13 @@ public class GrammarRewriter {
         }
         return errors;
     }
-    
+
     private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
         for (GrammarIndex g: grammarIndexs) {
             GrammarEnv.add(g);
         }        
     }
-
+    /*
     private static void rebuildGrammarEnv(Api api) {
         api.accept(new NodeDepthFirstVisitor_void() {
             
@@ -480,5 +386,5 @@ public class GrammarRewriter {
             
         });
     }
-
+    */
 }

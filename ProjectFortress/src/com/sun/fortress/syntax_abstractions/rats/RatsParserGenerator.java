@@ -53,7 +53,31 @@ public class RatsParserGenerator {
         // fortressGrammar.hackClone(grammarTempDir);
 
         String fortressRats = destinationDir + "TemplateParser" +".rats";
-        String[] args = {"-no-exit", "-in", grammarTempDir, "-out", destinationDir, fortressRats};
+        String[] args = {"-no-exit",
+                         "-in", grammarTempDir,
+                         "-out", destinationDir,
+                         "-Ochunks",
+                         /* leave this out so that unused productions
+                          * are still accessible via reflection
+                          */
+                         // "-Ogrammar",
+                         "-Oterminals",
+                         "-Ocost",
+                         "-Otransient",
+                         "-Onontransient",
+                         "-Orepeated",
+                         "-Oleft2",
+                         "-Ooptional",
+                         "-Ochoices1",
+                         "-Ochoices2",
+                         "-Oerrors1",
+                         "-Oselect",
+                         "-Ovalues",
+                         "-Omatches",
+                         "-Oprefixes",
+                         "-Ognodes",
+                         "-Olocation",
+                         fortressRats};
         xtc.parser.Rats.main(args);
 
         String fortressJava = RatsUtil.TEMPLATEPARSER + freshFortressName +".java";

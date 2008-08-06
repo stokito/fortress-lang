@@ -141,7 +141,7 @@ public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol,
         for ( SyntaxSymbol symbol : that.getSymbols() ){
             c.putAll( symbol.accept(this) );
         }
-        Debug.debug( Debug.Type.SYNTAX, 3, "Bound symbols for group: ", c );
+        // Debug.debug( Debug.Type.SYNTAX, 3, "Bound symbols for group: ", c );
         return c;
     }
 

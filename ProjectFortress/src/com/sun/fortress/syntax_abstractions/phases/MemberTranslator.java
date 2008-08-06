@@ -17,6 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+/*
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,13 +83,13 @@ public class MemberTranslator {
         this.errors = new LinkedList<StaticError>();
     }
 
-    /**
+    / **
      * Translate a collection of grammar members to Rats! productions
      * @param grammarEnv 
      * @param
      * @param env
      * @return
-     */
+     * /
     public static Result translate(Collection<NonterminalIndex<? extends GrammarMemberDecl>> members) {
         return new MemberTranslator().doTranslate(members);
     }
@@ -103,11 +104,11 @@ public class MemberTranslator {
         return new Result(errors);
     }
 
-    /**
+    / **
      * Translate a grammar member to a Rats! production
      * @param member
      * @return
-     */
+     * /
     private Result translate(NonterminalIndex<? extends GrammarMemberDecl> member) {
         Collection<StaticError> errors = new LinkedList<StaticError>();
         NonterminalTranslator nt = new NonterminalTranslator();
@@ -174,3 +175,4 @@ public class MemberTranslator {
         }
     }
 }
+*/

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+/*
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -183,7 +184,7 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
         String newName = FreshName.getFreshName(name).toUpperCase();
         ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformer(), type, memberEnv.getSyntaxDeclEnv(syntaxDef).unwrap(), syntaxDef.accept(new VariableCollector()) );
 
-        if (!acr.isSuccessful()) { new Result(acr.errors()); }  /* FIXME: suspicious */
+        if (!acr.isSuccessful()) { new Result(acr.errors()); }  // FIXME: suspicious
 
         elms.add(acr.action());
 
@@ -344,9 +345,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
                     Element e = symbol_result.get(0);
                     return mkList(new FollowedBy(new Sequence(e)));
                 }
-                /* FIXME: Hack! When the element was a group we know the second thing
+                / * FIXME: Hack! When the element was a group we know the second thing
                  * in the sequence was an action. Is there a better way to know?
-                 */
+                 * /
                 if (symbol_result.size() == 2 && symbol_result.get(1) instanceof Action ){
                     Element e = symbol_result.get(0);
                     return mkList(new FollowedBy(new Sequence(e)));
@@ -378,9 +379,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
 
     }
 
-    /**
+    / **
      * Translate an atom with a modifier( +, ?, + ) to a rats! production.
-     */
+     * /
     private static class ModifierTranslator extends NodeDepthFirstVisitor<List<Element>> {
 
         private SymbolTranslator inner;
@@ -391,10 +392,10 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             this.modifier = modifier;
         }
 
-        /**
+        / **
          * Just a plain element with a modifier attached. Return the same element wrapped with
          * the modifier.
-         */
+         * /
         @Override
             public List<Element> defaultCase(Node that) {
                 List<Element> result = that.accept(inner);
@@ -428,9 +429,9 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             return SyntaxAbstractionUtil.getJavaType(inner.getEnv(), variable);
         }
 
-        /**
+        / **
          * Extract the pattern variables from the group and bind them.
-         */
+         * /
         @Override
             public List<Element> forGroupSymbol(GroupSymbol that){
                 Map<PrefixedSymbol,VariableCollector.Depth> varMap = that.accept(new VariableCollector());
@@ -515,13 +516,14 @@ public class SyntaxDefTranslator extends NodeDepthFirstVisitor<List<Sequence>>{
             return String.format("Object[] %s = (Object[]) %s;", packedName, rawName);
         }
 
-        /**
+        / **
          * If the group did not occur then the packedName variable will be null. Set the pattern variable
          * to null if the packedName is null otherwise set it to the index'th object.
-         */
+         * /
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
             return String.format("%s %s = (%s)(%s == null ? null : %s[%d]);", fullType, varName, fullType, packedName, packedName, index);
         }
     }
 
 }
+*/

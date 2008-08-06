@@ -61,7 +61,9 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         // Write out forCASEOnly methods
         writer.startLine("/* Methods to handle a node after recursion. */");
         for (NodeType t : ast.descendents(root)) {
-            if (!(t instanceof TemplateGapClass) && !(t instanceof TransformationNode)) {
+            if (!(t instanceof TemplateGapClass) &&
+                !(t instanceof TransformationNode) &&
+                !(t instanceof EllipsesNode)) {
                 outputForCaseOnly(t, writer, root);
             }
         }
@@ -76,6 +78,8 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
                     outputVisitTemplateMethod(t, writer, root);
                 } else if ( t instanceof TransformationNode ){
                     outputVisitTransformationMethod(t, writer, root );
+                } else if ( t instanceof EllipsesNode ){
+                    outputVisitEllipsesMethod(t, writer, root);
                 } else {
                     outputVisitMethod(t, writer, root);
                 }
@@ -105,12 +109,32 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         super.outputDefaultCaseMethod(writer, root);
         writer.println();
         outputDefaultTemplateMethod(writer, root);
+        writer.println();
+        outputDefaultTransformationMethod(writer, root);
+        writer.println();
+        outputDefaultEllipsesMethod(writer, root);
     }
 
     protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root ){
         writer.startLine("public RetType defaultTemplateGap(TemplateGap t){");
         writer.indent();
         writer.startLine("throw new RuntimeException(this.templateErrorMessage);");
+        writer.unindent();
+        writer.startLine("}");
+    }
+
+    protected void outputDefaultTransformationMethod(TabPrintWriter writer, NodeType root ){
+        writer.startLine("public RetType defaultTransformationNode(_SyntaxTransformation that){");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(\"Override defaultTransformationNode to support syntax transformations\");" );
+        writer.unindent();
+        writer.startLine("}");
+    }
+
+    protected void outputDefaultEllipsesMethod(TabPrintWriter writer, NodeType root ){
+        writer.startLine("public RetType defaultEllipsesNode(_Ellipses that){");
+        writer.indent();
+        writer.startLine("throw new RuntimeException(\"Override defaultEllipsesNode to support ellipses\");" );
         writer.unindent();
         writer.startLine("}");
     }
@@ -128,7 +152,16 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
     protected void outputVisitTransformationMethod(NodeType t, TabPrintWriter writer, NodeType root) {
         outputForCaseHeader(t, writer, "RetType", "");
         writer.indent();
-        writer.startLine("throw new RuntimeException(\"Do not visit _SyntaxTranformation nodes\");" );
+        writer.startLine("return defaultTransformationNode(that);");
+        writer.unindent();
+        writer.startLine("}");
+        writer.println();
+    }
+    
+    protected void outputVisitEllipsesMethod(NodeType t, TabPrintWriter writer, NodeType root) {
+        outputForCaseHeader(t, writer, "RetType", "");
+        writer.indent();
+        writer.startLine("return defaultEllipsesNode(that);");
         writer.unindent();
         writer.startLine("}");
         writer.println();

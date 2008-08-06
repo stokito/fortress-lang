@@ -17,6 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+/*
 import java.lang.reflect.Constructor;
 
 import java.io.File;
@@ -43,9 +44,9 @@ import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 
 import com.sun.fortress.useful.Debug;
 
-/* creates java classes that represent syntax transformers.
+/ * creates java classes that represent syntax transformers.
  * this is not used anymore, it is superceded by the ComposingSyntaxDefTranslater
- */
+ * /
 public class SyntaxTransformerCreater {
 
     private static final String PACKAGE = "com.sun.fortress.syntax_abstractions.transformer";
@@ -159,7 +160,7 @@ public class SyntaxTransformerCreater {
         writeImports(writer);
         writer.startLine(String.format("public class %s implements %s<Node>{", className, INTERFACE));
         writer.indent();
-        /* ugly way of getting BOUND_VARIABLES */
+        // ugly way of getting BOUND_VARIABLES
         writer.startLine(String.format("public Node invoke( Map<String,Object> %s){", ActionCreater.BOUND_VARIABLES));
         writer.indent();
 
@@ -187,3 +188,4 @@ public class SyntaxTransformerCreater {
         writer.startLine(String.format("import edu.rice.cs.plt.tuple.Option;"));
     }
 }
+*/

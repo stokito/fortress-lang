@@ -674,10 +674,13 @@ public class ExprFactory {
         public Expr forAsIfExpr(AsIfExpr e) {
             return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
         }
+
+        /*
         @Override
-        public Expr for_EllipsesExpr(_EllipsesExpr e){
-            return new _EllipsesExpr(e.getSpan(), true, e.getExpr());
+        public Expr defaultEllipsesNode(_Ellipses e){
+            return e;
         }
+        */
 
         public Expr forAssignment(Assignment e) {
             return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
