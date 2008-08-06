@@ -36,14 +36,15 @@ import static com.sun.fortress.nodes_util.DesugarerUtil.*;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /** Run desugaring phases that must occur before disambiguation.
- *  1) Remove conditional operators, replacing their operands with thunks.
+ *  1) Rewrite trait, object, and object expressions to explicitly extend Object.
+ *  2) Remove conditional operators, replacing their operands with thunks.
  *  Desugar conditional operators into operators that take thunks.
  *  This desugaring is described in section 22.8 of the specification.
  *  We find {@code e_1 AND: e_2}, for example, and change it into
  *  {@code e_1 AND (fn () => e_2)}, for which an overloading must exist.
  *  This desugaring must go before disambiguation, and is therefore called
  *  by {@code PreDisambiguationDesugarer}.
- *  2) Rewrite trait, object, and object expressions to explicitly extend Object.
+ *  3) Remwrite reductions to explicit invocations of big operators.
  */
 public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
@@ -207,4 +208,21 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         return res;
     }
 
+    @Override
+	public Node forAccumulator(Accumulator that) {
+        return visitAccumulator(that.getSpan(), that.getGens(),
+                                that.getOpr(), that.getBody(),
+                                that.getStaticArgs());
+    }
+
+    private Expr visitAccumulator(Span span, List<GeneratorClause> gens,
+                                  OpName op, Expr body,
+                                  List<StaticArg> staticArgs) {
+        body = visitGenerators(span, gens, body);
+        Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
+        Expr res = new TightJuxt(span, false,
+                                 Useful.list(BIGOP_NAME,
+                                             ExprFactory.makeTuple(opexp,body)));
+        return (Expr)recur(res);
+    }
 }
