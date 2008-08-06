@@ -111,6 +111,30 @@ public class NodeUtil {
         return false;
     }
 
+    public final static NodeVisitor<String> nameSuffixGetter =
+        new NodeAbstractVisitor<String>() {
+        @Override public String forAPIName(APIName n) {
+            return n.getText();
+            }
+        public String forId(Id n) {      
+            return n.getText();
+        }
+        public String forOp(Op n) {
+            return OprUtil.fixityDecorator(n.getFixity(), n.getText());
+        }
+        public String forEnclosing(Enclosing n) { 
+            // Interior space is REQUIRED
+            return n.getOpen().getText() + " " + n.getClose().getText();
+        }
+        public String forAnonymousFnName(AnonymousFnName n) {
+            return n.getSpan().toString();
+        }
+    };
+    
+    public static String nameSuffixString(AbstractNode n) {
+        return n.accept(nameSuffixGetter);
+    }
+
     private final static NodeVisitor<String> nameGetter =
         new NodeAbstractVisitor<String>() {
 
@@ -126,11 +150,16 @@ public class NodeUtil {
             return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
         }
         public String forOp(Op n) {
-            return OprUtil.fixityDecorator(n.getFixity(), n.getText());
+            Option<APIName> odn = n.getApi();
+            String last = OprUtil.fixityDecorator(n.getFixity(), n.getText());
+            return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
         }
         public String forEnclosing(Enclosing n) { 
+            Option<APIName> odn = n.getApi();
             // Interior space is REQUIRED
-            return n.getOpen().getText() + " " + n.getClose().getText();
+            String last = n.getOpen().getText() + " " + n.getClose().getText();
+            return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
+
         }
         public String forAnonymousFnName(AnonymousFnName n) {
             return n.getSpan().toString();

@@ -148,7 +148,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         }
         break;
         
-        case 2: {
+        case 3: {
             String s = x.getName().stringName();
             OverloadedFunction of = (OverloadedFunction) bindInto.getValue(s);
             for (IdOrOpName fn : x.getFns()) {
@@ -176,6 +176,8 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
                 }
                 
             }
+            
+            of.finishInitializing();
             
         }
         

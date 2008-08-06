@@ -443,7 +443,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     final public FValue getValueNull(Id name, int l) throws CircularDependenceError {
         //String s = NodeUtil.nameString(name);
-        String local = name.getText();
+        String local = NodeUtil.nameSuffixString(name);
         Option<APIName> opt_api = name.getApi();
         return getValueNullTail(name, l, local, opt_api);
     }
@@ -451,7 +451,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
       final public FValue getValueNull(OpName name, int l)
             throws CircularDependenceError {
         // String s = NodeUtil.nameString(name);
-        String local = NodeUtil.nameString(name);
+        String local = NodeUtil.nameSuffixString(name);
         Option<APIName> opt_api = name.getApi();
         return getValueNullTail(name, l, local, opt_api);
 

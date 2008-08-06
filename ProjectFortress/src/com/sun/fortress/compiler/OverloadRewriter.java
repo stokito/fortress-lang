@@ -38,7 +38,7 @@ public class OverloadRewriter {
 
 
     /** Please remove this flag once overload rewriting is fully implemented */
-    private static final boolean do_rewrite = ProjectProperties.getBoolean("fortress.rewrite.overloads", false);
+    private static final boolean do_rewrite = ProjectProperties.getBoolean("fortress.rewrite.overloads", true);
 
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
