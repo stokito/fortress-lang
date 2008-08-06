@@ -999,12 +999,6 @@ public class Desugarer extends Rewrite {
                 } else if (node instanceof GeneratedExpr) {
                     GeneratedExpr ge = (GeneratedExpr)node;
                     return visitLoop(ge.getSpan(), ge.getGens(), ge.getExpr());
-                } else if (node instanceof Accumulator) {
-                    Accumulator ac = (Accumulator)node;
-                    node = visitAccumulator(ac.getSpan(), ac.getGens(),
-                                            ac.getOpr(), ac.getBody(),
-                                            ac.getStaticArgs());
-                    return node;
                 } else if (node instanceof Spawn) {
                     node = translateSpawn((Spawn)node);
                 } else if ( node instanceof GrammarDef) {
@@ -1159,17 +1153,6 @@ public class Desugarer extends Rewrite {
         }
         // System.out.println("Desugared to "+body.toStringVerbose());
         return (Expr)visitNode(body);
-    }
-
-    private Expr visitAccumulator(Span span, List<GeneratorClause> gens,
-                                  OpName op, Expr body,
-                                  List<StaticArg> staticArgs) {
-        body = visitGenerators(span, gens, body);
-        Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
-        Expr res = new TightJuxt(span, false,
-                                 Useful.list(BIGOP_NAME,
-                                             ExprFactory.makeTuple(opexp,body)));
-        return (Expr)visitNode(res);
     }
 
     /** Given expr e, return (fn () => e) */
