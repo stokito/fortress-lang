@@ -141,6 +141,7 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes._RewriteFieldRef;
+import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectRef;
@@ -953,6 +954,22 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         }
         return juxtApplyStack(stack, times, x);
+    }
+
+    @Override
+    public FValue for_RewriteFnApp(_RewriteFnApp that) {
+        // This method was written by NEB, so there is plenty of reason to believe
+        // that I did it incorrectly.
+        
+        Expr fn = that.getFunction();
+        Expr arg = that.getArgument();
+        
+        List<FValue> evaled = evalExprListParallel(Useful.list(fn, arg));
+        
+        FValue fn_ = IterUtil.first(evaled);
+        FValue arg_ = IterUtil.last(evaled);
+        
+        return functionInvocation(arg_, fn_, that);
     }
 
     public FValue forArrayElement(ArrayElement x) {
