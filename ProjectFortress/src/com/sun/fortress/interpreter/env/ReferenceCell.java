@@ -100,7 +100,6 @@ public class ReferenceCell extends IndirectionCell {
 
     private synchronized void cleanup() {
         Transaction w = node.getWriter();
-        FValue prev = node.getValue();
         while (w != null && transactionIsNotActive(w)) {
             if (transactionIsAbortedOrOrphaned(w))  
                 node = node.getOld();
@@ -154,8 +153,10 @@ public class ReferenceCell extends IndirectionCell {
         Transaction me  = FortressTaskRunner.getTransaction();
         // Top Level transaction 
         if (me == null) {
-            node.AbortWriter();
-            cleanup();
+			while (node.getWriter() != null) {
+				node.AbortWriter();
+				cleanup();
+			}
             return node.getValue();
         }
 
