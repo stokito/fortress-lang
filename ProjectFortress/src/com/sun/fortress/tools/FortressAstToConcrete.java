@@ -1025,7 +1025,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return that.getTransformer();
     }
     */
-    
+
     @Override public String forPreTransformerDefOnly(PreTransformerDef that, String transformer_result) {
         return transformer_result;
     }
@@ -1039,7 +1039,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         return s.toString();
     }
-    
+
     @Override public String forCaseTransformerOnly(CaseTransformer that, String gapName_result, List<String> clauses_result) {
         StringBuilder s = new StringBuilder();
 
@@ -1052,7 +1052,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         return s.toString();
     }
-    
+
     @Override public String forCaseTransformerClauseOnly(CaseTransformerClause that, String constructor_result, List<String> parameters_result, String body_result) {
         StringBuilder s = new StringBuilder();
 
@@ -1067,7 +1067,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         return s.toString();
     }
-    
+
     @Override public String forSuperSyntaxDefOnly(SuperSyntaxDef that, String nonterminal_result, String grammar_result) {
         StringBuilder s = new StringBuilder();
 
@@ -1940,12 +1940,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     @Override public String forMultiFixityOnly(MultiFixity that) {
                         return join(args_result, " " + oper + " ");
                     }
-
-                    /* this shouldn't occur here */
-                    /*
-                    @Override public String forBigFixityOnly(BigFixity that) {
-                    }
-                    */
                 });
             }
 
