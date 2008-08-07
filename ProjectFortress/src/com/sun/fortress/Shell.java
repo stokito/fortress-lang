@@ -297,7 +297,7 @@ public final class Shell {
         GraphRepository bcr = specificRepository( path, defaultRepository );
         CompilationUnit cu = bcr.getLinkedComponent(name).ast();
         List<String> args = new ArrayList<String>();
-        return Driver.runProgram(bcr, cu, false, args);
+        return Driver.runProgram(bcr, cu, test, args);
     }
 
     /**

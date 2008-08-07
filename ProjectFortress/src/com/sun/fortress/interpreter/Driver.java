@@ -1201,7 +1201,7 @@ public class Driver {
 
     // This creates the parallel context
     public static FValue runProgram(FortressRepository fr, CompilationUnit p,
-                                  boolean runTests, List<String> args)
+                                    boolean runTests, List<String> args)
         throws Throwable {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null)
