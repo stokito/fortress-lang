@@ -1058,6 +1058,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 Type ascriptedType = that.getType();
 		 TypeCheckerResult expr_result = that.getExpr().accept(this);
 		 Type exprType = expr_result.type().isSome() ? expr_result.type().unwrap() : Types.BOTTOM;
+         // node rebuilding handled in forTypeAnnotatedExprOnly
 		 return forTypeAnnotatedExprOnly(that,
 				 expr_result,
 				 errorMsg("Attempt to ascribe expression of type ",
@@ -1069,22 +1070,23 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 Type assumedType = that.getType();
 		 TypeCheckerResult expr_result = that.getExpr().accept(this);
 		 Type exprType = expr_result.type().isSome() ? expr_result.type().unwrap() : Types.BOTTOM;
+		 // node rebuilding handled in forTypeAnnotatedExprOnly
 		 return forTypeAnnotatedExprOnly(that,
 				 expr_result,
 				 errorMsg("Attempt to assume type ", assumedType,
 						 " from non-subtype ", exprType));
 	 }
-
+	 
 	 @Override
 	 public TypeCheckerResult forAssignment(Assignment that) {
 		 // The procedures for assignment differ greatly depending on the type of the LHS
-		 final Option<TypeCheckerResult> opr_result = recurOnOptionOfOpRef(that.getOpr());
+		 final Option<TypeCheckerResult> opr_result_ = recurOnOptionOfOpRef(that.getOpr());
 		 final TypeCheckerResult rhs_result = that.getRhs().accept(this);
 
 		 // Check subexprs
-		 if( rhs_result.type().isNone() || (opr_result.isSome() && opr_result.unwrap().type().isNone()) ) {
-			 if( opr_result.isSome() )
-				 return TypeCheckerResult.compose(that, subtypeChecker, rhs_result, opr_result.unwrap());
+		 if( rhs_result.type().isNone() || (opr_result_.isSome() && opr_result_.unwrap().type().isNone()) ) {
+			 if( opr_result_.isSome() )
+				 return TypeCheckerResult.compose(that, subtypeChecker, rhs_result, opr_result_.unwrap());
 			 else
 				 return TypeCheckerResult.compose(that, subtypeChecker, rhs_result);
 		 }
@@ -1096,11 +1098,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 Type inf_tuple = NodeFactory.makeTupleType(inf_types);
 		 TypeCheckerResult tuple_result = this.checkSubtype(rhs_result.type().unwrap(), inf_tuple, that);
 
-		 List<TypeCheckerResult> all_results = new LinkedList<TypeCheckerResult>();
-		 all_results.add(tuple_result);
-		 all_results.add(rhs_result);
-		 if( opr_result.isSome() ) all_results.add(opr_result.unwrap());
-
+		 TypeCheckerResult opr_result = opr_result_.isNone() ? new TypeCheckerResult(that) : opr_result_.unwrap();
+		 List<TypeCheckerResult> lhs_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
+		 List<TypeCheckerResult> app_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
+		 
 		 // Go through each lhs, and typecheck it with our visitor, which handles each subtype
 		 // of LHS differently.
 		 final Iterator<Type> inf_type_iter = inf_types.iterator();
@@ -1113,7 +1114,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				 public TypeCheckerResult forFieldRef(FieldRef that) {
 					 // If there is an op, we must typecheck that as a normal read reference
 					 TypeCheckerResult read_result;
-					 if( opr_result.isSome() )
+					 if( opr_result_.isSome() )
 						 read_result = that.accept(TypeChecker.this);
 					 else
 						 read_result = new TypeCheckerResult(that);
@@ -1124,36 +1125,24 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						 List<TraitType> traits = traitTypesCallable(obj_type);
 						 
 						 TypeCheckerResult r = findSetterInTraitHierarchy(that.getField(),traits,rhs_type, that);
-						 return TypeCheckerResult.compose(that, read_result.type(), subtypeChecker, r, read_result);
+						 
+						 FieldRef new_node = new FieldRef(that.getSpan(),
+						                                  that.isParenthesized(),
+						                                  r.type(),
+						                                  (Expr)obj_result.ast(), 
+						                                  that.getField());
+						 
+						 return TypeCheckerResult.compose(new_node, read_result.type(), subtypeChecker, r, read_result);
 					 }
 					 else{
 						 return obj_result;
 					 }
 				 }
-				 // The two cases for variables are pretty similar
-				 @Override
-				 public TypeCheckerResult forLValueBind(LValueBind that) {
-					 TypeCheckerResult r = that.accept(TypeChecker.this);
-					 if( r.type().isNone() ) return r;
-					 Type lhs_type = r.type().unwrap();
-					 TypeCheckerResult r_sub = checkSubtype(rhs_type,lhs_type,that);
-					 // make sure it's immutable
-					 if( !that.isMutable() ) {
-						 String err = "Variable " + that + " is immutable.";
-						 TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
-						 return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
-					 }
-					 else {
-						 // Happy path
-						 return TypeCheckerResult.compose(that, lhs_type, subtypeChecker, r, r_sub);
-					 }
-				 }
-
 				 @Override
 				 public TypeCheckerResult forSubscriptExpr(SubscriptExpr that) {
 					 // If there is an op, we must typechecker that as a normal read reference
 					 TypeCheckerResult read_result;
-					 if( opr_result.isSome() )
+					 if( opr_result_.isSome() )
 						 read_result = that.accept(TypeChecker.this);
 					 else
 						 read_result = new TypeCheckerResult(that);
@@ -1165,7 +1154,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					 TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
 					 List<TypeCheckerResult> subs_result = TypeChecker.this.recurOnListOfExpr(that.getSubs());
 					 // ignore op_result...
-					 // Option<TypeCheckerResult> op_result = TypeChecker.this.recurOnOptionOfEnclosing(that.getOp());
 					 List<TypeCheckerResult> staticArgs_result = TypeChecker.this.recurOnListOfStaticArg(that.getStaticArgs());
 
 					 TypeCheckerResult all_result =
@@ -1186,8 +1174,35 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 					 TypeCheckerResult final_result =
 						 TypeChecker.this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
-					 return TypeCheckerResult.compose(that, read_result.type(), subtypeChecker, final_result, all_result);
+					 
+					 SubscriptExpr new_node = new SubscriptExpr(that.getSpan(),
+					                                            that.isParenthesized(),
+					                                            read_result.type(),
+					                                            (Expr)obj_result.ast(),
+					                                            (List<Expr>)TypeCheckerResult.astFromResults(subs_result),
+					                                            that.getOp(),
+					                                            that.getStaticArgs());
+					 
+					 return TypeCheckerResult.compose(new_node, read_result.type(), subtypeChecker, final_result, all_result);
 				 }
+	                // The two cases for variables are pretty similar
+                 @Override
+                 public TypeCheckerResult forLValueBind(LValueBind that) {
+                     TypeCheckerResult r = that.accept(TypeChecker.this);
+                     if( r.type().isNone() ) return r;
+                     Type lhs_type = r.type().unwrap();
+                     TypeCheckerResult r_sub = checkSubtype(rhs_type,lhs_type,that);
+                     // make sure it's immutable
+                     if( !that.isMutable() ) {
+                         String err = "Variable " + that + " is immutable.";
+                         TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
+                         return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
+                     }
+                     else {
+                         // Happy path, we don't rebuild b/c there is nothing new
+                         return TypeCheckerResult.compose(r.ast(), lhs_type, subtypeChecker, r, r_sub);
+                     }
+                 }
 				 @Override
 				 public TypeCheckerResult forVarRef(VarRef that) {
 					 TypeCheckerResult r = that.accept(TypeChecker.this);
@@ -1198,44 +1213,52 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 							 returnTypeEnvForApi(that.getVar().getApi().unwrap()) :
 								 typeEnv;
 							 Option<BindingLookup> bl = env.binding(that.getVar());
-							 if( bl.isNone() ) return r;
-							 // make sure it's immutable
-							 if( !(bl.unwrap().isMutable()) ) {
-								 String err = "Variable " + that + " is immutable.";
-								 TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
-								 return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
-							 }
-							 else {
-								 // Happy path
-								 return TypeCheckerResult.compose(that, lhs_type, subtypeChecker, r, r_sub);
-							 }
+					 if( bl.isNone() ) return r;
+					 // make sure it's immutable
+					 if( !(bl.unwrap().isMutable()) ) {
+					     String err = "Variable " + that + " is immutable.";
+					     TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
+					     return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
+					 }
+					 else {
+					     // Happy path
+					     return TypeCheckerResult.compose(r.ast(), lhs_type, subtypeChecker, r, r_sub);
+					 }
 				 }
 			 };
 			 TypeCheckerResult lhs_result = lhs.accept(visitor);
-
+			 lhs_results.add(lhs_result);
+			 
 			 // if we need to check the operator, just try to apply it like a normal method.
-			 if( lhs_result.type().isSome() && that.getOpr().isSome() && opr_result.unwrap().type().isSome() ) {
+			 if( lhs_result.type().isSome() && that.getOpr().isSome() && opr_result_.unwrap().type().isSome() ) {
 				 Type lhs_type = lhs_result.type().unwrap();
-				 Type opr_type = opr_result.unwrap().type().unwrap();
+				 Type opr_type = opr_result_.unwrap().type().unwrap();
 				 Option<Pair<Type,ConstraintFormula>> application_result =
 					 TypesUtil.applicationType(subtypeChecker, opr_type, new ArgList(lhs_type, rhs_type));
 
 				 if( application_result.isSome() ) {
 					 ConstraintFormula constr = application_result.unwrap().second();
-					 all_results.add(new TypeCheckerResult(that, constr));
+					 app_results.add(new TypeCheckerResult(that, constr));
+					 
 				 }
 				 else {
 					 String err = "Compound operator, " + that.getOpr().unwrap().getOriginalName() + " not defined on types (" + lhs_type + "," +rhs_type + ").";
-					 all_results.add(new TypeCheckerResult(that, TypeError.make(err, that)));
+					 app_results.add(new TypeCheckerResult(that, TypeError.make(err, that)));
 				 }
 			 }
-
-			 all_results.add(lhs_result);
 		 }
-		 return TypeCheckerResult.compose(that, Types.VOID, subtypeChecker, all_results);
+		 //Assignment(Span in_span, boolean in_parenthesized, Option<Type> in_exprType, List<Lhs> in_lhs, Option<OpRef> in_opr, Expr in_rhs)
+		 Assignment new_node = new Assignment(that.getSpan(),
+		                                      that.isParenthesized(),
+		                                      Option.<Type>some(Types.VOID),
+		                                      (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
+		                                      (Option<OpRef>)TypeCheckerResult.astFromResult(opr_result_),
+		                                      (Expr)rhs_result.ast());
+		 
+		 return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, opr_result, tuple_result, rhs_result,
+		         TypeCheckerResult.compose(new_node, subtypeChecker, app_results),
+		         TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
 	 }
-
-     // YOU ARE HERE REWRITING AST, MOVING UP. NEB
 	 
 	 private TypeCheckerResult forAtomic(Expr body, final String errorMsg) {
 		 TypeChecker newChecker = new TypeChecker(table,
