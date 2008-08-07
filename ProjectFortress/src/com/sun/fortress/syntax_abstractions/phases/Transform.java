@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.NodeTransformer;
@@ -308,9 +309,11 @@ public class Transform extends TemplateUpdateVisitor {
                 env.add( NodeFactory.makeId( varName ), 1, var.getValue() );
             }
             Object argument = traverse( var.getValue() );
+            /*
             if ( argument instanceof _RepeatedExpr ){
                 argument = ((_RepeatedExpr) argument).getNodes();
             }
+            */
             // checkFullyTransformed(argument);
             evaluated.put(varName, argument);
             Debug.debug( Debug.Type.SYNTAX, 3,
@@ -324,7 +327,20 @@ public class Transform extends TemplateUpdateVisitor {
         checkFullyTransformed(transformed);
         return transformed;
     }
-
+ 
+    @Override public List<Expr> recurOnListOfExpr(List<Expr> that) {
+        List<Expr> accum = new java.util.ArrayList<Expr>(that.size());
+        for (Expr elt : that) {
+            if ( elt instanceof _Ellipses ){
+                for ( Node n : handleEllipses((_Ellipses) elt) ){
+                    accum.add( (Expr) n );
+                }
+            } else {
+                accum.add((Expr) recur(elt));
+            }
+        }
+        return accum;
+    }
 
     private void checkFullyTransformed(Node n) {
         n.accept(new TemplateNodeDepthFirstVisitor_void() {
@@ -405,15 +421,17 @@ public class Transform extends TemplateUpdateVisitor {
             for ( EllipsesEnvironment newEnv : decompose( env, freeVariables( that.getRepeatedNode() ) ) ){
                 Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env ", newEnv );
                 // nodes.add( that.getRepeatedNode().accept( new EllipsesVisitor( newEnv ) ) );
+                /*
                 if ( that.getRepeatedNode() instanceof _RepeatedExpr ){
                     nodes.addAll( ((_RepeatedExpr) that.getRepeatedNode()).getNodes() );
                 } else {
-                    Map<String, Object> variableEnv = new HashMap< String, Object >( variables );
-                    for ( Id var : newEnv.getVars() ){
-                        variableEnv.put( var.getText(), newEnv.getValue( var ) );
-                    }
-                    nodes.add( that.getRepeatedNode().accept( new Transform( transformers, variableEnv, newEnv ) ) );
+                */
+                Map<String, Object> variableEnv = new HashMap< String, Object >( variables );
+                for ( Id var : newEnv.getVars() ){
+                    variableEnv.put( var.getText(), newEnv.getValue( var ) );
                 }
+                nodes.add( that.getRepeatedNode().accept( new Transform( transformers, variableEnv, newEnv ) ) );
+                // }
             }
             return nodes;
         } else {
