@@ -1940,6 +1940,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     @Override public String forMultiFixityOnly(MultiFixity that) {
                         return join(args_result, " " + oper + " ");
                     }
+
+                    @Override public String forBigFixityOnly(BigFixity that) {
+                        return oper + inParentheses( args_result );
+                    }
                 });
             }
 
