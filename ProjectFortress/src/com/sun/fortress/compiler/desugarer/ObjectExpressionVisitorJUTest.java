@@ -77,7 +77,10 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
        TestSuite suite = new TestSuite("Tests closure conversion of object expressions." );
        String tests = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
        String[] files = new String[]{
+           /*
            "objectCC.fss" };
+           */
+       };
        for ( String file : files ){
            suite.addTest( new ObjectExpressionVisitorJUTest( tests + SEP + file ) );
        }
