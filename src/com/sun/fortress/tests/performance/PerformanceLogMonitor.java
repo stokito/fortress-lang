@@ -40,7 +40,7 @@ public class PerformanceLogMonitor {
 
     public static TestSuiteData testingData;
         
-    private static void readDataFile(String dataFile) {
+    private static void readDataFile(File dataFile) {
         FileInputStream inputStream = null;
         GZIPInputStream gzipStream = null;
         ObjectInputStream objectStream = null;        
@@ -50,7 +50,7 @@ public class PerformanceLogMonitor {
             objectStream = new ObjectInputStream(gzipStream);
             testingData = (TestSuiteData) objectStream.readObject();
         } catch (FileNotFoundException e) {
-            System.err.println("Could not find file: " + dataFile);
+            System.err.println("Could not find file: " + dataFile.getPath());
             testingData = new TestSuiteData();
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -68,7 +68,7 @@ public class PerformanceLogMonitor {
         }
     }    
     
-    private static Integer readLogFile(String xmlLogFile) {
+    private static Integer readLogFile(File xmlLogFile) {
         FileInputStream logInputStream = null;        
         try {
             DOMParser parser = new DOMParser();
@@ -89,7 +89,7 @@ public class PerformanceLogMonitor {
         return 0;        
     }
 
-    private static void writeDataFile(String dataFile) {
+    private static void writeDataFile(File dataFile) {
         FileOutputStream dataStream = null;
         GZIPOutputStream gzipStream = null;
         ObjectOutputStream objectStream = null;
@@ -180,21 +180,41 @@ public class PerformanceLogMonitor {
             }                
         }
     }
+
+    private static void checkInputArguments(File xmlLogFile, File dataFile,
+            File chartDirectory) {
+        if (!xmlLogFile.isFile()) {
+            System.err.println("First argument is not a valid file name: " + xmlLogFile.getPath());
+            System.exit(-2);
+        }
+        if (dataFile.isDirectory()) {
+            System.err.println("Second argument is not a valid file name: " + dataFile.getPath());
+            System.exit(-3);
+        }
+        if (chartDirectory != null) {
+            if (!chartDirectory.isDirectory()) {
+                System.err.println("Final argument is not a valid directory: " + chartDirectory.getPath());
+                System.exit(-4);
+            }
+        }
+    }
+    
     
     public static void main(String[] args) {
-	System.setProperty("java.awt.headless","true"); 
+        System.setProperty("java.awt.headless","true"); 
         if (!((args.length == 3) || (args.length == 2))) {
             System.err.println("First argument is the xml log file.");
             System.err.println("Second argument is the data file to read and write.");
-            System.err.println("(optional) Third argument is the directory name to put all the charts.");
-            return;
+            System.err.println("(optional) Third argument is the directory to put all the charts.");
+            System.exit(-1);
         }
-        String xmlLogFile = args[0];
-        String dataFile = args[1];
-        String chartDirectory = null;
+        File xmlLogFile = new File(args[0]);
+        File dataFile = new File(args[1]);        
+        File chartDirectory = null;
         if (args.length == 3) {
-            chartDirectory = args[2];
+            chartDirectory = new File(args[2]);
         }
+        checkInputArguments(xmlLogFile, dataFile, chartDirectory);
         readDataFile(dataFile);
         readLogFile(xmlLogFile);
         if (chartDirectory != null) {
@@ -203,5 +223,6 @@ public class PerformanceLogMonitor {
         }
         writeDataFile(dataFile);
     }
+
 
 }

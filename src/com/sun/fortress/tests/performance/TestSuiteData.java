@@ -66,7 +66,7 @@ public class TestSuiteData implements Serializable {
         revisionDate = new HashMap<Integer, String>();
     }
     
-    public void writeHtml(String chartDirectory) {
+    public void writeHtml(File chartDirectory) {
         StringBuilder html = new StringBuilder();
         html.append("<html><head><title>Performance Measures</title></head>\n");
         html.append("<body>");
@@ -74,8 +74,7 @@ public class TestSuiteData implements Serializable {
         html.append("Click on an image to see its imagemap version. ");
         html.append("Mouse hover on imagemap version shows actual data.<p>\n");
         html.append("<table>\n");
-        File directory = new File(chartDirectory);
-        File[] images = directory.listFiles(new ExtensionFilenameFilter(".png"));
+        File[] images = chartDirectory.listFiles(new ExtensionFilenameFilter(".png"));
         makeHtmlEachFile(html, images);
         writeHtmlFile(chartDirectory, html);
     }
@@ -106,8 +105,8 @@ public class TestSuiteData implements Serializable {
     /**
      * Helper function to {@link #writeHtml(String) writeHtml}.
      */
-    private void writeHtmlFile(String chartDirectory, StringBuilder html) {
-        String indexHtml = chartDirectory + File.separator + "index.html";            
+    private void writeHtmlFile(File chartDirectory, StringBuilder html) {
+        File indexHtml = new File(chartDirectory, "index.html");            
         html.append("</table></body></html>");
         FileOutputStream output = null;
         PrintStream printer = null;
@@ -123,7 +122,7 @@ public class TestSuiteData implements Serializable {
         }
     }    
 
-    public void writeCharts(String chartDirectory) {
+    public void writeCharts(File chartDirectory) {
         List<ChartWriter> writers = new ArrayList<ChartWriter>(testData.size());
         for (String testcaseName : testData.keySet()) {
             ChartWriter writer = new ChartWriter(chartDirectory, testcaseName, this);

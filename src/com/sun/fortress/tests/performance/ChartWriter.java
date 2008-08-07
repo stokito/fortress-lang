@@ -34,11 +34,11 @@ import org.jfree.data.xy.XYSeries;
 
 public class ChartWriter extends Thread {
 
-    final private String chartDirectory;
+    final private File chartDirectory;
     final private String testcaseName;
     final private TestSuiteData testSuiteData;
     
-    ChartWriter(String chartDirectory, String testcaseName, TestSuiteData testSuiteData) {
+    ChartWriter(File chartDirectory, String testcaseName, TestSuiteData testSuiteData) {
         this.chartDirectory = chartDirectory;
         this.testcaseName = testcaseName;
         this.testSuiteData = testSuiteData;
@@ -61,10 +61,8 @@ public class ChartWriter extends Thread {
             OutputStream htmlOut = null;
             PrintWriter htmlWriter = null;
             try {
-                String htmlPath = chartDirectory + File.separator
-                        + testcaseName + ".html";
-                htmlOut = new BufferedOutputStream(new FileOutputStream(
-                        new File(htmlPath)));
+                File htmlPath = new File(chartDirectory, testcaseName + ".html");
+                htmlOut = new BufferedOutputStream(new FileOutputStream(htmlPath));
                 htmlWriter = new PrintWriter(htmlOut);
                 htmlWriter.println("<html><head></head><body>");
                 String filePath = chartDirectory + File.separator + testcaseName + ".png";
