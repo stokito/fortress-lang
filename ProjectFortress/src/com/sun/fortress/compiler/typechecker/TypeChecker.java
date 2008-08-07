@@ -58,6 +58,7 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.*;
@@ -68,11 +69,11 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.ConsList;
 import edu.rice.cs.plt.collect.EmptyRelation;
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.UnionRelation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
@@ -747,8 +748,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 result = new TypeCheckerResult(that, TypeError.make(err, that));
 			 result_type = Option.none();
 		 }
-		 // The result should be a _RewriteFnApp
-		 return TypeCheckerResult.compose(that, result_type,
+
+		 Node new_node = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), result_type, (Expr) function_result.ast(), (Expr) argument_result.ast());
+		 return TypeCheckerResult.compose(new_node, result_type,
 				 subtypeChecker, function_result, argument_result, result);
 	 }
 
@@ -756,27 +758,22 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that, Option<TypeCheckerResult> exprType_result, 
 			 TypeCheckerResult obj_result,
 			 List<TypeCheckerResult> staticArgs_result) {
-
+	     Type t;
 		 if( obj_result.type().isNone() ) {
 			 return TypeCheckerResult.compose(that, subtypeChecker, obj_result,
 					 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 		 }
-		 else if( (obj_result.type().unwrap() instanceof TraitType) ) {
-
-			 return TypeCheckerResult.compose(that,obj_result.type().unwrap() ,subtypeChecker, obj_result,
-					 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+		 else if( (obj_result.type().unwrap() instanceof TraitType) ) {  
+		     t=obj_result.type().unwrap();
 		 }
 		 else if( (obj_result.type().unwrap() instanceof _RewriteGenericSingletonType) ) {
 			 // instantiate with static parameters
 			 _RewriteGenericSingletonType uninstantiated_t = (_RewriteGenericSingletonType)obj_result.type().unwrap();
-
 			 boolean match = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), uninstantiated_t.getStaticParams());
 			 if( match ) {
 				 // make a trait type that is GenericType instantiated
-				 Type t = NodeFactory.makeTraitType(uninstantiated_t.getSpan(),
-						 uninstantiated_t.isParenthesized(), uninstantiated_t.getName(), that.getStaticArgs());
-				 return TypeCheckerResult.compose(that, t, subtypeChecker, obj_result,
-						 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+				 t = NodeFactory.makeTraitType(uninstantiated_t.getSpan(),
+						 uninstantiated_t.isParenthesized(), uninstantiated_t.getName(), that.getStaticArgs()); 
 			 }
 			 else {
 				 // error
@@ -789,6 +786,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 else {
 			 return bug("Unexpected type for ObjectRef.");
 		 }
+		 
+		 Node new_node = new _RewriteObjectRef(that.getSpan(), that.isParenthesized(), Option.<Type>some(t), (Id) obj_result.ast(), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result));
+		 return TypeCheckerResult.compose(new_node, t, subtypeChecker, obj_result,
+                 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result)); 
 	 }
 
 	 @Override
@@ -812,6 +813,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					 return ExprFactory.makeOpExpr(that.getInfix_op(), arg0, arg1);
 				 }}).accept(this);
 		 }
+		 
+		 //I am pretty sure this method rebuilds the ast correctly and fills in the exprType field without any changes
+		 
 	 }
 
 	 @Override
@@ -824,6 +828,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return new TypeCheckerResult(that);
 	 }
 
+	 /*
+	  * FIXME: Figure out what type these should have and make them propogate ast
+	  */
 	 @Override
 	 public TypeCheckerResult forArgExprOnly(ArgExpr that, Option<TypeCheckerResult> exprType_result, 
 			 List<TypeCheckerResult> exprs_result,
@@ -847,7 +854,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 public TypeCheckerResult forArrayElementOnly(ArrayElement that, Option<TypeCheckerResult> exprType_result, 
 			 List<TypeCheckerResult> staticArgs_result,
 			 TypeCheckerResult element_result) {
-
+	     
 		 if( element_result.type().isNone() ) {
 			 return TypeCheckerResult.compose(that, subtypeChecker, element_result,
 					 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
@@ -868,15 +875,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 TypeArg elem = NodeFactory.makeTypeArg(element_result.type().unwrap());
 			 IntArg lower = NodeFactory.makeIntArgVal(""+0);
 			 IntArg size = NodeFactory.makeIntArgVal(""+1);
-			 return TypeCheckerResult.compose(that,Types.makeArrayKType(1, Useful.list(elem, lower, size)),this.subtypeChecker, element_result);
+			 Type t=Types.makeArrayKType(1, Useful.list(elem, lower, size));
+			 Node new_node=new ArrayElement(that.getSpan(), that.isParenthesized(), Option.some(t), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result), (Expr) element_result.ast());
+			 return TypeCheckerResult.compose(new_node,t,this.subtypeChecker, element_result);
 		 }
 		 else{
 			 if(StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), index.staticParameters())){
 				 TypeCheckerResult res=this.checkSubtype(element_result.type().unwrap(),
 						 ((TypeArg)that.getStaticArgs().get(0)).getType(), that,
 						 element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getType());
-				 return TypeCheckerResult.compose(that,Types.makeArrayKType(1, that.getStaticArgs()),this.subtypeChecker, element_result, res,
-						 TypeCheckerResult.compose(that,this.subtypeChecker,staticArgs_result));
+				 Type t=Types.makeArrayKType(1, that.getStaticArgs());
+				 Node new_node=new ArrayElement(that.getSpan(), that.isParenthesized(), Option.some(t), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result), (Expr) element_result.ast());
+				 return TypeCheckerResult.compose(new_node,t,this.subtypeChecker, element_result, res,
+						 TypeCheckerResult.compose(new_node,this.subtypeChecker,staticArgs_result));
 			 }
 			 else{
 				 String err = "Explicit static arguments do not match required arguments for Array1 (" + index.staticParameters() + ".)";
@@ -885,149 +896,162 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 			 }
 		 }
-
 	 }
 
 
 	 // This method is pretty long because we have to create a new visitor that visitis ArrayElements and ArrayElement
 	 // knowing that we are inside of another ArrayElement.
-	 @Override
-	 public TypeCheckerResult forArrayElements(ArrayElements that) {
-		 // Create a new visitor whose responsibility is the gathering of types and element sizes from lower dimensions
-		 NodeDepthFirstVisitor<Pair<TypeCheckerResult,ConsList<Integer>>> elements_visitor =
-			 new NodeDepthFirstVisitor<Pair<TypeCheckerResult,ConsList<Integer>>>() {
-			 final NodeDepthFirstVisitor<Pair<TypeCheckerResult,ConsList<Integer>>> stored_this = this;
-			 @Override
-			 public Pair<TypeCheckerResult, ConsList<Integer>> forArrayElement(
-					 ArrayElement that) {
-				 Integer size = 1;
-				 TypeCheckerResult elem_result = that.getElement().accept(TypeChecker.this);
-				 // that.getStaticArgs() TODO, check me
-				 return Pair.<TypeCheckerResult,ConsList<Integer>>make(elem_result, ConsList.singleton(size));
-			 }
-
-			 @Override
-			 public Pair<TypeCheckerResult, ConsList<Integer>> forArrayElements(
-					 ArrayElements that) {
-				 // recur on sub-elements
-				 Iterable<Pair<TypeCheckerResult,ConsList<Integer>>> elems_results =
-					 IterUtil.map(that.getElements(), new Lambda<ArrayExpr,Pair<TypeCheckerResult,ConsList<Integer>>>(){
-						 public Pair<TypeCheckerResult, ConsList<Integer>> value(
-								 ArrayExpr arg0) {
-							 return arg0.accept(stored_this);
-						 }});
-
-				 List<TypeCheckerResult> all_results = CollectUtil.makeList(IterUtil.pairFirsts(elems_results));
-				 List<ConsList<Integer>> all_sizes = CollectUtil.makeList(IterUtil.pairSeconds(elems_results));
-
-				 Integer size = that.getElements().size();
-				 ConsList<Integer> last_size_list = IterUtil.first(all_sizes);
-				 ConsList<Integer> new_size_list = ConsList.cons(size, last_size_list);
-
-				 // Check that all sub-elements are typed
-				 for( TypeCheckerResult r : all_results ) {
-					 if( r.type().isNone() ) {
-						 return Pair.make(TypeCheckerResult.compose(that, subtypeChecker, all_results), new_size_list);
-					 }
-				 }
-				 // Make sizes in each list are the same as the equivalent position in last_size_list
-				 for( ConsList<Integer> size_list : all_sizes ) {
-					 Boolean sizes_match =
-						 IterUtil.fold(IterUtil.zip(size_list, last_size_list), true, new Lambda2<Boolean,Pair<Integer,Integer>,Boolean>(){
-							 public Boolean value(Boolean arg0, Pair<Integer, Integer> arg1) {
-								 return arg0 & (arg1.first().equals(arg1.second()));
-							 }});
-					 if(size_list.isEmpty()){
-						 ConsList<Integer> empty = ConsList.<Integer>empty();
-						 return Pair.make(TypeCheckerResult.compose(that,subtypeChecker,all_results),empty);
-					 }
-					 if( !sizes_match) {
-						 String err = "Sizes of elements in array dimension are not equal.";
-						 TypeCheckerResult result = new TypeCheckerResult(that, TypeError.make(err, that));
-						 result = TypeCheckerResult.compose(that, subtypeChecker, result,
-								 TypeCheckerResult.compose(that, subtypeChecker, all_results));
-						 ConsList<Integer> empty = ConsList.<Integer>empty();
-						 return Pair.make(result, empty);
-					 }
-				 }
-
-				 // Now create result type from elements
-				 Type result_type = subtypeChecker.join(IterUtil.map(all_results, new Lambda<TypeCheckerResult,Type>(){
-					 public Type value(TypeCheckerResult arg0) {
-						 return arg0.type().unwrap();
-					 }}));
-				 TypeCheckerResult result = TypeCheckerResult.compose(that, result_type,subtypeChecker, all_results);
-				 return Pair.make(result, new_size_list);
-			 }
-		 };
-
-		 List<TypeCheckerResult> staticArgs_result = this.recurOnListOfStaticArg(that.getStaticArgs());
-		 // Get type and dimension sizes from elements
-		 Pair<TypeCheckerResult, ConsList<Integer>> elements_result_ = that.accept(elements_visitor);
-		 TypeCheckerResult elements_result = elements_result_.first();
-		 ConsList<? extends Integer> dim_sizes = elements_result_.second();
-
-		 // Make sure it actually has a type
-		 if( elements_result.type().isNone() )
-			 return elements_result;
-
-		 Type array_type = elements_result.type().unwrap();
-
-		 // Now try to get array type for the dimension we have
-		 int dim = that.getDimension();
-		 Id k_array = Types.getArrayKName(dim);
-
-		 Option<TypeConsIndex> ind = table.typeCons(k_array);
-		 if( ind.isNone() ) {
-			 bug("Array"+dim +" has not yet been implemented.");
-		 }
-
-		 TraitIndex trait_index = (TraitIndex)ind.unwrap();
-		 List<StaticArg> sargs = that.getStaticArgs();
-
-		 if( !sargs.isEmpty() ) {
-			 if( StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters()) ) {
-				 // First arg MUST BE a TypeArg, and it must be a supertype of the elements
-				 Type declared_type = ((TypeArg)that.getStaticArgs().get(0)).getType();
-				 TypeCheckerResult subtype_result =
-					 this.checkSubtype(array_type, declared_type, that, "Array elements must be a subtype of explicity declared type" + declared_type + ".");
-				 // then instantiate and return
-				 Type return_type = Types.makeArrayKType(dim, sargs);
-				 return TypeCheckerResult.compose(that, return_type, subtypeChecker, subtype_result,
-						 TypeCheckerResult.compose(that, subtypeChecker, elements_result),
-						 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-			 }
-			 else {
-				 // wrong args passed
-				 String err = "Explicit static arguments don't matched required arguments for " + trait_index + ".";
-				 TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, that));
-				 return TypeCheckerResult.compose(that, subtypeChecker, e_result,
-						 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
-						 TypeCheckerResult.compose(that, subtypeChecker, elements_result));
-			 }
-		 }
-		 else {
-			 // then we just use what we determine to be true
-			 List<StaticArg> inferred_args = new ArrayList<StaticArg>(1+dim*2);
-			 inferred_args.add(NodeFactory.makeTypeArg(array_type));
-			 for(int i=0;i<dim;i++) {
-				 Integer s = ConsList.first(dim_sizes);
-				 dim_sizes = ConsList.rest(dim_sizes);
-
-				 IntArg lower_bound = NodeFactory.makeIntArgVal("0");
-				 IntArg size = NodeFactory.makeIntArgVal(s.toString());
-
-				 inferred_args.add(lower_bound);
-				 inferred_args.add(size);
-			 }
-			 // then instantiate and return
-			 Type return_type = Types.makeArrayKType(dim, inferred_args);
-			 return TypeCheckerResult.compose(that, return_type, subtypeChecker,
-					 TypeCheckerResult.compose(that, subtypeChecker, elements_result),
-					 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-		 }
+	 
+	 private static Pair<Type,List<BigInteger>> getTypeAndBoundsFromArray(Type that){
+	     TraitType type;
+	     if(that instanceof TraitType){
+	         type=(TraitType)that;
+	     }
+	     else{
+	         return InterpreterBug.bug("Not an Array");
+	     }
+	     if(type.getName().toString().startsWith("FortressLibrary.Array")){
+	         List<BigInteger> dims = new ArrayList<BigInteger>();
+	         for(int i=2; i<type.getArgs().size(); i+=2){
+	             StaticArg arg = type.getArgs().get(i);
+	             if(arg instanceof IntArg){
+	                 IntExpr iexpr = ((IntArg)arg).getVal();
+	                 if(iexpr instanceof NumberConstraint){
+	                     IntLiteralExpr dim = ((NumberConstraint) iexpr).getVal();
+	                     BigInteger n = dim.getVal();
+	                     dims.add(n);
+	                 }
+	                 else{
+	                     return NI.nyi();
+	                 }
+	             }
+	             else{
+	                 return InterpreterBug.bug("Array type changed");
+	             }
+	         }
+	         Type t;
+	         if(type.getArgs().get(0) instanceof TypeArg){
+	             t = ((TypeArg)type.getArgs().get(0)).getType();
+	         }
+	         else{
+	             return InterpreterBug.bug("Array type changed");
+	         }
+	         return Pair.make(t, dims);
+	     }
+	     else{
+	         return InterpreterBug.bug("Not an Array");
+	     }
 	 }
+	 
+	 @Override
+	 public TypeCheckerResult forArrayElements(ArrayElements that){
+	     List<TypeCheckerResult> subarrays = this.recurOnListOfArrayExpr(that.getElements());
+	     Lambda<TypeCheckerResult,Option<Pair<Type,List<BigInteger>>>> get = new Lambda<TypeCheckerResult,Option<Pair<Type,List<BigInteger>>>>(){
+            public Option<Pair<Type, List<BigInteger>>> value(TypeCheckerResult arg0) {
+                if(arg0.type().isSome()){
+                    return Option.some(TypeChecker.this.getTypeAndBoundsFromArray(arg0.type().unwrap()));
+                }
+                else{
+                    return Option.none();
+                }
+            }
+	     };
+	     Iterable <Option<Pair<Type, List<BigInteger>>>> temp = IterUtil.map(subarrays, get);
+	     List<Type> types = new ArrayList<Type>();
+	     List<List<BigInteger>> dims = new ArrayList<List<BigInteger>>();
+	     boolean failed=false;
+	     List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>(subarrays);
+	     for(Option<Pair<Type,List<BigInteger>>> i: temp){
+	         if(i.isNone()){
+	             //one of your subarrays already failed
+	             failed=true;
+	         }
+	         else{
+	             types.add(i.unwrap().first());
+	             dims.add(i.unwrap().second());
+	         }
+	     }
+	     List<BigInteger> first = dims.get(0);
+	     Boolean same_size = true;
+	     for(List<BigInteger> f: dims){
+	         same_size&=f.equals(first);
+	     }
+	     Type array_type = this.subtypeChecker.join(types);
+         
+	     if(!same_size){
+             all_results.add(new TypeCheckerResult(that, TypeError.make("Not all subarrays the same size ", that)));
+         }
+	     
+	     
+	     
+	     // Now try to get array type for the dimension we have
+         int dim = that.getDimension();
+         Id array = Types.getArrayKName(dim);
+         Option<TypeConsIndex> ind=table.typeCons(array);
+         if(ind.isNone()){
+             array = Types.ARRAY_NAME;
+             ind = table.typeCons(array);
+             if(ind.isNone()){
+                 bug(array+"not in table");
+             }
+         }
 
+         TraitIndex trait_index = (TraitIndex)ind.unwrap();
+	     
+	     
+	     Type return_type;
+         if(that.getStaticArgs().isEmpty()){     
+	         if(failed || !same_size){
+	             return TypeCheckerResult.compose(that, subtypeChecker, all_results);
+	         }
+	            // then we just use what we determine to be true
+             List<StaticArg> inferred_args = new ArrayList<StaticArg>(1+dim*2);
+             inferred_args.add(NodeFactory.makeTypeArg(array_type));      
+             IntArg lower_bound = NodeFactory.makeIntArgVal("0");
+             IntArg size = NodeFactory.makeIntArgVal(((Integer)subarrays.size()).toString());
+             inferred_args.add(lower_bound);
+             inferred_args.add(size);
+             for(int i=0;i<dim-1;i++) {
+                 BigInteger s = first.get(i);
+                 lower_bound = NodeFactory.makeIntArgVal("0");
+                 size = NodeFactory.makeIntArgVal(s.toString());
+                 inferred_args.add(lower_bound);
+                 inferred_args.add(size);
+             }
+             // then instantiate and return
+             return_type = Types.makeArrayKType(dim, inferred_args);
+	     }
+	     else{
+	         List<StaticArg> sargs = that.getStaticArgs();
+             if( StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters()) ) {
+                 // First arg MUST BE a TypeArg, and it must be a supertype of the elements
+                 Type declared_type = ((TypeArg)that.getStaticArgs().get(0)).getType();
+                 all_results.add(this.checkSubtype(array_type, declared_type, that, "Array elements must be a subtype of explicity declared type" + declared_type + "."));
+                 //Check infered dims against explicit dims
+                 return_type = Types.makeArrayKType(dim, sargs);
+             }
+             else {
+                 // wrong args passed
+                 all_results.add(new TypeCheckerResult(that, TypeError.make("Explicit static arguments don't matched required arguments for " + trait_index + ".", that)));
+                 return TypeCheckerResult.compose(that ,subtypeChecker, all_results);
+             } 
+	         if(failed || !same_size){
+                 return TypeCheckerResult.compose(that, Option.some(return_type) ,subtypeChecker, all_results);
+             }
+	     }
+	     
+         
+	     
+	     Lambda<TypeCheckerResult,ArrayExpr> get_expr = new Lambda<TypeCheckerResult,ArrayExpr>(){
+             public ArrayExpr value(TypeCheckerResult arg0) {
+                return (ArrayExpr)arg0.ast();
+             }
+          };    
+          ArrayElements new_node=new ArrayElements(that.getSpan(), that.isParenthesized(), Option.some(return_type) , that.getStaticArgs(), 
+                  that.getDimension(), Useful.list(IterUtil.map(subarrays, get_expr)), that.isOutermost());
+          return TypeCheckerResult.compose(new_node, Option.some(return_type) ,subtypeChecker, all_results);
+	     
+	 }
 
 	 @Override
 	 public TypeCheckerResult forAsExpr(AsExpr that) {

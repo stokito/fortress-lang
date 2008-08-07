@@ -206,6 +206,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
     }
 
+
     private ExprDisambiguator extendWithVars(Set<Id> vars) {
         checkForShadowingVars(vars);
         return extendWithVarsNoCheck(vars);
