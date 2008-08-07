@@ -30,6 +30,10 @@ public class EllipsesEnvironment{
         vars = new HashMap<Id,Storage>();
     }
 
+    public EllipsesEnvironment( EllipsesEnvironment copy ){
+        this.vars = new HashMap( copy.vars );
+    }
+
     private class Storage{
         public int level;
         public Object value;

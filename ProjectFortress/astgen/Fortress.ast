@@ -118,7 +118,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * Repeated expression inside a syntax transformation template
      */
-    interface _Ellipses(Node repeatedNode);
+    interface _Ellipses(AbstractNode repeatedNode);
 
     /**
      * intersections of interface types
@@ -139,6 +139,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * top-level node abstract class
      */
     abstract AbstractNode() extends UIDObject;
+
+
         /**
          * compilation unit declaration
          * CompilationUnit ::= Component | Api
@@ -743,6 +745,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * expression
          */
         root abstract Expr(ignoreForEquals boolean parenthesized = false, ignoreForEquals Option<Type> exprType = Option.<Type>none());
+        
+            _RepeatedExpr(List<AbstractNode> nodes);
 
             /**
              * expression annotated with a type
