@@ -55,34 +55,34 @@ api Xml
 
   grammar xml extends {Expression, Symbols}
     Expr:Element |Expr:= (* type: Content *)
-      x:XExpr <[ x ]>
+      x:XExpr => <[ x ]>
 
     XExpr:Element :Expr:= (* type: Content *)
       b:XmlStart c:XmlContent e:XmlEnd
-      <[ Element(b, c, e) asif Content ]>
+      => <[ Element(b, c, e) asif Content ]>
     | b:XmlStart e:XmlEnd
-      <[ Element(b,e) asif Content ]>
-    | x:XmlComplete <[ Element(x) asif Content ]>
+      => <[ Element(b,e) asif Content ]>
+    | x:XmlComplete => <[ Element(x) asif Content ]>
 
     XmlComplete:Header :Expr:=
       OpenBracket# s:String Slash# CloseBracket
-      <[ Header(s,emptyList[\Attribute\]()) ]>
+      => <[ Header(s,emptyList[\Attribute\]()) ]>
     | OpenBracket# s:String {a:Attribute SPACE}+ Slash# CloseBracket
-      <[ Header(s, a) ]>
+      => <[ Header(s, <|a**|>) ]>
 
     XmlStart:Header :Expr:=
       o1:OpenBracket# s:String o2:CloseBracket
-      <[ Header(s,emptyList[\Attribute\]()) ]>
+      => <[ Header(s,emptyList[\Attribute\]()) ]>
     | o1:OpenBracket# s:String {a:Attribute SPACE}+ o2:CloseBracket
-      <[ Header(s, a) ]>
+      => <[ Header(s, <|a**|>) ]>
 
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
-      s:Strings <[ <| (CData(s) asif Content) |> ]>
-    | c:CData+ <[ <| CData(BIG ||| <| a.toString() | a <- c |>) asif Content |> ]>
-    | {x:XExpr SPACE}+ <[ x ]>
+      s:Strings => <[ <| (CData(s) asif Content) |> ]>
+    | c:CData+ => <[ <| CData(BIG ||| <| a.toString() | a <- <|c**|> |>) asif Content |> ]>
+    | {x:XExpr SPACE}+ => <[ <|x**|> ]>
 
     CData:Element :Expr:=
-        <# !# `[# CDATA# `[# n:Strings `]# `]# > <[ CData(n) asif Content ]>
+        <# !# `[# CDATA# `[# n:Strings `]# `]# > => <[ CData(n) asif Content ]>
 
     (*
       e:Expr <[ <! CData("" e) asif Content !> ]>
@@ -98,7 +98,7 @@ api Xml
 
     XmlEnd:String :Expr:= (* type: String *)
       o1:OpenBracket# Slash# s:String# o2:CloseBracket
-      <[ s ]>
+      => <[ s ]>
 
     (*
     Attributes :Expr:=
@@ -111,43 +111,43 @@ api Xml
       *)
 
     Attribute:Attribute :Expr:=
-      key:String = " val:AttributeStrings " <[ Attribute(key,val) ]>
+      key:String = " val:AttributeStrings " => <[ Attribute(key,val) ]>
 
     AttributeStrings:String :Expr:= (* type: String *)
-      s1:AttributeString s2:AttributeStrings <[ s1 " " s2 ]>
-    | s1:AttributeString <[ s1 ]>
+      s1:AttributeString s2:AttributeStrings => <[ s1 " " s2 ]>
+    | s1:AttributeString => <[ s1 ]>
 
     AttributeString:String :Expr:= (* type: String *)
-      x:AttributeChar# y:AttributeString <[ x y ]>
-    | x:AttributeChar <[ x "" ]>
+      x:AttributeChar# y:AttributeString => <[ x y ]>
+    | x:AttributeChar => <[ x "" ]>
 
     AttributeChar:String :StringLiteralExpr:=
-      x:AnyChar <[ x ]>
-    | x:['] <[ x ]>
-    | x:Slash <[ x ]>
+      x:AnyChar => <[ x ]>
+    | x:['] => <[ x ]>
+    | x:Slash => <[ x ]>
 
     Strings:String :Expr:= (* type: String *)
-      s1:String s2:Strings <[ s1 " " s2 ]>
-    | s1:String <[ s1 ]>
+      s1:String s2:Strings => <[ s1 " " s2 ]>
+    | s1:String => <[ s1 ]>
 
     String:String :Expr:= (* type: String *)
-      x:AnyChar# y:String <[ x y ]>
-    | x:AnyChar <[ x "" ]>
+      x:AnyChar# y:String => <[ x y ]>
+    | x:AnyChar => <[ x "" ]>
 
   end
 
-  grammar Symbols 
+  grammar Symbols extends Expression
 
     AnyChar:String :StringLiteralExpr:=
-      x:[A:Za:z0:9] <[ x ]>
+      x:[A:Za:z0:9] => <[ x ]>
 
     OpenBracket:String :Expr:=
-      < <[ "<" ]>
+      < => <[ "<" ]>
 
     CloseBracket:String :Expr:=
-      > <[ ">" ]>
+      > => <[ ">" ]>
 
     Slash:String :StringLiteralExpr:=
-      / <[ "/" ]>
+      / => <[ "/" ]>
   end
 end
