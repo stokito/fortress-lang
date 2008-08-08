@@ -111,7 +111,7 @@ public class EllipsesNode extends NodeClass {
     }
 
     private void writeGetters(TabPrintWriter writer, String name) {
-        writer.startLine(String.format("final public Node %s(){ return _%s; }", getter(nodeField), nodeField ) );
+        writer.startLine(String.format("final public AbstractNode %s(){ return _%s; }", getter(nodeField), nodeField ) );
         /*
         writer.startLine(String.format("final public String %s(){ return _%s; }", getter(fieldTransformer), fieldTransformer ) );
         writer.startLine("final public java.util.Map<String,Object> getVariables(){ return _variables; }" );
@@ -145,7 +145,7 @@ public class EllipsesNode extends NodeClass {
     }
 
     private void writeFields(TabPrintWriter writer) {
-        writer.startLine(String.format("private final Node _%s;", nodeField));
+        writer.startLine(String.format("private final AbstractNode _%s;", nodeField));
         /*
         // writer.startLine("private final Span _span;");
         writer.startLine(String.format("private final String _%s;", fieldTransformer));
@@ -155,7 +155,7 @@ public class EllipsesNode extends NodeClass {
     }
 
     private void writeConstructor(TabPrintWriter writer, String className) {
-        writer.startLine(String.format("public %s(Span span, Node %s){", className, nodeField));
+        writer.startLine(String.format("public %s(Span span, AbstractNode %s){", className, nodeField));
         writer.indent();
         writer.startLine("super(span);");
         writer.startLine(String.format("this._%s = %s;", nodeField, nodeField));

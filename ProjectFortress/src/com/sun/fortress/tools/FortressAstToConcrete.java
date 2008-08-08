@@ -272,6 +272,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         return s.toString();
     }
+    
+    @Override public String defaultTransformationNode(_SyntaxTransformation that){
+        return "(* ..transformation.. *)";
+    }
 
     @Override public String forImportApiOnly(ImportApi that,
                                              List<String> apis_result) {
@@ -1056,6 +1060,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
+    @Override public String forNodeTransformer(NodeTransformer that) {
+        return "(* ..macro.. *)";
+    }
+    
     @Override public String forCaseTransformerClauseOnly(CaseTransformerClause that, String constructor_result, List<String> parameters_result, String body_result) {
         StringBuilder s = new StringBuilder();
 

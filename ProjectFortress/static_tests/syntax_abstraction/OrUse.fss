@@ -1,0 +1,9 @@
+component OrUse
+import Or.{...}
+export Executable
+
+run(args:String...) = do
+    println (or false, false, true)
+end
+
+end

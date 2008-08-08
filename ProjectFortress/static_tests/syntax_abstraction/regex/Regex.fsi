@@ -92,20 +92,19 @@ api Regex
     object AlternateElement() extends Element
     end
 
-
     grammar regex extends {Expression, Symbols, Literal}
         Expr:Regexp |Expr:= (* type: Content *)
-           x:Regex <[ x ]>
+           x:Regex => <[ x ]>
 
         Regex:Regexp :Expr:=
-            s1:Slash# e:Element#* s2:Slash# <[ Regexp(e) ]>
+            s1:Slash# e:Element#* s2:Slash# => <[ Regexp(<|e**|>) ]>
 
         Element:Element :Expr:=
-            i:Item# `*# `? <[ RepeatNonGreedyElement(i) asif Element ]>
-        |   i:Item# `+# `? <[ RepeatOneNonGreedyElement(i) asif Element ]>
-        |   i:Item# `* <[ RepeatElement(i) asif Element ]>
-        |   i:Item# `+ <[ RepeatOneElement(i) asif Element ]>
-        |   i:Item# `? <[ MaybeElement(i) asif Element ]>
+            i:Item# `*# `? => <[ RepeatNonGreedyElement(i) asif Element ]>
+        |   i:Item# `+# `? => <[ RepeatOneNonGreedyElement(i) asif Element ]>
+        |   i:Item# `* => <[ RepeatElement(i) asif Element ]>
+        |   i:Item# `+ => <[ RepeatOneElement(i) asif Element ]>
+        |   i:Item# `? => <[ MaybeElement(i) asif Element ]>
         (*
         |   i:Item# `{ n:IntLiteralExpr `} <[ RepeatExactlyElement(i,n) asif Element ]>
         |   i:Item# `{ n:IntLiteralExpr , `} <[ RepeateMinElement(i,n) asif Element ]>
@@ -114,45 +113,45 @@ api Regex
         |   i:Item# `{ , n:IntLiteralExpr `}
             <[ RepeatMaxElement(i,n) asif Element ]>
         *)
-        |   i:Item# `{ n:LiteralExpr `} <[ RepeatExactlyElement(i,n) asif Element ]>
-        |   i:Item# `{ n:LiteralExpr , `} <[ RepeatMinElement(i,n) asif Element ]>
+        |   i:Item# `{ n:LiteralExpr `} => <[ RepeatExactlyElement(i,n) asif Element ]>
+        |   i:Item# `{ n:LiteralExpr , `} => <[ RepeatMinElement(i,n) asif Element ]>
         |   i:Item# `{ n1:LiteralExpr , n2:LiteralExpr `}
-            <[ RepeatBetweenElement(i,n1,n2) asif Element ]>
+            => <[ RepeatBetweenElement(i,n1,n2) asif Element ]>
         |   i:Item# `{ , n:LiteralExpr `}
-            <[ RepeatMaxElement(i,n) asif Element ]>
-        |   `## `{# e:Expr `} <[ CharElement(e "") asif Element ]>
-        |   i:Item <[ i ]>
+            => <[ RepeatMaxElement(i,n) asif Element ]>
+        |   `## `{# e:Expr `} => <[ CharElement(e "") asif Element ]>
+        |   i:Item => <[ i ]>
 
         Item:Element :Expr:=
-            ^ <[ StartElement() asif Element ]>
-        |   $ <[ EndElement() asif Element ]>
-        |   `| <[ AlternateElement() asif Element ]>
-        |   . <[ AnyElement() asif Element ]>
-        |   \# any:_ <[ EscapedElement(any "") asif Element ]>
-        |   c:CharacterClass <[ c ]>
-        |   (# e:Element#* ) <[ GroupElement(e) asif Element ]>
-        |   s:AnyChar <[ (CharElement(s) asif Element) ]>
+            ^ => <[ StartElement() asif Element ]>
+        |   $ => <[ EndElement() asif Element ]>
+        |   `| => <[ AlternateElement() asif Element ]>
+        |   . => <[ AnyElement() asif Element ]>
+        |   \# any:_ => <[ EscapedElement(any "") asif Element ]>
+        |   c:CharacterClass => <[ c ]>
+        |   (# e:Element#* ) => <[ GroupElement(<|e**|>) asif Element ]>
+        |   s:AnyChar => <[ (CharElement(s) asif Element) ]>
         
         CharacterClass:Element :Expr:=
-            `[# ^# r:RangeItem#* `] <[ InverseClassElement(r) asif Element ]>
-        |   `[# r:RangeItem#* `] <[ ClassElement(r) asif Element ]>
+            `[# ^# r:RangeItem#* `] => <[ InverseClassElement(<|r**|>) asif Element ]>
+        |   `[# r:RangeItem#* `] => <[ ClassElement(<|r**|>) asif Element ]>
 
         RangeItem:Element :Expr:=
-            s1:AnyChar# - s2:AnyChar <[ RangeElement(s1,s2) asif Element ]>
-        |   s:AnyChar <[ CharElement(s) asif Element ]>
+            s1:AnyChar# - s2:AnyChar => <[ RangeElement(s1,s2) asif Element ]>
+        |   s:AnyChar => <[ CharElement(s) asif Element ]>
     end
 
-    grammar Symbols
+    grammar Symbols extends Expression
         Slash:String :StringLiteralExpr:=
-            / <[ "/" ]>
+            / => <[ "/" ]>
 
         AnyChar:String :Expr:=
-            x:[A:Za:z0:9~!@%&] <[ x ]>
-        |   `: <[ ":" ]>
-        |   `# <[ "#" ]>
-        |   < <[ "<" ]>
-        |   > <[ ">" ]>
-        |   `{ <[ "{" ]>
-        |   `} <[ "}" ]>
+            x:[A:Za:z0:9~!@%&] => <[ x ]>
+        |   `: => <[ ":" ]>
+        |   `# => <[ "#" ]>
+        |   < => <[ "<" ]>
+        |   > => <[ ">" ]>
+        |   `{ => <[ "{" ]>
+        |   `} => <[ "}" ]>
     end 
 end

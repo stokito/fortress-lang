@@ -282,7 +282,7 @@ public class ComposingSyntaxDefTranslator {
             if (symbol_result.size() == 1) {
                 Element e = symbol_result.get(0);
                 assert(that.getId().isSome());
-                return mkList(new Binding(that.getId().unwrap().getText(), e));
+                return mkList(new Binding(prefixJavaVariable(that.getId().unwrap().getText()), e));
             }
             if (symbol_result.isEmpty()) {
                 if (that.getId().isSome()) {
@@ -433,7 +433,8 @@ public class ComposingSyntaxDefTranslator {
             List<String> code = new LinkedList<String>();
             StringBuilder variables = new StringBuilder();
             for (PrefixedSymbol sym : varSyms) {
-                variables.append( sym.getId().unwrap().toString() ).append( "," );
+                String name = sym.getId().unwrap().toString();
+                variables.append( prefixJavaVariable( name ) ).append( "," );
             }
             code.add(String.format("yyValue = new Object[] { %s };", variables.toString()));
             indents.add(1);
@@ -450,7 +451,7 @@ public class ComposingSyntaxDefTranslator {
             for (int index = 0; index < varCount ; index++) {
                 PrefixedSymbol sym = varSyms.get(index);
                 Id varId = sym.getId().unwrap();
-                String varName = varId.toString();
+                String varName = prefixJavaVariable(varId.toString());
                 Id ntName = inner.syntaxDeclEnv.getNonterminalOfVar(varId);
                 String baseFortressType = lookupAstType(varId);
                 String fullType = varMap.get(sym).getType(baseFortressType); 
@@ -600,14 +601,24 @@ public class ComposingSyntaxDefTranslator {
             String resultVar = depth.accept(new DepthConvertVisitor(var, 3));
 
             indents.add(3);
-            code.add(String.format("%s.put(\"%s\",%s);", BOUND_VARIABLES, var, resultVar));
+            code.add(String.format("%s.put(\"%s\",%s);", BOUND_VARIABLES, var, prefixJavaVariable(resultVar)));
         }
+    }
+
+    /* Prefix a variable with some identifier so that names chosen by the user
+     * don't clash with generated bindings nor do they conflict with java keywords
+     * such as 'do' and 'for'.
+     * One restriction is the prefix cannot start with _ because that is the "any char"
+     * character in Rats!.
+     */
+    private static String prefixJavaVariable(String s){
+        return "fortress_" + s;
     }
 
     private static String convertToStringLiteralExpr(String id, List<String> code, List<Integer> indents) {
         String name = FreshName.getFreshName("stringLiteral");
         indents.add(3);
-        code.add("StringLiteralExpr "+name+" = new StringLiteralExpr(\"\"+"+id+");");
+        code.add("StringLiteralExpr "+prefixJavaVariable(name)+" = new StringLiteralExpr(\"\"+"+prefixJavaVariable(id)+");");
         return name;
     }
 }
