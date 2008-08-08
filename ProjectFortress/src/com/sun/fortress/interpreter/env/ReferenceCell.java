@@ -86,10 +86,6 @@ public class ReferenceCell extends IndirectionCell {
         else return false;
 	}
 
-    private void debugPrint(String s) {
-        System.out.println(Thread.currentThread().getName() + s);
-    }
-
     private boolean transactionIsNotActive(Transaction w) {
         if (w == null) return false;
         else if (w.isAborted()) return true;
