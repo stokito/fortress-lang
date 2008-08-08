@@ -172,6 +172,10 @@ public final class Shell {
         com.sun.fortress.compiler.StaticChecker.typecheck = true;
     }
 
+    private static void turnOnObjExprDesugaring(){
+        com.sun.fortress.compiler.Desugarer.objExpr_desugar = true;
+    }
+
     /* Main entry point for the fortress shell.*/
     public static void main(String[] tokens) throws InterruptedException, Throwable {
         if (tokens.length == 0) {
@@ -200,6 +204,7 @@ public final class Shell {
                 compile(args, Option.<String>none());
             } else if ( what.equals( "desugar" ) ){
                 turnOnTypeChecking();
+                turnOnObjExprDesugaring();
                 setPhase( PhaseOrder.DESUGAR );
                 compile(args, Option.<String>none());
             } else if ( what.equals( "grammar" ) ){
