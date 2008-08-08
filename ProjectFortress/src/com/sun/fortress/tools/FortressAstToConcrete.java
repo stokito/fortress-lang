@@ -269,6 +269,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         return s.toString();
     }
+    
+    @Override public String defaultTransformationNode(_SyntaxTransformation that){
+        return "(* ..transformation.. *)";
+    }
 
     @Override public String forImportApiOnly(ImportApi that,
                                              List<String> apis_result) {
