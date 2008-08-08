@@ -48,6 +48,16 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
 
     @Override public void runTest()
         throws FileNotFoundException, IOException, Throwable {
+        PrintStream oldOut = System.out;
+        PrintStream oldErr = System.err;
+        WireTappedPrintStream wt_err =
+            WireTappedPrintStream.make(System.err, true);
+        WireTappedPrintStream wt_out =
+            WireTappedPrintStream.make(System.out, true);
+        System.setErr(wt_err);
+        System.setOut(wt_out);
+        FValue original = Shell.eval(file);
+
         String name = file.substring( 0, file.lastIndexOf(".") );
         String fileName = file.substring( file.lastIndexOf(SEP)+1 );
         String tfs = name + ".tfs";
@@ -59,15 +69,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         ASTIO.deleteJavaAst( tfs );
         com.sun.fortress.compiler.StaticChecker.typecheck = false;
 
-        PrintStream oldOut = System.out;
-        PrintStream oldErr = System.err;
-        WireTappedPrintStream wt_err =
-            WireTappedPrintStream.make(System.err, true);
-        WireTappedPrintStream wt_out =
-            WireTappedPrintStream.make(System.out, true);
-        System.setErr(wt_err);
-        System.setOut(wt_out);
-        assertEquals(Shell.eval(file), Shell.eval(generated));
+        assertEquals(original, Shell.eval(generated));
         System.setErr(oldErr);
         System.setOut(oldOut);
     }
@@ -77,10 +79,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
        TestSuite suite = new TestSuite("Tests closure conversion of object expressions." );
        String tests = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
        String[] files = new String[]{
-           /*
            "objectCC.fss" };
-           */
-       };
        for ( String file : files ){
            suite.addTest( new ObjectExpressionVisitorJUTest( tests + SEP + file ) );
        }
