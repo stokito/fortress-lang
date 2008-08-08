@@ -99,7 +99,7 @@ public final class Shell {
         System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
         System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" unparse [-noQualified] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
+        System.err.println(" unparse [-noQualified] [-unMangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
         System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" desugar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" grammar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
@@ -130,9 +130,10 @@ public final class Shell {
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
-         "fortress unparse [-noQualified] [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
+         "fortress unparse [-noQualified] [-unMangle] [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
          "  Convert a parsed file back to Fortress source code. The output will be dumped to stdout if -out is not given.\n"+
          "  If -noQualified is given, identifiers are dumped without their API prefixes.\n"+
+         "  If -unMangle is given, internally mangled identifiers are unmangled.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
          "fortress disambiguate [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
@@ -193,7 +194,7 @@ public final class Shell {
             } else if ( what.equals("parse" ) ){
                 parse(args, Option.<String>none());
             } else if ( what.equals("unparse" ) ){
-                unparse(args, Option.<String>none(), false);
+                unparse(args, Option.<String>none(), false, false);
             } else if ( what.equals( "disambiguate" ) ){
                 setPhase( PhaseOrder.DISAMBIGUATE );
                 compile(args, Option.<String>none());
@@ -413,8 +414,10 @@ public final class Shell {
      * UnParse a file.
      * If you want a dump then give -out somefile.
      */
-    private static void unparse(List<String> args, Option<String> out,
-                                boolean _noQualified)
+    private static void unparse(List<String> args,
+                                Option<String> out,
+                                boolean _noQualified,
+                                boolean _unMangle)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to unparse");
@@ -422,10 +425,14 @@ public final class Shell {
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
         boolean noQualified = _noQualified;
+        boolean unMangle = _unMangle;
 
         if (s.startsWith("-")) {
             if (s.equals("-noQualified")){
                 noQualified = true;
+            }
+            if (s.equals("-unMangle")){
+                unMangle = true;
             }
             if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
@@ -436,15 +443,18 @@ public final class Shell {
             }
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
 
-            unparse( rest, out, noQualified );
+            unparse( rest, out, noQualified, unMangle );
         } else {
-            unparse( s, out, noQualified );
+            unparse( s, out, noQualified, unMangle );
         }
     }
 
-    private static void unparse( String file, Option<String> out, boolean noQualified ){
+    private static void unparse( String file,
+                                 Option<String> out,
+                                 boolean noQualified,
+                                 boolean unMangle ){
         try{
-            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete(noQualified) );
+            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete(noQualified,unMangle) );
             if ( out.isSome() ){
                 try{
                     BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
