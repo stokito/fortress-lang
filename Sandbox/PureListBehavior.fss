@@ -6,9 +6,9 @@ component PureListBehavior
     var PassCount: ZZ32 = 0
     
     ensureEqual(left: Any, right: Any, failureMessage: String...) = do
-        if (left =/= right) then
+        if (left ≠ right) then
             tallyFail()
-            println("Fail: ", left, " � ", right, " ", failureMessage)
+            println("Fail: ", left, " ≠ ", right, " ", failureMessage)
         else
             tallyPass()
         end
@@ -29,7 +29,7 @@ component PureListBehavior
     
     run(args:String...) = 
     do
-        println "Checking PureListBehavior0"
+        println "Checking PureListBehavior"
         l = <| 2, 3, 5, 7 |> 
         println l
         L = <| i^2 | i <- 1#10 |>
