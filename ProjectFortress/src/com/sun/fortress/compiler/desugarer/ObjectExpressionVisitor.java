@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
@@ -52,7 +51,6 @@ import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
@@ -81,8 +79,7 @@ import edu.rice.cs.plt.tuple.Pair;
 //       when it's turned off, it does not create typeEnvAtNode
 
 public class ObjectExpressionVisitor extends NodeUpdateVisitor {
-    private List<ObjectDecl> liftedObjectExprs =
-        new LinkedList<ObjectDecl>();
+    private List<ObjectDecl> liftedObjectExprs;
     private Component enclosingComponent;
     private int uniqueId;
     private Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode;
@@ -91,50 +88,81 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     // this does not include the top level component
     private Stack<Node> scopeStack;
     private TraitTable traitTable;
-    private GenericDecl enclosingTraitOrObject;
-    private int levelOfObjExprNesting;
+    private TraitDecl enclosingTraitDecl;
+    private ObjectDecl enclosingObjectDecl;
+    private int objExprNestingLevel;
     private static final String ENCLOSING_NAME = "enclosing";
+    private static final String MANGLE_CHAR = "_";
+
+    /* The following two things are results returned by FreeNameCollector */
+    /* Map key: object expr, value: free names captured by object expr */
+    private Map<Span, FreeNameCollection> objExprToFreeNames;
+    /* Map key: node which the captured mutable varRef is declared under 
+                (which should be either ObjectDecl or LocalVarDecl), 
+       value: list of pairs for which the VarRefs that needs to be boxed
+              pair.first is the span of the decl node for the varRef
+              pair.second is the varRef */
+    private Map<Span, List<Pair<Span, VarRef>>> declSiteToVarRefs;
 
     public ObjectExpressionVisitor(TraitTable traitTable,
-                                   Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
+                    Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
+        liftedObjectExprs = new LinkedList<ObjectDecl>();
+        enclosingComponent = null;
         uniqueId = 0;
         typeEnvAtNode = _typeEnvAtNode;
-        scopeStack = new Stack<Node>();
-        this.traitTable = traitTable;
-        enclosingTraitOrObject = null;
-        levelOfObjExprNesting = 0;
-
+ 
         this.tmpTypeEnvAtNode = new HashMap<Span,TypeEnv>();
         // FIXME: Temp hack to use Map<Span,TypeEnv>
+        // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
         for(Pair<Node, Span> n : typeEnvAtNode.keySet()) {
             this.tmpTypeEnvAtNode.put(n.second(), typeEnvAtNode.get(n));
         }
+        
+        scopeStack = new Stack<Node>();
+        this.traitTable = traitTable;
+        enclosingTraitDecl = null;
+        enclosingObjectDecl = null;
+        objExprNestingLevel = 0;
     }
 
     @Override
-	public Node forComponentOnly(Component that, APIName name_result,
+	public Node forComponent(Component that) {
+        FreeNameCollector freeNameCollector = 
+            new FreeNameCollector(traitTable, tmpTypeEnvAtNode);
+        that.accept(freeNameCollector);
+        
+        objExprToFreeNames = freeNameCollector.getObjExprToFreeNames();
+        declSiteToVarRefs  = freeNameCollector.getDeclSiteToVarRefs();
+
+        // No object expression found in this component. We are done.
+        if(objExprToFreeNames.isEmpty()) {
+            return that;
+        } 
+        
+        enclosingComponent = that;
+        // Only traverse the tree if we find any object expression
+        Node returnValue = super.forComponent(that);
+        enclosingComponent = null;
+
+        return returnValue;
+    }
+
+    @Override
+    public Node forComponentOnly(Component that, APIName name_result,
                                      List<Import> imports_result,
                                      List<Export> exports_result,
                                      List<Decl> decls_result) {
         decls_result.addAll(liftedObjectExprs);
         return super.forComponentOnly(that, name_result,
-                                      imports_result, exports_result, decls_result);
-    }
-
-    @Override
-	public Node forComponent(Component that) {
-        enclosingComponent = that;
-        Node returnValue = super.forComponent(that);
-        enclosingComponent = null;
-        return returnValue;
+                        imports_result, exports_result, decls_result);
     }
 
     @Override
         public Node forTraitDecl(TraitDecl that) {
         scopeStack.push(that);
-        enclosingTraitOrObject = that;
+        enclosingTraitDecl = that;
     	Node returnValue = super.forTraitDecl(that);
-    	enclosingTraitOrObject = null;
+    	enclosingTraitDecl = null;
         scopeStack.pop();
     	return returnValue;
     }
@@ -142,9 +170,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     @Override
         public Node forObjectDecl(ObjectDecl that) {
         scopeStack.push(that);
-        enclosingTraitOrObject = that;
+        enclosingObjectDecl = that;
      	Node returnValue = super.forObjectDecl(that);
-     	enclosingTraitOrObject = null;
+        enclosingObjectDecl = null;
      	scopeStack.pop();
     	return returnValue;
     }
@@ -231,22 +259,18 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     @Override
 	public Node forWhile(While that) {
-        scopeStack.push(that);
-        Node returnValue = super.forWhile(that);
-        scopeStack.pop();
-        return returnValue;
-    }
+		scopeStack.push(that);
+		Node returnValue = super.forWhile(that);
+		scopeStack.pop();
+		return returnValue;		
+	}
+	
+	@Override
+    public Node forObjectExpr(ObjectExpr that) {
+	    objExprNestingLevel++;
+		scopeStack.push(that);
 
-    @Override
-        public Node forObjectExpr(ObjectExpr that) {
-        levelOfObjExprNesting++;
-        scopeStack.push(that);
-
-        FreeNameCollector freeNameCollector =
-            new FreeNameCollector(scopeStack, typeEnvAtNode,
-                                  traitTable, enclosingTraitOrObject);
-        that.accept(freeNameCollector);
-        FreeNameCollection freeNames = freeNameCollector.getResult();
+        FreeNameCollection freeNames = objExprToFreeNames.get(that.getSpan());
 
        // System.err.println("Free names: " + freeNames);
 
@@ -255,7 +279,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         TightJuxt callToLifted = makeCallToLiftedObj(lifted, that, freeNames);
 
         scopeStack.pop();
-        levelOfObjExprNesting--;
+        objExprNestingLevel--;
 
         return callToLifted;
     }
@@ -346,8 +370,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         NormalParam enclosingSelf = null;
         Option<List<Param>> params = null;
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
-        TypeEnv typeEnv = tmpTypeEnvAtNode.get(scopeStack.get(0).getSpan());
-        enclosingSelf = makeEnclosingSelfParam(typeEnv, freeMethodRefs);
+        TypeEnv typeEnv = tmpTypeEnvAtNode.get(scopeStack.peek().getSpan());
+        enclosingSelf = makeEnclosingSelfParam(typeEnv, target, freeMethodRefs);
 
         params = makeParamsForLiftedObj(freeNames, typeEnv, enclosingSelf);
         /* Use default value for modifiers, where clauses,
@@ -416,33 +440,29 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     private NormalParam makeEnclosingSelfParam(TypeEnv typeEnv,
+                                               ObjectExpr objExpr,
                                                List<FnRef> freeMethodRefs) {
         Option<Type> type;
         NormalParam param = null;
 
         if(freeMethodRefs != null && freeMethodRefs.size() != 0) {
-            // id of the enclosing trait or object
-            Id enclosingId = null;
+            // Just sanity check
+            if(enclosingTraitDecl == null && enclosingObjectDecl == null) {
+                throw new DesugarerError("No enclosing trait or object " +
+                            "decl found when a dotted method is referenced.");
+            }
+
+            // Use the span for the obj expr that we are lifting
+            // FIXME: Is this the right span to use?? 
+            Span paramSpan = objExpr.getSpan();
+
+            // use the "self" id to get the right type of the 
+            // enclosing object / trait decl 
+            type = typeEnv.type( new Id("self") );
+
             // id of the newly created param for implicit self
-            Id enclosingParamId = null;
-            // FIXME: what span should I use?
-            Span paramSpan = freeMethodRefs.get(0).getSpan();
-
-            if(enclosingTraitOrObject == null) {
-                throw new DesugarerError("enclosingTraitOrObject " +
-                                         "is null when a dotted method is referenced.");
-            }
-            if(enclosingTraitOrObject instanceof TraitDecl) {
-            	TraitDecl cast = (TraitDecl) enclosingTraitOrObject;
-                enclosingId = cast.getName();
-            } else if(enclosingTraitOrObject instanceof ObjectDecl) {
-            	ObjectDecl cast = (ObjectDecl) enclosingTraitOrObject;
-                enclosingId = cast.getName();
-            }
-            type = typeEnv.type(enclosingId);
-
-            enclosingParamId = NodeFactory.makeId(paramSpan,
-                                                  ENCLOSING_NAME + "$" + levelOfObjExprNesting);
+            Id enclosingParamId = NodeFactory.makeId(paramSpan,
+                    MANGLE_CHAR + ENCLOSING_NAME + "_" + objExprNestingLevel);
             param = new NormalParam(paramSpan, enclosingParamId, type);
         }
 
@@ -458,7 +478,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     private String getMangledName(ObjectExpr target) {
         String compName = NodeUtil.nameString(enclosingComponent.getName());
-        String mangled = compName + "$" + nextUniqueId();
+        String mangled = MANGLE_CHAR + compName + "_" + nextUniqueId();
         return mangled;
     }
 
