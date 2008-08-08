@@ -456,7 +456,32 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return getValueNullTail(name, l, local, opt_api);
 
     }
-    
+      final public FValue getValue(Id name, int l) throws CircularDependenceError {
+          //String s = NodeUtil.nameString(name);
+          String local = NodeUtil.nameSuffixString(name);
+          Option<APIName> opt_api = name.getApi();
+          return getValueTail(name, l, local, opt_api);
+      }
+
+        final public FValue getValue(OpName name, int l)
+              throws CircularDependenceError {
+          // String s = NodeUtil.nameString(name);
+          String local = NodeUtil.nameSuffixString(name);
+          Option<APIName> opt_api = name.getApi();
+          return getValueTail(name, l, local, opt_api);
+
+      }
+        private FValue getValueTail(IdOrOpName name, int l, String local,
+              Option<APIName> opt_api) throws OptionUnwrapException,
+              CircularDependenceError {
+          FValue v = getValueNullTail(name, l, local, opt_api);
+          if (v != null)
+              return v;
+          return opt_api.isSome() ?
+                  (FValue) error(errorMsg("Missing value: ", local," in api:\n",opt_api.unwrap())) :
+                  (FValue) error(errorMsg("Missing value: ", local," in environment:\n",this));
+    }
+      
       private FValue getValueNullTail(IdOrOpName name, int l, String local,
               Option<APIName> opt_api) throws OptionUnwrapException,
               CircularDependenceError {

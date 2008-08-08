@@ -131,6 +131,10 @@ public interface Environment  {
     
     public abstract FValue getValueNull(OpName name, int l);
     
+    public abstract FValue getValue(Id name, int l);
+    
+    public abstract FValue getValue(OpName name, int l);
+    
     public abstract FValue getValue(VarRef vr);
     
     public abstract FValue getValue(OpRef vr);

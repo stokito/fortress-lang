@@ -169,6 +169,11 @@ public class Desugarer extends Rewrite {
     }
 
     public class FunctionalMethod extends Local {
+        FunctionalMethod() {
+            super();
+            objectNestedness = 0;
+            lexicalNestedness = 0;
+        }
         public String toString() { return "FunctionalMethod@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
@@ -1335,7 +1340,9 @@ public class Desugarer extends Rewrite {
         if (!params.isEmpty())
             for (StaticParam d : params) {
                 String s = NodeUtil.getName(d);
-                rewrites_put(s, new Local());
+                // OpParams are not real members
+                if (! (d instanceof OpParam))
+                    rewrites_put(s, new Local());
                 visibleGenericParameters.put(s, d);
                 immediateDef = addToImmediateDef(immediateDef, s);
             }
@@ -1373,6 +1380,8 @@ public class Desugarer extends Rewrite {
                     arrows.add(sdd);
                     if (aof == FUNCTIONAL) {
                         functionals.add(sdd);
+                        
+                        continue; // NOT a regular member, do not add.
                     }
                 } else {
                     arrows.remove(sdd);
@@ -1493,6 +1502,7 @@ public class Desugarer extends Rewrite {
                                         if (aof == FUNCTIONAL) {
                                             functionals.add(sdd);
                                             rewrites_put(sdd, new FunctionalMethod());
+                                            continue; // do not add as a member
                                         }
                                     } else {
                                         not_arrow_names.add(sdd);

@@ -27,4 +27,4 @@ fi
 
 java -cp "$CP" -Xmx800m -Xms400m \
 junit.swingui.TestRunner \
-com.sun.fortress.unit_tests.SystemJUTest >& test.log
+com.sun.fortress.tests.unit_tests.SystemJUTest >& test.log
